@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f7155bd37a18",
+    "reviewItemId": "ri-096ae7791141",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_CONSULCATALOG_NAMESPACE",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*="
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "The ConsulCatalog provider `namespace` static-configuration option, deprecated in v2, is removed in Traefik v3 and is now unsupported in a way that prevents Traefik from starting; the `namespaces` option must be used instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:25f20ccf8341f868036684380ebff6b04cd67b9331e9475ec7544c164b670598",
+      "inputEvidence": [
+        "ev-3faa5287ea4e"
+      ],
+      "generatedAt": "2026-10-03T12:43:19.629Z",
+      "callId": "728f4b4f-5acc-4ef2-b910-bd52d3919aee",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3faa5287ea4e] says the ConsulCatalog `namespace` option is removed in v3 and would stop Traefik from starting. Its examples show the option set in three places: a YAML file, a TOML file and the CLI flag `--consulCatalog.namespace`. The proposed condition flags an environment when the option is set in any of these places, plus the matching environment variable, and does not flag environments that only use `namespaces`. The file patterns can't be limited to the consulCatalog section, so they may also match a `namespace` line under another provider. The environment-variable name is inferred from naming rules rather than stated in the evidence. These are the reasons for low confidence.",
+    "startedAt": "2026-10-03T12:43:06.173Z",
+    "decidedAt": "2026-10-03T12:43:19.629Z"
+  }
+}

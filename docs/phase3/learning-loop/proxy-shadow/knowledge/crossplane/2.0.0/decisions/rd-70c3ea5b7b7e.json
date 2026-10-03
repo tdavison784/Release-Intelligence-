@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-70c3ea5b7b7e",
+    "reviewItemId": "ri-92fd45833f83",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Compositions using spec.mode: Resources must be migrated to composition functions before upgrading.",
+        "remediation": "Use the Crossplane v1.20 CLI: crossplane beta convert pipeline-composition old-composition.yaml -o new-composition.yaml",
+        "severity": "high"
+      },
+      "statement": "Native patch and transform composition (Composition spec.mode: Resources) is removed in Crossplane 2.0 and replaced by composition functions; Compositions using it must be migrated before upgrading."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:927ed9921d3c87d4384b73b863e28021743cf29248f83ee113f9293d57beb532",
+      "inputEvidence": [
+        "ev-00ae0ffe7ffa",
+        "ev-024ae1616362",
+        "ev-067b435b635b",
+        "ev-0d3738246a50",
+        "ev-13bb08e10750",
+        "ev-13f94d4596b3",
+        "ev-147c26b74d68",
+        "ev-1f38a21f6bdd",
+        "ev-270c9e3fe130",
+        "ev-28c27515399d",
+        "ev-2cf0a7dd0095",
+        "ev-30934c6c9b63",
+        "ev-3b5cfc1e9589",
+        "ev-497295c94a3d",
+        "ev-4cb106f172c6",
+        "ev-4fbe071b2844",
+        "ev-5957f2297008",
+        "ev-6e79b5dc61ae",
+        "ev-754e8c2767c7",
+        "ev-7b1bee6d2352",
+        "ev-81b24803c1c9",
+        "ev-8b680076ce65",
+        "ev-9422233ca172",
+        "ev-95c4d9181c78",
+        "ev-9734c97600b9",
+        "ev-9b2aa10ff338",
+        "ev-9b42493c58c4",
+        "ev-a3bca45d2477",
+        "ev-a51a53aa04ee",
+        "ev-ac8a7bba9777",
+        "ev-b12db1ba30d3",
+        "ev-b44a4511845b",
+        "ev-d5a5794a9446",
+        "ev-d8a9fd80558b",
+        "ev-dfd597f842c9",
+        "ev-e2735e756cbf",
+        "ev-ef56bb524889",
+        "ev-f83c864e3d52"
+      ],
+      "generatedAt": "2026-10-03T16:54:37.487Z",
+      "callId": "fbdaa2ef-3a87-45af-b96f-52b2e48555f2",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-00ae0ffe7ffa] lists native patch and transform composition under \"Removed features\" in the v2 upgrade guide. It says directly that anyone using `spec.mode: Resources` in their Compositions must \"migrate to composition functions before upgrading\", and it gives the v1.20 CLI convert command as migration help. That is a mandatory operator step before the upgrade, so migration-required (mandatory work) with the proposed statement and remediation is supported. The validators refuted only the change aspect (removed vs default-changed), which is not under review here and does not undercut the upgrade guide's explicit migration instruction.",
+    "startedAt": "2026-10-03T16:54:31.127Z",
+    "decidedAt": "2026-10-03T16:54:37.487Z"
+  }
+}

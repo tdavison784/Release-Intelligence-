@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3b43663852af",
+    "candidateId": "sc-1115e82f20f4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments relying on MTU auto-detection may get a different (lowest across external interfaces) MTU than before, when multiple external interfaces exist.",
+        "remediation": "Verify the detected MTU, or set MTU explicitly via the MTU helm option, --mtu agent flag or mtu CNI option."
+      },
+      "statement": "MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (secondary ENI interfaces excluded); manual MTU configuration still works."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b37407b60520"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f557298a2e757fec1fd4f608f129b33d259f214dd10369a379a4ed73f7f95c9e",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-03T07:14:18Z",
+      "callId": "0e0783cc-94e6-4e47-8b48-35608bee59f7"
+    }
+  }
+}

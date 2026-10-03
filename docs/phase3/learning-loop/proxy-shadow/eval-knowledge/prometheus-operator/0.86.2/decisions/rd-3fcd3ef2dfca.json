@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3fcd3ef2dfca",
+    "reviewItemId": "ri-ce46d2657ac9",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:20d6de12ff1d74b055974c0ca6662e3a2c8c21b93b60fa070a7c0f9f4e1d27ca",
+      "inputEvidence": [
+        "ev-3bbda3954fcf",
+        "ev-28316fb74c0f",
+        "ev-8247468c298e",
+        "ev-c90e35f857f5",
+        "ev-f1a64fa3899b",
+        "ev-b717c3338be5",
+        "ev-df0b9c64ea3c",
+        "ev-e59f6c1596ce",
+        "ev-25cf4daec27b",
+        "ev-7e18e362ec43",
+        "ev-835f6288ec0b",
+        "ev-84ddd688a00f",
+        "ev-f8233e3fcf69",
+        "ev-be3ca9c6446f"
+      ],
+      "generatedAt": "2026-10-03T12:35:02.375Z",
+      "callId": "1a18be7a-068c-4b03-9b49-e267e6df0eba",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3bbda3954fcf] says only that the operator's permissions to emit Kubernetes events were fixed. It does not say what goes wrong in an environment without the fixed permissions. The chart renders [ev-e59f6c1596ce] [ev-25cf4daec27b] [ev-f8233e3fcf69] [ev-be3ca9c6446f] show that events.k8s.io/events create and patch were added on top of core/events:create, which suggests the operator now emits events through the events.k8s.io API. If so, installs with custom or non-chart RBAC that lack this permission may fail to emit events, so \"none\" could hide a real permission-lost or behavior-change consequence. To decide, we need the content of PR #8077 (which API group and verbs the operator now needs, and what happens when they are missing).",
+    "startedAt": "2026-10-03T12:34:52.899Z",
+    "decidedAt": "2026-10-03T12:35:02.375Z"
+  }
+}

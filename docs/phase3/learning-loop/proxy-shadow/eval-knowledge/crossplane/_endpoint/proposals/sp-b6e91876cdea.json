@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b6e91876cdea",
+    "candidateId": "sc-287adb9c71e8",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--enable-composition-webhook-schema-validation",
+        "component": "core"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-composition-webhook-schema-validation",
+          "component": "core",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core is started with --enable-composition-webhook-schema-validation, v2.0.0 returns the error \"Crossplane now uses CEL to validate Compositions. The --enable-composition-webhook-schema-validation flag will be removed in a future release.\", so the core does not start until the flag is removed.",
+        "remediation": "Remove --enable-composition-webhook-schema-validation from the Crossplane core arguments; Composition validation is now performed with CEL and the flag is scheduled for removal in a future release.",
+        "severity": "high"
+      },
+      "statement": "In v2.0.0 the Crossplane core command returns a new error stating that Crossplane now uses CEL to validate Compositions and that the --enable-composition-webhook-schema-validation flag will be removed in a future release."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-2875a348b5d7",
+      "ev-59d22c21eec4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:eb81c2c992559d35d5ab5ca030c52bf3a6a3d2336ab3dee8f2da6efbbcc9fc06",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T07:56:02Z",
+      "callId": "c21289e2-eb0f-4f07-9f27-01225dbf4447"
+    }
+  }
+}

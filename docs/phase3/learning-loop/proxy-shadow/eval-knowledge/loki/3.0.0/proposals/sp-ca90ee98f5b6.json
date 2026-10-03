@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ca90ee98f5b6",
+    "candidateId": "sc-69152174e9e5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-cache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alert rules or other metric consumers query querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "Consumers (dashboards, alert rules, queries) referencing the removed metrics querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total will no longer receive data; cache instrumentation is provided instead by loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests made to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards, alert rules and other metric consumers to use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds instead of the removed querier_cache_* metrics.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics `querier_cache_added_total`, `querier_cache_gets_total` and `querier_cache_misses_total`; requests made to the configured cache (`embeddedcache`, `memcached` or `redis`) are instead instrumented by `loki_cache_fetched_keys`, `loki_cache_hits` and `loki_cache_request_duration_seconds`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dd7907f24ce5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f81a25c07a8480865d1637a59a1a41a66fd2d1d501d7c4d2c028a192c725a4ca",
+      "inputEvidence": [
+        "ev-dd7907f24ce5"
+      ],
+      "generatedAt": "2026-10-03T08:52:38Z",
+      "callId": "9ace399d-fe73-4033-9ad9-9591d9fd2858"
+    }
+  }
+}

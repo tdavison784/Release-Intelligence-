@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-34958613291b",
+  "promptDigest": "sha256:7b314c38cc42a7963cd8b890f105af111e527a614a2a26b039c8e426cfa7b02d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "00b0871f-75bc-41a9-beab-33aefc964ea1",
+  "startedAt": "2026-10-03T12:48:53.996Z",
+  "decidedAt": "2026-10-03T12:49:05.127Z",
+  "durationMs": 10323,
+  "costUSD": 0.080796,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3f6039ca92c8] says `split_queries_by_interval` is removed from the `query_range` YAML section and should be configured in Limits Config instead. This is a key moved within Loki's own config, not a function taken over by an upstream mechanism, so superseded-upstream is the wrong kind. A value left under the removed `query_range` key is no longer honoured there. That matches setting-ignored (removed/renamed key), which is mandatory work. The evidence does not say whether the old key is silently ignored or rejected at startup, so the statement claims only that it stops being honoured.",
+    "citations": [
+      "ev-3f6039ca92c8"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, `split_queries_by_interval` is removed from the `query_range` YAML section. A value set there is no longer honoured there and must be configured in limits_config instead.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "In 3.0.0, `split_queries_by_interval` is removed from the `query_range` YAML section. A value configured there is no longer honoured at that location. The setting now has to be set in limits_config.",
+        "remediation": "Move split_queries_by_interval from the query_range section to the limits_config section of the Loki configuration before upgrading."
+      }
+    }
+  }
+}

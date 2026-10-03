@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-23b2e68ba0e2",
+    "candidateId": "sc-63c2c8cd111b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"v1.16.5\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "An environment that installed cert-manager from OperatorHub cannot obtain releases newer than v1.16.5 from that channel — cert-manager v1.16.5 is the last published version — so upgrading to 1.17.0 requires moving to a different installation method, and the cert-manager-olm repository is archived.",
+        "remediation": "Switch OperatorHub-based cert-manager installations to another supported distribution channel to receive cert-manager 1.17.0 and later releases; the OperatorHub channel and the archived cert-manager-olm repository will provide nothing newer than v1.16.5.",
+        "severity": "medium"
+      },
+      "statement": "Starting with cert-manager 1.17.0, OperatorHub packages are no longer published: cert-manager v1.16.5 is the last release available on OperatorHub (RedHat OpenShift OperatorHub and operatorhub.io), and the cert-manager-olm repository is archived, because the maintainers no longer have the time or resources to maintain and test those packages."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure would be environments that installed cert-manager via OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io), but the evidence names only the discontinued channel and states no configuration marker (values key, flag, or manifest shape) by which such installs can be identified in an environment, so no exposure predicate can be built from the evidence.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a89ac42d3167"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:85455d5d7804465bddf0c830748b4df659f1960a49bc2f9a3126d682d2b3adcc",
+      "inputEvidence": [
+        "ev-a89ac42d3167"
+      ],
+      "generatedAt": "2026-10-03T07:58:34Z",
+      "callId": "786ab792-6507-4b25-930e-6246aea6459b"
+    }
+  }
+}

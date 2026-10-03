@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e4c3e4195626",
+    "reviewItemId": "ri-2c9c7fd7726e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-tsdb.shipper.shared-store.key-prefix` flag will be ignored when upgrading to Loki 3.0.0; any configuration using this flag will no longer be honored.",
+        "severity": "high"
+      },
+      "statement": "The CLI flag `-tsdb.shipper.shared-store.key-prefix` has been removed from the shipper configuration in Loki 3.0.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Loki 3.0.0 removes `-tsdb.shipper.shared-store.key-prefix` and its YAML setting. The index path prefix is now set by `path_prefix` under the `index` key in period_config. If the removed setting was configured to a value other than `index/`, all existing period configs that use `tsdb` as the index must have `path_prefix` set to the earlier value.",
+        "remediation": "Before upgrading, remove `-tsdb.shipper.shared-store.key-prefix` (or its YAML setting). In every existing period config that uses `tsdb` as the index, set `index.path_prefix` to the value the flag had.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 removes `-tsdb.shipper.shared-store.key-prefix`. Operators who set it to something other than `index/` must set `path_prefix` in every existing tsdb period config to that earlier value."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:80bfafa1a4238b835b3869f2a6977ee66c923dc3fcddda974d3b0d3b781dc625",
+      "inputEvidence": [
+        "ev-19d4f84472e6",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T12:48:06.468Z",
+      "callId": "7464901e-afff-44ba-9fba-772d0c7e990a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] says the key-prefix flags are removed and that the index path prefix is now set with `path_prefix` under the `index` key in period_config. [ev-632a3911583a] names the step operators must take: if `-tsdb.shipper.shared-store.key-prefix` was set to anything other than `index/`, set `path_prefix` in every existing tsdb period config to that earlier value. [ev-76a46c52508c] says no changes are needed otherwise. Because the guide prescribes a required config step rather than only saying the value stops being honoured, migration-required fits better than setting-ignored. The class is still mandatory work.",
+    "startedAt": "2026-10-03T12:47:50.606Z",
+    "decidedAt": "2026-10-03T12:48:06.468Z"
+  }
+}

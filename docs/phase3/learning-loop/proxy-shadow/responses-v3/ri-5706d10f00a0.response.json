@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5706d10f00a0",
+  "promptDigest": "sha256:334ee00981713864bef3c7f5f888077fc8b86757abd238add28793fffce1c6cd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3899dfbb-0542-402f-a1ff-5cdfebd802a9",
+  "startedAt": "2026-10-03T12:53:19.162Z",
+  "decidedAt": "2026-10-03T12:53:33.336Z",
+  "durationMs": 13298,
+  "costUSD": 0.109156,
+  "output": {
+    "action": "correct",
+    "reason": "The rename itself [ev-80331c11381f] does not say that the old value is rejected or ignored. The section context [ev-bfb089d90d84] says 1.0.0 adds conversion webhooks that pull the v1 version of previously applied v1beta1 NodePools. It also says v1beta1 is served until v1.1.0, when it and the webhooks are dropped, and that stored manifests should be migrated to v1. The proposal's \"setting ignored because the field name is no longer recognized\" is unsupported, and WhenUnderutilized is an enum value, not a field. Read together, the evidence supports a deprecation (still works through conversion in 1.0, removed in 1.1) rather than a mandatory setting-ignored. Confidence is low because no excerpt names this enum value's conversion explicitly.",
+    "citations": [
+      "ev-80331c11381f",
+      "ev-bfb089d90d84"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "NodePool consolidationPolicy value WhenUnderutilized is renamed to WhenEmptyOrUnderutilized in the v1 API. In 1.0.0, conversion webhooks still serve previously applied v1beta1 NodePools as v1. v1beta1 serving and the webhooks are dropped at v1.1.0, so manifests using the old value must be migrated before then.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "severity": "medium",
+        "statement": "In Karpenter 1.0.0, NodePools applied with v1beta1 consolidationPolicy WhenUnderutilized are still converted to the v1 API by the conversion webhooks. Karpenter stops serving v1beta1 and drops the conversion webhooks at v1.1.0, so manifests still using the old v1beta1 form are expected to stop working then.",
+        "remediation": "Migrate stored NodePool manifests to the v1 API, using consolidationPolicy WhenEmptyOrUnderutilized instead of WhenUnderutilized, before upgrading to Karpenter v1.1.0."
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ]
+  }
+}

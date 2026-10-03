@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d0f0969b648d",
+    "candidateId": "sc-003aa0b14bf1",
+    "proposalId": "sp-8b7578c173b3",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "karpenter",
+        "name": "vpc-resource-controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether Windows pods are scheduled onto instance types that are not in the VPC resource controller config at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Windows pod launches that previously failed when the instance type wasn't in the VPC resource controller config now succeed after the upgrade; no configuration change is needed.",
+        "remediation": "verify Windows workloads launch successfully on instance types missing from the VPC resource controller config",
+        "severity": "low"
+      },
+      "statement": "Karpenter 1.0.0 fixes a failure to launch Windows pods when the instance type isn't in the VPC resource controller config, so Windows pod launches that previously failed in that situation now succeed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/behavior-changed",
+        "detail": "no canonical exposure condition for product-relationship behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

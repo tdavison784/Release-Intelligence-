@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-da35201ce3e7",
+    "candidateId": "sc-d81386765c5b",
+    "proposalId": "sp-4e5285689947",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"3.17.0\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.sources[].chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Helm chart operations (templating/rendering of Helm-based applications) are now performed with Helm 3.17.0 instead of the previously bundled Helm version, so chart processing behavior follows Helm 3.17.0.",
+        "remediation": "Review Helm 3.17.0 release changes and verify Helm-based applications still render and deploy as expected after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 upgrades its bundled Helm to 3.17.0, so Helm chart operations now run on Helm 3.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

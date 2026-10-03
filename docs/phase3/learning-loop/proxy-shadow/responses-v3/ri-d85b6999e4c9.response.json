@@ -1,0 +1,80 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d85b6999e4c9",
+  "promptDigest": "sha256:88716658c38da29e6fe187ea9bfe77f19774e390105b2b2b4f042d2ef60822c7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "574e3d6d-307e-4738-9a1c-7a8851aac929",
+  "startedAt": "2026-10-03T17:03:06.709Z",
+  "decidedAt": "2026-10-03T17:03:24.183Z",
+  "durationMs": 16709,
+  "costUSD": 0.12091199999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-430fc91e4c1d] says the default package registry itself is gone, not only the flag. It says all packages must now use fully qualified names, and that any package without a registry host name (e.g. `crossplane-contrib/provider-aws-s3:v1.23.0`) must be updated before upgrading. Checking only `cli-flag --registry set` therefore misses environments that relied on the implicit default with no flag set. The exposure has to include package resources whose spec.package has no registry host.",
+    "citations": [
+      "ev-430fc91e4c1d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "duplicateOf": "none",
+    "correction": {
+      "statement": "Crossplane 2.0.0 removes the `--registry` flag and the default package registry. Environments that set `--registry`, or that have any package (Provider, Configuration, Function) whose spec.package has no registry host name, are exposed and must use fully qualified package names before upgrading.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--registry",
+              "state": "set",
+              "component": "crossplane"
+            },
+            {
+              "op": "resource",
+              "group": "pkg.crossplane.io",
+              "kind": "Provider",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "pkg.crossplane.io",
+              "kind": "Configuration",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "pkg.crossplane.io",
+              "kind": "Function",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

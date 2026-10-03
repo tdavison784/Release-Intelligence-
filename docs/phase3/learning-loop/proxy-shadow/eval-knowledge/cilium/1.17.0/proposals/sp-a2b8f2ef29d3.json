@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a2b8f2ef29d3",
+    "candidateId": "sc-5211de5a6cde",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-used-total"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-used"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether dashboards, alerting rules, or other metric consumers reference the metric name lbipam_ips_used_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The same LB IPAM usage metric is exposed under the new name lbipam_ips_used, so any reference to the old name lbipam_ips_used_total must be updated to lbipam_ips_used.",
+        "remediation": "Update dashboards, alerting rules, and any other metric references from lbipam_ips_used_total to lbipam_ips_used.",
+        "severity": "low"
+      },
+      "statement": "The Prometheus metric `lbipam_ips_used_total` has been renamed to `lbipam_ips_used` in Cilium 1.17.0, so metric references using the old name must be updated to the new name."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1bf87d491deb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:776ab17e66d7a1d2c88b440ffe0a8972be6a71b0ec1b80e6dfbf7002412ed5b5",
+      "inputEvidence": [
+        "ev-1bf87d491deb"
+      ],
+      "generatedAt": "2026-10-03T07:36:54Z",
+      "callId": "2088f347-2f53-4a10-91ee-4975c9389498"
+    }
+  }
+}

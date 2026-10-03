@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-f50debe30308",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-861db566e82b"
+        ],
+        "statementKeys": [
+          "sk-063938256063"
+        ],
+        "changeIds": [
+          "chg-5434167f3743"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-4dffbdbfce59"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.compactor.shared-store.key-prefix",
+        "component": "compactor"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.compactor.shared-store.key-prefix",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-boltdb.shipper.compactor.shared-store.key-prefix` CLI flag and its matching YAML setting are removed in Loki 3.0.0, so a configured key prefix no longer controls compactor behaviour. The compactor instead runs compaction and retention on all object stores configured in period configs where the index type is tsdb or boltdb-shipper.",
+        "remediation": "Remove the flag and its YAML setting from the compactor configuration. Check that the object stores in your period configs (tsdb/boltdb-shipper index types) are the ones the compactor should compact and apply retention to.",
+        "severity": "medium"
+      },
+      "statement": "`-boltdb.shipper.compactor.shared-store.key-prefix`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-19c2365173c8"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-19c2365173c8"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-d4a0b01fb386"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-6f1607d3039a"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-cf8ca5687050",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L540-L540 (3.0.0 › Loki 3.0.0 › Removed `shared_store` and `shared_store_key_prefix` from compactor configuration)",
+        "excerpt": "- `-boltdb.shipper.compactor.shared-store.key-prefix`",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:01:47.889Z"
+  }
+}

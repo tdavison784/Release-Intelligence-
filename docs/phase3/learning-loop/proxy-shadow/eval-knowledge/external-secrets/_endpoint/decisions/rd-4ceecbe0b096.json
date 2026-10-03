@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4ceecbe0b096",
+    "reviewItemId": "ri-23c7c896675e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "statement": "Between external-secrets 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items in the external-secrets.io/v1beta1 SecretStore schema changed from [key] to [key,value] (the same diff shows the identical change for ClusterSecretStore), so objects that omit spec.provider.fake.data[].value are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:c21e7d7cca482e06df1e3a7e68ea8f5b3162a3d16ae9d4bcbfcaf98cf7946569",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-03T12:46:51.361Z",
+      "callId": "cfaed7b3-edcc-4038-8f48-cb32d6200eaa",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-210dbd3942ad] shows that in the secretstores.external-secrets.io CRD, the required list for spec.provider.fake.data items in the v1beta1 schema changed from [\"key\"] to [\"key\",\"value\"] between 0.15.0 and 0.16.0. So spec.provider.fake.data[].value in SecretStore v1beta1 is now required. The diff is scoped to the v1beta1 version, so setting version is justified. Deterministic validators also confirmed both the subject and the now-required change type.",
+    "startedAt": "2026-10-03T12:46:45.894Z",
+    "decidedAt": "2026-10-03T12:46:51.361Z"
+  }
+}

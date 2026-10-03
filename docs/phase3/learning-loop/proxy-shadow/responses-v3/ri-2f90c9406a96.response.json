@@ -1,0 +1,42 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2f90c9406a96",
+  "promptDigest": "sha256:086ef9aa97444e0d7522d2eb25229f28d4e3bc4b0877cf3976ae5fb0ce9e8518",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2a58a3be-ced2-4ead-9fa0-6436360acbb9",
+  "startedAt": "2026-10-03T12:48:20.011Z",
+  "decidedAt": "2026-10-03T12:48:34.097Z",
+  "durationMs": 13092,
+  "costUSD": 0.6375839999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-01e97dc9c4df] says 1.13 removed the wildcard view permission from the Kyverno controllers and added a binding to the default `view` role. The render diffs show `*/*` get/list/watch removed from the admission, background and reports controller ClusterRoles [ev-6af5be55b5f4][ev-0ae726bec846][ev-fbb2a078179b]. The bare name `*` is too broad: the validator refuted it because `kyverno.io/*` permissions still exist in 1.13 [ev-686e3f03e42c]. So the subject needs group `*`. replacedBy `*/view` is also wrong, because the replacement is a role binding to the `view` ClusterRole, not a permission with that name.",
+    "citations": [
+      "ev-01e97dc9c4df",
+      "ev-6af5be55b5f4",
+      "ev-0ae726bec846",
+      "ev-fbb2a078179b",
+      "ev-686e3f03e42c",
+      "ev-575e1935f511"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Kyverno 1.13 removes the wildcard view permission (all groups, all resources: get/list/watch) from its controller ClusterRoles. Instead, the controllers get a role binding to the default `view` role.",
+      "subject": {
+        "determination": "asserted",
+        "family": "rbac-permission",
+        "group": "*",
+        "name": "*"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed"
+      }
+    },
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ]
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ecd26ef2240c",
+    "candidateId": "sc-b81eb6a8063a",
+    "proposalId": "sp-eb860e1b332f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "local-redirect-from-backend"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"traffic from policy-selected node-local backends destined to the policy's frontend is redirected back to the node-local backends (enabled by default)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.skipRedirectFromBackend",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether socket-based load-balancing is enabled (the upgrade note names this mode but names no setting, cilium-config key, Helm value or flag that enables it)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumLocalRedirectPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Traffic from policy-selected node-local backends destined to the policy's frontend is redirected back to the node-local backends (this behavior is enabled by default), so affected flows behave differently; the evidence states no failure.",
+        "remediation": "Create local redirect policies with spec.skipRedirectFromBackend set to true to override this default redirect behavior.",
+        "severity": "medium"
+      },
+      "statement": "When Local Redirect Policy is used with socket-based load-balancing, traffic from policy-selected node-local backends destined to the policy's frontend is redirected back to the node-local backends, a behavior enabled by default in 1.16 that can be overridden by creating local redirect policies with skipRedirectFromBackend set to true."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

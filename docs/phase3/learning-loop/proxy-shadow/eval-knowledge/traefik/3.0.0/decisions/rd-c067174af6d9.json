@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c067174af6d9",
+    "reviewItemId": "ri-919eb629604a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "namespace",
+        "component": "consul"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "namespaces",
+          "component": "consul"
+        }
+      },
+      "statement": "The Consul provider's `namespace` configuration option, deprecated in v2, is removed in v3 and unsupported; Traefik will fail to start if it is set."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consul.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consul.namespaces"
+        }
+      },
+      "statement": "The Consul provider static configuration option `consul.namespace` (deprecated in v2) is removed in v3 and replaced by `consul.namespaces`; leaving it set prevents Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5161a66927cc2396dc21c57873c39b35f51e6c3275d005a4bbdfcf2e72f7921a",
+      "inputEvidence": [
+        "ev-3ab5da393af7"
+      ],
+      "generatedAt": "2026-10-03T16:54:36.161Z",
+      "callId": "a92ac398-8b06-4177-a8ce-51e43ace3408",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3ab5da393af7] says the Consul provider `namespace` option is removed in v3, is no longer supported, and would stop Traefik from starting, with `namespaces` to be used instead. That supports a \"removed\" change with a replacement. The subject spelling is wrong, though. The evidence's own examples spell the key as `consul.namespace` (YAML `consul: namespace:`, TOML `[consul] namespace`, CLI `--consul.namespace`). For config-key, the component field is for a file or binary, and the Consul provider is neither. So the path should be `consul.namespace` with no component, and the replacement should be `consul.namespaces`.",
+    "startedAt": "2026-10-03T16:54:24.364Z",
+    "decidedAt": "2026-10-03T16:54:36.161Z"
+  }
+}

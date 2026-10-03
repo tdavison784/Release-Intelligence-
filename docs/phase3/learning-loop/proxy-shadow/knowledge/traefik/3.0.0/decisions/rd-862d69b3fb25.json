@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-862d69b3fb25",
+    "reviewItemId": "ri-a9849a3315fd",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--consul.namespace",
+          "state": "set"
+        }
+      },
+      "statement": "The Consul provider `namespace` option (deprecated in v2) is removed in v3; leaving it set prevents Traefik from starting, and `namespaces` must be used instead."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consul.namespace",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*:"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*:"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.toml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*="
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "The Consul provider `namespace` option, deprecated in v2, is removed in v3. Traefik won't start if it is set by the CLI flag `--consul.namespace` or in the YAML or TOML static config file. Use `namespaces` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5f042a9176f4f33463e2103af0c44298d3e7db9b28b547f14afad87677af6d48",
+      "inputEvidence": [
+        "ev-3ab5da393af7"
+      ],
+      "generatedAt": "2026-10-03T16:57:55.286Z",
+      "callId": "61922bc3-a119-4575-b6ea-741a2c247073",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3ab5da393af7] shows the removed Consul `namespace` option used three ways: a YAML static file (`consul: namespace: foobar`), a TOML static file (`[consul] namespace=foobar`) and the CLI flag `--consul.namespace=foobar`. It says any of them stops Traefik from starting. The proposed condition only checks the CLI flag, so it misses environments that set the option in a static config file. The corrected condition also checks static config files held in a ConfigMap. The file names and the line-level pattern are my guesses because the evidence doesn't name them, so confidence is low.",
+    "startedAt": "2026-10-03T16:57:34.09Z",
+    "decidedAt": "2026-10-03T16:57:55.286Z"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-aeebc23984fd",
+    "reviewItemId": "ri-97c2e67aa8bf",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.0.0"
+        }
+      },
+      "statement": "Upgrading to Crossplane 2.0 includes an operator step to configure managed resource activation policies, listed as step 3 of the upgrade approach in the official v2 upgrade guide."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:77ea0760ea2c34270f21c8cf03bb1127a1b5920ee0365fa0f9ed4e0395f99154",
+      "inputEvidence": [
+        "ev-188e63ccea10",
+        "ev-ea9f9415727f",
+        "ev-18e2ad34cf67",
+        "ev-f44aa981165a",
+        "ev-d217f6ac2a1d",
+        "ev-de978b4c1ed8",
+        "ev-c28095f20093",
+        "ev-06a16cdbc869",
+        "ev-dd988a5ed5c3",
+        "ev-914f3976650c",
+        "ev-238c84f9b428",
+        "ev-4ac01f128e04",
+        "ev-c3c10f1d0eea"
+      ],
+      "generatedAt": "2026-10-03T16:55:41.254Z",
+      "callId": "493863ad-52cd-4537-b021-b19f9d8ba712",
+      "provider": "anthropic"
+    },
+    "reason": "The cited excerpt is only a table-of-contents entry [ev-188e63ccea10]. The full step text says Crossplane v2 automatically creates a default MRAP that activates all managed resources (`*`), and that operators can \"optionally\" replace it with a targeted MRAP for better cluster resource efficiency [ev-06a16cdbc869]. Step 4 also says existing cluster-scoped managed resources keep working unchanged [ev-dd988a5ed5c3]. So no environment needs a migration here, and an exposure of every upgrade from <2.0.0 would flag all upgraders for an optional tuning step, which over-claims mandatory work.",
+    "startedAt": "2026-10-03T16:55:30.774Z",
+    "decidedAt": "2026-10-03T16:55:41.254Z"
+  }
+}

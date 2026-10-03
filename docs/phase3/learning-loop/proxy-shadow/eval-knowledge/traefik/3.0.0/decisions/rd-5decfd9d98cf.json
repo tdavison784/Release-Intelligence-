@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5decfd9d98cf",
+    "reviewItemId": "ri-527bd8f0ed13",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.redis.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.redis.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Redis provider's tls.caOptional configuration option has been removed in Traefik v3.0.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:37ca89c0639d617b578d88f5795f6380fd2e8a420b52a3b373548a7df18a6649",
+      "inputEvidence": [
+        "ev-9f184d231baf"
+      ],
+      "generatedAt": "2026-10-03T12:53:01.483Z",
+      "callId": "52454975-e1d5-4536-a357-429d23574570",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-9f184d231baf] says the Redis provider `tls.caOptional` static option was removed in v3. It shows the option set as `providers.redis.tls.caOptional` in YAML/TOML files and as the CLI flag `--providers.redis.tls.caOptional`, and says to remove it from the static configuration. The proposed exposure flags an environment that sets either the values key or the CLI flag. That matches the configuration places the guide shows, and an environment that does not set the option is not exposed. Confidence is low because the evidence does not show how a static config file delivered in a ConfigMap would be read.",
+    "startedAt": "2026-10-03T12:52:46.33Z",
+    "decidedAt": "2026-10-03T12:53:01.483Z"
+  }
+}

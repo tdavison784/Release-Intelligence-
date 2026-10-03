@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5f0af86403d8",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-531073d600bc"
+        ],
+        "statementKeys": [
+          "sk-620958da8f12"
+        ],
+        "changeIds": [
+          "chg-e2faf5a42f72"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-121156407f0b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "kind": "Kafka",
+        "path": "spec.kafka.authorization.type"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.authorization.type",
+              "state": "equals",
+              "values": [
+                "\"opa\""
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "`type: opa` authorization still works but will be removed in a future release.",
+        "remediation": "Use `type: custom` authorization to keep using the Open Policy Agent authorizer.",
+        "severity": "low"
+      },
+      "statement": "The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-14db24ff068c"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-5ed89ff24f17"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e6859ce234d2"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-44aa5a85a2cf"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b55698b84a79",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L41-L42 (0.46.0 › Major changes, deprecations and removals)",
+        "excerpt": "* The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future.\n  To use the Open Policy Agent authorizer, you can use the `type: custom` authorization.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      },
+      {
+        "id": "ev-5d73e704055d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-crds-0.45.0.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:e859c73429319225b4a52e78dd03ec4d061dcb75b67140d327a0996ea162bdf4",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      },
+      {
+        "id": "ev-d758a7cb99a4",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.46.0/strimzi-crds-0.46.0.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:81cc621b04f1ca6acb4cf4c6c2070c82a4e71d416011466dd3184bf3be4114e2",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:36:40.631Z"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e9ea24b156dd",
+    "candidateId": "sc-985a8fcba32d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signing-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the signing RSA key (CA secret key or self-signed private key) is 3072 bits or larger, and whether relying systems support SHA-384/SHA-512 signatures"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates signed by CA or SelfSigned issuers with RSA keys of 3072 bits or more now use SHA-384 or SHA-512 signatures, and systems that do not support these hash algorithms may not accept them.",
+        "remediation": "If you use an RSA CA key of 3072 bits or more, check that the systems relying on the issued certificates support SHA-384 and SHA-512.",
+        "severity": "medium"
+      },
+      "statement": "In cert-manager 1.17.0, the CA and SelfSigned issuers sign with SHA-512 when the RSA key is 4096 bits or larger, and with SHA-384 when it is 3072 bits or larger, so systems that rely on these certificates must support those hash algorithms."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-53fb690413df"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:cec9568eec45ce284779d3db6b65e4a654bcad40d25b86d6113333a06b4aa99a",
+      "inputEvidence": [
+        "ev-53fb690413df"
+      ],
+      "generatedAt": "2026-10-03T07:14:11Z",
+      "callId": "f9825769-01b0-465a-b8fd-55ad6e5d4ec0"
+    }
+  }
+}

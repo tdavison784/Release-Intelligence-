@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-358fe364ee62",
+    "candidateId": "sc-f0660a838657",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cilium-node-connectivity-status"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-node-health-connectivity-status"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alerting rules or other metric consumers reference the metric cilium_node_connectivity_status"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The cilium_node_connectivity_status metric keeps working in 1.17.0 but is deprecated; environments whose dashboards or alerts read it should switch to cilium_node_health_connectivity_status, as the old metric is slated for removal in a later release.",
+        "remediation": "Update dashboards, alerting rules and other metric consumers to use cilium_node_health_connectivity_status instead of cilium_node_connectivity_status.",
+        "severity": "low"
+      },
+      "statement": "The cilium_node_connectivity_status metric is deprecated in Cilium 1.17.0 in favor of the new cilium_node_health_connectivity_status metric."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-82ab63ec4bf8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5b6350b1479ff5542bb3272999bd1997106289a4a9824d287d62269caf317272",
+      "inputEvidence": [
+        "ev-82ab63ec4bf8"
+      ],
+      "generatedAt": "2026-10-03T07:51:38Z",
+      "callId": "9e4d860c-e06f-45c1-9d31-6097f4643cb7"
+    }
+  }
+}

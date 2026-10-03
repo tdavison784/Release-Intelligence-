@@ -1,0 +1,30 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0bdd7d4a138f",
+  "promptDigest": "sha256:b152a25fdc2f79673bfe5f62599487c185848f770b4cc6946a0d0e6822491fcb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "54696e3f-9188-4f31-92aa-2812b22ce6cd",
+  "startedAt": "2026-10-03T12:43:38.103Z",
+  "decidedAt": "2026-10-03T12:43:53.265Z",
+  "durationMs": 14189,
+  "costUSD": 0.139512,
+  "output": {
+    "action": "reject",
+    "reason": "This cluster combines two separate upstream removals: the compactor flags `-boltdb.shipper.compactor.shared-store` and `-boltdb.shipper.compactor.shared-store.key-prefix` [ev-c569cd56f9ef, ev-ca57f615b9c9, ev-cf8ca5687050], and the shipper flags `-boltdb.shipper.shared-store`, `-tsdb.shipper.shared-store` and their `.key-prefix` variants, which have their own impact conditions [ev-43cc6d389282, ev-7d2769e8c602, ev-af5a4b32c120, ev-8ceba924ad20]. The proposed exposure is the compactor change, but its ConfigMap check `^\\s*shared_store(_key_prefix)?:` also matches the shipper YAML keys with the same names. So it flags environments that are only exposed to the shipper change, which makes it too broad. A line-based check cannot tell which YAML block the key sits in, and the evidence does not name the compactor YAML keys separately. The cluster should be split into the two changes, not corrected as one assertion.",
+    "citations": [
+      "ev-c569cd56f9ef",
+      "ev-ca57f615b9c9",
+      "ev-cf8ca5687050",
+      "ev-43cc6d389282",
+      "ev-7d2769e8c602",
+      "ev-af5a4b32c120",
+      "ev-8ceba924ad20"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability",
+      "wrong-subject"
+    ]
+  }
+}

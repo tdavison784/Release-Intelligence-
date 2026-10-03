@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-de51be7a1137",
+    "reviewItemId": "ri-0b3f73b8116b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[]",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "statement": "In the SecretStore external-secrets.io/v1beta1 schema, spec.provider.fake.data[].value becomes required (items required changes from [\"key\"] to [\"key\",\"value\"]), so SecretStores omitting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5ef17ce91632ee0e44dd4f8e070db6d37a89ffd2d2ac3aa78d6fd096b1a682b7",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-03T12:43:36.827Z",
+      "callId": "72b9a1ca-dc05-4b4a-98e9-5c9af39c02e0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-210dbd3942ad] shows that from 0.15.0 to 0.16.0, the required list for spec.provider.fake.data items in the secretstores.external-secrets.io v1beta1 schema changed from [\"key\"] to [\"key\",\"value\"]. The semvalidate.crd validator also confirmed that this field becomes required. The proposed exposure matches the environments that get rejected: a v1beta1 SecretStore with fake-provider data entries where value is missing. The ClusterSecretStore change [ev-9fd85560a485] is a separate subject, so leaving it out of this item's condition is correct.",
+    "startedAt": "2026-10-03T12:43:28.977Z",
+    "decidedAt": "2026-10-03T12:43:36.827Z"
+  }
+}

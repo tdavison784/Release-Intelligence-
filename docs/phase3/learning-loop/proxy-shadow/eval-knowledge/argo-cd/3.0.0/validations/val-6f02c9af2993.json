@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6f02c9af2993",
+    "candidateId": "sc-dc1b8ad7b73a",
+    "proposalId": "sp-f4b38cd96b94",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-scm-haspath"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"404 errors considered as file not found\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For ApplicationSets that use the GitLab SCM provider, path-existence checks now treat GitLab 404 responses as 'file not found', and the earlier HasPath search approach is reverted. Repositories may match path checks differently than before.",
+        "remediation": "Check that ApplicationSets using the GitLab SCM provider with path-based checks still generate the expected Applications after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "In the ApplicationSet GitLab SCM provider, the HasPath search change was reverted, and 404 errors are now treated as \"file not found\"."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

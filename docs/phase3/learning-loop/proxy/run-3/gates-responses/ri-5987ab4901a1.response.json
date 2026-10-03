@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5987ab4901a1",
+  "promptDigest": "sha256:9ca461d6c2c19f0abdad58a5b38e32dd40b0e9458725b39911952f7f8824ea00",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c52a8620-b13f-4497-bb9d-f60ad1c91cd0",
+  "startedAt": "2026-10-03T17:17:02.363Z",
+  "decidedAt": "2026-10-03T17:17:08.873Z",
+  "durationMs": 5664,
+  "costUSD": 0.06856,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "On its own, [ev-0a3ad54fc240] is just a list item, but it sits in the \"Metrics namespace\" section. [ev-1f419676f177] says what the change is. Metrics that started with the `cortex_` prefix will now start with `loki_`, so `cortex_query_scheduler_inflight_requests` is renamed to `loki_query_scheduler_inflight_requests` (subject: the metric name; change: prefix rename). [ev-1f419676f177] also says who is exposed: setups that keep the default `metrics_namespace` value `loki`, since changing it to `cortex` keeps the old prefix. It also notes that this setting is deprecated and will be removed. The consequence is that the metric is no longer published under its old `cortex_` name, so anything that looks it up by that name stops finding it. An engineer can write the typed assertion from this.",
+    "citations": [
+      "ev-0a3ad54fc240",
+      "ev-1f419676f177"
+    ],
+    "confidence": "medium"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-941229a01952",
+  "promptDigest": "sha256:699399252e54831b701a2cd8eea59c555d3aa3d712dfdcbe6b04a89af97d605d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "49de64cb-b527-4990-89cf-37eaeaf9c270",
+  "startedAt": "2026-10-03T16:54:40.036Z",
+  "decidedAt": "2026-10-03T16:54:54.116Z",
+  "durationMs": 13142,
+  "costUSD": 0.13158,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-526028ea7180] says Kafka 4.0 and newer uses Log4j2, and custom logging configuration might need updating when upgrading to Kafka 4.0. Exposure is therefore Kafka >=4.0.0 plus custom logging configuration. The proposed condition has two problems. It uses cluster-version, which is meant for the platform, while Kafka's version is a product version; the compatibility rows [ev-e7a043486f16] list 4.0.0 as supported in 0.46.0. Its undecidable leaf also uses 'environment-visibility-gap', which is not an allowed reason; the real gap is that the evidence never names the field or ConfigMap that holds custom logging configuration, so the reason should be evidence-gap.",
+    "citations": [
+      "ev-526028ea7180",
+      "ev-e7a043486f16"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments running or upgrading to Kafka >=4.0.0 under Strimzi that have custom logging configuration. That configuration was written for Reload4j/Log4j1 and might need updating for Log4j2. The changelog does not name the field that holds custom logging configuration.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which Kafka custom resource field or ConfigMap carries the custom logging configuration (the changelog only says 'any custom logging configuration')"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

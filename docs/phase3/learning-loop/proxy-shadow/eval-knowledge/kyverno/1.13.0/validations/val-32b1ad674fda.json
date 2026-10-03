@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-32b1ad674fda",
+    "candidateId": "sc-5e1212a65ca8",
+    "proposalId": "sp-2242bb9ea3bb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "kyverno",
+        "path": "features.policyExceptions.namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "features.policyExceptions.namespace",
+              "state": "unset"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "features.policyExceptions.namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to Kyverno 1.13 with features.policyExceptions.namespace unset, PolicyExceptions can no longer be configured in all namespaces; the prior behavior is only preserved by explicitly setting the value.",
+        "remediation": "Set the Helm value features.policyExceptions.namespace to * to keep allowing PolicyExceptions in all namespaces, or set it to a single namespace as the guide recommends.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Kyverno 1.13 changes configuration handling so that PolicyExceptions can no longer be configured in all namespaces by default: to continue allowing exceptions in all namespaces, the Helm value features.policyExceptions.namespace must be set to `*`, although limiting exceptions to a specific namespace is recommended."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/behavior-changed",
+        "detail": "no canonical exposure condition for helm-value behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-bddc5f8b58e5",
+        "kind": "structured",
+        "sourceId": "chart",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/charts/kyverno/values.yaml",
+        "locator": "charts/kyverno/values.yaml",
+        "excerpt": "# -- Internal settings used with `helm template` to generate install manifest",
+        "contentDigest": "sha256:4d197356394e9a8e6a2ab7a0b61e8bf18103d3d3c5f2bae1c4db612f0cba6908",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-ebc1ba191505",
+        "kind": "structured",
+        "sourceId": "chart",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/values.yaml",
+        "locator": "charts/kyverno/values.yaml",
+        "excerpt": "# -- Internal settings used with `helm template` to generate install manifest",
+        "contentDigest": "sha256:c4b1fcaa2a7feda6d6237b6370ddd3c054b8a5a3d7d97a5ea9a52a76885b89d4",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:55Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

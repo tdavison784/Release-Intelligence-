@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1c6fcfdce365",
+  "promptDigest": "sha256:0f67a499378f909dcf05126a05ae04ef1ba312ecc90de90a6f06f456fe831253",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8d8640d5-a4d8-476a-a739-3d5c1376e486",
+  "startedAt": "2026-10-03T12:45:44.430Z",
+  "decidedAt": "2026-10-03T12:45:58.967Z",
+  "durationMs": 13563,
+  "costUSD": 0.11432400000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-da0f06f8da24] says both the `-querier.engine.timeout` CLI flag and the corresponding YAML setting are removed. An exposure that only checks the CLI flag misses environments that set the value in the YAML config file, so it is too narrow. The evidence does not name the YAML key path, so that branch has to stay an identity that cannot be pinned (semantic-ambiguity) rather than a guessed ConfigMap pattern. The flag is spelled with one dash, as the evidence writes it.",
+    "citations": [
+      "ev-da0f06f8da24"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the already deprecated -querier.engine.timeout CLI flag and its corresponding YAML setting. Exposed: environments that pass the flag, or that set the corresponding YAML setting (key path not named in the evidence).",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-querier.engine.timeout",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "semantic-ambiguity",
+              "needed": "the exact YAML key path of the setting that corresponds to -querier.engine.timeout (not named in the upgrade guide), so the config-file setting can be matched"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

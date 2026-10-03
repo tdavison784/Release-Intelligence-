@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-576bb5696b13",
+    "candidateId": "sc-178716874e9a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "sidecar-scope-conflict-resolution"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Which service is chosen for duplicate hostnames, and the order of Gateway API routes, may differ from before; it still works but should be verified.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24 unifies service conflict resolution (same-hostname services, Gateway API routes) between proxies with and without a Sidecar resource, changing which service or route is preferred."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Text names the old-behavior opt-out setting only in truncated form; exposure depends on duplicate hostnames or routes across namespaces, which is not statically stated.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-80c52188197b",
+      "ev-927d998f5cdd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:34dc2c40198ea8bebf51579b6579ee349ef8f99f011f8f300ebd08c4849f2abd",
+      "inputEvidence": [
+        "ev-80c52188197b",
+        "ev-927d998f5cdd"
+      ],
+      "generatedAt": "2026-10-03T07:08:17Z",
+      "callId": "e39a4070-aefd-4a46-a15a-3e79e3c085f4"
+    }
+  }
+}

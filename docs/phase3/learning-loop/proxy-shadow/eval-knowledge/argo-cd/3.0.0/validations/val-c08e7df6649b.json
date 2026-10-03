@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c08e7df6649b",
+    "candidateId": "sc-a185b2b31031",
+    "proposalId": "sp-c6e0d6e0498a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "argo-cd",
+        "name": "--no-proxy",
+        "component": "cli"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--no-proxy",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments that pass --no-proxy, the flag's value is now stored in the correct variable instead of a wrong one, so no-proxy handling behaves differently after the upgrade.",
+        "remediation": "If you pass --no-proxy to an Argo CD binary, verify proxy-exclusion behavior after upgrading to v3.0.0.",
+        "severity": "low"
+      },
+      "statement": "Argo CD v3.0.0 fixes a CLI bug in which the value of the --no-proxy flag was stored in the wrong variable."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

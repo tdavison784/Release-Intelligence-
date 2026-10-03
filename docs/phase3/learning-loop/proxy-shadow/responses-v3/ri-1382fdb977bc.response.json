@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1382fdb977bc",
+  "promptDigest": "sha256:dea2e7558396536b72d31cebba75bad1d1c8142f28c2834ef85f66281776ff97",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9bd96dad-0eac-4357-8ca2-01603fb996a1",
+  "startedAt": "2026-10-03T12:44:38.657Z",
+  "decidedAt": "2026-10-03T12:44:48.717Z",
+  "durationMs": 9205,
+  "costUSD": 0.154012,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f0f21b325fa6] and [ev-094d5d8b0291] show that, from 1.12.6 to 1.13.0, the storage version of the policyexceptions.kyverno.io CRD moves from v2beta1 to v2. Objects created before the upgrade are stored as v2beta1 whatever API version their manifests used. So exposure depends on the CRD's status.storedVersions still listing v2beta1, not on whether manifests use v2beta1. The proposed gvk-in-use condition misses environments that applied their PolicyExceptions as v2 under 1.12. It also flags environments that hold no stored v2beta1 objects. The canonical CRD storage-migration shape (status.storedVersions[] equals v2beta1) expresses the exposure exactly.",
+    "citations": [
+      "ev-f0f21b325fa6",
+      "ev-094d5d8b0291"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The storage version of the policyexceptions.kyverno.io CRD changes from v2beta1 to v2 (1.12.6 → 1.13.0). Environments whose CRD status.storedVersions still lists v2beta1 must rewrite their stored objects and update storedVersions before a later release removes v2beta1.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "policyexceptions.kyverno.io",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "v2beta1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

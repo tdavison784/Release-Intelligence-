@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-766159a5aefd",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-77d57ac2032c"
+        ],
+        "statementKeys": [
+          "sk-54e195bcb3ee"
+        ],
+        "changeIds": [
+          "chg-5dd5529d488f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-69152174e9e5"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-added-gets-misses-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-cache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The three querier_cache_* metrics are no longer emitted; anything relying on them must use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards and alerts to the loki_cache_* metrics."
+      },
+      "statement": "The following embedded cache metrics are removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-5b925d4f146a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-5b925d4f146a"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-dddb0d4551f1"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-1767b677cea3"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-dd7907f24ce5",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L653-L656 (3.0.0 › Loki 3.0.0 › Embedded cache metric changes)",
+        "excerpt": "- The following embedded cache metrics are removed. Instead use `loki_cache_fetched_keys`, `loki_cache_hits`, `loki_cache_request_duration_seconds` which instruments requests made to the configured cache (`embeddedcache`, `memcached` or `redis`).\n  - `querier_cache_added_total`\n  - `querier_cache_gets_total`\n  - `querier_cache_misses_total`",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:07:47.234Z"
+  }
+}

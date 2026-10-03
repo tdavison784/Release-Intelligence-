@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ed66aa28193b",
+    "reviewItemId": "ri-7f6620ad50a9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmChart"
+        }
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 HelmChart CRD schema now requires status.artifact.digest, so HelmChart objects with a status.artifact that omits the digest are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:1f6dbadd80839259d2b8a8f317c95783b143529b101da177d99a4d0cd46407a7",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T16:52:35.054Z",
+      "callId": "c1f142ea-5ae8-429c-9a57-98ad428ed411",
+      "provider": "anthropic"
+    },
+    "reason": "The computed schema diff between the v2.6.4 and v2.7.0 install manifests [ev-782bc47d120d, ev-c2c6c790d6b2] makes status.artifact.digest required in the source.toolkit.fluxcd.io/v1 HelmChart schema, and the deterministic validators confirmed this. A required property nested under status.artifact is only enforced when status.artifact is present. So the exposed state is exactly a v1 HelmChart whose status.artifact is set but has no digest, which is what the proposed condition says. Requiring only that digest is unset would also flag objects that have no artifact, which is too broad.",
+    "startedAt": "2026-10-03T16:52:23.036Z",
+    "decidedAt": "2026-10-03T16:52:35.054Z"
+  }
+}

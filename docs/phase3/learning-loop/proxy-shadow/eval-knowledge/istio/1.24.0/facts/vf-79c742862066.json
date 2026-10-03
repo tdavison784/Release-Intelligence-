@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-79c742862066",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-a5244367ec88"
+        ],
+        "statementKeys": [
+          "sk-f0229d5487c0"
+        ],
+        "changeIds": [
+          "chg-e43c89ffa28f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-b038ac70b042"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The overload manager is now bypassed for static listeners by default. Environments that rely on the previous behavior of applying the overload manager to static listeners should set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false to restore it.",
+        "severity": "medium"
+      },
+      "statement": "Added support for by passing overload manager for static listeners"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-9e4f923b3f54"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-9e4f923b3f54"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b0266044286f"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-efb6fb07f17b"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-0f35637a9823",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52663.yaml",
+        "locator": "52663.yaml L9-L11",
+        "excerpt": "- |\n    **Added** support for by passing overload manager for static listeners. This can be reverted by setting\n    BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in agent Deployment.",
+        "contentDigest": "sha256:f83f37547e6a1ed43ecc29a00fa6184cfc64b5c1d0ef5dd9a46b834544448c88",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:36:59.949Z"
+  }
+}

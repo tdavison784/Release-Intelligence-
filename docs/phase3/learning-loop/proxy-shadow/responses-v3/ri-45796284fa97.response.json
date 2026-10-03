@@ -1,0 +1,75 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-45796284fa97",
+  "promptDigest": "sha256:891e7bd56076f51378f69844ca2c19d67d80573be9da895d8f7be2eb06a77864",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9d8f3602-d0bf-4b82-80db-ac930c4b3aa9",
+  "startedAt": "2026-10-03T12:51:16.190Z",
+  "decidedAt": "2026-10-03T12:51:32.853Z",
+  "durationMs": 15681,
+  "costUSD": 0.08741399999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-2a9b9b849526] says protocol differentiation is enabled by default but can be controlled with the `--bpf-lb-proto-diff` flag. That makes the flag a configuration fact that sets exposure. Only environments that upgrade from below 1.17 with the feature left on have pre-existing services that keep no protocol and must be recreated. The proposed condition leaves out the flag, so it also flags environments that turned the feature off. Whether services already exist in the datapath without a protocol is runtime state, so the undecidable leaf is kept.",
+    "citations": [
+      "ev-2a9b9b849526"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments upgrading from a version below 1.17.0 that leave services protocol differentiation on (`--bpf-lb-proto-diff` not set to false) and have services without a protocol set. These services keep no protocol until they are deleted and recreated. Environments that set the flag to false are shielded.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--bpf-lb-proto-diff",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the agent's load-balancer state holds services created before the upgrade without a protocol set (and whether any of them share a port with a service of another protocol)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bpf-lb-proto-diff",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

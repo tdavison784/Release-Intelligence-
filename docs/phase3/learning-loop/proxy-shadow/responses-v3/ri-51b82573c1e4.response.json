@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-51b82573c1e4",
+  "promptDigest": "sha256:c91624406ec741b801c9e79a98e6e26f6bcb24d7c03d5e88f9445b677d53fcdf",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "fdd8bce2-4ddf-4233-999c-22eafb8343ca",
+  "startedAt": "2026-10-03T12:52:32.126Z",
+  "decidedAt": "2026-10-03T12:52:53.286Z",
+  "durationMs": 20405,
+  "costUSD": 0.0882732,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The proposed exposure cannot stand. It uses an undecidable leaf with reason \"environment-visibility-gap\", which is not an allowed reason, and whether an environment supplied its configuration is something the engine reports, not a reason for undecidable. The section context gives the real condition: the active schema period does not use both the `tsdb` index type and the `v13` schema [ev-8b7267b73a1c]. Environments that set `allow_structured_metadata: false` in `limits_config` or `-validation.allow-structured-metadata=false` are shielded [ev-649f409b4be1], and the fix is to upgrade the schema before moving to 3.0 [ev-7791a108cc39]. I can't write a correct asserted replacement because the evidence names neither the config or Helm values path for the schema period entries nor how to pick out the active (latest) period. A plain check on all periods would also flag environments that migrated correctly but still keep older non-v13 periods. Missing: the config sources or upgrade text naming the schema_config keys and how the active period is chosen.",
+    "citations": [
+      "ev-5dacaee98643",
+      "ev-8b7267b73a1c",
+      "ev-649f409b4be1",
+      "ev-7791a108cc39"
+    ],
+    "confidence": "low"
+  }
+}

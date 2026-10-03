@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-81d99ffd5acf",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-e7f2303d432f"
+        ],
+        "statementKeys": [
+          "sk-e83a60cfbc62"
+        ],
+        "changeIds": [
+          "chg-1bd4cfe6304e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9819c3b5051d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.consul.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*consul\\s*:"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*caOptional\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*consul\\s*:"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*caOptional\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*\\[providers\\.consul(\\.tls)?\\]"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "caOptional\\s*="
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `tls.caOptional` option in Consul provider static configuration will no longer be honoured in v3.0.0.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "TLS.CAOptional: Consul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7df03eb7f92b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7df03eb7f92b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b8083695c095"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-fab67a492ea6"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4685c9dd4dac",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L195-L219 (Migration Guide: From v2 to v3 › Static configuration › Consul provider › TLS.CAOptional)",
+        "excerpt": "#### TLS.CAOptional\n\nConsul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType).\n\n??? example \"An example usage of the TLS.CAOptional option\"\n\n    ```yaml tab=\"File (YAML)\"\n    providers:\n      consul:\n        tls: \n          caOptional: true\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [providers.consul.tls]\n        caOptional=true\n    ```\n\n    ```bash tab=\"CLI\"\n    --providers.consul.tls.caOptional=true\n    ```\n\n##### Remediation\n\nThe `tls.caOptional` option should be removed from the C…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:56:28.988Z"
+  }
+}

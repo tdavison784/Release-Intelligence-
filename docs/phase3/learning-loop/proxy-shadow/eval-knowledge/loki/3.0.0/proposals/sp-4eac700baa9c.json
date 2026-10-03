@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4eac700baa9c",
+    "candidateId": "sc-5996f84cf28b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*enable[-_]api\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "values-key",
+              "path": "loki.config.experimental.ruler.enable-api",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A configuration setting `experimental.ruler.enable-api` is no longer honoured after upgrading to Loki 3.0.0; the setting must be moved to `ruler.enable-api`.",
+        "remediation": "Replace `experimental.ruler.enable-api` with `ruler.enable-api` in the Loki configuration file (and in loki.config / loki.structuredConfig when installed via the Helm chart) before upgrading to 3.0.0.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the deprecated configuration option `experimental.ruler.enable-api`; `ruler.enable-api` must be used instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-8fea3a0e7308"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:088b8b7e2f3d1725c07e15b92f0f1439caf1a64ecae403271ea7c0195cc91425",
+      "inputEvidence": [
+        "ev-8fea3a0e7308"
+      ],
+      "generatedAt": "2026-10-03T07:17:31Z",
+      "callId": "9e8a42e6-d110-4701-a501-4037403e7235"
+    }
+  }
+}

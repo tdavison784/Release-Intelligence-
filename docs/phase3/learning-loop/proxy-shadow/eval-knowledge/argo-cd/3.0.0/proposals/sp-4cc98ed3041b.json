@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4cc98ed3041b",
+    "candidateId": "sc-28b034145d91",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-system-hook-webhooks-applicationsets"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether GitLab is configured to send 'System Hook' webhooks to the Argo CD webhook endpoint (the sender's hook configuration and the incoming webhook traffic are external runtime state, not carried by any Argo CD configuration input)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GitLab \"System Hook\" webhook events, previously unsupported for ApplicationSets, are now honored, so exposed environments see ApplicationSets respond to those events without any configuration change.",
+        "remediation": "After upgrading, verify any GitLab System Hook integrations trigger the expected ApplicationSet refreshes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 adds support for GitLab \"System Hook\" webhooks for ApplicationSets, so such webhook events now trigger ApplicationSet handling where they previously did not."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ff04fee04e63"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ab5c305f2bce3d571581eaccea7d021c333e0901f56075b28807e0e73aac6f36",
+      "inputEvidence": [
+        "ev-ff04fee04e63"
+      ],
+      "generatedAt": "2026-10-03T07:52:22Z",
+      "callId": "947751a1-4c24-4744-9c9c-bc0053378a80"
+    }
+  }
+}

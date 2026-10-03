@@ -1,0 +1,107 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-18806b3c80d5",
+  "promptDigest": "sha256:ff338e185111e5964dcc1719f90323677de8f15b5afe64d3c6b8c9aa17b185cb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "69619c33-7ce4-4470-b0ae-85b8a4274a57",
+  "startedAt": "2026-10-03T12:45:13.307Z",
+  "decidedAt": "2026-10-03T12:45:32.953Z",
+  "durationMs": 18979,
+  "costUSD": 0.161808,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-25984c3785d4] says clusters with toFQDNs policies must run Cilium v1.15.6 or newer before upgrading to v1.16. Coming from an older version can cause brief drops for toFQDNs-allowed connections. So a from-version below 1.15.6 is right. But the evidence speaks of toFQDNs policies in general, not only namespaced CiliumNetworkPolicy, so the proposal misses clusters whose toFQDNs rules are in CiliumClusterwideNetworkPolicy. Clusters already on v1.15.6 or newer are shielded.",
+    "citations": [
+      "ev-25984c3785d4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Clusters upgrading to Cilium 1.16 from a version below 1.15.6 that have toFQDNs rules in a CiliumNetworkPolicy or CiliumClusterwideNetworkPolicy may see brief packet drops for connections allowed by those rules during the first endpoint regeneration. Clusters already on v1.15.6 or newer are shielded.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "out-of-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

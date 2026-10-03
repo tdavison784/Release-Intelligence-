@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-dddb0d4551f1",
+    "reviewItemId": "ri-cab3ac12f213",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or recording rules reference querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "statement": "The embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total, in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds. Environments are exposed when their dashboards, alerts or recording rules query the removed metrics. Static configuration cannot show this."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:72cf526801bef266f665a7a55bba95db91f99fc36a2a3a20baffa994177eab82",
+      "inputEvidence": [
+        "ev-dd7907f24ce5",
+        "ev-1f9807113c9e",
+        "ev-53101f583cb5"
+      ],
+      "generatedAt": "2026-10-03T17:01:52.371Z",
+      "callId": "0f3c4729-29d9-41d6-8816-e63c8f01c944",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-dd7907f24ce5] says querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed and names their replacements. It does not name any Loki setting, values key, flag or field that controls this. Only environments whose dashboards, alerts or recording rules query these metrics are exposed. Those consumers sit outside the product's configuration, so an undecidable leaf fits. However, the proposed reason \"environment-visibility-gap\" is not an allowed reason and points at config visibility, which undecidable must never be used for. The correct reason is runtime-behavior-gap: which monitoring consumers query these series.",
+    "startedAt": "2026-10-03T17:01:39.947Z",
+    "decidedAt": "2026-10-03T17:01:52.371Z"
+  }
+}

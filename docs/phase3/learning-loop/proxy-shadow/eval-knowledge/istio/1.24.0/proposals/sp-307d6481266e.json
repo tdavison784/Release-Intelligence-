@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-307d6481266e",
+    "candidateId": "sc-c9d1c24230a6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "citadel-server-cert-expiry-metrics"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.24.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 1.24.0, these four certificate-expiry metrics reflect newly loaded certificates instead of staying stale; monitoring or alerting based on them will begin reporting current certificate expiries, and nothing fails if the operator does nothing.",
+        "remediation": "Verify dashboards and alerts that use these metrics show current certificate expiries after certificates rotate.",
+        "severity": "low"
+      },
+      "statement": "The istio certificate-expiry metrics `citadel_server_root_cert_expiry_timestamp`, `citadel_server_root_cert_expiry_seconds`, `citadel_server_cert_chain_expiry_timestamp` and `citadel_server_cert_chain_expiry_seconds` now update when new certificates are loaded, where previously their values stayed stale."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-40e9ce81a63d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a0c0b00f8bae36230985824915dbe807270dfbe1fa0cd7a1ba2d141c83e15c29",
+      "inputEvidence": [
+        "ev-40e9ce81a63d"
+      ],
+      "generatedAt": "2026-10-03T07:26:07Z",
+      "callId": "ffaf7bc9-f2f5-44a6-9e26-0cec9ec1fefa"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-829c51180ffe",
+    "candidateId": "sc-590664a9778c",
+    "proposalId": "sp-1dcd96840e6b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-services-unsatisfied-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-services-unsatisfied-metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is served under the new name `lbipam_services_unsatisfied`; the previous name `lbipam_services_unsatisfied_total` is no longer exposed, so monitoring that still queries the old name no longer matches it.",
+        "remediation": "Update dashboards, alert rules and other monitoring references from `lbipam_services_unsatisfied_total` to `lbipam_services_unsatisfied`.",
+        "severity": "low"
+      },
+      "statement": "The metric `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied` in Cilium 1.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

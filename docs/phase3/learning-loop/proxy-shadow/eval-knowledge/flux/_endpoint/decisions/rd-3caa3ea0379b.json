@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3caa3ea0379b",
+    "reviewItemId": "ri-c6d4c7c6820d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 schema of helmrepositories.source.toolkit.fluxcd.io, the field status.artifact.digest is newly required, and objects that omit it are rejected."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository schema, status.artifact.digest is now required. A HelmRepository whose status.artifact is set without a digest is rejected; objects with no status.artifact are not affected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:a404ea7c7c70133ba8dc1d830058cc059637c2f3c2bd6a401272edbae4918f6c",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T17:01:39.029Z",
+      "callId": "0eea75f0-3eb7-4ea0-a575-4a314ce3f5d8",
+      "provider": "anthropic"
+    },
+    "reason": "The computed schema diff between [ev-782bc47d120d] (v2.6.4) and [ev-c2c6c790d6b2] (v2.7.0) makes `digest` a required property of the `status.artifact` object in the v1beta2 HelmRepository schema. A nested `required` constraint only applies when the parent object exists. The proposed condition (`digest` unset) also matches every HelmRepository that has no `status.artifact` at all, which includes ordinary manifests with no status, and none of those is rejected. Exposure should therefore require `status.artifact` set and `status.artifact.digest` unset. Note that known fact vf-a5cc22f29e7f records this same change with the same broader condition.",
+    "startedAt": "2026-10-03T17:01:20.304Z",
+    "decidedAt": "2026-10-03T17:01:39.029Z",
+    "resultingFact": "vf-acc15dfae160"
+  }
+}

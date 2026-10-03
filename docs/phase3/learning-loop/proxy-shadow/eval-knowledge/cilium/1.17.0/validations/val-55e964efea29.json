@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-55e964efea29",
+    "candidateId": "sc-fecf1190dad2",
+    "proposalId": "sp-0daf161b646f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cilium-node-connectivity-latency-seconds"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-node-health-connectivity-latency-seconds"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerting rules or recording rules query cilium_node_connectivity_latency_seconds"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The `cilium_node_connectivity_latency_seconds` metric still works today but is deprecated and scheduled to break in a later release; anything querying it should switch to `cilium_node_health_connectivity_latency_seconds`.",
+        "remediation": "Update dashboards, alerts and recording rules to use cilium_node_health_connectivity_latency_seconds instead of cilium_node_connectivity_latency_seconds.",
+        "severity": "low"
+      },
+      "statement": "The `cilium_node_connectivity_latency_seconds` metric is deprecated in Cilium 1.17.0 in favour of the new `cilium_node_health_connectivity_latency_seconds` metric."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/deprecated",
+        "detail": "protocol-behavior deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/deprecated",
+        "detail": "protocol-behavior deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-03T07:03:21Z"
+  }
+}

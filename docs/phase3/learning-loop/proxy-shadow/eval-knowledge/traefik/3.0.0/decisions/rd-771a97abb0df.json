@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-771a97abb0df",
+    "reviewItemId": "ri-c7554e30c528",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the Nomad provider namespace option is configured.",
+        "severity": "critical"
+      },
+      "statement": "The Nomad provider `namespace` configuration option was removed in v3.0.0 and must be replaced with `namespaces`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:17a6e41a5d0bdc8177224a1c3421dec175a945eba878987faa22736c1307c688",
+      "inputEvidence": [
+        "ev-482dffeba461"
+      ],
+      "generatedAt": "2026-10-03T17:01:28.433Z",
+      "callId": "cf39acc7-5298-4fe0-bd56-a0cdd3275ea3",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-482dffeba461] says the Nomad provider `namespace` option is removed in v3, \"is now unsupported and would prevent Traefik to start\". So an exposed environment that does nothing gets a failed upgrade, not just different behaviour. That supports an action-eligible kind. upgrade-blocked with critical severity fits a configuration that stops the upgraded Traefik from starting at all, and the proposed statement matches the evidence's wording.",
+    "startedAt": "2026-10-03T17:01:21.569Z",
+    "decidedAt": "2026-10-03T17:01:28.433Z",
+    "resultingFact": "vf-3d166dceaef3"
+  }
+}

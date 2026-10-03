@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f50f8c22fc6e",
+  "promptDigest": "sha256:d898670ae5c1a7ab87cf354247c02283d6439bdd12ebf0fcbd9fb620c08572ed",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ecf9e4f5-5417-40da-a2b3-fa315a54999d",
+  "startedAt": "2026-10-03T17:07:00.406Z",
+  "decidedAt": "2026-10-03T17:07:16.796Z",
+  "durationMs": 15623,
+  "costUSD": 0.11905600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dd988a5ed5c3] tells operators to \"update your provider manifests to use v2 versions\", so the exposed environments are those that install providers through Provider manifests. Nothing in the evidence mentions a Helm values key `provider.packages`, so that branch is unsupported and makes the condition broader than the evidence allows. [ev-f44aa981165a] is only the table-of-contents entry for this step. The same section also says existing cluster-scoped MRs \"continue working unchanged\", which matters when judging the consequence, not the exposure.",
+    "citations": [
+      "ev-dd988a5ed5c3",
+      "ev-f44aa981165a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Step 4 of the Crossplane v2.0 upgrade guide, \"Upgrade providers\", applies to environments that install providers through Provider manifests (pkg.crossplane.io Provider), which the guide says to update to provider v2 versions.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "pkg.crossplane.io",
+          "kind": "Provider"
+        }
+      }
+    }
+  }
+}

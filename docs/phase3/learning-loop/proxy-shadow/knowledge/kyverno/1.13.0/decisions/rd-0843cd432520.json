@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0843cd432520",
+    "reviewItemId": "ri-a58b48a23705",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the installation explicitly enables policy exceptions and sets the allowed namespace; the controlling configuration key is not named in the evidence"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13.0 changes its defaults so policy exceptions are disabled and may only be created in a specified namespace (previously allowed in all namespaces, CVE-2024-48921); environments relying on PolicyExceptions must follow the upgrade guidance to keep them working."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "rendered-change",
+              "group": "apps",
+              "kind": "Deployment",
+              "path": "spec.template.spec.containers[].args",
+              "state": "changed",
+              "values": [
+                "\"--enablePolicyException=false\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13.0 turns policy exceptions off by default: the chart now renders --enablePolicyException=false, where it rendered true before. Exposed: environments that use kyverno.io PolicyException resources and whose rendered controller args change to --enablePolicyException=false under their own values."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:783878e61d9244e40e16cc50e8519cfbcdbfc3c1dfe57b7d455941222d9da84d",
+      "inputEvidence": [
+        "ev-2bd1a74f9c4a",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4",
+        "ev-043bcc5e9e57",
+        "ev-0b95f4d8b2b8",
+        "ev-388d68569c8a",
+        "ev-3f8a3adffa22",
+        "ev-495a542d4d66",
+        "ev-6032b12f614d",
+        "ev-64e559957f23",
+        "ev-6644b79acdaf",
+        "ev-705a5952643c",
+        "ev-72ae67cf1bd1",
+        "ev-7b96a5794081",
+        "ev-8acbbd901b75",
+        "ev-8ed706991976",
+        "ev-904a58b60df3",
+        "ev-a4c10d98e48c",
+        "ev-ab4f180a917e",
+        "ev-b077d5605267",
+        "ev-b3d07020d879",
+        "ev-c7493c8ebf56",
+        "ev-d55bb7c165b2",
+        "ev-e4d8d307c8bd",
+        "ev-e6f72293517f",
+        "ev-f4eb4632dd60",
+        "ev-f5ab4321b780",
+        "ev-fd8deebe9622",
+        "ev-ff8bc99281a6",
+        "ev-d4375a636f55",
+        "ev-b39e8c27b4a6",
+        "ev-b2a444d8e5e6",
+        "ev-2986b5476a52",
+        "ev-7992af33049e",
+        "ev-d45f46947747",
+        "ev-cdbad5f10029",
+        "ev-1a780fc7f788",
+        "ev-91ec4fc92ad3",
+        "ev-e599ee1bf192",
+        "ev-bc837634eaa2",
+        "ev-296f51353996",
+        "ev-55e1be7f7ede",
+        "ev-89fe173dc4ac",
+        "ev-ff42ab09a455",
+        "ev-0982f2d9b2c6",
+        "ev-2bba844b2e5c",
+        "ev-a2edfd9b1fee",
+        "ev-87f3f8d70a09",
+        "ev-f85ade3c8a00"
+      ],
+      "generatedAt": "2026-10-03T16:57:23.097Z",
+      "callId": "80594dda-eb78-4b35-9da0-40bff536b4c0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-2bd1a74f9c4a] says 1.13.0 changes the defaults so policy exceptions are disabled. The chart renders show which setting controls this: the default `--enablePolicyException` flag on the admission, background and reports controllers goes from true to false ([ev-b39e8c27b4a6], [ev-e599ee1bf192], [ev-89fe173dc4ac], [ev-87f3f8d70a09], [ev-f85ade3c8a00]). So the undecidable leaf, which says the controlling key is not named, is wrong. The exposure should be PolicyException in use and the environment's rendered args flipping to `--enablePolicyException=false`, not an evidence-gap leaf.",
+    "startedAt": "2026-10-03T16:56:59.28Z",
+    "decidedAt": "2026-10-03T16:57:23.097Z"
+  }
+}

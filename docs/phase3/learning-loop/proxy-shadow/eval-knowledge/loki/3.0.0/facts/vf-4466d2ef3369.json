@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4466d2ef3369",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-490641db0323"
+        ],
+        "statementKeys": [
+          "sk-b1170dac3ae7"
+        ],
+        "changeIds": [
+          "chg-619dd875204c"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-109e91fc0132"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--querier.engine.timeout"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-querier.engine.timeout",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "semantic-ambiguity",
+              "needed": "the exact YAML key path of the setting that corresponds to -querier.engine.timeout (not named in the upgrade guide), so the config-file setting can be matched"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The -querier.engine.timeout flag and the corresponding YAML setting are removed, so they are no longer honoured if still configured."
+      },
+      "statement": "Removes already deprecated `-querier.engine.timeout` CLI flag and the corresponding YAML setting"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-503f12e1c2d5"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-503f12e1c2d5"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-220e3b3ae5a7"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-4bd3d7e5a371"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-da0f06f8da24",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L588-L588 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. Removes already deprecated `-querier.engine.timeout` CLI flag and the corresponding YAML setting.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:05:26.531Z"
+  }
+}

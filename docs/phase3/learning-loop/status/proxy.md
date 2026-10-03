@@ -239,3 +239,21 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   - the full v3 re-review after semantic-4;
   - optionally re-recording the 11 now-recordable run-2 verdicts in the real store (no model calls; those items
     are still pending and would otherwise be re-called in the re-review).
+
+## proxy-4: Claude resumed 11:52 CDT (commander order: re-record the 11; v3 re-review of the real store's non-high pending + needs-evidence/deferred items, selected by status; refresh the shadow and run v3 on all high items; rebuild the eval view; report; budget ~$150)
+
+- I reviewed GLM takeover 4: the WIP commits and the run-3 packaging are faithful. Kept. One correction: its plan
+  budgeted per run ($80 shadow + $60 gates on top of run-3's $48 ≈ $188). The cap is **$150 for all of proxy-4**,
+  so the guard now sums run-3 + shadow-v3 + gates (`BUDGET_LEDGERS`).
+- Run-3-gates was ordered: the commander's "selected by status only" includes them. It runs last, because gates
+  verify nothing and are the lowest value, until the cap.
+- Shadow-v3 resumed: the 6 session-limit markers were cleared (those calls never reached the model).
+- **proxy-4 DONE (2026-10-03 ~13:40 CDT)**; see [proxy/run-3/REPORT.md](../proxy/run-3/REPORT.md).
+  - Re-record: 11 recorded.
+  - Real store: 454 non-gate decisions plus 512 gates, 32 new proxy facts. 178 gates were not called because of
+    the budget.
+  - Shadow v3: 634 decisions on all 637 high items; the real store's high items are untouched.
+  - Eval view rebuilt: 339 facts, 0 conflicts.
+  - $149.47 of the ~$150 cap.
+  - Findings: duplicate release mismatch (fixed in prompt v4, not yet run); in the shadow the proxy superseded 3
+    auto-approved consensus facts through audit corrections; capture is the lever for one-line changelog closes.

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-98278b01ce90",
+    "candidateId": "sc-2122e380f43d",
+    "proposalId": "sp-ff815f61496f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "kubevirt-rule-cleanup",
+        "component": "istio-clean-iptables"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"kube-virt-related rules not removed\"",
+        "after": "\"kube-virt-related rules removed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "kube-virt",
+          "state": "in-range",
+          "range": ">=0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "In environments using kube-virt, the istio-clean-iptables tool now removes kube-virt-related iptables rules that it previously left in place, so cleanup behavior differs and should be verified.",
+        "remediation": "No mandatory action; when istio-clean-iptables runs in a kube-virt environment, verify the kube-virt-related rules are removed as intended.",
+        "severity": "low"
+      },
+      "statement": "The istio-clean-iptables tool now removes kube-virt-related iptables rules, which it previously failed to remove."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

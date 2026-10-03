@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-388e15e5a4b8",
+    "candidateId": "sc-2c2a2363a947",
+    "proposalId": "sp-09cf05eb9717",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "crossplane",
+        "group": "protection.crossplane.io",
+        "version": "v1beta1",
+        "kind": "ClusterUsage"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"v1beta1\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who manage Crossplane CRDs separately from the release must install or update CRDs — including the new clusterusages.protection.crossplane.io (ClusterUsage v1beta1) — before upgrading; the evidence does not state what specifically fails if this is omitted.",
+        "remediation": "If CRDs are managed out-of-band, apply the release's CRD set before upgrading (including the new cluster/crds/protection.crossplane.io_clusterusages.yaml); chart-managed installs receive it with the release.",
+        "severity": "low"
+      },
+      "statement": "A new CRD clusterusages.protection.crossplane.io serving protection.crossplane.io/v1beta1 ClusterUsage resources is added (its CRD file exists in v2.0.0 and no protection.crossplane.io CRDs exist in the v1.20.1 listing), and the change note instructs operators who manage CRDs separately from the release to install or update CRDs before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/added",
+        "detail": "gvk:crossplane|group=protection.crossplane.io|version=v1beta1|kind=ClusterUsage: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/added",
+        "detail": "gvk:crossplane|group=protection.crossplane.io|version=v1beta1|kind=ClusterUsage: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

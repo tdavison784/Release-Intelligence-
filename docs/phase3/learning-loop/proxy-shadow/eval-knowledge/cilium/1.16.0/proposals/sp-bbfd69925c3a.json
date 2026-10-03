@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bbfd69925c3a",
+    "candidateId": "sc-7521b226a0ed",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alert rules, or scrape pipelines in the environment consume cilium_ces_sync_errors_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cilium_ces_sync_errors_total disappears from Cilium's exported metrics in 1.16; anything scraping, charting, or alerting on it simply stops receiving data for it, though Cilium itself keeps running.",
+        "remediation": "Remove or update dashboards and alert rules that reference cilium_ces_sync_errors_total.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 removes the cilium_ces_sync_errors_total metric, listed under \"Removed Metrics\" in the 1.16 upgrade notes, so it is no longer exported."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the change names a Prometheus metric (cilium_ces_sync_errors_total), which no supported subject family can identify",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-36f95ff2158c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0950bc9618bcc0368ccbd3abd38dcbd1224b1b29a5adc73dcb1fd6861a1cb2c6",
+      "inputEvidence": [
+        "ev-36f95ff2158c"
+      ],
+      "generatedAt": "2026-10-03T07:46:53Z",
+      "callId": "5420b4ab-7ca5-4704-a451-6d3343196f83"
+    }
+  }
+}

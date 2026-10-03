@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3e7e1011f739",
+  "promptDigest": "sha256:39e600d6d76d753538174179c1d489beb942d4f3cfa656f90b9dc7ca6aae39a4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b26c9e73-f73e-454c-83c0-92e561cc1ee9",
+  "startedAt": "2026-10-03T12:50:06.906Z",
+  "decidedAt": "2026-10-03T12:50:18.023Z",
+  "durationMs": 10069,
+  "costUSD": 0.080228,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-7b76cb015d7e] says the `boltdb.shipper.compactor.deletion-mode` CLI flag and its YAML setting are removed, and that `compactor.deletion-mode` or `deletion_mode` in limits_config should be used instead. This is a key renamed within Loki itself, not a function taken over by an upstream mechanism, so superseded-upstream is the wrong kind. A removed or renamed key whose configured value is no longer honoured is setting-ignored, which makes it mandatory work rather than review. The same section, [ev-f15092605ae3], confirms that the whole `boltdb.shipper.compactor.` prefix was replaced by `compactor.`.",
+    "citations": [
+      "ev-7b76cb015d7e",
+      "ev-f15092605ae3"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the `boltdb.shipper.compactor.deletion-mode` CLI flag and YAML setting are removed. A deletion mode configured through them is no longer honoured and must be set with `compactor.deletion-mode` or `deletion_mode` in limits_config.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "The `boltdb.shipper.compactor.deletion-mode` CLI flag and its corresponding YAML setting are removed, so a deletion mode configured through them is no longer honoured.",
+        "remediation": "Configure the `compactor.deletion-mode` CLI flag or the `deletion_mode` YAML setting in limits_config instead."
+      }
+    }
+  }
+}

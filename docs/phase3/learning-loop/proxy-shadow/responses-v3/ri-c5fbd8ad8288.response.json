@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c5fbd8ad8288",
+  "promptDigest": "sha256:035ba62a3f3e44b32f5f4146cfb3fe1cd4ce3e0e6ca07e7367a501d6d974e9fd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "70a3d90b-2364-431d-9562-601323643b21",
+  "startedAt": "2026-10-03T17:01:10.771Z",
+  "decidedAt": "2026-10-03T17:01:20.664Z",
+  "durationMs": 8973,
+  "costUSD": 0.074684,
+  "output": {
+    "action": "correct",
+    "reason": "The section context [ev-06a16cdbc869] says Crossplane v2 automatically creates a default MRAP that activates all managed resources (`*`), and that operators can \"optionally\" customize it for better cluster resource efficiency. So an operator who does nothing still has every managed resource activated, and nothing fails or needs migrating. [ev-188e63ccea10] only names the step. migration-required overstates this, so the consequence is none (informational), with optional tuning as the remediation.",
+    "citations": [
+      "ev-06a16cdbc869",
+      "ev-188e63ccea10"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Crossplane 2.0 automatically creates a default managed resource activation policy (MRAP) that activates all managed resources (`*`). Customizing it before installing v2 providers is optional, so an operator who does nothing has no operational consequence.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "If the operator does nothing, the default MRAP that Crossplane v2 creates automatically activates all managed resources (`*`). The upgrade guide describes replacing it with a targeted MRAP as optional, for better cluster resource efficiency. Nothing is stated to fail.",
+        "remediation": "Optional: before installing v2 providers, check which managed resources you use and replace the default MRAP with a targeted one that activates only those resources (step 3 of the Crossplane v2 upgrade guide)."
+      }
+    }
+  }
+}

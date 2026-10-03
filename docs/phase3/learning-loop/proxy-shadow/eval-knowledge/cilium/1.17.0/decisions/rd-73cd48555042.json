@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-73cd48555042",
+    "reviewItemId": "ri-a95cea15b97f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium now exposes this metric under the name doublewrite_identity_crd_only_total; the old name doublewrite_identity_crd_only_count is no longer used, so any monitoring referencing the old name must be updated to the new name.",
+        "remediation": "Update dashboards, alerts and recording rules to reference doublewrite_identity_crd_only_total instead of doublewrite_identity_crd_only_count.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_only_count has been renamed to doublewrite_identity_crd_only_total."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium 1.17.0 no longer exposes this metric under the name doublewrite_identity_crd_only_count. The 1.17 upgrade guide gives two different new names for it: doublewrite_identity_crd_only_total and doublewrite_crd_only_identities. Monitoring that refers to the old name should be checked.",
+        "remediation": "Check which name Cilium 1.17.0 actually emits (doublewrite_identity_crd_only_total or doublewrite_crd_only_identities). Then update any dashboards, alerts and recording rules that refer to doublewrite_identity_crd_only_count.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_only_count was renamed. The upgrade guide gives the new name as both doublewrite_identity_crd_only_total and doublewrite_crd_only_identities. It still works under the new name, so this is review, not mandatory work."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:357d736b08b10659a1c0fae14187eac4c8a7b143b5f477859c2ab3240612508f",
+      "inputEvidence": [
+        "ev-6a341603b700",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:31:04.355Z",
+      "callId": "27c9e30c-b746-495d-9083-5b4b12b78ad4",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-6a341603b700] says only that the metric was renamed to doublewrite_identity_crd_only_total. Nothing in the evidence says anything fails, is rejected or must be migrated, so behavior-change (review) at low severity is the right kind. But the same Changed Metrics section, in [ev-df8818f69d5e], says the same old metric was renamed to doublewrite_crd_only_identities. The proposed statement and remediation name a single new metric as settled when the guide itself gives two conflicting names, so the consequence text has to carry that ambiguity.",
+    "startedAt": "2026-10-03T12:30:49.721Z",
+    "decidedAt": "2026-10-03T12:31:04.355Z"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-79c671c9e32e",
+  "promptDigest": "sha256:b5466e17c25f6cb3262b6ba775d8fe5a4e16e8c3f5d53eea057de5e629756f20",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "db94d3b2-b9ca-48a7-9a37-5866ac543948",
+  "startedAt": "2026-10-03T12:58:06.166Z",
+  "decidedAt": "2026-10-03T12:58:21.464Z",
+  "durationMs": 14700,
+  "costUSD": 0.076224,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-8b7267b73a1c] says Structured Metadata is on by default in 3.0 and needs the active schema to use both the `tsdb` index type and the `v13` schema, and that operators not on both have two options. So an operator step is required, and migration-required is the right kind. But the proposed statement says the schema must be upgraded before 3.0. That is too strong: [ev-649f409b4be1] lets the operator disable Structured Metadata (`allow_structured_metadata: false`), upgrade to 3.0 and do the schema migration afterwards, and [ev-7791a108cc39] is only the first option. The statement is corrected to give both paths.",
+    "citations": [
+      "ev-8b7267b73a1c",
+      "ev-7791a108cc39",
+      "ev-649f409b4be1"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0, Structured Metadata is on by default and needs the active schema to use the tsdb index and v13 schema. Operators not on both must migrate the schema before upgrading, or set allow_structured_metadata: false, upgrade, and migrate afterwards.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "migration-required",
+        "severity": "medium",
+        "statement": "Structured Metadata is on by default in Loki 3.0 and needs the active schema to use both the tsdb index type and the v13 storage schema. An environment not on both must take one of two paths. It can upgrade the index and schema versions before updating to 3.0, or it can disable Structured Metadata (and so OTLP support), upgrade, and do the schema migration afterwards.",
+        "remediation": "Either migrate the schema config to tsdb + v13 before upgrading (see the schema config upgrade guide), or set allow_structured_metadata: false in limits_config (or -validation.allow-structured-metadata=false), upgrade to 3.0, then do the schema migration."
+      }
+    }
+  }
+}

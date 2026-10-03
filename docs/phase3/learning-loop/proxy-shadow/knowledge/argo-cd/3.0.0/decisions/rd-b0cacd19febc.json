@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b0cacd19febc",
+    "reviewItemId": "ri-d7ca887cdee0",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies granting update or delete permissions on Applications no longer automatically grant those permissions on managed sub-resources; operators must define separate policies with update/* or delete/* verbs to maintain access to application-managed resources.",
+        "remediation": "Define new RBAC policies with update/* and delete/* verbs for managed resources, or set server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm to preserve v2 behavior.",
+        "severity": "high"
+      },
+      "statement": "Fine-grained RBAC policies granting update or delete to an Application no longer apply to its sub-resources by default; new policies granting update/* or delete/* are required for managed resources, with v2 behavior restorable via server.rbac.disableApplicationFineGrainedRBACInheritance=false in argocd-cm."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:62e1549dcf1aec19e46d5e01e1d19d350889801275f5f67b4dfc45003b2baad7",
+      "inputEvidence": [
+        "ev-d0cda25040fe"
+      ],
+      "generatedAt": "2026-10-03T17:03:04.815Z",
+      "callId": "d568c7ea-98e0-4c85-8a9d-f2c637e383dd",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d0cda25040fe] is listed under Breaking Changes. It says that from v3, `update` or `delete` policies on an application no longer apply to its sub-resources, and that \"new policies must be defined\" to allow `update/*` or `delete/*` on managed resources. That is access users relied on being lost when the operator does nothing, so permission-lost (mandatory work) is supported. The remediation (new policies, or setting `server.rbac.disableApplicationFineGrainedRBACInheritance` to false in argocd-cm) matches the text.",
+    "startedAt": "2026-10-03T17:02:58.231Z",
+    "decidedAt": "2026-10-03T17:03:04.815Z",
+    "resultingFact": "vf-95945471600d"
+  }
+}

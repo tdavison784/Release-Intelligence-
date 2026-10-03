@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fe794d07bccc",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signature-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"always SHA-256 when signing with RSA\"",
+        "after": "\"hash algorithm chosen based on RSA key length: SHA-384 for 3072-bit keys, SHA-512 for 4096-bit keys\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using 3072-bit or 4096-bit RSA keys will have certificates signed with SHA-384 or SHA-512 instead of SHA-256; issuance is expected to keep working with minimal impact, but the evidence warns 'if you're using larger RSA keys, you should be aware of the change'.",
+        "remediation": "If using larger RSA keys, verify that relying parties tolerate certificates signed with SHA-384 or SHA-512.",
+        "severity": "low"
+      },
+      "statement": "In v1.17.0 cert-manager selects the signing hash based on RSA key length — SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys — instead of always using SHA-256, matching the existing ECDSA behavior, with minimal expected impact."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence states the exposure in words ('if you're using larger RSA keys', i.e. 3072-bit or 4096-bit keys) but names no values key, flag, env var, config key or resource field that carries the RSA key size, so no static predicate can be written without inventing a field path.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c76ce5c9366c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:891a75f6597c831ee939c7ae19102587c7740d1665512ada7b87807a8c528fa6",
+      "inputEvidence": [
+        "ev-c76ce5c9366c"
+      ],
+      "generatedAt": "2026-10-03T08:09:49Z",
+      "callId": "723570e8-b66f-48fe-861d-22838a4e0105"
+    }
+  }
+}

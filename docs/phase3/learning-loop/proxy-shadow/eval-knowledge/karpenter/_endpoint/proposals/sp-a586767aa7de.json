@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a586767aa7de",
+    "candidateId": "sc-29fa48f19d84",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration",
+        "component": "ec2nodeclasses.karpenter.k8s.aws"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "ec2nodeclasses.karpenter.k8s.aws"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing EC2NodeClass objects remain stored as v1beta1 until rewritten; a storage version migration must re-write all objects and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "Re-write all EC2NodeClass objects and update status.storedVersions to drop v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The EC2NodeClass CRD storage version changes from v1beta1 to v1, so existing objects stay stored as v1beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8928dccec7a61906f5b85de4a361ba54a10b2f540df0b646688ef7ac7cd29421",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-03T07:09:40Z",
+      "callId": "aa82a988-b77b-48b9-b14f-e4081d6436d9"
+    }
+  }
+}

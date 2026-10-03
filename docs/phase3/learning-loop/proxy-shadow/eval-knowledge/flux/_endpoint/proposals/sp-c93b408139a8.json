@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c93b408139a8",
+    "candidateId": "sc-01dac2541bc1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether stored v1beta2 HelmRepository objects (or status updates written to them) carry status.artifact without status.artifact.digest; status is controller-written runtime state, not part of applied manifests"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "v1beta2 HelmRepository objects whose status.artifact omits digest fail schema validation and are rejected.",
+        "remediation": "Verify that HelmRepository status artifacts include a digest (the controller writes this field). Do not write status.artifact without a digest.",
+        "severity": "low"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository CRD schema, status.artifact.digest is now a required field, so HelmRepository objects whose status.artifact omits a digest are rejected by schema validation."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5db05350437d5d1e2a15e519a7be0b94e0500f45306cf33ed454786d52c6b6b6",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T07:13:07Z",
+      "callId": "569ea0a8-7c66-4c72-b674-982bbafb2b48"
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2354ac9fc225",
+    "candidateId": "sc-6a62499753bb",
+    "proposalId": "sp-ad364d57a931",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.max_line_size"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"256KB\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"config.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*max_line_size\\s*:"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"runtime-config.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*max_line_size\\s*:"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                },
+                {
+                  "op": "values-key",
+                  "path": "loki.config.limits_config.max_line_size",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*max_line_size\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"runtime-config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*max_line_size\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "values-key",
+              "path": "loki.config.limits_config.max_line_size",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that do not explicitly set a maximum line size will have the new 256KB default enforced, whereas previously no default maximum was enforced; operators who need longer lines must disable or increase the limit via configuration.",
+        "remediation": "If log lines longer than 256KB are expected, explicitly configure the maximum line size in the Loki configuration to disable or raise the limit, as described under 'Changes to default configuration values' in the 3.0 upgrade guide."
+      },
+      "statement": "Loki 3.0 now enforces a maximum line size of 256KB by default (previously no default maximum was enforced), and operators can disable or increase this limit through configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

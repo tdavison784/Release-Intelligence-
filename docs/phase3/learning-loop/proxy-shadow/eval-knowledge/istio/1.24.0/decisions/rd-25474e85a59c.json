@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-25474e85a59c",
+    "reviewItemId": "ri-447c927e866c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.CNI_NET_DIR",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "istio-cni"
+        }
+      },
+      "statement": "The CNI_NET_DIR configuration key has been removed from the istio-cni configmap."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7a19903c2b3af9e6e2e4acce36f381e8a3d367395280f1a14292841bcf6a5e9d",
+      "inputEvidence": [
+        "ev-191d17c9702d",
+        "ev-c2809b3da7db",
+        "ev-4d26c029a26e",
+        "ev-28c263f19767",
+        "ev-371cba9ffb93",
+        "ev-cb880878ba69",
+        "ev-e09c6cbd06dc",
+        "ev-31d2781bf9d2",
+        "ev-fa371709f05a",
+        "ev-4407ed95f094",
+        "ev-a25845551580",
+        "ev-61280517f4ea",
+        "ev-790b038b82b7",
+        "ev-37215a11e33d",
+        "ev-0f35637a9823",
+        "ev-3cf1259609e1",
+        "ev-dd94d38ea856",
+        "ev-c0fcac29e341",
+        "ev-2f7235dbd19d",
+        "ev-1fd772318bb8",
+        "ev-38775be62b3e",
+        "ev-1252a2a51c0c",
+        "ev-58fe3b69692b",
+        "ev-93c0d3a62602",
+        "ev-a5a74f4cd759",
+        "ev-c46155ca9794",
+        "ev-437e36865221",
+        "ev-a3e90b78f6fa",
+        "ev-62f858bc5c83",
+        "ev-0f8bce94541e",
+        "ev-80c52188197b",
+        "ev-e4fce3d0047f",
+        "ev-9413f4b657a9"
+      ],
+      "generatedAt": "2026-10-03T12:51:15.33Z",
+      "callId": "bd8439b9-4eb7-40ce-b9b9-1675f5015162",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-191d17c9702d] names the setting exactly: the `CNI_NET_DIR` key in the `istio-cni` ConfigMap was removed because it no longer has any effect. An environment that still has that data key in its istio-cni ConfigMap has a key that is no longer used, so a resource{ConfigMap istio-cni, field data.CNI_NET_DIR set} condition reads the right place and is neither broader nor narrower than the subject. [ev-fa371709f05a] supports this context: kubeconfig is no longer written to the CNI net directory. The evidence does not name a Helm values key behind the entry, so a values-key predicate cannot be written, and the ConfigMap predicate is the most direct one available.",
+    "startedAt": "2026-10-03T12:51:02.593Z",
+    "decidedAt": "2026-10-03T12:51:15.33Z"
+  }
+}

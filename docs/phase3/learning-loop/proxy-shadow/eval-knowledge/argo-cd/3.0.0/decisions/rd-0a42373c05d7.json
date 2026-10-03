@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0a42373c05d7",
+    "reviewItemId": "ri-90df2dce7dfa",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ARGOCD_LEGACY_CONTROLLER_METRICS",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "statement": "The legacy metrics argocd_app_sync_status, argocd_app_health_status and argocd_app_created_time are removed in 3.0.0; use labels on argocd_app_info instead, which matters if ARGOCD_LEGACY_CONTROLLER_METRICS is set to true."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b09a5fcf14739ccc3e2e6392e725ad3d1588ea18ba3efcdfb81ce211761d5b3f",
+      "inputEvidence": [
+        "ev-06e920b4a3dd"
+      ],
+      "generatedAt": "2026-10-03T16:54:20.548Z",
+      "callId": "42e1b796-a624-4526-b3dc-1b7bcc392718",
+      "provider": "anthropic"
+    },
+    "reason": "The Detection section of [ev-06e920b4a3dd] says these metrics are only available when `ARGOCD_LEGACY_CONTROLLER_METRICS` is explicitly set to `true`, and that if it is not set to true you can safely upgrade with no changes. So the exposure is exactly env-var ARGOCD_LEGACY_CONTROLLER_METRICS equals \"true\": environments without that setting never had the metrics and are not affected. The proposed condition is neither broader nor narrower than what the evidence states.",
+    "startedAt": "2026-10-03T16:54:15.312Z",
+    "decidedAt": "2026-10-03T16:54:20.548Z"
+  }
+}

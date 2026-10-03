@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1c404e5141d6",
+    "candidateId": "sc-f6734cfa890c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regarding-object"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Kafka resource as the regardingObject and the Pod in the related field\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which monitoring, alerting or automation consumes the Kubernetes events emitted during a Pod restart and keys on the regardingObject or related fields"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events emitted during a Pod restart are now emitted with the Kafka resource as the regardingObject and the Pod in the related field, so consumers of these events will see them attributed to the Kafka resource rather than the Pod.",
+        "remediation": "Review any monitoring, alerting or automation that consumes the Kubernetes events emitted during a Pod restart and update any logic that expects the Pod to be the regarding object.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events emitted during a Pod restart were updated to have the Kafka resource as the regardingObject and the Pod in the related field."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4308bfa38162"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ff737d4eae7cd0197038f9a4843d1188c3b0a57dbeaf7dc0b03054cdbcfae74f",
+      "inputEvidence": [
+        "ev-4308bfa38162"
+      ],
+      "generatedAt": "2026-10-03T07:04:18Z",
+      "callId": "70659104-d696-4f9f-afc2-d319f01b2ed3"
+    }
+  }
+}

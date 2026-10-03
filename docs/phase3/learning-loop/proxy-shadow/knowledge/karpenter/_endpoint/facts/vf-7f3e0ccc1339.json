@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-7f3e0ccc1339",
+    "product": "karpenter",
+    "candidates": [
+      "sc-29fa48f19d84"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration",
+        "component": "ec2nodeclasses.karpenter.k8s.aws"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "ec2nodeclasses.karpenter.k8s.aws"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Existing EC2NodeClass objects stay stored as v1beta1 until they are rewritten. They must be migrated to v1, and status.storedVersions updated, before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration that rewrites all EC2NodeClass objects, then update status.storedVersions on the ec2nodeclasses.karpenter.k8s.aws CRD.",
+        "severity": "medium"
+      },
+      "statement": "Storage version of `ec2nodeclasses.karpenter.k8s.aws` changes v1beta1 → v1"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-dc93d13b6fe7"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b03cb6bb23f6"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-217a7bb7fbe4"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-96cbfb58eabf"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-8998581760b8",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:7af8cf1d4bc337c373b5ea046214f54b8048e7fb85da74fcd44c2bf1947e01d2",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-451bd6a12e72",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:d26159eb085f7bfd231ea911ac64d3da7dfefa68ee1dfa566c7d5799cf64dd2f",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:03:50.111Z"
+  }
+}

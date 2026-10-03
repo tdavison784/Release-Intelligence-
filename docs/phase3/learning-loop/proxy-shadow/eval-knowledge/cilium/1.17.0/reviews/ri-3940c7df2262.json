@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-3940c7df2262",
+    "candidateId": "sc-d8211760345d",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ports[].protocol",
+                  "state": "unset"
+                }
+              ],
+              "kind": "Service"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--bpf-lb-proto-diff",
+              "component": "cilium-agent",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bpf-lb-proto-diff",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "values-key",
+              "path": "extraConfig.bpf-lb-proto-diff",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Cilium 1.17.0 adds services protocol differentiation, enabled by default and controllable with the cilium-agent flag --bpf-lb-proto-diff; after the upgrade, existing Services without a protocol set are preserved as such and must be deleted and recreated for their protocol to be taken into account by the agent."
+    },
+    "proposals": [
+      "sp-25500ffb8a26",
+      "sp-6fb905f696cd",
+      "sp-8696549db695",
+      "sp-8db3c52b148b",
+      "sp-ccd5bf20c213"
+    ],
+    "validations": [
+      "val-0bf11c108678",
+      "val-4f52c8cb15e4",
+      "val-8d4cef7e98c8",
+      "val-ce5dd95be29b",
+      "val-eadaa721c34d",
+      "val-f3128a8788e5",
+      "val-f729cc5941d1",
+      "val-fdc76cc0328e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T08:14:48Z"
+  }
+}

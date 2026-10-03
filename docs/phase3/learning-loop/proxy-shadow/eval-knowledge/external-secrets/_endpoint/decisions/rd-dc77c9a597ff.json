@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-dc77c9a597ff",
+    "reviewItemId": "ri-c8dd2c155ed9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.externalSecretSpec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "statement": "The v1beta1 ClusterExternalSecret schema no longer allows \"v1\" for spec.externalSecretSpec.target.template.engineVersion, so resources setting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:17e4940d3b8d9433e0553d621ca303f3f6f71062ea0c87bd31683aa7355a1860",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T17:01:31.19Z",
+      "callId": "0ba81fc8-c1f7-4790-96ca-49a6e7e2ce68",
+      "provider": "anthropic"
+    },
+    "reason": "The CRD bundles for the two releases [ev-9889c9b8706d] [ev-e08924afdc47] show, per the computed diff and the confirmed crd-schema:tightened check, that the external-secrets.io/v1beta1 ClusterExternalSecret schema dropped \"v1\" from the allowed values of spec.externalSecretSpec.target.template.engineVersion and added nothing. Only objects that set that field to \"v1\" in v1beta1 run into the removed enum value. The proposed exposure (a v1beta1 ClusterExternalSecret whose field equals \"v1\") therefore matches the exposed state exactly. The canonical \"field set\" form would be too broad, because it would also flag resources that use a value that is still allowed.",
+    "startedAt": "2026-10-03T17:01:22.574Z",
+    "decidedAt": "2026-10-03T17:01:31.19Z",
+    "resultingFact": "vf-5152f78e709d"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a17a180a6095",
+    "reviewItemId": "ri-4d3cd9ffdc8c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consulCatalog.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consulCatalog.namespaces"
+        }
+      },
+      "statement": "Traefik v3 removes the ConsulCatalog provider `namespace` option, which was deprecated in v2. If it is still set, Traefik won't start, so use `namespaces` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9d8dac840b7815203119b0b67ca0950ebe3b87a1fb3dc3ba806ed1e4cc524e02",
+      "inputEvidence": [
+        "ev-3faa5287ea4e"
+      ],
+      "generatedAt": "2026-10-03T12:52:04.274Z",
+      "callId": "00c9d47a-072e-468b-8ddf-7e3625c8f942",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3faa5287ea4e] says the ConsulCatalog provider `namespace` option \"is now removed in v3\". Its v2 YAML example spells the key `consulCatalog: namespace: foobar`, which supports the config-key path consulCatalog.namespace. The same excerpt's remediation says to use the `namespaces` option instead, which supports a removed change with replacedBy consulCatalog.namespaces.",
+    "startedAt": "2026-10-03T12:51:58.815Z",
+    "decidedAt": "2026-10-03T12:52:04.274Z",
+    "resultingFact": "vf-f1c835bfe6f3"
+  }
+}

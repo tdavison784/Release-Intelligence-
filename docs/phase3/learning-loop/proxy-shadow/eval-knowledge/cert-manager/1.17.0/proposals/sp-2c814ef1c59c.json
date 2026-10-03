@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2c814ef1c59c",
+    "candidateId": "sc-78b10a313e23",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-certificate-signature-hash"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with RSA 3072/4096 keys will use SHA-384/SHA-512 hashes; widely supported and not expected to be an issue, but errors may appear as larger RSA keys rotate.",
+        "severity": "low"
+      },
+      "statement": "RSA certificates with 3072- or 4096-bit keys are now signed with SHA-384 or SHA-512 respectively; this may cause errors with peers that don't support these hashes as keys rotate."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether RSA 3072/4096 keys are used and whether relying clients support SHA-384/512; evidence does not name a configuration setting.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-463f236bf567"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:75276259c50ef935b9da9d77144f4e5deaaabe11e991d089bee0dec77c516a4c",
+      "inputEvidence": [
+        "ev-463f236bf567"
+      ],
+      "generatedAt": "2026-10-03T07:08:55Z",
+      "callId": "daefc428-99f7-49b9-b208-8f5f5e1cd032"
+    }
+  }
+}

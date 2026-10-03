@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b2d2a23daa43",
+    "candidateId": "sc-f3844379b9b0",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"cca748591737d568e5b976cb060b960c40bd8c14: feat!: update compareoptions default values\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that rely on the previous compareoptions defaults rather than setting them explicitly get the new default values after upgrading to 3.0.0, so the product behaves differently with unchanged configuration; the upstream commit is marked as a breaking change (feat!).",
+        "remediation": "Review upstream change #22230 (commit cca748591737d568e5b976cb060b960c40bd8c14) for the new defaults and verify Argo CD behavior after upgrading if the compareoptions settings are not set explicitly.",
+        "severity": "medium"
+      },
+      "statement": "The v3.0.0 release notes state that a breaking-change-marked feature (commit cca748591737d568e5b976cb060b960c40bd8c14, #22230) updates the default values of the compareoptions settings, without specifying which options changed or the old and new values."
+    },
+    "proposals": [
+      "sp-3d54294aaa3d",
+      "sp-46173a921a7a",
+      "sp-4861f6e132f6",
+      "sp-93497faae02d",
+      "sp-ac324dcdbb48"
+    ],
+    "validations": [
+      "val-54848fe3e613"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-03T08:48:14Z"
+  }
+}

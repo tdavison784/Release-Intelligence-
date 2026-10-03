@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-87e4f83f3af1",
+    "reviewItemId": "ri-e15e819102db",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is exposed under the new name `envoy_cilium_npds_update_attempt` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt`, so anything that reads the old name has to be updated.",
+        "remediation": "Update dashboards, alerts and queries that use `envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt` to use `envoy_cilium_npds_update_attempt`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt` is renamed to `envoy_cilium_npds_update_attempt`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e8668d8d0f23c3ee09738455553882261f40e87bd2c5c90416be3b339cece78e",
+      "inputEvidence": [
+        "ev-5d9f7bca7ba3",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:36:45.417Z",
+      "callId": "3553f8f1-eed2-41b6-bb3e-966015435c08",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5d9f7bca7ba3] and the section intro [ev-77f05428497a] state only that the NPDS metric prefix was renamed from `envoy_cilium_policymap_<node-ip>_<node-id>_` to `envoy_cilium_npds_`, so this metric is now emitted under a new name. Nothing in the evidence says anything fails, is rejected or must be migrated. Cilium keeps working and only the metric name changes, so low-severity behavior-change (review) is the supported kind. The remediation of updating dashboards and alerts follows from the rename.",
+    "startedAt": "2026-10-03T12:36:36.565Z",
+    "decidedAt": "2026-10-03T12:36:45.417Z"
+  }
+}

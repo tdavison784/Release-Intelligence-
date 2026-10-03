@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-73b17028f1a1",
+    "candidateId": "sc-c98f7db578f9",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With no other cache explicitly enabled, Loki 3.0.0 turns on its embedded cache, so caching behavior changes without any operator action; explicitly enabling another cache keeps the embedded cache from being auto-enabled.",
+        "remediation": "Review whether the newly enabled embedded cache is desired; per the feature's own condition, explicitly enabling another cache prevents the automatic enablement.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 enables its embedded cache when no other cache is explicitly enabled."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: the evidence names only 'embedded cache' — no config key path, field, flag or values key is given, so the subject's identity cannot be pinned; applicability: the evidence names no cache configuration keys (no yaml key, values path or flag that counts as 'another cache explicitly enabled'), so the condition cannot be written as a predicate over data[\"config.yaml\"], loki.* values or CLI flags without inventing key names",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-629a38c6f4b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bdca2ad12d2bd92eda10f74b50b98fa907a35c2af58fc27d7ce463325f589443",
+      "inputEvidence": [
+        "ev-629a38c6f4b2"
+      ],
+      "generatedAt": "2026-10-03T07:14:41Z",
+      "callId": "bf7393a3-d11e-49e1-966b-29888597d576"
+    }
+  }
+}

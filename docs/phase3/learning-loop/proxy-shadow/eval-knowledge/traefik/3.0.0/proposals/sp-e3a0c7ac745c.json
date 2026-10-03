@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e3a0c7ac745c",
+    "candidateId": "sc-2882d220e44f",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to Traefik 3.0.0, the log level handling is corrected, so log output may differ from the previous buggy behavior in environments affected by the bug.",
+        "remediation": "No operator action is required; verify that log verbosity after the upgrade matches the configured log level.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 fixes the handling of the log level (changelog: \"[logs] Fix log level\", PR #9545), so environments where the log level was previously mishandled will now see logging follow the configured level; the evidence does not identify the specific setting or the condition that triggered the bug."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The changelog entry names only \"log level\" in the [logs] area; it does not identify which configuration identity the fix concerns (CLI flag, environment variable, configuration-file key, or Helm value), so the subject cannot be pinned to a family spelling.; applicability: The evidence does not describe the bug or the conditions under which the log level was mishandled, and it names no setting, flag, env var or values key, so no configuration predicate can express the exposure.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-da6dc6a7dbe9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:9999382d9feaeafaccb940e1810716097311e5190fc213a86e394539497ee9b8",
+      "inputEvidence": [
+        "ev-da6dc6a7dbe9"
+      ],
+      "generatedAt": "2026-10-03T08:51:52Z",
+      "callId": "ee166429-2d39-4ef2-b624-26bae63d9cf3"
+    }
+  }
+}

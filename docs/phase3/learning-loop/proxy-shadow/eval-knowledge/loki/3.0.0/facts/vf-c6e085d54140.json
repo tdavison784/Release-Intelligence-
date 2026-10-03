@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c6e085d54140",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-f9839ac9eff4"
+        ],
+        "statementKeys": [
+          "sk-92c59a7104af"
+        ],
+        "changeIds": [
+          "chg-63d7bb351e4a"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2ba59e2cb436"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store.key-prefix"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store_key_prefix\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Loki 3.0.0 removes `-boltdb.shipper.shared-store.key-prefix` and its YAML setting. The index path prefix is now set with `path_prefix` under the period config's `index` key, so a key prefix configured through the removed setting is no longer honoured. This affects you if you set it to a value other than `index/`.",
+        "remediation": "Remove the deleted flag/YAML setting. If it was set to a value other than `index/`, set `path_prefix` in every existing period config that uses `boltdb-shipper` as the index to the value you configured before.",
+        "severity": "high"
+      },
+      "statement": "`-boltdb.shipper.shared-store.key-prefix`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-0761ea033b4a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-0761ea033b4a"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4dee2ac977b8"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7ad6534a8610"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-528edacf0d9e",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L512-L512 (3.0.0 › Loki 3.0.0 › Removed `shared_store` and `shared_store_key_prefix` from shipper configuration)",
+        "excerpt": "- `-boltdb.shipper.shared-store.key-prefix`",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:04:26.93Z"
+  }
+}

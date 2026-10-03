@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b8c43df7d8de",
+    "candidateId": "sc-dd35e147bb75",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-stored-versions"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "externalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clusterexternalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "secretstores.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustersecretstores.external-secrets.io"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If v1alpha1 remains in storedVersions of these CRDs, the operator must remove it (and persist the status) before upgrading, since 0.16 no longer ships the v1alpha1 version.",
+        "remediation": "Run the kubectl storedVersions check from the release notes; if it reports NOT SAFE, remove v1alpha1 from the CRDs' status.storedVersions and make sure it persists.",
+        "severity": "high"
+      },
+      "statement": "Before upgrading to 0.16, ensure v1alpha1 is not in status.storedVersions of the externalsecrets, clusterexternalsecrets, secretstores and clustersecretstores CRDs, removing it and persisting that status if the check reports not safe."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-07d67e9be26a",
+      "ev-4a1f27e04efd",
+      "ev-04b0055709ca",
+      "ev-f978a29a8906"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:83796aa7d54ba90429a4e8d722d8b234a410d13b21fe45499e17627b9677d5df",
+      "inputEvidence": [
+        "ev-07d67e9be26a",
+        "ev-1061f4fcca14",
+        "ev-acf4ed4bcd3b",
+        "ev-f978a29a8906",
+        "ev-b80f52507eed",
+        "ev-4a1f27e04efd",
+        "ev-f9a790bae7ab",
+        "ev-04b0055709ca"
+      ],
+      "generatedAt": "2026-10-03T07:08:13Z",
+      "callId": "e63fe193-de33-491b-8429-e62c624f4555"
+    }
+  }
+}

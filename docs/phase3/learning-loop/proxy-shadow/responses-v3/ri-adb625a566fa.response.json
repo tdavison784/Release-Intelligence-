@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-adb625a566fa",
+  "promptDigest": "sha256:b8487618ae78267412463bff172c33d5b31a4f28a4daba3166dde088cea8c28a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4e6662be-b8c3-4b7f-9a59-5a20b464a943",
+  "startedAt": "2026-10-03T16:58:18.778Z",
+  "decidedAt": "2026-10-03T16:58:37.324Z",
+  "durationMs": 17843,
+  "costUSD": 0.14406,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-628f9c0eccb2] and [ev-4c2676e4665a] say support was removed only for ZooKeeper-based clusters and ZooKeeper-to-KRaft migration, and that clusters must be using KRaft before the upgrade. That means KRaft clusters are not exposed. The proposed any[] flags every environment that uses Kafka v1beta2 or v1beta1, which includes all KRaft clusters, so it is far too broad. Neither the changelog nor the upgrade notes name the field or setting that marks a cluster as ZooKeeper-based. So the corrected condition requires a Kafka resource and leaves the ZooKeeper-mode test as an evidence gap instead of using spec.zookeeper, which no evidence names.",
+    "citations": [
+      "ev-628f9c0eccb2",
+      "ev-4c2676e4665a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Strimzi 0.46.0 removed support for ZooKeeper-based Kafka clusters and ZooKeeper-to-KRaft migration. Only environments with a Kafka cluster still running on ZooKeeper or mid-migration are exposed; KRaft clusters are not. The evidence does not name the setting that identifies ZooKeeper mode.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which Kafka resource setting marks a cluster as ZooKeeper-based or mid-way through KRaft migration (the release text does not name it)"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

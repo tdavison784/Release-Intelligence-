@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-28c0f856b813",
+    "candidateId": "sc-82dd4a1a796f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any dashboards, alerts or recording rules query the metric doublewrite_identity_crd_only_count"
+        }
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_only_count was renamed to doublewrite_identity_crd_only_total. Whether an environment is affected depends on monitoring queries outside the product's configuration."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "consequence"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and no subject family (crd-field, helm-value, config-key, protocol-behavior, api-endpoint, and so on) fits a metric without bending its definition.; change: The evidence says the metric was renamed, but a renamed change needs a typed subject and a replacedBy of the same family, and no family fits a metric name.; consequence: The evidence states only the rename. It does not say what happens to queries or alerts that use the old metric name.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6a341603b700"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:4eaaba6589d78c33a7e240ea0d91c9e50bb8314e5862d880b09efe330240d34b",
+      "inputEvidence": [
+        "ev-6a341603b700"
+      ],
+      "generatedAt": "2026-10-03T07:14:36Z",
+      "callId": "a4e1d319-2667-4369-beed-403922a34a07"
+    }
+  }
+}

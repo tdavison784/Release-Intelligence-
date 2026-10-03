@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-559ad927886f",
+    "candidateId": "sc-16680271ada6",
+    "proposalId": "sp-7f44d893c5b1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "app-destination-name-and-server",
+        "component": "ui"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether users create applications whose destination sets both name and server through the Argo CD UI"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Applications whose destination sets both name and server, which the UI previously could not add, can now be added through the UI; no operator action is required.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes the UI bug that prevented adding an application whose destination sets both name and server, so such applications can now be added through the UI."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

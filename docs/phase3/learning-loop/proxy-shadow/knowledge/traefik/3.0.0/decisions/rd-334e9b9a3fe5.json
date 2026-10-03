@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-334e9b9a3fe5",
+    "reviewItemId": "ri-8e9f9eb9d7f3",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:dbbbd067002d015190a313f6d0b98b9a4483a057abe5f330cc1467c971a28e3e",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-03T16:54:13.477Z",
+      "callId": "8f66a9d4-6933-4524-9fb9-0004b2bae8f5",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-4685c9dd4dac] shows three ways to set the removed option: the CLI flag `--providers.consul.tls.caOptional`, YAML `providers.consul.tls.caOptional`, and TOML `[providers.consul.tls] caOptional`. Exposure is any environment that sets it in any of these. The proposed cli-flag leaf is right, but the undecidable leaf is not valid: \"environment-visibility-gap\" is not an allowed reason, and whether a static config file sets a key is a configuration question, not runtime behaviour. To replace that leaf I would need the CONFIG SOURCES mapping, meaning which ConfigMap data key (or other source) holds Traefik's static configuration file. With only the cli-flag leaf, the condition would miss environments that set the option in the file, and naming the data key without evidence would be a guess.",
+    "startedAt": "2026-10-03T16:53:50.505Z",
+    "decidedAt": "2026-10-03T16:54:13.477Z"
+  }
+}

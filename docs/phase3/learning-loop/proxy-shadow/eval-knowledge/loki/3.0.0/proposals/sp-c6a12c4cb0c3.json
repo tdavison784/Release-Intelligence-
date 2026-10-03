@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c6a12c4cb0c3",
+    "candidateId": "sc-895e84ff5606",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "tsdb-v13-schema"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Structured metadata is now on by default. If the `tsdb` index and the `v13` schema are not configured, Loki won't start.",
+        "remediation": "Before upgrading, configure the `tsdb` index and the `v13` schema. See the upgrade guide section 'Structured Metadata, Open Telemetry, Schemas and Indexes'.",
+        "severity": "critical"
+      },
+      "statement": "In Loki 3.0.0 structured metadata is on by default and needs the `tsdb` index with the `v13` schema; without them Loki won't start."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence does not name the configuration keys that select the index type or schema version, or a way to opt out of structured metadata. A predicate would have to use key names that are not in the evidence.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5dacaee98643"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:22445e9d60e9160bbe6cc1a215522c0cad10dff230a1f3198b2646af0a2b3a80",
+      "inputEvidence": [
+        "ev-5dacaee98643"
+      ],
+      "generatedAt": "2026-10-03T07:05:56Z",
+      "callId": "1301b521-23c6-4b90-98c0-49e591516ea9"
+    }
+  }
+}

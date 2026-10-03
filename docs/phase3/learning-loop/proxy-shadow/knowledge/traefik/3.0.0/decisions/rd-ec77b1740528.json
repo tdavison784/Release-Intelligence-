@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ec77b1740528",
+    "reviewItemId": "ri-ce3940f00dc5",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.swarmMode"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"true\""
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2dd0214ab44890d8be5a2bcb781ac0732acfcc3834afade183221fc869d93045",
+      "inputEvidence": [
+        "ev-c6ee7d3b73da"
+      ],
+      "generatedAt": "2026-10-03T17:02:13.899Z",
+      "callId": "8bdab861-4431-454d-a439-ef0ea65d377d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c6ee7d3b73da] shows the v2 static setting as providers.docker.swarmMode (YAML/TOML, and --providers.docker.swarmMode=true on the CLI). It says this configuration \"is now unsupported and would prevent Traefik to start\" because Swarm support moved to a separate Swarm provider. So config-key providers.docker.swarmMode with change type removed is correct. The before value \"true\" is the value from the cited v2 example, which is acceptable because before is optional for a removed change.",
+    "startedAt": "2026-10-03T17:02:01.979Z",
+    "decidedAt": "2026-10-03T17:02:13.899Z",
+    "resultingFact": "vf-df4cc3386bcd"
+  }
+}

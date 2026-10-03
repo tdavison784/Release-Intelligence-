@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-751887696931",
+  "promptDigest": "sha256:1b57f40f2f2f072fb7ed046807d99531a7c071deb6f9932da2eb1f161e988a4a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b37d5f20-2363-4b83-ae75-b3f05423a53a",
+  "startedAt": "2026-10-03T12:57:19.400Z",
+  "decidedAt": "2026-10-03T12:57:36.533Z",
+  "durationMs": 16410,
+  "costUSD": 0.12026800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e54c7ef2acc9] says support for the 1.20 compatibilityProfile was removed and that ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT were removed from Istio entirely. Values set for them are therefore no longer honoured, so setting-ignored fits. Nothing in the evidence says anything fails, so the proposed \"or cause failures\" is unsupported. The evidence also doesn't call ENABLE_AUTO_SNI an alternative; it only says that flag was not removed.",
+    "citations": [
+      "ev-e54c7ef2acc9"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 removed support for the 1.20 compatibilityProfile and removed ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT entirely. Selecting that profile or setting those flags no longer applies the 1.20 behaviour.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "Selecting the 1.20 compatibilityProfile, or setting ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING or VERIFY_CERTIFICATE_AT_CLIENT, is no longer honoured after the upgrade, because support for the profile and these flags was removed from Istio.",
+        "remediation": "Remove references to the 1.20 compatibilityProfile and to the removed flags, and check that the current default behaviour suits your mesh. ENABLE_AUTO_SNI was not removed and can still be set explicitly."
+      }
+    }
+  }
+}

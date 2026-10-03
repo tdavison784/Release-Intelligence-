@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a21c3d050780",
+    "candidateId": "sc-00c8dd09dcde",
+    "proposalId": "sp-a7203aa4944d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metric-prefix"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment uses Loki's embedded cache and whether its dashboards, alert rules or PromQL queries reference metrics under the old querier_cache_ prefix"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps working, but embedded-cache metrics are now published under the loki_embeddedcache_ prefix, so dashboards, alerts or queries still referencing the old querier_cache_ metric names will no longer see those series, and the duplicate metrics no longer exist.",
+        "remediation": "Update any dashboards, alert rules or queries that reference the old querier_cache_ metric prefix to use loki_embeddedcache_.",
+        "severity": "low"
+      },
+      "statement": "Loki's embedded cache metrics are now exposed under the loki_embeddedcache_ prefix instead of querier_cache_, and duplicate metrics are removed (PR 10693)."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/value-changed",
+        "detail": "no canonical exposure condition for protocol-behavior value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

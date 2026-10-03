@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5be97e93245e",
+    "reviewItemId": "ri-623abad0eebb",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether scripts or CI pipelines invoke `crossplane xpkg login` or `crossplane xpkg logout`"
+        }
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` CLI commands were removed; use `docker login` or `docker/login-action` instead."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts or CI pipelines invoke `crossplane xpkg login` or `crossplane xpkg logout` (client-side CLI usage, not part of cluster or chart configuration)"
+        }
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` CLI commands were removed in Crossplane 2.0.0. An environment is exposed only if its scripts or CI pipelines run these commands, and no product configuration shows that."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:086365b5d4b0e294ae3909d6898b2fab39e5d37c969bc562d091da13c7a85c4a",
+      "inputEvidence": [
+        "ev-5bbbbea35c34"
+      ],
+      "generatedAt": "2026-10-03T12:54:52.877Z",
+      "callId": "89abf860-1a4e-444f-8c4d-0128c007cd03",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5bbbbea35c34] says the client-side `crossplane xpkg login` and `crossplane xpkg logout` commands were removed, so the exposed environments are those whose scripts or CI run these commands. These are not container args of Crossplane's workloads, Helm values or manifests, so no configuration predicate can read them, and P1's cli-flag leaf is wrong. Undecidable is the right exposure here, but the proposal's reason \"environment-visibility-gap\" is not an allowed reason. The corrected reason is runtime-behavior-gap: the gap is which operator tooling runs the command.",
+    "startedAt": "2026-10-03T12:54:39.111Z",
+    "decidedAt": "2026-10-03T12:54:52.877Z"
+  }
+}

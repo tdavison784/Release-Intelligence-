@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-01790464c44b",
+    "candidateId": "sc-9f8a80378b1b",
+    "proposalId": "sp-b63893956eb2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "ignoreDifferencesOnResourceUpdates:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreDifferencesOnResourceUpdates:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resource updates to fields covered by system-level ignoreDifferences no longer trigger a diff for the application; the v2 behavior is preserved only by setting ignoreDifferencesOnResourceUpdates to false.",
+        "remediation": "Set ignoreDifferencesOnResourceUpdates: false in resource.compareoptions of argocd-cm to keep v2 behavior."
+      },
+      "statement": "In Argo CD 3.0 the system-level ignoreDifferences customizations also ignore resource updates by default; set ignoreDifferencesOnResourceUpdates to false in argocd-cm resource.compareoptions to keep the v2 behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

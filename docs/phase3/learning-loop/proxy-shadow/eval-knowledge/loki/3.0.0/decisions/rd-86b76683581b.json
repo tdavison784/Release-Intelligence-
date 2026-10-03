@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-86b76683581b",
+    "reviewItemId": "ri-3b0530c7cf5b",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "statement": "Loki 3.0.0 recommends enabling WAL and optionally enabling flush_on_shutdown to handle the removal of max_transfer_retries configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d5b0b9779ea499a3fff26097b26131c684214af6118b30ce121c29cd6870f512",
+      "inputEvidence": [
+        "ev-b19cd3bb8e8b",
+        "ev-c6e07f70e7d9",
+        "ev-8ec3d6c379c3"
+      ],
+      "generatedAt": "2026-10-03T12:50:03.994Z",
+      "callId": "cbf235ce-f034-40cf-b8e5-7f369fcf26eb",
+      "provider": "anthropic"
+    },
+    "reason": "This item is not a change in its own right. It is option A of two alternatives listed after the removal of `max_transfer_retries` (`-ingester.max-transfer-retries`) [ev-c6e07f70e7d9]; the other option is B [ev-8ec3d6c379c3]. The cited text only recommends enabling the WAL, with flush_on_shutdown as an optional extra [ev-b19cd3bb8e8b]. The proposed exposure, edge-from-version <3.0.0, flags every environment upgrading to 3.0.0, which is too broad. Per the section, only environments that relied on max_transfer_retries are affected, and that belongs to the removal change, not to this remediation option.",
+    "startedAt": "2026-10-03T12:49:52.403Z",
+    "decidedAt": "2026-10-03T12:50:03.994Z"
+  }
+}

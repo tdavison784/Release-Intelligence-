@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a29cc5704fe0",
+  "promptDigest": "sha256:24bcb13fa08e8802c2337a80e04d8db74a02a250a108cd6dab4857e7c8cad275",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dfdfa0ce-c5ee-4c75-907e-67a1aef6e554",
+  "startedAt": "2026-10-03T16:56:42.009Z",
+  "decidedAt": "2026-10-03T16:56:58.121Z",
+  "durationMs": 15433,
+  "costUSD": 0.063004,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The only artifact-level support is the computed diff and the validator check that status.artifact.digest becomes required in the v1 HelmChart schema between the two install.yaml files. The excerpts [ev-782bc47d120d] and [ev-c2c6c790d6b2] show only \"apiVersion: v1\", so they do not show the schema itself. They do not show whether the requirement applies only when status.artifact is present, whether status is a controller-written subresource, or whether the source controller already writes the digest. Without that, the evidence cannot settle whether any write by an operator is rejected (resource-rejected) or whether nothing changes for the operator. The proposed statement (\"objects that omit status.artifact.digest are rejected\") and its remediation (\"set the digest, then re-apply\") may over-claim mandatory work, so I need the relevant HelmChart CRD schema excerpt and source-controller release notes before deciding.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low"
+  }
+}

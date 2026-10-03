@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a010cfa563f3",
+    "candidateId": "sc-58144fc373f6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric `doublewrite_identity_crd_only_count` is now exposed as `doublewrite_crd_only_identities`, so monitoring that refers to the old name should be checked.",
+        "remediation": "Update dashboards, alerts and queries that use `doublewrite_identity_crd_only_count` to use `doublewrite_crd_only_identities`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric `doublewrite_identity_crd_only_count` has been renamed to `doublewrite_crd_only_identities`, so it is now exposed under the new name."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and no subject family covers metrics, so its identity cannot be spelled canonically.; change: The evidence states a rename, but a typed renamed change needs a subject family and a replacedBy in the same family, and no family covers metric names.; applicability: Exposure depends on whether external dashboards, alerts or recording rules query the old metric name. No product configuration predicate can express that, and the evidence states no condition.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-df8818f69d5e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ba33b0b7da24957be2c3f2456ba59f41b592155b5f66a70202748426cb6b3e1c",
+      "inputEvidence": [
+        "ev-df8818f69d5e"
+      ],
+      "generatedAt": "2026-10-03T07:04:04Z",
+      "callId": "18f14b86-64fd-4ce0-ac88-e0c5684db13d"
+    }
+  }
+}

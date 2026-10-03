@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8c2478a70271",
+  "promptDigest": "sha256:0016ec768313db47bde3b6797a4c678ed82fbb9f46c4f8f21a54f2279cf8f105",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7cc870fe-7642-46d9-b87a-54758e2f152b",
+  "startedAt": "2026-10-03T17:22:47.746Z",
+  "decidedAt": "2026-10-03T17:22:59.302Z",
+  "durationMs": 10629,
+  "costUSD": 0.058972000000000004,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "On its own, [ev-b25449d452b2] says only that documentation was \"corrected\" for `rootCertExpiryTimestamp` and `citadel_server_cert_chain_expiry_timestamp`, not what the correction was. The same telemetry section fills that gap. [ev-c3da9e3c81f1] says the docs for the cert-expiry timestamp metrics `rootCertExpiryTimestamp` and `certChainExpiryTimestamp` were updated: they never actually recorded a negative number for expired certificates, so the runtime behaviour did not change. Anyone who relied on the old documented negative values should check the sign of `rootCertExpirySeconds` / `certChainExpirySeconds` instead. That is enough to write the open aspects: the subject is the CA cert-expiry timestamp metrics, the change is a documentation-only correction, and applicability is limited to anyone relying on the old documented behaviour, with no operational change ([ev-40e9ce81a63d] separately covers when these metrics refresh). Confidence is low because I'm inferring the link to [ev-c3da9e3c81f1] from the shared section and topic, and the metric names don't match exactly (`citadel_server_cert_chain_expiry_timestamp` vs `certChainExpiryTimestamp`).",
+    "citations": [
+      "ev-b25449d452b2",
+      "ev-c3da9e3c81f1",
+      "ev-40e9ce81a63d"
+    ],
+    "confidence": "low"
+  }
+}

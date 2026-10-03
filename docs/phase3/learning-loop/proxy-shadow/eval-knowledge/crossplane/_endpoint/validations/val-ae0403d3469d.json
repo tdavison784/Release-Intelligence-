@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ae0403d3469d",
+    "candidateId": "sc-35e83ef1cd6f",
+    "proposalId": "sp-2dd888bc41dc",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--enable-external-secret-stores",
+        "component": "core"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-external-secret-stores",
+          "component": "core",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "A Crossplane core pod started with --enable-external-secret-stores fails to start, returning the error 'Crossplane removed support for external secret stores. The --enable-external-secret-stores flag will be removed in a future release.'",
+        "remediation": "Remove --enable-external-secret-stores from the Crossplane core pod arguments (passed through the chart's args value) and migrate off external secret stores before upgrading to v2.0.0.",
+        "severity": "high"
+      },
+      "statement": "In Crossplane v2.0.0 support for external secret stores was removed, and the core command (cmd/crossplane/core/core.go) now returns the error \"Crossplane removed support for external secret stores. The --enable-external-secret-stores flag will be removed in a future release.\" when the --enable-external-secret-stores flag is used."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

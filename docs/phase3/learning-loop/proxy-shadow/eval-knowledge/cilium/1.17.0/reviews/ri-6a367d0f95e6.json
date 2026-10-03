@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-6a367d0f95e6",
+    "candidateId": "sc-2536de269bdc",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests` -> `envoy_cilium_npds_control_plane_pending_requests`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The pending-requests metric is emitted only under the new name envoy_cilium_npds_control_plane_pending_requests, so monitoring that references the old per-node name will no longer receive data for it.",
+        "remediation": "Update dashboards, alerts and queries that reference envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests to use envoy_cilium_npds_control_plane_pending_requests.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests is renamed to envoy_cilium_npds_control_plane_pending_requests, so it is no longer exposed under the old per-node name."
+    },
+    "proposals": [
+      "sp-3af908baec83",
+      "sp-47aa0ed95c26",
+      "sp-ef4ca84eff81"
+    ],
+    "validations": [
+      "val-acc42b4316e6",
+      "val-b9e79eb9136f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:19:52Z"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-64e4d3d9d98f",
+  "promptDigest": "sha256:d5241806ecd65d742e4b4258b410f8a72e21a693892be1212496c33ea20a6bea",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "30c04cb9-e85b-4673-8a96-6dc4a6e67e4c",
+  "startedAt": "2026-10-03T12:55:11.287Z",
+  "decidedAt": "2026-10-03T12:55:29.641Z",
+  "durationMs": 17660,
+  "costUSD": 0.14294,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-6650fd33304c] tells anyone upgrading from Loki 2.x to 3.0 to follow the Migrate to TSDB instructions first, so the from-version leaf \">=2.0.0 <3.0.0\" is supported. The proposal is wrong to add a product-version leaf for loki itself: that op is for another product's version, and the target release is already fixed by this item. The context [ev-8b7267b73a1c] ties the TSDB requirement to the active schema's index type. Without a stated config source, though, a predicate that excludes environments already on TSDB would be a guess, so the exposure stays the upgrade edge only.",
+    "citations": [
+      "ev-6650fd33304c",
+      "ev-8b7267b73a1c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments upgrading to Loki 3.0.0 from a 2.x release should first follow the Migrate to TSDB instructions, as the upgrade guide says.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "edge-from-version",
+          "range": ">=2.0.0 <3.0.0",
+          "state": "in-range"
+        }
+      }
+    }
+  }
+}

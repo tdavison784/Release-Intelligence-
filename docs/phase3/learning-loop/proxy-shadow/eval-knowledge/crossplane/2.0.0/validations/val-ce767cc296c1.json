@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ce767cc296c1",
+    "candidateId": "sc-e51e65327713",
+    "proposalId": "sp-a748afe5e934",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external monitoring (Prometheus queries, dashboards, alerts) references the crossplane_composition_controllers_*, crossplane_composition_watches_* or crossplane_composition_run_function_* metric names"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, Crossplane exposes these metrics under the new names engine_controllers_*, engine_watches_* and function_run_function_* instead of the crossplane_composition_* names.",
+        "remediation": "Change any Prometheus queries, dashboards or alerts that use crossplane_composition_controllers_*, crossplane_composition_watches_* or crossplane_composition_run_function_* to use the new metric names.",
+        "severity": "medium"
+      },
+      "statement": "In Crossplane 2.0.0, the Prometheus metrics for the controller engine and function response caches have new names: crossplane_composition_controllers_* is now engine_controllers_*, crossplane_composition_watches_* is now engine_watches_*, and crossplane_composition_run_function_* is now function_run_function_*."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

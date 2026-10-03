@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a9e8c1389a24",
+    "reviewItemId": "ri-9d1e00383298",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository"
+        }
+      },
+      "statement": "The status.artifact.digest field is now required in OCIRepository v1; objects omitting it are rejected."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository"
+        }
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 OCIRepository schema now requires status.artifact.digest. OCIRepository objects that have status.artifact set but omit status.artifact.digest are exposed to schema rejection."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:35b4f68fa2d09c766be33bf83b50f5382a336d4190851390700cc149d8ba308a",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T16:56:01.33Z",
+      "callId": "089f5484-258f-4ec0-ba34-b277e8f7d6f0",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] makes `status.artifact.digest` newly required in the OCIRepository v1 schema, and the change text says objects that omit it are rejected. In an OpenAPI schema, a nested required field is only checked when its parent object (`status.artifact`) is present. The proposed condition only checks that the digest is unset, so it also flags every OCIRepository with no `status.artifact`, including every manifest kept in Git, which never carries status. The exposure has to require `status.artifact` to be set and `status.artifact.digest` to be unset on the same object.",
+    "startedAt": "2026-10-03T16:55:49.255Z",
+    "decidedAt": "2026-10-03T16:56:01.33Z"
+  }
+}

@@ -29,7 +29,7 @@ import (
 
 // PromptVersion names the prompt templates and the verdict schema. Change it
 // whenever either changes; it is recorded in every proxy decision.
-const PromptVersion = "proxy-review/v3"
+const PromptVersion = "proxy-review/v4"
 
 // Producer is the provenance producer of proxy decisions (the same string
 // `ri knowledge decide` records for proxy decisions).
@@ -162,7 +162,13 @@ func Build(rc *knowledge.ReviewContext, opts Options) (*Request, error) {
 	}
 	facts := shownFacts(rc)
 	for _, f := range facts {
-		req.Facts = append(req.Facts, f.ID)
+		// duplicateOf may name only a fact of the candidate's own release: the
+		// queue adds the candidate's anchors to it and refuses a release
+		// mismatch (proxy-4: 3 shadow verdicts named an endpoint fact, release "").
+		// Other related facts stay visible as context.
+		if f.Release == rc.Candidate.Release {
+			req.Facts = append(req.Facts, f.ID)
+		}
 	}
 	var humans []domain.ReviewDecision
 	if !opts.NoHumanContext {
@@ -280,7 +286,8 @@ Your task: answer the QUESTION by deciding on the PROPOSED ASSERTION, judging on
   results do not count — and ids are copied exactly, never invented.
 - reject: the proposed assertion is wrong and no correct assertion follows from the evidence (it is not a
   change, it misreads the text, it bundles unrelated changes). Optional wrong-* labels say what was wrong.
-  With "duplicateOf": the change is the same upstream change as one of the KNOWN FACTS shown.
+  With "duplicateOf": the change is the same upstream change as one of the KNOWN FACTS of this release (only those
+  are offered).
 - need-more-evidence: neither the EVIDENCE nor the UPSTREAM SECTION CONTEXT is enough to decide the [VERIFY]
   aspects either way (say what is missing). Prefer this to a guess, but read the section context first: an aspect
   the surrounding upstream text settles (for example the upgrade guide naming the key, the default or what

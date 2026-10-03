@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e19afd9f436e",
+    "candidateId": "sc-cd58ebd83118",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key-support"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "ipsec-per-tunnel-keys"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment relying on a single IPsec key (with the '+' sign in the secret) no longer has that configuration honoured: per-tunnel keys are used regardless of the '+' sign, so the key material in the secret must be provided as per-tunnel keys.",
+        "remediation": "Update the IPsec key material to per-tunnel keys; the '+' sign in the secret no longer selects single-key behaviour.",
+        "severity": "medium"
+      },
+      "statement": "Cilium 1.17 removes support for a single IPsec key: per-tunnel keys are now used regardless of the presence of the '+' sign in the secret, so the single-key configuration is no longer honoured."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence says the change is keyed on 'the presence of the + sign in the secret' but never names the IPsec secret (or a values key / cilium-config key / flag that enables single-key IPsec), and the listed config sources do not cover the IPsec key secret, so no predicate can be written without inventing identifiers.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a152c8cea30c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a5fc55a1a655913cdc684208dadb020253f7f632b161378bc69b6e88a3bd65a3",
+      "inputEvidence": [
+        "ev-a152c8cea30c"
+      ],
+      "generatedAt": "2026-10-03T07:13:59Z",
+      "callId": "e1fadd48-303f-4c6f-970f-9d3e68cd5505"
+    }
+  }
+}

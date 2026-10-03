@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-730a437a0187",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "anchors": [
+      {
+        "release": "1.0.0",
+        "evidenceKeys": [
+          "ek-a4023d03f8c7"
+        ],
+        "statementKeys": [
+          "sk-ad2cbc4d99a2"
+        ],
+        "changeIds": [
+          "chg-4dc66974bf31"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f32097415709"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.consolidationPolicy"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"WhenUnderutilized\"",
+        "after": "\"WhenEmptyOrUnderutilized\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "In Karpenter 1.0.0, NodePools applied with v1beta1 consolidationPolicy WhenUnderutilized are still converted to the v1 API by the conversion webhooks. Karpenter stops serving v1beta1 and drops the conversion webhooks at v1.1.0, so manifests still using the old v1beta1 form are expected to stop working then.",
+        "remediation": "Migrate stored NodePool manifests to the v1 API, using consolidationPolicy WhenEmptyOrUnderutilized instead of WhenUnderutilized, before upgrading to Karpenter v1.1.0.",
+        "severity": "medium"
+      },
+      "statement": "API Rename: NodePool’s ConsolidationPolicy `WhenUnderutilized` is now renamed to `WhenEmptyOrUnderutilized`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-4f1aa03f3512"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-2a9af65e1952"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-6c552dd5ce27"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c2b911588373"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-80331c11381f",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md",
+        "locator": "L51-L51 (Upgrading to `1.0.0`+)",
+        "excerpt": "* API Rename: NodePool’s ConsolidationPolicy `WhenUnderutilized` is now renamed to `WhenEmptyOrUnderutilized`",
+        "contentDigest": "sha256:95be50527b8b1cab258c86b9fc665dc9657fa30655d6de614fe8527fcc341da5",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-09bbe26d2f4a",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:e2ef55b720c13f6ff10abe6e8374524553df02b46e49c18330d67ac5e3431f8f",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      },
+      {
+        "id": "ev-451bd6a12e72",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:d26159eb085f7bfd231ea911ac64d3da7dfefa68ee1dfa566c7d5799cf64dd2f",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      },
+      {
+        "id": "ev-760ae3491f13",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:315b8390c1e7a31b3bedb8a615a5e776bd02ddea9aba06ed0f2f8e5dfbbe5d36",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-881d131e594e",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:d67a062f292b13a46e481897d54db6e0207880f6ef9234966d0e31110c337786",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-8998581760b8",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:7af8cf1d4bc337c373b5ea046214f54b8048e7fb85da74fcd44c2bf1947e01d2",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-fef279f378b5",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:e1d7358b590dd5732ff450b83d995ef45d18871ba01c27985361bb7f557bf7ca",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:58:31.331Z"
+  }
+}

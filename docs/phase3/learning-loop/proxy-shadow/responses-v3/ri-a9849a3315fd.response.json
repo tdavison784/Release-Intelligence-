@@ -1,0 +1,68 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a9849a3315fd",
+  "promptDigest": "sha256:5f042a9176f4f33463e2103af0c44298d3e7db9b28b547f14afad87677af6d48",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "61922bc3-a119-4575-b6ea-741a2c247073",
+  "startedAt": "2026-10-03T16:57:34.090Z",
+  "decidedAt": "2026-10-03T16:57:55.286Z",
+  "durationMs": 20575,
+  "costUSD": 0.122564,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3ab5da393af7] shows the removed Consul `namespace` option used three ways: a YAML static file (`consul: namespace: foobar`), a TOML static file (`[consul] namespace=foobar`) and the CLI flag `--consul.namespace=foobar`. It says any of them stops Traefik from starting. The proposed condition only checks the CLI flag, so it misses environments that set the option in a static config file. The corrected condition also checks static config files held in a ConfigMap. The file names and the line-level pattern are my guesses because the evidence doesn't name them, so confidence is low.",
+    "citations": [
+      "ev-3ab5da393af7"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The Consul provider `namespace` option, deprecated in v2, is removed in v3. Traefik won't start if it is set by the CLI flag `--consul.namespace` or in the YAML or TOML static config file. Use `namespaces` instead.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consul.namespace",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yml\"]",
+                      "pattern": "^\\s*namespace\\s*:",
+                      "state": "exists"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yaml\"]",
+                      "pattern": "^\\s*namespace\\s*:",
+                      "state": "exists"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.toml\"]",
+                      "pattern": "^\\s*namespace\\s*=",
+                      "state": "exists"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

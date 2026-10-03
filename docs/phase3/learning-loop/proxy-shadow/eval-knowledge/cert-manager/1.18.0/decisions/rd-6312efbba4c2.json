@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6312efbba4c2",
+    "reviewItemId": "ri-d49aaee2b7d1",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-account-key-managed-by-label"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"app.kubernetes.io/managed-by: cert-manager\""
+      },
+      "statement": "cert-manager now adds the label app.kubernetes.io/managed-by: cert-manager to the Let's Encrypt account key secrets it creates."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "lets-encrypt-account-key-managed-by-label"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"app.kubernetes.io/managed-by: cert-manager\""
+      },
+      "statement": "cert-manager 1.18.0 adds the label `app.kubernetes.io/managed-by: cert-manager` to the Let's Encrypt account keys it creates."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e530f6857847896d4af4f0c51acb43f7c08db10846e498d56e3d27c914e9208b",
+      "inputEvidence": [
+        "ev-1d4a9d664d8c",
+        "ev-30d2c387f95f",
+        "ev-e8facc7cba98",
+        "ev-dde3ce032096",
+        "ev-38243747b200",
+        "ev-41698084a48b",
+        "ev-861cb2d69752",
+        "ev-87995aee2ded",
+        "ev-d4918828336e",
+        "ev-4fcf47388827",
+        "ev-7be235e771a3",
+        "ev-8f6e397ae33c",
+        "ev-0bb0d885678d",
+        "ev-cf14b14073be",
+        "ev-330bb03a882f"
+      ],
+      "generatedAt": "2026-10-03T12:35:41.059Z",
+      "callId": "ed9428a0-8582-4ffc-be30-ea6d5bddc601",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-1d4a9d664d8c] says only that cert-manager now adds the `app.kubernetes.io/managed-by: cert-manager` label to the Let's Encrypt account keys it creates. That label did not exist before, so the change is better typed as \"added\" than as \"behavior-changed\" with the same configuration. No family fits a label on created resources exactly. I kept protocol-behavior, but rebuilt the free-form name from the evidence's own words (\"Let's Encrypt account keys\", \"managed-by\", \"label\"), because \"acme\" does not appear in this item.",
+    "startedAt": "2026-10-03T12:35:26.483Z",
+    "decidedAt": "2026-10-03T12:35:41.059Z"
+  }
+}

@@ -113,3 +113,14 @@ bin/ri knowledge proxy-report -ledger <ledger.jsonl>       # decisions, per-mode
   corrections in the proxy's own pre-check, before the domain saw them.
 - Provenance now uses `Provenance.Provider` (contract-5) instead of `Rule: provider:…`.
 - Smoke: `v3-smoke/SMOKE.md`.
+
+## proxy-4 (prompt v3 at scale)
+
+- `ri knowledge proxy-prompt -status pending,needs-evidence,deferred` re-reviews items closed without a verdict on
+  the assertion. It never selects decided or superseded items, or any item a human decided. A verdict records
+  only while the item keeps the status its prompt was built for.
+- `BUDGET_USD=<cap> BUDGET_LEDGERS=a:b:c scripts/proxy-review.sh …` stops launching calls when the campaign's
+  CLI-reported spend nears the cap.
+- `run-3/`: the v3 re-review of the real store, plus the gates and their budget cut-off. `run-3/REPORT.md` covers
+  all of proxy-4, including the v3 shadow (`../proxy-shadow/ledger-v3.jsonl`) and the rebuilt eval view.
+- Prompt **v4** (not yet run): `duplicateOf` offers only facts of the candidate's release.

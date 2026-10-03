@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-35e7048dc932",
+    "reviewItemId": "ri-873ab663c740",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values populated in the runtime config file's `default` block are no longer honoured because the block was removed; defaults must be set in `operational_config`.",
+        "remediation": "Move default values into the top-level `operational_config` in the standard Loki config."
+      },
+      "statement": "The `default` block of the runtime overrides config file (added in 2.9) was removed; set default values in the top-level `operational_config` of the standard Loki config instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:748854280175bd1405be439e64387697daeb85a758e4fa3712b1954d0cee2d1a",
+      "inputEvidence": [
+        "ev-0316e25d4611"
+      ],
+      "generatedAt": "2026-10-03T16:53:15.144Z",
+      "callId": "77a28137-fa11-42a8-a97d-0dcbf61412cb",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0316e25d4611] says the runtime config file's `default` block \"was removed\" and that defaults should now be set in the top-level `operational_config`. It also limits the impact to operators who run a runtime config file and populated that block. A removed config key whose values no longer apply is a setting-ignored case, and the remediation matches the upstream text. Confidence is low because the evidence doesn't say whether a leftover block is silently ignored or makes Loki reject the config.",
+    "startedAt": "2026-10-03T16:53:07.141Z",
+    "decidedAt": "2026-10-03T16:53:15.144Z"
+  }
+}

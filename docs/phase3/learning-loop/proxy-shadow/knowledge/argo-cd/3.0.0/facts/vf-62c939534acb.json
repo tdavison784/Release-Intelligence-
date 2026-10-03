@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-62c939534acb",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-1209b4bdc3e1"
+        ],
+        "statementKeys": [
+          "sk-e55d9fce6149"
+        ],
+        "changeIds": [
+          "chg-4d8303f26606"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a1d88092526a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"cluster.inClusterEnabled\"]",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications configured to sync on the in-cluster cluster will enter Unknown state without the possibility to sync resources; new Applications cannot be created using the in-cluster cluster; and deleting Applications will not delete the previously managed resources.",
+        "remediation": "Perform cleanup or migration of existing in-cluster Applications before upgrading when in-cluster is disabled. To perform post-migration cleanup, the in-cluster will need to be enabled temporarily.",
+        "severity": "high"
+      },
+      "statement": "Using `cluster.inClusterEnabled: \"false\"`: When `cluster.inClusterEnabled: \"false\"` is explicitly configured, Applications currently configured to sync on the…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-470de83cde88"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-470de83cde88"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7a9f942840a6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-4aea713da6ab"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-adf2ed32df1c",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L288-L297 (v2.14 to 3.0 › Other changes › Using `cluster.inClusterEnabled: \"false\"`)",
+        "excerpt": "### Using `cluster.inClusterEnabled: \"false\"`\n\nWhen `cluster.inClusterEnabled: \"false\"` is explicitly configured, Applications currently configured to\nsync on the in-cluster cluster will now be in an Unknown state, without the possibility to sync resources.\n\nIt will not be possible to create new Applications using the in-cluster cluster. When deleting existing\nApplication, it will not delete the previously managed resources.\n\nIt is recommended to perform any cleanup or migration to existing in-cluster Application before upgrading\nwhen in-cluster is disabled. To perform cleanup post-migration, …",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:00:16.206Z"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-1270d0242a18",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-bd6501989613"
+        ],
+        "statementKeys": [
+          "sk-30a9eabb8c38"
+        ],
+        "changeIds": [
+          "chg-5fe419ce2702"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-bda23741737a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.split_queries_by_interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.split_queries_by_interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "loki.query_range.split_queries_by_interval",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "loki.limits_config.split_queries_by_interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "In 3.0.0, `split_queries_by_interval` is removed from the `query_range` YAML section. A value configured there is no longer honoured at that location. The setting now has to be set in limits_config.",
+        "remediation": "Move split_queries_by_interval from the query_range section to the limits_config section of the Loki configuration before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "`split_queries_by_interval` is removed from `query_range` YAML section"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-261d56c2b2d8"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-261d56c2b2d8"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f3399552fb7b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-1ff751a02e64"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3f6039ca92c8",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L593-L593 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `split_queries_by_interval` is removed from `query_range` YAML section. You can instead configure it in [Limits Config](/docs/loki/<LOKI_VERSION>/configuration/#limits_config).",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:02:10.408Z"
+  }
+}

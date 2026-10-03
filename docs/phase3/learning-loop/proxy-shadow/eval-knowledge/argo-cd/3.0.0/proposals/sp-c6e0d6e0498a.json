@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c6e0d6e0498a",
+    "candidateId": "sc-a185b2b31031",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "argo-cd",
+        "name": "--no-proxy",
+        "component": "cli"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--no-proxy",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments that pass --no-proxy, the flag's value is now stored in the correct variable instead of a wrong one, so no-proxy handling behaves differently after the upgrade.",
+        "remediation": "If you pass --no-proxy to an Argo CD binary, verify proxy-exclusion behavior after upgrading to v3.0.0.",
+        "severity": "low"
+      },
+      "statement": "Argo CD v3.0.0 fixes a CLI bug in which the value of the --no-proxy flag was stored in the wrong variable."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-74fec6f20224"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:788ddd8de5d7c4490140d2f275c81b265fa743bd1a03b2d1709c17a2065833d4",
+      "inputEvidence": [
+        "ev-74fec6f20224"
+      ],
+      "generatedAt": "2026-10-03T08:14:11Z",
+      "callId": "85560107-09f5-4c14-a94f-4d744dd932ad"
+    }
+  }
+}

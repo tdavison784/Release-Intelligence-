@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b916860d23c5",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-3a2d7f4faade"
+        ],
+        "statementKeys": [
+          "sk-e1f3df1c75ae"
+        ],
+        "changeIds": [
+          "chg-08f5064150fe"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3d73e8a6dea6"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "direct-server-return"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which live service connections use Direct-Server-Return and were established while the cluster ran a Cilium version prior to v1.13.3"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted and need to be re-established.",
+        "severity": "medium"
+      },
+      "statement": "Service connections that use `Direct-Server-Return` and were established prior to Cilium v1.13.3 will be disrupted, and need to be re-established"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-6ae177d207a3"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-6ae177d207a3"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-3b1717748b78"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-47d00e535fad"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-89034c5d2c74",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L345-L346 (1.16 Upgrade Notes)",
+        "excerpt": "* Service connections that use `Direct-Server-Return` and were established prior to Cilium v1.13.3\n  will be disrupted, and need to be re-established.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:03:36.332Z"
+  }
+}

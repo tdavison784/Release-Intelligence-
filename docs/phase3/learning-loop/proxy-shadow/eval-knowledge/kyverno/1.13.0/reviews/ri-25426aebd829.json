@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-25426aebd829",
+    "candidateId": "sc-5e1212a65ca8",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Breaking Changes: Kyverno version 1.13 contains the following breaking configuration changes: To upgrade to 1.13 and continue to allow wildcard view…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to Kyverno 1.13 with features.policyExceptions.namespace unset, PolicyExceptions can no longer be configured in all namespaces; the prior behavior is only preserved by explicitly setting the value.",
+        "remediation": "Set the Helm value features.policyExceptions.namespace to * to keep allowing PolicyExceptions in all namespaces, or set it to a single namespace as the guide recommends.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Kyverno 1.13 changes configuration handling so that PolicyExceptions can no longer be configured in all namespaces by default: to continue allowing exceptions in all namespaces, the Helm value features.policyExceptions.namespace must be set to `*`, although limiting exceptions to a specific namespace is recommended."
+    },
+    "proposals": [
+      "sp-19724dc89700",
+      "sp-2242bb9ea3bb",
+      "sp-867e6244d864",
+      "sp-ab73f4f2f872",
+      "sp-c0d47f8eea1c",
+      "sp-fb5bf16733ac"
+    ],
+    "validations": [
+      "val-2b864691cdae",
+      "val-32b1ad674fda",
+      "val-34c42acc31b7",
+      "val-b1f40466cc6d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model",
+        "validation-confirmed"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-03T08:23:57Z"
+  }
+}

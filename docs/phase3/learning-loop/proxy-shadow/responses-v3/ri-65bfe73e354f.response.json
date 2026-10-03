@@ -1,0 +1,41 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-65bfe73e354f",
+  "promptDigest": "sha256:782470b2c809a0fe5a2816e851112f2f7d6a3b0abedd8f46c8346f50ed6d1b04",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e18b320d-fae6-4c95-b5f7-f002c8732822",
+  "startedAt": "2026-10-03T12:55:30.511Z",
+  "decidedAt": "2026-10-03T12:55:45.200Z",
+  "durationMs": 13730,
+  "costUSD": 0.15226,
+  "output": {
+    "action": "correct",
+    "reason": "The proposed exposure can't be evaluated. It treats \"helm\" and \"kubectl apply\" as container CLI flags, uses a CustomResourceDefinition GVK check with no group, and adds an undecidable leaf for something configuration can show. The section context names the setting behind this change: [ev-fa194382072a] says CRD templating in the base chart is now on by default through `base.enableCRDTemplates`, which now defaults to true, and setting it to false restores the old behaviour. [ev-85eccdc718e3] and [ev-2941a875a468] describe the same change: templated CRDs that can be upgraded with `helm upgrade istio-base`, with changed CRD labels. This is the canonical shape for a changed Helm default: environments that leave the key unset are exposed, and environments that set it explicitly are shielded.",
+    "citations": [
+      "ev-fa194382072a",
+      "ev-85eccdc718e3",
+      "ev-2941a875a468"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24 base chart templates CRDs by default (base.enableCRDTemplates now defaults to true), so CRDs can be upgraded via helm upgrade istio-base and their labels change to Helm-style labels; environments that leave base.enableCRDTemplates unset get the new behavior, those setting it explicitly keep their chosen behavior.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

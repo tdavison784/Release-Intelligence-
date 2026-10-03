@@ -1,0 +1,61 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-9d1e00383298",
+  "promptDigest": "sha256:35b4f68fa2d09c766be33bf83b50f5382a336d4190851390700cc149d8ba308a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "089f5484-258f-4ec0-ba34-b277e8f7d6f0",
+  "startedAt": "2026-10-03T16:55:49.255Z",
+  "decidedAt": "2026-10-03T16:56:01.330Z",
+  "durationMs": 11196,
+  "costUSD": 0.0588394,
+  "output": {
+    "action": "correct",
+    "reason": "The computed diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] makes `status.artifact.digest` newly required in the OCIRepository v1 schema, and the change text says objects that omit it are rejected. In an OpenAPI schema, a nested required field is only checked when its parent object (`status.artifact`) is present. The proposed condition only checks that the digest is unset, so it also flags every OCIRepository with no `status.artifact`, including every manifest kept in Git, which never carries status. The exposure has to require `status.artifact` to be set and `status.artifact.digest` to be unset on the same object.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The source.toolkit.fluxcd.io/v1 OCIRepository schema now requires status.artifact.digest. OCIRepository objects that have status.artifact set but omit status.artifact.digest are exposed to schema rejection.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

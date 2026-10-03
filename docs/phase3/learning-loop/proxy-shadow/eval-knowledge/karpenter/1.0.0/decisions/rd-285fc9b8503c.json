@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-285fc9b8503c",
+    "reviewItemId": "ri-070f2e439bff",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6082b5f9d1c6fed4f145b7816d2b754ffed35395f02638666ef9c96d5fbe3fca",
+      "inputEvidence": [
+        "ev-f91dbd14d0cc",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-80331c11381f",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-f83dc72c2c99",
+        "ev-13278d059ceb",
+        "ev-4bcafa8a355e"
+      ],
+      "generatedAt": "2026-10-03T17:09:39.348Z",
+      "callId": "b75fca01-a2a0-48dc-bc35-280938780607",
+      "provider": "anthropic"
+    },
+    "reason": "The cited text [ev-f91dbd14d0cc] combines four separate behaviour changes into one change: forceful expiration, AL2023 NodeConfig precedence in UserData, the karpenter.sh/unregistered:NoExecute taint (which Custom amiFamily users must add themselves), and waiting for instances to fully terminate before nodes are removed. Each of these has a different subject, applicability and consequence, so one typed assertion cannot cover them all. The expiration bullet on its own is concrete: nodes start draining as soon as they expire, without waiting for replacement capacity. [ev-1253ff5bd0a5] adds that ExpireAfter moved to NodePool.Spec.Template.Spec. The evidence needs to be split into one item per bullet, so the expiration change can be asserted by itself.",
+    "startedAt": "2026-10-03T17:09:28.609Z",
+    "decidedAt": "2026-10-03T17:09:39.348Z"
+  }
+}

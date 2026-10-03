@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d2995cd79abc",
+  "promptDigest": "sha256:f6db631dccfe2c38464042e571b4be58bafb4f6ff2d1ea5195f64e41291b940f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "954e3d90-1d5a-4a11-b12e-058bef256011",
+  "startedAt": "2026-10-03T17:02:22.382Z",
+  "decidedAt": "2026-10-03T17:02:34.656Z",
+  "durationMs": 11405,
+  "costUSD": 0.07951280000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-274ce3859ab9] says the `istiod-remote` chart was removed. [ev-5a31c0781dc5] and the upgrade guide [ev-1295567312b0] say it was merged into the `istio-discovery` chart: installs move from `istio/istiod-remote` to `istio/istiod --set profile=remote`, and `istio-base` is now required in remote clusters too. So a release that keeps using the old chart can't move to 1.24 without a mandatory operator step, and migration-required with severity high is right. The proposed statement names a non-existent \"istio chart\", so I corrected the target to `istio/istiod` (istio-discovery) and added the `istio-base` requirement.",
+    "citations": [
+      "ev-274ce3859ab9",
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In 1.24 the istiod-remote Helm chart is removed and merged into the istio-discovery (istio/istiod) chart. Remote/external control plane clusters must move to `helm install istiod istio/istiod --set profile=remote` and also install the istio-base chart.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "migration-required",
+        "severity": "high",
+        "statement": "The istiod-remote Helm chart is no longer published in 1.24. Remote/external control plane installs that use it must migrate to the istio/istiod (istio-discovery) chart with --set profile=remote, and istio-base must now be installed in remote clusters as well.",
+        "remediation": "Replace the istiod-remote release with `helm install istiod istio/istiod --set profile=remote`, and make sure the istio-base chart is installed in each remote cluster."
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b8e1806f14bf",
+    "candidateId": "sc-8d62e25744ec",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external dashboards, alerts or recording rules query the metric envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The upgrade notes list the metric under Changed Metrics: it is now exposed as envoy_cilium_npds_init_fetch_timeout instead of envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout, so monitoring that queries the old name needs to be checked.",
+        "remediation": "Update dashboards, alerts and recording rules to use envoy_cilium_npds_init_fetch_timeout.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` is renamed to `envoy_cilium_npds_init_fetch_timeout`, so monitoring that queries the old name needs to be checked."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and none of the subject families covers metrics, so it cannot be typed without misclassifying it.; change: The evidence describes a rename (old metric name -> new metric name), but a 'renamed' change needs replacedBy in the same family, and no family exists for metric names.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3c947c36df35"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:29dabde18371dec31c6caaf468adf8207f26800d577b4ebe4f8870e499271587",
+      "inputEvidence": [
+        "ev-3c947c36df35"
+      ],
+      "generatedAt": "2026-10-03T07:06:40Z",
+      "callId": "4ad409ef-d8e9-4941-9dd5-bc41eb95ad53"
+    }
+  }
+}

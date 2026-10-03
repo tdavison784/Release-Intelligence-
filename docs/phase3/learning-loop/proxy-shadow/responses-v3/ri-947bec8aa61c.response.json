@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-947bec8aa61c",
+  "promptDigest": "sha256:a40a1aac2fb52fc2d20504f6a1c095ba5f321175e2a16092956e132bc72707e8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "16adbddc-ce57-4c4f-8ab2-140116c27e69",
+  "startedAt": "2026-10-03T16:54:55.001Z",
+  "decidedAt": "2026-10-03T16:55:13.101Z",
+  "durationMs": 17360,
+  "costUSD": 0.07046,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9f184d231baf] says the Redis provider `tls.caOptional` option \"has been removed in v3\" and should be removed from the static configuration. A removed static key that is no longer honoured fits setting-ignored. The same text explains why it was removed: TLS client authentication is a server-side option, so the option never had a real effect on the Redis client connection. That makes \"high\" severity an over-claim; low fits better. The evidence does not say startup fails, so I kept the kind as setting-ignored.",
+    "citations": [
+      "ev-9f184d231baf"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Traefik v3.0.0 removed the Redis provider static option providers.redis.tls.caOptional, so a configured value is no longer honoured. The option has to be removed from the static configuration (file or CLI). Impact is low because TLS client authentication is a server-side setting.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "low",
+        "statement": "The removed providers.redis.tls.caOptional option is no longer honoured in v3. The migration guide says it should be removed from the Redis provider static configuration, because TLS client authentication is a server-side option.",
+        "remediation": "Remove tls.caOptional (providers.redis.tls.caOptional / --providers.redis.tls.caOptional) from the Redis provider static configuration."
+      }
+    }
+  }
+}

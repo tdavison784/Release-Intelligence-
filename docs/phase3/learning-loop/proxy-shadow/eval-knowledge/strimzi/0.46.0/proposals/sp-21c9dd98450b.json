@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-21c9dd98450b",
+    "candidateId": "sc-a64aedeb967c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed",
+        "before": "\"statefulset.kubernetes.io/pod-name\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods and external listener Services no longer carry the `statefulset.kubernetes.io/pod-name` label, so custom setups that use this label no longer find it.",
+        "remediation": "Change any custom setup that uses `statefulset.kubernetes.io/pod-name` to use the `strimzi.io/pod-name` label instead.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the `statefulset.kubernetes.io/pod-name` label from pods and external listener Services; custom setups that use it should use `strimzi.io/pod-name` instead."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: the subject is a Kubernetes label on operator-managed pods and Services, and no subject family covers a resource label; applicability: the evidence only says 'any custom setup leveraging such label' and does not name which resources or fields (selectors, policies, monitoring) would reference it, so no predicate can be pinned",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:cc3494d26b2d074b27e440ab9c731920c5165b02c2e68180aa211690d787eddc",
+      "inputEvidence": [
+        "ev-4fdefdd841ec"
+      ],
+      "generatedAt": "2026-10-03T07:05:06Z",
+      "callId": "8c01a5fc-f968-4947-b81b-33267e648d24"
+    }
+  }
+}

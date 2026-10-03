@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8678db173ce1",
+    "candidateId": "sc-0e7e63699f83",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exposed as lbipam_ips_available instead of lbipam_ips_available_total, so queries, dashboards or alerts that use the old name need updating.",
+        "remediation": "Change monitoring queries, dashboards and alerts from lbipam_ips_available_total to lbipam_ips_available.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric lbipam_ips_available_total is renamed to lbipam_ips_available, so anything that queries the old metric name needs updating."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The upgrade notes don't say which configuration turns this metric on. Whether an environment is affected depends on outside dashboards or alert rules that query the old name, and no predicate here can read those.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-875bb56564b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7c413cf761e0cd0e806c4053e5b9bfd1da2a94d3dc13cdd8c4a1e9bace0e5f18",
+      "inputEvidence": [
+        "ev-875bb56564b0"
+      ],
+      "generatedAt": "2026-10-03T07:04:37Z",
+      "callId": "e538b6ab-dad3-4efe-8c2b-a8fca4dcdf14"
+    }
+  }
+}

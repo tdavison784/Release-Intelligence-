@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a0cf02a6a3f7",
+  "promptDigest": "sha256:96202e1b57b3d89d566ca03231f058bfe31083c4d8f3dfa336b3b67d7b8aa2bb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ee9f1fb1-d0d1-4879-89d6-8cbbd114d7ad",
+  "startedAt": "2026-10-03T16:56:22.482Z",
+  "decidedAt": "2026-10-03T16:56:35.949Z",
+  "durationMs": 12651,
+  "costUSD": 0.127876,
+  "output": {
+    "action": "correct",
+    "reason": "The rendered diffs show only that the storage flag moves from v2beta1 to v2 between 1.12.6 and 1.13.0 [ev-0ab8730da6d7][ev-5714a6388637]. v2beta1 is still listed as a CRD version in 1.13.0, and no evidence says that anything fails, is rejected or stops being served in this release. The only basis for the migration claim is the computed advisory, which ties it to a hypothetical later release that removes v2beta1. With nothing failing now, migration-required overclaims mandatory work. The evidence supports behavior-change: existing objects keep working and are rewritten to v2 storage when they are next written.",
+    "citations": [
+      "ev-0ab8730da6d7",
+      "ev-5714a6388637"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "From 1.12.6 to 1.13.0 the storage version of cleanuppolicies.kyverno.io moves from v2beta1 to v2. Existing CleanupPolicy objects keep working and stay stored as v2beta1 until they are rewritten. Nothing fails in this release, but a storage migration is advisable before any future removal of v2beta1.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "CleanupPolicy objects are now persisted as v2. Existing objects stay stored as v2beta1 until they are rewritten and keep being served. Nothing is stated to fail or be rejected in this release.",
+        "remediation": "Optionally rewrite all CleanupPolicy objects (a storage version migration) and drop v2beta1 from status.storedVersions on the cleanuppolicies.kyverno.io CRD, so the cluster is ready if a later release removes v2beta1."
+      }
+    }
+  }
+}

@@ -7,12 +7,12 @@ Built by `scripts/proxy-shadow-merge.py` (three-way, per file; the real store wi
 ```json
 {
   "stats": {
-    "real": 0,
-    "shadow": 538,
-    "same": 11011,
+    "real": 111,
+    "shadow": 637,
+    "same": 13799,
     "conflict-real-wins": 0,
-    "real-only": 0,
-    "shadow-only": 626
+    "real-only": 512,
+    "shadow-only": 761
   },
   "conflicts": []
 }

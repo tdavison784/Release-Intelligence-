@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe072c52ba96",
+    "candidateId": "sc-8f899185ace7",
+    "proposalId": "sp-ddbc7496e8c0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to Loki 3.0.0, 'stats' and 'volume' query results (TSDB index) and 'label' and 'series' requests are cached by default even with unchanged configuration, and environments that have not configured a results_cache will cache these results in an in-memory cache by default.",
+        "remediation": "Review the results_cache configuration in the query_range section of the Loki config; note that by default an in-memory cache is used.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0, caching of results for 'stats' and 'volume' queries (TSDB index type) and of 'label' and 'series' requests is enabled by default, with all of these cached to the results_cache configured in the query_range config section, and an in-memory cache used by default."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

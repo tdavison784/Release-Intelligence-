@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5c118397bfc9",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-9a4715fcba1e"
+        ],
+        "statementKeys": [
+          "sk-874454e730a3"
+        ],
+        "changeIds": [
+          "chg-36c70049a5d1"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f478f30d86b2"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--validation.enforce-metric-name"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-validation.enforce-metric-name",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the name and location of the YAML setting that corresponds to -validation.enforce-metric-name (Loki config key / chart values path), which the upgrade guide does not state"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The validation.enforce-metric-name CLI flag and YAML configuration setting are no longer honoured and will be ignored by Loki 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "`validation.enforce-metric-name` CLI flag and the corresponding YAML setting are removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-260a1d39637b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-260a1d39637b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-1362e2a6f0ef"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-9f41336c7d44"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-7b384eb00d22",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L599-L599 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `validation.enforce-metric-name` CLI flag and the corresponding YAML setting are removed.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:53:33.699Z"
+  }
+}

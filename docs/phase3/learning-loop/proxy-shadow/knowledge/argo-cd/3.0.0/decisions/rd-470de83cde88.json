@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-470de83cde88",
+    "reviewItemId": "ri-ac01298d06c3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:8c88cc80130e6079293ed00f29f40b7a8e641ecf428130f2905e4fdda8385207",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-03T16:58:17.909Z",
+      "callId": "9ac4857c-d5ba-4bd1-90b6-aea048f16ece",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-adf2ed32df1c] names the setting exactly as `cluster.inClusterEnabled`. It says that when it is explicitly \"false\", in-cluster Applications now go Unknown and cannot sync, new ones cannot be created, and deletes no longer remove managed resources. That is a behavior change of the same configuration, and the text gives no literal before/after values. The evidence names no specific component (such as a ConfigMap), so the subject without a component is right.",
+    "startedAt": "2026-10-03T16:58:09.366Z",
+    "decidedAt": "2026-10-03T16:58:17.909Z"
+  }
+}

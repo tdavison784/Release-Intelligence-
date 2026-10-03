@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-51f85728a6ab",
+    "reviewItemId": "ri-623e26d1465c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": "<0.15.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v1",
+              "kind": "CiliumInstallation"
+            }
+          ]
+        }
+      },
+      "statement": "Cilium CLI must be upgraded to v0.15.0 or later and switched to Helm installation mode to install and manage Cilium v1.16; classic installation mode is no longer supported, and migrating from classic to Helm mode requires uninstalling with classic mode CLI and reinstalling with Helm mode CLI."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": ">=0.15.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Cilium installation was created with Cilium CLI classic installation mode rather than Helm mode; the upgrade notes give no configuration indicator for classic mode"
+            }
+          ]
+        }
+      },
+      "statement": "To install and manage Cilium v1.16 you need Cilium CLI v0.15.0 or later in Helm mode. Exposed: environments managed with a Cilium CLI older than v0.15.0, or Cilium installed in classic mode. Classic installs must be uninstalled with the classic-mode CLI and re-installed with the Helm-mode CLI."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:441324ae1cbc78800522621d8a8a85d0a24355c66c047e3c5419b5615e7dacbc",
+      "inputEvidence": [
+        "ev-f2e613944dc4"
+      ],
+      "generatedAt": "2026-10-03T12:54:57.534Z",
+      "callId": "08507819-0633-4deb-bc1e-378f651fe3ec",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f2e613944dc4] says to upgrade Cilium CLI to v0.15.0 or later and that classic-mode installations must be uninstalled and re-installed in Helm mode. The proposed condition gets the version check backwards: out-of-range of \"<0.15.0\" matches CLI >=0.15.0, which are the safe environments. Its CiliumInstallation GVK leaf appears nowhere in the evidence and narrows the condition by ANDing. Exposure is a CLI older than v0.15.0 OR a classic-mode installation. The evidence gives no configuration signal for classic mode, so that branch is marked undecidable for lack of evidence.",
+    "startedAt": "2026-10-03T12:54:40.064Z",
+    "decidedAt": "2026-10-03T12:54:57.534Z"
+  }
+}

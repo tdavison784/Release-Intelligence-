@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ed0f742ae5d2",
+    "reviewItemId": "ri-69b748640e25",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The remoteNodeIdentity Helm value is no longer honoured; remote nodes will always use remote-node identity. Network policies based on enable-remote-node-identity=false must be updated.",
+        "remediation": "Remove remoteNodeIdentity from Helm values. Review and update any network policies that were based on enable-remote-node-identity=false to align with the new always-enabled remote-node identity behavior.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity has been removed in Cilium 1.16.0; environments with this value explicitly set must update their configuration and any related network policies."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:0dc0aca32813f2abb0b67163e0021524c24cba01cab6926d605298396786bc11",
+      "inputEvidence": [
+        "ev-40ebe1cf329c",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-5d3c6d3080f0",
+        "ev-69b054a33ac2",
+        "ev-3fb29eea728d",
+        "ev-f050ccf90d86",
+        "ev-da6e6a1ea917",
+        "ev-5e90ba383ca7",
+        "ev-99f86df45975",
+        "ev-34bab3cf1916",
+        "ev-79276bab0c0a",
+        "ev-d6d613eadc25",
+        "ev-4e1e10256713"
+      ],
+      "generatedAt": "2026-10-03T12:56:11.961Z",
+      "callId": "5e383f51-f396-4161-a6a4-e18d8e3db9b7",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-40ebe1cf329c] says the Helm option `remoteNodeIdentity` has been removed and that remote nodes will now always use the `remote-node` identity. So a configured value, in particular `false`, is no longer honoured, which fits setting-ignored. The same text tells operators to update network policies based on `enable-remote-node-identity=false`, which matches the proposed statement and remediation. For users on the default `true` there is no behaviour impact, but their key is still ignored, so medium severity is reasonable.",
+    "startedAt": "2026-10-03T12:56:02.832Z",
+    "decidedAt": "2026-10-03T12:56:11.961Z",
+    "resultingFact": "vf-001dce10de5b"
+  }
+}

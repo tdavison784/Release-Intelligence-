@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1885361870c1",
+  "promptDigest": "sha256:2266683a220b2700138dd44f444dcf4ca137943853ececcb94471ecdc0a9dd3a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "728b795c-89eb-4eaa-95ee-6292da65a689",
+  "startedAt": "2026-10-03T12:45:14.281Z",
+  "decidedAt": "2026-10-03T12:45:28.670Z",
+  "durationMs": 13428,
+  "costUSD": 0.074164,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c569cd56f9ef] says the CLI flags and matching YAML settings for the compactor's shared store and path prefix \"are now removed\". It also says the compactor will instead run compaction and retention on all object stores configured in period configs. [ev-cf8ca5687050] lists this flag in that removal. So a configured key prefix no longer has any effect, and setting-ignored is the right kind for a removed key. The proposed statement goes too far when it says the flag \"will be ignored if present\". The evidence does not say whether a flag that is still set gets silently tolerated, so I corrected the statement to keep to what the evidence says.",
+    "citations": [
+      "ev-c569cd56f9ef",
+      "ev-cf8ca5687050"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, the compactor flag -boltdb.shipper.compactor.shared-store.key-prefix and its YAML setting are removed. A configured key prefix is no longer honoured, and the compactor runs compaction and retention on all object stores in period configs with a tsdb or boltdb-shipper index.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "The `-boltdb.shipper.compactor.shared-store.key-prefix` CLI flag and its matching YAML setting are removed in Loki 3.0.0, so a configured key prefix no longer controls compactor behaviour. The compactor instead runs compaction and retention on all object stores configured in period configs where the index type is tsdb or boltdb-shipper.",
+        "remediation": "Remove the flag and its YAML setting from the compactor configuration. Check that the object stores in your period configs (tsdb/boltdb-shipper index types) are the ones the compactor should compact and apply retention to."
+      }
+    }
+  }
+}
