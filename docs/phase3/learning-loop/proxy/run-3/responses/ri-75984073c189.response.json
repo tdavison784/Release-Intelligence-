@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-75984073c189",
+  "promptDigest": "sha256:f7326d2ddfecf0ae7c97da86108084f42a573c4220f2e2c8dfb2b018de884d54",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ac022932-192c-4724-8c91-1aa90f9a1c1c",
+  "startedAt": "2026-10-03T12:27:05.965Z",
+  "decidedAt": "2026-10-03T12:27:17.886Z",
+  "durationMs": 10896,
+  "costUSD": 0.07852,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-8b7267b73a1c] says Structured Metadata is on by default in 3.0 and needs the active schema to use both the tsdb index type and the v13 storage schema. It then says environments that use neither have \"two options\". Both options are operator steps. One is to upgrade the index and schema version before updating to 3.0 [ev-7791a108cc39]. The other is to set `allow_structured_metadata: false` (or `-validation.allow-structured-metadata=false`), upgrade, and migrate the schema afterwards [ev-649f409b4be1]. That makes this migration-required, not a default that keeps working, and the proposed claim that the feature \"will not function properly\" is not in the evidence.",
+    "citations": [
+      "ev-8b7267b73a1c",
+      "ev-7791a108cc39",
+      "ev-649f409b4be1"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Loki 3.0 turns Structured Metadata on by default, and it needs the active schema to use both the tsdb index and the v13 schema. Environments without both must upgrade their schema before 3.0, or set allow_structured_metadata: false, upgrade, and migrate the schema later.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "migration-required",
+        "severity": "high",
+        "statement": "The upgrade guide says that if the active schema does not use both the tsdb index type and the v13 storage schema, the operator must choose one of two steps. Option 1: upgrade the index and schema version before updating to Loki 3.0. Option 2: disable Structured Metadata (and with it OTLP support) before upgrading, then migrate the schema afterwards.",
+        "remediation": "Either upgrade the schema config to the tsdb index and v13 schema before updating to 3.0, or set `allow_structured_metadata: false` in `limits_config` (or `-validation.allow-structured-metadata=false`), upgrade to 3.0, and then migrate the schema."
+      }
+    }
+  }
+}

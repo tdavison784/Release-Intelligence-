@@ -1,0 +1,20 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d0042f75076c",
+  "promptDigest": "sha256:72f3ef8a8d2505c36f47cf04ba028beef512684947139b6cd9a227a1ea3a8af9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9c674457-857c-4d5c-9b68-83365a3d5174",
+  "startedAt": "2026-10-03T12:35:03.205Z",
+  "decidedAt": "2026-10-03T12:35:12.833Z",
+  "durationMs": 8761,
+  "costUSD": 0.16738799999999998,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The only upstream statement [ev-73055e956e96] says the Helm chart's write pods now use `/ingester/shutdown` for their preStop hook. It does not name the workload kind that renders the write pods or the values that turn them on. The proposed condition is not supported. Nothing in the evidence ties write pods to a Deployment (the gvk-in-use leaf also has no group). Whether the `write` key is set is not the same as whether write pods are rendered, because chart defaults could render them with `write` unset. The validator also found no write.lifecycle.preStop.exec.command key in either chart's values [ev-6b828f5bc194][ev-72c19aa86056]. To pin down a correct exposure, such as a rendered-change on the write workload's preStop lifecycle, we need the chart template or a rendered diff that shows which workload carries the hook and which values or deployment mode render it.",
+    "citations": [
+      "ev-73055e956e96"
+    ],
+    "confidence": "low"
+  }
+}

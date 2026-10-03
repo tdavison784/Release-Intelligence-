@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6c690eb27eda",
+  "promptDigest": "sha256:8d78dd6e08da328c239af1b688bda4b625e760ad065a3725dfd935621c38d08d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c2d3f1a8-9076-46ba-9c43-9bae45ff3656",
+  "startedAt": "2026-10-03T12:26:23.001Z",
+  "decidedAt": "2026-10-03T12:26:31.055Z",
+  "durationMs": 7197,
+  "costUSD": 0.08055200000000001,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide [ev-2df1b23f32ac] says the `experimental.http3` option has been removed, is now unsupported, and \"would prevent Traefik to start\". Its remediation is to remove `http3` from the experimental section of the static configuration. So 'none' hides a real startup failure for environments that still set the option. The changelog line [ev-177a6106bc02] only records the move out of the experimental section.",
+    "citations": [
+      "ev-2df1b23f32ac",
+      "ev-177a6106bc02"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Traefik v3.0.0, HTTP/3 is no longer experimental and the static `experimental.http3` option is removed. A static configuration that still sets this option is unsupported and prevents Traefik from starting.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "upgrade-blocked",
+        "severity": "high",
+        "statement": "If the static configuration still sets the removed `experimental.http3` option, Traefik v3 does not start: the option is now unsupported and would prevent Traefik from starting.",
+        "remediation": "Remove the `http3` option from the experimental section of the static configuration. HTTP/3 can be enabled on entry points without it."
+      }
+    }
+  }
+}

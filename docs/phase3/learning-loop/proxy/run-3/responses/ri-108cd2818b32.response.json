@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-108cd2818b32",
+  "promptDigest": "sha256:1f3692c4b5b0f0bef611c80c8deb0715855df85ab3926cda13467d96ee99299b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "33b3e7f3-6504-4768-bdea-cf4c6277ec28",
+  "startedAt": "2026-10-03T12:19:19.552Z",
+  "decidedAt": "2026-10-03T12:19:36.368Z",
+  "durationMs": 16165,
+  "costUSD": 0.22727599999999998,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dea2079e5dc4] lists this under Breaking Changes: prior chart values enabled policy exceptions in all namespaces, and users relying on that are impacted. [ev-2bbc505de6bb] says that to \"continue to allow configuring exceptions in all namespaces\" the operator must set the Helm value `features.policyExceptions.namespace` to `*`. So if the operator does nothing, exceptions outside the allowed namespace stop being honoured. That is a failure kind (setting-ignored, which means mandatory work), not a behavior-change that keeps working; the proposed statement even says exceptions \"stop applying\", which contradicts its own kind.",
+    "citations": [
+      "ev-dea2079e5dc4",
+      "ev-2bbc505de6bb"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Kyverno 1.13.0 the Helm chart no longer allows policy exceptions in all namespaces by default (CVE-2024-48921). Unless the operator sets features.policyExceptions.namespace to '*', exceptions they relied on in other namespaces are no longer honoured.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "Users who relied on policy exceptions being allowed in all namespaces lose that after upgrading: exceptions configured outside the allowed namespace are no longer honoured. The upgrade guide lists this as a breaking change.",
+        "remediation": "To keep allowing exceptions in all namespaces, set the Helm value features.policyExceptions.namespace to '*'. Limiting exceptions to a specific namespace is recommended instead, which means moving PolicyExceptions into that namespace."
+      }
+    }
+  }
+}

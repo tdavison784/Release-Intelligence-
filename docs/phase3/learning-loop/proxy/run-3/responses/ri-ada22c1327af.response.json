@@ -1,0 +1,27 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ada22c1327af",
+  "promptDigest": "sha256:e0e6e7f1f5badf879f16ac27bb2feb3a8db0dcbb463c7ba0c794898ec65c7282",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "bc149b77-bb03-4445-980f-4db0cd18ef0c",
+  "startedAt": "2026-10-03T12:31:29.646Z",
+  "decidedAt": "2026-10-03T12:31:51.574Z",
+  "durationMs": 21227,
+  "costUSD": 0.20038,
+  "output": {
+    "action": "reject",
+    "reason": "The changelog entry [ev-fac54af24634] is the v3 routing-syntax change. The upgrade guide [ev-48d8875989c1] says the default rule syntax is now v3 and v2 is deprecated. It also says matchers were renamed (Headers→Header) and that PathPrefix no longer takes a regex, regexp matchers now use Go regexp syntax, and each matcher takes a single value. The proposed assertion reduces this to the new optional CRD field spec.routes[].syntax [ev-08274e476e86][ev-b15a80a9b42b]. Its exposure condition, any IngressRoute or IngressRouteTCP v1alpha1 in use, is too broad: it flags every CRD user, not just routers whose rules use v2-only syntax without syntax/defaultRuleSyntax set to v2. It is also too narrow, because routers defined through other providers are missed. A correct assertion needs a different subject (the rule syntax default and matcher changes), so this field-added assertion cannot be fixed by changing only its applicability.",
+    "citations": [
+      "ev-fac54af24634",
+      "ev-48d8875989c1",
+      "ev-08274e476e86",
+      "ev-b15a80a9b42b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject",
+      "wrong-applicability"
+    ]
+  }
+}

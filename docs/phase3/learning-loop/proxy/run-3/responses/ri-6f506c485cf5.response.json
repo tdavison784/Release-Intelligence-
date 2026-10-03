@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6f506c485cf5",
+  "promptDigest": "sha256:2bab9d203b7e27d249808b9d8a7dd57e8272dd28590e4b262e4316502a20a6c7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cb2dab9a-a636-4b84-a17f-6ae00f44097c",
+  "startedAt": "2026-10-03T12:26:43.397Z",
+  "decidedAt": "2026-10-03T12:26:58.392Z",
+  "durationMs": 14076,
+  "costUSD": 0.215,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-acf4ed4bcd3b] and [ev-bde2792c197a] show that v1 is a newly served version, and nothing in the evidence says that adding it breaks anything, so \"none\" (informational) is the right kind for the addition itself. The proposed statement goes too far, though: it says existing manifests on earlier versions \"continue to work unchanged\", but the same CRD diff removes v1alpha1 [ev-f978a29a8906], drops the conversion webhook [ev-4cac666b69f8] and stops v1beta1 being the storage version [ev-d55f4ac0a53f]. Those are separate changes that need their own assertions, so the statement should cover only the addition of v1.",
+    "citations": [
+      "ev-acf4ed4bcd3b",
+      "ev-bde2792c197a",
+      "ev-4bda269d1e81",
+      "ev-f978a29a8906",
+      "ev-4cac666b69f8",
+      "ev-d55f4ac0a53f"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "The ClusterSecretStore CRD now serves a new API version, external-secrets.io/v1. Adding this version has no operational consequence on its own.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "Adding the served version external-secrets.io/v1 for ClusterSecretStore is additive, and the evidence says nothing fails because of the addition. This assertion does not say that all earlier versions keep working: the same release removes v1alpha1 and the conversion webhook and makes v1beta1 no longer the storage version, and those are separate changes.",
+        "remediation": "No action is needed for the addition. Manifests can adopt external-secrets.io/v1. Check the separate v1alpha1 removal and storage-version changes on their own."
+      }
+    }
+  }
+}

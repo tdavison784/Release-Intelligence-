@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-9cb8336445e5",
+  "promptDigest": "sha256:ce3908cd71ffeb2be25a1385e577411d4452d6ba44fcb61fb8a6a163c9abfe19",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0ba1bced-61de-433f-a603-3e80ca764ea4",
+  "startedAt": "2026-10-03T12:30:09.205Z",
+  "decidedAt": "2026-10-03T12:30:23.239Z",
+  "durationMs": 12990,
+  "costUSD": 0.287228,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-bfb089d90d84] says the 1.0.0 conversion webhooks automatically pull the v1 version of previously applied v1beta1 EC2NodeClasses, and that v1beta1 stops being served at v1.1.0. So only environments whose manifests still use the v1beta1 EC2NodeClass API are exposed. The proposed kind-only gvk-in-use is broader than that: it matches any version and omits the group. The group karpenter.k8s.aws is not in the upstream excerpts; it comes from the CRD name in the validator artifacts [ev-d3de2bd4ba7c]. The release note itself [ev-ab534de2a1e4] is a single line.",
+    "citations": [
+      "ev-bfb089d90d84",
+      "ev-ab534de2a1e4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Karpenter 1.0.0 adds conversion webhooks that serve previously applied v1beta1 EC2NodeClasses as v1. Environments still using karpenter.k8s.aws/v1beta1 EC2NodeClass manifests rely on this conversion.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      }
+    }
+  }
+}

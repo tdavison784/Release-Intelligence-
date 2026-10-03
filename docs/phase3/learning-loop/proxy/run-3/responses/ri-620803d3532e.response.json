@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-620803d3532e",
+  "promptDigest": "sha256:64e28f836c4b304786d28f4cb1f3d327aa7d555a1dc184c9f2111e03eb822ca0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b787681a-4538-4551-bb8b-a4303de5b0f8",
+  "startedAt": "2026-10-03T12:25:19.383Z",
+  "decidedAt": "2026-10-03T12:25:34.514Z",
+  "durationMs": 14233,
+  "costUSD": 0.124084,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c3fa8260181b] says only that the chart now allows an `enabled` value to be set so a parent chart can toggle cert-manager as a dependency. The validators confirm that `enabled` is a new key, absent in v1.16.0 and present in v1.17.0 [ev-717ddb6f40cd][ev-fdc96eee87bf]. Nothing in the evidence says that environments setting `enabled: false` see a changed outcome, so the equals-false condition assumes a behavior the evidence does not state. The environments that touch this addition are the ones that set the key, so exposure should be values-key `enabled` set.",
+    "citations": [
+      "ev-c3fa8260181b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The cert-manager 1.17.0 Helm chart adds an `enabled` value so cert-manager can be toggled when used as a chart dependency; environments that set `enabled` in their values touch this new key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "set"
+        }
+      }
+    }
+  }
+}
