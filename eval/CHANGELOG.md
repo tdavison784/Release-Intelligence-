@@ -345,3 +345,36 @@ never from pipeline output.
 The four links' honest-UNKNOWN status was the diagnosis's finding; after this entry their
 ground-truth exposures decide as labelled on the fixture, so they count as reachable in the
 LOOP-DIAGNOSIS-2 §6 ceiling without any denominator change.
+
+## 2026-10-02 (h) — cilium-1.15-1.17 E1 matcher narrowed (LOOP-DIAGNOSIS-2 §8.5, lever L3) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 §8.5 (and UNKNOWN-ANALYSIS D12 before it) reported that E1's bare
+`(?i)toFQDNs` alternative selects changes the item is not about, and that a correct dnsProxy finding
+reached the link's not-affected label through it. Verified on this branch's store: the alternative
+matched three unrelated changes in the 1.15.6→1.17.0 edge — the `dnsProxy.endpointMaxIpPerHostname`
+default note (chg-e45fbe2aa651), the `cilium_fqdn_selectors` metric note (chg-dcf178959a37) and the
+`dnsProxy.endpointMaxIpPerHostname` values change (chg-71a525926294) — while the item's subject is
+the version precondition its own upstream quote states verbatim ("To avoid drops during upgrades in
+clusters with toFQDNs policies, it is required to run Cilium v1.15.6 or newer", upgrade.rst v1.16.0),
+which the first alternative already selects (chg-23a43a125719). The bare alternative is removed; the
+quote-anchored alternative is kept unchanged. This narrows a matcher (the class of change the
+product owner approved for crossplane in 2026-10-02 (c) and was asked about again by
+LOOP-DIAGNOSIS-2 L3); veto welcome.
+
+**Panel BEFORE** (branch p3ll/groundtruth-6 @ 6affc2b + predicate/fixture entries (f)/(g); state =
+primary checkout's warm cache):
+
+| run | applicabilityAccuracy | detail |
+|---|---|---|
+| plain `ri eval` | 0.505 ✗ | affected 23/75; not-affected 30, 0 violations |
+| `-knowledge proxy-shadow/eval-knowledge -min-verification proxy` | 0.571 ✗ | affected 32/75; NA 28 clean, **2 violations**: cilium-1.15 E1 (imp-9ece4ee85ee9), kyverno E4 (umbrella, §8.4) |
+
+**Panel AFTER** (only this matcher change):
+
+| run | applicabilityAccuracy | detail |
+|---|---|---|
+| plain `ri eval` | 0.505 ✗ | unchanged; matched changes 430 → 428, labelled findings 300 → 298 (attribution only) |
+| `-knowledge proxy-shadow/eval-knowledge -min-verification proxy` | 0.581 ✗ | affected 32/75; NA 29 clean, **1 violation**: kyverno E4 (unchanged; the umbrella question is a contract decision, LOOP-DIAGNOSIS-2 §8.4) |
+
+cilium-1.15 E1 goes `! violated (imp-9ece4ee85ee9)` → `✗ clean`. No stored-result regressions in
+either run; recall, falseActionRate and classification accuracy unchanged.
