@@ -117,9 +117,11 @@ environment:
         kind: Certificate
         of: [{op: field, path: spec.privateKey.rotationPolicy, state: set}]
       environmentEvidence: manifests/certificate.yaml#L5-L21
+  undecidedImpact:             # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
     - expected: E3
-      relevance: action-required
-      why: HTTP01 challenges are solved via ingress-nginx v1.12.1, whose strict-validate-path-type default rejects Exact paths containing dots
+      reason: environment-visibility-gap   # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
+      needed: 'the ingress-nginx controller ConfigMap (whether strict-validate-path-type is set to "false", one of the three documented workarounds)'
+      why: 'previously expectedImpact relevance action-required: HTTP01 challenges are solved via ingress-nginx v1.12.1, whose strict-validate-path-type default rejects Exact paths containing dots'
       exposure:
         op: all
         of:

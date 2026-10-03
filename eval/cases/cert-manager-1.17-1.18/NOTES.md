@@ -51,3 +51,9 @@ Authored blind from the upstream sources above (no pipeline output read); correc
 - E1/E2 use the canonical crd-field default-changed shape (exposure: a Certificate leaves the field unset; overlap: sets it).
 - E3 is a `product-relationship` to ingress-nginx with `requirement-changed`; the required range is the default-configuration window from the 1.18 release notes ("resolved in ingress-nginx versions v1.13.2 and v1.12.6"). The exposure also names the two documented workarounds (the ACMEHTTP01IngressPathTypeExact gate disabled; strict-validate-path-type false in ingress-nginx's ConfigMap) and requires an HTTP01 ingress solver on an Issuer/ClusterIssuer (the fixture's ClusterIssuer, lines 23–36 — the solvers on the Certificate are not valid Certificate fields, D14).
 - E4 (OperatorHub) is labelled as a `migration` subject: OLM-managed installs must move to Helm or static manifests.
+
+## 2026-10-03 — E3 moved to undecidedImpact (product-owner decision, L7 option B)
+
+Decided after seeing results (LOOP-DIAGNOSIS-2 §4c). The upstream escape hatch for each link lives in
+a ConfigMap this fixture does not supply, so the honest answer is UNKNOWN (environment-visibility-gap).
+The fixture is unchanged. See eval/CHANGELOG.md "2026-10-03 (j)".

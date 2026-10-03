@@ -13,7 +13,7 @@ expected:
     kind: breaking
     importance: critical
     actionRequired: true
-    classification: action-required   # every operator using fine-grained policies must add policies or restore the default
+    classification: unknown   # this environment (product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)); generic: action-required
     match:
       - text: '(?i)Fine-Grained RBAC|disableApplicationFineGrainedRBACInheritance'
       - text: '(?i)update/\* or delete/\*'
@@ -36,7 +36,7 @@ expected:
     kind: breaking
     importance: critical
     actionRequired: true
-    classification: action-required
+    classification: unknown   # this environment (product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)); generic: action-required
     match:
       - text: '(?i)server\.rbac\.log\.enforce\.enable|logs RBAC is enforced'
       - text: '(?i)logs, get'
@@ -60,7 +60,7 @@ expected:
     kind: behaviour-change
     importance: important
     actionRequired: false
-    classification: review-required   # a cluster running cert-manager or Cilium must notice its kinds are now invisible to Argo CD
+    classification: unknown   # this environment (product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)); generic: review-required
     match:
       - text: '(?i)resource\.exclusions'
       - text: '(?i)CertificateRequest|CiliumIdentity|EndpointSlice'
@@ -223,9 +223,11 @@ environment:
     CertificateRequest kind is now in Argo CD's default exclusions).
   kubernetes: "1.29"
   expectedImpact:
+  undecidedImpact:             # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
     - expected: E1
-      relevance: action-required
-      why: the fixture's policy.csv uses fine-grained application update/delete grants, which v3 stops applying to sub-resources
+      reason: environment-visibility-gap   # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
+      needed: 'the argocd-cm ConfigMap (whether server.rbac.disableApplicationFineGrainedRBACInheritance is set to "false", the documented way to keep v2 behaviour)'
+      why: 'previously expectedImpact relevance action-required: the fixture''s policy.csv uses fine-grained application update/delete grants, which v3 stops applying to sub-resources'
       exposure:
         op: all
         of:
@@ -239,8 +241,9 @@ environment:
             of: [{op: resource, kind: ConfigMap, name: argocd-cm, of: [{op: field, path: 'data["server.rbac.disableApplicationFineGrainedRBACInheritance"]', state: equals, values: ['"false"']}]}]
       environmentEvidence: manifests/rbac.yaml#L7-L11
     - expected: E2
-      relevance: action-required
-      why: the fixture grants no logs, get policy and does not set the (now removed) enforce flag, so users lose the logs tab on upgrade
+      reason: environment-visibility-gap   # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
+      needed: 'the argocd-cm ConfigMap (whether server.rbac.log.enforce.enable is "true", which the upgrade guide names as the unaffected case)'
+      why: 'previously expectedImpact relevance action-required: the fixture grants no logs, get policy and does not set the (now removed) enforce flag, so users lose the logs tab on upgrade'
       exposure:
         op: all
         of:
@@ -257,8 +260,9 @@ environment:
             of: [{op: resource, kind: ConfigMap, name: argocd-cm, of: [{op: field, path: 'data["server.rbac.log.enforce.enable"]', state: equals, values: ['"true"']}]}]
       environmentEvidence: manifests/rbac.yaml#L1-L11
     - expected: E3
-      relevance: review
-      why: cert-manager runs in this cluster, so CertificateRequest objects silently leave Argo CD's view under the new default exclusions
+      reason: environment-visibility-gap   # product-owner decision 2026-10-03 (L7 option B), made after seeing results; eval/CHANGELOG.md (j)
+      needed: 'the argocd-cm ConfigMap (whether resource.exclusions is overridden; the new default exclusions ship in argocd-cm itself)'
+      why: 'previously expectedImpact relevance review: cert-manager runs in this cluster, so CertificateRequest objects silently leave Argo CD''s view under the new default exclusions'
       exposure:
         op: all
         of:
