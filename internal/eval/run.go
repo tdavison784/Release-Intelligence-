@@ -221,9 +221,11 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 			report, err = r.Pipeline.Impact(ctx, c.Product, c.From, c.To, inputs)
 		}
 		if err != nil {
-			// The edge still counts; the join failure is recorded as a nil
-			// report (all environment expectations miss).
-			report = nil
+			// The edge still counts; the join failure is an execution failure
+			// (pipelineFailures) and every environment expectation misses.
+			res := ScoreEntry(c, edge, nil, fmt.Errorf("impact: %w", err))
+			applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
+			return res
 		}
 	}
 	res := ScoreEntry(c, edge, report, nil)

@@ -10,6 +10,7 @@ package eval
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"sort"
@@ -471,4 +472,53 @@ func TestUpstreamUnavailableIsExecutionFailure(t *testing.T) {
 	if agg.Expected != len(c.Expected) {
 		t.Errorf("expected items lost on failure: %d", agg.Expected)
 	}
+}
+
+// A report the pipeline could not produce must neither shrink the
+// applicability denominator nor earn not-affected credit. Regression
+// (trust-audit): in the proxy-incl-shadow view, kyverno's knowledge report
+// failed validation; runCase recorded a nil report without an error, so the
+// case's links vanished from every applicability count (71 → 62 links at the
+// proxy level), its findings — including a false ACTION — disappeared, and no
+// pipeline failure was reported. A missing report is an execution failure,
+// and its links score as misses.
+func TestMissingReportKeepsLinksAndFails(t *testing.T) {
+	c := fixtureCase()
+	c.Environment = &Environment{
+		ExpectedImpact: []ImpactLink{
+			{Expected: "E1", Relevance: RelevanceActionRequired},
+			{Expected: "E2", Relevance: RelevanceReview},
+			{Expected: "E3", Relevance: RelevanceNotAffected},
+		},
+	}
+	res := ScoreEntry(c, fixtureEdge(), nil, errors.New("impact: assembled report is invalid"))
+	agg := AggregateResults([]EntryResult{res})
+	if agg.PipelineFailures != 1 {
+		t.Errorf("pipelineFailures = %d, want 1: a missing report is an execution failure", agg.PipelineFailures)
+	}
+	if agg.ImpactLinks != 2 || agg.ImpactLinksHit != 0 {
+		t.Errorf("affected links = %d hit %d, want 2 hit 0: the denominator must not shrink", agg.ImpactLinks, agg.ImpactLinksHit)
+	}
+	if agg.NotAffectedLinks != 1 || agg.NotAffectedViolations != 1 {
+		t.Errorf("not-affected links = %d violations %d, want 1/1: a report that does not exist clears nothing", agg.NotAffectedLinks, agg.NotAffectedViolations)
+	}
+	if agg.ApplicabilityAccuracy != 0 {
+		t.Errorf("applicabilityAccuracy = %v, want 0 for a case without a report", agg.ApplicabilityAccuracy)
+	}
+	// the same holds when the runner itself sees the failure
+	root := t.TempDir()
+	r := &Runner{Pipeline: failingImpactPipeline{}, CasesDir: root}
+	cases := levelCase(t, r)
+	cases[0].Environment.ExpectedImpact = []ImpactLink{{Expected: "E1", Relevance: RelevanceActionRequired}}
+	got := AggregateResults(r.Run(context.Background(), cases))
+	if got.PipelineFailures != 1 || got.ImpactLinks != 1 {
+		t.Errorf("runner: pipelineFailures %d impactLinks %d, want 1/1", got.PipelineFailures, got.ImpactLinks)
+	}
+}
+
+// failingImpactPipeline produces the edge but fails every impact join.
+type failingImpactPipeline struct{ fakePipeline }
+
+func (failingImpactPipeline) Impact(ctx context.Context, product, from, to string, inputs env.Inputs) (*domain.ImpactReport, error) {
+	return nil, errors.New("impact: assembled report is invalid")
 }

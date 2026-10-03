@@ -322,9 +322,13 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 			res.Env = &EnvMetrics{}
 		}
 		scoreReport(&res, c, edge, report)
-	} else if c.Environment != nil && runErr == nil {
+	} else if c.Environment != nil {
 		// the case declares an environment but no report was produced
+		// (the join failed, or the pipeline never got that far): every
+		// environment expectation misses, so the links stay in the
+		// denominators instead of silently leaving them.
 		res.Env = &EnvMetrics{}
+		scoreMissingReport(&res, c)
 	}
 	finalizeClassification(&res, c)
 	// distribute misses by importance; found is what the match audits say
@@ -345,6 +349,30 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	}
 	res.Metrics.Found = found
 	return res
+}
+
+// scoreMissingReport scores the environment of a case whose impact report
+// does not exist. A missing report decides nothing: affected links count as
+// unhit, not-affected links as unearned (a report that does not exist clears
+// nothing), undecided links as not honestly answered (no credit either way),
+// and expected findings as not found. Without this the case's links vanished from
+// every applicability count while the run looked healthy.
+func scoreMissingReport(res *EntryResult, c *Case) {
+	em := res.Env
+	for _, l := range c.Environment.ExpectedImpact {
+		res.EnvImpact = append(res.EnvImpact, EnvImpactAudit{ExpectedID: l.Expected, Relevance: l.Relevance, Why: l.Why})
+		if l.Relevance == RelevanceNotAffected {
+			em.NotAffectedLinks++
+			em.NotAffectedViolations++
+			continue
+		}
+		em.ImpactLinks++
+	}
+	for _, l := range c.Environment.UndecidedImpact {
+		res.EnvUndecided = append(res.EnvUndecided, UndecidedAudit{ExpectedID: l.Expected, Reason: l.Reason})
+		em.UndecidedLinks++
+	}
+	em.FindingsExpected = len(c.Environment.ExpectedFindings)
 }
 
 // finalizeClassification scores the expected classes against the observed
