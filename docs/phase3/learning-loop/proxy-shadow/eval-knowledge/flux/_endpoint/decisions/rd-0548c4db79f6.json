@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0548c4db79f6",
+    "reviewItemId": "ri-695590d07b0d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "OCIRepository v1beta2 objects that omit status.artifact.digest are rejected by the schema."
+      },
+      "statement": "In the OCIRepository v1beta2 CRD schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:00ee675c2c1468533f971d1c0b48445e5346a1b60abb5ac1fa1fd655ac46dc40",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:56:19.527Z",
+      "callId": "23bd9564-79b7-47db-90e1-dce0279943b0",
+      "provider": "anthropic"
+    },
+    "reason": "The computed artifact diff behind this change, drawn from [ev-782bc47d120d] and [ev-c2c6c790d6b2], states that status.artifact.digest is newly required in the source.toolkit.fluxcd.io/v1beta2 OCIRepository schema and that \"objects that omit them are rejected\". The crd-schema:required validator confirms this from the two install manifests. A newly required schema field that causes rejection is resource-rejected (mandatory work), and the proposed statement matches the evidence's own wording. Confidence is low because the excerpts themselves show no schema detail. In particular they don't show whether only objects that carry a status.artifact are affected, or whether this controller-written status is in practice written through v1beta2.",
+    "startedAt": "2026-10-03T12:56:01.697Z",
+    "decidedAt": "2026-10-03T12:56:19.527Z"
+  }
+}

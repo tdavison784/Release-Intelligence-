@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cff1f27dc34a",
+    "reviewItemId": "ri-286262cf744b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The schema now rejects v1beta2 HelmChart objects whose status.artifact has no digest.",
+        "remediation": "Check that nothing writes v1beta2 HelmChart status with an artifact that has no digest, such as an older controller or a tool that restores status.",
+        "severity": "low"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmChart CRD schema, status.artifact.digest is now a required field, so HelmChart objects whose status.artifact leaves out a digest are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:683ac2bed77c3c106f93b8f72c092479e29663dd207c231942b98a6028c64d0c",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:47:46.175Z",
+      "callId": "76bb5c14-4976-4a05-b2ca-305c1e167596",
+      "provider": "anthropic"
+    },
+    "reason": "The validators confirmed from the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] that status.artifact.digest is now required in the v1beta2 HelmChart schema. The computed diff says objects that omit it are rejected, which supports the resource-rejected kind. The field is required inside status.artifact, so the statement is right to limit rejection to objects whose status.artifact has no digest. Low severity fits a status field, and the remediation (check for writers of status without a digest) stays within the evidence.",
+    "startedAt": "2026-10-03T12:47:36.353Z",
+    "decidedAt": "2026-10-03T12:47:46.175Z"
+  }
+}

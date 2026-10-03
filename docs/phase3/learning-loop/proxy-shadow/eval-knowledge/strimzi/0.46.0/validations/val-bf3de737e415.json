@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bf3de737e415",
+    "candidateId": "sc-5851fd4cdacf",
+    "proposalId": "sp-85c031a252e2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters",
+        "component": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.kafka.metricsConfig",
+                  "state": "unset"
+                }
+              ],
+              "group": "kafka.strimzi.io",
+              "kind": "Kafka"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.metricsConfig",
+              "state": "set"
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka brokers running Kafka 4.0.0 or newer no longer have the JMXReporter enabled implicitly: unless metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added in `metric.reporters`, the JMXReporter will not be enabled and JMX metrics will not be exposed.",
+        "remediation": "Enable metrics through `.spec.kafka.metricsConfig` in the Kafka custom resource, or explicitly add JMXReporter in `metric.reporters`.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, the JMXReporter is enabled only if metrics are enabled in `.spec.kafka.metrics` (the Kafka custom resource's metrics configuration) or JMXReporter is explicitly added in `metric.reporters`, so a cluster on Kafka 4.0.0 or newer without either no longer has the JMXReporter enabled."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

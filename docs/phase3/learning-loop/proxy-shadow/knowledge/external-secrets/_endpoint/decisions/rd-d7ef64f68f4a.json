@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d7ef64f68f4a",
+    "reviewItemId": "ri-b6d3c148a0e4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "clustersecretstores.external-secrets.io"
+        }
+      },
+      "statement": "The storage version of the clustersecretstores.external-secrets.io CRD moves from v1beta1 to v1 (0.15.0 → 0.16.0). Existing ClusterSecretStore objects stay stored as v1beta1 until they are rewritten, so a storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:84d92dee5fc865eab665d5b1e64fb069215e309163886989e342270ab81c0b6b",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-03T16:59:27.625Z",
+      "callId": "c7cc78f1-61f4-458d-a9a7-3bf05e7746fc",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d55f4ac0a53f] shows that in the clustersecretstores.external-secrets.io CRD, spec.versions[name=v1beta1].storage changes from true to false between 0.15.0 and 0.16.0. The change text says existing objects stay stored as v1beta1 until they are rewritten and status.storedVersions is updated. So the exposed environments are those whose CRD still lists v1beta1 in status.storedVersions. The proposed condition matches the canonical CRD storage-migration shape exactly, while the gvk-in-use and edge-from-version alternatives would also flag clusters that are already migrated, which is too broad.",
+    "startedAt": "2026-10-03T16:59:21.283Z",
+    "decidedAt": "2026-10-03T16:59:27.625Z"
+  }
+}

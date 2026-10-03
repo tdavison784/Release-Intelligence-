@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-66d448db8972",
+    "reviewItemId": "ri-4052999a257a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.use-boltdb-shipper-as-backup",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "LOKI_TSDB_SHIPPER_USE_BOLTDB_SHIPPER_AS_BACKUP",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The configuration setting `use_boltdb_shipper_as_backup` (CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`) has been removed; environments that explicitly set it will have that setting ignored and the previous default value `false` applied."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.use-boltdb-shipper-as-backup",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*use_boltdb_shipper_as_backup\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes the config setting use_boltdb_shipper_as_backup (-tsdb.shipper.use-boltdb-shipper-as-backup); the previous default false is applied. Exposed: environments that set the CLI flag or set the key in the Loki YAML config."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:094788bc2abe7e9ff662328e0b3e3fa341062572cdb92e97b3357e58fa32a832",
+      "inputEvidence": [
+        "ev-cd1836b0f962",
+        "ev-4c9440970051",
+        "ev-916bf6975201",
+        "ev-493fe19957ea",
+        "ev-d53fb7a74526",
+        "ev-a344853c8f30",
+        "ev-93cfde7716c1",
+        "ev-ef448e5a23b4",
+        "ev-b01a3de73bcb",
+        "ev-3cb4e124106a",
+        "ev-833d940f9c35",
+        "ev-c9996d6ffec2",
+        "ev-45b15b165cfe",
+        "ev-25aeb771ff2f",
+        "ev-06e1c2a72db2",
+        "ev-e38f07e9bdb1",
+        "ev-bd0a479f2437",
+        "ev-02fbed176b8e",
+        "ev-f19f9439e7c8",
+        "ev-f7fa153951ef",
+        "ev-b9e3037ef8b7",
+        "ev-504dbb0c78ff",
+        "ev-0e368e6a6f71",
+        "ev-3e797a3fb35a",
+        "ev-583967e3eaf6",
+        "ev-8ff725c31bf6",
+        "ev-763e8d85f263",
+        "ev-621f5e4bbeea",
+        "ev-ccb914e21d73",
+        "ev-887b12a31841",
+        "ev-41b979846841",
+        "ev-a89f1bd8e5de",
+        "ev-629a38c6f4b2",
+        "ev-a1ca6a9f17f1",
+        "ev-28622e136e8f",
+        "ev-4e830661fba0",
+        "ev-e4b24ba811ff",
+        "ev-af8499647b78",
+        "ev-9752cacc0234",
+        "ev-4b79cb1a8226",
+        "ev-e5af8a1b5781",
+        "ev-4c42b6db5d61",
+        "ev-0500640aa753",
+        "ev-3f7dccc9a7e0",
+        "ev-ce832d0081c5",
+        "ev-498b1297fb7f",
+        "ev-af3b569bbd49",
+        "ev-885b543fe7c5",
+        "ev-daa5d5e91665",
+        "ev-9e5eb9f249fd",
+        "ev-49061bdffc5b",
+        "ev-bcd6503daa24",
+        "ev-23440109b3b5",
+        "ev-edfb2e66c4df",
+        "ev-bae573dad702",
+        "ev-d93690b5448d",
+        "ev-c04ff0f14724",
+        "ev-deb1f67af51d",
+        "ev-698bdca68108",
+        "ev-6a3cc5f0de76",
+        "ev-522e37356d1b",
+        "ev-73055e956e96",
+        "ev-089253854710",
+        "ev-1eb0e48edd68",
+        "ev-581c7ec91666",
+        "ev-e0c05f8fedac",
+        "ev-068257f2da0f",
+        "ev-d031f9894360",
+        "ev-77837469197a",
+        "ev-0f02d884374d",
+        "ev-6c86d0d8cb4e",
+        "ev-d546fd91b679",
+        "ev-c63a71bf0be5",
+        "ev-76ab9f43c6d4",
+        "ev-0d57af90ad19"
+      ],
+      "generatedAt": "2026-10-03T12:50:45.636Z",
+      "callId": "b26dfe5d-adbd-48c0-8e38-3b52cf1c59a0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-cd1836b0f962] names the removed setting as the YAML config key `use_boltdb_shipper_as_backup` and the CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`. It never mentions an environment variable, so the proposed LOKI_TSDB_SHIPPER_USE_BOLTDB_SHIPPER_AS_BACKUP leaf is invented. The proposal also misses environments that set the YAML key in the Loki config file. The corrected exposure is the CLI flag being set or a config-file line setting the key. The ConfigMap data key name (\"config.yaml\") is not stated in the evidence, which is why confidence is low.",
+    "startedAt": "2026-10-03T12:50:19.778Z",
+    "decidedAt": "2026-10-03T12:50:45.636Z"
+  }
+}

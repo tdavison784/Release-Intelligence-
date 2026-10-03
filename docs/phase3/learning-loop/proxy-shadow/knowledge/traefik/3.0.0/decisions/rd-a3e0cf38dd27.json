@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a3e0cf38dd27",
+    "reviewItemId": "ri-46277a1c7908",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "A configuration using the Docker provider with swarmMode is unsupported in v3 and prevents Traefik from starting.",
+        "remediation": "Do not use swarmMode with the Docker provider; use the Swarm provider instead.",
+        "severity": "high"
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:a45847a47165202691f576250b2e01b78df9323895af77612ca5a0c53b5ecb06",
+      "inputEvidence": [
+        "ev-c6ee7d3b73da"
+      ],
+      "generatedAt": "2026-10-03T12:51:25.578Z",
+      "callId": "f8056fd6-695a-4428-a234-de1e27dae175",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c6ee7d3b73da] shows the v2 setup `providers.docker.swarmMode=true` and says \"This configuration is now unsupported and would prevent Traefik to start\". So if the operator does nothing, the upgraded Traefik will not start. That fits upgrade-blocked (an unmet configuration precondition stops the upgraded install from running), which is action-required. The remediation, to stop using swarmMode on the Docker provider and switch to the Swarm provider, matches the guide's own Remediation text.",
+    "startedAt": "2026-10-03T12:51:17.797Z",
+    "decidedAt": "2026-10-03T12:51:25.578Z"
+  }
+}

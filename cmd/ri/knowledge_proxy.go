@@ -32,6 +32,7 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 	items := fs.String("items", "", "comma-separated item ids (overrides the filters except status)")
 	noHuman := fs.Bool("no-human-context", false, "leave earlier human decisions out of the prompts (shadow pass)")
 	limit := fs.Int("limit", 0, "at most N requests (0 = all)")
+	statuses := fs.String("status", "pending", "comma-separated item statuses to review: pending, needs-evidence, deferred (a re-review of closed items)")
 	noSections := fs.Bool("no-sections", false, "leave out the upstream section context (prompt v3 shows it from the ingested release store under -state)")
 	if _, err := parse(fs, args); err != nil {
 		return err
@@ -52,9 +53,23 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 	for _, id := range splitList(*items) {
 		only[id] = true
 	}
+	want := map[domain.ReviewStatus]bool{}
+	for _, st := range splitList(*statuses) {
+		if !proxyreview.Reviewable(domain.ReviewStatus(st)) {
+			return fmt.Errorf("%w: -status %s: the proxy reviews only pending, needs-evidence and deferred items", app.ErrUsage, st)
+		}
+		want[domain.ReviewStatus(st)] = true
+	}
+	// an item a human has decided is never the proxy's, whatever its status
+	human := map[string]bool{}
+	for _, d := range snap.Decisions {
+		if d.ReviewerKind == domain.ReviewerHuman {
+			human[d.ReviewItemID] = true
+		}
+	}
 	var sel []domain.ReviewItem
 	for _, it := range snap.ReviewItems {
-		if it.Status != domain.ReviewPending {
+		if !want[it.Status] || human[it.ID] {
 			continue
 		}
 		if len(only) > 0 {

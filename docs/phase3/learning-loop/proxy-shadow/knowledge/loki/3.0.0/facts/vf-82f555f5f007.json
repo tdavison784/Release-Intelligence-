@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-82f555f5f007",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-c12318052118"
+        ],
+        "statementKeys": [
+          "sk-db14e6a6a13d"
+        ],
+        "changeIds": [
+          "chg-cf264a9d4782"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-895e84ff5606"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.allow_structured_metadata"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"config.yaml\"]",
+                      "state": "none",
+                      "pattern": "^\\s*-?\\s*store:\\s*[\"']?tsdb[\"']?\\s*$"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"config.yaml\"]",
+                      "state": "none",
+                      "pattern": "^\\s*-?\\s*schema:\\s*[\"']?v13[\"']?\\s*$"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"config.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*allow_structured_metadata:\\s*false\\b"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-validation.allow-structured-metadata",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*-?\\s*store:\\s*[\"']?tsdb[\"']?\\s*$"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*-?\\s*schema:\\s*[\"']?v13[\"']?\\s*$"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*allow_structured_metadata:\\s*false\\b"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-validation.allow-structured-metadata",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Loki will not start during the upgrade if the environment does not have tsdb and v13 schema configured, as structured metadata is now enabled by default.",
+        "severity": "critical"
+      },
+      "statement": "Structured metadata is enabled by default and requires `tsdb` and `v13` schema or Loki won't start"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-34e43c580812"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-34e43c580812"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-3e84f99b82a1"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-65e3364a131f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5dacaee98643",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L414-L414 (3.0.0)",
+        "excerpt": "* Structured metadata is enabled by default and requires `tsdb` and `v13` schema or Loki won't start. Refer to [Structured Metadata, Open Telemetry, Schemas and Indexes](#structured-metadata-open-telemetry-schemas-and-indexes).",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:05:37.336Z"
+  }
+}

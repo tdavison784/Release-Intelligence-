@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a8e6e1b2b4f2",
+    "candidateId": "sc-0181fcac4ae4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 1.17 the metric formerly exposed as envoy_cilium_policymap_<node-ip>_<node-id>_update_failure is emitted as envoy_cilium_npds_update_failure, so dashboards, alerts, or other monitoring that select the old name will no longer match data for it.",
+        "remediation": "Update dashboards, alerts, and other monitoring that reference envoy_cilium_policymap_<node-ip>_<node-id>_update_failure to use envoy_cilium_npds_update_failure.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17 renames the metric envoy_cilium_policymap_<node-ip>_<node-id>_update_failure to envoy_cilium_npds_update_failure, so monitoring that references the old name no longer matches it."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The changed item is a Prometheus metric name (envoy_cilium_policymap_<node-ip>_<node-id>_update_failure); no subject family in the taxonomy (crd-field, helm-value, gvk, feature-gate, image, config-key, rbac-permission, cli-flag, env-var, compatibility-boundary, api-endpoint, protocol-behavior, terraform-attribute, product-relationship, migration) covers metrics.; change: The evidence states a rename of a Prometheus metric name (envoy_cilium_policymap_<node-ip>_<node-id>_update_failure -> envoy_cilium_npds_update_failure), but the 'renamed' change type requires a replacedBy subject identity and no available family covers metric names, so the change cannot be typed faithfully.; applicability: Whether the consequence bites depends on whether the environment's dashboards, PrometheusRule/other alert rules, or external monitoring reference the old metric name; the available condition predicates cannot express this condition (at best partially, e.g. PrometheusRule expressions), it is not runtime behaviour, and the evidence states no exposure condition.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9f3945740531"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:b8a0f483f9f5a3dcc247de9df13d76e59508ba7ac654a9944ee3bde68dab7b34",
+      "inputEvidence": [
+        "ev-9f3945740531"
+      ],
+      "generatedAt": "2026-10-03T08:06:46Z",
+      "callId": "2007970a-3a7c-4c37-984e-8f689be5592a"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-94747aaadb39",
+    "reviewItemId": "ri-9cb93133be5e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "statement": "In the Bucket source.toolkit.fluxcd.io/v1 CRD schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 Bucket schema now requires status.artifact.digest. A v1 Bucket whose status.artifact is present but has no digest is rejected. Buckets with no status.artifact are not affected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:94b8d6faaee2b9018179574c4fa2882e4fcc8572e75f0b8415248f6ba7979ed4",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T16:56:01.816Z",
+      "callId": "d0c0a8c0-e95e-4e7a-bc7d-b1faa999481c",
+      "provider": "anthropic"
+    },
+    "reason": "The validated diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] makes status.artifact.digest required in the v1 Bucket schema. A required field nested under status.artifact only applies when status.artifact is present. A Bucket with no status.artifact, for example one that has never been reconciled, is not rejected. The proposed condition (digest unset) is therefore too broad. The exposure needs status.artifact set and status.artifact.digest unset on the same Bucket.",
+    "startedAt": "2026-10-03T16:55:42.121Z",
+    "decidedAt": "2026-10-03T16:56:01.816Z"
+  }
+}

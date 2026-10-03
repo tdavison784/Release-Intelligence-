@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4dad87c0c5c5",
+    "candidateId": "sc-f629a0b64048",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query the metric doublewrite_identity_kvstore_only_count"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric doublewrite_identity_kvstore_only_count is now exposed as doublewrite_identity_kvstore_only_total. Queries that use the old name need to be updated.",
+        "remediation": "Update dashboards, alerts and recording rules to use doublewrite_identity_kvstore_only_total.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_kvstore_only_count was renamed to doublewrite_identity_kvstore_only_total, so monitoring that queries the old name should be reviewed."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and no subject family covers metrics. Forcing it into protocol-behavior or api-endpoint would misclassify it.; change: The evidence states a rename from doublewrite_identity_kvstore_only_count to doublewrite_identity_kvstore_only_total. However, 'renamed' needs a replacedBy in a subject family, and no family fits metrics.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a2a020af7830"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:e8ba5331241fe7daa7686d88560f33b539b5bdfebe6df67e113c7476e725fa61",
+      "inputEvidence": [
+        "ev-a2a020af7830"
+      ],
+      "generatedAt": "2026-10-03T07:14:45Z",
+      "callId": "94ebb06e-983b-4560-aa18-d5f2305fb506"
+    }
+  }
+}

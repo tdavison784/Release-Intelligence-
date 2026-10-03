@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9eeeae2effef",
+    "candidateId": "sc-5996f84cf28b",
+    "proposalId": "sp-4eac700baa9c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*enable[-_]api\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "values-key",
+              "path": "loki.config.experimental.ruler.enable-api",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A configuration setting `experimental.ruler.enable-api` is no longer honoured after upgrading to Loki 3.0.0; the setting must be moved to `ruler.enable-api`.",
+        "remediation": "Replace `experimental.ruler.enable-api` with `ruler.enable-api` in the Loki configuration file (and in loki.config / loki.structuredConfig when installed via the Helm chart) before upgrading to 3.0.0.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the deprecated configuration option `experimental.ruler.enable-api`; `ruler.enable-api` must be used instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

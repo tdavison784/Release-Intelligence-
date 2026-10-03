@@ -1,0 +1,68 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0ba4ba00c0ad",
+  "promptDigest": "sha256:dbc8e276ca56ce0f12c94e39faf32484a31f809e46e4f61ec226925210830100",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cb6cbe8f-9248-4e59-8d79-1d3b0787afd8",
+  "startedAt": "2026-10-03T12:43:37.188Z",
+  "decidedAt": "2026-10-03T12:43:58.257Z",
+  "durationMs": 19945,
+  "costUSD": 0.12050000000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-030a6d8de1b4] shows the removed option set in three ways: the static File configuration (YAML `providers.http.tls.caOptional: true`, TOML `[providers.http.tls] caOptional=true`) and the CLI flag `--providers.http.tls.caOptional=true`. The remediation is to remove it from the HTTP provider static configuration. The proposed condition only checks the CLI flag, so it misses environments that set the option in a static config file and is too narrow. The evidence doesn't name the ConfigMap data key that holds the file, so the file names in my correction are a best guess, and the line pattern can also match caOptional set under other sections of the file.",
+    "citations": [
+      "ev-030a6d8de1b4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The HTTP provider `tls.caOptional` static option was removed in Traefik v3.0.0. Exposed environments are those that set it, either with the CLI flag --providers.http.tls.caOptional or in a static configuration file (YAML or TOML) under providers.http.tls.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.http.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yml\"]",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]",
+                      "state": "exists"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yaml\"]",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]",
+                      "state": "exists"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.toml\"]",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]",
+                      "state": "exists"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

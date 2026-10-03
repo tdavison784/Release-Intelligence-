@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8b7578c173b3",
+    "candidateId": "sc-003aa0b14bf1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "karpenter",
+        "name": "vpc-resource-controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether Windows pods are scheduled onto instance types that are not in the VPC resource controller config at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Windows pod launches that previously failed when the instance type wasn't in the VPC resource controller config now succeed after the upgrade; no configuration change is needed.",
+        "remediation": "verify Windows workloads launch successfully on instance types missing from the VPC resource controller config",
+        "severity": "low"
+      },
+      "statement": "Karpenter 1.0.0 fixes a failure to launch Windows pods when the instance type isn't in the VPC resource controller config, so Windows pod launches that previously failed in that situation now succeed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-664e993932dd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5faf2a6284dbe12cc66eaf59761130117a803e49d6e530ebd4acfeaa24d1aa11",
+      "inputEvidence": [
+        "ev-664e993932dd"
+      ],
+      "generatedAt": "2026-10-03T08:40:11Z",
+      "callId": "ba57b4c8-cf70-4236-a47d-820ba8b85d3a"
+    }
+  }
+}

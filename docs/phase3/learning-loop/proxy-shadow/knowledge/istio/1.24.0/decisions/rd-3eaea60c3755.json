@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3eaea60c3755",
+    "reviewItemId": "ri-4d8f0dbcdf8d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "profile",
+              "state": "matches",
+              "pattern": ".*-openshift$"
+            },
+            {
+              "op": "values-key",
+              "path": "global.platform",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "statement": "OpenShift profile variants for Helm installs are removed and replaced with global.platform=openshift configuration; a new global.platform Helm value enables platform-specific configurations."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "profile",
+          "state": "matches",
+          "pattern": "openshift"
+        }
+      },
+      "statement": "Helm installs whose `profile` value selects a removed OpenShift profile variant (e.g. ambient-openshift) are exposed. They must switch to the base profile plus `global.platform=openshift`. Installs that leave `global.platform` unset are not exposed for that reason alone."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:cefb962e9477f5bd78e850a46f945e917790c3b50412cc220144717134efe12e",
+      "inputEvidence": [
+        "ev-d6ef50aec061",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-85eccdc718e3",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e",
+        "ev-41d780f6ab39",
+        "ev-ad95ec08c00b"
+      ],
+      "generatedAt": "2026-10-03T12:52:29.424Z",
+      "callId": "c8a2c9c3-10e2-499d-93a6-21a28d7cde72",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d6ef50aec061] says the OpenShift profile variants were removed and replaced with `global.platform` overrides, for example `profile=ambient-openshift` becomes `profile=ambient` plus `global.platform=openshift`. Only installs that select an OpenShift profile variant are exposed. The proposed second operand, `global.platform` unset, is wrong because that value is an opt-in addition and nothing in the evidence says its absence breaks anything. With it, almost every Helm install would be flagged as exposed. The exposure therefore narrows to the profile value naming an OpenShift variant. The pattern is `openshift` rather than `-openshift$` because the note covers OpenShift profile variants in general but gives only one example name.",
+    "startedAt": "2026-10-03T12:52:14.853Z",
+    "decidedAt": "2026-10-03T12:52:29.424Z"
+  }
+}

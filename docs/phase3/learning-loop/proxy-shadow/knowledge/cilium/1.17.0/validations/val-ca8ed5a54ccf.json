@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ca8ed5a54ccf",
+    "candidateId": "sc-f9466f268c0b",
+    "proposalId": "sp-a943107d75ae",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "doublewrite-identity-crd-total-count-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"doublewrite_identity_crd_total_count\"",
+        "after": "\"doublewrite_crd_identities\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "doublewrite-crd-identities-metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium keeps running, but the metric formerly exposed as doublewrite_identity_crd_total_count is now exposed as doublewrite_crd_identities, so anything still querying the old metric name will no longer receive data for it.",
+        "remediation": "Update any dashboards, alerts or recording rules that query doublewrite_identity_crd_total_count to use doublewrite_crd_identities.",
+        "severity": "low"
+      },
+      "statement": "The Cilium metric `doublewrite_identity_crd_total_count` has been renamed to `doublewrite_crd_identities` in 1.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

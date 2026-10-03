@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5da2f8621b8f",
+    "reviewItemId": "ri-c157720a95cb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket v1 objects that omit status.artifact.digest are rejected by the schema.",
+        "severity": "medium"
+      },
+      "statement": "In the Bucket source.toolkit.fluxcd.io/v1 CRD schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:ccd34b1830bb2e7b109cd003d0d8f1fc7e7073445e38be2a09aaeaf061a5991b",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T17:00:47.301Z",
+      "callId": "136c8386-6f7a-4b46-bdfb-96936e303822",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between the v2.6.4 [ev-782bc47d120d] and v2.7.0 [ev-c2c6c790d6b2] install bundles says status.artifact.digest is newly required in the Bucket source.toolkit.fluxcd.io/v1 schema and that objects omitting it are rejected. The semvalidate.crd validator confirmed the field became required. Schema rejection is resource-rejected, which is an action-class kind, and this matches the existing known fact vf-fb79bb6ccebd. Medium severity is reasonable because this is a status field that the controller normally writes.",
+    "startedAt": "2026-10-03T17:00:33.688Z",
+    "decidedAt": "2026-10-03T17:00:47.301Z",
+    "resultingFact": "vf-a36e712aefc6"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-778a88acdadd",
+  "promptDigest": "sha256:b4ddab53821d9922da4da2c69dcdeaf3801a5b92a518a28a8293d8f664b8dc4b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4fd7f9f2-079d-49c9-b8e3-fae7968b11a5",
+  "startedAt": "2026-10-03T12:57:51.287Z",
+  "decidedAt": "2026-10-03T12:58:05.347Z",
+  "durationMs": 13255,
+  "costUSD": 0.10016,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d0cda25040fe] names the controlling key exactly: `server.rbac.disableApplicationFineGrainedRBACInheritance` in the ConfigMap `argocd-cm`. With that key left at its default, `update`/`delete` policies now apply only to the application itself. That is behavior-changed: the same configuration now means something different. The subject and change type are right. The before/after values were paraphrased, though, and the rules require them as literal text, so they are replaced with the upgrade guide's wording.",
+    "citations": [
+      "ev-d0cda25040fe"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0, with server.rbac.disableApplicationFineGrainedRBACInheritance in argocd-cm left at its default, fine-grained `update`/`delete` policies on an application no longer apply to its sub-resources. Setting the key to `false` preserves the v2 behavior.",
+      "subject": {
+        "determination": "asserted",
+        "family": "config-key",
+        "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed",
+        "before": "policies granting `update` or `delete` to an application also applied to any of its sub-resources",
+        "after": "the `update` or `delete` actions only apply to the application itself"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7ecad935fe14",
+    "reviewItemId": "ri-5228ed8c176e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "wireguard.userspaceFallback",
+          "state": "set"
+        }
+      },
+      "statement": "The deprecated Helm value wireguard.userspaceFallback (built-in WireGuard userspace-mode fallback) has been removed; WireGuard transparent encryption now requires a Linux kernel with WireGuard support."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:ae549cd0b04c41a50aaab7bff0539cb238ae34b048d94de2e275917a67a14bd1",
+      "inputEvidence": [
+        "ev-ffd2c3200e89",
+        "ev-98d8079a3380",
+        "ev-32984cccce52",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T12:52:59.588Z",
+      "callId": "356a5751-7138-4884-bb29-94c02019f039",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ffd2c3200e89] states that the Helm value `wireguard.userspaceFallback` has been removed, so the standard condition for a removed Helm value (the key is set) fits the named setting. Caveat: the values validator did not find the key in either release's chart values [ev-28e0ccb5774a][ev-39a22d88e2f5]. That challenges the fixed subject and may mean the key already did nothing for some upgrade paths. Environments that relied on the fallback because their kernel lacks WireGuard support depend on node kernels, which no configuration shows, and the evidence does not say the fallback required this key.",
+    "startedAt": "2026-10-03T12:52:44.411Z",
+    "decidedAt": "2026-10-03T12:52:59.588Z"
+  }
+}

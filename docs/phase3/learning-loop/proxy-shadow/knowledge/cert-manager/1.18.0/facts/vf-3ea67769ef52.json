@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-3ea67769ef52",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-547cbc9dab6f"
+        ],
+        "statementKeys": [
+          "sk-1523aa858b5f"
+        ],
+        "changeIds": [
+          "chg-fcb00045737f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-df4d0167852e"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "gateway-tls-passthrough-listeners"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.listeners[].tls.mode",
+              "state": "equals",
+              "values": [
+                "\"Passthrough\""
+              ]
+            }
+          ],
+          "group": "gateway.networking.k8s.io",
+          "kind": "Gateway"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now skips Gateway TLS listeners in Passthrough mode. Before this bugfix, it processed them.",
+        "remediation": "Check that no workflow relies on cert-manager acting on Gateway TLS listeners in Passthrough mode.",
+        "severity": "low"
+      },
+      "statement": "Skip Gateway TLS listeners in `Passthrough` mode"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-f22185180c32"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-f22185180c32"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-2d012d150598"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-f800784736ed"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-1861adfd42be",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L359-L359 (v1.18.0 › Bug or Regression)",
+        "excerpt": "- Skip Gateway TLS listeners in `Passthrough` mode. ([`#6986`](https://github.com/cert-manager/cert-manager/pull/6986), [`@vehagn`](https://github.com/vehagn))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:20:28.107Z"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e134564b04d6",
+  "promptDigest": "sha256:ec47e309eb91be9a9aaac4c7975287cea0fb353adacf4a9afb5b92123df861a1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "352ef918-1d60-4159-976f-c168a5f379c3",
+  "startedAt": "2026-10-03T17:04:27.902Z",
+  "decidedAt": "2026-10-03T17:04:49.141Z",
+  "durationMs": 20590,
+  "costUSD": 0.160496,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dbef3e2e8163] says five Headers middleware options were removed together: sslRedirect, sslTemporaryRedirect, sslHost, sslForceHost and featurePolicy. The proposed exposure only checks spec.headers.sslRedirect, so it misses Middleware resources that set only one of the other four. The removal applies to the Headers middleware whatever the API group, so the corrected condition checks both traefik.io and traefik.containo.us Middleware resources. It still cannot see the same options set through non-Kubernetes providers such as file or labels, so confidence is low.",
+    "citations": [
+      "ev-dbef3e2e8163"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik 3.0.0 removed the sslRedirect, sslTemporaryRedirect, sslHost, sslForceHost and featurePolicy options of the Headers middleware. Exposed: any Middleware resource that still sets one of them under spec.headers.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslRedirect",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslTemporaryRedirect",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslHost",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslForceHost",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.featurePolicy",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslRedirect",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslTemporaryRedirect",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslHost",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.sslForceHost",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.headers.featurePolicy",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

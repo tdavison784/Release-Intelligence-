@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e5f454e73669",
+    "reviewItemId": "ri-332895e8bb90",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e3b43914a2c7338a16de9240d951537904ce001cf94012ba1651024964fc7ceb",
+      "inputEvidence": [
+        "ev-13278d059ceb",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-80331c11381f",
+        "ev-f91dbd14d0cc",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-f83dc72c2c99",
+        "ev-4bcafa8a355e"
+      ],
+      "generatedAt": "2026-10-03T17:13:41.815Z",
+      "callId": "511040d8-63cc-42bd-acf9-fd6ef1d2dcc5",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-13278d059ceb] puts at least three separate changes into one item, so it doesn't describe a single subject or change. First, LOGGING_CONFIG, ASSUME_ROLE_ARN and ASSUME_ROLE_DURATION are dropped. Second, LEADER_ELECT is renamed to DISABLE_LEADER_ELECTION, which also appears to flip its meaning. Third, FEATURE_GATES.DRIFT is promoted to Stable and can no longer be disabled. Only the drift change states a consequence (operators can no longer opt out). For the dropped variables, the evidence doesn't say whether a value that is still set is ignored or causes an error, or what replaces the assume-role settings. For the rename, it doesn't give the new variable's default or say how it relates to the old value, and nothing in [ev-5aa24b618332] or [ev-bfb089d90d84] fills these gaps. The cluster needs to be split into separate changes, and each needs evidence of its consequence.",
+    "startedAt": "2026-10-03T17:13:33.886Z",
+    "decidedAt": "2026-10-03T17:13:41.815Z"
+  }
+}

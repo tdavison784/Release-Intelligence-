@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-713680362a06",
+    "reviewItemId": "ri-01c2c2e8f0e0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "After upgrade to 1.17.0, existing services without a protocol set will be preserved but require deletion and recreation for protocol differentiation to take effect. On downgrade from 1.17.0 to earlier versions, services with protocol set will be deleted and recreated without the protocol, causing connection disruptions.",
+        "remediation": "After upgrading to 1.17.0, identify and recreate services without protocol set to enable protocol differentiation. Before downgrading, plan for service recreation with potential connection disruptions.",
+        "severity": "medium"
+      },
+      "statement": "The --bpf-lb-proto-diff flag enables services protocol differentiation by default in Cilium 1.17.0, allowing distinction of services on the same port with different protocols; existing services without a protocol set are preserved but require deletion and recreation to enable protocol differentiation, and downgrades cause protocol-aware services to lose protocol information and be recreated."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, protocol differentiation is on by default. Existing services without a protocol set are kept as they are, to avoid connection disruptions, so they keep working without protocol differentiation. They have to be deleted and recreated for the agent to use their protocol. On a downgrade to a version without this feature, the agent deletes and recreates services that have a protocol set, without the protocol, which disrupts connections for those services.",
+        "remediation": "If you need protocol differentiation for existing services, delete and recreate them after the upgrade. Before any downgrade, plan for connection disruptions on services that have a protocol set, or control the feature with --bpf-lb-proto-diff.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 turns on services protocol differentiation by default (--bpf-lb-proto-diff). Existing services without a protocol set are kept as they are and keep working, but their protocol is only used after they are deleted and recreated. Downgrading to a version without this feature deletes and recreates protocol-set services, which disrupts connections."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:4ddd39faed71f86e26f24e8ae8224810852f1ef75dca76ac634a7c85d2223aff",
+      "inputEvidence": [
+        "ev-2a9b9b849526",
+        "ev-09d5e26554e5",
+        "ev-fa8f791f1c11",
+        "ev-ddf5fd344d03",
+        "ev-01a5226ddc9a",
+        "ev-b37407b60520",
+        "ev-7424e74176c0",
+        "ev-3c259372f6bf",
+        "ev-c05c58b487cc",
+        "ev-a152c8cea30c",
+        "ev-5f4aedc964f4",
+        "ev-e6b268264713",
+        "ev-1a27180320cd",
+        "ev-23473218087f",
+        "ev-ed86f8eb85bf",
+        "ev-98d8079a3380",
+        "ev-ffd2c3200e89",
+        "ev-32984cccce52",
+        "ev-21e07cf98d97",
+        "ev-bcdbfe5ecd01",
+        "ev-b5054e15ad6c",
+        "ev-c082dfefeb1b",
+        "ev-b7f3339817fc",
+        "ev-9113ff586fec",
+        "ev-672c6336b39c",
+        "ev-0debb0d83ac2",
+        "ev-4ce2886cea1f",
+        "ev-42d13e5eb7d7",
+        "ev-f13e15b06a08",
+        "ev-f941fa338b6a",
+        "ev-a7d9e5f931b3",
+        "ev-b598b51801ea",
+        "ev-34619549fb8a",
+        "ev-b182e7794768",
+        "ev-b66b29e5567d",
+        "ev-8a664283f86e",
+        "ev-1a97b17bde3d",
+        "ev-1b1b9343e346",
+        "ev-f3d0a6f12b97",
+        "ev-72ecae3c2fc1",
+        "ev-070e2e78535d",
+        "ev-fd031f140d8c",
+        "ev-77f05428497a"
+      ],
+      "generatedAt": "2026-10-03T12:42:27.455Z",
+      "callId": "fac38852-23af-4543-915b-bf729afd0b20",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-2a9b9b849526] says existing services without a protocol set \"will be preserved as such, to avoid any connection disruptions\". Deleting and recreating them is only needed \"in order for their protocol to be taken into account\". If the operator does nothing, nothing fails and nothing must be migrated. Those services keep working without protocol differentiation, while the new feature is on by default. The connection disruption only happens on a downgrade, not on this upgrade. So this is behavior-change (review), not migration-required.",
+    "startedAt": "2026-10-03T12:42:18.376Z",
+    "decidedAt": "2026-10-03T12:42:27.455Z"
+  }
+}

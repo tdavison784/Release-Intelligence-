@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b97b4bb3d944",
+    "reviewItemId": "ri-e6dce75e56d2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "networking.k8s.io",
+          "version": "v1beta1",
+          "kind": "Ingress"
+        }
+      },
+      "statement": "Traefik v3 removes support for the Kubernetes Ingress API Group networking.k8s.io/v1beta1; users must migrate to networking.k8s.io/v1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d82f60c2e2248622435eb7388c56bd9dec9988de48585cc530edad110e73b77a",
+      "inputEvidence": [
+        "ev-f3d6519c3794"
+      ],
+      "generatedAt": "2026-10-03T17:05:26.988Z",
+      "callId": "ec3ba903-0299-42ad-8437-81e6c5428d1d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f3d6519c3794] says Traefik v3 drops support for Ingress in the `networking.k8s.io/v1beta1` API group and points users to `networking.k8s.io/v1`. The environments exposed are the ones whose manifests still use Ingress at networking.k8s.io/v1beta1. That matches the proposed gvk-in-use condition, which is also the standard shape for a removed GVK. The validators were inconclusive, so they neither support nor contradict this, and no narrower or broader condition follows from the text.",
+    "startedAt": "2026-10-03T17:05:20.926Z",
+    "decidedAt": "2026-10-03T17:05:26.988Z"
+  }
+}

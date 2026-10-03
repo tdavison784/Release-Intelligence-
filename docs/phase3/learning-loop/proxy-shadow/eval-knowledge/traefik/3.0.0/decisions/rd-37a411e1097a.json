@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-37a411e1097a",
+    "reviewItemId": "ri-5affe2c8abc4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the Docker provider static configuration still sets tls.caOptional (file, CLI flag, or environment variable), the option no longer exists in v3 and the configured value stops being honoured; the upgrade guide's remediation is to remove it from the Docker provider static configuration.",
+        "remediation": "Remove the tls.caOptional option from the Docker provider static configuration, in whichever form it is set: --providers.docker.tls.caOptional CLI flag, providers.docker.tls.caOptional in traefik.yml/traefik.yaml, or caOptional under [providers.docker.tls] in traefik.toml."
+      },
+      "statement": "The Docker provider static-configuration option tls.caOptional (providers.docker.tls.caOptional, CLI --providers.docker.tls.caOptional) has been removed in Traefik v3 and must be removed from the Docker provider static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:cf280c93563ca0b20a4836bb53ee1703aa7f105ff4043a96cd5eb6d1acc2c3f9",
+      "inputEvidence": [
+        "ev-dac3a3c51ce8"
+      ],
+      "generatedAt": "2026-10-03T12:54:05.388Z",
+      "callId": "30be3aa2-2050-4a35-a619-16b9c1688021",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-dac3a3c51ce8] says the Docker provider `tls.CAOptional` option \"has been removed in v3\". Its remediation is that `tls.caOptional` \"should be removed from the Docker provider static configuration\", and it shows YAML, TOML and CLI examples. A configured value for a removed static key can no longer be honoured, which is what setting-ignored means for a removed key, so the action-required class follows. The evidence does not say whether leaving the key in place also stops startup, so I don't claim upgrade-blocked. The proposed statement also mentions environment variables, which the evidence never names; that's a small overreach.",
+    "startedAt": "2026-10-03T12:53:52.936Z",
+    "decidedAt": "2026-10-03T12:54:05.388Z",
+    "resultingFact": "vf-b325f014e386"
+  }
+}

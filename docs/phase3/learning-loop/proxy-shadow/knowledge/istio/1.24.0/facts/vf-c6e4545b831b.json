@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c6e4545b831b",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-4ca97e7af834"
+        ],
+        "statementKeys": [
+          "sk-5dcc2fdaa3ef"
+        ],
+        "changeIds": [
+          "chg-5c7a2fc13020"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-66ecfc1d4aaf"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "CNI_NET_DIR",
+        "component": "istio-cni"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.CNI_NET_DIR",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "istio-cni"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The setting already did nothing, so removing it from the istio-cni configmap has no operational effect."
+      },
+      "statement": "Removed `CNI_NET_DIR` from the `istio-cni` configmap, as it now does nothing"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7a49895868ff"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7a49895868ff"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-25474e85a59c"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-24630afb8419"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-191d17c9702d",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52323.yaml",
+        "locator": "52323.yaml L10-L11",
+        "excerpt": "- |\n  **Removed** `CNI_NET_DIR` from the `istio-cni` configmap, as it now does nothing.",
+        "contentDigest": "sha256:1893e63290c283be7dab7c5f0fd832a4560f5eb6bee342cf7a809ef8ca681d0b",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:02:01.341Z"
+  }
+}

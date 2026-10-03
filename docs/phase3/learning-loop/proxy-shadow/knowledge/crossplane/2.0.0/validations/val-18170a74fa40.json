@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-18170a74fa40",
+    "candidateId": "sc-d7daed0d7602",
+    "proposalId": "sp-d8814b7857f7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--debug"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--debug",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments running Crossplane with debug enabled will, after upgrading, no longer have the discard logger set, so debug-mode log output that was previously silently discarded is now produced; nothing fails, but logging output under the same configuration differs.",
+        "remediation": "No operator action required; after upgrading, verify that debug logging output appears as expected when running with --debug.",
+        "severity": "low"
+      },
+      "statement": "In Crossplane 2.0.0 the discard logger is only set when debug is false, so with debug enabled the discard logger is no longer installed and debug-mode log output that was previously discarded is now emitted."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5faf800e7e2c",
+    "reviewItemId": "ri-d56d6c95eaeb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading, clusters using external workloads must have a cluster name and ID specified, or explicitly opt out of KVStoreMesh, because KVStoreMesh is now enabled by default.",
+        "remediation": "Specify the cluster name and ID before upgrading, or explicitly disable KVStoreMesh.",
+        "severity": "medium"
+      },
+      "statement": "KVStoreMesh is now enabled by default; clusters using external workloads must set a cluster name and ID before upgrading, or explicitly opt out of KVStoreMesh."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7f2cac230ad6ed82e88d570b9e0edfc2ac8810b31889094cc68956368a7d0e0c",
+      "inputEvidence": [
+        "ev-b62da9c1ceb5",
+        "ev-25984c3785d4",
+        "ev-dc0997efed20",
+        "ev-b5190a359c10",
+        "ev-2c2bce4c1f26",
+        "ev-fbe2aedc4ddc",
+        "ev-540db624a6ea",
+        "ev-89034c5d2c74",
+        "ev-7994b2163342",
+        "ev-4dff543b3882",
+        "ev-6e35b4906b1d",
+        "ev-abfbf30753a5",
+        "ev-2bdafc717eab",
+        "ev-793f1f2f3e70",
+        "ev-12660f87be40",
+        "ev-ee4d25413bf4",
+        "ev-8aa9ac2ddd3a",
+        "ev-a6c56e62cf47",
+        "ev-e6932b8a5ba9",
+        "ev-e477115a445b",
+        "ev-f64f7c540c6d",
+        "ev-0b06499d6851",
+        "ev-b8b62ef806f0",
+        "ev-91fac6720d6f",
+        "ev-07d6be356398",
+        "ev-5d3c6d3080f0",
+        "ev-69b054a33ac2",
+        "ev-3fb29eea728d",
+        "ev-f050ccf90d86",
+        "ev-40ebe1cf329c"
+      ],
+      "generatedAt": "2026-10-03T17:02:55.505Z",
+      "callId": "439d519d-f441-43dc-8929-40c30b94b9ef",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-b62da9c1ceb5] says that, because KVStoreMesh is now on by default, clusters with external workloads must have a Cluster name and ID set before upgrading, or must explicitly opt out of KVStoreMesh. That is a required operator step before the upgrade, which matches migration-required. [ev-12660f87be40] confirms the default change and the opt-out through Helm `clustermesh.apiserver.kvstoremesh.enabled=false`. The proposed statement and remediation stay within the evidence and do not claim a failure mode the text does not state.",
+    "startedAt": "2026-10-03T17:02:47.915Z",
+    "decidedAt": "2026-10-03T17:02:55.505Z"
+  }
+}

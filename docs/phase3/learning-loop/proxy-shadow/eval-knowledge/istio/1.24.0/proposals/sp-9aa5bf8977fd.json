@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9aa5bf8977fd",
+    "candidateId": "sc-4330cdde4865",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "destinationrule-exportto-merge"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.exportTo",
+                  "state": "set"
+                }
+              ],
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules for the same host whose exportTo attributes are totally different are no longer merged, so the configuration that takes effect for that host may change.",
+        "remediation": "Check DestinationRules that share a host but have different exportTo values. To keep the old merging behavior, set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 stops merging DestinationRules for the same host when their exportTo attributes are totally different; setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment turns this new behavior off."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:43e1d071355a81de86318441da045ca7dc06e886b98874907cd7708482b53ef0",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-03T07:14:07Z",
+      "callId": "746dc4cb-3a9f-4f80-bdc3-75adff2bd3cf"
+    }
+  }
+}

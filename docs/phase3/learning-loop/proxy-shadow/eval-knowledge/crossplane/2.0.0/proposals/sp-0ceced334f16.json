@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0ceced334f16",
+    "candidateId": "sc-af36bd24681f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required",
+        "before": "\"github.com/crossplane/crossplane\"",
+        "after": "\"github.com/crossplane/crossplane/v2\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Code that imports crossplane or crossplane-runtime in go.mod must update the module path and all import statements to include the v2 suffix when moving to v2+.",
+        "remediation": "Update go.mod and all import statements to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2."
+      },
+      "statement": "The Go module path of crossplane is renamed to github.com/crossplane/crossplane/v2 (and crossplane-runtime to .../v2); Go code importing them must update go.mod and import statements."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: exposure depends on whether the user's Go source code imports crossplane modules; no configuration predicate can express this",
+    "citations": [
+      "ev-d241daaf3863"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0ecbe6b6cd4a537a8a75e51cf6e80812e83c404e54d928039c0ec6298052af6b",
+      "inputEvidence": [
+        "ev-d241daaf3863"
+      ],
+      "generatedAt": "2026-10-03T07:06:12Z",
+      "callId": "b3bf1592-c37f-44a3-9fc9-a9bc0e66cbc6"
+    }
+  }
+}

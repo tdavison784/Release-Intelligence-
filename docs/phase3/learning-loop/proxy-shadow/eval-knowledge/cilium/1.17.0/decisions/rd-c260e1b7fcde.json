@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c260e1b7fcde",
+    "reviewItemId": "ri-13a85856a9a8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available-metric"
+        }
+      },
+      "statement": "The metric lbipam_ips_available_total has been renamed to lbipam_ips_available."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available"
+        }
+      },
+      "statement": "The LB-IPAM metric lbipam_ips_available_total has been renamed to lbipam_ips_available in Cilium 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:ab66ffe1c01714ced8533d2d83a7fc707f4e115e915d7823a05b9693c8313728",
+      "inputEvidence": [
+        "ev-875bb56564b0",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:44:50.358Z",
+      "callId": "dae7d711-b2a5-438c-a608-d4c3bf74d9fe",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-875bb56564b0] says, under \"Changed Metrics\", that the metric `lbipam_ips_available_total` has been renamed to `lbipam_ips_available`, so the change type \"renamed\" and the before/after literals are right. The proposal breaks the rename, though: its replacedBy has the same identity as the subject, so it records nothing. It also puts the product in a field, which the rules forbid. The corrected version names the subject after the old metric name and replacedBy after the new one, both as kebab-case protocol-behavior names, because no family is specific to metrics.",
+    "startedAt": "2026-10-03T12:44:39.558Z",
+    "decidedAt": "2026-10-03T12:44:50.358Z"
+  }
+}

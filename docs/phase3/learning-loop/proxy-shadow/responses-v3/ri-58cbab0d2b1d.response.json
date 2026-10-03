@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-58cbab0d2b1d",
+  "promptDigest": "sha256:ec69328dd55a4fbcb0db52071737479a0309b0c555cbc593082e3d3a9346503e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "69a5bdc1-e74b-4a19-a938-4dd5f0bf7218",
+  "startedAt": "2026-10-03T12:53:34.005Z",
+  "decidedAt": "2026-10-03T12:53:50.038Z",
+  "durationMs": 15387,
+  "costUSD": 0.076048,
+  "output": {
+    "action": "correct",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "reason": "The computed CRD diff between the v2.6.4 [ev-782bc47d120d] and v2.7.0 [ev-c2c6c790d6b2] install.yaml shows only that the storage version changed from v1beta2 to v1. Nothing in that diff says this upgrade fails, rejects resources or needs a step to run. Existing objects stay stored as v1beta2 and keep working. The migration is only needed before some later release that removes v1beta2, and the evidence does not show that removal is scheduled. Calling it migration-required claims mandatory work the evidence does not support, so the consequence should be behavior-change, which means review.",
+    "correction": {
+      "statement": "The storage version of imagepolicies.image.toolkit.fluxcd.io changes from v1beta2 to v1. Existing ImagePolicy objects keep working and stay stored as v1beta2 until they are rewritten. A storage migration is recommended before any later release that stops serving v1beta2.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "If the operator does nothing, existing ImagePolicy objects keep working but stay stored as v1beta2, and status.storedVersions still lists v1beta2. New writes are stored as v1. Nothing in this release fails or is rejected.",
+        "remediation": "Optionally rewrite all ImagePolicy objects and remove v1beta2 from status.storedVersions on the imagepolicies.image.toolkit.fluxcd.io CRD before upgrading to any release that removes v1beta2."
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "duplicateOf": "none"
+  }
+}

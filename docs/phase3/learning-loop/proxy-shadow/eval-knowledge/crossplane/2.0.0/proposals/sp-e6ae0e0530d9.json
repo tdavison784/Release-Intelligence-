@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e6ae0e0530d9",
+    "candidateId": "sc-3be44400117a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts or CI pipelines run `crossplane xpkg login` or `crossplane xpkg logout`. This is client-side tooling usage, so no cluster configuration shows it."
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands no longer exist in the Crossplane CLI, so any script or CI workflow that calls them to log in to a registry before pushing a package will break.",
+        "remediation": "Log in to the registry with `docker login` locally, or with the `docker/login-action` in CI. `function-auto-ready` is an example of this pattern.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 removes the `crossplane xpkg login` and `crossplane xpkg logout` CLI commands; use `docker login` locally or `docker/login-action` in CI to log in to a registry before pushing a package."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The subject is a CLI subcommand (`crossplane xpkg login`/`logout`). No subject family fits it: cli-flag only covers --flags, and api-endpoint only covers served endpoints.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5bbbbea35c34"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:04c01acd4dc9e3aadf6bab485a770ad2aaa045f90864c42d4c6426d0656b1e49",
+      "inputEvidence": [
+        "ev-5bbbbea35c34"
+      ],
+      "generatedAt": "2026-10-03T07:09:40Z",
+      "callId": "7e5a268e-4d95-44bc-849d-a950a0f486b2"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-eaab74fc1b9f",
+  "promptDigest": "sha256:7b5b0d8ad9fcba4cfca835206593f2779843445a20cc5af49d95ec207e43965d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e86620f5-020c-43d1-9ae2-2575a160fd1f",
+  "startedAt": "2026-10-03T17:05:51.809Z",
+  "decidedAt": "2026-10-03T17:06:02.540Z",
+  "durationMs": 9881,
+  "costUSD": 0.0839208,
+  "output": {
+    "action": "correct",
+    "reason": "The evidence says that if you installed or upgraded CRDs with `kubectl apply` and not Helm, \"you can continue to do so\", and that `helm upgrade istio-base` is something you \"can begin\" using. It is allowed, not required [ev-85eccdc718e3][ev-2941a875a468]. Nothing is said to fail or to need migrating, so migration-required over-claims mandatory work. What actually changes is a default: CRDs are templated by default in the base chart and CRD labels change to match other Helm-installed resources. The old behavior stays available through the deprecated `base.enableCRDTemplates=false` [ev-fa194382072a]. That makes this a behavior-change, which gets review.",
+    "citations": [
+      "ev-85eccdc718e3",
+      "ev-2941a875a468",
+      "ev-fa194382072a"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0 the istio-base chart templates CRDs by default, and CRD labels change to match other Helm-installed resources. CRDs can now be upgraded with `helm upgrade istio-base`, and existing `kubectl apply` CRD workflows keep working.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "If the operator does nothing, CRDs are templated by the istio-base chart by default and their labels change to match other Helm-installed resources. Existing `kubectl apply` CRD install and upgrade workflows can continue, and nothing is stated to fail.",
+        "remediation": "Optionally switch CRD upgrades to `helm upgrade istio-base`. Check any tooling that depends on the old CRD labels. The legacy behavior can be restored temporarily with `base.enableCRDTemplates=false`, which is deprecated and will be removed in a future release."
+      }
+    }
+  }
+}

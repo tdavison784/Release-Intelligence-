@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-599c149fc0c9",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-2f70c894e5bd"
+        ],
+        "statementKeys": [
+          "sk-c1b826457684"
+        ],
+        "changeIds": [
+          "chg-0373d1d75cdf"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-0e7e63699f83"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which monitoring systems or alerting rules actively reference the old metric name lbipam_ips_available_total at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exposed as lbipam_ips_available instead of lbipam_ips_available_total, so queries, dashboards or alerts that use the old name need updating.",
+        "remediation": "Change monitoring queries, dashboards and alerts from lbipam_ips_available_total to lbipam_ips_available.",
+        "severity": "low"
+      },
+      "statement": "`lbipam_ips_available_total` has been renamed to `lbipam_ips_available`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-c260e1b7fcde"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-c260e1b7fcde"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-d02e6e55b6f0"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2f35637f0598"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-875bb56564b0",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L456-L456 (1.17 Upgrade Notes › Changed Metrics)",
+        "excerpt": "* `lbipam_ips_available_total` has been renamed to `lbipam_ips_available`",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:01:21.575Z"
+  }
+}

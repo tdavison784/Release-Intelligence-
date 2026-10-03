@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-d36855dd939d",
+    "product": "crossplane",
+    "candidates": [
+      "sc-76ca511eb130"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core command is started with --registry after upgrading to v2.0.0, it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed...\" and fails, so the core pod cannot run until the flag is removed and all packages (and their dependencies) use fully qualified image names that explicitly state their registry.",
+        "remediation": "Remove --registry from the Crossplane core pod arguments and ensure every package (and each of its dependencies) has a fully qualified name that explicitly states its registry.",
+        "severity": "high"
+      },
+      "statement": "Line added to cmd/crossplane/core/core.go: return errors.New(\"the --registry flag is no longer supported since support for a default registry value has been…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "consensus",
+        "basis": [
+          "sp-a7a93d5dd113",
+          "sp-c96d20e831b0"
+        ],
+        "consensus": "same-model"
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-5c1242a7f1b7",
+          "sp-a7a93d5dd113",
+          "sp-c96d20e831b0"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-a7a93d5dd113",
+          "sp-c96d20e831b0"
+        ],
+        "consensus": "same-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-5c1242a7f1b7",
+          "sp-c96d20e831b0"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2875a348b5d7",
+        "kind": "structured",
+        "sourceId": "core-flags",
+        "uri": "https://github.com/crossplane/crossplane/blob/v1.20.1/cmd/crossplane/core/core.go",
+        "locator": "cmd/crossplane/core/core.go",
+        "excerpt": "/*",
+        "contentDigest": "sha256:24367b1d1f9182c92267f101bc8c8a172f7959da1982b810e9e2b8c1808d0dbb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T21:07:21Z"
+      },
+      {
+        "id": "ev-59d22c21eec4",
+        "kind": "structured",
+        "sourceId": "core-flags",
+        "uri": "https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go",
+        "locator": "cmd/crossplane/core/core.go",
+        "excerpt": "/*",
+        "contentDigest": "sha256:3919e6c6a0403fa4c0177855d34b085a053d00479841e7f02e83bb8fb74724b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T21:07:22Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "consensusAction": true,
+    "createdAt": "2026-10-03T08:48:17Z"
+  }
+}

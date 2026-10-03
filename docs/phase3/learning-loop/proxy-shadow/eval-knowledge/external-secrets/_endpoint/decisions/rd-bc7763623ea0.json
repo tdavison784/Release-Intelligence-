@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bc7763623ea0",
+    "reviewItemId": "ri-5c53e0f50d3e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "statement": "In the external-secrets.io/v1beta1 schema of clustersecretstores.external-secrets.io, each spec.provider.fake.data[] item must now include value (the items' required list changed from [\"key\"] to [\"key\",\"value\"]), so ClusterSecretStore objects that omit it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e94a7964aaaf7b37600815ef6da3521dd08ee56d58c026995f5723747567e690",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-03T12:54:08.352Z",
+      "callId": "e2dea56d-5e47-4c73-8e73-89efc8691458",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-9fd85560a485] shows that between 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items changed from [\"key\"] to [\"key\",\"value\"] in the clustersecretstores.external-secrets.io v1beta1 schema. So the crd-field subject (group external-secrets.io, kind ClusterSecretStore, version v1beta1, path spec.provider.fake.data[].value) and the change type now-required are both right. The field exists in both releases' CRD bundles [ev-9889c9b8706d, ev-e08924afdc47], so it was made mandatory rather than added, and the deterministic validators confirmed this. This matches known fact vf-30c8400eac07.",
+    "startedAt": "2026-10-03T12:53:55.631Z",
+    "decidedAt": "2026-10-03T12:54:08.352Z"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4a38abd9d835",
+    "candidateId": "sc-2a30deb5baf5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log output produced through klog now follows the configured log format instead of not using it, so in environments with a log format configured the klog-emitted log lines are formatted accordingly.",
+        "remediation": "Verify any log collection, parsing, or alerting that expects klog's previous output format.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD v3.0.0, klog output now uses the log format configuration, so log lines emitted through klog follow the configured log format."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The evidence only says \"use log format config for klog\"; it does not name the exact setting (ConfigMap key, flag or env var), nor a specific component or behavior whose identity can be pinned to a subject family, and no artifact context is provided to settle the spelling.; applicability: The evidence names only \"log format config\" without stating which ConfigMap key, flag or env var carries it, so no predicate over argocd-cm / argocd-cmd-params-cm / cli flags can identify which environments are exposed (e.g. those with a non-default log format).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0a972c483827"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8c4c29b21135b9502c297af7c1e9c0479d074097d6111b31e79c48c53f64b84b",
+      "inputEvidence": [
+        "ev-0a972c483827"
+      ],
+      "generatedAt": "2026-10-03T08:51:38Z",
+      "callId": "bdcb8039-d593-4530-8116-0bd6d6ca138e"
+    }
+  }
+}

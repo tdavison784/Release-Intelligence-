@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b33b125d2ed6",
+    "candidateId": "sc-194c2ca12ce9",
+    "proposalId": "sp-92ea22832e40",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "kyverno",
+        "name": "--enablePolicyException"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enablePolicyException",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--enablePolicyException",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to 1.13, policy exceptions are disabled by default and only allowed in a specified namespace, so environments that relied on the prior default (exceptions allowed in all namespaces) have their existing PolicyException resources no longer honoured and previously-excepted resources become subject to policy enforcement again unless the operator follows the upgrade guidance.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guidance to explicitly re-enable policy exceptions, now restricted to a specified namespace, instead of relying on the previous defaults.",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13 changes the defaults so that policy exceptions are disabled and only allowed in a specified namespace (previously allowed in all namespaces, see CVE-2024-48921); environments relying on the old default must follow the upgrade guidance to keep exceptions working."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/default-changed",
+        "detail": "no canonical exposure condition for cli-flag default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

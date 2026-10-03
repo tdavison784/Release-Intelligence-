@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-14ff4d3483bc",
+    "reviewItemId": "ri-111d397cb589",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerting rules or PromQL queries reference the old metric name doublewrite_identity_crd_only_count"
+        }
+      },
+      "statement": "The Cilium metric doublewrite_identity_crd_only_count has been renamed to doublewrite_crd_only_identities in 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5fa31bf18495b5ee9ab7e39c74356223994c982e4752dec038d0370e5214a789",
+      "inputEvidence": [
+        "ev-df8818f69d5e",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:19:35.914Z",
+      "callId": "c4f17f24-f893-44a0-b5aa-a0c797736b19",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-df8818f69d5e] only says the metric was renamed. It names no setting, values key, flag or resource that decides which environments emit or use the metric. Whether anyone is exposed depends on external dashboards, alerts or PromQL queries that still use the old name. That cannot be read from product configuration, so an undecidable leaf naming that need is appropriate. [ev-6a341603b700] in the same section gives a different new name (doublewrite_identity_crd_only_total), but the old name is the same in both, so this conflict does not affect the exposure condition. It does matter for the change aspect.",
+    "startedAt": "2026-10-03T12:19:23.705Z",
+    "decidedAt": "2026-10-03T12:19:35.914Z"
+  }
+}

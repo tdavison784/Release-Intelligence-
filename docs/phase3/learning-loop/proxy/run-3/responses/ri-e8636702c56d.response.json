@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e8636702c56d",
+  "promptDigest": "sha256:f039407303be91b28034c016171905b57bbfc262712499bb7df790a4cca4b3ca",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "00ec7139-594b-4404-ba4c-b612d55eee2b",
+  "startedAt": "2026-10-03T12:37:19.300Z",
+  "decidedAt": "2026-10-03T12:37:37.163Z",
+  "durationMs": 17239,
+  "costUSD": 0.265868,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-ab534de2a1e4] only says conversion webhooks were added. The upgrade guide [ev-bfb089d90d84] says what they do: they automatically pull the v1 version of previously applied v1beta1 EC2NodeClasses, so nothing fails in 1.0.0. It also says v1beta1 stops being served and the webhooks are dropped at v1.1.0, and that stored manifests should be migrated to v1. Something that works today but is scheduled to break in a later release is a deprecation, not a plain behavior-change, and the class stays review.",
+    "citations": [
+      "ev-bfb089d90d84",
+      "ev-ab534de2a1e4"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Karpenter 1.0.0 adds conversion webhooks that automatically serve previously applied v1beta1 EC2NodeClasses as v1. Karpenter stops serving v1beta1 and drops these webhooks at v1.1.0, so v1beta1 EC2NodeClass manifests keep working in 1.0.x but are deprecated.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "severity": "medium",
+        "statement": "Previously applied v1beta1 EC2NodeClasses keep working on 1.0.x because the conversion webhooks automatically pull their v1 version. Karpenter will stop serving the v1beta1 API version at v1.1.0 and will drop the conversion webhooks then, so EC2NodeClass manifests still stored as v1beta1 are scheduled to stop working in that later release.",
+        "remediation": "While on Karpenter v1.0+, migrate all stored EC2NodeClass manifests to the v1 API version before upgrading to v1.1.0, following the v1 Migration Upgrade Procedure."
+      }
+    }
+  }
+}

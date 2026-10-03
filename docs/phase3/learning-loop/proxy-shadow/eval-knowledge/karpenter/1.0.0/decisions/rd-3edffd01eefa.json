@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3edffd01eefa",
+    "reviewItemId": "ri-f63929a8b45c",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-consolidate\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-evict\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.tags[\"karpenter.sh/managed-by\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            }
+          ]
+        }
+      },
+      "statement": "In Karpenter 1.0.0, the annotations karpenter.sh/do-not-consolidate, karpenter.sh/do-not-evict, and the tag karpenter.sh/managed-by are removed; karpenter.sh/managed-by is replaced by eks:eks-cluster-name, and the disruption taint key changed from karpenter.sh/disruption=disrupting:NoSchedule to karpenter.sh/disrupted:NoSchedule."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:24d132dfad15909ecae092eb87c030226ed68dad7f12647c79d72524b39b1330",
+      "inputEvidence": [
+        "ev-f83dc72c2c99",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-80331c11381f",
+        "ev-f91dbd14d0cc",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-13278d059ceb",
+        "ev-4bcafa8a355e"
+      ],
+      "generatedAt": "2026-10-03T17:07:11.836Z",
+      "callId": "35057cbf-0a97-438a-b2c9-28affa9d40aa",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f83dc72c2c99] bundles four separate breaking changes: Ubuntu is dropped as an AMI family, two annotations are removed, the `karpenter.sh/managed-by` tag is replaced, and the disruption taint is renamed. These affect different environments, so no single exposure condition covers them. The proposed condition misses the Ubuntu and taint-toleration cases entirely. It also checks the tag at `metadata.tags` on Node, a field that does not exist, and the evidence never says which resource kinds carry the annotations. The item should be split into one assertion per change rather than corrected here.",
+    "startedAt": "2026-10-03T17:07:05.394Z",
+    "decidedAt": "2026-10-03T17:07:11.836Z"
+  }
+}

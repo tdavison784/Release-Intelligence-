@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5c1242a7f1b7",
+    "candidateId": "sc-76ca511eb130",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry",
+        "component": "core"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "component": "core",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core command is started with --registry after upgrading to v2.0.0, it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed...\" and fails, so the core pod cannot run until the flag is removed and all packages (and their dependencies) use fully qualified image names that explicitly state their registry.",
+        "remediation": "Remove --registry from the Crossplane core pod arguments and ensure every package (and each of its dependencies) has a fully qualified name that explicitly states its registry.",
+        "severity": "high"
+      },
+      "statement": "In crossplane v2.0.0 the core command's --registry flag is no longer supported: cmd/crossplane/core/core.go now returns an error stating that support for a default registry value has been removed and that all packages (and their dependencies) must have fully qualified names that explicitly state their registry."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-2875a348b5d7",
+      "ev-59d22c21eec4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:51d2ba8efc0b4e1d98678cb757d949163db034042dd23aa860f593b26ce1607a",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T08:48:17Z",
+      "callId": "8a647958-4703-4ee0-a428-ced3dda764e7"
+    }
+  }
+}

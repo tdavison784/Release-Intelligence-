@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ae91c56472c5",
+    "reviewItemId": "ri-ec486d84fe53",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters not deployed via Flux Operator must run `flux migrate` before upgrading, because the v1beta1 and v2beta1 APIs have been removed from the CRDs.",
+        "remediation": "Run `flux migrate` on the cluster before upgrading to Flux 2.7; see the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Flux APIs v1beta1 and v2beta1 were removed from the CRDs; unless Flux Operator deploys the controllers, `flux migrate` must be run on clusters before upgrading to 2.7."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:110e1fd7e839afab45bde5d6a168cebd51df02ba5f78bfcf597c3092217e8b8a",
+      "inputEvidence": [
+        "ev-82be76c03b0e"
+      ],
+      "generatedAt": "2026-10-03T17:06:07.808Z",
+      "callId": "1d739b61-2d77-4946-b98f-e1836ba336fd",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-82be76c03b0e] says the v1beta1 and v2beta1 Flux APIs have been removed from the CRDs. It also says that, unless Flux Operator deploys the controllers, \"you must run the `flux migrate` command on clusters before upgrading\". That is a mandatory operator step before the upgrade, so migration-required (mandatory work) is the right kind. The proposed statement and remediation repeat the evidence's terms without over-claiming.",
+    "startedAt": "2026-10-03T17:06:02.854Z",
+    "decidedAt": "2026-10-03T17:06:07.808Z"
+  }
+}

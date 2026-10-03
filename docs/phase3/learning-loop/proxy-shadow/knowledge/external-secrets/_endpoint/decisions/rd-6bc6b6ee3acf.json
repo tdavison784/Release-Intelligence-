@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6bc6b6ee3acf",
+    "reviewItemId": "ri-321670aaf1f2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "PushSecret v1alpha1 resources setting spec.template.engineVersion to \"v1\" are rejected by the API server because that enum value was removed.",
+        "remediation": "Change spec.template.engineVersion to a still-allowed value before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from spec.template.engineVersion in the PushSecret external-secrets.io/v1alpha1 schema, so PushSecrets using it are rejected by the API server."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:288253a42ffbaf7b00136070a9d8ecb816acb8728085a62b12555be85eb81057",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T12:48:53.15Z",
+      "callId": "3b87e27b-6e88-4eb7-a176-389c8b8d1224",
+      "provider": "anthropic"
+    },
+    "reason": "The CRD bundles for v0.15.0 [ev-9889c9b8706d] and v0.16.0 [ev-e08924afdc47] show that \"v1\" was removed from the enum for spec.template.engineVersion in the v1alpha1 PushSecret schema. The deterministic crd-schema:tightened check confirmed this from those artifacts. Once an enum value is removed, the API server rejects any PushSecret that is created or updated with that value, so resource-rejected (mandatory work) is the right kind. The remediation, switching to a still-allowed value, matches. The evidence doesn't set a severity, and the proposals split between medium and high, so \"high\" is a judgment call rather than something the evidence proves.",
+    "startedAt": "2026-10-03T12:48:43.276Z",
+    "decidedAt": "2026-10-03T12:48:53.15Z"
+  }
+}

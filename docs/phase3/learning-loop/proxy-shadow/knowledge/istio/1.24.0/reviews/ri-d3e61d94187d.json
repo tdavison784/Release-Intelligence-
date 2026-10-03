@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d3e61d94187d",
+    "candidateId": "sc-f933c1ca02f0",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "semantic-mapping",
+    "question": "Does \"Istio CRDs are templated by default and can be installed and upgraded via `helm install istio-base`: This changes how CRDs are upgraded\" mean a change to product-relationship:istio|name=helm (behavior-changed)?",
+    "proposed": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Istio CRDs not templated by default; Upgrade: kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml or similar\"",
+        "after": "\"Istio CRDs are templated by default in istio-base; Upgrade: helm upgrade istio-base; out-of-band kubectl install/upgrade of CRDs is no longer required\""
+      },
+      "statement": "In Istio 1.24.0 the Istio CRDs are templated by default in the istio-base Helm chart, so CRDs can be installed and upgraded with `helm upgrade istio-base` (CRD labels change to match other Helm-installed resources), while CRDs previously installed or upgraded with `kubectl apply` can continue to be managed that way and are also safely upgradable via Helm from this release onward."
+    },
+    "proposals": [
+      "sp-56de1d059c26",
+      "sp-58f175c48221",
+      "sp-7ca99e663fd6",
+      "sp-ce55974d967e"
+    ],
+    "validations": [
+      "val-170052e941a3",
+      "val-2fe1f8a40721",
+      "val-3ca35d767291",
+      "val-8b822e9d2652",
+      "val-cf49f6a12785"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:35:30Z"
+  }
+}

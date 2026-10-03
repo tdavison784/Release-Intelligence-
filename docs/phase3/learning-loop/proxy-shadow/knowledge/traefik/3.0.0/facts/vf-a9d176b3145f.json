@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-a9d176b3145f",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-a749cecf1452"
+        ],
+        "statementKeys": [
+          "sk-46cddbc7bbe2"
+        ],
+        "changeIds": [
+          "chg-108b0ca3c0f6"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-be5f4f756888"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "pilot"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^pilot:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^pilot:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\[pilot\\]"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if any Pilot configuration remains in the static configuration.",
+        "remediation": "Remove all Pilot related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "Pilot: Traefik Pilot is no longer available since October 4th, 2022"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-e07e48dea4b7"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e07e48dea4b7"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-51787624427e"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-44f7d9a7b33f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9f3bf592e4e8",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L528-L553 (Migration Guide: From v2 to v3 › Static configuration › Pilot)",
+        "excerpt": "### Pilot\n\nTraefik Pilot is no longer available since October 4th, 2022.\n\n??? example \"An example of v2 Pilot configuration\"\n\n    ```yaml tab=\"File (YAML)\"\n    pilot:\n      token: foobar\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [pilot]\n        token=foobar\n    ```\n\n    ```bash tab=\"CLI\"\n    --pilot.token=foobar\n    ```\n\nIn v2, Pilot configuration was deprecated and ineffective,\nit is now unsupported and would prevent Traefik to start.\n\n#### Remediation\n\nAll Pilot related configuration should be removed from the static configuration.",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:56:19.011Z"
+  }
+}

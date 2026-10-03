@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fb9f39bec0f9",
+    "candidateId": "sc-30c676d7c5e6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether users or scripts run the Hubble CLI with the --cluster flag and rely on it only showing flows emitted from nodes in that cluster"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble CLI `--cluster foo` now also shows flows emitted from nodes outside cluster `foo` (flows coming from or going to the target cluster), not only flows emitted from nodes in cluster `foo`.",
+        "remediation": "To reproduce the previous behavior of `--cluster foo`, use `--node-name foo/` (shows all flows emitted from a node in cluster `foo`).",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Hubble CLI `--cluster` flag also shows flows emitted from nodes outside the named cluster when they come from or go to that cluster; to get the old behavior, use `--node-name foo/`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-868456a7673f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2cda3bf86a166126faf501714cba65fd164e946d566579d16d4c940c1a4f82a8",
+      "inputEvidence": [
+        "ev-868456a7673f"
+      ],
+      "generatedAt": "2026-10-03T07:11:47Z",
+      "callId": "9ea37f64-ab81-4431-beab-322837da2c3c"
+    }
+  }
+}

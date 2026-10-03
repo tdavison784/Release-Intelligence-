@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-00b553c5445a",
+    "reviewItemId": "ri-7c71751b6c80",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.redis.tls.caOptional",
+        "component": "redis-provider"
+      },
+      "change": {
+        "type": "removed",
+        "before": "null",
+        "after": "null"
+      },
+      "statement": "The Redis provider static option tls.caOptional was removed in v3 and should be removed from configuration."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.redis.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The Redis provider static configuration option providers.redis.tls.caOptional has been removed in Traefik v3, because TLS client authentication is a server-side option."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:8afd40f9e1d2675de6bba0d54ec2e49aa077222740b7546c3b90edeec6512d21",
+      "inputEvidence": [
+        "ev-9f184d231baf"
+      ],
+      "generatedAt": "2026-10-03T12:58:33.331Z",
+      "callId": "799f626d-857a-45f4-85e1-aefa08398e96",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-9f184d231baf] says the Redis provider `tls.CAOptional` option \"has been removed in v3\". Its static configuration example spells the key `providers.redis.tls.caOptional`, so a config-key subject with change type `removed` is right. The component \"redis-provider\" is a made-up spelling and not a file or binary. The full path already identifies the Redis provider, so component should not be set.",
+    "startedAt": "2026-10-03T12:58:23.082Z",
+    "decidedAt": "2026-10-03T12:58:33.331Z"
+  }
+}

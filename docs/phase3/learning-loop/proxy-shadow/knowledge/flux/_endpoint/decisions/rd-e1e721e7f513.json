@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e1e721e7f513",
+    "reviewItemId": "ri-29df680e5157",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:a61a9f9e369ed9e34aeb4ec7bdb1be4dc50719ef113c09e2acdf8cb109c346cb",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:21:41.94Z",
+      "callId": "585a9432-ce2d-4bc4-a4c9-eba6918de0a3",
+      "provider": "anthropic"
+    },
+    "reason": "The only evidence, [ev-782bc47d120d] and [ev-c2c6c790d6b2], contains nothing but \"apiVersion: v1\", so the HelmRepository v1beta2 schema can't be inspected to check the claimed \"now required\" field or its scope. status.artifact.digest is a status field. Without upstream text saying whether it is required only when status.artifact is present, or whether the shipped controller always fills it in, the evidence doesn't support saying that objects are rejected and the operator must act (resource-rejected). Missing: the CRD schema excerpt showing the required list around status.artifact in both releases, and release-note or upgrade-guide text saying what fails, if anything.",
+    "startedAt": "2026-10-03T12:21:22.635Z",
+    "decidedAt": "2026-10-03T12:21:41.94Z"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-35a1a9b38754",
+    "reviewItemId": "ri-6dc1c245133f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exposed as envoy_cilium_npds_update_time rather than envoy_cilium_policymap_<node-ip>_<node-id>_update_time, so queries that use the old name stop matching.",
+        "remediation": "Update dashboards, alerts and recording rules to use envoy_cilium_npds_update_time.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric envoy_cilium_policymap_<node-ip>_<node-id>_update_time is renamed to envoy_cilium_npds_update_time, so monitoring that queries the old name has to be updated."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:040ec954fc4717a163ee32398d20dbc5fe0aa24a32be18028b3a5d9014d880f3",
+      "inputEvidence": [
+        "ev-2214fc54500d",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:26:41.648Z",
+      "callId": "44f73436-10d7-4a04-9932-f4535b6d4037",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-2214fc54500d] lists the rename of `envoy_cilium_policymap_<node-ip>_<node-id>_update_time` to `envoy_cilium_npds_update_time` under Changed Metrics. [ev-77f05428497a] says the whole NPDS metrics prefix was renamed. The metric is still exported, just under a new name, so queries that use the old name stop matching. The upgrade notes don't say any workload, resource or setting fails, so a failure kind isn't supported. Behavior-change (review) with low severity and a remediation to update dashboards and alerts fits the evidence.",
+    "startedAt": "2026-10-03T12:26:35.363Z",
+    "decidedAt": "2026-10-03T12:26:41.648Z"
+  }
+}

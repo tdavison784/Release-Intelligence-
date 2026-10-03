@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-44d153c921ea",
+    "reviewItemId": "ri-e879bcb70594",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing services without a protocol set are preserved as such to avoid disruption, and must be deleted and recreated for the agent to take their protocol into account. On downgrade, services with a protocol set are deleted and recreated without it, disrupting connections."
+      },
+      "statement": "Cilium 1.17 adds services protocol differentiation, controlled by --bpf-lb-proto-diff and enabled by default; existing services without a protocol are preserved and must be deleted and recreated for their protocol to be taken into account."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:a46c5f73a9bf63c7fa94d79610ba72aead5a1c3aa7787f031733a03b94879f36",
+      "inputEvidence": [
+        "ev-2a9b9b849526",
+        "ev-09d5e26554e5",
+        "ev-fa8f791f1c11",
+        "ev-ddf5fd344d03",
+        "ev-01a5226ddc9a",
+        "ev-b37407b60520",
+        "ev-7424e74176c0",
+        "ev-3c259372f6bf",
+        "ev-c05c58b487cc",
+        "ev-a152c8cea30c",
+        "ev-5f4aedc964f4",
+        "ev-e6b268264713",
+        "ev-1a27180320cd",
+        "ev-23473218087f",
+        "ev-ed86f8eb85bf",
+        "ev-98d8079a3380",
+        "ev-ffd2c3200e89",
+        "ev-32984cccce52",
+        "ev-21e07cf98d97",
+        "ev-bcdbfe5ecd01",
+        "ev-b5054e15ad6c",
+        "ev-c082dfefeb1b",
+        "ev-b7f3339817fc",
+        "ev-9113ff586fec",
+        "ev-672c6336b39c",
+        "ev-0debb0d83ac2",
+        "ev-4ce2886cea1f",
+        "ev-42d13e5eb7d7",
+        "ev-f13e15b06a08",
+        "ev-f941fa338b6a",
+        "ev-a7d9e5f931b3",
+        "ev-b598b51801ea",
+        "ev-34619549fb8a",
+        "ev-b182e7794768",
+        "ev-b66b29e5567d",
+        "ev-8a664283f86e",
+        "ev-1a97b17bde3d",
+        "ev-1b1b9343e346",
+        "ev-f3d0a6f12b97",
+        "ev-72ecae3c2fc1",
+        "ev-070e2e78535d",
+        "ev-fd031f140d8c",
+        "ev-77f05428497a"
+      ],
+      "generatedAt": "2026-10-03T17:05:43.4Z",
+      "callId": "a268f891-ab5e-4dab-ae2a-c8b6b7c3abf4",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-2a9b9b849526] says existing services without a protocol set \"will be preserved as such, to avoid any connection disruptions\". They only need to be deleted and recreated if the agent is to take their protocol into account. Nothing fails, is rejected or stops working if the operator does nothing, so behavior-change (review) is right and migration-required (P4) would over-claim. The connection disruption only happens on a downgrade, which the statement correctly treats as a conditional note.",
+    "startedAt": "2026-10-03T17:05:37.881Z",
+    "decidedAt": "2026-10-03T17:05:43.4Z",
+    "resultingFact": "vf-17f8a70c5e72"
+  }
+}

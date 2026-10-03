@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b7e548c3f472",
+    "reviewItemId": "ri-dd56db626649",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "tls.caOptional",
+        "component": "consul"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The Consul provider's `tls.caOptional` configuration option has been removed in Traefik v3.0.0 because TLS client authentication is a server-side concern."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.consul.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The Consul provider static configuration option providers.consul.tls.caOptional has been removed in Traefik v3, because TLS client authentication is a server-side option. It should be removed from the static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7cffbc34640dd70323754178fb4c77fb493d870dd72da5c96413d9ac8da701b1",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-03T17:04:05.953Z",
+      "callId": "e74b0876-fbb2-4d5a-9eaf-675190dd262b",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-4685c9dd4dac] says the Consul provider `tls.CAOptional` option \"has been removed in v3\" and tells operators to remove it, so the change type \"removed\" is right. Its own examples spell the static key as `providers.consul.tls.caOptional` (YAML, TOML and the CLI form `--providers.consul.tls.caOptional`). For a config-key, the component field means a file or binary, and the Consul provider is neither. So the subject should be the full path the source gives, with no component.",
+    "startedAt": "2026-10-03T17:03:51.5Z",
+    "decidedAt": "2026-10-03T17:04:05.953Z",
+    "resultingFact": "vf-81d99ffd5acf"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-495945807339",
+    "candidateId": "sc-a2741b68e52a",
+    "proposalId": "sp-0e45c4e324ae",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "private-repository-package-yaml-extraction"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which package images the environment references are hosted in private (authenticated) repositories, since repository privacy is registry-side state not carried in any manifest, values key or flag named by the evidence"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For packages stored in private repositories, package.yaml can now be extracted — a capability that was not available before this release; the evidence states no failure, rejection, or required migration.",
+        "remediation": "No action required; environments that use private package repositories can verify that package.yaml extraction (and package installation from those repositories) now works as expected.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 enables extracting package.yaml from private repositories."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

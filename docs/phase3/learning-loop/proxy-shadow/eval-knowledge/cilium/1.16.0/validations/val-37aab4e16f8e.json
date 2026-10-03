@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-37aab4e16f8e",
+    "candidateId": "sc-aa0aef7cd1ac",
+    "proposalId": "sp-40dce0e7860f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "netkit-datapath-mode"
+      },
+      "change": {
+        "type": "added"
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Cilium still uses veth devices by default, so nothing changes unless the operator opts in to netkit. Netkit needs Linux kernel 6.8 or newer, and veth cannot be replaced with netkit in place.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 adds netkit as an optional new datapath mode for Linux kernels 6.8 or newer; veth stays the default, and veth cannot be switched to netkit in place."
+    },
+    "checks": [
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

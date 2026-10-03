@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-2bbf3c82d6e1",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-82c1397583af"
+        ],
+        "statementKeys": [
+          "sk-fce3ca7ec229"
+        ],
+        "changeIds": [
+          "chg-d7522d5d9840"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a3e99ad80906"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--frontend.forward-headers-list"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--frontend.forward-headers-list",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML key name in the Loki config file that corresponds to the removed frontend.forward-headers-list flag, and whether the environment sets it"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `frontend.forward-headers-list` CLI flag and its YAML setting are removed in Loki 3.0.0, so any value configured for them stops being honoured. The upgrade guide names no replacement setting.",
+        "remediation": "Remove `frontend.forward-headers-list` from CLI arguments and YAML configuration. Also check whether any header forwarding that relied on it is still needed.",
+        "severity": "medium"
+      },
+      "statement": "`frontend.forward-headers-list` CLI flag and its corresponding YAML setting are removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-999cf0603570"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-999cf0603570"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-5ae4dd3ad1dd"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-13a2b9b2b92c"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3cb906d8d02b",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L594-L594 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `frontend.forward-headers-list` CLI flag and its corresponding YAML setting are removed.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:54:23.453Z"
+  }
+}

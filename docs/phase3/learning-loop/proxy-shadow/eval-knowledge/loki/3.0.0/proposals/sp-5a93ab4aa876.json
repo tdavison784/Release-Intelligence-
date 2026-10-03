@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5a93ab4aa876",
+    "candidateId": "sc-006852306c28",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "period-config-path-prefix"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store.key-prefix",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store.key-prefix",
+                  "state": "not-equals",
+                  "values": [
+                    "\"index/\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store.key-prefix",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store.key-prefix",
+                  "state": "not-equals",
+                  "values": [
+                    "\"index/\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store_key_prefix:\\s*\\S"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "none",
+                  "pattern": "^\\s*shared_store_key_prefix:\\s*[\"']?index/[\"']?\\s*$"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "In 3.0.0, if you had set the boltdb-shipper or tsdb shipper shared-store key prefix to anything other than `index/`, you have to set `path_prefix` to that old value in every existing period config that uses that index type.",
+        "remediation": "In each existing period config that uses `boltdb-shipper` or `tsdb` as the index, set `path_prefix` to the key prefix you configured before.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 removes the shipper's shared_store_key_prefix setting, so anyone who set `-boltdb.shipper.shared-store.key-prefix` or `-tsdb.shipper.shared-store.key-prefix` (or the YAML equivalent) to something other than `index/` has to set `path_prefix` to that old value in every existing period config that uses the matching index."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-8ceba924ad20",
+      "ev-632a3911583a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f83fa9587a1298682f5c9e3ecc7250d4c451d5864479340bd69df014bd8c19e0",
+      "inputEvidence": [
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T07:11:49Z",
+      "callId": "1d091796-bd73-41cf-9f91-7c21d69446b9"
+    }
+  }
+}

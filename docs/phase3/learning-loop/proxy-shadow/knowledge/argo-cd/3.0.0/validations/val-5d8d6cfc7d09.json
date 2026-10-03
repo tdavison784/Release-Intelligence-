@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5d8d6cfc7d09",
+    "candidateId": "sc-7f1597f2f593",
+    "proposalId": "sp-8883775b6c14",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "cluster-error-message"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"full cluster object\"",
+        "after": "\"cluster URL\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which cluster operations fail at runtime and surface the changed error message"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When a cluster-related error occurs, the error message now returns only the cluster URL rather than the full cluster object, so anything reading those messages no longer sees the full cluster object.",
+        "remediation": "No operator action is required; only the content of cluster-related error messages changes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes cluster-related error messages to return the cluster URL instead of the full cluster object."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

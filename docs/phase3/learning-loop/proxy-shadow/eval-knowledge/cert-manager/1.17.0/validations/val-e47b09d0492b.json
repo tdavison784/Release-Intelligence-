@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e47b09d0492b",
+    "candidateId": "sc-f117b7291fa1",
+    "proposalId": "sp-a8605a03fbe6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-messages"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Log messages that were not structured\"",
+        "after": "\"structured logs\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which external tooling (log-based alerts, dashboards, parsers) matches specific cert-manager log strings"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log output that previously consisted of unstructured messages is now emitted as structured logs; cert-manager itself keeps working, but any setup matching on specific log strings could break.",
+        "remediation": "Review anything that matches specific cert-manager log strings (alerts, dashboards, log parsers) and update it for the new structured log format.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager 1.17.0 replaces previously unstructured log messages with structured logs, which could break setups that match on specific log strings."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

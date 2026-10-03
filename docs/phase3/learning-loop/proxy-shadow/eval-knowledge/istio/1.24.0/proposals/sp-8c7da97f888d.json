@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8c7da97f888d",
+    "candidateId": "sc-b210c27f94c7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "validation-webhook-unknown-versions",
+        "component": "istiod"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the cluster has CRDs newer than the installed Istio release, so that resources exist at API versions istiod does not know about"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The validation webhook now accepts resources at CRD versions it does not know about instead of not accepting them, so an older Istio can validate resources created by newer CRDs.",
+        "remediation": "No operator action required; if running an older Istio against newer CRDs, verify resources at unknown versions are admitted as expected.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24 changes Istiod's validation webhook to accept CRD versions it does not know about, so that an older Istio can validate resources created by newer CRDs."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0f8bce94541e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:78b21b6fd649c5f87374f728be70402f6fad7a07af37a3342f99660532f01765",
+      "inputEvidence": [
+        "ev-0f8bce94541e"
+      ],
+      "generatedAt": "2026-10-03T07:42:40Z",
+      "callId": "d0e23b4c-a974-4118-bf9e-07c6f6fd5512"
+    }
+  }
+}

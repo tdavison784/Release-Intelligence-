@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9e9730c0acff",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-bd0eb1e40d52"
+        ],
+        "statementKeys": [
+          "sk-7c84bff0d2f8"
+        ],
+        "changeIds": [
+          "chg-614e784fd796"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f6497dd8df3e"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consul.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consul.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consul.namespace",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*:"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*:"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.toml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*namespace\\s*="
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if the Consul provider `namespace` option is set.",
+        "severity": "critical"
+      },
+      "statement": "namespace: The Consul provider `namespace` option was deprecated in v2 and is now removed in v3"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-c067174af6d9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-c067174af6d9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-862d69b3fb25"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7d0d4de730a0"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3ab5da393af7",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L153-L193 (Migration Guide: From v2 to v3 › Static configuration › Consul provider › namespace)",
+        "excerpt": "#### namespace\n\nThe Consul provider `namespace` option was deprecated in v2 and is now removed in v3.\nIt is now unsupported and would prevent Traefik to start.\n\n??? example \"An example usage of v2 Consul `namespace` option\"\n\n    ```yaml tab=\"File (YAML)\"\n    consul:\n      namespace: foobar\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [consul]\n        namespace=foobar\n    ```\n\n    ```bash tab=\"CLI\"\n    --consul.namespace=foobar\n    ```\n\n##### Remediation\n\nIn v3, the `namespaces` option should be used instead of the `namespace` option.\n\n??? example \"An example usage of Consul `namespaces` option\"\n…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:02:08.589Z"
+  }
+}

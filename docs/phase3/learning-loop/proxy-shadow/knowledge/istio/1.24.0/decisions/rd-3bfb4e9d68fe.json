@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3bfb4e9d68fe",
+    "reviewItemId": "ri-9e8fc08249dc",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-change-type",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "crd-helm-templating"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Istio CRDs are now templated by default and managed via Helm; the recommended upgrade method changes from kubectl apply to helm upgrade istio-base, and CRD labels are updated to match Helm-installed resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:aee5712777a4cd747e1c4b283d852229191a25d376547d294bfd91b5a63445d9",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T16:56:15.678Z",
+      "callId": "0a7f2765-f578-4463-9ee9-9e1ff391c344",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-85eccdc718e3] and [ev-2941a875a468] describe a new optional upgrade path: users who used `kubectl apply` \"can continue to do so\" and \"can begin safely upgrading\" with `helm upgrade istio-base`. No operator step is mandatory, so the change is not migration-required, and the migration family (which only allows migration-required) is the wrong subject. The underlying chart change is CRDs templated by default, with `Values.base.enableCRDTemplates` deprecated [ev-fa194382072a]. That is a separate release-note item on a different subject, which this text does not name, so no corrected assertion follows from this item.",
+    "startedAt": "2026-10-03T16:56:02.215Z",
+    "decidedAt": "2026-10-03T16:56:15.678Z"
+  }
+}

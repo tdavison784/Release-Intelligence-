@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ac0601425475",
+    "reviewItemId": "ri-074fe151404d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository schema, status.artifact.digest is now a required field, so the API server rejects objects or status writes that set status.artifact without a digest.",
+        "remediation": "Make sure every client or controller that writes HelmRepository v1beta2 status fills in status.artifact.digest.",
+        "severity": "low"
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1beta2 HelmRepository CRD schema now requires status.artifact.digest, so objects that leave it out are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:32f1683c6278120d5563dead5609f83cd3bf88c2ce5ccecb748b5709a58db72b",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:42:56.426Z",
+      "callId": "d05e7a8b-8dfd-47b2-84f7-a5e5a2de1f99",
+      "provider": "anthropic"
+    },
+    "reason": "The validators confirm from the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] that status.artifact.digest becomes required in the HelmRepository v1beta2 schema. The computed diff says objects that omit it are rejected, so resource-rejected (action) fits. The statement correctly limits the rejection to writes that set status.artifact without a digest, because the required field sits inside status.artifact. Low severity is reasonable because only status writes are affected. This matches known fact vf-a5cc22f29e7f, but nothing here shows it comes from the same release pair, so I judged it on its merits instead of rejecting it as a duplicate.",
+    "startedAt": "2026-10-03T12:42:44.48Z",
+    "decidedAt": "2026-10-03T12:42:56.426Z"
+  }
+}

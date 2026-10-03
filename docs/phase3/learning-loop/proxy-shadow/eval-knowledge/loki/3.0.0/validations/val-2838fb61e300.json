@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2838fb61e300",
+    "candidateId": "sc-00c8dd09dcde",
+    "proposalId": "sp-3967e6b6dedc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metric-prefix"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Embedded cache metrics are now published under the `loki_embeddedcache_` prefix instead of `querier_cache_`, and duplicate metrics are removed. Queries that use the old metric names should be checked.",
+        "remediation": "Change dashboards, alerts and recording rules that use `querier_cache_` metrics to the `loki_embeddedcache_` prefix.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0, the embedded cache's metric prefix changes from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

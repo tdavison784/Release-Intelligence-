@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-78aa3084a268",
+  "promptDigest": "sha256:5c12cd16dc6e9c7571bd714fc0aecc0bef680fa95d7b68004dd4a5c23fbaa7c2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "516f8b53-6a99-4e99-970a-a71d4d053c90",
+  "startedAt": "2026-10-03T12:57:59.338Z",
+  "decidedAt": "2026-10-03T12:58:13.075Z",
+  "durationMs": 12739,
+  "costUSD": 0.115208,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a89ac42d3167] says v1.16.5 is the last cert-manager release published to OperatorHub (OpenShift OperatorHub and operatorhub.io), so exposure depends on whether cert-manager is installed through an OLM/OperatorHub package. The proposal marks this undecidable with \"environment-visibility-gap\". That is not an allowed reason, and the rules say undecidable must not be used just because configuration might not be visible. An OLM install shows up in the environment's manifests as an operators.coreos.com Subscription to the package, and the evidence's links name the package \"cert-manager\". So exposure should be written as a predicate on that Subscription. Confidence is low because the Subscription kind and field come from how OLM works in general; the evidence does not state them.",
+    "citations": [
+      "ev-a89ac42d3167"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "cert-manager no longer publishes OperatorHub packages; v1.16.5 is the last OperatorHub release. Exposed: environments that install cert-manager through an OLM Subscription (operators.coreos.com) to the cert-manager package.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "operators.coreos.com",
+          "kind": "Subscription",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.name",
+              "state": "equals",
+              "values": [
+                "cert-manager"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

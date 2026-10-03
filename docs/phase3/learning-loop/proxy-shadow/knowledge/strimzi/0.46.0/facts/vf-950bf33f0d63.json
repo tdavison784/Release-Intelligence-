@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-950bf33f0d63",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-bc55543c0f37"
+        ],
+        "statementKeys": [
+          "sk-8723adb23f30"
+        ],
+        "changeIds": [
+          "chg-8d624ebd4b37"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-c6c2d0c1e4f2"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which Kafka resource configuration identifies a cluster as ZooKeeper-based rather than KRaft; the release notes do not name the field or annotation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters still ZooKeeper-based must be migrated to KRaft before upgrading to Strimzi 0.46.0 or newer, because ZooKeeper support and the migration path are removed.",
+        "remediation": "Migrate all clusters to KRaft using a Strimzi version that still supports migration, then upgrade to 0.46.0 or newer.",
+        "severity": "high"
+      },
+      "statement": "Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-2093be99a4a8"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-2093be99a4a8"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4a5e6746c659"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-d6a99b76e81e"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4c2676e4665a",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L30-L31 (0.46.0 › Major changes, deprecations and removals)",
+        "excerpt": "* **Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed.**\n  **Please make sure all your clusters are using KRaft before upgrading to Strimzi 0.46.0 or newer!**",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:58:36.537Z"
+  }
+}

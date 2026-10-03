@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-cec2d4a87881",
+    "product": "karpenter",
+    "candidates": [
+      "sc-42373ba011a8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "nodepools.karpenter.sh"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects stay stored as v1beta1 until rewritten, so the operator must run a storage version migration (re-write all NodePool objects) and update status.storedVersions on the nodepools.karpenter.sh CRD before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration (re-write all NodePool objects so they are stored as v1) and update status.storedVersions on the nodepools.karpenter.sh CRD before upgrading to a later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "Storage version of `nodepools.karpenter.sh` changes v1beta1 → v1"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-6e3ed5ed5991",
+          "val-b1e80500d149"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-6e3ed5ed5991",
+          "val-b1e80500d149"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-5eb93091ba20",
+          "sp-a54b09c4999b",
+          "sp-a65be76eca41"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-5eb93091ba20",
+          "sp-74f72c7dd2f8"
+        ],
+        "consensus": "same-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-760ae3491f13",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:315b8390c1e7a31b3bedb8a615a5e776bd02ddea9aba06ed0f2f8e5dfbbe5d36",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-09bbe26d2f4a",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:e2ef55b720c13f6ff10abe6e8374524553df02b46e49c18330d67ac5e3431f8f",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      },
+      {
+        "id": "ev-451bd6a12e72",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:d26159eb085f7bfd231ea911ac64d3da7dfefa68ee1dfa566c7d5799cf64dd2f",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      },
+      {
+        "id": "ev-881d131e594e",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:d67a062f292b13a46e481897d54db6e0207880f6ef9234966d0e31110c337786",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-8998581760b8",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "locator": "pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:7af8cf1d4bc337c373b5ea046214f54b8048e7fb85da74fcd44c2bf1947e01d2",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-fef279f378b5",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "locator": "pkg/apis/crds/karpenter.sh_nodeclaims.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:e1d7358b590dd5732ff450b83d995ef45d18871ba01c27985361bb7f557bf7ca",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:55Z"
+      }
+    ],
+    "status": "superseded",
+    "autoApproved": true,
+    "consensusAction": true,
+    "createdAt": "2026-10-03T08:19:58Z"
+  }
+}

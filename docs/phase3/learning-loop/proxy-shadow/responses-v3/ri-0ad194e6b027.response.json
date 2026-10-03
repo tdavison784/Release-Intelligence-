@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0ad194e6b027",
+  "promptDigest": "sha256:c840627fe2bc6b6912d9a15278443dc93a513578802e978ce9439a111349c1eb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dcccd793-876a-47d5-81de-e46e4359fa7d",
+  "startedAt": "2026-10-03T12:43:26.192Z",
+  "decidedAt": "2026-10-03T12:43:37.170Z",
+  "durationMs": 10165,
+  "costUSD": 0.109676,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-7b384eb00d22] says the `validation.enforce-metric-name` CLI flag and \"the corresponding YAML setting\" are removed, so environments that set the flag are exposed. The proposed values-key leaf is wrong: it reuses the dotted CLI flag name as a Helm values path. Neither the evidence nor the section context [ev-7b384eb00d22] names the YAML key, or where it sits in the config or chart values. The YAML half therefore can't be written as a predicate, so the correction keeps the cli-flag leaf and replaces the made-up values-key leaf with an evidence-gap leaf.",
+    "citations": [
+      "ev-7b384eb00d22"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the validation.enforce-metric-name CLI flag and its corresponding YAML setting. Environments that pass the flag are exposed. Environments that set the YAML setting are also exposed, but the evidence does not name that YAML key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-validation.enforce-metric-name",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the name and location of the YAML setting that corresponds to -validation.enforce-metric-name (Loki config key / chart values path), which the upgrade guide does not state"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

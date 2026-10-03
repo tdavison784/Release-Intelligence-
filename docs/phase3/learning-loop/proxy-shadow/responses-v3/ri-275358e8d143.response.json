@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-275358e8d143",
+  "promptDigest": "sha256:e40d1fbd74e7b7380c326f6228f56a430ddd540f1c107023a8ba0f8ff305947e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e3040d54-471a-439f-aa7c-6ab22e1ab00e",
+  "startedAt": "2026-10-03T12:47:19.643Z",
+  "decidedAt": "2026-10-03T12:47:35.530Z",
+  "durationMs": 15240,
+  "costUSD": 0.078224,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c569cd56f9ef] says the shared-store CLI flags and their YAML settings for the compactor \"are now removed\", and [ev-ca57f615b9c9] lists `-boltdb.shipper.compactor.shared-store` as one of them. A removed key whose value stops being honoured is setting-ignored, so the kind is right. The proposed statement goes further than the evidence: it says a set flag will simply be \"ignored during upgrade\", but the evidence never says whether a leftover flag is silently skipped or rejected. It also spells the flag `--`. The corrected statement keeps to what the evidence says, including that the compactor now runs on all object stores in period configs whose index type is tsdb or boltdb-shipper.",
+    "citations": [
+      "ev-c569cd56f9ef",
+      "ev-ca57f615b9c9"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the compactor CLI flag `-boltdb.shipper.compactor.shared-store` (and its YAML setting) is removed. A configured value is no longer honoured, and the compactor runs on every object store in the period configs.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "The `-boltdb.shipper.compactor.shared-store` flag and its YAML setting are removed, so a configured value no longer selects the compactor's shared store. The compactor now runs compaction and retention on all object stores configured in period configs where the index type is tsdb or boltdb-shipper.",
+        "remediation": "Remove `-boltdb.shipper.compactor.shared-store` and the matching YAML `shared_store` setting from the compactor configuration. Check that the period configs list the object stores that should be compacted and have retention applied."
+      }
+    }
+  }
+}

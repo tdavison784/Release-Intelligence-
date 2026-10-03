@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-17c17a7f5bb9",
+    "reviewItemId": "ri-8003188e053f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-embeddedcache-metrics"
+        }
+      },
+      "statement": "In Loki 3.0.0 the embedded cache metrics are renamed: querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries and querier_cache_memory_bytes become loki_embeddedcache_added_new_total, loki_embeddedcache_evicted_total, loki_embeddedcache_entries and loki_embeddedcache_memory_bytes respectively."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:885d04f771087bca157654a0b2572ee7352bbcea415b2a1c8c13e9119a4771d6",
+      "inputEvidence": [
+        "ev-1f9807113c9e",
+        "ev-dd7907f24ce5",
+        "ev-53101f583cb5"
+      ],
+      "generatedAt": "2026-10-03T12:28:13.518Z",
+      "callId": "06ecf80e-7028-4240-a771-88cf3ff9b455",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-1f9807113c9e] says four embedded cache metrics are renamed, each from its `querier_cache_*` name to the matching `loki_embeddedcache_*` name. That is one consistent rename of the prefix, not a bundle of unrelated changes, so a single renamed assertion with a same-family replacedBy fits. No family covers metric names, which leaves free-form protocol-behavior names built from the two prefixes as the closest fit. The removed metrics in the same section [ev-dd7907f24ce5][ev-53101f583cb5] are separate changes and are not part of this rename. Confidence is low because metric exposition fits the protocol-behavior family only loosely, and the name 'querier-cache-metrics' could be read as also covering those removed metrics.",
+    "startedAt": "2026-10-03T12:27:59.588Z",
+    "decidedAt": "2026-10-03T12:28:13.518Z"
+  }
+}

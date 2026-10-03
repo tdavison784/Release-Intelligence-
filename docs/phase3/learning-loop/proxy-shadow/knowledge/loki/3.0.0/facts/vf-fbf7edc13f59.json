@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-fbf7edc13f59",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-ad380daa661e"
+        ],
+        "statementKeys": [
+          "sk-a64f57f17be1"
+        ],
+        "changeIds": [
+          "chg-cd41e5f82709"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-bb5ad029b3f5"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "upgrade-index-and-schema-version"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-validation.allow-structured-metadata",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the schema_config period active at upgrade time uses something other than the tsdb index type and the v13 schema, and whether limits_config.allow_structured_metadata is set to false"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-validation.allow-structured-metadata",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Structured Metadata is on by default in Loki 3.0 and needs the active schema to use both the tsdb index type and the v13 storage schema. An environment not on both must take one of two paths. It can upgrade the index and schema versions before updating to 3.0, or it can disable Structured Metadata (and so OTLP support), upgrade, and do the schema migration afterwards.",
+        "remediation": "Either migrate the schema config to tsdb + v13 before upgrading (see the schema config upgrade guide), or set allow_structured_metadata: false in limits_config (or -validation.allow-structured-metadata=false), upgrade to 3.0, then do the schema migration.",
+        "severity": "medium"
+      },
+      "statement": "Upgrade your index version and schema version before updating to 3.0, see schema config upgrade"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-a458b1baa9a1"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-a458b1baa9a1"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e5a0fceb934b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-1731a6eefa76"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-7791a108cc39",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L452-L452 (3.0.0 › Loki 3.0.0 › Structured Metadata, Open Telemetry, Schemas and Indexes)",
+        "excerpt": "* Upgrade your index version and schema version before updating to 3.0, see [schema config upgrade](https://grafana.com/docs/loki/<LOKI_VERSION>/operations/storage/schema/).",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:58:21.464Z"
+  }
+}

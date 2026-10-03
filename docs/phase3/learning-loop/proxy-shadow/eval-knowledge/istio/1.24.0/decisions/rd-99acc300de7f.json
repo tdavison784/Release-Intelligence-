@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-99acc300de7f",
+    "reviewItemId": "ri-eaab74fc1b9f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The CRD upgrade procedure must change from kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml to helm upgrade istio-base. CRD labels will be updated during the first helm upgrade command. Environments that previously used kubectl apply for CRD management must transition to Helm-based management.",
+        "remediation": "Change CRD upgrade procedure from kubectl apply to helm upgrade istio-base command for all Helm-based Istio installations.",
+        "severity": "high"
+      },
+      "statement": "Istio CRDs are now templated by default and managed via Helm; the recommended upgrade method changes from kubectl apply to helm upgrade istio-base, and CRD labels are updated to match Helm-installed resources."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "If the operator does nothing, CRDs are templated by the istio-base chart by default and their labels change to match other Helm-installed resources. Existing `kubectl apply` CRD install and upgrade workflows can continue, and nothing is stated to fail.",
+        "remediation": "Optionally switch CRD upgrades to `helm upgrade istio-base`. Check any tooling that depends on the old CRD labels. The legacy behavior can be restored temporarily with `base.enableCRDTemplates=false`, which is deprecated and will be removed in a future release.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0 the istio-base chart templates CRDs by default, and CRD labels change to match other Helm-installed resources. CRDs can now be upgraded with `helm upgrade istio-base`, and existing `kubectl apply` CRD workflows keep working."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7b5b0d8ad9fcba4cfca835206593f2779843445a20cc5af49d95ec207e43965d",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T17:06:02.54Z",
+      "callId": "e86620f5-020c-43d1-9ae2-2575a160fd1f",
+      "provider": "anthropic"
+    },
+    "reason": "The evidence says that if you installed or upgraded CRDs with `kubectl apply` and not Helm, \"you can continue to do so\", and that `helm upgrade istio-base` is something you \"can begin\" using. It is allowed, not required [ev-85eccdc718e3][ev-2941a875a468]. Nothing is said to fail or to need migrating, so migration-required over-claims mandatory work. What actually changes is a default: CRDs are templated by default in the base chart and CRD labels change to match other Helm-installed resources. The old behavior stays available through the deprecated `base.enableCRDTemplates=false` [ev-fa194382072a]. That makes this a behavior-change, which gets review.",
+    "startedAt": "2026-10-03T17:05:51.809Z",
+    "decidedAt": "2026-10-03T17:06:02.54Z",
+    "resultingFact": "vf-d1035333f0e0"
+  }
+}

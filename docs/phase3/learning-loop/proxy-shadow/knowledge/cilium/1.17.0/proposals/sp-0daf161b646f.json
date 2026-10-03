@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0daf161b646f",
+    "candidateId": "sc-fecf1190dad2",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cilium-node-connectivity-latency-seconds"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-node-health-connectivity-latency-seconds"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerting rules or recording rules query cilium_node_connectivity_latency_seconds"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The `cilium_node_connectivity_latency_seconds` metric still works today but is deprecated and scheduled to break in a later release; anything querying it should switch to `cilium_node_health_connectivity_latency_seconds`.",
+        "remediation": "Update dashboards, alerts and recording rules to use cilium_node_health_connectivity_latency_seconds instead of cilium_node_connectivity_latency_seconds.",
+        "severity": "low"
+      },
+      "statement": "The `cilium_node_connectivity_latency_seconds` metric is deprecated in Cilium 1.17.0 in favour of the new `cilium_node_health_connectivity_latency_seconds` metric."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ac4018b89668"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:d8283d1d01d4a773d4c62a82911cce47c74ecf8cdad65f1bc7cac1c27862b4e2",
+      "inputEvidence": [
+        "ev-ac4018b89668"
+      ],
+      "generatedAt": "2026-10-03T07:36:48Z",
+      "callId": "ac00be65-e9b6-45c1-8bf9-96825718d9ed"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-23d746289965",
+    "reviewItemId": "ri-aa998984e5d6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who configured -boltdb.shipper.shared-store.key-prefix or -tsdb.shipper.shared-store.key-prefix (or the corresponding YAML setting) to a value other than index/ must set path_prefix on all existing period configs that use boltdb-shipper or tsdb as the index, to the previously configured value; this is presented as a required configuration step of the Loki 3.0.0 upgrade (the shared_store/shared_store_key_prefix shipper settings were removed).",
+        "remediation": "Set path_prefix to the previously configured key-prefix value on every existing period config whose index is boltdb-shipper or tsdb.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Loki 3.0.0 requires operators who set -boltdb.shipper.shared-store.key-prefix or -tsdb.shipper.shared-store.key-prefix (or the corresponding YAML setting) to a value other than index/ to set path_prefix on all existing period configs that use boltdb-shipper or tsdb as the index, to the value previously configured."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:79042cf4c066cdb7d8e42ad607867a2da7f724c95a0240c9e9088b53b8995691",
+      "inputEvidence": [
+        "ev-8ceba924ad20",
+        "ev-632a3911583a",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c"
+      ],
+      "generatedAt": "2026-10-03T16:57:48.592Z",
+      "callId": "59cea70d-86f9-4737-93b5-c1301e66e7eb",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] says the boltdb and tsdb shipper key-prefix flags and their YAML settings are removed in 3.0.0, and that the path prefix for the index is now set with `path_prefix` under the period config's `index` key. [ev-8ceba924ad20] and [ev-632a3911583a] tell operators who set the prefix to anything other than `index/` to set `path_prefix` to their old value on every existing boltdb-shipper or tsdb period config. [ev-76a46c52508c] says nothing needs to change only when the prefix was never configured. Together, these make this a required operator step for the upgrade, so migration-required (mandatory work) is supported, and the statement and remediation match the upgrade guide's wording.",
+    "startedAt": "2026-10-03T16:57:40.024Z",
+    "decidedAt": "2026-10-03T16:57:48.592Z",
+    "resultingFact": "vf-fe79993d4672"
+  }
+}

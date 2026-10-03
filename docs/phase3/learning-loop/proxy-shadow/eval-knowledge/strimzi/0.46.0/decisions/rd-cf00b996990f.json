@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cf00b996990f",
+    "reviewItemId": "ri-adb625a566fa",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta1",
+              "kind": "Kafka"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.zookeeper",
+                  "state": "set"
+                }
+              ],
+              "group": "kafka.strimzi.io",
+              "kind": "Kafka"
+            }
+          ]
+        }
+      },
+      "statement": "Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed from Strimzi 0.46.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which Kafka resource setting marks a cluster as ZooKeeper-based or mid-way through KRaft migration (the release text does not name it)"
+            }
+          ]
+        }
+      },
+      "statement": "Strimzi 0.46.0 removed support for ZooKeeper-based Kafka clusters and ZooKeeper-to-KRaft migration. Only environments with a Kafka cluster still running on ZooKeeper or mid-migration are exposed; KRaft clusters are not. The evidence does not name the setting that identifies ZooKeeper mode."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b8487618ae78267412463bff172c33d5b31a4f28a4daba3166dde088cea8c28a",
+      "inputEvidence": [
+        "ev-628f9c0eccb2",
+        "ev-a7c9af863980",
+        "ev-5d8b8b113b70",
+        "ev-c366ac6bf338",
+        "ev-99017d1c8007",
+        "ev-acec48f57273",
+        "ev-580b3720cb97",
+        "ev-52d05bff16ea",
+        "ev-d7b673b6053f",
+        "ev-12b17c85ab22",
+        "ev-2ed9c1d1b698",
+        "ev-da7ff24b2c60",
+        "ev-35ea1afad43d",
+        "ev-6e79b1b1f3a7",
+        "ev-6b927d45a8a3",
+        "ev-52ec3b963cc5",
+        "ev-173f5593d910",
+        "ev-1207394288b0",
+        "ev-c58562fb98a9",
+        "ev-4308bfa38162",
+        "ev-4c2676e4665a",
+        "ev-87094cfdd770",
+        "ev-4851b37425c0",
+        "ev-17b3774eb9ee",
+        "ev-0fe6816db4bb",
+        "ev-a6197708b375",
+        "ev-b55698b84a79",
+        "ev-4fdefdd841ec",
+        "ev-88ae24e32184",
+        "ev-526028ea7180",
+        "ev-2dffc916b09a",
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-03T16:58:37.324Z",
+      "callId": "4e6662be-b8c3-4b7f-9a59-5a20b464a943",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-628f9c0eccb2] and [ev-4c2676e4665a] say support was removed only for ZooKeeper-based clusters and ZooKeeper-to-KRaft migration, and that clusters must be using KRaft before the upgrade. That means KRaft clusters are not exposed. The proposed any[] flags every environment that uses Kafka v1beta2 or v1beta1, which includes all KRaft clusters, so it is far too broad. Neither the changelog nor the upgrade notes name the field or setting that marks a cluster as ZooKeeper-based. So the corrected condition requires a Kafka resource and leaves the ZooKeeper-mode test as an evidence gap instead of using spec.zookeeper, which no evidence names.",
+    "startedAt": "2026-10-03T16:58:18.778Z",
+    "decidedAt": "2026-10-03T16:58:37.324Z"
+  }
+}

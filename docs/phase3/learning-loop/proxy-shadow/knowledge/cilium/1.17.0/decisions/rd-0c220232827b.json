@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0c220232827b",
+    "reviewItemId": "ri-efb7130b18e1",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query the metric cilium_node_connectivity_latency_seconds"
+        }
+      },
+      "statement": "In Cilium 1.17 the metric cilium_node_connectivity_latency_seconds is deprecated, and users should use cilium_node_health_connectivity_latency_seconds instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7b1a0e2722a2bb6e9ddfbe8400d21be2afa7b4fad56ba2ed974d8b204ae8f777",
+      "inputEvidence": [
+        "ev-ac4018b89668",
+        "ev-82ab63ec4bf8"
+      ],
+      "generatedAt": "2026-10-03T12:38:04.415Z",
+      "callId": "3b67d9e8-819f-47c9-a472-c0e0c34b3eb2",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ac4018b89668] only says the metric `cilium_node_connectivity_latency_seconds` is deprecated in favour of `cilium_node_health_connectivity_latency_seconds`. Nothing in the evidence names a setting, values key, flag or field that controls it, and the sibling item [ev-82ab63ec4bf8] gives no more detail. So the environments exposed are the ones whose external consumers (dashboards, alerts, recording rules) query the old metric name. No product configuration predicate can show that, so the undecidable leaf naming what is needed is the right condition.",
+    "startedAt": "2026-10-03T12:37:54.601Z",
+    "decidedAt": "2026-10-03T12:38:04.415Z"
+  }
+}

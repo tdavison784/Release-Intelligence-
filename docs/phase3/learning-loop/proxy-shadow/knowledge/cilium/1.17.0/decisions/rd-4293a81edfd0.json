@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4293a81edfd0",
+    "reviewItemId": "ri-435ae8b34cd9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium 1.17.0 exposes the metric under the new name doublewrite_identity_kvstore_only_total instead of doublewrite_identity_kvstore_only_count, so queries, dashboards, and alerts that reference the old name no longer match it.",
+        "remediation": "Update dashboards, alerts, and queries that reference doublewrite_identity_kvstore_only_count to use the new name doublewrite_identity_kvstore_only_total.",
+        "severity": "low"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_identity_kvstore_only_total` in Cilium 1.17.0, so it is exposed under the new name."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, the metric is no longer exposed as doublewrite_identity_kvstore_only_count. The 1.17 upgrade notes list it as renamed to both doublewrite_identity_kvstore_only_total and doublewrite_kvstore_only_identities, so dashboards, alerts and queries that use the old name no longer match it.",
+        "remediation": "Check which name Cilium 1.17.0 actually exports (doublewrite_identity_kvstore_only_total or doublewrite_kvstore_only_identities), then update dashboards, alerts and recording rules that reference doublewrite_identity_kvstore_only_count.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_kvstore_only_count was renamed. The upgrade notes give the new name as both doublewrite_identity_kvstore_only_total and doublewrite_kvstore_only_identities. Queries that use the old name no longer match; review is needed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d203d37b01d51930a2aad0ec97e8255a8a04a502a722f66915773a07fcdce28e",
+      "inputEvidence": [
+        "ev-a2a020af7830",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:23:17.112Z",
+      "callId": "70e249f1-8cd7-4191-aec5-10de230f244d",
+      "provider": "anthropic"
+    },
+    "reason": "The cited upgrade note [ev-a2a020af7830] says doublewrite_identity_kvstore_only_count was renamed to doublewrite_identity_kvstore_only_total. Later in the same Changed Metrics section, [ev-57fea1f2c18e] says the same metric was renamed to doublewrite_kvstore_only_identities, and the sibling metrics have the same pair of conflicting entries ([ev-6a341603b700]/[ev-df8818f69d5e]). The proposed statement and remediation therefore assert a new name the evidence does not settle. The evidence only reports a rename, not a failure or rejection, so behavior-change (review, low severity) stays correct; the statement must not commit to a single new name.",
+    "startedAt": "2026-10-03T12:23:01.894Z",
+    "decidedAt": "2026-10-03T12:23:17.112Z"
+  }
+}

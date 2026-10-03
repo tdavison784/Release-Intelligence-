@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-432f23af0f49",
+    "reviewItemId": "ri-2a3cfcf98333",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "statement": "The storage version of clustersecretstores.external-secrets.io changes from v1beta1 to v1, requiring a storage version migration to rewrite existing objects before v1beta1 is removed in a later release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:084e0ee780bfcd6dd9acb6adfd1dc86c065c5fa36baedbc1a3d837fc63b4cf63",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-03T12:48:00.434Z",
+      "callId": "f4dc9db1-3798-4d17-aac7-3d051f45103d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d55f4ac0a53f] shows that in clustersecretstores.external-secrets.io, spec.versions[name=v1beta1].storage changed from true to false between 0.15.0 and 0.16.0. The v1beta1 ClusterSecretStore API version still exists in both releases [ev-9889c9b8706d][ev-e08924afdc47], so it was not removed. What changed is how that served version behaves: existing objects stay stored as v1beta1 until they are rewritten. That makes a gvk subject with behavior-changed and the literal values true→false a fair reading. The change text only says a storage migration is needed before a later release removes v1beta1, so nothing fails or must be migrated in this release, and migration-required would overstate it.",
+    "startedAt": "2026-10-03T12:47:47.034Z",
+    "decidedAt": "2026-10-03T12:48:00.434Z"
+  }
+}

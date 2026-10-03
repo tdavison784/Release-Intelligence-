@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9717ecb40410",
+    "candidateId": "sc-ff2f759fe1fb",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's scheduling was affected by the nodepool readiness flake at runtime (live scheduling activity and nodepool readiness timing)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to v1.0.0, the scheduling flake caused by nodepool readiness no longer occurs; scheduling keeps working, now without the flake.",
+        "remediation": "No operator action beyond upgrading; if the flake was previously observed, verify scheduling stability after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 fixes a scheduling flake caused by nodepool readiness (PR #6491)."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence names no addressable subject (no CRD field, Helm value, flag, env var, feature gate, API, image or permission); it only reports that an internal scheduling bug related to nodepool readiness was fixed.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-518a56c0e2c1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6be3e876672320f29159f68af69a64c2db7150c0045d374d9881ecbf3a169945",
+      "inputEvidence": [
+        "ev-518a56c0e2c1"
+      ],
+      "generatedAt": "2026-10-03T08:13:57Z",
+      "callId": "0148cecc-1087-4fca-8b15-705ccf03d694"
+    }
+  }
+}

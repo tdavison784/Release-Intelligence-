@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-281722790571",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-333e7675cf3e"
+        ],
+        "statementKeys": [
+          "sk-d67c33e4ec81"
+        ],
+        "changeIds": [
+          "chg-c02e25f3066e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a8771d6dc75d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "stable-connect-identities-strimzipodsets"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.39.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands must enable the StableConnectIdentities feature gate and make sure StrimziPodSets are used before upgrading to 0.46.0. The release notes do not say what fails if this step is skipped.",
+        "remediation": "On the current (0.38 or older) operator, enable the StableConnectIdentities feature gate and make sure Connect and MirrorMaker 2 use StrimziPodSets, then upgrade to 0.46.0.",
+        "severity": "high"
+      },
+      "statement": "When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, make sure the `StableConnectIdentities` feature gate is…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-96d64ad577ec"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-96d64ad577ec"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7be7d2035572"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-154e2a9d9c34"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-17b3774eb9ee",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L36-L36 (0.46.0 › Major changes, deprecations and removals)",
+        "excerpt": "* When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, make sure the `StableConnectIdentities` feature gate is enabled and `StrimziPodSets` are used before upgrading.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:59:09.888Z"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-7d32beb090d5",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-00764d87c4e0"
+        ],
+        "statementKeys": [
+          "sk-9d7ada54d707"
+        ],
+        "changeIds": [
+          "chg-5af3f5ae9d27"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2c2d1685326f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "etcd.managed"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "etcd.managed",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Setting etcd.managed or the related managed-etcd Helm values has no effect from 1.16.0: the option for deploying a managed etcd instance through the chart has been removed.",
+        "remediation": "Remove etcd.managed and related managed-etcd values from your Helm values. If you relied on the chart-managed etcd instance, provide etcd by other means before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The Helm option for deploying a managed etcd instance via `etcd.managed` and other related Helm configurations have been removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-9cf22e98d1f2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-9cf22e98d1f2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-5027271ba192"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-b062e0149e94"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-d6d613eadc25",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L437-L438 (1.16 Upgrade Notes › Helm Options)",
+        "excerpt": "* The Helm option for deploying a managed etcd instance via `etcd.managed`\n  and other related Helm configurations have been removed.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:04:20.55Z"
+  }
+}

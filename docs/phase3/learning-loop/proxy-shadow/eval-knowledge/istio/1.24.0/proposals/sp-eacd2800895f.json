@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-eacd2800895f",
+    "candidateId": "sc-21bf63323d13",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.trafficPolicy.portLevelSettings",
+              "state": "set"
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRule portLevelSettings that were previously ignored for waypoints are now applied, so waypoint traffic behavior may change.",
+        "remediation": "Verify that port-level settings in DestinationRules used with waypoints behave as intended.",
+        "severity": "low"
+      },
+      "statement": "Fixed: portLevelSettings in DestinationRules were ignored for waypoints; they are now honoured."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a3e90b78f6fa"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:dd553498411ddd8f49b26138dae91b5f4869b8fe9e4832eb79325fd4fe41864b",
+      "inputEvidence": [
+        "ev-a3e90b78f6fa"
+      ],
+      "generatedAt": "2026-10-03T07:13:22Z",
+      "callId": "9d8bb0af-07bb-48bb-8ab4-da3ab05c699b"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-dbc501675e49",
+    "reviewItemId": "ri-6138c4b449d3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The NameConstraints feature gate is now enabled by default, so Certificate spec.nameConstraints is honoured without explicitly enabling the gate.",
+        "severity": "low"
+      },
+      "statement": "The CA NameConstraints feature gate is promoted to Beta and is now enabled by default."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, the CA NameConstraints feature gate is enabled by default. Environments that do not set the gate explicitly will have the CA NameConstraints feature active without any configuration change.",
+        "remediation": "Check whether the CA NameConstraints feature should be on. If not, set NameConstraints=false explicitly in the feature gates.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0 the CA NameConstraints feature gate is promoted to Beta and is enabled by default, so environments that do not set the gate have the CA NameConstraints feature turned on after upgrade."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:48a6fee35b075bb917815b3f68045fda54579e254e894f4740fc3846140c2ac5",
+      "inputEvidence": [
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-02T23:15:42.435Z",
+      "callId": "328213ee-ada3-4751-bf23-3d039f9e7d4b",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-619c0cea3aa4] says only that the CA NameConstraints feature gate moved to Beta and is now on by default. That is a changed default with no stated failure, rejection or required migration, so behavior-change (review) at low severity is the right kind. However, the proposed statement adds that \"Certificate spec.nameConstraints is honoured\", and the evidence never mentions that field. The corrected statement keeps the kind and severity and uses only the evidence's terms.",
+    "startedAt": "2026-10-02T23:15:33.024Z",
+    "decidedAt": "2026-10-02T23:15:42.435Z",
+    "resultingFact": "vf-d97f598b717c"
+  }
+}

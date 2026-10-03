@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-d97f598b717c",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-ff9236551a9b"
+        ],
+        "statementKeys": [
+          "sk-c90af19598f5"
+        ],
+        "changeIds": [
+          "chg-929e3fd06ae3"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-22be35218702"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "NameConstraints"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "NameConstraints",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, the CA NameConstraints feature gate is enabled by default. Environments that do not set the gate explicitly will have the CA NameConstraints feature active without any configuration change.",
+        "remediation": "Check whether the CA NameConstraints feature should be on. If not, set NameConstraints=false explicitly in the feature gates.",
+        "severity": "low"
+      },
+      "statement": "Promote CA `NameConstraints` feature gate to Beta (enabled by default)"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-f34a44105559"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-f34a44105559"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e32adb4bf119"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-dbc501675e49"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-619c0cea3aa4",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L200-L200 (v1.17.0 › Feature)",
+        "excerpt": "- Promote CA `NameConstraints` feature gate to Beta (enabled by default) ([#7494](https://github.com/cert-manager/cert-manager/pull/7494), [@tanujd11](https://github.com/tanujd11))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T23:15:42.435Z"
+  }
+}

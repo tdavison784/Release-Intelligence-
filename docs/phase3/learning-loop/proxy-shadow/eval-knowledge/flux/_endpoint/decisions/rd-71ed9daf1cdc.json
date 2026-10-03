@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-71ed9daf1cdc",
+    "reviewItemId": "ri-f49dd995462b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository objects using the source.toolkit.fluxcd.io/v1 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Before upgrading, check HelmRepository objects (source.toolkit.fluxcd.io/v1) for status.artifact.digest and ensure the field is populated so objects are not rejected by the new schema.",
+        "severity": "medium"
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 schema of HelmRepository now requires the field status.artifact.digest, and objects that omit it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6a149ba6180dc1f8ba9a6f74fbaea19abd1cf365fd2f706c0f06409fd32ce4c2",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T17:07:03.771Z",
+      "callId": "4ede20d8-c9b9-4f29-9972-5b4e732440dc",
+      "provider": "anthropic"
+    },
+    "reason": "The CRD validator confirms that status.artifact.digest becomes required in the HelmRepository v1 schema between the two install.yaml artifacts [ev-782bc47d120d] [ev-c2c6c790d6b2]. The computed change text says objects that omit a newly required field are rejected, so resource-rejected (mandatory work) at medium severity is supported. This matches the consequence in known fact vf-6b42bbdfb00a. Confidence is low because the evidence excerpts are only the artifact headers, and nothing in the upstream text describes the runtime effect.",
+    "startedAt": "2026-10-03T17:06:50.013Z",
+    "decidedAt": "2026-10-03T17:07:03.771Z",
+    "resultingFact": "vf-6b42bbdfb00a"
+  }
+}

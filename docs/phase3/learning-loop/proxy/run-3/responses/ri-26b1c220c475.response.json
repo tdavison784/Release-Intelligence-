@@ -1,0 +1,59 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-26b1c220c475",
+  "promptDigest": "sha256:b8ad065fa7065a83c37613f83c704e614340615aac3a74ed25af076748914a79",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d107ac14-9bf1-40a9-8738-5bdec590e080",
+  "startedAt": "2026-10-03T12:20:56.030Z",
+  "decidedAt": "2026-10-03T12:21:14.119Z",
+  "durationMs": 17410,
+  "costUSD": 0.14266,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-1f419676f177] says the listed `cortex_` metrics, including [ev-98e38dff522b] `cortex_query_scheduler_queue_duration_seconds_sum`, now start with `loki_` in 3.0.0. Operators keep the old name by changing `metrics_namespace` from the default `loki` to `cortex`. Exposure therefore depends on a named configuration setting, so the undecidable leaf (runtime-behavior-gap) is wrong. The exposed environments are those that do not set metrics_namespace to cortex; those that set it are shielded. The evidence does not say which config file key carries the setting, so the data key \"config.yaml\" in the predicate is an inference, and confidence is low.",
+    "citations": [
+      "ev-1f419676f177",
+      "ev-98e38dff522b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, `cortex_query_scheduler_queue_duration_seconds_sum` is exposed as `loki_query_scheduler_queue_duration_seconds_sum` unless `metrics_namespace` is set to `cortex`. Environments that leave `metrics_namespace` at its default (`loki`) are exposed. Environments that set it to `cortex` keep the old name.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "pattern": "^\\s*metrics_namespace:\\s*[\"']?cortex[\"']?\\s*$",
+                  "state": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "pattern": "^\\s*metrics_namespace:\\s*[\"']?cortex[\"']?\\s*$",
+              "state": "exists"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

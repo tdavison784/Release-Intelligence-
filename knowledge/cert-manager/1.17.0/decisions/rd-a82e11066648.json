@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a82e11066648",
+    "reviewItemId": "ri-620803d3532e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "statement": "The cert-manager 1.17.0 Helm chart now allows the `enabled` value to be set, toggling cert-manager on or off when it is installed as a chart dependency."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "set"
+        }
+      },
+      "statement": "The cert-manager 1.17.0 Helm chart adds an `enabled` value so cert-manager can be toggled when used as a chart dependency; environments that set `enabled` in their values touch this new key."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:64e28f836c4b304786d28f4cb1f3d327aa7d555a1dc184c9f2111e03eb822ca0",
+      "inputEvidence": [
+        "ev-c3fa8260181b",
+        "ev-aa02449851f9",
+        "ev-d176cffb7417",
+        "ev-4fef58672646",
+        "ev-cae85181502c",
+        "ev-36b8d942ea46",
+        "ev-ab4bd1639399",
+        "ev-10c8b1c28d66",
+        "ev-12d2733c5dd3",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-03T12:25:34.514Z",
+      "callId": "b787681a-4538-4551-bb8b-a4303de5b0f8",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c3fa8260181b] says only that the chart now allows an `enabled` value to be set so a parent chart can toggle cert-manager as a dependency. The validators confirm that `enabled` is a new key, absent in v1.16.0 and present in v1.17.0 [ev-717ddb6f40cd][ev-fdc96eee87bf]. Nothing in the evidence says that environments setting `enabled: false` see a changed outcome, so the equals-false condition assumes a behavior the evidence does not state. The environments that touch this addition are the ones that set the key, so exposure should be values-key `enabled` set.",
+    "startedAt": "2026-10-03T12:25:19.383Z",
+    "decidedAt": "2026-10-03T12:25:34.514Z",
+    "resultingFact": "vf-ac19db3e15c5"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-2a49659e69f5",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-89c544b64587"
+        ],
+        "statementKeys": [
+          "sk-2b58d9fa932a"
+        ],
+        "changeIds": [
+          "chg-8fe3f8864eff"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3be44400117a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "xpkg login"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts or CI pipelines invoke `crossplane xpkg login` or `crossplane xpkg logout` (client-side CLI usage, not part of cluster or chart configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands no longer exist in the Crossplane CLI. Local scripts or CI pipelines that call them to log in to a registry before pushing a package will no longer work.",
+        "remediation": "Use `docker login` locally, or the `docker/login-action` in CI, to log in to the registry before pushing packages. See Community Extension Projects such as function-auto-ready for an example.",
+        "severity": "medium"
+      },
+      "statement": "`login`/`logout` removed from Crossplane CLI: The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-c049224802d4"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-c049224802d4"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-5be97e93245e"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-22dfdc7f01b8"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5bbbbea35c34",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L67-L71 (🚨 Warnings and breaking changes › `login`/`logout` removed from Crossplane CLI)",
+        "excerpt": "## `login`/`logout` removed from Crossplane CLI\n\nThe `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI. To login to a registry before pushing a package, consider using `docker login` locally, or the [`docker/login-action`](https://github.com/docker/login-action) from CI.\n\nAn example of this pattern can be seen in many Community Extension Projects, for example [`function-auto-ready`](https://github.com/crossplane-contrib/function-auto-ready/blob/main/.github/workflows/ci.yml#L168-L173).",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:55:51.498Z"
+  }
+}

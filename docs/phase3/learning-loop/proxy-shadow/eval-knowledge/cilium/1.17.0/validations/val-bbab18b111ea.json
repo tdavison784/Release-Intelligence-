@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bbab18b111ea",
+    "candidateId": "sc-f0660a838657",
+    "proposalId": "sp-358fe364ee62",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cilium-node-connectivity-status"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-node-health-connectivity-status"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alerting rules or other metric consumers reference the metric cilium_node_connectivity_status"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The cilium_node_connectivity_status metric keeps working in 1.17.0 but is deprecated; environments whose dashboards or alerts read it should switch to cilium_node_health_connectivity_status, as the old metric is slated for removal in a later release.",
+        "remediation": "Update dashboards, alerting rules and other metric consumers to use cilium_node_health_connectivity_status instead of cilium_node_connectivity_status.",
+        "severity": "low"
+      },
+      "statement": "The cilium_node_connectivity_status metric is deprecated in Cilium 1.17.0 in favor of the new cilium_node_health_connectivity_status metric."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/deprecated",
+        "detail": "protocol-behavior deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/deprecated",
+        "detail": "protocol-behavior deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-03T07:03:21Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-71ff7c8a2423",
+    "candidateId": "sc-af36bd24681f",
+    "proposalId": "sp-3bf8464bf456",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code that imports crossplane or crossplane-runtime must update the module path in go.mod and every import statement to the /v2 module paths when updating to v2+.",
+        "remediation": "Change go.mod dependencies and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2. Commit d6c489c7c080a315051301a9d0e4167e1773657e shows an example.",
+        "severity": "medium"
+      },
+      "statement": "In Crossplane v2 the Go module paths are now github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2, so Go code that imports crossplane or crossplane-runtime must update its go.mod module paths and every import statement when moving to v2+."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

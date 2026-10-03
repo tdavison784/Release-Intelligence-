@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-62135230abe2",
+    "candidateId": "sc-664f60a3392a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which backends send responses without a Content-Type header at runtime, and whether the routes serving them use a ContentType middleware"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses from backends that do not set a Content-Type header no longer get an auto-detected Content-Type value from Traefik.",
+        "remediation": "Attach the ContentType middleware to the affected routers to turn Content-Type auto-detection back on.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3, the Content-Type header is no longer auto-detected when the backend does not set it; auto-detection now has to be turned on with the ContentType middleware."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-be4f90e8abf9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:72e541740dd3d6f082bec523ce48161a9abe96fe6d5d820caff7f4d97d91c012",
+      "inputEvidence": [
+        "ev-be4f90e8abf9"
+      ],
+      "generatedAt": "2026-10-03T07:04:02Z",
+      "callId": "93cf3d02-2a35-4cea-be12-33feeff25b31"
+    }
+  }
+}

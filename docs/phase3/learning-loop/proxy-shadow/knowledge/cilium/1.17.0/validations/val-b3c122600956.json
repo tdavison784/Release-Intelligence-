@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b3c122600956",
+    "candidateId": "sc-6069811be30d",
+    "proposalId": "sp-b5d68767dc32",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"changing device MTU required restarting the agent to pick up the new MTU\"",
+        "after": "\"MTU auto-detection is continuous during agent lifetime\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the agent relies on MTU auto-detection (rather than an explicitly configured MTU) and whether the device MTU actually changes during the agent's lifetime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The agent still works, but MTU handling differs: a changed device MTU is now picked up without restarting the agent, so environments that changed device MTUs and relied on restart-time pickup (or expected the agent to keep the MTU detected at startup) will see the new continuous behavior.",
+        "remediation": "No operator action required; verify that continuous pickup of device MTU changes is acceptable if device MTUs change while the agent runs.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, MTU auto-detection runs continuously during the cilium agent's lifetime, so changing a device's MTU no longer requires restarting the agent to pick up the new MTU."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

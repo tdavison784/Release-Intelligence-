@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-88127bc0640d",
+    "reviewItemId": "ri-7c7524ca4fac",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The option is deprecated and has no effect; setting it does nothing."
+      },
+      "statement": "Helm value enableRuntimeDeviceDetection is deprecated and is a no-op in 1.16."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The Helm option enableRuntimeDeviceDetection is a no-op in 1.16: any value set for it has no effect.",
+        "remediation": "Remove enableRuntimeDeviceDetection from your Helm values and check that the current device detection behaviour is acceptable without it.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.16.0 the Helm value enableRuntimeDeviceDetection is deprecated and a no-op: any value set for it is no longer honoured."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:f9cc4c63df04e15e7b466ed2f2820e5b022cd1a18a2765536a322fab87026864",
+      "inputEvidence": [
+        "ev-99f86df45975",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-5d3c6d3080f0",
+        "ev-69b054a33ac2",
+        "ev-3fb29eea728d",
+        "ev-f050ccf90d86",
+        "ev-40ebe1cf329c",
+        "ev-da6e6a1ea917",
+        "ev-5e90ba383ca7",
+        "ev-34bab3cf1916",
+        "ev-79276bab0c0a",
+        "ev-d6d613eadc25",
+        "ev-4e1e10256713"
+      ],
+      "generatedAt": "2026-10-03T12:58:37.832Z",
+      "callId": "ed76574f-1141-4482-92ff-238c5327ca4e",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-99f86df45975] says the Helm option `enableRuntimeDeviceDetection` \"is now deprecated and is a no-op\" in 1.16. Any value an operator sets therefore stops being honoured now, so this is setting-ignored. It is not deprecation, which would mean the option still works today. The evidence doesn't say what changes beyond the value being ignored, so severity is low.",
+    "startedAt": "2026-10-03T12:58:24.604Z",
+    "decidedAt": "2026-10-03T12:58:37.832Z"
+  }
+}

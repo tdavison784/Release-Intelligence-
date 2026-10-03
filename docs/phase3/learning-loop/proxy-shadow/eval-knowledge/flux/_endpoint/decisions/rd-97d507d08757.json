@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-97d507d08757",
+    "reviewItemId": "ri-ab7c9dfac9a4",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "equals",
+              "values": [
+                "\"\""
+              ]
+            }
+          ],
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease"
+        }
+      },
+      "statement": "The enum values for spec.chartRef.kind in HelmRelease v2 schema changed: removed an empty value, added ExternalArtifact."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease"
+        }
+      },
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the spec.chartRef.kind enum gained ExternalArtifact and lost no values. The subject touches HelmRelease v2 objects that set spec.chartRef.kind, and no previously accepted value is rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:a268bffa0ee1b49dbfbfeffef6af384ce66b04a764aa43734ebcf87400d7faa9",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T16:58:08.45Z",
+      "callId": "c5dae106-fffd-4135-8dbf-c18771f6456d",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between the v2.6.4 [ev-782bc47d120d] and v2.7.0 [ev-c2c6c790d6b2] install bundles says spec.chartRef.kind had \"removed []\", meaning no values were removed, and \"ExternalArtifact\" was added. The proposed exposure reads \"removed []\" as the empty string \"\" being removed, which is a misreading. No existing value becomes invalid, so exposure cannot hinge on kind == \"\". The environments that touch this subject are HelmRelease v2 objects that set spec.chartRef.kind. A widened enum leaves them unaffected.",
+    "startedAt": "2026-10-03T16:57:57.268Z",
+    "decidedAt": "2026-10-03T16:58:08.45Z",
+    "resultingFact": "vf-83ba5d8f03eb"
+  }
+}

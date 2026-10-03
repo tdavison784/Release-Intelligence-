@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-480b29a6356d",
+    "reviewItemId": "ri-d74edb29ba87",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "kind": "TCPServersTransport"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.kubernetesCRD",
+              "component": "traefik",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik v3.0.0 introduces TCPServersTransport support; when using the KubernetesCRD provider, RBAC and CRD manifests must be updated to recognize this new resource type."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.kubernetesCRD",
+          "component": "traefik",
+          "state": "set"
+        }
+      },
+      "statement": "Traefik v3.0.0 introduces TCPServersTransport support. Every environment that uses the KubernetesCRD provider must update its RBAC and CRD manifests, whether or not it uses TCPServersTransport yet."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:369092632ace0a7ab0f22ba9b89bc94162f175c3fea11f4fb389f32d3a72b90f",
+      "inputEvidence": [
+        "ev-c160fecc6f71"
+      ],
+      "generatedAt": "2026-10-03T17:03:09.257Z",
+      "callId": "65fcf9de-38db-4d3f-9a47-98c2ada195d9",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c160fecc6f71] makes the RBAC and CRD manifest update depend only on using the KubernetesCRD provider (\"When using the KubernetesCRD provider, it is therefore necessary to update RBAC and CRD manifests\"). It does not depend on already having TCPServersTransport objects. Requiring gvk-in-use of TCPServersTransport makes the condition too narrow. A v2 environment that is upgrading cannot use that kind yet, but it is the one that needs the update. The exposure should therefore be only that the KubernetesCRD provider is enabled.",
+    "startedAt": "2026-10-03T17:02:56.38Z",
+    "decidedAt": "2026-10-03T17:03:09.257Z"
+  }
+}

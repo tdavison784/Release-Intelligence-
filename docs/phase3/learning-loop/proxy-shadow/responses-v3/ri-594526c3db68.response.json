@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-594526c3db68",
+  "promptDigest": "sha256:ce1343be86b1a43d473aa1b13a540930779338cd5c69e0709b9de99ad3a6cda5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "93d2dee3-4a6e-428b-8e24-96aa8c5ac484",
+  "startedAt": "2026-10-03T12:53:34.906Z",
+  "decidedAt": "2026-10-03T12:53:50.368Z",
+  "durationMs": 14684,
+  "costUSD": 0.08724000000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a89ac42d3167] says only that OperatorHub packages are no longer published and that v1.16.5 is the last release on OperatorHub. It does not say that an install or upgrade fails, is gated or hits an unmet precondition. An OperatorHub-based environment that does nothing keeps running v1.16.5 and simply gets no newer releases through that channel. So upgrade-blocked (mandatory work) over-claims; this is a review-class behavior-change.",
+    "citations": [
+      "ev-a89ac42d3167"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "cert-manager no longer publishes OperatorHub packages; v1.16.5 is the last release on OperatorHub (RedHat OpenShift OperatorHub and operatorhub.io). Environments that install cert-manager through OperatorHub stay on v1.16.5 and receive no 1.17.0 or later releases through that channel; nothing is stated to fail.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "An environment that installs or updates cert-manager through OperatorHub keeps working on v1.16.5, but no longer receives new cert-manager releases (1.17.0 or later) through OperatorHub, because v1.16.5 is the last release published there.",
+        "remediation": "If you need cert-manager releases after v1.16.5, check how cert-manager is installed and plan to switch to a distribution channel other than OperatorHub."
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bb2101df3bfb",
+    "candidateId": "sc-f629a0b64048",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "doublewrite-identity-kvstore-only-count"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "doublewrite-identity-kvstore-only-total"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the identity doublewrite mode that emits this metric is active and whether anything (dashboards, alerts, or scrape queries) references the old metric name doublewrite_identity_kvstore_only_count"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium 1.17.0 exposes the metric under the new name doublewrite_identity_kvstore_only_total instead of doublewrite_identity_kvstore_only_count, so queries, dashboards, and alerts that reference the old name no longer match it.",
+        "remediation": "Update dashboards, alerts, and queries that reference doublewrite_identity_kvstore_only_count to use the new name doublewrite_identity_kvstore_only_total.",
+        "severity": "low"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_identity_kvstore_only_total` in Cilium 1.17.0, so it is exposed under the new name."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a2a020af7830"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:239ae4c456a7bc2984a2969b78da54fbea020f2137095e79f5bf798c99759cc3",
+      "inputEvidence": [
+        "ev-a2a020af7830"
+      ],
+      "generatedAt": "2026-10-03T07:13:24Z",
+      "callId": "72938cc2-0acb-4729-a9fa-acdee6d192bf"
+    }
+  }
+}

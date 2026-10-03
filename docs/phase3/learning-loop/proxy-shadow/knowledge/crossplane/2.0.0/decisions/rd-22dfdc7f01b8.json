@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-22dfdc7f01b8",
+    "reviewItemId": "ri-22cf1ba997d3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `crossplane xpkg login` command is no longer available; scripts or workflows using this command will fail or be unable to execute.",
+        "remediation": "Replace `crossplane xpkg login` with `docker login` for local authentication or use `docker/login-action` in CI/CD pipelines. Refer to Community Extension Projects like function-auto-ready for implementation examples.",
+        "severity": "high"
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` CLI commands have been removed from Crossplane."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands no longer exist in the Crossplane CLI. Local scripts or CI pipelines that call them to log in to a registry before pushing a package will no longer work.",
+        "remediation": "Use `docker login` locally, or the `docker/login-action` in CI, to log in to the registry before pushing packages. See Community Extension Projects such as function-auto-ready for an example.",
+        "severity": "medium"
+      },
+      "statement": "In Crossplane 2.0.0 the `crossplane xpkg login` and `crossplane xpkg logout` CLI commands are removed. Scripts or CI workflows that call them to log in to a registry before pushing a package break until they switch to `docker login` or `docker/login-action`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2376f708c6fc25ea8283026af1fadfe96b18a6ed4b95c7e41f25fb3abf09b820",
+      "inputEvidence": [
+        "ev-5bbbbea35c34"
+      ],
+      "generatedAt": "2026-10-03T12:46:45.052Z",
+      "callId": "af02a27f-b2b9-49b8-bbed-ea320d5dd40f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5bbbbea35c34] lists this under breaking changes and says the `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the CLI, with `docker login` or `docker/login-action` as the replacement for logging in to a registry before pushing a package. A removed command is not a configured value that gets silently ignored. Any script or CI step that calls these commands stops working, so this is a workflow/integration failure (workload-failure), not setting-ignored. The fix is still mandatory, but the effect is limited to package-push workflows, so severity is medium, and the statement should name both commands.",
+    "startedAt": "2026-10-03T12:46:29.243Z",
+    "decidedAt": "2026-10-03T12:46:45.052Z"
+  }
+}

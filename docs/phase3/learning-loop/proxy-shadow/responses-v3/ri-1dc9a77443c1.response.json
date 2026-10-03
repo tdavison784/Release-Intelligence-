@@ -1,0 +1,54 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1dc9a77443c1",
+  "promptDigest": "sha256:23f35bc6d5fc5ffb71a41ecad317b6a50a939ab831bad7f1c9f54d641563c7b0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "797dfdd7-208e-41f9-8561-e4e7b7078528",
+  "startedAt": "2026-10-03T12:46:00.798Z",
+  "decidedAt": "2026-10-03T12:46:22.101Z",
+  "durationMs": 20567,
+  "costUSD": 0.12174399999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-2df1b23f32ac] says the static option `experimental.http3` is removed and keeping it set stops Traefik from starting. It shows the option set in a YAML/TOML file or with the CLI flag `--experimental.http3=true`. P1's condition only checks a Helm values key, so it misses environments that pass the CLI flag. The corrected condition counts the option as set if either the CLI flag or the values key is set, for upgrades from <3.0.0.",
+    "citations": [
+      "ev-2df1b23f32ac"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments upgrading from Traefik <3.0.0 are exposed if they still set the removed `experimental.http3` static option, either as the CLI flag `--experimental.http3` or as a values key. Traefik then fails to start.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--experimental.http3",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "experimental.http3",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "edge-from-version",
+              "range": "<3.0.0",
+              "state": "in-range"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

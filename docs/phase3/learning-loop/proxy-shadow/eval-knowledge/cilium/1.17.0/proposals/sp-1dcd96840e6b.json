@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1dcd96840e6b",
+    "candidateId": "sc-590664a9778c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-services-unsatisfied-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-services-unsatisfied-metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is served under the new name `lbipam_services_unsatisfied`; the previous name `lbipam_services_unsatisfied_total` is no longer exposed, so monitoring that still queries the old name no longer matches it.",
+        "remediation": "Update dashboards, alert rules and other monitoring references from `lbipam_services_unsatisfied_total` to `lbipam_services_unsatisfied`.",
+        "severity": "low"
+      },
+      "statement": "The metric `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied` in Cilium 1.17.0."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The note states no applicability condition: the rename applies to the exposed metric regardless of any configuration, and whether an environment is impacted depends on external monitoring (dashboards, alert rules) referencing lbipam_services_unsatisfied_total, which none of this product's config sources (helm values, cilium-config, CiliumNodeConfig, cli flags) carry.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9a62461ebaa9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:aadb55f4fed495d970dad35eb8fcc1bd1fd30b4d4bce7f963761be1492bfc12f",
+      "inputEvidence": [
+        "ev-9a62461ebaa9"
+      ],
+      "generatedAt": "2026-10-03T08:51:15Z",
+      "callId": "75a5eb7a-73e7-47d6-addd-4b0bb79f9bf3"
+    }
+  }
+}

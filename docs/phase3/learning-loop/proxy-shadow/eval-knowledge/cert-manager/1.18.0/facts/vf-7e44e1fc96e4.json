@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-7e44e1fc96e4",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-4ece7fc9c025"
+        ],
+        "statementKeys": [
+          "sk-8f2e1a1cd0fa"
+        ],
+        "changeIds": [
+          "chg-e4f5f001ae5f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-87d161c59ee8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].http01.ingress",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].http01.ingress",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.8.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"strict-validate-path-type\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"false\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"strict-validate-path-type\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"true\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.8.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"strict-validate-path-type\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "ACME HTTP01 challenges fail with admission webhook errors ('Error presenting challenge: admission webhook validate.nginx.ingress.kubernetes.io denied the request') in two cases: ingress-nginx >= 1.12.0 with the default strict-validate-path-type setting, or ingress-nginx >= 1.8.0 with that option enabled. The controller rejects the `/.well-known/acme-challenge/<TOKEN>` path because it contains a dot.",
+        "remediation": "Disable the strict-validate-path-type configuration option in ingress-nginx, or solve HTTP01 challenges with a standards-compliant Ingress controller (e.g. Cilium) that handles PathType Exact.",
+        "severity": "high"
+      },
+      "statement": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-13816d10132a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-13816d10132a"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-14fb874e05ca"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-6d19f137d8aa"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> ⚠️ Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:56:57.735Z"
+  }
+}

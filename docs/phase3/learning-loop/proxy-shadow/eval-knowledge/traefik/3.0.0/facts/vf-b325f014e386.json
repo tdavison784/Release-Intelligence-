@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b325f014e386",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-de694b50f710"
+        ],
+        "statementKeys": [
+          "sk-1ebd26e6e039"
+        ],
+        "changeIds": [
+          "chg-0653cc39ecf2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-4b9080e9db9b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML/TOML) sets providers.docker.tls.caOptional"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the Docker provider static configuration still sets tls.caOptional (file, CLI flag, or environment variable), the option no longer exists in v3 and the configured value stops being honoured; the upgrade guide's remediation is to remove it from the Docker provider static configuration.",
+        "remediation": "Remove the tls.caOptional option from the Docker provider static configuration, in whichever form it is set: --providers.docker.tls.caOptional CLI flag, providers.docker.tls.caOptional in traefik.yml/traefik.yaml, or caOptional under [providers.docker.tls] in traefik.toml."
+      },
+      "statement": "TLS.CAOptional: Docker provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-fa9a9214f50d"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-fa9a9214f50d"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-faac8193a3c0"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-37a411e1097a"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-dac3a3c51ce8",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L69-L93 (Migration Guide: From v2 to v3 › Static configuration › Docker & Docker Swarm › TLS.CAOptional)",
+        "excerpt": "#### TLS.CAOptional\n\nDocker provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType).\n\n??? example \"An example usage of the TLS.CAOptional option\"\n\n    ```yaml tab=\"File (YAML)\"\n    providers:\n      docker:\n        tls: \n          caOptional: true\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [providers.docker.tls]\n        caOptional=true\n    ```\n\n    ```bash tab=\"CLI\"\n    --providers.docker.tls.caOptional=true\n    ```\n\n##### Remediation\n\nThe `tls.caOptional` option should be removed from the D…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:54:05.388Z"
+  }
+}

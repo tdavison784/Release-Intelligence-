@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6a683cff19c8",
+    "reviewItemId": "ri-e04f653d8a25",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The ingester configuration setting `max_transfer_retries` and its corresponding CLI flag `-ingester.max-transfer-retries` are removed in Loki 3.0.0 in favor of the Write Ahead Log (WAL)."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-ingester.max-transfer-retries",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes the ingester setting max_transfer_retries (-ingester.max-transfer-retries) in favor of the WAL. Exposed: any environment that still sets the CLI flag on any Loki workload, or sets ingester.max_transfer_retries in its configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:1a9257bfef6ed9bb9b32a1c6690aa5a30d6391a32354ff82a001635623983826",
+      "inputEvidence": [
+        "ev-c6e07f70e7d9",
+        "ev-b19cd3bb8e8b",
+        "ev-8ec3d6c379c3"
+      ],
+      "generatedAt": "2026-10-03T17:04:36.676Z",
+      "callId": "9bdaef92-7097-4222-8cda-6f67ec346a90",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c6e07f70e7d9] says the ingester setting `max_transfer_retries`, with CLI flag `-ingester.max-transfer-retries` (single dash in the evidence), is removed. So an environment is exposed when it sets either the flag or the config key. The proposal limits the flag check to an \"ingester\" component, but the evidence does not tie the setting to one workload. In Loki the ingester code can also run inside other deployment targets, so that limit could miss exposed environments. I removed the component limit, used the evidence's flag spelling, and kept the config-key check under the ingester block. [ev-b19cd3bb8e8b] and [ev-8ec3d6c379c3] only list alternatives and do not change who is exposed.",
+    "startedAt": "2026-10-03T17:04:16.351Z",
+    "decidedAt": "2026-10-03T17:04:36.676Z"
+  }
+}

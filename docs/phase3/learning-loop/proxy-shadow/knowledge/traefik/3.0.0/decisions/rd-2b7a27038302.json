@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2b7a27038302",
+    "reviewItemId": "ri-df921305594c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer has the Consul provider option `tls.caOptional`, so a configured `caOptional` value is not honoured.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration (file, CLI or environment).",
+        "severity": "low"
+      },
+      "statement": "Traefik v3 removes the Consul provider's static option `tls.caOptional` (providers.consul.tls.caOptional), because TLS client authentication is a server-side option, so remove it from the Consul provider's static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:0987de69c2afac4d922676ecad481837a328ec8f424e6d0357287268ac97367d",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-03T17:04:16.243Z",
+      "callId": "b643fefc-b41a-4044-b09b-84c68191b2ef",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-4685c9dd4dac] says the Consul provider `tls.CAOptional` option \"has been removed in v3\" and that operators should remove `tls.caOptional` from the Consul provider static configuration. A removed key means a configured value is no longer honoured, which is what setting-ignored covers. The evidence does not say the upgrade fails or that the configuration is rejected, so a stronger failure kind is not supported. Low severity fits, because the guide explains that TLS client authentication is a server-side option.",
+    "startedAt": "2026-10-03T17:04:09.162Z",
+    "decidedAt": "2026-10-03T17:04:16.243Z",
+    "resultingFact": "vf-b95a34ee5f66"
+  }
+}

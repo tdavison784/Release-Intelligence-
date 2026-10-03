@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-72b7862a295e",
+    "reviewItemId": "ri-37164b747943",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log message format changes; setups matching on specific log strings could break.",
+        "remediation": "Update any log matching rules to the new structured log format.",
+        "severity": "low"
+      },
+      "statement": "Previously unstructured cert-manager log messages are now structured logs, which may break setups that match on specific log strings."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:323a08618c54f6941bac085d71966293ae46413320098472c3c2c70da80b7e94",
+      "inputEvidence": [
+        "ev-df7847de6bcb",
+        "ev-6db6001fefb2",
+        "ev-969cbf095c23",
+        "ev-7ed93148a767"
+      ],
+      "generatedAt": "2026-10-03T12:49:30.773Z",
+      "callId": "0e4accdc-bd44-46d6-8286-75559f06ef14",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-df7847de6bcb] says unstructured log messages were replaced with structured logs, and that this \"could break your setup\" only if you were matching on specific log strings. cert-manager itself keeps working; only the log output format changes. The breakage is hedged (\"potentially\", \"could\") and depends on outside log tooling, so the evidence does not state that anything definitely fails. That makes behavior-change (review) at low severity the right call, and the proposed statement and remediation match the evidence.",
+    "startedAt": "2026-10-03T12:49:24.191Z",
+    "decidedAt": "2026-10-03T12:49:30.773Z"
+  }
+}

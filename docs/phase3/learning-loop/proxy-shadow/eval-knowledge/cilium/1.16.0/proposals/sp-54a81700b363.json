@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-54a81700b363",
+    "candidateId": "sc-3d73e8a6dea6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "direct-server-return"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether live service connections using Direct-Server-Return were established before Cilium v1.13.3 and are still open at upgrade time"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections that use Direct-Server-Return and were established before Cilium v1.13.3 will be disrupted on upgrade to 1.16.",
+        "remediation": "Re-establish the affected service connections.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16, service connections that use Direct-Server-Return and were established before v1.13.3 will be disrupted and need to be re-established."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-89034c5d2c74"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:14275cb53fe1c52ee79e4df5110b88e2ae757d82f09ecf7f7b800e2d78ed990a",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-03T07:05:43Z",
+      "callId": "0abadeee-66be-4549-9122-1b698df87a4b"
+    }
+  }
+}

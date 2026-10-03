@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-005a8598bcca",
+    "candidateId": "sc-66c07691e032",
+    "proposalId": "sp-8e8525146874",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-line-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator's log tooling (grep-style filters, alerts, parsers) matches cert-manager log lines by their previous text format at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager keeps working, but some log lines now carry more structured logging information and have changed format, so text-based log filtering or parsing (e.g. grep) that relied on the previous format may no longer match those lines.",
+        "remediation": "Review any grep-based filters, alerts, or log parsers that consume cert-manager logs and update them for the new log line format; prefer consuming structured log fields rather than text matching.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds more structured logging information to certain log lines, so some log lines have changed format and text-based log filtering such as grep may no longer match them."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

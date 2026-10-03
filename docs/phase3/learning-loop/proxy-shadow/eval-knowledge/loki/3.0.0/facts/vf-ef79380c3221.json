@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ef79380c3221",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-67b13594b5ec"
+        ],
+        "statementKeys": [
+          "sk-81aaa2cedb2f"
+        ],
+        "changeIds": [
+          "chg-84d4d6242f2c"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-23b472cbf6b3"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--querier.worker-parallelism"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--querier.max-concurrent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "querier.worker-parallelism",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML config key path that corresponds to the querier.worker-parallelism CLI flag (not named in the upgrade guide)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments configured with querier.worker-parallelism via CLI flag or YAML will have this setting ignored in Loki 3.0.0; the configuration key no longer exists to control worker parallelism.",
+        "remediation": "Replace querier.worker-parallelism configuration with querier.max-concurrent to control the maximum concurrent requests processed by queriers.",
+        "severity": "high"
+      },
+      "statement": "`querier.worker-parallelism` CLI flag and its corresponding yaml setting are now removed as it does not offer additional value to already existing…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-b9d1c1c5b647"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b9d1c1c5b647"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-43760b62aa1e"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-dbada9613629"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9f4292160fa2",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L596-L597 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `querier.worker-parallelism` CLI flag and its corresponding yaml setting are now removed as it does not offer additional value to already existing `querier.max-concurrent`.\n    We recommend configuring `querier.max-concurrent` to limit the max concurrent requests processed by the queriers.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:02:22.612Z"
+  }
+}

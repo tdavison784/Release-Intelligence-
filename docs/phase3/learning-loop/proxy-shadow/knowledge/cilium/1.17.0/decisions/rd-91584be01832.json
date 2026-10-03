@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-91584be01832",
+    "reviewItemId": "ri-940135454aa2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The wireguard.userspaceFallback Helm value is no longer honoured; WireGuard transparent encryption now requires a Linux kernel with WireGuard support and will not fall back to userspace mode.",
+        "remediation": "Remove the wireguard.userspaceFallback setting from your Helm values. Ensure your Linux kernel has WireGuard support enabled before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The previously deprecated Helm value wireguard.userspaceFallback has been removed in Cilium 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:aa1befa79514d6886ea7de2a96b61f4af724e485f44a148e1457c66eb4404f4d",
+      "inputEvidence": [
+        "ev-ffd2c3200e89",
+        "ev-98d8079a3380",
+        "ev-32984cccce52",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T16:54:49.003Z",
+      "callId": "35a39c0b-82c4-436e-bdcf-a38cdc2b75ba",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ffd2c3200e89] lists the Helm `wireguard.userspaceFallback` option under the 1.17 \"Removed Options\" section. It says the userspace fallback has been removed and that WireGuard encryption users must run a Linux kernel with WireGuard support. So a configured fallback value is no longer honoured, and setting-ignored (mandatory work) fits that removal. The statement and remediation stay within what the evidence says. The validator refuting that the key exists in chart values concerns the subject and change aspects, not the consequence being checked here.",
+    "startedAt": "2026-10-03T16:54:38.413Z",
+    "decidedAt": "2026-10-03T16:54:49.003Z"
+  }
+}

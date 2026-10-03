@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4aea713da6ab",
+    "reviewItemId": "ri-893997fb13fa",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications configured to sync on the in-cluster cluster will enter Unknown state without the possibility to sync resources; new Applications cannot be created using the in-cluster cluster; and deleting Applications will not delete the previously managed resources.",
+        "remediation": "Perform cleanup or migration of existing in-cluster Applications before upgrading when in-cluster is disabled. To perform post-migration cleanup, the in-cluster will need to be enabled temporarily.",
+        "severity": "high"
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:14f480a5acd58cd36af3f662409305e61ef583636c1811417617b717e8ecd6e4",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-03T16:53:23.012Z",
+      "callId": "f817dc6b-b744-45e2-acc3-49cd72619afe",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-adf2ed32df1c] says that when `cluster.inClusterEnabled: \"false\"` is explicitly set, existing Applications that target the in-cluster cluster go to an Unknown state and can no longer sync. New in-cluster Applications can't be created, and deleting an Application no longer deletes the resources it managed. Syncing actually breaks, so this is a failure, and workload-failure (mandatory work) fits. The remediation (clean up or migrate before upgrading, or temporarily re-enable in-cluster to clean up afterwards) and the high severity match the guide's wording.",
+    "startedAt": "2026-10-03T16:53:16.932Z",
+    "decidedAt": "2026-10-03T16:53:23.012Z"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-caae966ce2d2",
+    "reviewItemId": "ri-583475b26e82",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:76dd1938615b34f12e7a388f919007650c15fc924b4ebe5eb20f1ca30e0d7602",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:25:01.165Z",
+      "callId": "b5819989-3f4c-46de-9db4-27d8ac9f1238",
+      "provider": "anthropic"
+    },
+    "reason": "The two evidence excerpts [ev-782bc47d120d] [ev-c2c6c790d6b2] contain only \"apiVersion: v1\". They show neither the Bucket v1 schema nor any text about what gets rejected. The claim that objects are rejected comes only from the generated diff summary. That claim is also doubtful here: status.artifact.digest is a status field, and status is normally written by the controller, not by operators' manifests. Nothing in the evidence says whether the shipped controller fails to set the digest or whether any operator write would be rejected. To support resource-rejected (or to downgrade it to behavior-change or none), we would need the schema excerpts showing where the field is required, plus upstream text on how the controller writes status.artifact and on existing stored objects.",
+    "startedAt": "2026-10-03T12:24:47.223Z",
+    "decidedAt": "2026-10-03T12:25:01.165Z"
+  }
+}

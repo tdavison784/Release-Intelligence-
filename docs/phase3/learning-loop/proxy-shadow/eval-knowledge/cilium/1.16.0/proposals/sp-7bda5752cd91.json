@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7bda5752cd91",
+    "candidateId": "sc-b81eb6a8063a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLocalRedirectPolicy",
+        "path": "spec.skipRedirectFromBackend"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumLocalRedirectPolicy"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLocalRedirectPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Traffic from policy-selected node-local backends destined to the policy's frontend is redirected back to the node-local backends by default.",
+        "remediation": "Create local redirect policies with skipRedirectFromBackend set to true to override."
+      },
+      "statement": "With socket-based load-balancing, Local Redirect Policy now redirects traffic from policy-selected node-local backends to the policy frontend back to the local backends by default; set skipRedirectFromBackend: true to override."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fbe2aedc4ddc"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:42749ea65a564fa50cbc7044a0af52ac31b5f1278e836d49b17d49151927f426",
+      "inputEvidence": [
+        "ev-fbe2aedc4ddc"
+      ],
+      "generatedAt": "2026-10-03T07:09:11Z",
+      "callId": "8da4c716-ab36-4433-a6fa-562f5a5eb5ad"
+    }
+  }
+}

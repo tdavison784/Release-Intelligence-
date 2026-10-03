@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-75123e9aa4d0",
+    "candidateId": "sc-29475ebd2dc6",
+    "proposalId": "sp-969060e988a3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istioctl manifest diff"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or CI automation invoke `istioctl manifest diff` or `istioctl manifest profile diff` (istioctl is an operator-run binary; its invocation is not a container argument of any product workload, so no configuration predicate can read it)"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to Istio 1.24.0, any script or automation that invokes `istioctl manifest diff` or `istioctl manifest profile diff` fails because the commands no longer exist; users looking to compare manifests must use generic YAML comparison tools.",
+        "remediation": "Replace invocations of `istioctl manifest diff` / `istioctl manifest profile diff` in scripts and CI with a generic YAML comparison tool.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 removed the `istioctl manifest diff` and `istioctl manifest profile diff` commands; users looking to compare manifests are directed to generic YAML comparison tools."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:istio|name=istioctl manifest diff: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:istio|name=istioctl manifest diff: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

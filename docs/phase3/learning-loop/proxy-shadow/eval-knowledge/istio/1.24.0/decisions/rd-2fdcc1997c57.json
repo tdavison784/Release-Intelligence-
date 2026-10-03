@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2fdcc1997c57",
+    "reviewItemId": "ri-751887696931",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Any configuration using the 1.20 compatibilityProfile or its associated removed feature flags (ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING, VERIFY_CERTIFICATE_AT_CLIENT) will be ignored or cause failures after upgrade.",
+        "remediation": "Remove any references to the 1.20 compatibilityProfile and update configurations using the removed feature flags. ENABLE_AUTO_SNI remains available as an alternative.",
+        "severity": "high"
+      },
+      "statement": "Support for the 1.20 compatibilityProfile has been removed, along with the feature flags it configured (ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING, VERIFY_CERTIFICATE_AT_CLIENT), while ENABLE_AUTO_SNI remains available."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Selecting the 1.20 compatibilityProfile, or setting ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING or VERIFY_CERTIFICATE_AT_CLIENT, is no longer honoured after the upgrade, because support for the profile and these flags was removed from Istio.",
+        "remediation": "Remove references to the 1.20 compatibilityProfile and to the removed flags, and check that the current default behaviour suits your mesh. ENABLE_AUTO_SNI was not removed and can still be set explicitly.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 removed support for the 1.20 compatibilityProfile and removed ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT entirely. Selecting that profile or setting those flags no longer applies the 1.20 behaviour."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:1b57f40f2f2f072fb7ed046807d99531a7c071deb6f9932da2eb1f161e988a4a",
+      "inputEvidence": [
+        "ev-e54c7ef2acc9",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-85eccdc718e3",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T12:57:36.533Z",
+      "callId": "b37d5f20-2363-4b83-ae75-b3f05423a53a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-e54c7ef2acc9] says support for the 1.20 compatibilityProfile was removed and that ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT were removed from Istio entirely. Values set for them are therefore no longer honoured, so setting-ignored fits. Nothing in the evidence says anything fails, so the proposed \"or cause failures\" is unsupported. The evidence also doesn't call ENABLE_AUTO_SNI an alternative; it only says that flag was not removed.",
+    "startedAt": "2026-10-03T12:57:19.4Z",
+    "decidedAt": "2026-10-03T12:57:36.533Z"
+  }
+}

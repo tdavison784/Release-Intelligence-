@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4bf90fc64437",
+    "candidateId": "sc-d8ce8b124388",
+    "proposalId": "sp-c973e8e15fd8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-conflicting-pools-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_conflicting_pools_total\"",
+        "after": "\"lbipam_conflicting_pools\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-conflicting-pools"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which Prometheus dashboards, alerting rules, or PromQL queries reference the old metric name lbipam_conflicting_pools_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is only exposed under the new name lbipam_conflicting_pools, so dashboards, alerts, or queries still referencing lbipam_conflicting_pools_total will stop receiving data for it.",
+        "remediation": "Update dashboards, alerting rules, and PromQL queries to use lbipam_conflicting_pools instead of lbipam_conflicting_pools_total.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Prometheus metric lbipam_conflicting_pools_total has been renamed to lbipam_conflicting_pools."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

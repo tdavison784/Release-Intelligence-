@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2871b940161b",
+    "reviewItemId": "ri-64e4d3d9d98f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=2.0.0 <3.0.0"
+            },
+            {
+              "op": "product-version",
+              "name": "loki",
+              "state": "in-range",
+              "range": "3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "A mandatory migration to TSDB must be performed before upgrading from Loki 2.x to 3.0.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": ">=2.0.0 <3.0.0"
+        }
+      },
+      "statement": "Environments upgrading to Loki 3.0.0 from a 2.x release should first follow the Migrate to TSDB instructions, as the upgrade guide says."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d5241806ecd65d742e4b4258b410f8a72e21a693892be1212496c33ea20a6bea",
+      "inputEvidence": [
+        "ev-6650fd33304c",
+        "ev-8b7267b73a1c",
+        "ev-7791a108cc39",
+        "ev-649f409b4be1",
+        "ev-b07a4021f30c",
+        "ev-92063a2a5bac",
+        "ev-2690c7915f58",
+        "ev-61d6d2b50a95",
+        "ev-c8bbef5b1d06",
+        "ev-d0c9247a44d4",
+        "ev-33c9df8cd833",
+        "ev-ba4422942cd3",
+        "ev-6c97458131e0",
+        "ev-73d501ad9fa3",
+        "ev-7e86af7082a3",
+        "ev-ea984d665a12",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a",
+        "ev-c569cd56f9ef",
+        "ev-ca57f615b9c9",
+        "ev-cf8ca5687050",
+        "ev-e598abf2a6cd",
+        "ev-576bad2a0aa0",
+        "ev-707b74e58c3e",
+        "ev-c6e07f70e7d9",
+        "ev-b19cd3bb8e8b",
+        "ev-8ec3d6c379c3"
+      ],
+      "generatedAt": "2026-10-03T12:55:29.641Z",
+      "callId": "30c04cb9-e85b-4673-8a96-6dc4a6e67e4c",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-6650fd33304c] tells anyone upgrading from Loki 2.x to 3.0 to follow the Migrate to TSDB instructions first, so the from-version leaf \">=2.0.0 <3.0.0\" is supported. The proposal is wrong to add a product-version leaf for loki itself: that op is for another product's version, and the target release is already fixed by this item. The context [ev-8b7267b73a1c] ties the TSDB requirement to the active schema's index type. Without a stated config source, though, a predicate that excludes environments already on TSDB would be a guess, so the exposure stays the upgrade edge only.",
+    "startedAt": "2026-10-03T12:55:11.287Z",
+    "decidedAt": "2026-10-03T12:55:29.641Z"
+  }
+}

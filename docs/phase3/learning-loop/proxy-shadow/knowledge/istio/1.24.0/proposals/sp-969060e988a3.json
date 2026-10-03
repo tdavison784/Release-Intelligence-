@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-969060e988a3",
+    "candidateId": "sc-29475ebd2dc6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istioctl manifest diff"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or CI automation invoke `istioctl manifest diff` or `istioctl manifest profile diff` (istioctl is an operator-run binary; its invocation is not a container argument of any product workload, so no configuration predicate can read it)"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to Istio 1.24.0, any script or automation that invokes `istioctl manifest diff` or `istioctl manifest profile diff` fails because the commands no longer exist; users looking to compare manifests must use generic YAML comparison tools.",
+        "remediation": "Replace invocations of `istioctl manifest diff` / `istioctl manifest profile diff` in scripts and CI with a generic YAML comparison tool.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 removed the `istioctl manifest diff` and `istioctl manifest profile diff` commands; users looking to compare manifests are directed to generic YAML comparison tools."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0307de1909a6"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:391ce74e873507b0731d34f8be5ad7d7a6d0520403f05da7105fbc6bc3f86896",
+      "inputEvidence": [
+        "ev-0307de1909a6"
+      ],
+      "generatedAt": "2026-10-03T07:31:01Z",
+      "callId": "6a733b6e-cdbd-40b7-b239-9b81d3c363b0"
+    }
+  }
+}

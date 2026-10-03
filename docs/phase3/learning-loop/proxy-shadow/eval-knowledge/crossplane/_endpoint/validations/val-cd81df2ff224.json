@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cd81df2ff224",
+    "candidateId": "sc-35e83ef1cd6f",
+    "proposalId": "sp-ae7741a15ca1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--enable-external-secret-stores"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-external-secret-stores",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Crossplane's core command returns an error saying external secret store support was removed, so it likely fails to start when --enable-external-secret-stores is set; the added line alone does not show the exact condition.",
+        "remediation": "Remove --enable-external-secret-stores from the Crossplane args and stop relying on external secret stores.",
+        "severity": "medium"
+      },
+      "statement": "In v2.0.0 core.go returns an error stating Crossplane removed support for external secret stores, and the --enable-external-secret-stores flag will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

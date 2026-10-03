@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cea610365c51",
+    "candidateId": "sc-c17c3673cf1d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminatingtls-ca-crt-loading"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.egress[].toPorts[].terminatingTLS",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumNetworkPolicy"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.use-full-tls-context",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "cilium-config"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The ca.crt key in the secret is no longer loaded for terminatingTLS, so Envoy no longer requires client certificates from pods; setups relying on the old behaviour change.",
+        "remediation": "Set --use-full-tls-context=true to retain the old behaviour."
+      },
+      "statement": "In 1.16, L7 network policy with terminatingTLS no longer loads the ca.crt key from the secret (so Envoy stops requiring client certificates); setting --use-full-tls-context=true retains the old behaviour."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b5190a359c10"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a45d084c2fc22ecad11f6906e60a3c87b55c3866aa3279b7c6e238286be1b33d",
+      "inputEvidence": [
+        "ev-b5190a359c10"
+      ],
+      "generatedAt": "2026-10-03T07:08:33Z",
+      "callId": "9a4484e8-e05e-4d25-990b-5aff69b2ba60"
+    }
+  }
+}

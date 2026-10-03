@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4e5285689947",
+    "candidateId": "sc-d81386765c5b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"3.17.0\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.sources[].chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Helm chart operations (templating/rendering of Helm-based applications) are now performed with Helm 3.17.0 instead of the previously bundled Helm version, so chart processing behavior follows Helm 3.17.0.",
+        "remediation": "Review Helm 3.17.0 release changes and verify Helm-based applications still render and deploy as expected after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 upgrades its bundled Helm to 3.17.0, so Helm chart operations now run on Helm 3.17.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1c5771548249"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2ff5da67320e4dfe8dd8e00b4644cfdb3a3454fcbab5f2d503c081b1374b040d",
+      "inputEvidence": [
+        "ev-1c5771548249"
+      ],
+      "generatedAt": "2026-10-03T08:47:31Z",
+      "callId": "8c93959c-3c73-455b-b5fb-43a751dd659d"
+    }
+  }
+}

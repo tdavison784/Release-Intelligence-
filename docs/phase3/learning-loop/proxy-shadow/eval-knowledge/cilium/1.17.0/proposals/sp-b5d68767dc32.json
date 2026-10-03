@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b5d68767dc32",
+    "candidateId": "sc-6069811be30d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"changing device MTU required restarting the agent to pick up the new MTU\"",
+        "after": "\"MTU auto-detection is continuous during agent lifetime\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the agent relies on MTU auto-detection (rather than an explicitly configured MTU) and whether the device MTU actually changes during the agent's lifetime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The agent still works, but MTU handling differs: a changed device MTU is now picked up without restarting the agent, so environments that changed device MTUs and relied on restart-time pickup (or expected the agent to keep the MTU detected at startup) will see the new continuous behavior.",
+        "remediation": "No operator action required; verify that continuous pickup of device MTU changes is acceptable if device MTUs change while the agent runs.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, MTU auto-detection runs continuously during the cilium agent's lifetime, so changing a device's MTU no longer requires restarting the agent to pick up the new MTU."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-01a5226ddc9a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1a440dae577f8ac62ba468457180d29045ec10d6611eaf7259f7a497df8947b2",
+      "inputEvidence": [
+        "ev-01a5226ddc9a"
+      ],
+      "generatedAt": "2026-10-03T08:18:30Z",
+      "callId": "ef0058c0-0e9c-446f-b76b-4c94f5762e73"
+    }
+  }
+}

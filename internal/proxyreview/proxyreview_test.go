@@ -116,7 +116,7 @@ func TestPromptStatesCorrectionLimits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if req.PromptVersion != "proxy-review/v3" {
+	if req.PromptVersion != "proxy-review/v4" {
 		t.Errorf("prompt version %s", req.PromptVersion)
 	}
 	for _, want := range []string{"at most 400 characters", "at most 600 characters", "at most 12 citations",
@@ -407,5 +407,54 @@ func TestPromptShowsLiteralsDecoded(t *testing.T) {
 	}
 	if strings.Contains(user, `\"Never\"`) {
 		t.Error("prompt still shows an encoded literal")
+	}
+}
+
+// proxy-4: a re-review may decide an item closed as need-more-evidence or
+// defer, but only while it still has the status the prompt was built for.
+func TestReReviewOfClosedItems(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	rc.Item.Status = domain.ReviewNeedsEvidence
+	req, err := Build(rc, Options{})
+	if err != nil || req.ItemStatus != domain.ReviewNeedsEvidence {
+		t.Fatalf("request: %v %+v", err, req)
+	}
+	ev := string(req.InputEvidence[0])
+	ok := map[string]any{"action": "accept", "reason": "r", "citations": []string{ev}, "confidence": "medium"}
+	if _, _, err := Decision(rc, req, respond(t, req, ok)); err != nil {
+		t.Errorf("re-review of a needs-evidence item: %v", err)
+	}
+	moved := *rc
+	moved.Item.Status = domain.ReviewPending
+	if _, _, err := Decision(&moved, req, respond(t, req, ok)); err == nil {
+		t.Error("a verdict was recorded on an item whose status changed since the prompt")
+	}
+	decided := *rc
+	decided.Item.Status = domain.ReviewDecided
+	dreq := *req
+	dreq.ItemStatus = domain.ReviewDecided
+	if _, _, err := Decision(&decided, &dreq, respond(t, &dreq, ok)); err == nil {
+		t.Error("a decided item was reviewed")
+	}
+}
+
+// v4: duplicateOf offers only facts of the candidate's release.
+func TestDuplicateOfOnlySameRelease(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	a := rc.Item.Proposed
+	same := domain.VerifiedFact{ID: "vf-000000000001", Release: rc.Candidate.Release, Assertion: a, Status: domain.FactActive,
+		Verification: []domain.AspectVerification{{Aspect: domain.AspectSubject, Level: domain.VerifiedDeterministic}}}
+	other := same
+	other.ID, other.Release = "vf-000000000002", ""
+	rc.RelatedFacts = []domain.VerifiedFact{same, other}
+	req, err := Build(rc, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(req.Facts) != 1 || req.Facts[0] != same.ID {
+		t.Errorf("duplicateOf enum: %v", req.Facts)
+	}
+	if !strings.Contains(req.Request.Messages[0].Content, other.ID) {
+		t.Error("the other-release fact should still be shown as context")
 	}
 }

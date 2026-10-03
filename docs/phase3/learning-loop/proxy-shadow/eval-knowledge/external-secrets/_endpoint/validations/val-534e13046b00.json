@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-534e13046b00",
+    "candidateId": "sc-a975e3461f85",
+    "proposalId": "sp-0fd44c23dbda",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "clustersecretstores-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "clustersecretstores.external-secrets.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore objects stay stored as v1beta1 until they are rewritten. Unless the operator rewrites all objects and updates status.storedVersions, the stored objects still depend on v1beta1 when a later release removes that version.",
+        "remediation": "Run a storage version migration that rewrites all ClusterSecretStore objects, then remove v1beta1 from status.storedVersions of the clustersecretstores.external-secrets.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the clustersecretstores.external-secrets.io CRD moves from v1beta1 to v1 (0.15.0 → 0.16.0). Existing ClusterSecretStore objects stay stored as v1beta1 until they are rewritten, so a storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

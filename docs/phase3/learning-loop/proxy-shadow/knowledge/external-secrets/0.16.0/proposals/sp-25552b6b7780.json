@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-25552b6b7780",
+    "candidateId": "sc-8b9acf590523",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "installCRDs",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The CRD bump is a mandatory first step: before migrating external-secrets to v0.16.1, the operator must apply the v0.16.1 CRD bundle (kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml) and verify no error occurs; an operator who does nothing migrates the controller without the required CRD update.",
+        "remediation": "Run kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml, verify no error occurs, and only then upgrade the external-secrets deployment to v0.16.1.",
+        "severity": "medium"
+      },
+      "statement": "When upgrading, environments whose CRDs are installed separately from the chart must first bump the CRDs by applying the v0.16.1 CRD bundle (kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml), verify no error occurs, and only then migrate external-secrets to v0.16.1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4139b0de79e3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8cb783fc56865f4fd95e6d0a0dd8cec9c7e51b97a2f20dbb5eec3940d9c400e7",
+      "inputEvidence": [
+        "ev-4139b0de79e3"
+      ],
+      "generatedAt": "2026-10-03T08:15:04Z",
+      "callId": "92f9afb2-b50f-4467-8b5b-f8dbfee6a833"
+    }
+  }
+}

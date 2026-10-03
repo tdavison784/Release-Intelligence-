@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bdbd9cc87072",
+    "candidateId": "sc-e08e8f654c47",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-pods"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.hostNetwork",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork are no longer ignored in ambient mode after the upgrade, so ambient handling of such pods may change; verify their behaviour.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes a bug where ambient mode ignored pods running with hostNetwork."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-93c0d3a62602"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8555428333c2a067edd91a4a58b16031f035df8aff581c0eb0e3cd6187510c13",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-03T07:03:56Z",
+      "callId": "96a4b923-1a34-4918-b5cd-27a68eb0673a"
+    }
+  }
+}

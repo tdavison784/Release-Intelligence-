@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6fb905f696cd",
+    "candidateId": "sc-d8211760345d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrade existing services without a protocol are preserved as is to avoid disruption, and must be deleted and recreated for the agent to take their protocol into account; on downgrade, services with protocol set are deleted and recreated without it, causing connection disruptions."
+      },
+      "statement": "Cilium 1.17 adds service protocol differentiation (enabled by default, controlled by --bpf-lb-proto-diff); existing services without a protocol are preserved and must be deleted and recreated for the protocol to be taken into account."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Which existing services lack a protocol is stored/runtime state; no static predicate expresses it from the text.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2a9b9b849526"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3d95b9859f555ae1f59de35e9d620eefa6d7da5a10d8a82ec5bee6032585e604",
+      "inputEvidence": [
+        "ev-2a9b9b849526"
+      ],
+      "generatedAt": "2026-10-03T07:11:49Z",
+      "callId": "329d1f66-a57f-48fd-b7e4-ded058eb6f1d"
+    }
+  }
+}

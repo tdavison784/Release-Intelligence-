@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7ca99e663fd6",
+    "candidateId": "sc-f933c1ca02f0",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Istio CRDs not templated by default; Upgrade: kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml or similar\"",
+        "after": "\"Istio CRDs are templated by default in istio-base; Upgrade: helm upgrade istio-base; out-of-band kubectl install/upgrade of CRDs is no longer required\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.24.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On upgrade to 1.24.0 the istio-base chart templates the Istio CRDs by default, the labels on the CRDs change to be consistent with other Helm-installed resources, and helm upgrade istio-base now safely upgrades CRDs that were previously installed with helm install istio-base or kubectl apply; nothing fails if the operator does nothing, and manual kubectl apply CRD installs/upgrades continue to work.",
+        "remediation": "Optionally replace the previously documented out-of-band CRD upgrade (kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml) with helm upgrade istio-base; environments that do not use Helm to install, template, or manage Istio resources may continue installing CRDs manually with kubectl apply.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0 the Istio CRDs are templated by default in the istio-base Helm chart, so CRDs can be installed and upgraded with `helm upgrade istio-base` (CRD labels change to match other Helm-installed resources), while CRDs previously installed or upgraded with `kubectl apply` can continue to be managed that way and are also safely upgradable via Helm from this release onward."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-85eccdc718e3",
+      "ev-2941a875a468"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:c2dd4d09b496529dd117f8a969944cc10202fdc9a699dfd9a51e6760835e67e1",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468"
+      ],
+      "generatedAt": "2026-10-03T07:35:30Z",
+      "callId": "08c3811a-2da4-4869-839d-2d4c9a2d73ac"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c20ad7268147",
+  "promptDigest": "sha256:245651da89845ddadc7619fd8e737bebad4aaed56c7a10b01934a125c256a45b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "361f8d1a-2c7e-47da-96ea-d2d3957d537d",
+  "startedAt": "2026-10-03T17:00:38.680Z",
+  "decidedAt": "2026-10-03T17:01:00.174Z",
+  "durationMs": 20765,
+  "costUSD": 0.20708000000000001,
+  "output": {
+    "action": "correct",
+    "reason": "The release note says 1.13.0 \"changes the defaults to disable the policy exceptions\" [ev-2bd1a74f9c4a], and the upgrade guide describes this as a change to the chart's default exception settings [ev-dea2079e5dc4, ev-2bbc505de6bb]. It does not describe a change to the PolicyException CRD schema, so crd-field PolicyException spec with behavior-changed names the wrong subject and the wrong change type. The chart-default renders show this flag going from --enablePolicyException=true to --enablePolicyException=false on the admission, background and reports controllers [ev-b39e8c27b4a6, ev-e599ee1bf192, ev-89fe173dc4ac, ev-87f3f8d70a09, ev-f85ade3c8a00]. That makes it a default-changed from true to false.",
+    "citations": [
+      "ev-2bd1a74f9c4a",
+      "ev-dea2079e5dc4",
+      "ev-2bbc505de6bb",
+      "ev-b39e8c27b4a6",
+      "ev-e599ee1bf192",
+      "ev-89fe173dc4ac",
+      "ev-87f3f8d70a09",
+      "ev-f85ade3c8a00"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Kyverno 1.13.0 turns policy exceptions off by default (CVE-2024-48921 hardening). The chart-rendered default of --enablePolicyException on the admission, background and reports controllers changes from true to false.",
+      "subject": {
+        "determination": "asserted",
+        "family": "cli-flag",
+        "name": "--enablePolicyException"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "default-changed",
+        "before": true,
+        "after": false
+      }
+    },
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ]
+  }
+}

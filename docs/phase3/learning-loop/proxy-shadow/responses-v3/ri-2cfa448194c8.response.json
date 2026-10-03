@@ -1,0 +1,60 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2cfa448194c8",
+  "promptDigest": "sha256:26c4b5500e63fb420c0d8f2a015182c13b482c7e3f8cdc05b640e7dc150db14f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ed774e27-a6f8-44ad-8400-02738c62bf21",
+  "startedAt": "2026-10-03T12:47:56.653Z",
+  "decidedAt": "2026-10-03T12:48:24.740Z",
+  "durationMs": 27394,
+  "costUSD": 0.681636,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-01e97dc9c4df] says that removing the wildcard view permission \"may impact reports\" as well as mutate and generate policies on custom resources. The proposed exposure only covers mutate/generate policies, so it misses environments exposed through reports, which the reports controller's lost */* get/list/watch permissions confirm [ev-fbb2a078179b, ev-8034700c2e78, ev-2e7e175db33a]. Its undecidable leaf also uses an invalid reason, \"environment-visibility-gap\". The evidence never says which resources lose visibility, so that part stays undecidable (evidence-gap), joined with Kyverno policies being in use. No overlap is given because [ev-2bbc505de6bb] does not name the Helm values key that restores the wildcard permissions.",
+    "citations": [
+      "ev-01e97dc9c4df",
+      "ev-2bbc505de6bb",
+      "ev-fbb2a078179b",
+      "ev-8034700c2e78",
+      "ev-2e7e175db33a",
+      "ev-0ae726bec846",
+      "ev-6af5be55b5f4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13 removes the controllers' wildcard view permission and binds them to the default `view` role. Exposed: environments using ClusterPolicy or Policy whose reports, or whose mutate/generate policies, need to view resources (e.g. custom resources) the default view role does not grant. Admission-time policy evaluation is unaffected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which resources (e.g. custom resources) the environment's reports or mutate/generate policies need to view that the default Kubernetes view role does not grant to the Kyverno controllers"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-89ce2fc733e2",
+  "promptDigest": "sha256:43a9cfd92d221d480827d76af098ce289ba7c6b153a1a8c5b79ee9c9d940c17f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3a11a06a-d0d5-46a8-a480-eba44f591b8b",
+  "startedAt": "2026-10-03T16:53:19.077Z",
+  "decidedAt": "2026-10-03T16:53:26.450Z",
+  "durationMs": 6472,
+  "costUSD": 0.063296,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "Both evidence excerpts [ev-2875a348b5d7] and [ev-59d22c21eec4] contain only \"/*\", so they don't show the code around the added `return errors.New(...)` line. The only content to judge is the added line itself, as described in the change text. It doesn't show what makes that line run, for example whether setting the flag triggers it, or whether returning the error stops the core from starting or is only logged. The error text says the flag \"will be removed in a future release\", which reads like a deprecation. So the proposed workload-failure (\"the core does not start\") is not supported. To decide, we need the code around the added line in v2.0.0 core.go, or an upgrade note saying what happens when the flag is set.",
+    "citations": [
+      "ev-59d22c21eec4",
+      "ev-2875a348b5d7"
+    ],
+    "confidence": "low"
+  }
+}

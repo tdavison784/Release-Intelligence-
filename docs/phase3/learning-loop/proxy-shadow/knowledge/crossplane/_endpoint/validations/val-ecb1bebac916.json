@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ecb1bebac916",
+    "candidateId": "sc-76ca511eb130",
+    "proposalId": "sp-c96d20e831b0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core pod is still started with --registry, the core command returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\" and does not run.",
+        "remediation": "Remove --registry from the Crossplane args and make sure every package, and each of its dependencies, uses a fully qualified name that states its registry.",
+        "severity": "high"
+      },
+      "statement": "In v2.0.0 the Crossplane core command no longer supports the --registry flag: setting it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\", and all packages and their dependencies must use fully qualified names that state their registry."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

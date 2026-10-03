@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-742656b8aac5",
+  "promptDigest": "sha256:e20e3d8d71356262e38a5d3455eab9a9702e5fe12171f2b5fb7a5c324ac12614",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c762de95-6b9c-434a-9556-7522a7ec8d9c",
+  "startedAt": "2026-10-03T12:57:11.783Z",
+  "decidedAt": "2026-10-03T12:57:22.126Z",
+  "durationMs": 9456,
+  "costUSD": 0.09110800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "The computed CRD diff between [ev-8998581760b8] (v0.37.8) and [ev-451bd6a12e72] (v1.0.0) shows that the storage version of ec2nodeclasses.karpenter.k8s.aws moves from v1beta1 to v1. The change text says to run a storage version migration and update status.storedVersions, so migration/migration-required is the right family and change type. The proposed name adds \"upgrade\", which the evidence never uses. A free-form migration name must use only the evidence's own key words, so it should be \"ec2nodeclasses-storage-version-migration\". Confidence is low because the evidence excerpts are empty (\"---\"), so the decision rests on the computed diff text.",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1. Existing EC2NodeClass objects stay stored as v1beta1 until rewritten, so a storage version migration (re-write all objects) and a status.storedVersions update are required before a later release removes v1beta1.",
+      "subject": {
+        "determination": "asserted",
+        "family": "migration",
+        "name": "ec2nodeclasses-storage-version-migration"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "migration-required"
+      }
+    },
+    "labels": [
+      "wrong-subject"
+    ]
+  }
+}

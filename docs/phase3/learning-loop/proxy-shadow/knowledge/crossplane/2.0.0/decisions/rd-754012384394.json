@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-754012384394",
+    "reviewItemId": "ri-41e307f8cccb",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": "<2.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Upgrading Crossplane to v2.0.0 requires executing the documented migration steps: adding the Crossplane Helm repository, upgrading via helm upgrade, and verifying the upgrade completion."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:14b046af2968cb9a29d3542dc44b37a3fa1c176e3020d6869d50ed89456a64a7",
+      "inputEvidence": [
+        "ev-c28095f20093"
+      ],
+      "generatedAt": "2026-10-03T12:50:39.213Z",
+      "callId": "19210627-d277-495e-8946-2c72942342e7",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c28095f20093] is only the standard upgrade procedure: add the Helm repo, run helm upgrade, then check the pods. It names no setting, field or API that changed, and it does not say what fails if an operator does something else, so there is no exposure condition to confirm. The proposed condition is also badly formed. It uses product-version for Crossplane's own version, but that op is for another product's version; the version being upgraded from belongs in edge-from-version. It would also flag every pre-2.0 install as needing a migration, which the evidence does not support.",
+    "startedAt": "2026-10-03T12:50:31.527Z",
+    "decidedAt": "2026-10-03T12:50:39.213Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-200e1161d5eb",
+  "promptDigest": "sha256:e3cb696b41380e0878d2b443cae9f54ac3bebd94f7ef06b0bd191d9d9e660f0e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "03f4a828-a1b1-4e0f-88a7-2a08f2a963d5",
+  "startedAt": "2026-10-03T12:46:18.682Z",
+  "decidedAt": "2026-10-03T12:46:28.356Z",
+  "durationMs": 8852,
+  "costUSD": 0.100636,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f0e757e54820] says the `istioctl profile` command was removed, and the same information is in the Istio documentation. This is a subcommand that operators run by hand. It is not a container argument of Istio's workloads. The proposed cli-flag leaf reads workload container args, so it would never match anyone who runs the command, and every exposed environment would be missed. Whether an environment calls `istioctl profile` from scripts, CI or runbooks is operator practice that no values, manifest or ConfigMap shows, so exposure has to be an undecidable leaf.",
+    "citations": [
+      "ev-f0e757e54820"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The `istioctl profile` command was removed in Istio 1.24.0. The same information is in the Istio documentation. Exposed environments are those whose operators, scripts or CI pipelines run `istioctl profile`. No static configuration input shows this.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts, CI pipelines or runbooks run the `istioctl profile` subcommand"
+        }
+      }
+    }
+  }
+}

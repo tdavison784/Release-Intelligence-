@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9ed2cdafa531",
+    "candidateId": "sc-4330cdde4865",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with totally different exportTo attributes are no longer merged, which changes how traffic policy resolves for such hosts.",
+        "remediation": "Set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false on the pilot deployment to restore the previous merge behavior.",
+        "severity": "low"
+      },
+      "statement": "Istiod no longer merges DestinationRules for the same host when their exportTo attributes are totally different; setting env var ENABLE_ENHANCED_DESTINATIONRULE_MERGE to false in pilot restores the old merging."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:46887d6572fbd8b72c2e0201f6cf988efb24606574c79369aacb4073e1ad8ce1",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-03T07:14:04Z",
+      "callId": "336fa39c-17dd-4601-94fc-48545c4d6bc2"
+    }
+  }
+}

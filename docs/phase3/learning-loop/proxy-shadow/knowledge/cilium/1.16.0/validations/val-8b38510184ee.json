@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8b38510184ee",
+    "candidateId": "sc-aa0aef7cd1ac",
+    "proposalId": "sp-62b15d60be97",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "netkit-datapath-mode"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "linux",
+          "state": "in-range",
+          "range": ">=6.8"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The default datapath continues to be veth devices, so an operator who changes nothing is unaffected; netkit is an optional new mode available only on Linux kernel 6.8 or newer, and existing veth devices cannot be replaced in-place with netkit.",
+        "remediation": "If interested in experimenting with netkit, follow the performance_tuning guide's instructions; switching an existing veth deployment requires recreating it rather than an in-place replacement.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 adds netkit as a new supported datapath mode for Linux kernels of version 6.8 or newer, while continuing to rely on veth devices by default, and an in-place replacement of veth with netkit is not possible."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

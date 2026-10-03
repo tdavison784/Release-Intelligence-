@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2e62b4266bc1",
+  "promptDigest": "sha256:5db147a496566ae417bba0b5638c53ab3f6380717d0beebd2b2d02b77205236e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0434b3d6-211d-4e8a-b04a-27e4b70ca926",
+  "startedAt": "2026-10-03T12:21:33.904Z",
+  "decidedAt": "2026-10-03T12:21:41.920Z",
+  "durationMs": 7159,
+  "costUSD": 0.091992,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide [ev-2df1b23f32ac] says HTTP/3 can now be enabled on entry points without the `experimental.http3` option. It also says that option \"is now removed\", is unsupported and would prevent Traefik from starting. The remediation is to delete it from the static configuration. So the concrete change is that the static-config key experimental.http3 was removed. It is not a vague HTTP/3 protocol behavior change, which is how [ev-177a6106bc02] summarises it.",
+    "citations": [
+      "ev-2df1b23f32ac",
+      "ev-177a6106bc02"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "In Traefik v3, HTTP/3 is no longer experimental: the static configuration option `experimental.http3` is removed and unsupported, and leaving it set prevents Traefik from starting. HTTP/3 is enabled on entry points without it.",
+      "subject": {
+        "determination": "asserted",
+        "family": "config-key",
+        "path": "experimental.http3"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed"
+      }
+    },
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5b93c77a3d43",
+    "reviewItemId": "ri-031df7704f47",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new optional Helm value is available for setting custom environment variables in the webhook Pod. Operators do not have to do anything.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a new Helm value, webhook.extraEnv, for setting custom environment variables in the webhook Pod. The same change also adds cainjector.extraEnv and startupapicheck.extraEnv."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:70ee22d95fe1aecabdf5c7358d8c81cc7a00126584c60ed2c2dfac92c5b3e084",
+      "inputEvidence": [
+        "ev-fe0fca386a7a",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-e7cf2f463686",
+        "ev-619c0cea3aa4",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-03T12:18:35.785Z",
+      "callId": "a9d6a49e-60c4-45db-80fb-e0cfadb73ac2",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-fe0fca386a7a] describes `webhook.extraEnv` as a new, optional Helm value that \"allows you to set\" custom environment variables in the webhook Pod. It is listed under Feature, and nothing in the note or the surrounding section says that anything fails, is rejected, stops being honoured or must be migrated if the operator does nothing. So kind none (informational, low) is supported. The validator refuted the change type because the key already appears in the v1.16.0 values file, but that concerns the change aspect, which is not being verified here, and it does not show any consequence for an operator who does nothing.",
+    "startedAt": "2026-10-03T12:18:28.037Z",
+    "decidedAt": "2026-10-03T12:18:35.785Z"
+  }
+}

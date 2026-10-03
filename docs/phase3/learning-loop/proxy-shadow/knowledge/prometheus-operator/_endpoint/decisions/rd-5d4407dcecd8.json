@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5d4407dcecd8",
+    "reviewItemId": "ri-f91f6985ff14",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No enum values were removed, so existing Prometheus resources that set spec.otlp.translationStrategy are still accepted; the only change is that the new value UnderscoreEscapingWithoutSuffixes is now allowed.",
+        "severity": "low"
+      },
+      "statement": "In the monitoring.coreos.com/v1 Prometheus CRD schema, the enum for spec.otlp.translationStrategy gained the allowed value \"UnderscoreEscapingWithoutSuffixes\" and lost no values, so values accepted before are still accepted."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:4c858d31af83720a85b8709a4662ddef9997bbbea59e78421758b1b492a439c6",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381"
+      ],
+      "generatedAt": "2026-10-03T17:07:36.119Z",
+      "callId": "07e16a85-0c7a-4104-bd67-0d09d87dd20f",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff of the Prometheus CRD between [ev-cc90e86e2643] and [ev-c87966ce90d5] lists removed: [] and added: [\"UnderscoreEscapingWithoutSuffixes\"] for spec.otlp.translationStrategy. A value that was valid before is therefore not rejected now, and existing resources keep working. The semvalidate.crd 'tightened' check even found the enum unchanged, which supports no-consequence just as well. Nothing in the evidence says any resource is rejected, any setting is ignored or any behaviour changes, so kind none (informational) is correct, and P2's resource-rejected claim has no support.",
+    "startedAt": "2026-10-03T17:07:27.851Z",
+    "decidedAt": "2026-10-03T17:07:36.119Z"
+  }
+}

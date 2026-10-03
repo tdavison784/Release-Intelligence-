@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e5d7ac9c0ce9",
+    "candidateId": "sc-dfcb35d1329d",
+    "proposalId": "sp-871622c3c6fd",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-update-duration-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_update_duration\"",
+        "after": "\"envoy_cilium_npds_update_duration\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-update-duration-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether monitoring dashboards, alerts or queries consume the envoy_cilium_policymap_<node-ip>_<node-id>_update_duration metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exported as envoy_cilium_npds_update_duration, so queries that use the old envoy_cilium_policymap_<node-ip>_<node-id>_update_duration name no longer match it.",
+        "remediation": "Change dashboards, alerts and recording rules to use envoy_cilium_npds_update_duration.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` is renamed to `envoy_cilium_npds_update_duration`."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:21Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-45bfa6f48f6a",
+    "candidateId": "sc-4eec988b66b4",
+    "proposalId": "sp-38f5218e1d24",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.targetRef",
+                  "state": "set"
+                }
+              ],
+              "group": "security.istio.io",
+              "kind": "AuthorizationPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.targetRefs",
+                  "state": "set"
+                }
+              ],
+              "group": "security.istio.io",
+              "kind": "AuthorizationPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading, a status condition is now written on AuthorizationPolicy resources bound to a waypoint proxy; the formatting of these conditions is experimental and will change, and a policy with multiple targetRefs presently receives a single condition rather than one per reference.",
+        "remediation": "No operator action is required; do not rely on the condition formatting (it is experimental and will change) and expect only a single condition for policies with multiple targetRefs until Istio adopts the upstream Kubernetes Gateway API convention.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds writing a status condition on AuthorizationPolicy resources bound to a waypoint proxy; the condition formatting is experimental and will change, and policies with multiple targetRefs presently receive a single condition until Istio adopts an upstream Kubernetes Gateway API convention for multiple references."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/added",
+        "detail": "no canonical exposure condition for crd-field added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-78ce147a777e",
+    "candidateId": "sc-95b8b6a5377b",
+    "proposalId": "sp-7843f35970bb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Path handling by ingress controllers changes: paths now require an exact match (pathType: Exact) instead of the previous controller-specific matching (pathType: ImplementationSpecific); the evidence frames this as more reliable and more secure and reports no failure.",
+        "remediation": "Verify that the ingress controllers handling the affected Ingress resources behave correctly with pathType: Exact.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, the Kubernetes Ingress pathType is changed from ImplementationSpecific to Exact for more reliable handling of ingress controllers and enhanced security."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/value-changed",
+        "detail": "protocol-behavior value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/value-changed",
+        "detail": "protocol-behavior value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

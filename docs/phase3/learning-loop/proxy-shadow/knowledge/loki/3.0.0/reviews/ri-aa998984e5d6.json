@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-aa998984e5d6",
+    "candidateId": "sc-006852306c28",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"If you have configured `-boltdb.shipper.shared-store.key-prefix` or its YAML setting to a value other than `index/`, ensure that all the existing period…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who configured -boltdb.shipper.shared-store.key-prefix or -tsdb.shipper.shared-store.key-prefix (or the corresponding YAML setting) to a value other than index/ must set path_prefix on all existing period configs that use boltdb-shipper or tsdb as the index, to the previously configured value; this is presented as a required configuration step of the Loki 3.0.0 upgrade (the shared_store/shared_store_key_prefix shipper settings were removed).",
+        "remediation": "Set path_prefix to the previously configured key-prefix value on every existing period config whose index is boltdb-shipper or tsdb.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Loki 3.0.0 requires operators who set -boltdb.shipper.shared-store.key-prefix or -tsdb.shipper.shared-store.key-prefix (or the corresponding YAML setting) to a value other than index/ to set path_prefix on all existing period configs that use boltdb-shipper or tsdb as the index, to the value previously configured."
+    },
+    "proposals": [
+      "sp-1c58c140c177",
+      "sp-4103b3a7564c",
+      "sp-5a93ab4aa876",
+      "sp-8268439d18c3"
+    ],
+    "validations": [
+      "val-049f2ce510a3",
+      "val-0b0464eb8e84",
+      "val-5e4dfe72d8dd",
+      "val-6f0207aa9163",
+      "val-cb67d44660c9",
+      "val-dd986fecaab3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:39:44Z"
+  }
+}

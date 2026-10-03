@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0d7af17ec62a",
+    "candidateId": "sc-d492171426b7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alert rules, or other metrics consumers query the old metric name `envoy_cilium_policymap_<node-ip>_<node-id>_update_time`"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "after upgrading to 1.17.0 the metric is exported under the new name `envoy_cilium_npds_update_time` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_time`, so metrics consumers find it under the new name only",
+        "remediation": "update dashboards, alerts and other metrics consumers to query `envoy_cilium_npds_update_time` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_time`",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 renames the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_time` to `envoy_cilium_npds_update_time`."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: the subject is a Prometheus metric name (`envoy_cilium_policymap_<node-ip>_<node-id>_update_time`); the subject-family taxonomy defines no family for metric/telemetry names; change: the note states a metric rename (`envoy_cilium_policymap_<node-ip>_<node-id>_update_time` -> `envoy_cilium_npds_update_time`), but the `renamed` type requires a typed subject and replacement identity and no subject family covers metric names",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2214fc54500d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bcea33eca2e400fec40669b65ed666a3c31c40d7aab233b6bbb50d4a746e41a0",
+      "inputEvidence": [
+        "ev-2214fc54500d"
+      ],
+      "generatedAt": "2026-10-03T08:51:08Z",
+      "callId": "cc116963-4cf5-46ae-98bf-b065d74777d4"
+    }
+  }
+}

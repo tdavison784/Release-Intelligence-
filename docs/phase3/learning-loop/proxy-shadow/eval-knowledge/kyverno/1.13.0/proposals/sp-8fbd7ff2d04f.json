@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8fbd7ff2d04f",
+    "candidateId": "sc-43d7d231eb46",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "cleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustercleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "policyexceptions.kyverno.io"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing resources stored in the dropped deprecated API versions must be migrated. The Helm hook does this automatically. Upgrades without Helm or the Helm hook must migrate them with kube-storage-version-migrator.",
+        "remediation": "Upgrade with Helm and its hooks enabled, or run kube-storage-version-migrator on the affected Kyverno CRDs before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops deprecated API versions from its CRDs (the rendered chart removes v2alpha1 from cleanuppolicies, clustercleanuppolicies and policyexceptions). Existing stored resources must be migrated: a Helm hook does this automatically, and installs without Helm or the Helm hook can use kube-storage-version-migrator."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-816adf94e987",
+      "ev-d4e66123c4de",
+      "ev-9fdd5d1096ef",
+      "ev-b8120a2bb840"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:7ca0e0a18e682325f1394d7cfefb625cfca5c6cb6f684cbd27114e272afdf7da",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T07:06:39Z",
+      "callId": "337bdead-d01d-438a-9900-76386b81e2b1"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3060014e187b",
+    "reviewItemId": "ri-b59a14ec6e64",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alerting rules or other metric consumers reference the metric cilium_node_connectivity_status"
+        }
+      },
+      "statement": "The cilium_node_connectivity_status metric is deprecated in Cilium 1.17.0 in favor of the new cilium_node_health_connectivity_status metric."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:c494828248160221e6cafccfcba05956d9eebda6f6faae8cd7b427040d8c2bfa",
+      "inputEvidence": [
+        "ev-82ab63ec4bf8",
+        "ev-ac4018b89668"
+      ],
+      "generatedAt": "2026-10-03T12:32:30.974Z",
+      "callId": "08306fcc-ae60-4230-bfc6-a8344eeaba70",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-82ab63ec4bf8] only says the Prometheus metric cilium_node_connectivity_status is deprecated in favour of cilium_node_health_connectivity_status. No values key, flag, field or ConfigMap key controls whether an environment is exposed. Exposure depends on whether dashboards, alerting rules or queries consume that metric, and those often sit outside the product's configuration. A predicate scoped to in-cluster rule objects would also miss consumers outside the cluster, so it would be too narrow. An undecidable leaf naming exactly what is needed is therefore the right condition.",
+    "startedAt": "2026-10-03T12:32:21.105Z",
+    "decidedAt": "2026-10-03T12:32:30.974Z",
+    "resultingFact": "vf-a4bc88fa9fe4"
+  }
+}

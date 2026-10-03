@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ac324dcdbb48",
+    "candidateId": "sc-f3844379b9b0",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "compareoptions"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that rely on the previous compareoptions defaults rather than setting them explicitly get the new default values after upgrading to 3.0.0, so the product behaves differently with unchanged configuration; the upstream commit is marked as a breaking change (feat!).",
+        "remediation": "Review upstream change #22230 (commit cca748591737d568e5b976cb060b960c40bd8c14) for the new defaults and verify Argo CD behavior after upgrading if the compareoptions settings are not set explicitly.",
+        "severity": "medium"
+      },
+      "statement": "The v3.0.0 release notes state that a breaking-change-marked feature (commit cca748591737d568e5b976cb060b960c40bd8c14, #22230) updates the default values of the compareoptions settings, without specifying which options changed or the old and new values."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence names only 'compareoptions' and does not state which options changed, their old/new values, or where they are configured (ConfigMap key, CLI flag or Helm value), so no exposure condition over a customer environment can be written.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8ab94de966ea"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2e322767595c05d4ec351d3f01b5d4398a8c5c4dc3392db5cb1ff22876d09b92",
+      "inputEvidence": [
+        "ev-8ab94de966ea"
+      ],
+      "generatedAt": "2026-10-03T08:48:14Z",
+      "callId": "4f4a52b6-ec6f-48bb-9771-9250c84438d8"
+    }
+  }
+}

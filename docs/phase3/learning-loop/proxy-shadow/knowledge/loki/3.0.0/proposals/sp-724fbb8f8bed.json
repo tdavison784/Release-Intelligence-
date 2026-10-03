@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-724fbb8f8bed",
+    "candidateId": "sc-631f213db11a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "background-cache-size-limit-check"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which Loki cache backend the background size limit belongs to and which configuration setting (if any) enables or sizes it"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Caches keep working, but the background cache size limit is now checked atomically and correctly, so the cache's behavior around the size limit differs from the previous release.",
+        "remediation": "No operator action stated by the evidence; if a background cache size limit is in use, verify cache size-limit behavior after upgrading.",
+        "severity": "low"
+      },
+      "statement": "Loki now checks the background cache size limit atomically and correctly, so the cache's size-limit check behaves differently from previous releases."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-49061bdffc5b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1db429ac1397ff4d97990a324adb58033aace08319b67caadf753bdc53af3af3",
+      "inputEvidence": [
+        "ev-49061bdffc5b"
+      ],
+      "generatedAt": "2026-10-03T07:16:18Z",
+      "callId": "08a30e52-3bcd-4fe6-808e-5adb7749f3e4"
+    }
+  }
+}

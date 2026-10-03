@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c560688f9215",
+    "candidateId": "sc-6069811be30d",
+    "proposalId": "sp-7b47d71ea3dd",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"changing device MTU requires restarting the agent to pick up the new MTU\"",
+        "after": "\"MTU auto-detection is continuous during agent lifetime\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The running agent now picks up device MTU changes automatically, without an agent restart, instead of keeping the MTU it detected at startup.",
+        "remediation": "Check that environments which change device MTU at runtime expect the agent to apply the new MTU without a restart.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, the agent keeps detecting the MTU while it runs, so it picks up a changed device MTU without needing a restart."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

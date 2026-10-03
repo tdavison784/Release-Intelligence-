@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b2a52e6256d7",
+    "reviewItemId": "ri-482b0bfc2299",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "tls.caOptional",
+        "component": "HTTP provider"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The HTTP provider `tls.caOptional` configuration option has been removed in Traefik v3.0.0."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.http.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The HTTP provider static configuration option `providers.http.tls.caOptional` has been removed in Traefik v3.0.0, because TLS client authentication is a server-side option."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:1edba16831bf2908e45f1c8b1a20ff370f1f8a253fd2cd81a7b88dea95ff787d",
+      "inputEvidence": [
+        "ev-030a6d8de1b4"
+      ],
+      "generatedAt": "2026-10-03T12:51:46.274Z",
+      "callId": "caf1a315-c07c-4081-922b-b55c473d3f58",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-030a6d8de1b4] says the HTTP provider `tls.CAOptional` option \"has been removed in v3\", so the change type `removed` is correct. The subject's spelling is wrong. The same excerpt shows the static-configuration key as `providers: http: tls: caOptional` in YAML, `[providers.http.tls] caOptional` in TOML and `--providers.http.tls.caOptional` on the CLI. So the full config path is `providers.http.tls.caOptional`. \"HTTP provider\" is neither a file nor a binary, so it does not belong in the config-key component field.",
+    "startedAt": "2026-10-03T12:51:36.649Z",
+    "decidedAt": "2026-10-03T12:51:46.274Z"
+  }
+}

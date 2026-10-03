@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-da2b541c5acb",
+    "candidateId": "sc-c03e26a7040c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "memcached-chunk-fetch-timeout"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "memcached"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using memcached, the timeout applied when Loki fetches chunks from memcached is now forced to the correct value, so chunk-fetch timeout behavior may differ from the previous release.",
+        "remediation": "Verify that the timeout now enforced on memcached chunk fetches is appropriate for your memcached deployment.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 forces the correct memcached timeout when fetching chunks, so the timeout applied to memcached chunk fetches changes behavior for environments that use memcached."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-885b543fe7c5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6b847dbcb181917bc5e21198e3a66db6d60f5c36d0d24264e3ec88abf339fae5",
+      "inputEvidence": [
+        "ev-885b543fe7c5"
+      ],
+      "generatedAt": "2026-10-03T07:12:36Z",
+      "callId": "5c525614-cb3f-4745-8f63-0c601cf2238f"
+    }
+  }
+}

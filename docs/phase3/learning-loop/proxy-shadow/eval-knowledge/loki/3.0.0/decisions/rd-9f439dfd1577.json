@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9f439dfd1577",
+    "reviewItemId": "ri-7118d7e07dd8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The -boltdb.shipper.shared-store and -tsdb.shipper.shared-store configuration settings, if present, are no longer honored during upgrade to Loki 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "The cli-flags -boltdb.shipper.shared-store and -tsdb.shipper.shared-store, and their corresponding YAML configuration keys, have been removed and are no longer honored in Loki 3.0.0; environments that had not configured these settings are unaffected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:621c9db7a6feffcd01a13a92c97c18edafe016a5d42423eafbb5e8a65aac2306",
+      "inputEvidence": [
+        "ev-0483f04624d3",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T12:57:08.012Z",
+      "callId": "89aa7f79-f0c0-478a-b1d3-4747bfbbdcd7",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] says the `-boltdb.shipper.shared-store` and `-tsdb.shipper.shared-store` flags and their YAML settings are removed, and that `object_store` in period_config now decides where the index is stored. So a configured value stops being honoured, which makes setting-ignored the right kind. [ev-7d2769e8c602] and [ev-af5a4b32c120] say that if the value does not match `object_store`, you lose access to the index for those periods until the index tables are moved or copied. That supports mandatory work at high severity. [ev-0483f04624d3] confirms that environments that never set these flags are not affected.",
+    "startedAt": "2026-10-03T12:56:58.413Z",
+    "decidedAt": "2026-10-03T12:57:08.012Z"
+  }
+}

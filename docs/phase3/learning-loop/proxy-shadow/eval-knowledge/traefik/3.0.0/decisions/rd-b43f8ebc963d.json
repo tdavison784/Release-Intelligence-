@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b43f8ebc963d",
+    "reviewItemId": "ri-92d3495597b9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.rancher"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "providers.kubernetes.crd"
+        }
+      },
+      "statement": "The Rancher v1 provider has been removed in Traefik v3; configurations using it will prevent Traefik from starting."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.rancher"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The static configuration key providers.rancher (Rancher v1 provider) was removed in Traefik v3; this configuration is now unsupported and would prevent Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e3cb5787145f921dabe363bba3d471e121339066700bbff499af87075df7f7b8",
+      "inputEvidence": [
+        "ev-96141bfb2be5"
+      ],
+      "generatedAt": "2026-10-03T16:54:39.107Z",
+      "callId": "741fdac9-168c-49a6-82f0-a7198f44cac7",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-96141bfb2be5] says the Rancher v1 provider was removed and gives its v2 configuration as `providers: rancher: {}` and `[providers.rancher]`, so the subject config-key providers.rancher and the change type \"removed\" are correct. The same evidence only says Rancher 2.x users \"should utilize the Kubernetes CRD provider directly\". It never names the key path providers.kubernetes.crd, and it presents that provider as a different provider to switch to, not as a rename of the Rancher key. So the replacedBy target is not supported and is dropped.",
+    "startedAt": "2026-10-03T16:54:29.893Z",
+    "decidedAt": "2026-10-03T16:54:39.107Z",
+    "resultingFact": "vf-4f61c80a142d"
+  }
+}

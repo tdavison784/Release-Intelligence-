@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-02fa0a240d45",
+    "reviewItemId": "ri-00c6ce732c8e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "Legacy repository configuration in the argocd-cm ConfigMap (repositories, repository.credentials, helm.repositories) is removed in Argo CD 3.0; repositories must be converted to Secrets."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:773c9e25546e662de61b47167b06b842cbf63793b9423a90efab2251b5c0ccd1",
+      "inputEvidence": [
+        "ev-ea324615706c"
+      ],
+      "generatedAt": "2026-10-03T12:42:17.666Z",
+      "callId": "7e7412c8-e2e8-4df7-8654-fed93c6a36da",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ea324615706c] says repository configuration in the argocd-cm ConfigMap \"is no longer available in Argo CD 3.0\", and its detection command reads `.data.repositories` from argocd-cm. That supports a config-key subject with path `repositories` and component argocd-cm, and a change type of removed. The same detection command also reads `repository.credentials` and `helm.repositories`. Those two keys are covered by the applicability aspect, which I was not asked to verify. The key itself is named correctly.",
+    "startedAt": "2026-10-03T12:42:10.329Z",
+    "decidedAt": "2026-10-03T12:42:17.666Z"
+  }
+}

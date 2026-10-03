@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8cbb727ad990",
+    "reviewItemId": "ri-c06a1c34895f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "webhook.extraEnv",
+          "state": "set"
+        }
+      },
+      "statement": "cert-manager 1.17.0 adds a new Helm value `webhook.extraEnv` that allows setting custom environment variables in the webhook Pod (the same release note / PR #7317 also adds the analogous values `cainjector.extraEnv` and `startupapicheck.extraEnv`, which are separate subjects of the same addition)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:703ba40ae70b160619d54e366d3ee4cdd697d0698efdc9a9a242198f066f1ccd",
+      "inputEvidence": [
+        "ev-fe0fca386a7a",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-e7cf2f463686",
+        "ev-619c0cea3aa4",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-03T12:33:52.4Z",
+      "callId": "dde391e6-ba7d-43f5-8799-60b4bdd86403",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-fe0fca386a7a] describes `webhook.extraEnv` as a new, optional Helm value that adds custom environment variables to the webhook Pod. The only environments where anything differs are those that set the key, so values-key{webhook.extraEnv, set} is the right scope. P3's condition is wrong: it flags environments that leave the keys unset, and it bundles in the cainjector and startupapicheck keys. The validator finding that the key already appears in the v1.16.0 values file [ev-fdc96eee87bf] casts doubt on the 'added' change type but does not change who is exposed, so confidence is low.",
+    "startedAt": "2026-10-03T12:33:41.022Z",
+    "decidedAt": "2026-10-03T12:33:52.4Z"
+  }
+}

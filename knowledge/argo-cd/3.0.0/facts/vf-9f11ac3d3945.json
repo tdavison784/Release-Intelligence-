@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9f11ac3d3945",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-ccae8e2d183c"
+        ],
+        "statementKeys": [
+          "sk-5aa7e0fef26e"
+        ],
+        "changeIds": [
+          "chg-9cbe62a32f33"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-17607957b9fd"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.exclusions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"list of excluded resource kinds (Endpoints, EndpointSlice, Lease, SelfSubjectReview, TokenReview, LocalSubjectAccessReview, SelfSubjectAccessReview, SelfSubjectRulesReview, SubjectAccessReview, CertificateSigningRequest, PolicyReport, ClusterPolicyReport, CertificateRequest, EphemeralReport, ClusterEphemeralReport, AdmissionReport, ClusterAdmissionReport, BackgroundScanReport, ClusterBackgroundScanReport, UpdateRequest, CiliumIdentity, CiliumEndpoint, CiliumEndpointSlice)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.exclusions\"]",
+              "state": "unset"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.exclusions\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resources of the listed kinds are excluded from Argo CD by default, so they are no longer tracked or managed unless resource.exclusions is overridden or removed in the configMap.",
+        "remediation": "Override or remove resource.exclusions in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "Default `resource.exclusions` configurations: Argo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-619dac7ee233"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-619dac7ee233"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-693ae4aa9524"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-da5f4597ddf1"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3437aa882db2",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L60-L75 (v2.14 to 3.0 › Breaking Changes › Default `resource.exclusions` configurations)",
+        "excerpt": "### Default `resource.exclusions` configurations\n\nArgo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude resources that\nare known to be created by controllers and not usually managed in Git. The exclusions contain high volume and high churn objects\nwhich we exclude for performance reasons, reducing connections and load to the K8s API servers of managed clusters.\n\nThe excluded Kinds are:\n\n- **Kubernetes Resources**: `Endpoints`, `EndpointSlice`, `Lease`, `SelfSubjectReview`, `TokenReview`, `LocalSubjectAccessReview`, `SelfSubjectAccessRevie…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:26:03.634Z"
+  }
+}

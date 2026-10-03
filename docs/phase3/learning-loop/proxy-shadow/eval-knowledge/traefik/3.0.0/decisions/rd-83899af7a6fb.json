@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-83899af7a6fb",
+    "reviewItemId": "ri-67e90fcdb654",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "tls.caOptional",
+        "component": "etcd"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The ETCD provider's tls.caOptional configuration option has been removed in Traefik v3.0.0 because TLS client authentication is a server-side option."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.etcd.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The static configuration option providers.etcd.tls.caOptional (ETCD provider tls.caOptional) has been removed in Traefik v3.0.0, because TLS client authentication is a server-side option."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:67171c86a8e430b7d5ba13a408486760017b5230e63b99e21f200bb17a810afb",
+      "inputEvidence": [
+        "ev-ebfb740bf1f8"
+      ],
+      "generatedAt": "2026-10-03T12:56:01.899Z",
+      "callId": "98e2e261-ec0a-4a6a-bf50-15ffd3add7d8",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ebfb740bf1f8] says the ETCD provider `tls.CAOptional` option \"has been removed in v3\", and its remediation is to delete it from the static configuration. So \"removed\" is the right change type. The subject is spelled wrong, though. The same excerpt gives the full static-config key as `providers: etcd: tls: caOptional` in YAML/TOML and `--providers.etcd.tls.caOptional` on the CLI. A config-key component must be a file or a binary, and the \"etcd\" provider is neither, so the key should be the full path providers.etcd.tls.caOptional with no component.",
+    "startedAt": "2026-10-03T12:55:51.438Z",
+    "decidedAt": "2026-10-03T12:56:01.899Z"
+  }
+}

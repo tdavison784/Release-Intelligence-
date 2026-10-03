@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-83f696ac7de8",
+    "reviewItemId": "ri-42462d5d4939",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.marathon",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.marathon",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Marathon provider has been removed in Traefik v3.0.0 and Marathon-related configuration is no longer supported."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:53f01cc233a5b4b5af479d80f9605b00869380a8057c220ddce65a875f8bfc04",
+      "inputEvidence": [
+        "ev-c71146d39072"
+      ],
+      "generatedAt": "2026-10-03T12:50:48.289Z",
+      "callId": "c2290c44-c388-4469-9803-6ab3432dd95a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c71146d39072] says the Marathon provider was removed in v3. It names two ways to configure it: `providers.marathon` in the static file (YAML/TOML) and the CLI flag `--providers.marathon=true`. It also says such configuration \"would prevent Traefik to start\". The proposed exposure checks for either the `providers.marathon` key or the `--providers.marathon` flag being set, which covers both forms the evidence names. Confidence is low for three reasons: no config sources are listed to confirm that a values-key predicate reads the static file, the ConfigMap data key that holds the file is not named, and Marathon sub-option flags may not match a set check on the bare flag name.",
+    "startedAt": "2026-10-03T12:50:34.243Z",
+    "decidedAt": "2026-10-03T12:50:48.289Z"
+  }
+}

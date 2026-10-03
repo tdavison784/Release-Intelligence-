@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2013a456af47",
+    "candidateId": "sc-c770479afc97",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "certificate-deletion-request-secret-creation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether Certificates are deleted while the controller would otherwise issue CertificateRequests or Secrets for them"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Bug fix: Certificates being deleted no longer create CertificateRequest or Secret objects; the evidence states no operator action.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, a Certificate that is being deleted no longer creates CertificateRequest or Secret objects; this is a bug fix with no operator action stated."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-ab4bd1639399"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1b1c1f5e931256fd00f4f5c8f566671dedf512683c6be314eb502e4d065ee2f5",
+      "inputEvidence": [
+        "ev-ab4bd1639399"
+      ],
+      "generatedAt": "2026-10-03T07:13:55Z",
+      "callId": "d606d82f-8376-4e93-aac6-a301936bee36"
+    }
+  }
+}

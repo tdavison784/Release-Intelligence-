@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-18ec55946700",
+    "candidateId": "sc-985a8fcba32d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ca-selfsigned-rsa-signing-hash"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The signature hash algorithm changes for CA and SelfSigned issuers with large RSA keys. Systems that do not support the new hashes may fail to validate certificates, so they should be checked.",
+        "severity": "low"
+      },
+      "statement": "CA and SelfSigned issuers now sign with SHA-512 for RSA keys of 4096 bits and above and SHA-384 for RSA keys of 3072 bits and above, which may matter to systems that do not support these hashes."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on the RSA key size of the CA or self-signed key and on whether downstream systems support SHA-384/512. Neither is stated as a configuration predicate in the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-53fb690413df"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2e3485ceb0e00c77bc4381aae88d93bc999c2d927ea7d6e7332d6d17c74f5865",
+      "inputEvidence": [
+        "ev-53fb690413df"
+      ],
+      "generatedAt": "2026-10-03T07:03:45Z",
+      "callId": "29649632-2015-40e1-a4ab-bdc6f9c86f81"
+    }
+  }
+}

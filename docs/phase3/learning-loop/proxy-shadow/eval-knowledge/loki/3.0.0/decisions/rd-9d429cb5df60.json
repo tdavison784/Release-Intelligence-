@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9d429cb5df60",
+    "reviewItemId": "ri-09c5f525e532",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment still passing -boltdb.shipper.compactor.shared-store or -boltdb.shipper.compactor.shared-store.key-prefix (or the corresponding shared_store / shared_store_key_prefix YAML settings) has that configuration no longer honoured: from 3.0.0 the compactor runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper, regardless of the removed settings.",
+        "remediation": "Remove the -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix flags and the corresponding shared_store / shared_store_key_prefix YAML settings from the compactor configuration, and verify the period configs (index type tsdb or boltdb-shipper) list every object store on which compaction and retention should run.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the compactor's shared-store configuration: the CLI flags -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix and the corresponding YAML settings are now removed, and the compactor instead runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:8d8b36859cc7150df7791ffc3442f7654d69171cebf7f34970a42f9373751930",
+      "inputEvidence": [
+        "ev-c569cd56f9ef",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a",
+        "ev-ca57f615b9c9",
+        "ev-cf8ca5687050"
+      ],
+      "generatedAt": "2026-10-03T12:43:24.397Z",
+      "callId": "02a7cded-be46-4777-aa04-4285a10442a0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c569cd56f9ef] says the compactor flags -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix and their YAML settings are now removed, and from 3.0.0 the compactor runs compaction and retention on every object store in period configs with index type tsdb or boltdb-shipper ([ev-ca57f615b9c9], [ev-cf8ca5687050]). So a configured value stops being honoured, which is setting-ignored. The evidence does not say startup fails or the config is rejected, so a stronger failure kind is not supported. A deprecation or behavior-change kind would understate a removed setting.",
+    "startedAt": "2026-10-03T12:43:09.874Z",
+    "decidedAt": "2026-10-03T12:43:24.397Z"
+  }
+}

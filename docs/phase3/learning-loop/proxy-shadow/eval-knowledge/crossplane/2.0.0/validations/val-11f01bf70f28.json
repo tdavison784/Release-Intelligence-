@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-11f01bf70f28",
+    "candidateId": "sc-14c188e11f35",
+    "proposalId": "sp-596f79fd9ee6",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "upgrade-providers"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "provider.packages",
+              "state": "set"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "pkg.crossplane.io",
+              "kind": "Provider"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Upgrading to Crossplane v2.0 requires operators to run the \"Upgrade providers\" step (step 4 of the upgrade approach); the excerpt does not state what breaks if the step is skipped.",
+        "remediation": "Follow step 4 \"Upgrade providers\" in the Crossplane v2.0 upgrade guide (guides/upgrade-to-crossplane-v2)."
+      },
+      "statement": "Upgrading to Crossplane v2.0 includes a mandatory operator step, step 4 of the upgrade approach, to upgrade providers."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

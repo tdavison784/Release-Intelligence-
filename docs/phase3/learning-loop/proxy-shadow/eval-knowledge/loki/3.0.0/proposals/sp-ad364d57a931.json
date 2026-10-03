@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ad364d57a931",
+    "candidateId": "sc-6a62499753bb",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.max_line_size"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"256KB\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"config.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*max_line_size\\s*:"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"runtime-config.yaml\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*max_line_size\\s*:"
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                },
+                {
+                  "op": "values-key",
+                  "path": "loki.config.limits_config.max_line_size",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*max_line_size\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"runtime-config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*max_line_size\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "values-key",
+              "path": "loki.config.limits_config.max_line_size",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that do not explicitly set a maximum line size will have the new 256KB default enforced, whereas previously no default maximum was enforced; operators who need longer lines must disable or increase the limit via configuration.",
+        "remediation": "If log lines longer than 256KB are expected, explicitly configure the maximum line size in the Loki configuration to disable or raise the limit, as described under 'Changes to default configuration values' in the 3.0 upgrade guide."
+      },
+      "statement": "Loki 3.0 now enforces a maximum line size of 256KB by default (previously no default maximum was enforced), and operators can disable or increase this limit through configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-af3121d71703"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5576dd15cc8e71ec256f1c2a094fce95bf48c5529457f8da0c3d4048848d35eb",
+      "inputEvidence": [
+        "ev-af3121d71703"
+      ],
+      "generatedAt": "2026-10-03T07:21:30Z",
+      "callId": "0cc791ef-66ad-4fbb-9988-ac066d18d1b2"
+    }
+  }
+}

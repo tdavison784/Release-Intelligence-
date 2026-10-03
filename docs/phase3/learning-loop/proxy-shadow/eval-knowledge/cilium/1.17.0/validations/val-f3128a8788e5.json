@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f3128a8788e5",
+    "candidateId": "sc-d8211760345d",
+    "proposalId": "sp-6fb905f696cd",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrade existing services without a protocol are preserved as is to avoid disruption, and must be deleted and recreated for the agent to take their protocol into account; on downgrade, services with protocol set are deleted and recreated without it, causing connection disruptions."
+      },
+      "statement": "Cilium 1.17 adds service protocol differentiation (enabled by default, controlled by --bpf-lb-proto-diff); existing services without a protocol are preserved and must be deleted and recreated for the protocol to be taken into account."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "cli-flag:cilium|name=--bpf-lb-proto-diff|component=cilium-agent: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "cli-flag:cilium|name=--bpf-lb-proto-diff|component=cilium-agent: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-867275bc2981",
+    "reviewItemId": "ri-a7d46dab9342",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:60901b23978c3b538cb4343940e37a90d532df2d9bfb8e27205f92276e0cd2b5",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381"
+      ],
+      "generatedAt": "2026-10-03T16:57:38.07Z",
+      "callId": "e236990d-6221-4f1c-93d8-caee904e69a6",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff says the enum of spec.ovhcloudSDConfigs[].service lost no values (\"removed []\") and gained \"DedicatedServer\" and \"VPS\". So the proposed condition (service equals \"\") misreads \"removed []\" as an empty-string value being removed, and nothing shows that \"\" is now rejected [ev-db02f66824cd][ev-e33dbbb0c01a]. Whether any configuration is exposed depends on whether the enum is new (any other value rejected) or an existing enum was extended (no exposure). The CRD excerpts are empty, and the crd-schema validator reports the enum as unchanged, which contradicts the diff. The before and after schema of this field in scrapeconfigs.monitoring.coreos.com (v0.85.0 vs v0.86.2) is needed to decide.",
+    "startedAt": "2026-10-03T16:57:24.04Z",
+    "decidedAt": "2026-10-03T16:57:38.07Z"
+  }
+}

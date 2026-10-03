@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2b5a1c150655",
+    "reviewItemId": "ri-64509c9f163c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.99"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "statement": "Upgrading the Kafka operand from Strimzi 0.34 or older requires the UseStrimziPodSets feature gate to be enabled and StrimziPodSet resources in use before upgrading."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.35.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Environments that use the Kafka operand and upgrade from Strimzi 0.34 or older without the UseStrimziPodSets feature gate enabled must enable it and use StrimziPodSet resources before upgrading to 0.46.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6a04e76982708b04264c6d219c3b6e94e19daf528a2acb9c5a4a443e31466121",
+      "inputEvidence": [
+        "ev-0fe6816db4bb",
+        "ev-4c2676e4665a",
+        "ev-87094cfdd770",
+        "ev-4851b37425c0",
+        "ev-17b3774eb9ee",
+        "ev-a6197708b375",
+        "ev-b55698b84a79",
+        "ev-4fdefdd841ec",
+        "ev-88ae24e32184",
+        "ev-526028ea7180",
+        "ev-2dffc916b09a",
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-03T12:55:41.161Z",
+      "callId": "4c2baea7-9241-488c-9444-9d3a576e5ff1",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0fe6816db4bb] limits the requirement to environments \"using the Kafka operand\" that are upgrading from 0.34 or older. The proposed condition drops the Kafka-operand part, so it is broader than the text. It also only flags the gate when it is explicitly disabled, so it is narrower too. The evidence asks operators to \"make sure\" the gate is enabled and never says what the default was. So any environment where the gate is not enabled should be flagged, not only those that disabled it explicitly. Writing the version bound as <0.35.0 states \"0.34 or older\" exactly.",
+    "startedAt": "2026-10-03T12:55:09.289Z",
+    "decidedAt": "2026-10-03T12:55:41.161Z"
+  }
+}

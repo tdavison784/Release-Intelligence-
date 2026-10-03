@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0a5b2d281bab",
+    "reviewItemId": "ri-ee8de45f4b2d",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, the Flux controllers remain on the previous version; moving them to this release requires generating the new manifests with the Flux CLI and pushing them to the Git repository where bootstrap was run (including any extra components enabled at bootstrap), or rerunning the bootstrap command for each cluster with the same arguments as before.",
+        "remediation": "Generate the new components manifests with the Flux CLI — including any extra components enabled at bootstrap, such as those for image automation — push them to the Git repository where bootstrap was run under the configured --path, and let Flux reconcile the change (or trigger the upgrade immediately); alternatively rerun the bootstrap command for each cluster using the same arguments as before.",
+        "severity": "low"
+      },
+      "statement": "For environments where Flux was installed using the bootstrap procedure, upgrading the Flux controllers to this release is an operator step: generate the new Kubernetes manifests with the Flux CLI and push them to the Git repository where bootstrap was run (including any extra components enabled at bootstrap), or rerun the bootstrap command for each cluster using the same arguments as before."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:0db19ccc3d8fe8655c477baa1c0e3469331fb5f1aab1ddd9c08408865295bc4f",
+      "inputEvidence": [
+        "ev-b1e8ad65539c"
+      ],
+      "generatedAt": "2026-10-03T17:06:21.831Z",
+      "callId": "92379b27-3a55-4fce-8ffc-a5d006eb926c",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-b1e8ad65539c] is the general upgrade-guide procedure. It describes two ways to upgrade a bootstrapped Flux (regenerate the manifests and push them to Git, or rerun bootstrap). It does not name anything that changed in 2.7.0, and it does not say that anything fails, is rejected or must be migrated if the operator does nothing. \"The controllers stay on the previous version\" is just what happens when you don't upgrade, not a consequence of a change in this release. So migration-required claims mandatory work the evidence doesn't support, and since there is no release-specific change, no corrected assertion follows.",
+    "startedAt": "2026-10-03T17:06:13.93Z",
+    "decidedAt": "2026-10-03T17:06:21.831Z"
+  }
+}

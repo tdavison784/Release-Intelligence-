@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-89b0d95ce79b",
+    "reviewItemId": "ri-1e8610e93a86",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The shared_store configuration key is no longer honoured by Loki and will be ignored during operation.",
+        "severity": "high"
+      },
+      "statement": "The shared_store configuration option is removed and no longer supported in Loki 3.0.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `shared_store` value is no longer honoured, and `object_store` in `period_config` decides where the index is stored. If the old value matched `object_store` for every period, only the deleted option needs removing. If it did not match, you lose access to the index for those periods, so they cannot be queried.",
+        "remediation": "Remove the deleted `shared_store` option from your configuration. For any period where it did not match `object_store`, move or copy the index tables to the store set in `object_store` so the index can be queried again.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 removes the shipper `shared_store` setting (`-boltdb.shipper.shared-store`, `-tsdb.shipper.shared-store`). The index store is now taken from `object_store` in `period_config`. If the removed setting pointed to a different store, the index for those periods can no longer be read."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7c88e9e3e00722325cbf408326f62ca4ea981d40bf5dfab945372fbe02e18320",
+      "inputEvidence": [
+        "ev-1d0876135bde",
+        "ev-5dacaee98643",
+        "ev-af3121d71703",
+        "ev-cbd1809faa20",
+        "ev-8c0cecc71daf",
+        "ev-bceb257f17b9",
+        "ev-ebd92acd21f4",
+        "ev-45ef39303832",
+        "ev-6650fd33304c",
+        "ev-8b7267b73a1c",
+        "ev-7791a108cc39",
+        "ev-649f409b4be1",
+        "ev-b07a4021f30c",
+        "ev-92063a2a5bac",
+        "ev-2690c7915f58",
+        "ev-61d6d2b50a95",
+        "ev-c8bbef5b1d06",
+        "ev-d0c9247a44d4",
+        "ev-33c9df8cd833",
+        "ev-ba4422942cd3",
+        "ev-6c97458131e0",
+        "ev-73d501ad9fa3",
+        "ev-7e86af7082a3",
+        "ev-ea984d665a12",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a",
+        "ev-c569cd56f9ef",
+        "ev-ca57f615b9c9",
+        "ev-cf8ca5687050",
+        "ev-e598abf2a6cd",
+        "ev-576bad2a0aa0"
+      ],
+      "generatedAt": "2026-10-03T12:46:17.796Z",
+      "callId": "cac78c26-715c-4f9d-a826-d0d739b937a0",
+      "provider": "anthropic"
+    },
+    "reason": "The upgrade-guide section [ev-43cc6d389282] says the `-boltdb.shipper.shared-store` and `-tsdb.shipper.shared-store` settings are removed. The index store now comes from `object_store` in `period_config`. So setting-ignored with high severity is the right kind. [ev-7d2769e8c602] and [ev-af5a4b32c120] say what this means: if the old value matches `object_store`, you only need to remove the deleted option. If it does not match, you lose access to the index for those periods until you move or copy the index tables to the `object_store` bucket. The proposed statement leaves out that consequence, so I corrected it.",
+    "startedAt": "2026-10-03T12:46:01.799Z",
+    "decidedAt": "2026-10-03T12:46:17.796Z"
+  }
+}

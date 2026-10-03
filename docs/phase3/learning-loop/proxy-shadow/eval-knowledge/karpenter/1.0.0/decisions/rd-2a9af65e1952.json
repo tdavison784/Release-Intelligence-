@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2a9af65e1952",
+    "reviewItemId": "ri-ad9114e9d807",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.consolidationPolicy"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"WhenUnderutilized\"",
+        "after": "\"WhenEmptyOrUnderutilized\""
+      },
+      "statement": "NodePool's spec.disruption.consolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d9236c3f954cdefae9dde32cf20c3cadf09abb8dda1fe0db76b77fb282e61538",
+      "inputEvidence": [
+        "ev-80331c11381f",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-f91dbd14d0cc",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-f83dc72c2c99",
+        "ev-13278d059ceb",
+        "ev-4bcafa8a355e",
+        "ev-09bbe26d2f4a",
+        "ev-451bd6a12e72",
+        "ev-760ae3491f13",
+        "ev-881d131e594e",
+        "ev-8998581760b8",
+        "ev-fef279f378b5"
+      ],
+      "generatedAt": "2026-10-03T16:58:31.331Z",
+      "callId": "5309cc55-595b-48a5-9701-cd24d9d077f2",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-80331c11381f] says the NodePool ConsolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`, and [ev-4bcafa8a355e] also refers to the old value as \"ConsolidationPolicy: WhenUnderutilized\". The schema validator confirmed that karpenter.sh NodePool spec.disruption.consolidationPolicy exists in both releases, which settles the subject. The field itself keeps its name; only an allowed value changes. So value-changed with before \"WhenUnderutilized\" and after \"WhenEmptyOrUnderutilized\" copies the stated literals, and the field-level \"renamed\" type from P2 does not fit. Confidence is low because the vocabulary has no type for renaming an enum value, and the text does not say whether the old value is rejected or converted [ev-bfb089d90d84].",
+    "startedAt": "2026-10-03T16:58:15.248Z",
+    "decidedAt": "2026-10-03T16:58:31.331Z",
+    "resultingFact": "vf-730a437a0187"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-567c8d2b6f36",
+    "candidateId": "sc-87d161c59ee8",
+    "proposalId": "sp-291582c94bcc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.12.0"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.8.0"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"strict-validate-path-type\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"true\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "When strict-validate-path-type is enabled in ingress-nginx, its admission webhook validate.nginx.ingress.kubernetes.io rejects the challenge Ingress because the /.well-known/acme-challenge/<TOKEN> path contains a dot. The cert-manager controller then logs \"Error presenting challenge\", and the HTTP01 challenge cannot be solved.",
+        "severity": "high"
+      },
+      "statement": "In cert-manager 1.18.0, Ingress routes for ACME HTTP01 challenges use PathType Exact. This breaks with ingress-nginx >=1.8.0 when strict-validate-path-type is enabled, which is the default from ingress-nginx 1.12.0: its admission webhook rejects the challenge path because it contains a dot, so the challenge cannot be presented."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

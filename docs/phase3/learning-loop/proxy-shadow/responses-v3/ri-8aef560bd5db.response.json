@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8aef560bd5db",
+  "promptDigest": "sha256:41fe7059a449b4eb38814b124bb2783e10fbf6d9599d3b5a9e66d1516cf07bc0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6dec5003-94e2-473a-9ee4-42a122394b94",
+  "startedAt": "2026-10-03T16:53:35.319Z",
+  "decidedAt": "2026-10-03T16:53:49.359Z",
+  "durationMs": 13052,
+  "costUSD": 0.108344,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-793f1f2f3e70] says the `etcd.operator` kvstore-opt option is now a no-op and was removed because Kubernetes service DNS name to ClusterIP translation for etcd is now enabled automatically when needed. So the function that option provided keeps working, and the evidence never says that anything fails or stops being honoured. The other change is that Cilium now uses the port given in the etcd configuration instead of the service's port. That is a change in behavior that operators should verify, not a stated failure. The kind is therefore behavior-change (review), not setting-ignored (mandatory work).",
+    "citations": [
+      "ev-793f1f2f3e70"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.16, the etcd.operator kvstore-opt option is a no-op and has been removed, because service DNS to ClusterIP translation for etcd is now automatic. Cilium also now uses the port given in the etcd configuration instead of the service's port. etcd connectivity keeps working, but in a different way.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "Setting the etcd.operator kvstore-opt no longer has any effect, but the DNS-to-ClusterIP translation it enabled now happens automatically when needed. Cilium now connects to the port specified in the etcd configuration rather than defaulting to the Kubernetes service port when the address is a service DNS name.",
+        "remediation": "Remove the etcd.operator kvstore-opt from the configuration. Check that the etcd endpoint addresses specify the intended port, because Cilium now uses that port instead of the service's port."
+      }
+    }
+  }
+}

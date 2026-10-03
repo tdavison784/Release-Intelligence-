@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-61eebbfe49ed",
+    "reviewItemId": "ri-5ac5b22ded50",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments using the `istioctl profile` command will fail because the command no longer exists; operators must consult Istio documentation for equivalent information.",
+        "remediation": "Replace usage of `istioctl profile` with information found in official Istio documentation. Verify the equivalent configuration or feature needed and adjust deployment procedures accordingly.",
+        "severity": "medium"
+      },
+      "statement": "The `istioctl profile` command has been removed in Istio 1.24.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The `istioctl profile` command is removed in Istio 1.24.0. Upstream says the same information can be found in the Istio documentation.",
+        "remediation": "Use the Istio documentation for the profile information you used to get from `istioctl profile`. Check that it covers your use, and update any scripts that call the command.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 removes the `istioctl profile` command. The information it gave is now in the Istio documentation, so the function is superseded upstream."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:31d4674d3508a507c78296a11b5179c53307e4fef9d13b27ba27797753747842",
+      "inputEvidence": [
+        "ev-f0e757e54820",
+        "ev-a2198475a8e4",
+        "ev-a660cba27ffe",
+        "ev-6696145232da",
+        "ev-cb004eb264ca",
+        "ev-a486e34929cd",
+        "ev-eb9884e0aaab",
+        "ev-0307de1909a6",
+        "ev-49191aa49f5f"
+      ],
+      "generatedAt": "2026-10-03T12:54:02.922Z",
+      "callId": "c6e82e3c-b747-4326-9fec-4c35e232427a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f0e757e54820] says `istioctl profile` is removed and that the same information is in the Istio documentation. That is a removal whose function is covered by an upstream replacement, which matches superseded-upstream. setting-ignored does not fit, because a CLI command is not a configured value whose setting stops being honoured. The evidence also never says that anything fails, so a mandatory-work kind would over-claim.",
+    "startedAt": "2026-10-03T12:53:51.906Z",
+    "decidedAt": "2026-10-03T12:54:02.922Z"
+  }
+}

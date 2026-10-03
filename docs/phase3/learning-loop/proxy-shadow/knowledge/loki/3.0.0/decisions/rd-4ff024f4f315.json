@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4ff024f4f315",
+    "reviewItemId": "ri-a119762130c2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "disable-structured-metadata-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "The upgrade guide describes a migration path for 3.0: disable structured metadata (allow_structured_metadata: false in limits_config, or -validation.allow-structured-metadata=false), upgrade to 3.0, then perform the schema migration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:4d7ed2f5a27f4cb3c4fa366fa733279ebcbef4f2307eb5b0659c8b511eb5d946",
+      "inputEvidence": [
+        "ev-649f409b4be1",
+        "ev-8b7267b73a1c",
+        "ev-7791a108cc39"
+      ],
+      "generatedAt": "2026-10-03T12:30:34.091Z",
+      "callId": "eca529a0-ab3c-43dc-8084-66a2425b2a97",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-649f409b4be1] describes an operator step: disable Structured Metadata (allow_structured_metadata: false in limits_config, or -validation.allow-structured-metadata=false), upgrade to 3.0, and only then do the schema migration. That fits the migration family with migration-required. [ev-8b7267b73a1c] explains why the step exists: Structured Metadata is on by default in 3.0 and needs a tsdb index with the v13 schema. It gives no literal earlier default, so the evidence can't support recasting this as a config-key default-changed. One caveat: [ev-7791a108cc39] gives upgrading the schema first as the other option, so this step is one of two ways through, not the only one. Which environments it applies to is a separate aspect and isn't being checked here.",
+    "startedAt": "2026-10-03T12:30:22.563Z",
+    "decidedAt": "2026-10-03T12:30:34.091Z"
+  }
+}

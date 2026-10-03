@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1d6f6ee9dc78",
+    "reviewItemId": "ri-32543e5606ed",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Helm installations referencing the istiod-remote chart must migrate to helm install istio-discovery --set profile=remote before upgrading to 1.24.0.",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed; use helm install istio-discovery --set profile=remote instead."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The istiod-remote chart no longer exists in 1.24.0. Helm installs of remote clusters that use `helm install istiod-remote istio/istiod-remote` cannot move to 1.24.0 on that chart; they must switch to the istio-discovery/istiod chart with `--set profile=remote`. The istio-base chart is also now required in remote clusters.",
+        "remediation": "Install or upgrade remote clusters with `helm install istiod istio/istiod --set profile=remote` instead of the istiod-remote chart, and make sure the istio-base chart is installed in the remote cluster.",
+        "severity": "high"
+      },
+      "statement": "In 1.24.0 the istiod-remote Helm chart is removed and merged into the istio-discovery (istiod) chart. Remote-cluster installs that use istiod-remote must switch to the istiod chart with --set profile=remote, and must also install istio-base."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:13d3450f770c5019c93fe8d2933906aa9eee060364e788f79fdb5a101087b4a2",
+      "inputEvidence": [
+        "ev-274ce3859ab9",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-85eccdc718e3",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T12:49:04.616Z",
+      "callId": "76a87177-075c-41b0-960b-d65ab6c21f1f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-274ce3859ab9] says the `istiod-remote` chart was removed. [ev-5a31c0781dc5] says it was merged into the regular `istio-discovery`/`istiod` chart, so remote clusters must now be installed with `--set profile=remote`, and the `istio-base` chart is now required in remote clusters too. Because the chart no longer exists in 1.24.0, an operator who does nothing cannot move to 1.24.0 on it, so migration-required (mandatory work) is the right kind. The proposed statement is wrong in saying the migration must happen \"before upgrading\": the evidence makes the chart switch part of the upgrade itself, and the statement also leaves out the istio-base requirement.",
+    "startedAt": "2026-10-03T12:48:47.63Z",
+    "decidedAt": "2026-10-03T12:49:04.616Z"
+  }
+}

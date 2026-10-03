@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-96df5b7d04de",
+    "candidateId": "sc-55dd0ceaa83f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-chart-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Remote clusters installed with the istiod-remote chart must change how they are installed: the istiod-remote chart has been merged into the istio-discovery chart, so they now install istio/istiod with profile=remote, and they also need the istio-base chart.",
+        "remediation": "Install remote clusters with `helm install istiod istio/istiod --set profile=remote` instead of the istiod-remote chart, and install the istio-base chart in both local and remote clusters.",
+        "severity": "medium"
+      },
+      "statement": "In Istio 1.24.0 the istiod-remote Helm chart is merged into the regular istio-discovery (istiod) chart. Clusters that use a remote control plane are now installed with `helm install istiod istio/istiod --set profile=remote` instead of `helm install istiod-remote istio/istiod-remote`, and they also need the istio-base chart."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether the environment installs the istiod-remote Helm chart, and no available predicate can read which chart a release was installed from. The evidence also names no values key or field that marks a remote install.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:88121e3ea994ff54741d65f6c3f43c727ba068bbd251ef57a76a088332bb7c0f",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-03T07:13:52Z",
+      "callId": "d138e8bd-73bb-41e3-acbf-c19bfc935103"
+    }
+  }
+}

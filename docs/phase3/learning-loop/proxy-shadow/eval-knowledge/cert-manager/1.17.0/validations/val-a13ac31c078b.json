@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a13ac31c078b",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "proposalId": "sp-fe794d07bccc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signature-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"always SHA-256 when signing with RSA\"",
+        "after": "\"hash algorithm chosen based on RSA key length: SHA-384 for 3072-bit keys, SHA-512 for 4096-bit keys\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using 3072-bit or 4096-bit RSA keys will have certificates signed with SHA-384 or SHA-512 instead of SHA-256; issuance is expected to keep working with minimal impact, but the evidence warns 'if you're using larger RSA keys, you should be aware of the change'.",
+        "remediation": "If using larger RSA keys, verify that relying parties tolerate certificates signed with SHA-384 or SHA-512.",
+        "severity": "low"
+      },
+      "statement": "In v1.17.0 cert-manager selects the signing hash based on RSA key length — SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys — instead of always using SHA-256, matching the existing ECDSA behavior, with minimal expected impact."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

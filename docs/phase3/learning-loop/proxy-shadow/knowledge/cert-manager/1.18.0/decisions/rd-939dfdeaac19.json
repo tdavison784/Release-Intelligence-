@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-939dfdeaac19",
+    "reviewItemId": "ri-a9b11c580d6a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 removes the deprecated ValidateCAA feature gate; setting it is now a no-op that only prints a warning log line."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:8ba8203eea881b8cd9529c8d99b5b121edc8bab8bfb63bc66a0b98751d950240",
+      "inputEvidence": [
+        "ev-853844eb542e",
+        "ev-ea4a77b80f71",
+        "ev-8ec1fdd0d15f",
+        "ev-bc29bf53aa1b",
+        "ev-eb95ba454b0b",
+        "ev-5744baed396c",
+        "ev-885e61843b3a"
+      ],
+      "generatedAt": "2026-10-03T16:57:44.367Z",
+      "callId": "2608abc9-ea78-4808-aced-99721659902d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-853844eb542e] says that setting the `ValidateCAA` feature gate is now a no-op that only prints a warning log line. It does not limit this to setting the gate to true. So any environment that sets the gate explicitly, enabled or disabled, is exposed, and any[feature-gate enabled, feature-gate disabled] expresses exactly that. P3's enabled-only condition is narrower because it misses environments that set the gate to false, which also get the setting ignored and the warning.",
+    "startedAt": "2026-10-03T16:57:35.01Z",
+    "decidedAt": "2026-10-03T16:57:44.367Z",
+    "resultingFact": "vf-d7f4cbd42e7b"
+  }
+}

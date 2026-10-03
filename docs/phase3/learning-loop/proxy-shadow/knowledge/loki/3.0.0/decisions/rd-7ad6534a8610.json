@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7ad6534a8610",
+    "reviewItemId": "ri-d38ef70f43f0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-boltdb.shipper.shared-store.key-prefix` flag will no longer be recognized or honored by Loki 3.0.0; any configuration using this flag will be ignored.",
+        "severity": "high"
+      },
+      "statement": "The CLI flag `-boltdb.shipper.shared-store.key-prefix` has been removed from the shipper configuration in Loki 3.0.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Loki 3.0.0 removes `-boltdb.shipper.shared-store.key-prefix` and its YAML setting. The index path prefix is now set with `path_prefix` under the period config's `index` key, so a key prefix configured through the removed setting is no longer honoured. This affects you if you set it to a value other than `index/`.",
+        "remediation": "Remove the deleted flag/YAML setting. If it was set to a value other than `index/`, set `path_prefix` in every existing period config that uses `boltdb-shipper` as the index to the value you configured before.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 removes `-boltdb.shipper.shared-store.key-prefix` and its YAML setting. The index path prefix now comes from `path_prefix` in period_config, so a value previously set with this flag (other than `index/`) is no longer honoured for boltdb-shipper periods."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:273adb0d563fdf68b85c86d93de5916cbbeb4e0eec0f9efa5eb58b640a3504b8",
+      "inputEvidence": [
+        "ev-528edacf0d9e",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T17:02:43.07Z",
+      "callId": "f499d9d8-efd4-41f5-8793-644ac88e8ac9",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] says the flag and its YAML setting are removed, and the index path prefix is now set with `path_prefix` in the period config. So a configured key prefix is no longer honoured, and setting-ignored (action) is the right kind. [ev-8ceba924ad20] and [ev-76a46c52508c] limit the real impact to values other than `index/` and name the fix: set `path_prefix` in every existing boltdb-shipper period config. The proposed statement says the flag is simply 'ignored', but the evidence does not say how Loki treats a removed flag, so I rewrote the statement to match the evidence and added the remediation.",
+    "startedAt": "2026-10-03T17:02:23.6Z",
+    "decidedAt": "2026-10-03T17:02:43.07Z"
+  }
+}

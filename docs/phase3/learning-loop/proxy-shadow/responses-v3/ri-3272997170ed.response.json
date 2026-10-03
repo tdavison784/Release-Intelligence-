@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3272997170ed",
+  "promptDigest": "sha256:c9a942d82d37f88f486dcaa7edc8a3939dbf4dda7b9c2b7fe7f791477015755a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "32645320-2ee9-4374-b6b4-ac4f55b27790",
+  "startedAt": "2026-10-03T12:48:49.541Z",
+  "decidedAt": "2026-10-03T12:49:21.661Z",
+  "durationMs": 31464,
+  "costUSD": 0.121584,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide says the `querier.worker-parallelism` CLI flag and its YAML setting are removed, and it only *recommends* configuring `querier.max-concurrent` [ev-9f4292160fa2]. The changelog adds that the default of `querier.max-concurrent` is now 4 [ev-4b79cb1a8226]. A removed key whose configured value is no longer honoured is setting-ignored, which is mandatory work, so the kind and severity stand. The statement is corrected for two reasons. First, the evidence never says the value is silently \"ignored\", only that the flag and setting are removed. Second, the evidence recommends `querier.max-concurrent` but does not say operators \"must migrate\" to it.",
+    "citations": [
+      "ev-9f4292160fa2",
+      "ev-4b79cb1a8226"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the `querier.worker-parallelism` CLI flag and its YAML setting are removed, so a configured value is no longer honoured. Upstream recommends `querier.max-concurrent` (default now 4) to limit concurrent querier requests.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "high",
+        "statement": "The `querier.worker-parallelism` CLI flag and its YAML setting are removed in 3.0.0, so a value configured there is no longer honoured. Querier concurrency is governed by `querier.max-concurrent`, whose default is now 4.",
+        "remediation": "Remove `querier.worker-parallelism` from the Loki CLI flags and YAML config. Upstream recommends configuring `querier.max-concurrent` to limit the max concurrent requests processed by the queriers; set it explicitly if the new default of 4 does not suit your workload."
+      }
+    }
+  }
+}

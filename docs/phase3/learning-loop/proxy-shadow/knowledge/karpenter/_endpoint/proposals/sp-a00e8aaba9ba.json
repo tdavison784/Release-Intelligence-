@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a00e8aaba9ba",
+    "candidateId": "sc-29fa48f19d84",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "ec2nodeclass-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "ec2nodeclasses.karpenter.k8s.aws"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing EC2NodeClass objects stay stored as v1beta1 until rewritten; a storage version migration (re-writing all objects) and an update of status.storedVersions on the ec2nodeclasses.karpenter.k8s.aws CRD must be completed before a later release removes v1beta1.",
+        "remediation": "Run the storage version migration for EC2NodeClass — re-write all EC2NodeClass objects — and update status.storedVersions on the ec2nodeclasses.karpenter.k8s.aws CRD before upgrading to a later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changed from v1beta1 to v1, so existing EC2NodeClass objects stay stored as v1beta1 until a storage version migration (re-writing all objects) is run and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2e8a1118e29179ef1b3681f5dc93ddd61e7f69e4c840c3661b744b993a692107",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-03T08:10:50Z",
+      "callId": "16c7cc1a-0476-420f-8636-35ec6b686441"
+    }
+  }
+}

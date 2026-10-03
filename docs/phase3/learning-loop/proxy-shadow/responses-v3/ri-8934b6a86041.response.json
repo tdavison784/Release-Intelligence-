@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8934b6a86041",
+  "promptDigest": "sha256:0d49497572f3a2ef5a8f16dc94d35e0dab9cc8ca23d432ae6515509986b41213",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "300a5850-b6db-4a99-ba68-d538fb38c9ca",
+  "startedAt": "2026-10-03T16:53:16.023Z",
+  "decidedAt": "2026-10-03T16:53:36.995Z",
+  "durationMs": 20273,
+  "costUSD": 0.129888,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "[ev-43cc6d389282] says both the CLI flags and \"the corresponding YAML settings\" for shared store are removed, and [ev-0483f04624d3]/[ev-7d2769e8c602] make anyone who configured `-boltdb.shipper.shared-store` \"or its YAML setting\" exposed. So a cli-flag-only condition misses setups that set it only in the Loki config file. The evidence only calls the YAML key `shared_store` \"from shipper configuration\". It gives neither its full path under the boltdb shipper block nor where the config is supplied (ConfigMap key or Helm values path), so I can't write a precise predicate. A plain `shared_store:` line match would also catch the separate tsdb setting [ev-15a875cd9a39]. Needed: the YAML path of the boltdb shipper shared_store setting and the config source.",
+    "citations": [
+      "ev-43cc6d389282",
+      "ev-0483f04624d3",
+      "ev-7d2769e8c602",
+      "ev-3d75e7ce1720",
+      "ev-15a875cd9a39"
+    ],
+    "confidence": "low"
+  }
+}

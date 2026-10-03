@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b550b0f46745",
+    "candidateId": "sc-76ca511eb130",
+    "proposalId": "sp-5c1242a7f1b7",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry",
+        "component": "core"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "component": "core",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core command is started with --registry after upgrading to v2.0.0, it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed...\" and fails, so the core pod cannot run until the flag is removed and all packages (and their dependencies) use fully qualified image names that explicitly state their registry.",
+        "remediation": "Remove --registry from the Crossplane core pod arguments and ensure every package (and each of its dependencies) has a fully qualified name that explicitly states its registry.",
+        "severity": "high"
+      },
+      "statement": "In crossplane v2.0.0 the core command's --registry flag is no longer supported: cmd/crossplane/core/core.go now returns an error stating that support for a default registry value has been removed and that all packages (and their dependencies) must have fully qualified names that explicitly state their registry."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

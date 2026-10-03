@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b4cc3f6a45a4",
+    "candidateId": "sc-55aa41cb3e29",
+    "proposalId": "sp-acc5f0508395",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators invoke `flux push artifact --provider azure` on Azure DevOps runners (usage of the CLI in CI, not carried by any chart/manifest configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, `flux push artifact --provider azure` on DevOps runners performs Azure CLI calls that it previously did not allow, changing the command's credential behaviour in that environment.",
+        "remediation": "If you run `flux push artifact --provider azure` on Azure DevOps runners, upgrade the flux CLI and verify the push authenticates as expected.",
+        "severity": "low"
+      },
+      "statement": "The flux CLI release v2.7.0 now allows Azure CLI calls in `flux push artifact --provider azure` on DevOps runners, changing that command's authentication behaviour in that environment."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

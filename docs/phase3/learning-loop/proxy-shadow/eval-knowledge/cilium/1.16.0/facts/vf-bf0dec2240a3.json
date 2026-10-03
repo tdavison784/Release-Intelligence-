@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-bf0dec2240a3",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-801ed9a061c4"
+        ],
+        "statementKeys": [
+          "sk-dfe2b70bbcac"
+        ],
+        "changeIds": [
+          "chg-f1257f4cc71c"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-4441d51bbce9"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cilium",
+        "name": "cilium-cli"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=0.15.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": ">=0.15.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Cilium installation was created with Cilium CLI classic installation mode rather than Helm mode; the upgrade notes give no configuration indicator for classic mode"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Classic mode installations are not supported with Cilium v1.16 and are not compatible with Helm mode; they must be uninstalled with the classic mode CLI and re-installed with Cilium CLI v0.15.0 or later in Helm mode.",
+        "remediation": "Uninstall Cilium using classic mode Cilium CLI, then re-install using Cilium CLI v0.15.0 or later in Helm mode."
+      },
+      "statement": "Cilium CLI: Upgrade Cilium CLI to v0.15.0 or later to switch to Helm installation mode to install and manage Cilium v1.16"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-3674020217c0"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-3674020217c0"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-51f85728a6ab"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-919179de4340"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-f2e613944dc4",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L466-L479 (1.16 Upgrade Notes › Cilium CLI)",
+        "excerpt": "#### Cilium CLI\n\n\nUpgrade Cilium CLI to v0.15.0\nor later to switch to Helm installation mode\nto install and manage Cilium v1.16. Classic installation mode is **not**\nsupported with Cilium v1.16.\n\nHelm and classic mode installations are not compatible with each other. Do not\nuse Cilium CLI in Helm mode to manage classic mode installations, and vice versa.\n\nTo migrate a classic mode Cilium installation to Helm mode, you need to\nuninstall Cilium using classic mode Cilium CLI, and then re-install Cilium\nusing Helm mode Cilium CLI.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:03:22.893Z"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-965a60d0b01f",
+    "reviewItemId": "ri-13f0a74e9731",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "crossplane",
+        "name": "crossplane"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "product-relationship",
+          "product": "crossplane",
+          "name": "crossplane/v2"
+        }
+      },
+      "statement": "The Go module path for Crossplane and Crossplane Runtime has changed from `github.com/crossplane/crossplane` and `github.com/crossplane/crossplane-runtime` to include a `v2` suffix: `github.com/crossplane/crossplane/v2` and `github.com/crossplane/crossplane-runtime/v2`; all import statements in code must be updated."
+    },
+    "corrected": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Crossplane v2 changed its Go module paths to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2. Go code that imports these modules must update its go.mod module path and all import statements to the v2 paths."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:eca4e94559e1d91d0085c6fc08e4660a9dbc014cef77ac3191240ad8565fcfe8",
+      "inputEvidence": [
+        "ev-d241daaf3863",
+        "ev-924a17cf8cd5",
+        "ev-dac056af4ac4",
+        "ev-8e78387c2b06",
+        "ev-13abab392283"
+      ],
+      "generatedAt": "2026-10-03T12:44:58.008Z",
+      "callId": "0e501929-df73-46c4-9d3c-8985bd7c1cad",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d241daaf3863] says Crossplane's own Go module path now has a `/v2` suffix, and that anyone importing `crossplane` or `crossplane-runtime` must update go.mod and every import statement. The proposal uses the product-relationship family, but that family is for a dependency on a different product, not for Crossplane's own module identity. The text describes a required operator step (updating the module path and imports), so the right subject is the migration family with change type migration-required, not a product-relationship rename.",
+    "startedAt": "2026-10-03T12:44:49.577Z",
+    "decidedAt": "2026-10-03T12:44:58.008Z"
+  }
+}

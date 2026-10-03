@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b5477820af4d",
+    "candidateId": "sc-776fb106e1e1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "findzonebyfqdn-dns-cache"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which DNS zone lookups are performed through FindZoneByFqdn at runtime (e.g. during certificate issuance/challenge solving)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DNS responses looked up via FindZoneByFqdn are now cached in full and TTL expiration is handled, so zone discovery can return cached DNS results until their TTL expires instead of querying DNS every time.",
+        "remediation": "No configuration change; verify that DNS zone discovery via FindZoneByFqdn still resolves zones as expected.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 now caches the full DNS response and handles TTL expiration in FindZoneByFqdn."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d4918828336e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ea8a4b28867b26f9dbe757651b677f4ab64c3392ac3e2b68ac147c36f1c5fb54",
+      "inputEvidence": [
+        "ev-d4918828336e"
+      ],
+      "generatedAt": "2026-10-03T08:35:24Z",
+      "callId": "26982552-aac0-4833-828f-1b142a1b8e50"
+    }
+  }
+}

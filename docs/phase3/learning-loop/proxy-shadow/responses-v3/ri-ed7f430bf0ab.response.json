@@ -1,0 +1,62 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ed7f430bf0ab",
+  "promptDigest": "sha256:d4574e0c81b560be839e07ff4adede747079c13f137e91a86631f1f9532d22fd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9839d636-c07a-429d-8f4b-da4cdfcd2d76",
+  "startedAt": "2026-10-03T17:06:03.947Z",
+  "decidedAt": "2026-10-03T17:06:20.995Z",
+  "durationMs": 16374,
+  "costUSD": 0.0875892,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade-guide section this item points to [ev-43cc6d389282] says the removed items are the CLI flags `-boltdb.shipper.shared-store` [ev-3d75e7ce1720] and `-tsdb.shipper.shared-store` [ev-15a875cd9a39] \"and the corresponding YAML settings\". It also says that anyone who configured either flag or its YAML setting must at least remove it [ev-7d2769e8c602][ev-af5a4b32c120]. Anyone who configured neither needs no change [ev-0483f04624d3]. The proposed condition only checks for the YAML key in a ConfigMap, so it misses environments that set the removed flags as container arguments. The corrected exposure matches the YAML line or either flag.",
+    "citations": [
+      "ev-1d0876135bde",
+      "ev-43cc6d389282",
+      "ev-3d75e7ce1720",
+      "ev-15a875cd9a39",
+      "ev-0483f04624d3",
+      "ev-7d2769e8c602",
+      "ev-af5a4b32c120"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the shipper `shared_store` setting: the YAML `shared_store` key and the CLI flags `-boltdb.shipper.shared-store` and `-tsdb.shipper.shared-store`. An environment is exposed if its Loki config file sets `shared_store` or its workloads pass either flag.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "pattern": "^\\s*shared_store\\s*:",
+                  "state": "exists"
+                }
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

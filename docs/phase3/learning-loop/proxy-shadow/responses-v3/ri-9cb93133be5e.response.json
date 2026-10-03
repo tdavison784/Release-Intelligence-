@@ -1,0 +1,62 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-9cb93133be5e",
+  "promptDigest": "sha256:94b8d6faaee2b9018179574c4fa2882e4fcc8572e75f0b8415248f6ba7979ed4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d0c0a8c0-e95e-4e7a-bc7d-b1faa999481c",
+  "startedAt": "2026-10-03T16:55:42.121Z",
+  "decidedAt": "2026-10-03T16:56:01.816Z",
+  "durationMs": 19001,
+  "costUSD": 0.132404,
+  "output": {
+    "action": "correct",
+    "reason": "The validated diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] makes status.artifact.digest required in the v1 Bucket schema. A required field nested under status.artifact only applies when status.artifact is present. A Bucket with no status.artifact, for example one that has never been reconciled, is not rejected. The proposed condition (digest unset) is therefore too broad. The exposure needs status.artifact set and status.artifact.digest unset on the same Bucket.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "duplicateOf": "none",
+    "correction": {
+      "statement": "The source.toolkit.fluxcd.io/v1 Bucket schema now requires status.artifact.digest. A v1 Bucket whose status.artifact is present but has no digest is rejected. Buckets with no status.artifact are not affected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

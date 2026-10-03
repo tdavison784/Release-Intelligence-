@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b606d49fd3c0",
+  "promptDigest": "sha256:c905a2ddf1d45ef3fdbfbf97c765bd73d976761eec027da32dfcab08af0d3209",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "03973f2c-2c70-48f7-ac09-9d350be01c19",
+  "startedAt": "2026-10-03T16:59:10.807Z",
+  "decidedAt": "2026-10-03T16:59:24.932Z",
+  "durationMs": 13082,
+  "costUSD": 0.074568,
+  "output": {
+    "action": "correct",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "reason": "[ev-0307de1909a6] says the `istioctl manifest diff` and `istioctl manifest profile diff` commands are removed and points users to generic YAML comparison tools. So any script or CI step that calls them breaks, which makes this a failure kind, and the work is mandatory. But setting-ignored means a configured value is silently no longer honoured, and that doesn't fit a removed CLI command, which fails when invoked. The closer kind is workload-failure (an integration breaks). The evidence doesn't give the exact error text, so I've dropped \"command not found\". I've set severity to medium because only operator tooling is affected, not cluster workloads.",
+    "citations": [
+      "ev-0307de1909a6"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "In Istio 1.24.0 the `istioctl manifest diff` and `istioctl manifest profile diff` commands are removed, so scripts or workflows that call them break; generic YAML comparison tools are the suggested replacement.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "severity": "medium",
+        "statement": "Scripts, CI jobs or workflows that call `istioctl manifest diff` or `istioctl manifest profile diff` fail with istioctl 1.24.0 because these commands have been removed.",
+        "remediation": "Replace calls to `istioctl manifest diff` / `istioctl manifest profile diff` with a generic YAML comparison tool, as the release note suggests."
+      }
+    }
+  }
+}

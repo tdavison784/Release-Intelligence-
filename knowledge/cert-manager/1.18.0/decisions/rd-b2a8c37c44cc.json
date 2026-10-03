@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b2a8c37c44cc",
+    "reviewItemId": "ri-2c4013ebbc23",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.nodeSelector",
+          "state": "changed"
+        }
+      },
+      "statement": "In cert-manager 1.18.0, the Helm chart now quotes nodeSelector values when it renders them; this is listed as a bugfix."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6c8c365e0152f07743ba5f21e3f3c8fd1efe1a3a14180c88b1d8f48ec70eb0fb",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-8a902cdb88e1",
+        "ev-c6232bc5c8d4",
+        "ev-8e895983c9dd",
+        "ev-695a6d7c7c6e",
+        "ev-4faa7ca81b54",
+        "ev-23e99dfde8d0",
+        "ev-ef5237d47ade",
+        "ev-a8c04d9f0485",
+        "ev-b8d6f16e3c8c",
+        "ev-2a805da381d1",
+        "ev-7a3fdefaaff7",
+        "ev-1861adfd42be",
+        "ev-bfe1f4f54646",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-03T12:21:44.818Z",
+      "callId": "2735e355-08a6-4b0d-ae49-381e9c8c5c82",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-565f3761f656] says only that the Helm chart now quotes nodeSelector values. Quoting only changes the rendered output, so a rendered-change test on the Deployment pod-template nodeSelector picks out exactly the environments whose values render differently. Environments whose values were already plain strings are correctly excluded. Confidence is low because the release note doesn't say which templates are affected; if a non-Deployment template such as a Job was also changed, the condition would be too narrow, and nothing in the evidence supports widening it.",
+    "startedAt": "2026-10-03T12:21:31.337Z",
+    "decidedAt": "2026-10-03T12:21:44.818Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6eaaa7f29473",
+    "candidateId": "sc-d676f61f0b1c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-clean-iptables-istio-output-chain",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ISTIO_OUTPUT chain not removed\"",
+        "after": "\"ISTIO_OUTPUT chain removed\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The istio-clean-iptables command now also removes the ISTIO_OUTPUT iptables chain, which was previously left in place.",
+        "severity": "low"
+      },
+      "statement": "The `pilot-agent istio-clean-iptables` command now removes the `ISTIO_OUTPUT` iptables chain, which it previously left behind."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Evidence does not state which configuration exposes an environment; it depends on whether the cleanup command is run, which is runtime behavior.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-dd94d38ea856"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:c48ff48aa7c6d94855b7228998765f01d925477560f490da4ae6b3be555eebf0",
+      "inputEvidence": [
+        "ev-dd94d38ea856"
+      ],
+      "generatedAt": "2026-10-03T07:08:11Z",
+      "callId": "9039c15c-37b3-4299-a1fb-63f98a5bfda5"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e4652d794f98",
+  "promptDigest": "sha256:9e00cd5e9a2e568eae02d62469b1812bfdf98b6ce7c6e2064cc44eb27aae0629",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3c3c7d28-75c5-4f76-8fc1-5def8e03c380",
+  "startedAt": "2026-10-03T17:04:56.630Z",
+  "decidedAt": "2026-10-03T17:05:16.805Z",
+  "durationMs": 19523,
+  "costUSD": 0.102716,
+  "output": {
+    "action": "correct",
+    "reason": "The proposed consequence names `doublewrite_identity_kvstore_total` as the only new name, and that is the problem. In the same 1.17 Changed Metrics section, [ev-d6005e84dee9] gives that name, but [ev-2349d1c09109] says the same old metric was renamed to `doublewrite_kvstore_identities`. Both entries agree that the old name `doublewrite_identity_kvstore_total_count` is gone, so anything still querying it will no longer find it. I keep setting-ignored but drop the single new name from the statement and remediation, and tell operators to check which name the 1.17 agent actually emits.",
+    "citations": [
+      "ev-d6005e84dee9",
+      "ev-2349d1c09109"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the metric `doublewrite_identity_kvstore_total_count` is no longer exported under that name. The upgrade notes give two different new names for it: `doublewrite_identity_kvstore_total` and `doublewrite_kvstore_identities`. Monitoring that references the old name stops receiving data.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "Prometheus queries, dashboards and alerting rules that reference `doublewrite_identity_kvstore_total_count` will no longer find that metric after the upgrade, because it has been renamed. The 1.17 upgrade notes list both `doublewrite_identity_kvstore_total` and `doublewrite_kvstore_identities` as its new name.",
+        "remediation": "Check which name the 1.17.0 cilium-agent actually exposes (`doublewrite_identity_kvstore_total` or `doublewrite_kvstore_identities`), then update queries, dashboards and alerts that reference `doublewrite_identity_kvstore_total_count` to use that name."
+      }
+    }
+  }
+}

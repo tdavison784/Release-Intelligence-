@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e54ea64d2a50",
+    "candidateId": "sc-8b9acf590523",
+    "proposalId": "sp-2ce79119ccfe",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "installCRDs",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "installCRDs",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If CRDs are installed separately, the CRDs must be updated first (kubectl apply of the v0.16.1 crds bundle, checking that no error occurs) before external-secrets is upgraded to v0.16.1.",
+        "remediation": "Run kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml, verify no error occurs, then upgrade external-secrets to v0.16.1.",
+        "severity": "medium"
+      },
+      "statement": "When upgrading to 0.16 with CRDs installed separately, operators must first update the CRDs by applying the v0.16.1 deploy/crds/bundle.yaml and confirm it applies without error. Only after that should they upgrade external-secrets to v0.16.1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

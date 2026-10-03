@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1767b677cea3",
+    "reviewItemId": "ri-fa590cca7287",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The three querier_cache_* metrics are no longer emitted; anything relying on them must use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards and alerts to the loki_cache_* metrics."
+      },
+      "statement": "The embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b5bc6dd64781f5bde7fdef3b850f96db0ff716691ded6be1259d442531c014ae",
+      "inputEvidence": [
+        "ev-dd7907f24ce5",
+        "ev-1f9807113c9e",
+        "ev-53101f583cb5"
+      ],
+      "generatedAt": "2026-10-03T17:07:47.234Z",
+      "callId": "c2c3e014-3d2e-41f2-850b-d9976f55a0bc",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-dd7907f24ce5] says the three querier_cache_* metrics are removed and names loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds to use instead, covering the configured cache (embeddedcache, memcached or redis). That is a removal whose function Loki replaces itself, which matches superseded-upstream (review): operators should check that the new metrics cover what their dashboards and alerts need, since the replacements are not named one-to-one. A failure kind like setting-ignored would overclaim, because a removed metric is not a configured value, and the evidence doesn't say anything fails or is rejected. The proposed statement matches the evidence.",
+    "startedAt": "2026-10-03T17:07:38.909Z",
+    "decidedAt": "2026-10-03T17:07:47.234Z",
+    "resultingFact": "vf-766159a5aefd"
+  }
+}

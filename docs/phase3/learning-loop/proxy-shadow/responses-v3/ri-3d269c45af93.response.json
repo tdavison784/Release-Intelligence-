@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3d269c45af93",
+  "promptDigest": "sha256:deaae942aab33763b0a9a45536aee89bb82dcbb88c4638dd1632bbfba92f0182",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cc22858e-9943-4be9-aed1-85efe55d9e67",
+  "startedAt": "2026-10-03T12:50:03.966Z",
+  "decidedAt": "2026-10-03T12:50:18.618Z",
+  "durationMs": 13678,
+  "costUSD": 0.134496,
+  "output": {
+    "action": "correct",
+    "reason": "The rendered diffs show only a storage flag swap for updaterequests.kyverno.io between 1.12.6 and 1.13.0: v1beta1 storage changes from true to false [ev-cf5b10ff8047] and v2 storage changes from false to true [ev-d3850c78b94e]. Nothing shows v1beta1 stops being served, gets rejected or breaks in this release. The migration step only matters \"before a later release removes v1beta1\", and no evidence says such a removal is scheduled. So doing nothing still works, new writes are just stored as v2, and the mandatory migration-required kind over-claims; behavior-change (review) is the supported kind.",
+    "citations": [
+      "ev-cf5b10ff8047",
+      "ev-d3850c78b94e"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "From 1.12.6 to 1.13.0 the storage version of updaterequests.kyverno.io moves from v1beta1 to v2. v1beta1 is still defined, so existing UpdateRequest objects keep working and stay stored as v1beta1 until rewritten. Objects written from now on are stored as v2.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "Nothing fails on upgrade. The API server now stores UpdateRequest objects as v2 (v2.storage false→true, v1beta1.storage true→false). Existing objects stay stored as v1beta1 until they are rewritten, and status.storedVersions still lists v1beta1.",
+        "remediation": "Optionally run a storage version migration for updaterequests.kyverno.io (rewrite all objects) and remove v1beta1 from status.storedVersions, before any future release that stops serving v1beta1."
+      }
+    }
+  }
+}

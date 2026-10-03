@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f43fa2133270",
+    "reviewItemId": "ri-f3f59d0d699f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:cc2a55e2332798c7efc891ae49f842e08fe6dcbcb7f04201f5256d55adf9b12f",
+      "inputEvidence": [
+        "ev-eec682284370"
+      ],
+      "generatedAt": "2026-10-03T12:38:38.199Z",
+      "callId": "b59669c0-6361-42b7-a84e-f5666e389c24",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-eec682284370] says LogCLI used to take the remote schema store from `-boltdb.shipper.shared-store` only when `-remote-schema` is `true`, and that `-schema-store` now replaces it. So the exposed state is LogCLI run with `-remote-schema=true` and `-boltdb.shipper.shared-store` set, which is exactly the proposed conjunction. Setting `-schema-store` explicitly is the shielded state, so it fits as the overlap. One residual risk: a bare `-remote-schema` boolean flag may not match `equals true`, but the evidence names the condition as \"set to `true`\".",
+    "startedAt": "2026-10-03T12:38:26.773Z",
+    "decidedAt": "2026-10-03T12:38:38.199Z",
+    "resultingFact": "vf-0019c786b3d7"
+  }
+}

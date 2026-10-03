@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ed99bcbf927a",
+    "candidateId": "sc-78b10a313e23",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-certificate-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"SHA-384 (3072-bit keys) / SHA-512 (4096-bit keys)\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with RSA keys of length 3072 or 4096 will be issued/renewed with SHA-384 or SHA-512 signatures; issuance keeps working, but the upgrade guide notes errors could appear when larger RSA keys rotate if some peer does not support these hash algorithms.",
+        "remediation": "Watch certificate issuance and renewal for 3072/4096-bit RSA keys after upgrading; the upgrade guide flags possible errors during rotation if a peer does not accept SHA-384/SHA-512.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 now uses SHA-384 for RSA certificates with 3072-bit keys and SHA-512 for RSA certificates with 4096-bit keys as hash algorithms; the upgrade guide says these are widely supported and it does not expect an issue, but warns to bear it in mind if errors appear as larger RSA keys rotate."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence states the exposure condition (RSA keys of length 3072 or 4096) but names no resource field, values key, flag, feature gate or config key that carries the RSA key length (nor whether the relevant key is the certificate's own or the issuing CA's), so no predicate can be written without inventing field paths.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-463f236bf567"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:99ec4c4cfdad0a58d05babdead7dd2ed030421dbe15d736631befa81656a2dbb",
+      "inputEvidence": [
+        "ev-463f236bf567"
+      ],
+      "generatedAt": "2026-10-03T08:16:29Z",
+      "callId": "4043c9f4-042e-476f-abf6-021999327412"
+    }
+  }
+}

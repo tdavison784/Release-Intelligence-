@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-11f8b610a8b9",
+    "candidateId": "sc-f9466f268c0b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade the metric is exposed as doublewrite_crd_identities instead of doublewrite_identity_crd_total_count, so monitoring queries that use the old name no longer match it.",
+        "remediation": "Update dashboards, alerts and recording rules to use doublewrite_crd_identities.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_total_count is renamed to doublewrite_crd_identities, so anything that queries the old name needs updating."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name (doublewrite_identity_crd_total_count). None of the available subject families covers metrics, so no identity can be spelled the same way across answers.; change: The evidence says the metric was renamed to doublewrite_crd_identities. But a 'renamed' change needs a replacedBy in the same family as the subject, and the subject family can't be pinned for a metric.; applicability: Exposure depends on whether dashboards, alerts or recording rules query the old metric name. That lives outside Cilium's configuration sources, and the evidence doesn't say when this metric is emitted.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-7ede52ce8bb8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:eb034da7235246646170a48bbee894f7c6293248f2f4be74fd3a64c38ef4fb39",
+      "inputEvidence": [
+        "ev-7ede52ce8bb8"
+      ],
+      "generatedAt": "2026-10-03T07:06:55Z",
+      "callId": "e7c4bd3d-0b99-40cc-9079-46583dd3bc89"
+    }
+  }
+}

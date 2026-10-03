@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-c9494594857a",
+    "candidateId": "sc-e17ffc343ebe",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The previously deprecated `metallb-bgp` flags `bgp-config-path`, `bgp-announce-lb-ip` and `bgp-announce-pod-cidr` have been removed\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The metallb-bgp flags bgp-config-path, bgp-announce-lb-ip and bgp-announce-pod-cidr have been removed. Configurations that still rely on them no longer get metallb-based BGP advertisements, because users are now required to use the Cilium BGP control plane.",
+        "remediation": "Before upgrading, move BGP advertisements to the Cilium BGP control plane and remove the metallb-bgp flags.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.17.0 removes the deprecated metallb-bgp flags bgp-config-path, bgp-announce-lb-ip and bgp-announce-pod-cidr; BGP advertisements must now use the Cilium BGP control plane."
+    },
+    "proposals": [
+      "sp-58a5e137eccc",
+      "sp-c5254832a940",
+      "sp-d3cce3fe1d07",
+      "sp-e277cb0d25c3"
+    ],
+    "validations": [
+      "val-47bb9bdb2af4",
+      "val-8457dd905740"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:28:24Z"
+  }
+}
