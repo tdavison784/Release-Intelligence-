@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-81ff6d9663ef",
+    "candidateId": "sc-b4d0f27d94a8",
+    "proposalId": "sp-ea4b5b98408d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagerepositories-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta2\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "imagerepositories.image.toolkit.fluxcd.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageRepository objects stay stored as v1beta2 until they are rewritten. If they are not migrated and status.storedVersions is not updated, they will still be stored as v1beta2 when a later release removes v1beta2.",
+        "remediation": "Run a storage version migration that rewrites every ImageRepository object, then remove v1beta2 from status.storedVersions on the imagerepositories.image.toolkit.fluxcd.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imagerepositories.image.toolkit.fluxcd.io CRD moves from v1beta2 to v1. Existing ImageRepository objects stay stored as v1beta2 until they are rewritten, so a storage version migration and a status.storedVersions update are needed before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

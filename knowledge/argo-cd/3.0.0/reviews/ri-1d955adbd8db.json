@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1d955adbd8db",
+    "candidateId": "sc-d81386765c5b",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"7edaef54d456a9f5f59760f0bb4958e41a43fd94: feat(helm): upgrading helm to 3.17.0\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.sources[].chart",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "statement": "Argo CD 3.0.0 upgrades its bundled Helm to 3.17.0, so Helm chart operations now run on Helm 3.17.0."
+    },
+    "proposals": [
+      "sp-2d44df950c27",
+      "sp-4e5285689947",
+      "sp-e81bff941afe",
+      "sp-e9cf31e7c649"
+    ],
+    "validations": [
+      "val-5288747b8b1a",
+      "val-696743ac7b51",
+      "val-da35201ce3e7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:47:31Z"
+  }
+}

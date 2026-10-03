@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-640b5fc63fe5",
+    "candidateId": "sc-3ce4849b6272",
+    "product": "crossplane",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Line removed from cmd/crossplane/core/core.go: log.Info(\\\"Composition Functions are GA and cannot be disabled. The --enable-composition-functions flag will be…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core pod is still started with --enable-composition-functions after the v2.0.0 upgrade, the flag is no longer honoured; per the removed notice, Composition Functions are GA and cannot be disabled, so the flag had no disabling effect anyway.",
+        "remediation": "Remove --enable-composition-functions from the Crossplane core pod arguments (Helm values args) when upgrading to v2.0.0.",
+        "severity": "low"
+      },
+      "statement": "Crossplane v2.0.0 removed from cmd/crossplane/core/core.go the deprecation handling for --enable-composition-functions — the notice stating that Composition Functions are GA, cannot be disabled, and that the flag will be removed in a future release is gone, indicating the deprecated no-op flag was removed in v2.0.0."
+    },
+    "proposals": [
+      "sp-2f7c8acc2f8f",
+      "sp-9a0f360817c2",
+      "sp-e50f4a8cb155"
+    ],
+    "validations": [
+      "val-afc108071836",
+      "val-cb8d80d797eb"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:13:12Z"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-087d3cbcbfef",
+    "candidateId": "sc-69152174e9e5",
+    "proposalId": "sp-ca90ee98f5b6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-cache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alert rules or other metric consumers query querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "Consumers (dashboards, alert rules, queries) referencing the removed metrics querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total will no longer receive data; cache instrumentation is provided instead by loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests made to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards, alert rules and other metric consumers to use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds instead of the removed querier_cache_* metrics.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics `querier_cache_added_total`, `querier_cache_gets_total` and `querier_cache_misses_total`; requests made to the configured cache (`embeddedcache`, `memcached` or `redis`) are instead instrumented by `loki_cache_fetched_keys`, `loki_cache_hits` and `loki_cache_request_duration_seconds`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

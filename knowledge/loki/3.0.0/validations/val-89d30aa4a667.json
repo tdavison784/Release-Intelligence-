@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-89d30aa4a667",
+    "candidateId": "sc-895e84ff5606",
+    "proposalId": "sp-c6a12c4cb0c3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "tsdb-v13-schema"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Structured metadata is now on by default. If the `tsdb` index and the `v13` schema are not configured, Loki won't start.",
+        "remediation": "Before upgrading, configure the `tsdb` index and the `v13` schema. See the upgrade guide section 'Structured Metadata, Open Telemetry, Schemas and Indexes'.",
+        "severity": "critical"
+      },
+      "statement": "In Loki 3.0.0 structured metadata is on by default and needs the `tsdb` index with the `v13` schema; without them Loki won't start."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

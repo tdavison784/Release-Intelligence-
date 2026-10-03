@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-61641b3f2637",
+    "candidateId": "sc-c17c3673cf1d",
+    "proposalId": "sp-c70355d7fb33",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminating-tls-ca-crt"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "An exposed environment keeps working, but Envoy silently stops requiring client certificates from pods on L7 policies using TLS termination because the ca.crt key of the secret is no longer loaded.",
+        "remediation": "Set --use-full-tls-context=true to retain the previous (bug-compatible) behaviour.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16, an L7 network policy with terminatingTLS no longer loads the ca.crt key of the referenced secret, so Envoy no longer requires client certificates from pods during TLS termination; the previous behaviour is retained only by setting --use-full-tls-context=true."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

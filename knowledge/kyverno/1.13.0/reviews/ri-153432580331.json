@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-153432580331",
+    "candidateId": "sc-43d7d231eb46",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "applicability",
+    "question": "For \"Dropped API versions: Kyverno 1.13 drops deprecated API versions for its managed CustomResourceDefinitions\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "cleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustercleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "policyexceptions.kyverno.io"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 drops deprecated API versions (e.g. v2alpha1) of its managed CRDs; Helm hook migrates automatically, otherwise stored resources must be migrated with kube-storage-version-migrator."
+    },
+    "proposals": [
+      "sp-026eb8ef8f6e",
+      "sp-1668b81370c5",
+      "sp-4f50ec574a33",
+      "sp-89f67a99347e",
+      "sp-8fbd7ff2d04f",
+      "sp-92a1e2b82230",
+      "sp-a8f306962f4b"
+    ],
+    "validations": [
+      "val-0df63c9319f3",
+      "val-39608829e27a",
+      "val-7c93eede3f9b",
+      "val-8514d500b92c",
+      "val-883fccfa3366",
+      "val-9ddfa9eba5b4",
+      "val-d29588b2f66c",
+      "val-d58cbdb08e89"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:26:39Z"
+  }
+}

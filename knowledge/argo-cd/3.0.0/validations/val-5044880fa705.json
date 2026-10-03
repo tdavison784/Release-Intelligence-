@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5044880fa705",
+    "candidateId": "sc-74e353f1150c",
+    "proposalId": "sp-5f7516d74767",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "tracking-annotation",
+        "component": "controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Argo CD Applications manage malformed resources — those manifests live in source repositories whose contents are not carried by any static configuration input, and the changelog line does not define what counts as 'malformed'"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Applications whose manifests include malformed resources, the controller wrote the wrong tracking annotation before this release; after upgrading to 3.0.0 it writes the correct tracking annotation for them.",
+        "remediation": "No operator action is required; if malformed resources were managed, verify their tracking annotation is now as expected.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes the controller writing a wrong tracking annotation for malformed resources, so the correct tracking annotation is now written for them."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

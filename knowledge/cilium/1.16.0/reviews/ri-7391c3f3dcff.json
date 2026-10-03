@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7391c3f3dcff",
+    "candidateId": "sc-7521b226a0ed",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`cilium_ces_sync_errors_total`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cilium_ces_sync_errors_total disappears from Cilium's exported metrics in 1.16; anything scraping, charting, or alerting on it simply stops receiving data for it, though Cilium itself keeps running.",
+        "remediation": "Remove or update dashboards and alert rules that reference cilium_ces_sync_errors_total.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 removes the cilium_ces_sync_errors_total metric, listed under \"Removed Metrics\" in the 1.16 upgrade notes, so it is no longer exported."
+    },
+    "proposals": [
+      "sp-bbfd69925c3a",
+      "sp-cc9311bc99dc",
+      "sp-fe0f0b33acce"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:46:53Z"
+  }
+}

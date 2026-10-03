@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-eeff1cbe1493",
+    "candidateId": "sc-4cda841ab3a0",
+    "proposalId": "sp-3a1d56bbaa72",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "traefik",
+        "name": "OTEL_PROPAGATORS"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "OTEL_PROPAGATORS",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "If OTEL_PROPAGATORS is set in Traefik's environment, it now configures how tracing context is propagated.",
+        "remediation": "If OTEL_PROPAGATORS is already set on the Traefik containers, check that the propagators it lists are the ones you want.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure tracing propagation."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-99b382aee85d",
+    "candidateId": "sc-7795416d8d95",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The following embedded cache metrics are renamed: - `querier_cache_added_new_total` is renamed to `loki_embeddedcache_added_new_total` -…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps running but exports the embedded cache metrics under the new loki_embeddedcache_* names, so any dashboard, alert or other consumer querying the old querier_cache_* names no longer matches those metrics.",
+        "remediation": "Update dashboards, alert rules and other metric consumers to the new loki_embeddedcache_* metric names.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0 the embedded cache metrics are renamed: querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries and querier_cache_memory_bytes become loki_embeddedcache_added_new_total, loki_embeddedcache_evicted_total, loki_embeddedcache_entries and loki_embeddedcache_memory_bytes respectively."
+    },
+    "proposals": [
+      "sp-229216d27bce",
+      "sp-8a99c8b73622",
+      "sp-abe2b8ceeaef",
+      "sp-c0de903765d0",
+      "sp-ee7ea7cbddbf"
+    ],
+    "validations": [
+      "val-119a338b4c05",
+      "val-586bb96e649d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:23:24Z"
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4924acaf2678",
+    "candidateId": "sc-b38b4b719434",
+    "proposalId": "sp-e0bfaef230e2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "hubble.tls.server.cert"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "hubble.tls.server.existingSecret"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "hubble.tls.server.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.relay.tls.client.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.relay.tls.server.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.ui.tls.client.existingSecret",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "These inline TLS certificate/key Helm options still work in this release but are scheduled for removal in a future release.",
+        "remediation": "Migrate to the associated existingSecret options — hubble.tls.server.existingSecret, hubble.relay.tls.client.existingSecret, hubble.relay.tls.server.existingSecret, and hubble.ui.tls.client.existingSecret — before a future release removes the inline cert/key options.",
+        "severity": "low"
+      },
+      "statement": "The Helm options hubble.tls.server.cert, hubble.tls.server.key, hubble.relay.tls.client.cert, hubble.relay.tls.client.key, hubble.relay.tls.server.cert, hubble.relay.tls.server.key, hubble.ui.tls.client.cert, and hubble.ui.tls.client.key are deprecated in favor of the associated existingSecret options and will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

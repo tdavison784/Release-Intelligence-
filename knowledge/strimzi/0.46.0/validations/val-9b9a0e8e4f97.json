@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9b9a0e8e4f97",
+    "candidateId": "sc-f6734cfa890c",
+    "proposalId": "sp-e6063b43e34e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regarding-object"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Kafka resource as the `regardingObject` and the Pod in the `related` field\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any event consumers, alerts or tools filter or match Pod restart events by their regardingObject or related fields"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pod restart events now point their regardingObject at the Kafka resource, not the Pod, which now appears in the related field. Any tooling that selects these events by regardingObject will see them differently.",
+        "remediation": "Check any event watchers or alerts that match Pod restart events by regardingObject, and update them to use the Kafka resource or the related field.",
+        "severity": "low"
+      },
+      "statement": "In 0.46.0, the Kubernetes events emitted during a Pod restart set the Kafka resource as the `regardingObject` and put the Pod in the `related` field."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

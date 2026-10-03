@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b5e4285f4d02",
+    "candidateId": "sc-78b10a313e23",
+    "proposalId": "sp-ed99bcbf927a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-certificate-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"SHA-384 (3072-bit keys) / SHA-512 (4096-bit keys)\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with RSA keys of length 3072 or 4096 will be issued/renewed with SHA-384 or SHA-512 signatures; issuance keeps working, but the upgrade guide notes errors could appear when larger RSA keys rotate if some peer does not support these hash algorithms.",
+        "remediation": "Watch certificate issuance and renewal for 3072/4096-bit RSA keys after upgrading; the upgrade guide flags possible errors during rotation if a peer does not accept SHA-384/SHA-512.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 now uses SHA-384 for RSA certificates with 3072-bit keys and SHA-512 for RSA certificates with 4096-bit keys as hash algorithms; the upgrade guide says these are widely supported and it does not expect an issue, but warns to bear it in mind if errors appear as larger RSA keys rotate."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

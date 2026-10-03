@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-567f8a3fd23a",
+    "candidateId": "sc-18e3c0f40ba7",
+    "proposalId": "sp-fb86ae928379",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--verbose",
+        "component": "cilium-dbg"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts or automation parse the `cilium-dbg status --verbose` health data tree"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The health data tree printed by `cilium-dbg status --verbose` changes shape and ordering — a leaf named `reporter` may now carry health reported on a non-leaf component, and branches are sorted by the fully qualified health status identifier — so tooling that parsed the previous output format may see different output while the command itself keeps working.",
+        "remediation": "Verify any scripts or automation that parse `cilium-dbg status --verbose` health data against the new `reporter` leaf and the sorted branch ordering.",
+        "severity": "low"
+      },
+      "statement": "The `cilium-dbg status --verbose` command's health data output may now show health reported on a non-leaf component under a leaf named `reporter`, and health data tree branches are now sorted by the fully qualified health status identifier."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

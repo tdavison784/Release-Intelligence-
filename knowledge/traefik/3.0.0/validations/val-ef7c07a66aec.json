@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ef7c07a66aec",
+    "candidateId": "sc-be5f4f756888",
+    "proposalId": "sp-68d4ee980ae8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "pilot"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PILOT_TOKEN",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^pilot:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^pilot:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*\\[pilot\\]"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Pilot configuration is no longer supported, and Traefik will not start if any Pilot configuration remains in the static configuration.",
+        "remediation": "Remove all Pilot-related configuration (the pilot section in the file, --pilot.* CLI flags and any equivalent env vars) from the static configuration before upgrading.",
+        "severity": "high"
+      },
+      "statement": "In Traefik v3 the Pilot static configuration (for example pilot.token or --pilot.token) is no longer supported, and Traefik will not start if it is still set, so all Pilot configuration must be removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

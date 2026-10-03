@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-eaccb81eb902",
+    "candidateId": "sc-03aa929e64d5",
+    "proposalId": "sp-e388f86b5dce",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"prior to Helm 3.17.1, a `null` object in values.yaml resulted in the warning `cannot overwrite table with non table` on `helm template`, and the resulting K8s object was not overridden with the invalid `null` value\"",
+        "after": "\"with Helm 3.17.1, a `null` object in values.yaml still results in the warning `cannot overwrite table with non table` on `helm template`, but the resulting K8s object is overridden with the invalid `null` value\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Charts rendered through the upgraded Helm now have their resulting K8s object overridden with the invalid `null` value when a values.yaml subchart section is null (previously the null was ignored with only the `cannot overwrite table with non table` warning), so previously-fine renderings change output; the guide directs operators to remove such null values from values.yaml.",
+        "remediation": "Identify values.yaml files with `null` object values and remove those `null` values (per the upgrade guide).",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0 upgrades Helm to 3.17.1, which changes rendering behavior: a `null` object in a subchart's values.yaml still triggers the `cannot overwrite table with non table` warning during `helm template`, but now the resulting K8s object is overridden with the invalid `null` value instead of being left unoverridden; the fix is to remove such `null` values from values.yaml."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "compatibility:row",
+        "detail": "no compatibility row for helm in either release"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:behavior-changed",
+        "detail": "only a requirement-changed change is decidable from compatibility rows"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

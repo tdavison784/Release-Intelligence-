@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ea50d19bafec",
+    "candidateId": "sc-1115e82f20f4",
+    "proposalId": "sp-3b43663852af",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments relying on MTU auto-detection may get a different (lowest across external interfaces) MTU than before, when multiple external interfaces exist.",
+        "remediation": "Verify the detected MTU, or set MTU explicitly via the MTU helm option, --mtu agent flag or mtu CNI option."
+      },
+      "statement": "MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (secondary ENI interfaces excluded); manual MTU configuration still works."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

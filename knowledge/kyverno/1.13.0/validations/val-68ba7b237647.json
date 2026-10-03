@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-68ba7b237647",
+    "candidateId": "sc-e1a977f0036f",
+    "proposalId": "sp-f378674c1481",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "rbac-permission",
+          "product": "kyverno",
+          "name": "view"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].mutate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].mutate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers lose the wildcard view permission they previously held and are instead bound to the default `view` role, so reports may be impacted and users with mutate or generate policies on custom resources may find those policies no longer work where the controller can no longer view the custom resources; policies during admission controls are not impacted.",
+        "remediation": "See the Role Based Access Controls documentation section referenced in the upgrade guide and grant the Kyverno controllers view access to any custom resources required by reports and by mutate/generate policies.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permission that previously allowed Kyverno controllers to view all resources (including secrets) and replaces it with a role binding to the default `view` role, which will not impact policies during admission controls but may impact reports and users with mutate or generate policies on custom resources the controller may no longer be able to view."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

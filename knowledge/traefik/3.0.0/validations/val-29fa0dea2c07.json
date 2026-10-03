@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-29fa0dea2c07",
+    "candidateId": "sc-664f60a3392a",
+    "proposalId": "sp-62135230abe2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which backends send responses without a Content-Type header at runtime, and whether the routes serving them use a ContentType middleware"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses from backends that do not set a Content-Type header no longer get an auto-detected Content-Type value from Traefik.",
+        "remediation": "Attach the ContentType middleware to the affected routers to turn Content-Type auto-detection back on.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3, the Content-Type header is no longer auto-detected when the backend does not set it; auto-detection now has to be turned on with the ContentType middleware."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}
