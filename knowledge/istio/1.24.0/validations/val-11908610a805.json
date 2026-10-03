@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-11908610a805",
+    "candidateId": "sc-4330cdde4865",
+    "proposalId": "sp-a86cfec7172a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+        "component": "pilot"
+      },
+      "change": {
+        "type": "added"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments with DestinationRules on the same host but totally different exportTo attributes no longer have those rules merged by pilot, so the previously merged (and inconsistent) behavior is replaced by the unmerged behavior unless ENABLE_ENHANCED_DESTINATIONRULE_MERGE is set to `false` in the pilot deployment.",
+        "remediation": "If the previous merging behavior is wanted, set the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to `false` in the pilot deployment.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 stops merging DestinationRules on the same host when their exportTo attributes are totally different, and the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable (settable to `false` in the pilot deployment) toggles this behavior."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:istio|name=ENABLE_ENHANCED_DESTINATIONRULE_MERGE|component=pilot: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:istio|name=ENABLE_ENHANCED_DESTINATIONRULE_MERGE|component=pilot: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

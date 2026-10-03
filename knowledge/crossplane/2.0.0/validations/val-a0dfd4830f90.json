@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a0dfd4830f90",
+    "candidateId": "sc-3be44400117a",
+    "proposalId": "sp-2b9aaf6bf209",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "xpkg login/xpkg logout",
+        "component": "Crossplane CLI"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "CI pipelines or local scripts that call `crossplane xpkg login` or `crossplane xpkg logout` will fail because the commands no longer exist in the Crossplane CLI.",
+        "remediation": "Replace `crossplane xpkg login`/`crossplane xpkg logout` in workflows and scripts with `docker login` locally or the `docker/login-action` from CI before pushing a package, as done for example in the function-auto-ready CI workflow.",
+        "severity": "medium"
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI; the release notes recommend using `docker login` locally or the `docker/login-action` from CI to authenticate to a registry before pushing a package."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:crossplane|name=xpkg login/xpkg logout|component=Crossplane CLI: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:crossplane|name=xpkg login/xpkg logout|component=Crossplane CLI: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

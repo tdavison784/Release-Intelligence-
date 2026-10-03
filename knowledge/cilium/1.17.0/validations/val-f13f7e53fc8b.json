@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f13f7e53fc8b",
+    "candidateId": "sc-0e7e63699f83",
+    "proposalId": "sp-fac972289fa4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerting/recording rules, or other metric consumers query the metric name lbipam_ips_available_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is exposed under the new name lbipam_ips_available; monitoring that still queries lbipam_ips_available_total no longer receives that metric series.",
+        "remediation": "Update dashboards, alerting and recording rules, and any other metric consumers to query lbipam_ips_available instead of lbipam_ips_available_total.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 renames the LB-IPAM metric lbipam_ips_available_total to lbipam_ips_available, so anything querying the old metric name must be updated to the new name."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d44e4111625d",
+    "candidateId": "sc-8d62e25744ec",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"`envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` -> `envoy_cilium_npds_init_fetch_timeout`\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external dashboards, alerts or recording rules query the metric envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout"
+        }
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` is renamed to `envoy_cilium_npds_init_fetch_timeout`, so monitoring that queries the old name needs to be checked."
+    },
+    "proposals": [
+      "sp-742b4f0179d1",
+      "sp-b8e1806f14bf",
+      "sp-beceedaa3250"
+    ],
+    "validations": [
+      "val-60451d87dd9a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T11:55:21Z"
+  }
+}

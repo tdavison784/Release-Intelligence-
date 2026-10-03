@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8eb50897b7f3",
+    "candidateId": "sc-1fdd85cb942b",
+    "proposalId": "sp-fef5008d9eef",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "version": "v1beta2",
+        "kind": "KafkaMirrorMaker"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "version": "v1beta2",
+          "kind": "KafkaMirrorMaker"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Support for MirrorMaker 1 is removed; deployments using it must be migrated to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer.",
+        "remediation": "Migrate to MirrorMaker 2 before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The KafkaMirrorMaker (MirrorMaker 1) resource support was removed in Strimzi 0.46; users must migrate to MirrorMaker 2 before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "confirmed",
+        "rule": "canonical:gvk/removed",
+        "detail": "the exposure is the canonical condition for a removed of a gvk"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5d73e704055d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-crds-0.45.0.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:e859c73429319225b4a52e78dd03ec4d061dcb75b67140d327a0996ea162bdf4",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

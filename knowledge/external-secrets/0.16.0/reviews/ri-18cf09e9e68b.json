@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-18cf09e9e68b",
+    "candidateId": "sc-301a765d4d6e",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "applicability",
+    "question": "For \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook: Use `0.16.1` as opposed to `0.16.0` on your installation…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=0.15.0 <0.16.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.conversion.strategy",
+                  "state": "equals",
+                  "values": [
+                    "\"Webhook\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition"
+            }
+          ]
+        }
+      },
+      "statement": "The 0.16.0 chart removes spec.conversion (strategy Webhook pointing at the external-secrets-webhook /convert service) from the external-secrets CRDs, so promoting an existing installation to 0.16.0 can have the CRD update rejected with 'spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook'; the release notes say to use 0.16.1 instead of 0.16.0."
+    },
+    "proposals": [
+      "sp-256519819b35",
+      "sp-4a19477d45f2",
+      "sp-7217f41d376f",
+      "sp-7c9fd31dcce8",
+      "sp-812b6529a2ba"
+    ],
+    "validations": [
+      "val-113e6d3cbd7b",
+      "val-13b998262028",
+      "val-651e739f151c",
+      "val-d647ced76400"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T11:55:25Z"
+  }
+}

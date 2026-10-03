@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3eb31b8e73de",
+    "candidateId": "sc-f2b93d9f65be",
+    "proposalId": "sp-f1c8395771fb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--k8s-mode",
+        "component": "bugtool"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or scripts run bugtool with --k8s-mode (or --cilium-agent-container-name, --k8s-namespace, --k8s-label); bugtool is run by hand and is not set in workload configuration"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The bugtool --k8s-mode flag and its related flags still work in 1.17 but will be removed in Cilium 1.18.",
+        "remediation": "Use the Cilium CLI to gather sysdumps from Kubernetes clusters instead of bugtool's k8s-mode.",
+        "severity": "low"
+      },
+      "statement": "The bugtool flag --k8s-mode (and the related flags cilium-agent-container-name, k8s-namespace and k8s-label) is deprecated in 1.17 and will be removed in Cilium 1.18; use the Cilium CLI to gather a sysdump from a K8s cluster instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/deprecated",
+        "detail": "cli-flag deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/deprecated",
+        "detail": "cli-flag deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-94246930f7ae",
+    "candidateId": "sc-287adb9c71e8",
+    "proposalId": "sp-b6e91876cdea",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--enable-composition-webhook-schema-validation",
+        "component": "core"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-composition-webhook-schema-validation",
+          "component": "core",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core is started with --enable-composition-webhook-schema-validation, v2.0.0 returns the error \"Crossplane now uses CEL to validate Compositions. The --enable-composition-webhook-schema-validation flag will be removed in a future release.\", so the core does not start until the flag is removed.",
+        "remediation": "Remove --enable-composition-webhook-schema-validation from the Crossplane core arguments; Composition validation is now performed with CEL and the flag is scheduled for removal in a future release.",
+        "severity": "high"
+      },
+      "statement": "In v2.0.0 the Crossplane core command returns a new error stating that Crossplane now uses CEL to validate Compositions and that the --enable-composition-webhook-schema-validation flag will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

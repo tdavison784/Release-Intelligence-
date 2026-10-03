@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ba13f5b843a8",
+    "candidateId": "sc-5cacf5c21582",
+    "proposalId": "sp-9eb54e8e5d6e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "app-refresh-comparewith"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which application refresh requests with delay are issued at runtime (live traffic such as UI or API refresh calls)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Application refresh requests made with a delay now set compareWith correctly; environments that hit the previous buggy behavior (issue #18998) will see the corrected refresh behavior.",
+        "remediation": "No operator action required; after upgrading, verify that delayed application refreshes now set compareWith as expected.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes a bug so that compareWith is now set correctly when an application refresh is requested with delay (issue #18998)."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

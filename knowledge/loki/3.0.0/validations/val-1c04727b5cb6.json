@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1c04727b5cb6",
+    "candidateId": "sc-5996f84cf28b",
+    "proposalId": "sp-abbd2631c121",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--experimental.ruler.enable-api",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "In Loki 3.0.0 the `experimental.ruler.enable-api` option is removed, so an environment that still sets it no longer has it honoured.",
+        "remediation": "Use `ruler.enable-api` instead of `experimental.ruler.enable-api`.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the `experimental.ruler.enable-api` option; operators should use `ruler.enable-api` instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

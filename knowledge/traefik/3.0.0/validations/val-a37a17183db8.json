@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a37a17183db8",
+    "candidateId": "sc-4b9080e9db9b",
+    "proposalId": "sp-b5e1156f9089",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_DOCKER_TLS_CAOPTIONAL",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "additionalArguments",
+              "state": "has-token",
+              "values": [
+                "--providers.docker.tls.caOptional=true"
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed tls.caOptional option for the Docker provider is no longer honoured; the guide says it should be removed from the static configuration.",
+        "remediation": "Remove tls.caOptional from the Docker provider static configuration.",
+        "severity": "medium"
+      },
+      "statement": "The Docker provider static option tls.caOptional (providers.docker.tls.caOptional) is removed in v3 and must be removed from configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

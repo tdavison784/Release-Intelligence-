@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-727004e8deaa",
+    "candidateId": "sc-f5cebb7e0498",
+    "proposalId": "sp-0b8f9bc59534",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "issuer-secret-retry-backoff"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which issuers have their linked Secret updated at runtime (live Secret writes/rotations)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading, when an issuer's linked Secret is updated the issuer will retry more quickly instead of being delayed by the previous high back-off timeout; nothing is rejected or fails, only the timing of reconciliation after Secret updates changes.",
+        "remediation": "No operator action required; expect issuer reconciliation to happen sooner after a linked Secret is updated than in previous releases.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, the issuer retries more quickly when its linked Secret is updated, fixing an issue that previously caused a high back-off timeout."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d54147bd5126",
+    "candidateId": "sc-f9466f268c0b",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`doublewrite_identity_crd_total_count` has been renamed to `doublewrite_crd_identities`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade the metric is exposed as doublewrite_crd_identities instead of doublewrite_identity_crd_total_count, so monitoring queries that use the old name no longer match it.",
+        "remediation": "Update dashboards, alerts and recording rules to use doublewrite_crd_identities.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_total_count is renamed to doublewrite_crd_identities, so anything that queries the old name needs updating."
+    },
+    "proposals": [
+      "sp-11f8b610a8b9",
+      "sp-28a470a5b9e9",
+      "sp-a943107d75ae",
+      "sp-adb199fadffe"
+    ],
+    "validations": [
+      "val-ca8ed5a54ccf",
+      "val-f8ea68fbc792"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-agree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:43:11Z"
+  }
+}

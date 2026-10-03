@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ea0aaa986533",
+    "candidateId": "sc-9c0a93e3b5b5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"073ccf7c35a63bb203b8c78dec3e8a7c2efecdeb: fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Webhook payloads now match repo URLs that use ssh or altssh subdomains; environments receiving webhooks for such repositories see those payloads match (enabling webhook-triggered handling) where they previously did not.",
+        "remediation": "No operator action required; verify that webhook events for repositories whose URLs use ssh/altssh subdomains now trigger the expected refreshes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes webhook matching so that repo URLs containing ssh or altssh subdomains are now allowed to match the webhook payload, where previously such URLs did not match."
+    },
+    "proposals": [
+      "sp-2e8b5653723d",
+      "sp-5da3278ac22a",
+      "sp-60b1facc9a10",
+      "sp-93588a4baab3"
+    ],
+    "validations": [
+      "val-0ab842f00a23",
+      "val-3cfcaca1fc34",
+      "val-505969464057",
+      "val-bda16e9f63e0"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T11:55:31Z"
+  }
+}

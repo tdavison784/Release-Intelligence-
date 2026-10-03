@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8ffd4caff99a",
+    "candidateId": "sc-00f02ba8dd12",
+    "proposalId": "sp-e63a38a65cb1",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "bpf.enableTCX",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether nodes run Linux kernel 6.6 or newer and host third-party old-style tc BPF users"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On kernels 6.6 or newer, Cilium switches from old-style tc BPF attachment to tcx BPF links by default, which may affect setups that have third-party old-style tc BPF users.",
+        "remediation": "If third-party old-style tc BPF users are present, set bpf.enableTCX=false via Helm to keep the old-style tc BPF attachment mode.",
+        "severity": "medium"
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium 1.16 by default attaches its core-datapath tc BPF programs with tcx BPF links; setups with third-party old-style tc BPF users should set the Helm value bpf.enableTCX=false to keep the old tc attachment mode."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

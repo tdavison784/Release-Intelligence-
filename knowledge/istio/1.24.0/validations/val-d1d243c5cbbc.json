@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d1d243c5cbbc",
+    "candidateId": "sc-c9d1c24230a6",
+    "proposalId": "sp-307d6481266e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "citadel-server-cert-expiry-metrics"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.24.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 1.24.0, these four certificate-expiry metrics reflect newly loaded certificates instead of staying stale; monitoring or alerting based on them will begin reporting current certificate expiries, and nothing fails if the operator does nothing.",
+        "remediation": "Verify dashboards and alerts that use these metrics show current certificate expiries after certificates rotate.",
+        "severity": "low"
+      },
+      "statement": "The istio certificate-expiry metrics `citadel_server_root_cert_expiry_timestamp`, `citadel_server_root_cert_expiry_seconds`, `citadel_server_cert_chain_expiry_timestamp` and `citadel_server_cert_chain_expiry_seconds` now update when new certificates are loaded, where previously their values stayed stale."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

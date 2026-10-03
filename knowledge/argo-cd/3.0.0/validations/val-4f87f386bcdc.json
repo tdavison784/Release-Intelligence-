@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4f87f386bcdc",
+    "candidateId": "sc-df479e04bf5f",
+    "proposalId": "sp-a9221bf1ed10",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"false\"",
+        "after": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.applyNestedSelectors",
+                  "state": "unset"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.applyNestedSelectors",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "ApplicationSet"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.applyNestedSelectors",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "ApplicationSet"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSets with applyNestedSelectors unset or false and with nested selectors will now have those nested selector filters applied, changing which generated Applications result.",
+        "remediation": "Remove nested selectors from ApplicationSets where applyNestedSelectors was not explicitly true before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "Starting in Argo CD 3.0 the ApplicationSet spec.applyNestedSelectors field is ignored and nested selectors are always applied, as if it were true."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/behavior-changed",
+        "detail": "no canonical exposure condition for crd-field behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-04f25237d9d5",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/application-crd.yaml",
+        "locator": "manifests/crds/application-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:0f815623686955aaebe337afe62b5117743bc7a320e19cc9acdb1a24c39cb507",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      },
+      {
+        "id": "ev-66224e7edcd9",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/applicationset-crd.yaml",
+        "locator": "manifests/crds/applicationset-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:dd790346fdaad52701885761fff863962f939990eef124161e5de3f9deaac88d",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      },
+      {
+        "id": "ev-84752609c1b3",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/applicationset-crd.yaml",
+        "locator": "manifests/crds/applicationset-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:1ef3d577dd42dac91139fb5a03f292d1aec2dac91ef1f0eed1144c769f02fae0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-be3337c2717d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/application-crd.yaml",
+        "locator": "manifests/crds/application-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:4e7079cab5df789e2dfbdc724ed6514875acb8d5c58445272229a7e1b9c0e139",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-d9606f97c234",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/appproject-crd.yaml",
+        "locator": "manifests/crds/appproject-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:d9a63cb9a12ef66bbf4e811c94fbaa3922af00ed7bb3af791e85dcd7337ffe4c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-f69c10f943ee",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/appproject-crd.yaml",
+        "locator": "manifests/crds/appproject-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:076b20cdde2ab6415589eee09da8a73e9411becef19750a1e34dd4fe6d6e0316",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

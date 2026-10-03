@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-3226e61a93d4",
+    "candidateId": "sc-b9892bf6b6ff",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_version` -> `envoy_cilium_npds_version`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Envoy policy-map version metric is reported as `envoy_cilium_npds_version` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_version`, so queries that use the old name need to be updated.",
+        "remediation": "Update dashboards, alerts and recording rules that use `envoy_cilium_policymap_<node-ip>_<node-id>_version` to use `envoy_cilium_npds_version`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_version` is renamed to `envoy_cilium_npds_version`, so monitoring that uses the old name needs to be checked."
+    },
+    "proposals": [
+      "sp-66350930eaa8",
+      "sp-c3b11ebfbf17",
+      "sp-e18c72c9c60d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:42:27Z"
+  }
+}

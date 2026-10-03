@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-9ad9ac68d414",
+    "candidateId": "sc-e1198a155782",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"402802b08974bb0f1c2e417f7a190d042813c108: feat!: Logs rbac enforce by default\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With the new default, access to logs is RBAC-enforced; users whose RBAC policy does not grant log access may now be denied logs that were previously readable when enforcement was not the default.",
+        "remediation": "Review the Argo CD RBAC policy (argocd-rbac-cm policy.csv) and grant log access to users or roles that need to read logs.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 turns on RBAC enforcement for logs by default, a breaking change flagged \"feat!\"."
+    },
+    "proposals": [
+      "sp-21674d620b6c",
+      "sp-5ecbd881fced",
+      "sp-8e9766eb9a35",
+      "sp-9ec32dae09c2",
+      "sp-aceb57c5ffa0"
+    ],
+    "validations": [
+      "val-238b15695098",
+      "val-4c465b93002b",
+      "val-8ebd8573fde1",
+      "val-a7f6cb6566bc",
+      "val-d341db6cf0a6",
+      "val-ffe44c37bb7b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:50:08Z"
+  }
+}

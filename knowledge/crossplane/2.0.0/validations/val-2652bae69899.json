@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2652bae69899",
+    "candidateId": "sc-050133dc7ea5",
+    "proposalId": "sp-cdc032a83dbe",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "pkg.crossplane.io",
+        "kind": "DeploymentRuntimeConfig",
+        "path": "spec.deploymentTemplate.spec"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.deploymentTemplate.spec",
+              "state": "set"
+            }
+          ],
+          "group": "pkg.crossplane.io",
+          "kind": "DeploymentRuntimeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The runtime Deployment created from a DeploymentRuntimeConfig now receives a deep copy of the deployment template's spec rather than a direct reference to it, so the generated spec no longer shares underlying objects with the template.",
+        "remediation": "No operator action required; after upgrading, verify that runtime Deployments generated from DeploymentRuntimeConfigs behave as expected.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 now uses DeepCopy when assigning from the runtime config Deployment template's spec, so the spec assigned out of a DeploymentRuntimeConfig's deployment template is deep-copied instead of assigned directly."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

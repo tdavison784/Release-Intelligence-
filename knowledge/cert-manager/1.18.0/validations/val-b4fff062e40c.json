@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b4fff062e40c",
+    "candidateId": "sc-87d161c59ee8",
+    "proposalId": "sp-1088a136b892",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "ingress-nginx",
+          "state": "in-range",
+          "range": ">=1.8.0"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "With ingress-nginx >=1.8.0 with strict-validate-path-type enabled (default in >=1.12.0), the admission webhook denies the HTTP01 challenge Ingress, so cert-manager logs 'Error presenting challenge' and HTTP01 challenges fail.",
+        "remediation": "Disable strict-validate-path-type in ingress-nginx or otherwise adjust it, per the release notes.",
+        "severity": "high"
+      },
+      "statement": "ACME HTTP01 Ingress challenge paths now use PathType Exact instead of ImplementationSpecific, which is incompatible with ingress-nginx >=1.8.0 when strict-validate-path-type is enabled (default in >=1.12.0), causing the admission webhook to deny the challenge Ingress."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

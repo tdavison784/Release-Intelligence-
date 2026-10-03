@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-94c7e51e3ac3",
+    "candidateId": "sc-cd58ebd83118",
+    "proposalId": "sp-e19afd9f436e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key-support"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "ipsec-per-tunnel-keys"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment relying on a single IPsec key (with the '+' sign in the secret) no longer has that configuration honoured: per-tunnel keys are used regardless of the '+' sign, so the key material in the secret must be provided as per-tunnel keys.",
+        "remediation": "Update the IPsec key material to per-tunnel keys; the '+' sign in the secret no longer selects single-key behaviour.",
+        "severity": "medium"
+      },
+      "statement": "Cilium 1.17 removes support for a single IPsec key: per-tunnel keys are now used regardless of the presence of the '+' sign in the secret, so the single-key configuration is no longer honoured."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

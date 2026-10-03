@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0ab842f00a23",
+    "candidateId": "sc-9c0a93e3b5b5",
+    "proposalId": "sp-5da3278ac22a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "webhook-repo-url-matching"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether webhook payloads arrive for repositories whose configured URL includes an ssh or altssh subdomain"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Webhook payloads now match repo URLs that use ssh or altssh subdomains; environments receiving webhooks for such repositories see those payloads match (enabling webhook-triggered handling) where they previously did not.",
+        "remediation": "No operator action required; verify that webhook events for repositories whose URLs use ssh/altssh subdomains now trigger the expected refreshes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes webhook matching so that repo URLs containing ssh or altssh subdomains are now allowed to match the webhook payload, where previously such URLs did not match."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

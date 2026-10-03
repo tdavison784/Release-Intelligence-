@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bb2f7871da3c",
+    "candidateId": "sc-cc1d78205e7e",
+    "proposalId": "sp-a17061e62986",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "push-artifact-insecure-registry"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether and where operators or CI pipelines run `flux push artifact` against insecure (plain-HTTP) registries"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "After upgrading to 2.7.0, `flux push artifact` works against insecure registries (the release note states this was fixed); environments that push to insecure registries regain the intended behavior with no operator action.",
+        "remediation": "No action required; environments that push to insecure registries regain working behavior by upgrading.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 fixes the `flux push artifact` command so that it works with insecure registries."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

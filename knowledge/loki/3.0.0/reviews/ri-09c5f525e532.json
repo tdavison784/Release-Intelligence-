@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-09c5f525e532",
+    "candidateId": "sc-8fbba8759efe",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removed `shared_store` and `shared_store_key_prefix` from compactor configuration: The following CLI flags and the corresponding YAML settings to configure the…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment still passing -boltdb.shipper.compactor.shared-store or -boltdb.shipper.compactor.shared-store.key-prefix (or the corresponding shared_store / shared_store_key_prefix YAML settings) has that configuration no longer honoured: from 3.0.0 the compactor runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper, regardless of the removed settings.",
+        "remediation": "Remove the -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix flags and the corresponding shared_store / shared_store_key_prefix YAML settings from the compactor configuration, and verify the period configs (index type tsdb or boltdb-shipper) list every object store on which compaction and retention should run.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the compactor's shared-store configuration: the CLI flags -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix and the corresponding YAML settings are now removed, and the compactor instead runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper."
+    },
+    "proposals": [
+      "sp-04c0346c53c6",
+      "sp-4ae66c620676",
+      "sp-877bbc540aae",
+      "sp-8ba486da1d96",
+      "sp-f226ecca441e"
+    ],
+    "validations": [
+      "val-61cd135fb9da",
+      "val-ff25a110586a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:42:57Z"
+  }
+}

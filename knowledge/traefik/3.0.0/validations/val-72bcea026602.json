@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-72bcea026602",
+    "candidateId": "sc-9f5f6eee4754",
+    "proposalId": "sp-dead8157960a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "empty-services",
+        "component": "nomad"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Nomad service catalog contains empty services that Traefik's nomad provider watches (the provider's enablement keys and the presence of empty services are not stated by the evidence)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using the Nomad provider with empty services now have those services allowed by the provider, so its behavior differs from the previous release and is worth verifying; the evidence does not state what happened to empty services before.",
+        "remediation": "After upgrading, verify that empty Nomad services are discovered and handled as intended.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0's Nomad provider now allows empty services."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}
