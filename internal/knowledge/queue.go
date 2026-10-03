@@ -324,7 +324,7 @@ func (q *reviewQueue) Decide(ctx context.Context, ds []domain.ReviewDecision) ([
 		if m.Fact != nil && (d.Action == domain.ActionAccept || d.Action == domain.ActionCorrect) && d.ResultingFact == "" && known[d.ID].ID == "" {
 			d.ResultingFact = m.Fact.ID
 		}
-		out := DecisionOutcome{Decision: d, Fact: m.Fact, OpenAspects: m.Open, FollowUps: m.FollowUps}
+		out := DecisionOutcome{Decision: d, Fact: m.Fact, OpenAspects: m.Open, FollowUps: m.FollowUps, Conflict: m.Conflict}
 		if _, ok := known[d.ID]; !ok {
 			decWrite = append(decWrite, d)
 			work.Decisions = append(work.Decisions, d)

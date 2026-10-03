@@ -222,6 +222,9 @@ func (c *cli) knowledgeDecide(args []string) error {
 	if o.Fact != nil {
 		fmt.Fprintf(c.out, "fact %s at level %s\n", o.Fact.ID, o.Fact.Level())
 	}
+	if o.Conflict != "" {
+		fmt.Fprintf(c.out, "conflict (decision recorded, no fact): %s\n", o.Conflict)
+	}
 	if len(o.OpenAspects) > 0 {
 		fmt.Fprintf(c.out, "open aspects: %v; %d follow-up items\n", o.OpenAspects, len(o.FollowUps))
 	}
