@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-21674d620b6c",
+    "candidateId": "sc-e1198a155782",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "logs-rbac-enforcement"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which users or service accounts read pod logs and whether their effective RBAC policy (including built-in roles) grants them log access"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With the new default, access to logs is RBAC-enforced; users whose RBAC policy does not grant log access may now be denied logs that were previously readable when enforcement was not the default.",
+        "remediation": "Review the Argo CD RBAC policy (argocd-rbac-cm policy.csv) and grant log access to users or roles that need to read logs.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 turns on RBAC enforcement for logs by default, a breaking change flagged \"feat!\"."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d83aa8e2cc23"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:afffb30b9f8dec33465a19c59ca9ecf17220e141e30f918f4c89584ca5348bab",
+      "inputEvidence": [
+        "ev-d83aa8e2cc23"
+      ],
+      "generatedAt": "2026-10-03T08:50:08Z",
+      "callId": "5c8958d7-2e30-46b2-96cb-d222c71fabdc"
+    }
+  }
+}

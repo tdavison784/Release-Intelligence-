@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ea325a31336f",
+    "candidateId": "sc-0102cca29e1a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "image",
+        "product": "argo-cd",
+        "name": "haproxy"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "image-in-use",
+          "name": "haproxy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 3.0.0, environments running the haproxy shipped with Argo CD get the chart-matching haproxy version instead of the previously shipped one; the evidence states no failure.",
+        "remediation": "Verify the chart-matching haproxy version behaves as expected in environments that run the haproxy shipped with Argo CD.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes a version mismatch by updating the haproxy version used with Argo CD to the one used in the chart."
+    },
+    "undetermined": [
+      "change"
+    ],
+    "undeterminedReason": "change: the changelog line states only that the haproxy version is updated to match the chart; it does not state the previous or the new version value (both required to assert a value change), nor does it state where the version is pinned",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-24f797562416"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f149b962a65e71f5ba05851549cb4f1c12ba8bde606a34d5f6782927826a6623",
+      "inputEvidence": [
+        "ev-24f797562416"
+      ],
+      "generatedAt": "2026-10-03T08:41:27Z",
+      "callId": "1d8850f7-fec3-426f-adee-d25e463691cb"
+    }
+  }
+}

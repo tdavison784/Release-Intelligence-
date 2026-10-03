@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a6ea472110bc",
+    "candidateId": "sc-e51e65327713",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which Prometheus queries, dashboards, or alert rules reference the old metric names (crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics endpoint still works, but the controller-engine and function-response-cache metrics are exposed under new names (crossplane_composition_controllers_* → engine_controllers_*, crossplane_composition_watches_* → engine_watches_*, crossplane_composition_run_function_* → function_run_function_*), so dashboards, alerts, and queries that reference the old metric names no longer match; the release notes list this under Warnings and breaking changes.",
+        "remediation": "Update Prometheus queries, dashboards, and alert rules to use the new metric names: engine_controllers_*, engine_watches_*, and function_run_function_*.",
+        "severity": "medium"
+      },
+      "statement": "Crossplane 2.0.0 renames the Prometheus metrics it exposes for the controller engine and function response caches: crossplane_composition_controllers_* becomes engine_controllers_*, crossplane_composition_watches_* becomes engine_watches_*, and crossplane_composition_run_function_* becomes function_run_function_*."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c3df0dece271"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6fbc28a26b2b5e235dc4b156af9ea08df7abab7043eb08b11e795aff5aa178db",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-03T07:41:45Z",
+      "callId": "c7831fb6-4201-426b-9e1c-abb14551cae3"
+    }
+  }
+}

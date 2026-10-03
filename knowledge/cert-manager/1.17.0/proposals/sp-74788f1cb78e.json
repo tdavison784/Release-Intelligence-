@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-74788f1cb78e",
+    "candidateId": "sc-a2b29fc53908",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-certificate-set-decoding-size"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Larger PEM trust bundles that could not be parsed before can now be parsed. The evidence describes no failure or step an operator needs to take.",
+        "severity": "low"
+      },
+      "statement": "The Go library function pki.DecodeX509CertificateSetBytes can now parse more PEM data, so larger TLS trust bundles can be read."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The change is to an internal library function. The evidence names no setting, resource or bundle size that would show whether an environment uses this code path or has bundles larger than the old limit, and it does not state the old or new limit.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-db955cc00d69"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:9eb47994c664ecb59cfca9a649056dc95f18b2173f22b4592354cb73fcea8f9b",
+      "inputEvidence": [
+        "ev-db955cc00d69"
+      ],
+      "generatedAt": "2026-10-03T07:13:25Z",
+      "callId": "751b7a0d-99fe-4af1-a8a1-b701a92dc5de"
+    }
+  }
+}

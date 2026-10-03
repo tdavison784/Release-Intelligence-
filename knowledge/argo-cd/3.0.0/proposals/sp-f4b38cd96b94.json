@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f4b38cd96b94",
+    "candidateId": "sc-dc1b8ad7b73a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-scm-haspath"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"404 errors considered as file not found\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For ApplicationSets that use the GitLab SCM provider, path-existence checks now treat GitLab 404 responses as 'file not found', and the earlier HasPath search approach is reverted. Repositories may match path checks differently than before.",
+        "remediation": "Check that ApplicationSets using the GitLab SCM provider with path-based checks still generate the expected Applications after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "In the ApplicationSet GitLab SCM provider, the HasPath search change was reverted, and 404 errors are now treated as \"file not found\"."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence is a one-line changelog entry. It doesn't name the ApplicationSet field, filter or setting that makes an environment use the GitLab SCM HasPath check, so no predicate can be written from the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dc295e9fc56b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ff2d8a72f9621a7ae2575c8aaa3c0e5eaeffc2af0498000037c168ddde6d4b14",
+      "inputEvidence": [
+        "ev-dc295e9fc56b"
+      ],
+      "generatedAt": "2026-10-03T07:09:38Z",
+      "callId": "58394259-7cf9-461e-9db5-5d46609b491a"
+    }
+  }
+}

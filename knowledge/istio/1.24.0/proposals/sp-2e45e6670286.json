@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2e45e6670286",
+    "candidateId": "sc-e08e8f654c47",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-pods"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Pod"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.template.spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Deployment"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.template.spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "DaemonSet"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.template.spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "StatefulSet"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the mesh runs in ambient mode (the evidence says 'in ambient mode' but does not state how ambient mode is enabled in configuration)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, hostNetwork pods in ambient mode are no longer ignored, so their handling by ambient mode changes (previously they were ignored).",
+        "remediation": "After upgrading to 1.24.0, verify that hostNetwork pods in ambient mode are handled as intended.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixed an issue that caused `hostNetwork` pods to be ignored in ambient mode, so such pods are no longer ignored."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-93c0d3a62602"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bde7e86c66aa7899bc0af4605ad333788513f8e59f1551186022458c5e068b54",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-03T07:53:23Z",
+      "callId": "386faadd-c9ba-4b44-90ad-1dd9c6cb6f89"
+    }
+  }
+}

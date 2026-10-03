@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ae7741a15ca1",
+    "candidateId": "sc-35e83ef1cd6f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--enable-external-secret-stores"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-external-secret-stores",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Crossplane's core command returns an error saying external secret store support was removed, so it likely fails to start when --enable-external-secret-stores is set; the added line alone does not show the exact condition.",
+        "remediation": "Remove --enable-external-secret-stores from the Crossplane args and stop relying on external secret stores.",
+        "severity": "medium"
+      },
+      "statement": "In v2.0.0 core.go returns an error stating Crossplane removed support for external secret stores, and the --enable-external-secret-stores flag will be removed in a future release."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-59d22c21eec4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5f50a51e526c4b0a0217a143dfd61d1ee2f5d8687080c606481fb77e9f21843b",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T07:09:58Z",
+      "callId": "4efd8801-737b-47bf-9cc7-080b79e0c8d8"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7bc7e3f88aea",
+    "candidateId": "sc-b5cb4b3d8d8a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-node-ip-node-id-control-plane-connected-state"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_control_plane_connected_state\"",
+        "after": "\"envoy_cilium_npds_control_plane_connected_state\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-control-plane-connected-state"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The connected-state metric is reported under the new name, so monitoring that still queries envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state no longer receives it.",
+        "remediation": "Update dashboards and alert rules to query envoy_cilium_npds_control_plane_connected_state instead of envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17's \\\"Changed Metrics\\\" upgrade notes, the metric `envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state` is renamed to `envoy_cilium_npds_control_plane_connected_state`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: exposure depends on whether the environment's monitoring (dashboards, alert or recording rules, external scrapers) references the old metric name, which none of this product's configuration sources (helm values, cilium-config, CiliumNodeConfig, agent/operator flags) or supported predicates read, and the evidence states no condition",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4024cb69f8ce"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5a53549cb1a11ff130773f5bcbaff275b7888760f96e486fd0230c33bf136f46",
+      "inputEvidence": [
+        "ev-4024cb69f8ce"
+      ],
+      "generatedAt": "2026-10-03T08:12:55Z",
+      "callId": "91c57d3e-0a1b-424e-b5b0-3a7994ded706"
+    }
+  }
+}

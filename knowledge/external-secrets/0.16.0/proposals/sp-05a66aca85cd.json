@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-05a66aca85cd",
+    "candidateId": "sc-8b9acf590523",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "installCRDs",
+          "state": "not-equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "statement": "If CRDs are installed separately, apply the v0.16.1 CRD bundle first, verify no error, then migrate external-secrets to v0.16.1."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Evidence gives the ordering step but does not state what fails if CRDs are not bumped first.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4139b0de79e3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:60030d22f5dbc1cda25394190df575a60217d579226866dc2c932caf6aa6454a",
+      "inputEvidence": [
+        "ev-4139b0de79e3"
+      ],
+      "generatedAt": "2026-10-03T07:05:21Z",
+      "callId": "cfe3778f-bd98-4b9f-9bbc-8d779aebc5f5"
+    }
+  }
+}

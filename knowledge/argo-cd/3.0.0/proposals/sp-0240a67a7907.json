@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0240a67a7907",
+    "candidateId": "sc-9f8a80378b1b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions.ignoreDifferencesOnResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "^\\s*ignoreDifferencesOnResourceUpdates\\s*:"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "^\\s*ignoreDifferencesOnResourceUpdates\\s*:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Unless ignoreDifferencesOnResourceUpdates is set, changes to fields covered by system-level ignoreDifferences customizations no longer cause a diff to be generated for the application.",
+        "remediation": "To keep the v2 behavior, set ignoreDifferencesOnResourceUpdates: false under resource.compareoptions in the argocd-cm ConfigMap.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD 3.0, `ignoreDifferencesOnResourceUpdates` in the `resource.compareoptions` key of argocd-cm now defaults to true, so system-level `ignoreDifferences` customizations also cause resource updates to be ignored; setting it to false restores the v2 default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-63314a5fae82"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:169f9870b0035686aab8e0bcd9fe0316813cb8dac7bda9b1d43fc372896b0ccf",
+      "inputEvidence": [
+        "ev-63314a5fae82"
+      ],
+      "generatedAt": "2026-10-03T07:12:21Z",
+      "callId": "06d8019a-b383-4944-9a15-a8e73142c101"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-92ea22832e40",
+    "candidateId": "sc-194c2ca12ce9",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "kyverno",
+        "name": "--enablePolicyException"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enablePolicyException",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--enablePolicyException",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to 1.13, policy exceptions are disabled by default and only allowed in a specified namespace, so environments that relied on the prior default (exceptions allowed in all namespaces) have their existing PolicyException resources no longer honoured and previously-excepted resources become subject to policy enforcement again unless the operator follows the upgrade guidance.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guidance to explicitly re-enable policy exceptions, now restricted to a specified namespace, instead of relying on the previous defaults.",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13 changes the defaults so that policy exceptions are disabled and only allowed in a specified namespace (previously allowed in all namespaces, see CVE-2024-48921); environments relying on the old default must follow the upgrade guidance to keep exceptions working."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-2bd1a74f9c4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:5179f73800bcc1daddeed60c809b62852976480b4ef7edb21390660ebb8183d4",
+      "inputEvidence": [
+        "ev-2bd1a74f9c4a",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T08:33:51Z",
+      "callId": "371723c2-fd68-41ed-815b-2068ec929645"
+    }
+  }
+}

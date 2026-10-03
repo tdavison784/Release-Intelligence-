@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b72793abd8a5",
+    "candidateId": "sc-55dd0ceaa83f",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who installed remote/external control plane clusters with the istiod-remote chart must switch to installing the istiod chart with `--set profile=remote`, since the istiod-remote chart has been merged with the regular istio-discovery chart and no longer exists as a separate chart.",
+        "remediation": "Replace `helm install istiod-remote istio/istiod-remote` with `helm install istiod istio/istiod --set profile=remote` for remote control plane clusters.",
+        "severity": "medium"
+      },
+      "statement": "The istiod-remote Helm chart has been merged with the regular istio-discovery chart, so remote/external control plane clusters that were installed with `helm install istiod-remote istio/istiod-remote` must now be installed with `helm install istiod istio/istiod --set profile=remote`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The exposed environments are those installed with the istiod-remote chart for a remote/external control plane; no predicate over Helm values, manifests, flags or env vars can express which chart the environment was installed with, and the evidence names no distinguishing value or setting that identifies such installs.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:017c584b3e9e05fb86bf66b05c264bc16c85d220780a1c73998045d0a191bf6f",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-03T08:02:59Z",
+      "callId": "03ee0ceb-5b52-47b1-8f2d-c9afbbdebcc2"
+    }
+  }
+}

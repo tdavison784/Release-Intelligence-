@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8352862662e7",
+    "candidateId": "sc-4eec988b66b4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.targetRefs",
+              "state": "set"
+            }
+          ],
+          "group": "security.istio.io",
+          "kind": "AuthorizationPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new status condition is written on AuthorizationPolicy; its format is experimental and will change, with no operational failure stated."
+      },
+      "statement": "Istio now writes a (experimental-format) status condition on AuthorizationPolicy indicating binding to a waypoint proxy; policies with multiple targetRefs get a single condition."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-1fd772318bb8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3e261c2632e55e29a1ad3b7bc65aa99de1884674c33087d2cbde5ac90442a19d",
+      "inputEvidence": [
+        "ev-1fd772318bb8"
+      ],
+      "generatedAt": "2026-10-03T07:08:44Z",
+      "callId": "0507b181-ce2f-4764-b0ff-8571675c3cc0"
+    }
+  }
+}

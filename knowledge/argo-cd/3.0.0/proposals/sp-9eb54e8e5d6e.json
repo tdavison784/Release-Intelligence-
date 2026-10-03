@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9eb54e8e5d6e",
+    "candidateId": "sc-5cacf5c21582",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "app-refresh-comparewith"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which application refresh requests with delay are issued at runtime (live traffic such as UI or API refresh calls)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Application refresh requests made with a delay now set compareWith correctly; environments that hit the previous buggy behavior (issue #18998) will see the corrected refresh behavior.",
+        "remediation": "No operator action required; after upgrading, verify that delayed application refreshes now set compareWith as expected.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes a bug so that compareWith is now set correctly when an application refresh is requested with delay (issue #18998)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9e6400e3f91e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0a703b12e1a0f8cbca527c7ea312921c330268637d081d2d169dd5adf57852fe",
+      "inputEvidence": [
+        "ev-9e6400e3f91e"
+      ],
+      "generatedAt": "2026-10-03T08:18:20Z",
+      "callId": "3db80784-e85f-4e10-9df6-9ebe7eb64c36"
+    }
+  }
+}

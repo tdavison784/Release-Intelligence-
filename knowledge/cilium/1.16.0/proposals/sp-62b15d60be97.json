@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-62b15d60be97",
+    "candidateId": "sc-aa0aef7cd1ac",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "netkit-datapath-mode"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "linux",
+          "state": "in-range",
+          "range": ">=6.8"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The default datapath continues to be veth devices, so an operator who changes nothing is unaffected; netkit is an optional new mode available only on Linux kernel 6.8 or newer, and existing veth devices cannot be replaced in-place with netkit.",
+        "remediation": "If interested in experimenting with netkit, follow the performance_tuning guide's instructions; switching an existing veth deployment requires recreating it rather than an in-place replacement.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 adds netkit as a new supported datapath mode for Linux kernels of version 6.8 or newer, while continuing to rely on veth devices by default, and an in-place replacement of veth with netkit is not possible."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-5ba316aaead4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:d57ad87d6a3e54e17369befc4323f671445657027588919b275851d9799ff0d2",
+      "inputEvidence": [
+        "ev-5ba316aaead4"
+      ],
+      "generatedAt": "2026-10-03T07:32:53Z",
+      "callId": "49c957ca-e634-4133-b829-7ab30949571a"
+    }
+  }
+}
