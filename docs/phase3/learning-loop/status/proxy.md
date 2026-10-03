@@ -200,6 +200,10 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   later. After shadow-v3 completes: same packaging/reporting pattern as proxy-2 (report, agreement
   check, eval view via `scripts/proxy-shadow-merge.py`, REPORT.md, commit), then run-3-gates
   (690 evidence-sufficiency calls, own ledger, `BUDGET_USD=60`, real store) if budget allows.
+- Also packaged run-3 (456 responses + requests.tar.gz, commit ea141149) ahead of the reporting step.
+- The resume is scheduled as a one-shot session task at **11:53 CDT** (probe first; ~30 min retry if
+  the limit is still closed). It is session-only: if this glm session dies before it fires, a
+  successor must re-schedule it from this log.
 - New finding to carry: the `candidate release differs from fact release` record refusal (2 shadow
   items) — a fact minted with an empty release vs candidate release 2.0.0 (crossplane). Report it;
   do not patch silently.
