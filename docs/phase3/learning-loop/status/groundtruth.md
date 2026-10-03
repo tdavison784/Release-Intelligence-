@@ -103,6 +103,40 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   `settings.featureGates.drift`; the link is review vs an ACTION finding), strimzi edge-retail E2 (the quote
   says "MirrorMaker 1", not KafkaMirrorMaker).
 
+## groundtruth-6 (2026-10-02, branch p3ll/groundtruth-6 from p3-learning-loop @ af0d911d; GLM handoff window)
+- Acted on the LOOP-DIAGNOSIS-2 findings owned by this lane (§8.1–§8.5, levers L3/L7), four commits:
+  - `0db5e296` — GT exposure predicate errors (§8.1–§8.2), CHANGELOG (f): eu-platform E2 (ValidateCAA
+    unset→enabled), eu-platform E3 (inverted `all`-of-disabled → `not(all ...)`), istio E6
+    (tagOverrides.* → tagOverrides.peer_namespace), karpenter-ci E3/E4 (missing `group: apps` on
+    Deployment/DaemonSet resource leaves). Engine-verified pre/post with a temporary harness: every
+    fixed link now evaluates exactly as labelled; no other link moved.
+  - `6affc2b2` — fixture completion for four honestly-UNKNOWN links (§8.3, lever L7), CHANGELOG (g):
+    argo-cd E1/E2 (empty argocd-cm, verbatim v2.14.5 upstream shape, evidence lists extended) and
+    cert-manager-1.17 E3 (empty ingress-nginx-controller ConfigMap + `featureGates: ""` chart default +
+    exposure path fix `config.featureGates` → `featureGates`). Chosen over undecidedImpact relabel — a
+    denominator change needs pre-registration, and the environment stories already commit to the
+    affected state.
+  - `77917162` — cilium-1.15 E1 matcher narrowed to its quoted subject (§8.5/L3), CHANGELOG (h): the
+    bare `(?i)toFQDNs` alternative is gone; the quote-anchored alternative is unchanged. Plain
+    applicability unchanged (0.505; matched 430→428, labelled findings 300→298, attribution only); at
+    the proxy view the dnsProxy finding no longer violates the not-affected label (0.571 → 0.581, NA
+    violations 2 → 1; the remaining one is the kyverno E4 umbrella, §8.4, a contract decision).
+    Isolated before/after proxy panel in the CHANGELOG.
+  - `26c639f1` — `ri eval -update` accepted the honest snapshot change (cilium-1.15-1.17.json only:
+    matchedChanges 26 → 24) + NOTES judgement-call entry with the standing PO question.
+- Blocked by policy, recorded not done: strimzi-edge E2 CRD matcher and karpenter-ci E7 matcher
+  (standing verbatim-quote policy, CHANGELOG (e) — neither item's own quote names the subject);
+  kyverno E3/E4 umbrella (§8.4 contract decision).
+- Baseline discrepancy investigated and resolved: the plain run at the branch point measures 23/75
+  affected (applicability 0.505), not the 0.543 quoted in af0d911d's message. Per-case diff against
+  `eval/results/*.json` shows every case matching the stored snapshots exactly — the 0.543 figure came
+  from loop-diagnosis-2's own A/B harness context, not the plain eval aggregate. No unexplained
+  movement; my predicate/fixture commits moved nothing in the plain run (predicate fixes are not
+  scorer-evaluated until the knowledge join, where they matter).
+- Proxy-view numbers on this branch (before/after the narrowing): affected 32/75 both; NA clean
+  28→29; honesty 0.90. Note the current store has drifted from loop-diagnosis-2's snapshot —
+  plant-edge E3 is clean now, cilium-1.15 E1 was still violated until this narrowing.
+
 ## Open for the commander
 - Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into
   affected-hit and not-affected-clean (the headline number is denominator-sensitive).
@@ -143,3 +177,26 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   four, brief says ≥4, to fit the window); (b) the seven new cases were not re-researched
   quote-by-quote against upstream by me; (c) the `eval/results` regression and the base-label concerns
   need a commander decision (above).
+
+### GLM handoff log — groundtruth-6 window (2026-10-02, GLM-5.3)
+- Took over at af0d911d with only the LOOP-DIAGNOSIS-2 doc as tasking; scoped this window to the
+  findings addressed to this lane (§8.1–§8.5) and levers L3/L7, following the lane's disclosure
+  patterns.
+- Verified every predicate fix engine-side with a temporary harness (loaded each case through
+  eval.LoadCase + env.Load, evaluated each link's exposure with impact.EvaluateCondition) — pre-fix
+  states matched the diagnosis exactly; post-fix every link evaluates as labelled. The harness was
+  deleted before finishing (never committed).
+- Found cm-1.17 E3 had three blockers, not the one diagnosed: missing ingress-nginx ConfigMap, wrong
+  exposure path (config.featureGates → featureGates), missing values key — all three fixed with
+  upstream grounding (chart default `featureGates: ""`, PR 11819 deploy.yaml shape).
+- Ran the plain eval twice and the proxy view twice (isolated before/after for the matcher change)
+  against the primary checkout's warm cache; accepted snapshots once, after review, one file changed.
+- Uncertain / left for the returning agent: (a) whether the eu-platform E2 `state: enabled` reading
+  (the cluster "manages the gate list" via empty-string featureGates → gates unset → per-gate default
+  enabled in 1.17) should instead be `unset` — the engine says enabled matches the label, but the
+  semantic reading is arguable; (b) the argo-cm fixture deliberately carries NO data key (verbatim
+  v2.14.5 shape) — if the pipeline needs a ConfigMap with an empty `data: {}` to distinguish
+  "examined, empty" from "absent", that is an engine question, not a fixture one; (c) karpenter-ci E7
+  and strimzi-edge E2 remain honest review/miss outcomes under the standing policy — if the PO
+  relaxes (e), both get matchers in minutes; (d) the discrepancy note above: af0d911d's 0.543 vs the
+  plain 0.505 — worth one line in the integration status so the commander compares like with like.
