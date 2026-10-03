@@ -98,6 +98,22 @@ leaf is false, with a check citing the declaration. A feature gate stated in
 the values key at the condition's `path` still decides, workload or not; a
 present container that does not pass the flag is false as before.
 
+Cross-resource references follow the same rule. A `ref` leaf whose reference
+(`Certificate.spec.issuerRef` → a ClusterIssuer, `parentRefs[]` → a Gateway, …)
+does not resolve in the supplied manifests is **unknown**
+(`environment-visibility-gap`, needed: the referenced object's manifest) — the
+target may be installed by a chart or kept in a file the customer did not
+supply. Only declared-complete, healthy manifests make it false ("the target
+does not exist"), and that false cites the declaration; the same holds for
+`not(ref …)`, which therefore never turns an unresolved reference into
+evidence.
+
+*Decision reversed (2026-10-02, applicability-4).* `RefResolution.ManifestsComplete`
+used to mean "the manifests dimension parsed healthily", so on cleanly parsed
+manifests an unresolved reference decided false and a trusted fact could clear
+a change through a ClusterIssuer the customer never committed. Fixture:
+`eval/adversarial/knowledge-unresolved-reference` (the old evaluator clears it).
+
 *Decision reversed (2026-10-02).* The earlier rule read a named component
 absent from fully parsed manifests as false, "like an absent resource kind".
 That treated *parsed completely* as *complete*, and the two differ exactly for
@@ -337,8 +353,8 @@ prompt digest.
   Group/kind constrain the match only when stated; no namespace means the
   referrer's namespace (or a resource declaring none). Outcomes are
   `resolved`, `ambiguous` or `unresolved`; unresolved is **not** "does not
-  exist": `ManifestsComplete` tells whether the manifests dimension was
-  healthy.
+  exist": `ManifestsComplete` is true only when the manifests are **declared**
+  complete (`--manifests-complete`) and parsed healthily.
 
 Query API (all deterministic, load-ordered):
 
