@@ -696,6 +696,15 @@ func (l *loader) loadFiles(files []string, crdOnly bool) error {
 }
 
 func (l *loader) loadCRD(d doc) {
+	// The CRD document is itself a resource (apiextensions.k8s.io
+	// CustomResourceDefinition): conditions over its own fields
+	// (status.storedVersions, spec.versions[].served) read it like any other
+	// resource. Without this a "resource CustomResourceDefinition [...]"
+	// predicate found no resource of the kind and decided false from never
+	// looking.
+	if g, v := splitGroupVersion(scalarOf(d.node, "apiVersion")); g == "apiextensions.k8s.io" {
+		l.collectResource(d, g, v, "CustomResourceDefinition")
+	}
 	spec := fieldOf(d.node, "spec")
 	if spec == nil {
 		l.warnf(DimCRDs, "%s L%d: CustomResourceDefinition without spec", d.file, d.startLine)
