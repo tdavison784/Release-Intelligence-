@@ -336,3 +336,30 @@ func TestPatternPathResolver(t *testing.T) {
 		t.Errorf("patternOfPath = %q", got)
 	}
 }
+
+// A decisive false must carry its evaluation record in the shape the report
+// contract enforces (domain.ImpactReport.Validate: a render-dimension check
+// carries exactly a render record, no-attributable-change citing
+// environment-render evidence, naming what it evaluated). Regression
+// (trust-audit, kyverno-1.12-1.13 in the proxy-incl-shadow view): a fact whose
+// exposure held a rendered-change leaf that decided false produced a check
+// without the record; the whole kyverno report failed validation and the
+// evaluator silently dropped the case.
+func TestEvaluateRenderedChangeFalseCarriesRenderRecord(t *testing.T) {
+	p := envGoldenPair(t)
+	res := EvaluateRenderedChange(rcond("Deployment", "spec.template.spec.containers[].env[name=POD_NAMESPACE]", domain.StateAdded), []*Pair{p})
+	if res.Value != RenderedFalse {
+		t.Fatalf("value %s (%s), want false", res.Value, res.Detail)
+	}
+	if len(res.Checks) == 0 {
+		t.Fatal("a decisive false carries its evaluation record")
+	}
+	for _, c := range res.Checks {
+		if c.Dimension != domain.DimensionRender || c.Render == nil {
+			t.Fatalf("render check without a render record: %+v", c)
+		}
+		if c.Render.Outcome != domain.RenderNoAttributableChange || strings.TrimSpace(c.Render.Key) == "" || len(c.Evidence) == 0 {
+			t.Errorf("render record shape: %+v (evidence %v)", c.Render, c.Evidence)
+		}
+	}
+}

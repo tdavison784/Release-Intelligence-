@@ -150,6 +150,11 @@ type LevelReport struct {
 	UndecidedLinks  int     `json:"undecidedLinks"`
 	UndecidedHonest int     `json:"undecidedHonest"`
 	UnknownHonesty  float64 `json:"unknownHonesty"`
+	// PipelineFailures counts entries whose pipeline failed at this level (a
+	// knowledge report that does not validate, for example). Their links
+	// score as misses; the gates only see the gate level, so a failure at
+	// another level must be visible here.
+	PipelineFailures int `json:"pipelineFailures,omitempty"`
 }
 
 // LevelRun is one level's report plus its entry results.
@@ -208,6 +213,7 @@ func levelReport(level string, used int, rs []EntryResult, contexts map[string][
 		ActionFindingsUnsupported: agg.ActionFindingsUnsupported,
 		Transfer:                  Transfer(rs, contexts),
 		UndecidedLinks:            agg.UndecidedLinks, UndecidedHonest: agg.UndecidedHonest, UnknownHonesty: agg.UnknownHonesty,
+		PipelineFailures: agg.PipelineFailures,
 	}
 	for _, r := range rs {
 		if r.Knowledge == nil {
@@ -244,6 +250,9 @@ func RenderLevels(w io.Writer, levels []LevelReport) {
 		kf := fmt.Sprintf("%d", l.KnowledgeFindings)
 		if l.ConsensusAction > 0 {
 			kf += fmt.Sprintf(" (%d ACTION · model consensus)", l.ConsensusAction)
+		}
+		if l.PipelineFailures > 0 {
+			kf += fmt.Sprintf("  ✗ %d PIPELINE FAILURE(S): links scored as misses", l.PipelineFailures)
 		}
 		fmt.Fprintf(w, "%-14s %5d  %.3f (%2d/%2d)     %.3f (-%d)      %.2f    %.2f   %3d (%d/%d)               %s\n",
 			name, l.FactsUsed, l.ApplicabilityAccuracy, l.ImpactLinksHit, l.ImpactLinks,

@@ -132,7 +132,11 @@ func EvaluateRenderedChange(cond domain.Condition, pairs []*Pair) RenderedChange
 		for _, e := range falseEv {
 			r.Examined = append(r.Examined, e.ID)
 		}
-		r.Checks = []domain.ImpactCheck{{Dimension: domain.DimensionRender, Facts: compared, Subjects: []string{describeCond(cond)}, Evidence: r.Examined}}
+		// The report contract (domain.ImpactReport.Validate) requires every
+		// render-dimension check to carry its render record: the complete
+		// renders show no change attributable to the asserted condition.
+		r.Checks = []domain.ImpactCheck{{Dimension: domain.DimensionRender, Facts: compared, Subjects: []string{describeCond(cond)}, Evidence: r.Examined,
+			Render: &domain.RenderCheck{Outcome: domain.RenderNoAttributableChange, Key: describeCond(cond)}}}
 		return r
 	}
 	res.Detail = "not decidable from the renders: " + strings.Join(unknowns, "; ")

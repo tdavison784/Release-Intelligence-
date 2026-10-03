@@ -10,6 +10,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -229,5 +230,20 @@ func TestTransferSubset(t *testing.T) {
 	contexts["vf-fresh"] = []string{"c9"}
 	if tm := Transfer(rs, contexts); tm.Excluded != 1 || tm.ImpactLinks != 2 {
 		t.Errorf("context of another case must not exclude: %+v", tm)
+	}
+}
+
+// A pipeline failure at a non-gate level must be visible in the level panel:
+// the gates only see the gate level (trust-audit: a failed proxy-level report
+// changed that row silently).
+func TestLevelPanelShowsPipelineFailures(t *testing.T) {
+	r := levelReport("proxy", 3, []EntryResult{{CaseID: "c1", Error: "impact: assembled report is invalid"}}, nil)
+	if r.PipelineFailures != 1 {
+		t.Fatalf("level pipelineFailures = %d, want 1", r.PipelineFailures)
+	}
+	var b strings.Builder
+	RenderLevels(&b, []LevelReport{r})
+	if !strings.Contains(b.String(), "PIPELINE FAILURE") {
+		t.Errorf("the level panel must flag the failure:\n%s", b.String())
 	}
 }
