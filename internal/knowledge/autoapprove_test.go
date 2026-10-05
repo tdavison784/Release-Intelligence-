@@ -224,3 +224,93 @@ func TestSampledForAudit(t *testing.T) {
 		t.Fatalf("1-in-4 sample picked %d of 400", n)
 	}
 }
+
+// --- contract-6: PO-5 dissent, PO-6 audit -------------------------------------------
+
+// dissentingCall answers the consequence like the others (same kind, a
+// different severity: a different digest) but requests review — the flux E6
+// shape (TRUST-AUDIT.md §2).
+func dissentingCall(c domain.SemanticCandidate, id string) domain.SemanticProposal {
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	a.Consequence.Severity = domain.SeverityMedium
+	return call(proposal(c, "anthropic", "claude-sonnet-5-5", a), id, domain.ImpactReviewRequired)
+}
+
+func TestConsensusActionBlockedByDissent(t *testing.T) {
+	s := NewFileStore(t.TempDir())
+	c := fixtureCandidate()
+	mustPut(t, s, c)
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	mustPut(t, s, call(proposal(c, "zai", "glm-5.3", a), "call-1", domain.ImpactActionRequired))
+	mustPut(t, s, call(proposal(c, "zai", "glm-5.3", a), "call-2", domain.ImpactActionRequired))
+	mustPut(t, s, dissentingCall(c, "call-3"))
+	sum, err := RouteStore(context.Background(), s, RouteOptions{Policy: DefaultAutoApprove}, Query{})
+	if err != nil || sum.Facts != 0 || sum.Items == 0 {
+		t.Fatalf("two same-model calls requesting ACTION over a dissenting call were auto-approved: %+v, %v", sum, err)
+	}
+}
+
+func TestRerouteRefreshesConsensusActionUnderDissent(t *testing.T) {
+	ctx := context.Background()
+	s := NewFileStore(t.TempDir())
+	c := fixtureCandidate()
+	mustPut(t, s, c)
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	mustPut(t, s, call(proposal(c, "zai", "glm-5.3", a), "call-1", domain.ImpactActionRequired))
+	mustPut(t, s, call(proposal(c, "anthropic", "claude-opus-5-5", a), "call-2", domain.ImpactActionRequired))
+	if sum, err := RouteStore(ctx, s, RouteOptions{Policy: DefaultAutoApprove}, Query{}); err != nil || sum.Facts != 1 {
+		t.Fatalf("setup: %+v, %v", sum, err)
+	}
+	// a later call dissents: re-routing must clear the stored flag (PO-5)
+	mustPut(t, s, dissentingCall(c, "call-3"))
+	sum, err := RouteStore(ctx, s, RouteOptions{Policy: DefaultAutoApprove}, Query{})
+	if err != nil || len(sum.Refreshed) != 1 || len(sum.Skipped) != 0 {
+		t.Fatalf("re-route = %+v, %v", sum, err)
+	}
+	snap, _ := s.Load(ctx, Query{})
+	if f := snap.Facts[0]; f.ConsensusAction || f.Status != domain.FactActive {
+		t.Fatalf("fact after PO-5 refresh = consensusAction %v status %s (want false, active: REVIEW)", f.ConsensusAction, f.Status)
+	}
+	// idempotent
+	if sum, err := RouteStore(ctx, s, RouteOptions{Policy: DefaultAutoApprove}, Query{}); err != nil || len(sum.Refreshed) != 0 {
+		t.Fatalf("second re-route refreshed again: %+v, %v", sum, err)
+	}
+}
+
+func TestOnlyAHumanAcceptAuditsAConsensusAction(t *testing.T) {
+	for _, tc := range []struct {
+		kind    domain.ReviewerKind
+		audited bool
+	}{{domain.ReviewerProxy, false}, {domain.ReviewerHuman, true}} {
+		t.Run(string(tc.kind), func(t *testing.T) {
+			ctx := context.Background()
+			s := NewFileStore(t.TempDir())
+			c := fixtureCandidate()
+			mustPut(t, s, c)
+			a := rotationAssertion(domain.ConsequenceSettingIgnored)
+			mustPut(t, s, call(proposal(c, "anthropic", "claude-opus-5-5", a), "call-1", domain.ImpactActionRequired))
+			mustPut(t, s, call(proposal(c, "zai", "glm-5.3-flash", a), "call-2", domain.ImpactActionRequired))
+			if _, err := RouteStore(ctx, s, RouteOptions{Policy: DefaultAutoApprove}, Query{}); err != nil {
+				t.Fatal(err)
+			}
+			snap, _ := s.Load(ctx, Query{})
+			if snap.Facts[0].AuditedBy != "" {
+				t.Fatal("a fresh consensus-action fact must be unaudited")
+			}
+			d := decision(snap.ReviewItems[0], "e", tc.kind, domain.ActionAccept, t0.Add(2*time.Hour))
+			if _, err := NewQueue(s, nil).Decide(ctx, []domain.ReviewDecision{d}); err != nil {
+				t.Fatal(err)
+			}
+			snap, _ = s.Load(ctx, Query{})
+			var f domain.VerifiedFact
+			for _, x := range snap.Facts {
+				if x.Status == domain.FactActive {
+					f = x
+				}
+			}
+			if (f.AuditedBy == d.ID) != tc.audited || (f.AuditedBy != "") != tc.audited {
+				t.Fatalf("%s accept: auditedBy = %q (want audited=%v)", tc.kind, f.AuditedBy, tc.audited)
+			}
+		})
+	}
+}

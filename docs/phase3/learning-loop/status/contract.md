@@ -211,3 +211,61 @@ agree with `SemanticProposal.Provider`.
 
 **Docs:** DESIGN §2.2, §2.5 and §7; schemas regenerated (new label enum; `provider` on provenance).
 **Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.
+
+---
+
+## contract-6 (branch `p3ll/contract-6`, from `p3-learning-loop` @ 43949651) — done
+
+PO-5 and PO-6 are recorded in DECISIONS.md and implemented end to end. Before/after panels are in
+`PO5-PO6-REPORT.md`.
+
+**What changed, by package:**
+- **domain:**
+  - `ConsequenceDissent`;
+  - `VerifiedFact.AuditedBy`;
+  - `KnowledgeRef.Audited` and the `ActionLabel()` "· unaudited" suffix;
+  - `ValidateFactRecords`: dissent check (while the consequence is consensus) and audit proof;
+  - `ImpactReport.Validate`: `audited` only on consensus-action findings.
+- **knowledge:**
+  - dissent in `consensusAction` and in the consensus-action policy;
+  - `ConsensusAction` recomputed on every merge (a human-verified consequence settles dissent);
+  - `AuditedBy` set by a human accept on the audit item;
+  - `RefreshFact` plus a `RouteStore` refresh pass, so re-routing re-derives stored facts
+    (`RouteSummary.Refreshed`, printed by `ri knowledge route`);
+  - the FileStore allows `consensusAction`/`auditedBy` to change under the same id.
+- **impact:** the finding title and detail use the label and state UNAUDITED.
+- **reviewui:** a dissent flash with the dissenting calls; the consensus-action flash says unaudited.
+- **eval:** `ActionFindingRecord.Consensus`; consensus ACTION counted audited vs unaudited, each with
+  its false ACTIONs; panel text.
+
+**Adversarial tests:**
+- domain: dissent shapes (flux E6, informational, undetermined/unknown, mapping-only, no request,
+  another candidate's call, human-settled consequence); audit (proxy accept, correction, another
+  assertion, unresolved, bad id); the label.
+- knowledge: dissent blocks auto-approval; re-route refreshes and is idempotent; only a human accept
+  audits.
+- impact: audited vs unaudited label.
+- eval: split counts and the panel.
+
+**Real store:** re-routed with `-auto-approve-general`.
+- 6 facts refreshed; all 6 consensus-action facts had dissent.
+- 4 review items opened.
+
+**View:** rebuilt with `scripts/proxy-shadow-merge.py --base-git=HEAD`. The new opt-in field-level
+merge resolves the 3 conflicts where the shadow had superseded a fact the real store only
+re-flagged.
+
+**Panels:** model-consensus ACTIONs 4→0 (real) and 3→0 (view). Consensus/proxy ACTION 21 (2 false)
+→ 17 (1 false) and 20 (1 false) → 17 (1 false). Applicability unchanged; gate level identical.
+
+**PO-5 removed one false ACTION and three true ones:**
+- false: flux E6;
+- true: external-secrets E3 and strimzi-edge E2 ×2. These return as ACTION once a human verifies the
+  consequence; open review items are queued.
+
+**Edits outside ownership** (all marked `CONTRACT-CHANGE(contract-6)`): `internal/knowledge`,
+`internal/impact`, `internal/reviewui`, `internal/eval`, `cmd/ri/knowledge.go`,
+`scripts/proxy-shadow-merge.py`, `knowledge/` (route output), `proxy-shadow/eval-knowledge/`.
+
+**Tests:** `go build`, `go vet` and `go test ./...` pass; plain `ri eval` shows no regressions; goldens
+unchanged.

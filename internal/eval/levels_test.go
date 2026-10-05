@@ -247,3 +247,35 @@ func TestLevelPanelShowsPipelineFailures(t *testing.T) {
 		t.Errorf("the level panel must flag the failure:\n%s", b.String())
 	}
 }
+
+// CONTRACT-CHANGE(contract-6): PO-6 — consensus ACTION findings are reported
+// audited vs unaudited, each with its false ACTIONs.
+func TestConsensusActionAuditedVsUnaudited(t *testing.T) {
+	ref := func(audited bool) *domain.KnowledgeRef {
+		return &domain.KnowledgeRef{Fact: "vf-x", Verification: domain.VerifiedConsensus, Consensus: domain.ConsensusSameModel, ConsensusAction: true, Audited: audited}
+	}
+	rep := &domain.ImpactReport{Findings: []domain.ImpactFinding{
+		{ID: "f-1", Rule: RuleKnowledgeExposedForTest, Classification: domain.ImpactActionRequired, Knowledge: ref(false)},
+		{ID: "f-2", Rule: RuleKnowledgeExposedForTest, Classification: domain.ImpactActionRequired, Knowledge: ref(false)},
+		{ID: "f-3", Rule: RuleKnowledgeExposedForTest, Classification: domain.ImpactActionRequired, Knowledge: ref(true)},
+	}}
+	k := knowledgeCounts(rep)
+	if k.ConsensusAction != 3 || k.ConsensusActionUnaudited != 2 || k.ConsensusActionAudited != 1 {
+		t.Fatalf("counts = %+v", k)
+	}
+	rs := []EntryResult{{Knowledge: k, actionFindings: []ActionFindingRecord{
+		{FindingID: "f-1", Wrong: true, Consensus: "unaudited"},
+		{FindingID: "f-2", Consensus: "unaudited"},
+		{FindingID: "f-3", Consensus: "audited"},
+		{FindingID: "f-4", Wrong: true}, // a deterministic false ACTION is not a consensus one
+	}}}
+	lr := levelReport(string(domain.VerifiedConsensus), 3, rs, nil)
+	if lr.ConsensusActionUnaudited != 2 || lr.FalseConsensusActionUnaudited != 1 || lr.ConsensusActionAudited != 1 || lr.FalseConsensusActionAudited != 0 {
+		t.Fatalf("level = %+v", lr)
+	}
+	var b strings.Builder
+	RenderLevels(&b, []LevelReport{lr})
+	if !strings.Contains(b.String(), "1 audited, 0 false / 2 unaudited, 1 false") {
+		t.Fatalf("panel does not split audited/unaudited:\n%s", b.String())
+	}
+}

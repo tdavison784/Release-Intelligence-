@@ -207,8 +207,11 @@ trust ladder, which `ImpactReport.Validate()` and the schema enforce:
 
   Both paths still need the deterministic environment match and both evidence
   chains. A model-consensus finding carries `knowledge.verification:
-  consensus`, is rendered "ACTION REQUIRED · model consensus", and its fact is
-  always sampled into human review.
+  consensus`, is rendered "ACTION REQUIRED · model consensus · unaudited"
+  until a human accepts its audit item (PO-6), and its fact is always sampled
+  into human review. A single dissenting call on the consequence (one that
+  requested review-required, informational or unknown) blocks the consensus
+  path while the consequence rests on consensus (PO-5).
 - A `proxy`-verified fact (an AI acting as reviewer), or a consensus fact
   without `consensusAction`, yields at most `review-required`, never at `high`
   confidence.

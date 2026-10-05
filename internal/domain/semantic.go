@@ -2300,8 +2300,14 @@ type VerifiedFact struct {
 	// validator refuting any aspect (ValidateFactRecords). Its findings read
 	// "ACTION REQUIRED · model consensus", and every such fact is sampled
 	// into human review (100%).
-	ConsensusAction bool      `json:"consensusAction,omitempty"`
-	CreatedAt       time.Time `json:"createdAt"`
+	ConsensusAction bool `json:"consensusAction,omitempty"`
+	// AuditedBy is the HUMAN accept decision on this fact's audit
+	// (fact-review) item (PO-6). Until it is set, a consensus-action
+	// finding reads "ACTION REQUIRED · model consensus · unaudited". A proxy
+	// decision never sets it; a corrected or rejected audit supersedes or
+	// retracts the fact instead.
+	AuditedBy string    `json:"auditedBy,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing
@@ -2450,6 +2456,9 @@ func (f VerifiedFact) Validate() error {
 			bad("consensusAction needs an action-eligible consequence")
 		}
 	}
+	if f.AuditedBy != "" && !strings.HasPrefix(f.AuditedBy, DecisionIDPrefix) {
+		bad("auditedBy %q is not a decision id (%s…)", f.AuditedBy, DecisionIDPrefix)
+	}
 	for _, x := range Aspects {
 		if !seen[x] {
 			bad("%s has no verification", x)
@@ -2500,9 +2509,13 @@ func ValidateFactBasis(f VerifiedFact, validations map[string]ValidationResult, 
 //     validation must not refute the aspect and must have checked the same
 //     digest;
 //   - consensusAction (PO-2): if the consequence is consensus-verified,
-//     every agreeing consequence proposal requested action-required; and no
-//     validation of the fact's candidates in r.Validations refutes any aspect
-//     the fact asserts (callers pass ALL validations of those candidates).
+//     every agreeing consequence proposal requested action-required and NO
+//     proposal on the consequence requested a lower class (PO-5 dissent);
+//     and no validation of the fact's candidates in r.Validations refutes
+//     any aspect the fact asserts (callers pass ALL proposals and validations
+//     of those candidates);
+//   - auditedBy (PO-6): a human accept on a review item of one of the
+//     fact's candidates whose proposed assertion is this fact's.
 func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 	var errs []error
 	bad := func(format string, args ...any) {
@@ -2608,8 +2621,58 @@ func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 				}
 			}
 		}
+		if f.AspectLevel(AspectConsequence) == VerifiedConsensus {
+			var ps []SemanticProposal
+			for _, p := range r.Proposals {
+				ps = append(ps, p)
+			}
+			for _, id := range ConsequenceDissent(f.Candidates, ps) {
+				bad("consensusAction: proposal %s on the consequence requested a lower class (PO-5: dissent blocks consensus ACTION)", id)
+			}
+		}
+	}
+	if f.AuditedBy != "" {
+		d, ok := r.Decisions[f.AuditedBy]
+		switch {
+		case !ok:
+			bad("auditedBy %s does not resolve", f.AuditedBy)
+		case d.ReviewerKind != ReviewerHuman || d.Action != ActionAccept:
+			bad("auditedBy %s is a %s %s; only a human accept audits a fact (PO-6)", f.AuditedBy, d.ReviewerKind, d.Action)
+		default:
+			it, ok := r.Items[d.ReviewItemID]
+			if !ok {
+				bad("auditedBy %s: review item %s does not resolve", f.AuditedBy, d.ReviewItemID)
+			} else if !candidates[it.CandidateID] || it.Proposed.Digest() != f.Assertion.Digest() {
+				bad("auditedBy %s answered item %s, which is not a review of this fact", f.AuditedBy, it.ID)
+			}
+		}
 	}
 	return errors.Join(errs...)
+}
+
+// lowerClasses are the class requests that count as dissent against a
+// consensus ACTION (PO-5).
+var lowerClasses = map[ImpactClass]bool{ImpactReviewRequired: true, ImpactInformational: true, ImpactUnknown: true}
+
+// ConsequenceDissent returns the ids of the proposals, on any of the given
+// candidates, that answered the consequence aspect (their task covers it,
+// asserted or undetermined) and requested a class lower than
+// action-required — whatever their wording or consequence digest (PO-5). A
+// fact may be consensus-ACTION only while this is empty, as long as its
+// consequence rests on consensus (a human-verified consequence settles it).
+func ConsequenceDissent(candidates []string, ps []SemanticProposal) []string {
+	cands := map[string]bool{}
+	for _, c := range candidates {
+		cands[c] = true
+	}
+	var out []string
+	for _, p := range ps {
+		if cands[p.CandidateID] && containsAspect(TaskAspects(p.Task), AspectConsequence) && lowerClasses[p.SuggestedClass] {
+			out = append(out, p.ID)
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 func anySeparatePair(ps []SemanticProposal) bool {
