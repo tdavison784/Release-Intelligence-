@@ -352,7 +352,77 @@ func consensusAction(f domain.VerifiedFact, ps []domain.SemanticProposal, vs []d
 			}
 		}
 	}
+	// CONTRACT-CHANGE(contract-6): PO-5 — while the consequence rests on
+	// consensus, any call on it that requested a lower class blocks the
+	// consensus ACTION, whatever its wording or digest.
+	if f.AspectLevel(domain.AspectConsequence) == domain.VerifiedConsensus && len(domain.ConsequenceDissent(f.Candidates, ps)) > 0 {
+		return false
+	}
 	return true
+}
+
+// factInputs gathers the proposals and validations of every candidate of f
+// from a snapshot: PO-5 dissent and refutations are judged over all of them.
+func factInputs(snap *Snapshot, f domain.VerifiedFact) ([]domain.SemanticProposal, []domain.ValidationResult) {
+	cands := map[string]bool{}
+	for _, c := range f.Candidates {
+		cands[c] = true
+	}
+	var ps []domain.SemanticProposal
+	for _, p := range snap.Proposals {
+		if cands[p.CandidateID] {
+			ps = append(ps, p)
+		}
+	}
+	var vs []domain.ValidationResult
+	for _, v := range snap.Validations {
+		if cands[v.CandidateID] {
+			vs = append(vs, v)
+		}
+	}
+	return ps, vs
+}
+
+// humanAudit returns the latest HUMAN accept decision on a review item that
+// re-reviews f (an item of one of its candidates proposing exactly its
+// assertion): the PO-6 audit that lifts the "unaudited" label. "" if none.
+func humanAudit(f domain.VerifiedFact, items map[string]domain.ReviewItem, ds []domain.ReviewDecision) string {
+	cands := map[string]bool{}
+	for _, c := range f.Candidates {
+		cands[c] = true
+	}
+	best, bestAt := "", time.Time{}
+	for _, d := range ds {
+		if d.ReviewerKind != domain.ReviewerHuman || d.Action != domain.ActionAccept {
+			continue
+		}
+		it, ok := items[d.ReviewItemID]
+		if !ok || !cands[it.CandidateID] || it.Proposed.Digest() != f.Assertion.Digest() {
+			continue
+		}
+		if best == "" || d.DecidedAt.After(bestAt) {
+			best, bestAt = d.ID, d.DecidedAt
+		}
+	}
+	return best
+}
+
+// RefreshFact re-derives a stored fact's computed flags from the snapshot:
+// ConsensusAction under the current contract (PO-2 + PO-5) and AuditedBy
+// (PO-6). It reports whether anything changed. Only active facts change.
+func RefreshFact(snap *Snapshot, f domain.VerifiedFact) (domain.VerifiedFact, bool) {
+	if f.Status != domain.FactActive {
+		return f, false
+	}
+	items := map[string]domain.ReviewItem{}
+	for _, it := range snap.ReviewItems {
+		items[it.ID] = it
+	}
+	ps, vs := factInputs(snap, f)
+	next := f
+	next.ConsensusAction = consensusAction(f, ps, vs)
+	next.AuditedBy = humanAudit(f, items, snap.Decisions)
+	return next, next.ConsensusAction != f.ConsensusAction || next.AuditedBy != f.AuditedBy
 }
 
 func refutesAspect(v domain.ValidationResult, x domain.Aspect) bool {
@@ -527,7 +597,15 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			ver = append(ver, v)
 		}
 		merged.Verification = ver
-		merged.ConsensusAction = old.ConsensusAction && merged.Level() == domain.VerifiedConsensus
+		// CONTRACT-CHANGE(contract-6): recomputed under the current contract
+		// over every candidate of the fact (PO-5 dissent included), so a
+		// human-verified consequence can settle a dissent.
+		allPs, allVs := factInputs(snap, merged)
+		merged.ConsensusAction = consensusAction(merged, allPs, allVs)
+		// PO-6: a human accepting this fact's audit item audits it
+		if isReview && target == merged.ID && d.Action == domain.ActionAccept && d.ReviewerKind == domain.ReviewerHuman {
+			merged.AuditedBy = d.ID
+		}
 		// the auto-approved marker is history: it stays after a human audit
 		// upgrades the aspects the reviewer verified. The audit itself is the
 		// decision record (written before the fact), which is what the R19

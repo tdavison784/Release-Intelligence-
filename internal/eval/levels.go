@@ -30,8 +30,19 @@ type KnowledgeCounts struct {
 	Findings int            `json:"findings"`
 	ByClass  map[string]int `json:"byClass"`
 	// ConsensusAction counts ACTION REQUIRED findings resting on model
-	// consensus (PO-2), labelled "model consensus".
-	ConsensusAction int `json:"consensusAction,omitempty"`
+	// consensus (PO-2), labelled "model consensus"; split by whether a human
+	// accepted the fact's audit (PO-6). CONTRACT-CHANGE(contract-6).
+	ConsensusAction          int `json:"consensusAction,omitempty"`
+	ConsensusActionAudited   int `json:"consensusActionAudited,omitempty"`
+	ConsensusActionUnaudited int `json:"consensusActionUnaudited,omitempty"`
+}
+
+// consensusAudit labels a consensus knowledge reference for PO-6 reporting.
+func consensusAudit(k domain.KnowledgeRef) string {
+	if k.Audited {
+		return "audited"
+	}
+	return "unaudited"
 }
 
 // knowledgeCounts tallies a report's knowledge findings.
@@ -51,6 +62,11 @@ func knowledgeCounts(r *domain.ImpactReport) *KnowledgeCounts {
 		k.ByClass[string(f.Classification)]++
 		if f.Classification == domain.ImpactActionRequired && f.Knowledge.Verification == domain.VerifiedConsensus {
 			k.ConsensusAction++
+			if f.Knowledge.Audited {
+				k.ConsensusActionAudited++
+			} else {
+				k.ConsensusActionUnaudited++
+			}
 		}
 	}
 	return k
@@ -141,10 +157,16 @@ type LevelReport struct {
 	FalseActionFindings       int     `json:"falseActionFindings"`
 	ActionFindingsUnsupported int     `json:"actionFindingsUnsupported"`
 	// Knowledge findings of the level.
-	KnowledgeFindings int             `json:"knowledgeFindings"`
-	KnowledgeByClass  map[string]int  `json:"knowledgeByClass,omitempty"`
-	ConsensusAction   int             `json:"consensusAction,omitempty"`
-	Transfer          TransferMetrics `json:"transfer"`
+	KnowledgeFindings int            `json:"knowledgeFindings"`
+	KnowledgeByClass  map[string]int `json:"knowledgeByClass,omitempty"`
+	ConsensusAction   int            `json:"consensusAction,omitempty"`
+	// PO-6: consensus ACTION findings audited (a human accepted the fact's
+	// audit) vs unaudited, each with its false ACTIONs.
+	ConsensusActionAudited        int             `json:"consensusActionAudited,omitempty"`
+	ConsensusActionUnaudited      int             `json:"consensusActionUnaudited,omitempty"`
+	FalseConsensusActionAudited   int             `json:"falseConsensusActionAudited,omitempty"`
+	FalseConsensusActionUnaudited int             `json:"falseConsensusActionUnaudited,omitempty"`
+	Transfer                      TransferMetrics `json:"transfer"`
 	// UnknownHonesty (reported, never gated): undecided links answered
 	// honestly / undecided links; vacuous when nothing is decided.
 	UndecidedLinks  int     `json:"undecidedLinks"`
@@ -224,8 +246,23 @@ func levelReport(level string, used int, rs []EntryResult, contexts map[string][
 		}
 		lr.KnowledgeFindings += r.Knowledge.Findings
 		lr.ConsensusAction += r.Knowledge.ConsensusAction
+		lr.ConsensusActionAudited += r.Knowledge.ConsensusActionAudited
+		lr.ConsensusActionUnaudited += r.Knowledge.ConsensusActionUnaudited
 		for c, n := range r.Knowledge.ByClass {
 			lr.KnowledgeByClass[c] += n
+		}
+	}
+	for _, r := range rs {
+		for _, a := range r.actionFindings {
+			if !a.Wrong {
+				continue
+			}
+			switch a.Consensus {
+			case "audited":
+				lr.FalseConsensusActionAudited++
+			case "unaudited":
+				lr.FalseConsensusActionUnaudited++
+			}
 		}
 	}
 	return lr
@@ -249,7 +286,8 @@ func RenderLevels(w io.Writer, levels []LevelReport) {
 		}
 		kf := fmt.Sprintf("%d", l.KnowledgeFindings)
 		if l.ConsensusAction > 0 {
-			kf += fmt.Sprintf(" (%d ACTION · model consensus)", l.ConsensusAction)
+			kf += fmt.Sprintf(" (%d ACTION · model consensus: %d audited, %d false / %d unaudited, %d false)", l.ConsensusAction,
+				l.ConsensusActionAudited, l.FalseConsensusActionAudited, l.ConsensusActionUnaudited, l.FalseConsensusActionUnaudited)
 		}
 		if l.PipelineFailures > 0 {
 			kf += fmt.Sprintf("  ✗ %d PIPELINE FAILURE(S): links scored as misses", l.PipelineFailures)

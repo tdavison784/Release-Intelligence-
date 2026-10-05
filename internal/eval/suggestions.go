@@ -72,6 +72,9 @@ type ActionFindingRecord struct {
 	FindingID string
 	ChangeID  string
 	Wrong     bool
+	// Consensus is "audited" / "unaudited" for an ACTION resting on model
+	// consensus (PO-6), "" otherwise. CONTRACT-CHANGE(contract-6).
+	Consensus string
 }
 
 // applyAdjudications folds a case's human verdicts into a scored result: the
@@ -121,10 +124,11 @@ func applyAdjudications(res *EntryResult, f *AdjudicationFile) {
 	}
 	// action findings joined to newly-false changes (that were not already
 	// wrong for a structural reason) join the false-action count
-	for _, r := range res.actionFindings {
+	for i, r := range res.actionFindings {
 		if !r.Wrong {
 			if _, ok := newlyFalse[r.ChangeID]; ok {
 				newlyFalse[r.ChangeID]++
+				res.actionFindings[i].Wrong = true // keeps the per-group (PO-6) counts exact
 			}
 		}
 	}

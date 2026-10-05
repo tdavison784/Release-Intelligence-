@@ -986,8 +986,12 @@ func TestImpactFindingKnowledgeRules(t *testing.T) {
 		{"ACTION REQUIRED · model consensus (PO-2)", func(r *ImpactReport) {
 			k := knowledgeFinding(r).Knowledge
 			k.Verification, k.Consensus, k.ConsensusAction = VerifiedConsensus, ConsensusSameModel, true
+			if k.ActionLabel() != "model consensus · unaudited" {
+				t.Errorf("label = %q, want the PO-6 unaudited label", k.ActionLabel())
+			}
+			k.Audited = true
 			if k.ActionLabel() != "model consensus" {
-				t.Errorf("label = %q", k.ActionLabel())
+				t.Errorf("audited label = %q", k.ActionLabel())
 			}
 		}, ""},
 		{"consensus label missing", func(r *ImpactReport) {
@@ -1572,4 +1576,163 @@ func TestProvenanceProvider(t *testing.T) {
 			expectErr(t, p.Validate(), tc.want)
 		})
 	}
+}
+
+// --- PO-5: dissent blocks consensus ACTION; PO-6: unaudited until a human accepts ----------
+
+// dissenter is a separate call on the fact's candidate that answered the
+// consequence (same kind, different wording) but requested a lower class.
+func dissenter(class ImpactClass, task ProposalTask, model, call string) SemanticProposal {
+	cand := validCandidate()
+	p := validProposal(cand)
+	p.Task = task
+	a := rotationAssertion()
+	a.Consequence = &Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired,
+		Statement: "worded differently: the pinned key may stop taking effect"}
+	switch task {
+	case TaskConsequence:
+		a = SemanticAssertion{Consequence: a.Consequence}
+	case TaskSemanticMapping:
+		a = SemanticAssertion{Subject: a.Subject, Change: a.Change}
+	}
+	p.Assertion, p.SuggestedClass = a, class
+	p.Provider, p.Provenance = "anthropic", aiProvenance(model, upEvidence().ID, crdEvidence().ID)
+	p.Provenance.CallID = call
+	p.ID = ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
+	return p
+}
+
+func TestConsensusActionDissent(t *testing.T) {
+	cases := []struct {
+		name string
+		mut  func(*VerifiedFact, *FactRecords)
+		want string
+	}{
+		{"no dissent", func(*VerifiedFact, *FactRecords) {}, ""},
+		{"flux E6 shape: Sonnet requested review (different wording)", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactReviewRequired, TaskFull, "claude-sonnet-5-5", "msg_sonnet")
+			r.Proposals[d.ID] = d
+		}, "PO-5: dissent blocks consensus ACTION"},
+		{"dissent asking informational", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactInformational, TaskConsequence, "claude-opus-5-5", "msg_opus")
+			r.Proposals[d.ID] = d
+		}, "PO-5"},
+		{"undetermined consequence asking unknown", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactUnknown, TaskConsequence, "claude-opus-5-5", "msg_opus")
+			d.Assertion, d.Undetermined, d.UndeterminedReason, d.Citations = SemanticAssertion{}, []Aspect{AspectConsequence}, "cannot tell", nil
+			d.ID = ProposalID(d.CandidateID, d.Task, d.Provider, d.Provenance)
+			r.Proposals[d.ID] = d
+		}, "PO-5"},
+		{"a mapping-only call does not speak to the consequence", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactReviewRequired, TaskSemanticMapping, "claude-sonnet-5-5", "msg_map")
+			r.Proposals[d.ID] = d
+		}, ""},
+		{"a call with no class request is not dissent", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter("", TaskFull, "claude-sonnet-5-5", "msg_quiet")
+			r.Proposals[d.ID] = d
+		}, ""},
+		{"another candidate's dissent does not count", func(_ *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactReviewRequired, TaskFull, "claude-sonnet-5-5", "msg_else")
+			d.CandidateID = "sc-elsewhere"
+			d.ID = ProposalID(d.CandidateID, d.Task, d.Provider, d.Provenance)
+			r.Proposals[d.ID] = d
+		}, ""},
+		{"a human-verified consequence settles the dissent", func(f *VerifiedFact, r *FactRecords) {
+			d := dissenter(ImpactReviewRequired, TaskFull, "claude-sonnet-5-5", "msg_sonnet")
+			r.Proposals[d.ID] = d
+			// applicability stays consensus; the consequence is now a human's
+			ps := f.Verification[3].Basis
+			f.Verification[2] = AspectVerification{Aspect: AspectApplicability, Level: VerifiedConsensus, Basis: ps, Consensus: ConsensusCrossModel}
+			for _, id := range ps {
+				p := r.Proposals[id]
+				p.Assertion.Applicability = f.Assertion.Applicability
+				r.Proposals[id] = p
+			}
+			item := validItem(validCandidate())
+			item.Proposed = f.Assertion
+			item.ID = ReviewItemID(item.CandidateID, item.QuestionType, item.Proposed)
+			dec := validDecision(item)
+			dec.Original = &f.Assertion
+			f.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedHuman, Basis: []string{dec.ID}}
+			f.AutoApproved = false
+			r.Items = map[string]ReviewItem{item.ID: item}
+			r.Decisions = map[string]ReviewDecision{dec.ID: dec}
+		}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f, r := consensusActionFact()
+			tc.mut(&f, &r)
+			err := f.Validate()
+			if err == nil {
+				err = ValidateFactRecords(f, r)
+			}
+			expectErr(t, err, tc.want)
+		})
+	}
+}
+
+func TestConsensusActionAudit(t *testing.T) {
+	// audit wires an audit item (a classification re-review of the fact) and
+	// a decision on it into the records, and marks the fact audited by it.
+	audit := func(f *VerifiedFact, r *FactRecords, kind ReviewerKind, action DecisionAction) {
+		item := validItem(validCandidate())
+		item.QuestionType, item.Proposed = QuestionClassification, f.Assertion
+		item.ID = ReviewItemID(item.CandidateID, item.QuestionType, item.Proposed)
+		d := validDecision(item)
+		d.Original = &f.Assertion
+		if kind == ReviewerProxy {
+			p := aiProvenance("claude-opus-5-5", upEvidence().ID)
+			d.ReviewerKind, d.ProxyProvenance, d.Reviewer = ReviewerProxy, &p, "proxy:claude-opus-5-5"
+		}
+		if action == ActionCorrect {
+			c := f.Assertion
+			c.Consequence = &Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactReviewRequired}
+			d.Action, d.Corrected, d.Reason, d.Labels = ActionCorrect, &c, "it is a deprecation", []FeedbackLabel{LabelCorrected, LabelWrongConsequence}
+		}
+		d.ID = DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt)
+		r.Items = map[string]ReviewItem{item.ID: item}
+		r.Decisions = map[string]ReviewDecision{d.ID: d}
+		f.AuditedBy = d.ID
+	}
+	cases := []struct {
+		name string
+		mut  func(*VerifiedFact, *FactRecords)
+		want string
+	}{
+		{"unaudited", func(*VerifiedFact, *FactRecords) {}, ""},
+		{"a human accepted the audit", func(f *VerifiedFact, r *FactRecords) { audit(f, r, ReviewerHuman, ActionAccept) }, ""},
+		{"a proxy accept never audits", func(f *VerifiedFact, r *FactRecords) { audit(f, r, ReviewerProxy, ActionAccept) }, "only a human accept audits"},
+		{"a correction is not an audit", func(f *VerifiedFact, r *FactRecords) { audit(f, r, ReviewerHuman, ActionCorrect) }, "only a human accept audits"},
+		{"the accept was about another assertion", func(f *VerifiedFact, r *FactRecords) {
+			audit(f, r, ReviewerHuman, ActionAccept)
+			for id, it := range r.Items {
+				it.Proposed = rotationAssertion()
+				r.Items[id] = it
+			}
+		}, "not a review of this fact"},
+		{"unresolved audit", func(f *VerifiedFact, r *FactRecords) { f.AuditedBy = "rd-nowhere" }, "does not resolve"},
+		{"not a decision id", func(f *VerifiedFact, r *FactRecords) { f.AuditedBy = "ri-item" }, "is not a decision id"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f, r := consensusActionFact()
+			tc.mut(&f, &r)
+			err := f.Validate()
+			if err == nil {
+				err = ValidateFactRecords(f, r)
+			}
+			expectErr(t, err, tc.want)
+		})
+	}
+	// the finding label and its guard
+	k := KnowledgeRef{Fact: "vf-1", Verification: VerifiedConsensus, Consensus: ConsensusSameModel, ConsensusAction: true}
+	if k.ActionLabel() != "model consensus · unaudited" {
+		t.Errorf("label = %q", k.ActionLabel())
+	}
+	r := validReport()
+	f := &r.Findings[0]
+	f.Rule, f.Provenance.Rule = "impact:knowledge-exposed", "impact:knowledge-exposed"
+	f.Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman, Audited: true}
+	expectErr(t, r.Validate(), "audited marks a human-audited consensus-action fact")
 }

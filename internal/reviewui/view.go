@@ -258,7 +258,10 @@ type itemView struct {
 	// and every agreeing proposal REQUESTED action-required (PO-2 (b)). The UI
 	// only reports the request; the fact's other conditions are the pipeline's.
 	ConsensusAction bool
-	ConsensusScope  string
+	// ConsensusDissent lists the calls on the consequence that requested a
+	// lower class: they block a consensus ACTION (PO-5).
+	ConsensusDissent []string
+	ConsensusScope   string
 
 	Reviewer string
 	Started  string
@@ -422,8 +425,14 @@ func (v *itemView) noteConsequenceConsensus(g []domain.SemanticProposal) {
 			}
 		}
 	}
-	v.ConsensusAction = true
 	v.ConsensusScope = string(domain.ConsensusScopeOf(g))
+	// CONTRACT-CHANGE(contract-6): PO-5 — a call on the consequence that
+	// requested a lower class blocks the consensus ACTION; show who dissents
+	if d := domain.ConsequenceDissent([]string{v.Ctx.Item.CandidateID}, v.Ctx.Proposals); len(d) > 0 {
+		v.ConsensusDissent = d
+		return
+	}
+	v.ConsensusAction = true
 }
 
 func newCorrectionView(a domain.SemanticAssertion, form url.Values) *correctionView {

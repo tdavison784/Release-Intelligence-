@@ -851,9 +851,11 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 			if wrong {
 				res.Metrics.FalseActionFindings++
 			}
-			res.actionFindings = append(res.actionFindings, ActionFindingRecord{
-				FindingID: f.ID, ChangeID: f.ChangeID, Wrong: wrong,
-			})
+			rec := ActionFindingRecord{FindingID: f.ID, ChangeID: f.ChangeID, Wrong: wrong}
+			if k := f.Knowledge; k != nil && k.Verification == domain.VerifiedConsensus {
+				rec.Consensus = consensusAudit(*k)
+			}
+			res.actionFindings = append(res.actionFindings, rec)
 		case ClassUnknown:
 			res.Metrics.UnknownFindings++
 		}

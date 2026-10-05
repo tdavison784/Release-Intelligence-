@@ -446,11 +446,12 @@ func TestKnowledgeConsensusActionPO2(t *testing.T) {
 	r := buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, domain.VerifiedConsensus)
 	f := onlyFinding(t, r, c.ID)
 	if f.Classification != domain.ImpactActionRequired || f.Knowledge.Verification != domain.VerifiedConsensus ||
-		!f.Knowledge.ConsensusAction || f.Knowledge.Consensus != domain.ConsensusCrossModel || f.Knowledge.ActionLabel() != "model consensus" {
+		!f.Knowledge.ConsensusAction || f.Knowledge.Consensus != domain.ConsensusCrossModel || f.Knowledge.ActionLabel() != "model consensus · unaudited" {
+		// CONTRACT-CHANGE(contract-6): PO-6 — unaudited until a human accepts the audit
 		t.Errorf("consensus-action: %s %+v", f.Classification, f.Knowledge)
 	}
-	if !strings.Contains(f.Title, "model consensus") {
-		t.Errorf("a consensus ACTION must be labelled as such: %q", f.Title)
+	if !strings.Contains(f.Title, "model consensus · unaudited") {
+		t.Errorf("a consensus ACTION must be labelled as such (PO-6: unaudited): %q", f.Title)
 	}
 	// consensus facts are not used at the human (gate) level
 	if f := onlyFinding(t, buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, ""), c.ID); f.Knowledge != nil {
@@ -491,5 +492,25 @@ func TestRenderKnowledgeFindings(t *testing.T) {
 	}
 	if !strings.Contains(b.String(), "verified knowledge could not decide (cross-product-context-gap)") {
 		t.Errorf("undecided knowledge not grouped with its reason:\n%s", b.String())
+	}
+}
+
+// CONTRACT-CHANGE(contract-6): PO-6 — a human-audited consensus ACTION stays
+// ACTION REQUIRED and drops "unaudited"; an unaudited one says so.
+func TestConsensusActionAuditLabel(t *testing.T) {
+	eb, c := http01Edge()
+	anchor := domain.NewChangeAnchor(c, lookupOf(eb.edge))
+	en := condEnv(t, "- product: ingress-nginx\n  version: v1.12.1\n", nil)
+	act := consensusFact(t, http01Assertion(), true, anchor)
+	f := onlyFinding(t, buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, domain.VerifiedConsensus), c.ID)
+	if f.Classification != domain.ImpactActionRequired || f.Knowledge.Audited || !strings.Contains(f.Title, "model consensus · unaudited") ||
+		!strings.Contains(f.Detail, "UNAUDITED") {
+		t.Fatalf("unaudited: %s audited=%v %q", f.Classification, f.Knowledge.Audited, f.Title)
+	}
+	act.AuditedBy = "rd-human-audit"
+	f = onlyFinding(t, buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, domain.VerifiedConsensus), c.ID)
+	if f.Classification != domain.ImpactActionRequired || !f.Knowledge.Audited || strings.Contains(f.Title, "unaudited") ||
+		f.Knowledge.ActionLabel() != "model consensus" {
+		t.Fatalf("audited: %s audited=%v %q", f.Classification, f.Knowledge.Audited, f.Title)
 	}
 }

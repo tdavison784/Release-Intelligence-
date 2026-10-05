@@ -3,6 +3,7 @@ package knowledge
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,10 @@ type RouteSummary struct {
 	// Skipped lists records the store refused (invalid), with the reason; the
 	// pass continues so one bad candidate cannot block a whole store.
 	Skipped []string
+	// Refreshed lists stored facts whose derived flags changed under the
+	// current contract (ConsensusAction under PO-5 dissent, AuditedBy under
+	// PO-6) and were rewritten. CONTRACT-CHANGE(contract-6).
+	Refreshed []string
 }
 
 // RouteOptions configure RouteStore.
@@ -173,6 +178,35 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 			sum.Items++
 			sum.ByRoute[it.Routing.Route]++
 		}
+	}
+	// Refresh every stored fact's derived flags (PO-5, PO-6): routing an
+	// existing fact never rewrites it above, so a contract change to what
+	// makes a fact consensus-ACTION, or a human audit, lands here.
+	view := *snap
+	view.ReviewItems = view.ReviewItems[:0:0]
+	for _, it := range items {
+		view.ReviewItems = append(view.ReviewItems, it)
+	}
+	ids := make([]string, 0, len(facts))
+	for id := range facts {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		nf, changed := RefreshFact(&view, facts[id])
+		if !changed {
+			continue
+		}
+		rec, err := domain.NewRecord(nf)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.Put(ctx, rec); err != nil {
+			sum.Skipped = append(sum.Skipped, id+": refresh: "+err.Error())
+			continue
+		}
+		facts[id] = nf
+		sum.Refreshed = append(sum.Refreshed, id)
 	}
 	return sum, nil
 }

@@ -116,8 +116,9 @@ func TestRenderDeltaAloneNeverYieldsAction(t *testing.T) {
 	if r.Fact == nil || !r.Fact.ConsensusAction || !r.Fact.AutoApproved {
 		t.Fatalf("4. expected a consensus-action fact: %+v", r.Fact)
 	}
-	if (domain.KnowledgeRef{Verification: r.Fact.Level(), ConsensusAction: true}).ActionLabel() != "model consensus" {
-		t.Error("4. consensus ACTION must be labelled model consensus")
+	// CONTRACT-CHANGE(contract-6): PO-6 — unaudited until a human accepts the audit item
+	if (domain.KnowledgeRef{Verification: r.Fact.Level(), ConsensusAction: true}).ActionLabel() != "model consensus · unaudited" {
+		t.Error("4. consensus ACTION must be labelled model consensus · unaudited")
 	}
 }
 

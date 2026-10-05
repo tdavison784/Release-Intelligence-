@@ -103,6 +103,10 @@ func (c *cli) knowledgeRoute(args []string) error {
 	}
 	fmt.Fprintf(c.out, "routed %d candidates: %d review items created, %d facts auto-verified, %d audit items, %d already stored\n",
 		sum.Candidates, sum.Items, sum.Facts, len(sum.Audits), sum.Existing)
+	// CONTRACT-CHANGE(contract-6): facts re-derived under PO-5/PO-6
+	for _, id := range sum.Refreshed {
+		fmt.Fprintf(c.out, "refreshed fact %s (consensusAction / auditedBy re-derived)\n", id)
+	}
 	for _, sk := range sum.Skipped {
 		fmt.Fprintf(c.err, "skipped: %s\n", sk)
 	}

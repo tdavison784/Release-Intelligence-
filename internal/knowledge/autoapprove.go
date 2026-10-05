@@ -155,6 +155,11 @@ func AutoApproveConsensusAction(c domain.SemanticCandidate, ps []domain.Semantic
 			return nil
 		}
 	}
+	// CONTRACT-CHANGE(contract-6): PO-5 — any call on the candidate's
+	// consequence that requested a lower class blocks the consensus ACTION
+	if len(domain.ConsequenceDissent([]string{c.ID}, ps)) > 0 {
+		return nil
+	}
 	confirmed := stateFromValidations(vs)
 	out := &AutoApproval{Policy: PolicyConsensusAction, Aspects: map[domain.Aspect]AutoApprovedAspect{}}
 	for _, x := range domain.Aspects {

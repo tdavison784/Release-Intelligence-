@@ -313,8 +313,11 @@ type KnowledgeRef struct {
 	Consensus ConsensusScope `json:"consensus,omitempty"`
 	// ConsensusAction is copied from the fact: it may yield ACTION REQUIRED
 	// through model consensus (PO-2).
-	ConsensusAction bool   `json:"consensusAction,omitempty"`
-	Statement       string `json:"statement,omitempty"`
+	ConsensusAction bool `json:"consensusAction,omitempty"`
+	// Audited is copied from the fact (AuditedBy set): a human accepted the
+	// fact's audit item (PO-6). Only on consensus-action findings.
+	Audited   bool   `json:"audited,omitempty"`
+	Statement string `json:"statement,omitempty"`
 	// Subject is the fact's subject; required on refined findings, whose
 	// matches it must cover (Subject.CoversMatch).
 	Subject *Subject `json:"subject,omitempty"`
@@ -322,8 +325,14 @@ type KnowledgeRef struct {
 
 // ActionLabel is how an ACTION REQUIRED finding from this fact is labelled
 // for humans: "verified" (deterministic/human) or "model consensus" (PO-2).
+//
+// PO-6: until a human accepts the fact's audit item the consensus label
+// reads "model consensus · unaudited".
 func (k KnowledgeRef) ActionLabel() string {
 	if k.Verification == VerifiedConsensus {
+		if !k.Audited {
+			return "model consensus · unaudited"
+		}
 		return "model consensus"
 	}
 	return "verified"
@@ -692,6 +701,9 @@ func (f ImpactFinding) validateKnowledge() []error {
 	}
 	if k.ConsensusAction && k.Verification != VerifiedConsensus {
 		bad("knowledge.consensusAction is for consensus-verified facts only")
+	}
+	if k.Audited && !k.ConsensusAction {
+		bad("knowledge.audited marks a human-audited consensus-action fact (PO-6)")
 	}
 	consensusAction := k.Verification == VerifiedConsensus && k.ConsensusAction
 	switch f.Classification {

@@ -484,6 +484,7 @@ func (b *builder) knowledgeFinding(f domain.VerifiedFact, exposure, overlap Cond
 	if level == domain.VerifiedConsensus {
 		kf.Knowledge.Consensus = consensusScope(f)
 		kf.Knowledge.ConsensusAction = f.ConsensusAction
+		kf.Knowledge.Audited = f.ConsensusAction && f.AuditedBy != "" // PO-6
 	}
 	b.attachChange(&kf, c)
 	var records []domain.Evidence
@@ -569,7 +570,9 @@ func knowledgeText(f domain.VerifiedFact, class domain.ImpactClass, rule string,
 	case RuleKnowledgeExposed:
 		title = "Applies to you: " + st
 		if class == domain.ImpactActionRequired && f.Level() == domain.VerifiedConsensus {
-			title = "Applies to you (ACTION REQUIRED · model consensus): " + st
+			// CONTRACT-CHANGE(contract-6): PO-6 label, from the one source of truth
+			ref := domain.KnowledgeRef{Verification: domain.VerifiedConsensus, ConsensusAction: f.ConsensusAction, Audited: f.AuditedBy != ""}
+			title = "Applies to you (ACTION REQUIRED · " + ref.ActionLabel() + "): " + st
 		}
 	case RuleKnowledgeOverlap:
 		title = "Touches your environment, which appears shielded: " + st
@@ -598,8 +601,10 @@ func knowledgeText(f domain.VerifiedFact, class domain.ImpactClass, rule string,
 	level := f.Level()
 	v := fmt.Sprintf("Verified knowledge %s (%s-verified", f.ID, level)
 	switch {
+	case level == domain.VerifiedConsensus && f.ConsensusAction && f.AuditedBy == "":
+		v += fmt.Sprintf(", %s; ACTION REQUIRED here rests on model consensus (PO-2), not on a human or a validator, and is UNAUDITED: its human audit item is not yet accepted (PO-6); consensus never clears a change", consensusScope(f))
 	case level == domain.VerifiedConsensus && f.ConsensusAction:
-		v += fmt.Sprintf(", %s; ACTION REQUIRED here rests on model consensus (PO-2), not on a human or a validator — the fact is sampled into human review; consensus never clears a change", consensusScope(f))
+		v += fmt.Sprintf(", %s; ACTION REQUIRED here rests on model consensus (PO-2), audited and accepted by a human (%s); consensus never clears a change", consensusScope(f), f.AuditedBy)
 	case level == domain.VerifiedConsensus:
 		v += fmt.Sprintf(", %s; consensus knowledge is capped at review-required and never clears a change", consensusScope(f))
 	case !level.Trusted():

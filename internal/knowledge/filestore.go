@@ -247,6 +247,11 @@ func mutableChange(old, next domain.KnowledgeRecord) error {
 		a.Candidates, b.Candidates = nil, nil
 		a.Verification, b.Verification = nil, nil
 		a.AutoApproved, b.AutoApproved = false, false
+		// CONTRACT-CHANGE(contract-6): derived flags re-computed under the
+		// current contract (PO-5 dissent; PO-6 human audit); ValidateFactRecords
+		// re-proves both on write
+		a.ConsensusAction, b.ConsensusAction = false, false
+		a.AuditedBy, b.AuditedBy = "", ""
 		if reflect.DeepEqual(a, b) {
 			return nil
 		}
@@ -259,7 +264,7 @@ func mutableFields(k domain.RecordKind) string {
 	case domain.RecordReviewItem:
 		return "status"
 	case domain.RecordFact:
-		return "status, anchors, candidates, verification upgrades and consequence prose"
+		return "status, anchors, candidates, verification upgrades, consequence prose, consensusAction and auditedBy"
 	}
 	return "nothing: the kind is immutable"
 }
