@@ -121,6 +121,9 @@ failures = 0. UNKNOWN may remain where evidence genuinely does not support a con
     agreeing call requested, deterministic exposure on both evidence chains, and no refuted aspect. The
     finding is labelled "ACTION REQUIRED · model consensus", and every such fact is sampled into human
     review. Consensus never produces NOT AFFECTED; a single model or proxy stays capped at REVIEW.
+    *Narrowed by PO-5/PO-6 (2026-10-05):* any call on the consequence that requested a lower class
+    blocks the consensus path (dissent counts whatever its wording), and the finding reads
+    "ACTION REQUIRED · model consensus · unaudited" until a human accepts its audit item.
 22. **Expand applicability ground truth.** Environment cases label expected semantic subject,
     applicability, action class, environment evidence, consequence. Prioritize prose-only defaults,
     feature gates, cross-product version dependencies, RBAC, migrations, behaviour changes,

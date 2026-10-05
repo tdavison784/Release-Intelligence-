@@ -535,6 +535,24 @@ consequence requested `action-required`, and no validation of the fact's
 candidates refutes any aspect (callers pass all of them). **Every
 consensus-action fact is sampled into human review (100%).**
 
+**Dissent blocks (PO-5).** While the consequence rests on consensus, a fact
+is consensus-ACTION only if **no** call on its candidates' consequence aspect
+requested a lower class. A call counts when its task covers the consequence
+(asserted or undetermined) and its `suggestedClass` is review-required,
+informational or unknown, **whatever its wording or consequence digest**
+(`domain.ConsequenceDissent`). A human-verified consequence settles a dissent.
+`ConsensusAction` is a derived flag, recomputed whenever the store is routed.
+`RouteStore` refreshes every stored fact, so re-routing applies a contract
+change to existing facts.
+
+**`AuditedBy` (PO-6)** is the human accept of the fact's audit item (a review
+item of one of its candidates proposing exactly its assertion). A proxy accept
+never sets it, and `ValidateFactRecords` re-proves it from the records. Until it
+is set, a consensus-ACTION finding reads **"ACTION REQUIRED · model consensus ·
+unaudited"** (`KnowledgeRef.Audited` / `ActionLabel()`). It stays ACTION
+REQUIRED: PO-6 labels the finding, it does not gate it. A corrected or
+rejected audit supersedes or retracts the fact, as before.
+
 **`AutoApproved`** is set exactly when no aspect rests on a human or proxy
 decision (every aspect is deterministic or consensus). Such facts are minted
 without anyone looking, so the knowledge lane samples them into human review
@@ -724,7 +742,7 @@ each hypothesis later.
 | models disagree on any aspect, or a validation `refuted` a proposal | `review` | normal (high if `high-impact`) |
 | every model abstained | `missing-evidence` | low |
 | any proposal's consequence kind is action-eligible (`high-impact`) | `review` | high |
-| **consensus action (PO-2)**: ≥2 separate calls agree on an action-eligible consequence and all requested `action-required`, the other aspects are at consensus or better, and nothing is refuted | fact minted with `ConsensusAction`, **plus** a human audit item (100% sampling) | high |
+| **consensus action (PO-2, PO-5)**: ≥2 separate calls agree on an action-eligible consequence and all requested `action-required`, **no call on the consequence requested a lower class**, the other aspects are at consensus or better, and nothing is refuted | fact minted with `ConsensusAction` (unaudited until a human accepts the audit, PO-6), **plus** a human audit item (100% sampling) | high |
 
 "Agree" means equal aspect digests across ≥2 proposals from **separate calls**
 (`domain.SeparateCalls`; any models, PO-1), labelled `cross-model` or
@@ -784,6 +802,7 @@ class than their label by design (D11).
 | median and p90 time to decision | decisions |
 | consensus reliability (PO-1): human-audit agreement of consensus aspects, **cross-model vs same-model** | facts (`AspectVerification.Consensus`) + audit decisions |
 | consensus ACTION (PO-2): facts with `ConsensusAction`, audited (must be 100%), human agreement | facts + audit decisions |
+| consensus ACTION findings **audited vs unaudited** (PO-6), each with its false ACTIONs, per level | `ri eval -knowledge` panel (`consensusActionAudited/Unaudited`, `falseConsensusActionAudited/Unaudited`) |
 | auto-approval: auto-approved facts by class; the share sampled into human review; **agreement of sampled auto-approved facts with the human verdict**, per class (R19: which render-diff classes are safe to auto-approve) | facts (`autoApproved`) + audit decisions |
 | render relation per proposal and model: confirmed / contradicted / not visible (R17) | validations (`renderRelation`) |
 | batch vs individual: decision counts, accept/correct/reject rates, timing, number of batches — always reported **separately** (bulk accepts must not inflate the per-item acceptance rate or deflate the per-item time) | decisions (`BatchID`, `BatchSize`) |

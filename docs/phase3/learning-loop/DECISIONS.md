@@ -105,3 +105,65 @@ Implemented in contract-4:
 
 **Amends** DESIGN.md §1.4 (consequence kinds) and §4 (composition: the one sanctioned downgrade of
 a deterministic finding), and ACTION_CLASSIFICATION.md §5/§8.
+
+## PO-5 — Dissent blocks consensus ACTION (2026-10-05)
+
+> A fact may be consensus-ACTION only if NO separate call on that candidate's consequence aspect
+> requested a lower class (review-required/informational/unknown), regardless of wording or
+> consequence digest. (Expected: flux E6 → REVIEW; strimzi-edge E2 may also drop to REVIEW until
+> human-verified — report it.)
+
+(Recorded verbatim in substance from the commander relay of 2026-10-05. Motivation:
+TRUST-AUDIT.md §2. On flux E6, two calls of glm-5.3 agreed migration-required and requested ACTION.
+Claude Sonnet and Opus asked for REVIEW on the same candidate, but their differently worded
+consequences meant they did not count as dissent. The blind proxy audit later corrected the
+consequence to a deprecation.)
+
+Implemented in contract-6:
+- `domain.ConsequenceDissent(candidates, proposals)` finds the dissenting calls. A call counts when its
+  task covers the consequence and its `suggestedClass` is review-required, informational or unknown.
+  Calls on other candidates, mapping-only calls and calls without a class request do not count.
+- The rule applies while the consequence aspect is consensus-verified. A human-verified consequence
+  settles the dissent (the "until human-verified" of the decision).
+- Where it is enforced:
+  - `ValidateFactRecords`, over all proposals of the fact's candidates;
+  - the consensus-action auto-approval policy;
+  - `buildFact` (recomputed on every decision merge);
+  - a new `RouteStore` refresh pass that re-derives `consensusAction` on stored facts. The file store
+    now allows that derived flag to change under the same id.
+- The dashboard shows "Consensus ACTION blocked by dissent" with the dissenting calls.
+
+**Applied to the real store** (`ri knowledge route -auto-approve-general`, the loop-run-4 flags).
+**All six** consensus-action facts had dissent and lost `consensusAction`. They stay active, capped
+at REVIEW:
+
+| fact | case · item | consequence (agreeing calls) | dissent (requested review) | was the ACTION right? |
+|---|---|---|---|---|
+| vf-d2375ef40b74 | flux E6 | migration-required, glm-5.3 ×2 (same-model) | Sonnet ×2, Opus | **no**: now REVIEW = the label |
+| vf-6703cd4a7629 | flux (imagepolicies) | migration-required, glm-5.3 ×2 (same-model) | Opus ×2, Sonnet | n/a (no ACTION finding in the eval) |
+| vf-cec2d4a87881 | karpenter (nodepools) | migration-required, glm-5.3 ×2 (same-model) | Opus ×2, Sonnet ×2 | n/a |
+| vf-e00d920557d9 | external-secrets E3 | migration-required, 5 calls (cross-model) | Sonnet ×1 | **yes**: a true ACTION lost, now REVIEW |
+| vf-22666d02a78e | strimzi-edge E2 (×2 changes) | migration-required, 5 calls (cross-model) | Sonnet ×2 | **yes**: two true ACTION findings lost, now REVIEW |
+| vf-d36855dd939d | crossplane (`--registry` removed) | workload-failure, glm-5.3 + Opus (cross-model) | Sonnet ×1 | n/a |
+
+Four new review items were opened on the two cross-model candidates that no longer auto-approve
+(crossplane ×3, external-secrets ×1), so a human can settle the consequence. Per-level panels are in
+[PO5-PO6-REPORT.md](PO5-PO6-REPORT.md).
+
+## PO-6 — Consensus ACTION is labelled unaudited until a human accepts its audit (2026-10-05)
+
+> A consensus-ACTION finding stays ACTION REQUIRED but is labelled 'ACTION REQUIRED · model
+> consensus · unaudited' until a HUMAN accepts its audit item; a corrected/rejected audit supersedes
+> the fact (already works). Eval reports consensus-ACTION findings audited vs unaudited separately.
+
+Implemented in contract-6:
+- `VerifiedFact.AuditedBy` is the human accept on the fact's audit item. `ValidateFactRecords` proves
+  it from the records: a human, an accept, on an item of one of the fact's candidates proposing
+  exactly its assertion. A proxy accept never sets it.
+- `Queue.Decide` sets it, and the `RouteStore` refresh re-derives it.
+- `KnowledgeRef.Audited` drives `ActionLabel()`: "model consensus · unaudited" or "model consensus".
+  `ImpactReport.Validate()` allows `audited` only on consensus-action findings.
+- The impact finding title and detail state UNAUDITED.
+- `ri eval -knowledge` prints, per level, `N ACTION · model consensus: a audited, x false / u
+  unaudited, y false`.
+- After PO-5 no consensus-ACTION finding remains in either eval view, so every count is 0 today.
