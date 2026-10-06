@@ -92,6 +92,11 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 		in.Unset = &render.UnsetValues{Engine: a.RenderEngine(), Product: productID,
 			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
 			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
+		// PO-7a: values keys the customer sets whose key the target removes
+		// are decided by their render (refusal / attribution / no effect)
+		in.Set = &render.SetValues{Engine: a.RenderEngine(), Product: productID,
+			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
+			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
 	}
 	if run.Report, err = impact.Build(in); err != nil {
 		return nil, err
