@@ -373,11 +373,6 @@ func usableFacts(facts []domain.VerifiedFact, min domain.VerificationLevel) []do
 // knowledge evaluates the usable facts and composes their findings with the
 // deterministic ones.
 func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.VerificationLevel, render RenderedChangeEvaluator) {
-	type evaluated struct {
-		f        domain.VerifiedFact
-		exposure ConditionResult
-		overlap  ConditionResult
-	}
 	perChange := map[string][]domain.ImpactFinding{}
 	var order []string
 	changes := map[string]domain.Change{}
@@ -387,12 +382,21 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 			continue
 		}
 		opts := ConditionOptions{Render: render}
-		e := evaluated{f: f, exposure: EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)}
-		if ov := f.Assertion.Applicability.Overlap; ov != nil && e.exposure.Value == False {
-			e.overlap = EvaluateConditionWith(*ov, b.env, b.edge, opts)
-		}
+		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
 		for _, c := range attached {
-			kf, ok := b.knowledgeFinding(e.f, e.exposure, e.overlap, c)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
+			// decisively decides this change's exposure, it wins over the
+			// fact's applicability condition (knowledge conditions only
+			// decide what rendering can't)
+			exposure := factExposure
+			if r, ok := b.renderExposure(c); ok {
+				exposure = r
+			}
+			var overlap ConditionResult
+			if ov := f.Assertion.Applicability.Overlap; ov != nil && exposure.Value == False {
+				overlap = EvaluateConditionWith(*ov, b.env, b.edge, opts)
+			}
+			kf, ok := b.knowledgeFinding(f, exposure, overlap, c)
 			if !ok {
 				continue
 			}
