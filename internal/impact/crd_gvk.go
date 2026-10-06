@@ -691,6 +691,9 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 	// deciding dimension: installed CRDs (authoritative for what the cluster
 	// runs). Manifests refine the verdict; both are recorded.
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
 		if b.crdGroupUseWithoutCRDs(c, toTag, false, RuleCRDRemoved, domain.SeverityCritical, "removes") {
 			return
 		}
@@ -801,6 +804,9 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 // silently skipped).
 func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
 		gone := "removes"
 		if c.Provenance.Rule == upgrade.RuleCRDVersionUnserved {
 			gone = "stops serving"
@@ -911,6 +917,9 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 // manifests supplied is not-affected.
 func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
 		if b.crdGroupUseWithoutCRDs(c, toTag, true, RuleCRDVersionDeprecated, domain.SeverityMedium, "deprecates") {
 			return
 		}
@@ -1166,4 +1175,87 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 		strings.Join(over, ", "), strings.Join(lines, "\n"))
 	b.add(RuleCRDFieldRemoved, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceMedium,
 		title, detail, c, matches, c.Evidence...)
+}
+
+// renderedCRDResolution (PO-7a addendum 6): rendered CRDs — extracted from
+// the FROM render of the customer's install, their CRD gates exactly as set —
+// resolve a CRD change's identity question when no observed CRDs input
+// exists. They only ever RAISE: a render shows what the customer's gates
+// install, not what the cluster observes, so it never clears a change (a
+// separately installed CRD path is invisible to the render — absence is not
+// knowledge) and never reaches action-required (the trust ladder caps a
+// render alone below ACTION). All-or-nothing per change: every subject must
+// name a rendered CRD (for a version rule, one that declares the version),
+// else today's unknown stands. Decided changes report review-required at
+// medium confidence, citing the rendered CRD's evidence on chain 2.
+func (b *builder) renderedCRDResolution(c domain.Change, toTag string) bool {
+	if !b.env.RenderedCRDsPresent() {
+		return false
+	}
+	var (
+		rule  string
+		verb  string
+		sev   domain.ImpactSeverity
+		title func(name, gv string) string
+	)
+	versionRule := true
+	switch c.Provenance.Rule {
+	case upgrade.RuleCRDRemoved:
+		versionRule, rule, verb, sev = false, RuleCRDRemoved, "removes", domain.SeverityCritical
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render ships the %s CRD that %s removes", code(name), toTag)
+		}
+	case upgrade.RuleCRDVersionRemoved, upgrade.RuleCRDVersionUnserved:
+		rule, verb, sev = RuleCRDVersionRemoved, "removed", domain.SeverityCritical
+		if c.Provenance.Rule == upgrade.RuleCRDVersionUnserved {
+			verb = "no longer served"
+		}
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render declares API version %s, which %s makes %s", code(gv), toTag, verb)
+		}
+	case upgrade.RuleCRDVersionDeprecated:
+		rule, verb, sev = RuleCRDVersionDeprecated, "deprecates", domain.SeverityMedium
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render declares API version %s, which %s deprecates", code(gv), toTag)
+		}
+	default:
+		return false
+	}
+	resolved := 0
+	for _, s := range c.Subjects {
+		var installed *env.InstalledCRD
+		gv := ""
+		if versionRule {
+			id, ok := parseCRDNameVersion(s)
+			if !ok {
+				return false
+			}
+			gv = id.Group + "/" + id.Version
+			installed = crdByName(b.env, id.Name)
+			if installed != nil && !installedDeclares(installed, id.Version) {
+				installed = nil // the rendered CRD does not declare the version: nothing to pin
+			}
+		} else {
+			installed = crdByName(b.env, s)
+		}
+		if installed == nil || !installed.Rendered {
+			return false
+		}
+		resolved++
+		match := domain.ImpactMatch{Kind: domain.MatchCRD, Subject: installed.Name, Evidence: installed.Evidence}
+		if versionRule {
+			match = domain.ImpactMatch{Kind: domain.MatchCRDVersion, Subject: s, Evidence: installed.Evidence}
+		}
+		from := b.edge.From.String()
+		detail := fmt.Sprintf("The render of your install at %s — with your values, your CRD gates — ships %s", from, installed.Name)
+		if versionRule {
+			detail = fmt.Sprintf("The render of your install at %s — with your values, your CRD gates — ships %s, which declares %s; %s %s it", from, installed.Name, code(gv), toTag, verb)
+		} else {
+			detail += fmt.Sprintf("; %s removes the CustomResourceDefinition, and resources of its kind stop being reconciled", toTag)
+		}
+		detail += ". The render shows what your gates install, not observed cluster state: whether resources of the kind exist was not checked. Supply your installed CRDs (--crds) or manifests to decide."
+		b.add(rule, domain.ImpactReviewRequired, sev, domain.ConfidenceMedium,
+			title(installed.Name, gv), detail, c, []domain.ImpactMatch{match}, c.Evidence...)
+	}
+	return resolved > 0 && resolved == len(c.Subjects)
 }

@@ -246,6 +246,7 @@
         "local-file",
         "input",
         "rendered-diff",
+        "rendered",
         "linked-pr",
         "linked-commit"
       ]
@@ -568,6 +569,48 @@
           "if": {
             "properties": {
               "rule": {"enum": ["impact:values-default-no-effect", "impact:values-default-unrendered"]}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:render-target-rejects"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["action-required"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:values-set-no-effect"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:image-render-unchanged"}
             },
             "required": ["rule"]
           },

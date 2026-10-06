@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-controller
+  namespace: {{ .Release.Namespace }}
+  labels: {app: rej}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector: {matchLabels: {app: rej}}
+  template:
+    metadata: {labels: {app: rej}}
+    spec:
+      containers:
+        - name: controller
+          image: example.org/rej/controller:v1

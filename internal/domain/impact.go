@@ -186,6 +186,35 @@ const (
 	RuleValuesDefaultUnrendered = "impact:values-default-unrendered"
 )
 
+// CONTRACT-CHANGE(renderfirst): join rules of the PO-7a render-first
+// verdicts (docs/RENDER-FIRST.md). The customer's render decides exposure for
+// render-expressible changes; these are the two verdicts no earlier rule
+// could express.
+const (
+	// RuleRenderTargetRejects: the target chart refuses the customer's
+	// configuration (values.schema.json, a chart-authored fail/required)
+	// that the source chart rendered, and the refusal names a values key of
+	// the change the customer sets. The upgrade as configured fails: the
+	// consequence is established deterministically, so it is
+	// action-required. Carries a values-key match (chain 2, the customer's
+	// file) and a rendered-change match citing the environment render record
+	// of the rejection.
+	RuleRenderTargetRejects = "impact:render-target-rejects"
+	// RuleValuesSetNoEffect: the customer sets a key the target removes or
+	// newly reads, and rendering their configuration with and without it
+	// (source and target) attributes nothing of their upgrade to it →
+	// not-affected, with a no-attributable-change render check citing the
+	// render evidence.
+	RuleValuesSetNoEffect = "impact:values-set-no-effect"
+	// RuleImageRenderUnchanged: the environment references the image repository
+	// of the change, but the customer's own From→To render (with their
+	// configuration) contains no change for it — typically because they pin the
+	// reference — so the change never reaches their rendered deployment →
+	// not-affected, with a no-attributable-change render check citing both
+	// compared renders.
+	RuleImageRenderUnchanged = "impact:image-render-unchanged"
+)
+
 // ImpactMatchKind names what part of the environment matched.
 type ImpactMatchKind string
 
@@ -790,7 +819,19 @@ func (r *ImpactReport) validateValuesDefaults() []error {
 			if !ok {
 				bad("%s needs a rendered-change match backed by environment-render evidence", f.Rule)
 			}
-		case RuleValuesDefaultNoEffect:
+		case RuleRenderTargetRejects:
+			if f.Classification != ImpactActionRequired {
+				bad("%s is action-required, got %q", f.Rule, f.Classification)
+			}
+			ok, keyed := false, false
+			for _, m := range f.Matches {
+				ok = ok || (m.Kind == MatchRenderedChange && rendered(m.Evidence))
+				keyed = keyed || m.Kind == MatchValuesKey
+			}
+			if !ok || !keyed {
+				bad("%s needs a values-key match and a rendered-change match backed by environment-render evidence", f.Rule)
+			}
+		case RuleValuesDefaultNoEffect, RuleValuesSetNoEffect, RuleImageRenderUnchanged:
 			if f.Classification != ImpactNotAffected || !renderCheck(RenderNoAttributableChange) {
 				bad("%s is not-affected with a no-attributable-change render check", f.Rule)
 			}

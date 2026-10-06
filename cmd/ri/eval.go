@@ -137,6 +137,11 @@ func (c *cli) eval(args []string) error {
 	var results, baseline []eval.EntryResult
 	var levels []eval.LevelReport
 	var knowledgeWarnings []string
+	type levelRun struct {
+		level   string
+		results []eval.EntryResult
+	}
+	var levelResults []levelRun
 	if *knowledgeDir != "" {
 		if *update {
 			return fmt.Errorf("%w: -update stores the knowledge-free baseline; run it without -knowledge", app.ErrUsage)
@@ -154,6 +159,7 @@ func (c *cli) eval(args []string) error {
 			rep := lr.Report
 			rep.Gate = rep.Level == string(lvl) // the gates below are evaluated on this level
 			levels = append(levels, rep)
+			levelResults = append(levelResults, levelRun{rep.Level, lr.Results})
 			switch lr.Report.Level {
 			case eval.LevelNone:
 				baseline = lr.Results
@@ -217,6 +223,14 @@ func (c *cli) eval(args []string) error {
 			w = c.err // keep stdout one JSON document
 		}
 		rev.writeText(w)
+		// render-first panel (PO-7a): per renderability bucket, the links a
+		// render-backed finding decided
+		if len(levels) == 0 {
+			eval.WriteRenderFirst(w, "this run", eval.RenderFirst(results))
+		}
+		for _, lr := range levelResults {
+			eval.WriteRenderFirst(w, "level "+lr.level, eval.RenderFirst(lr.results))
+		}
 		if *renderJSONOut != "" {
 			if err := rev.writeJSON(*renderJSONOut); err != nil {
 				return err

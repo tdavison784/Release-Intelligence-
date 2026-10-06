@@ -105,6 +105,8 @@ type builder struct {
 	extraLocalOrder []domain.EvidenceID
 
 	unset UnsetValuesEvaluator // CONTRACT-CHANGE(render): PO-3, nil without --render
+	set   SetValuesEvaluator   // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
+	image ImageRenderEvaluator // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -120,7 +122,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
 		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
-		unset: in.Unset,
+		unset: in.Unset, set: in.Set, image: in.Image,
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -425,13 +427,10 @@ func (b *builder) valuesFamily() {
 		}
 		switch kind {
 		case "removed":
-			title := fmt.Sprintf("You set %s that %s removed", pluralKeys(exact, partial), toTag)
-			if len(exact)+len(partial) == 1 {
-				title = fmt.Sprintf("You set %s, which %s removed", code(firstOf(exact, partial)), toTag)
-			}
-			detail := fmt.Sprintf("%s no longer has these values keys; keys you set here stop taking effect (or are rejected when the chart validates values against a schema). Remove them from your values and migrate the configuration they controlled.\nYou set: %s.",
-				toTag, strings.Join(append(append([]string{}, exact...), partial...), ", "))
-			b.add(RuleValuesRemoved, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — the customer's render
+			// decides (refuses / attributes / nothing); today's verdict when
+			// there is no evaluator or no decisive render.
+			b.setValues(b.set, c, matches, exact, partial)
 		case "default-changed":
 			if len(exact) > 0 {
 				title := fmt.Sprintf("You pin %s, so the new default of %s does not apply", codeList(exact, 3), toTag)
@@ -735,7 +734,9 @@ func (b *builder) imageFamily() {
 			if strings.TrimSpace(c.Detail) != "" {
 				detail = c.Detail + "\nYour environment references this repository (as " + firstImageRef(uses) + ")."
 			}
-			b.add(RuleImageChanged, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — the customer's rendered
+			// upgrade delta decides (their pin may keep the change away)
+			b.imageVerdict(b.image, c, s, matches, detail, title)
 		}
 		if len(unmatched) > 0 && len(unmatched) == len(c.Subjects) {
 			title := fmt.Sprintf("Your environment does not reference %s", codeList(unmatched, 3))

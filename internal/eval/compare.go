@@ -243,6 +243,12 @@ type EnvImpactAudit struct {
 	// Facts are the verified facts (vf-…) behind the knowledge findings that
 	// hit the link (transfer reporting, DESIGN.md §7); empty without -knowledge.
 	Facts []string `json:"facts,omitempty"`
+	// Render-first measurement (renderfirst.go): the item's R12
+	// renderability, whether a render-backed affected finding hits the link,
+	// and whether a render-backed not-affected finding clears it.
+	Renderability string `json:"renderability,omitempty"`
+	RenderDecided bool   `json:"renderDecided,omitempty"`
+	RenderCleared bool   `json:"renderCleared,omitempty"`
 }
 
 // EntryResult is the scored outcome of one dataset entry.
@@ -715,6 +721,7 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 				audit.Facts = appendUniqueString(audit.Facts, f.Knowledge.Fact)
 			}
 		}
+		auditRender(&audit, c, report, func(id string) string { return expIDForChange[id] })
 		res.EnvImpact = append(res.EnvImpact, audit)
 		if l.Relevance == RelevanceNotAffected {
 			em.NotAffectedLinks++

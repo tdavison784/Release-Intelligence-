@@ -92,9 +92,44 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 		in.Unset = &render.UnsetValues{Engine: a.RenderEngine(), Product: productID,
 			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
 			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
+		// PO-7a: values keys the customer sets whose key the target removes
+		// are decided by their render (refusal / attribution / no effect)
+		in.Set = &render.SetValues{Engine: a.RenderEngine(), Product: productID,
+			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
+			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
+		// PO-7a: image changes are decided by the customer's rendered delta
+		// (a pinned reference keeps the change away)
+		in.Image = &render.RenderImages{Product: productID,
+			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs()}
+		// PO-7a addendum 6: the CRDs the FROM render of the customer's
+		// install produces (their gates exactly as set) are an environment
+		// input — an observed --crds input wins (env.Load loads rendered
+		// CRDs only without one), and the dimension stays partial, never
+		// "supplied" for absence conclusions.
+		if srcs := render.RenderedCRDsOf(run.Render.EnvironmentPairs()); len(srcs) > 0 {
+			opts.Environment.RenderedCRDs = envRenderedCRDs(srcs)
+			e2, err := env.Load(opts.Environment)
+			if err != nil {
+				return nil, fmt.Errorf("environment (rendered CRDs): %w", err)
+			}
+			e, run.Env, in.Env = e2, e2, e2
+		}
 	}
 	if run.Report, err = impact.Build(in); err != nil {
 		return nil, err
 	}
 	return run, nil
+}
+
+// envRenderedCRDs maps the render layer's extracted CRDs onto the
+// environment input (env cannot import render; the shapes stay in sync by
+// test).
+func envRenderedCRDs(srcs []render.RenderedCRDs) []env.RenderedCRDSource {
+	out := make([]env.RenderedCRDSource, 0, len(srcs))
+	for _, s := range srcs {
+		out = append(out, env.RenderedCRDSource{
+			Label: s.Label, Tool: s.Tool, ChartDigest: s.ChartDigest, ValuesDigest: s.ValuesDigest, Docs: s.Docs,
+		})
+	}
+	return out
 }

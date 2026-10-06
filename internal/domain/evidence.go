@@ -27,6 +27,13 @@ const (
 	// (Evidence.Render says how, at which scope). CONTRACT-CHANGE(render):
 	// RENDER-MISSION R5 names this evidence kind.
 	EvidenceRenderedDiff EvidenceKind = "rendered-diff"
+	// EvidenceRendered: a document a render of the customer's configuration
+	// produced (not a difference): an installed CRD extracted from the FROM
+	// render of their install. Distinct from every observed kind — a render
+	// is what a fresh install of the chart with their gates would create,
+	// never observed cluster state. CONTRACT-CHANGE(renderfirst): PO-7a
+	// addendum item 6.
+	EvidenceRendered EvidenceKind = "rendered"
 	// EvidenceLinkedPR: what GitHub states about a pull request or issue that
 	// a release note references (title, description, changed files);
 	// EvidenceLinkedCommit: the same for a referenced commit. Fetched
