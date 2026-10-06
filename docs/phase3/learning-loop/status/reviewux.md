@@ -32,6 +32,27 @@ Branch `p3ll/reviewux`. Goal: make a review item understandable in 30 seconds (P
   (evidence-thin one-liner, all aspects undetermined), RSA < 2048 (PO-2 consensus-ACTION audit).
 - Inbox rows redesigned per the brief: plain-English question + why-line + suggested answer.
 
+## Done — step 1b: visual polish pass (PO approved structure, asked for flavor only)
+
+PO feedback 2026-10-05: *"format looks good … keep the structure as is … just make it more visually
+appealing."* Structure, section order, wording and content generation are untouched; the pass is
+visual only:
+
+- Priority-colored gradient strip across the card top (danger→warn for high, muted for low).
+- Numbered stepper: circles 1–7 + a green ✓ on Decide, on a rail down the card's left edge.
+- Serif question headline; chips carry tone dots; recommendation panel gets a gradient wash and a
+  gradient primary button with hover lift; "why this needs you" gets a circular "!" badge; differ
+  cells get per-group left-border colors and model avatars (initial in a hue hashed from the model
+  id — deterministic); agree line gets a ✓ chip; folds get rotating chevrons; inbox rows get a
+  priority stripe and hover lift. Dark-mode variants for all of it.
+- Fixed while re-screenshotting: the step-1 pages had a dead stylesheet — html/template's CSS value
+  filter collapses a plain-string `{{.CSS}}` in `<style>` to `ZgotmplZ`, and the step-1 screenshots
+  had silently been rendered from Firefox's cached earlier copies of the pages (same file:// URLs,
+  stale profile), so the mismatch went unnoticed. Now: stylesheet passed as `template.CSS`
+  (inlines verbatim — verified byte-identical to mock.css), screenshots always taken with a fresh
+  `-profile` (no cache), and the four light shots pin `data-theme="light"` in a sed'd copy because
+  this machine runs macOS dark mode (otherwise `prefers-color-scheme` renders both variants dark).
+
 ## Next — step 2 (blocked on PO approval of the mockup)
 
 - Port the renderers into `internal/reviewui` (view.go + templates) with tests: every condition op,
@@ -51,6 +72,10 @@ Branch `p3ll/reviewux`. Goal: make a review item understandable in 30 seconds (P
 - Model display names shortened deterministically (claude-opus-5-5 → Opus 5.5); raw ids stay in
   tooltips and Details.
 - Differ rows ordered: largest agreeing group first, then model name (deterministic tie-break).
+- Model avatars (differ cells + raw-proposal table) hash the raw model id to a hue class av0–av5 —
+  same model, same color, always; initials from the shortened display name.
+- Light screenshots on a dark-mode host require pinning `data-theme="light"`; never trust a
+  screenshot taken with a reused Firefox profile (file:// cache serves stale documents).
 
 ## Files touched outside ownership
 

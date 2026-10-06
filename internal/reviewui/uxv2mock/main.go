@@ -40,9 +40,19 @@ type valView struct {
 
 type rawView struct {
 	Model, ModelRaw, Provider, Confidence, CallID, ModelVersion, PromptDigest, GeneratedAt, Class, Undetermined string
+	Av, AvClass                                                                                                 string
 }
 
-type differCell struct{ Who, Text string }
+// avatar is a model's visual token: initial in a circle whose hue comes
+// deterministically from the model name.
+type avatar struct {
+	Name, Initial, Class string
+}
+
+type differCell struct {
+	Who, Text, Class string
+	Avatars          []avatar
+}
 type differRowT struct {
 	AspectLabel string
 	Cells       []differCell
@@ -170,11 +180,14 @@ func main() {
 
 func writePage(tpl *template.Template, path, title string, data map[string]any) {
 	var b strings.Builder
+	// template.CSS marks the stylesheet as CSS so html/template inlines it
+	// verbatim — a plain string in a <style> context is run through the CSS
+	// value filter and the whole sheet collapses to "ZgotmplZ".
 	must(tpl.ExecuteTemplate(&b, "top", struct {
 		Title string
-		CSS   string
+		CSS   template.CSS
 		Home  string
-	}{title, data["CSS"].(string), data["Home"].(string)}))
+	}{title, template.CSS(data["CSS"].(string)), data["Home"].(string)}))
 	switch {
 	case data["Rows"] != nil:
 		must(tpl.ExecuteTemplate(&b, "inbox", data))
@@ -302,6 +315,7 @@ func buildCard(rc *knowledge.ReviewContext) cardView {
 			ModelVersion: p.Provenance.ModelVersion, PromptDigest: short(p.Provenance.PromptDigest),
 			GeneratedAt: p.Provenance.GeneratedAt.UTC().Format("2006-01-02 15:04 UTC"),
 			Class:       classLabel(p.SuggestedClass), Undetermined: und,
+			Av: avatarOf(p.Provenance.Model).Initial, AvClass: avatarOf(p.Provenance.Model).Class,
 		})
 	}
 	var sigs []string
@@ -351,13 +365,16 @@ func differ(rc *knowledge.ReviewContext) ([]differRowT, string) {
 			return firstModel(rc, ag.Groups[digests[i]]) < firstModel(rc, ag.Groups[digests[j]])
 		})
 		row := differRowT{AspectLabel: w}
-		for _, d := range digests {
+		for gi, d := range digests {
 			var models []string
+			var avatars []avatar
 			var first *domain.SemanticProposal
 			for _, pid := range ag.Groups[d] {
 				for i := range rc.Proposals {
 					if rc.Proposals[i].ID == pid {
-						models = append(models, modelShort(rc.Proposals[i].Provenance.Model))
+						m := rc.Proposals[i].Provenance.Model
+						models = append(models, modelShort(m))
+						avatars = append(avatars, avatarOf(m))
 						if first == nil {
 							p := rc.Proposals[i]
 							first = &p
@@ -368,7 +385,10 @@ func differ(rc *knowledge.ReviewContext) ([]differRowT, string) {
 			if first == nil {
 				continue
 			}
-			row.Cells = append(row.Cells, differCell{Who: strings.Join(models, " + "), Text: aspectSentence(first.Assertion, ag.Aspect)})
+			row.Cells = append(row.Cells, differCell{
+				Who: strings.Join(models, " + "), Text: aspectSentence(first.Assertion, ag.Aspect),
+				Class: fmt.Sprintf("g%d", gi%4), Avatars: avatars,
+			})
 		}
 		if len(row.Cells) >= 2 {
 			rows = append(rows, row)
@@ -567,6 +587,22 @@ func firstModel(rc *knowledge.ReviewContext, ids []string) string {
 		}
 	}
 	return best
+}
+
+// avatarOf gives a model its visual token: the initial of its display name in
+// a circle whose hue is a stable hash of the raw model id.
+func avatarOf(model string) avatar {
+	short := modelShort(model)
+	initial := "·"
+	for _, r := range short {
+		initial = strings.ToUpper(string(r))
+		break
+	}
+	h := 0
+	for _, b := range []byte(model) {
+		h += int(b)
+	}
+	return avatar{Name: short, Initial: initial, Class: fmt.Sprintf("av%d", h%6)}
 }
 
 func truncate(s string, n int) string {

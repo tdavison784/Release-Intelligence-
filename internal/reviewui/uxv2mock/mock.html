@@ -25,7 +25,7 @@
 {{define "glossary"}}<span class="gl" tabindex="0">{{.}}<span class="tip">{{switch . "call" "One stateless request to a model. Each model column in the comparison is one separate call; agreement between separate calls is what the pipeline trusts." "aspect" "Every answer has four parts: what the thing is, what changed, who is exposed, and what happens. Models can agree on some and disagree on others." "validator" "A deterministic checker (no AI) that proves parts of an answer from artifacts — schemas, values files, compatibility tables." "digest" "A content hash. Two answers with the same digest are the same answer; that is how agreement is measured, not by wording." "render" "The output of templating the product's chart at the old and new version — what would actually change in your cluster."}}</span></span>{{end}}
 
 {{define "card"}}
-<article class="dcard" id="card">
+<article class="dcard prio-{{.Priority}}" id="card">
   <div class="dhead">
     <div class="meta">
       <span class="badge accent">{{.Product}} {{.Release}}</span>
@@ -72,7 +72,7 @@
     {{range .DifferRows}}
     <div class="drow">
       <div class="dlabel">{{.AspectLabel}}</div>
-      <div class="dgroups">{{range .Cells}}<div class="dcell"><span class="who">{{.Who}}</span>{{.Text}}</div>{{end}}</div>
+      <div class="dgroups">{{range .Cells}}<div class="dcell {{.Class}}"><span class="who">{{range .Avatars}}<span class="av {{.Class}}" title="{{.Name}}">{{.Initial}}</span>{{end}}{{.Who}}</span>{{.Text}}</div>{{end}}</div>
     </div>
     {{end}}
     {{else if .Undetermined}}
@@ -86,7 +86,7 @@
 
   <section class="dsec">
     <details class="fold" id="correct">
-      <summary>6 · Correct the suggestion — edit any part; each field previews what it means</summary>
+      <summary><span class="num">6</span> Correct the suggestion — edit any part; each field previews what it means</summary>
       <div class="body">
         <form onsubmit="return false">
         {{range .CorrectFields}}
@@ -110,7 +110,7 @@
     </details>
 
     <details class="fold deep" id="details">
-      <summary>7 · Details — evidence, checks, raw model output (for auditing)</summary>
+      <summary><span class="num">7</span> Details — evidence, checks, raw model output (for auditing)</summary>
       <div class="body">
         <div class="sub">
           <h3>All evidence ({{.EvidenceCount}})</h3>
@@ -133,7 +133,7 @@
         <div class="sub">
           <h3>Raw proposals (one per call, never merged)</h3>
           <table><tbody>{{range .RawProposals}}<tr>
-            <th>{{.Model}}<br><span class="small muted">{{.Provider}} · {{.Confidence}}</span></th>
+            <th><span class="av {{.AvClass}}" title="{{.ModelRaw}}">{{.Av}}</span> {{.Model}}<br><span class="small muted">{{.Provider}} · {{.Confidence}}</span></th>
             <td><code>{{.CallID}}</code> · {{.ModelVersion}} · prompt {{.PromptDigest}} · {{.GeneratedAt}}{{if .Class}}<br>suggested class: <b>{{.Class}}</b>{{end}}{{if .Undetermined}}<br>undetermined: {{.Undetermined}}{{end}}</td>
           </tr>{{end}}</tbody></table>
         </div>
@@ -146,7 +146,7 @@
   </section>
 
   <section class="dsec decide" id="decide">
-    <h3>Decide — recorded as a human decision, with your name and the time you spent</h3>
+    <h3><span class="num check">✓</span> Decide — recorded as a human decision, with your name and the time you spent</h3>
     <form onsubmit="return false">
       <div class="row">
         <label>Reviewer <input type="text" placeholder="your name"></label>
@@ -168,7 +168,7 @@
 {{define "inbox"}}
 <p class="small muted">Mockup of the redesigned inbox row: the plain-English question, the one reason it needs you, and the suggested answer — no aspect chips.</p>
 <ul class="cards">
-{{range .Rows}}<li class="card">
+{{range .Rows}}<li class="card prio-{{.Priority}}">
   <div class="row1">
     <span class="badge accent">{{.Product}} {{.Release}}</span>
     <span class="badge prio-{{.Priority}}">{{.Priority}}</span>
