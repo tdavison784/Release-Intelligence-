@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-bca8484c4de7",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-27f2c804a3f5"
+        ],
+        "statementKeys": [
+          "sk-1463ff3151b1"
+        ],
+        "changeIds": [
+          "chg-ac99e76a068a"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-d7daed0d7602"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--debug"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--debug",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments running Crossplane with debug enabled will, after upgrading, no longer have the discard logger set, so debug-mode log output that was previously silently discarded is now produced; nothing fails, but logging output under the same configuration differs.",
+        "remediation": "No operator action required; after upgrading, verify that debug logging output appears as expected when running with --debug.",
+        "severity": "low"
+      },
+      "statement": "fix: Only set discard logger if debug is false by @simonklb in https://github.com/crossplane/crossplane/pull/6274"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7ba3a05c652e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7ba3a05c652e"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-57ce75362a72"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e514bb3bd715"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4f1d0d4d568e",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L164-L164 (🏅 Release MVP › What's Changed)",
+        "excerpt": "* fix: Only set discard logger if debug is false by @simonklb in https://github.com/crossplane/crossplane/pull/6274",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:55:06.222Z"
+  }
+}

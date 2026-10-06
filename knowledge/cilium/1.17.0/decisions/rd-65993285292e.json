@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-65993285292e",
+    "reviewItemId": "ri-f7ae496211a3",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:11c8620ab05b7aedf9fcba29c63985348de70b7e33297e2fc4ebfffa19cbe3be",
+      "inputEvidence": [
+        "ev-ffd2c3200e89",
+        "ev-98d8079a3380",
+        "ev-32984cccce52",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-06T01:17:23.067Z",
+      "callId": "e49358bb-c857-40f6-9304-c44163516100",
+      "provider": "anthropic"
+    },
+    "reason": "The text in [ev-ffd2c3200e89] clearly says what changed: the deprecated built-in WireGuard userspace fallback is removed, and WireGuard transparent encryption now needs a Linux kernel with WireGuard support. However, it names the Helm key as `wireguard.userspaceFallback`, and the values validator refuted that key: it is in neither the source nor the target chart values [ev-28e0ccb5774a] [ev-39a22d88e2f5]. The values excerpts shown are only file headers, and there is no linked PR or values diff, so the real key path cannot be determined from the evidence. Without that path, the subject and the values-key exposure condition can't be written in a form the engine will match. We need the chart values diff or the upstream PR that removed the option.",
+    "startedAt": "2026-10-06T01:17:09.881Z",
+    "decidedAt": "2026-10-06T01:17:23.067Z"
+  }
+}

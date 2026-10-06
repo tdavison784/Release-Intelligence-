@@ -36,6 +36,46 @@
         "excerpt": "* 35009a7d1c278c5f609160651a843d17fcf1b8ef: fix(hydrator): don't use manifest-generate-paths (#22039) (#22015) (@crenshaw-dev)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-6a0c04d3a6f8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/22039",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #22039): Source hydrator fails with \"Invalid revision range\" [closed; labels bug, component:hydrator]\n**Describe the bug**\n\nHydration fails with an error like this:\n\n```\nFailed to hydrate revision \"\": failed to hydrate apps: failed to get repo objects: failed to get repo objects: failed to compare revisions for source 1 of 1: rpc error: code = Internal desc = unable to get changed files for repo https://github.com/org/repo.git with revision b6005465335e883927fe8b5ce0fd513fd4e75ec3: failed to diff b71323f97523272c4222932e9113a4d81f9f32ea..b6005465335e883927fe8b5ce0f…",
+        "contentDigest": "sha256:cbcc24d52b429926f184491114dcbe05bc47dadc5591ea292de93fbc0e0b5731",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-19c39b8cae50",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/22039",
+        "locator": "description (part 2)",
+        "excerpt": "b71323f97523272c4222932e9113a4d81f9f32ea..b6005465335e883927fe8b5ce0fd513fd4e75ec3` failed exit status 128: fatal: Invalid revision range b71323f97523272c4222932e9113a4d81f9f32ea..b6005465335e883927fe8b5ce0fd513fd4e75ec3\n```\n\nThe problem seems to be related to the fact that the first hash represents a commit on the dry branch, and the second hash represents a hash on the hydrated branch. The two aren't really comparable.\n\n**To Reproduce**\n\nThis seems to randomly happen on any app that uses the …",
+        "contentDigest": "sha256:cbcc24d52b429926f184491114dcbe05bc47dadc5591ea292de93fbc0e0b5731",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-09d984dc3bbd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22015",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22015): fix(hydrator): don't use manifest-generate-paths (#22039) [closed]\nFixes https://github.com/argoproj/argo-cd/issues/22039\n\nThe behavior is flaky, and the unit/e2e tests are prohibitively difficult to write. So I'm relying on using the change internally and noting that \"Invalid revision range\" disappears from logs after releasing the change.\n\n![image](https://github.com/user-attachments/assets/c4b81bfd-9c9a-4ee8-85d0-46844add17cc)",
+        "contentDigest": "sha256:84d991d6a6e2a38add01a86797d32349217b04b45617711651b0a25709e331cb",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-cd0ac2f59766",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22015",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): controller/hydrator_dependencies.go, docs/user-guide/source-hydrator.md",
+        "contentDigest": "sha256:84d991d6a6e2a38add01a86797d32349217b04b45617711651b0a25709e331cb",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

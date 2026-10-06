@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9e6e2e075c3c",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-010fa4f32ec6"
+        ],
+        "statementKeys": [
+          "sk-0d41cfd630cf"
+        ],
+        "changeIds": [
+          "chg-bb1a62405e75"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-cc1d78205e7e"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "push-artifact-insecure-registries"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux push artifact` against insecure registries (CLI usage is not visible in cluster configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "`flux push artifact` now works against insecure registries where it previously failed; nothing breaks and no operator action is required — the fix only removes the failure.",
+        "remediation": "none; environments pushing to insecure registries simply get the corrected behavior after upgrading the flux CLI to 2.7.0",
+        "severity": "low"
+      },
+      "statement": "Fix `flux push artifact` for insecure registries by @stefanprodan in https://github.com/fluxcd/flux2/pull/5449"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-022ed283d676"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-022ed283d676"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f16bdf9b3319"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-3e8034c65d83"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2172e85c5351",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L91-L91 (CLI changelog)",
+        "excerpt": "* Fix `flux push artifact` for insecure registries by @stefanprodan in https://github.com/fluxcd/flux2/pull/5449",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:50:58.01Z"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4d938bbc2b44",
+    "reviewItemId": "ri-f754ed39616e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "nodeSelector"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The Helm chart now quotes nodeSelector values when rendering."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:f8972cbd90aa8b9c3bda9cd8b72f66e29630dd2d9a0eafbe5e416009d40d4cd4",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-21fbf8161360",
+        "ev-0b2d3b4716f5",
+        "ev-af4ad78f2dff",
+        "ev-b2155ddceab6",
+        "ev-8a902cdb88e1",
+        "ev-c6232bc5c8d4",
+        "ev-8e895983c9dd",
+        "ev-695a6d7c7c6e",
+        "ev-4faa7ca81b54",
+        "ev-23e99dfde8d0",
+        "ev-ef5237d47ade",
+        "ev-a8c04d9f0485",
+        "ev-b8d6f16e3c8c",
+        "ev-2a805da381d1",
+        "ev-7a3fdefaaff7",
+        "ev-1861adfd42be",
+        "ev-bfe1f4f54646",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-06T01:59:26.314Z",
+      "callId": "22acb3e3-de25-44b4-b380-773a6bcbb057",
+      "provider": "anthropic"
+    },
+    "reason": "The PR [ev-21fbf8161360][ev-b2155ddceab6] says the chart switched from toYaml to quoting nodeSelector values, which matters when a value is a boolean. That is the same configuration rendered differently, so behavior-changed is the right type. The changed files [ev-af4ad78f2dff] include the controller's deployment.yaml, which uses the top-level nodeSelector values key, and a validator confirmed that key exists in both releases. The same PR also changes the webhook, cainjector and startupapicheck templates, so this subject covers only part of the fix, and the evidence does not name the other value paths.",
+    "startedAt": "2026-10-06T01:59:12.433Z",
+    "decidedAt": "2026-10-06T01:59:26.314Z",
+    "resultingFact": "vf-a1d500648f04"
+  }
+}

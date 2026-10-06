@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-733416bbcd88",
+    "reviewItemId": "ri-18b15e29ec6d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "spec.rules[].when[].key"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"connection.sni\""
+      },
+      "statement": "AuthorizationPolicy applied to a waypoint now supports the connection.sni rule."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-connection-sni"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Istio 1.24.0 adds waypoint support for the connection.sni condition in AuthorizationPolicy. Previously the condition did not work with the waypoint proxy."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:e3ef2830bdb1afcb31a58d24f2f7ba0867c354a5eaa8e94a69e9af5af3fe8032",
+      "inputEvidence": [
+        "ev-fee07e326846",
+        "ev-550729c5eb64",
+        "ev-4b90564c0d55"
+      ],
+      "generatedAt": "2026-10-06T01:38:20.066Z",
+      "callId": "53f787b0-a8ff-4fc4-8a81-0f83b46c7883",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-fee07e326846] says support was added for the `connection.sni` rule in an AuthorizationPolicy applied to a waypoint. [ev-550729c5eb64] says the `connection.sni` condition already existed but did not work with the waypoint proxy. So no new schema field was added. The change is that waypoints now support an existing condition. Neither source names the `spec.rules[].when[].key` path, so a crd-field `added` on that path is the wrong subject; the change is better recorded as a protocol behaviour of the waypoint.",
+    "startedAt": "2026-10-06T01:38:03.645Z",
+    "decidedAt": "2026-10-06T01:38:20.066Z",
+    "resultingFact": "vf-cb2914efae5f"
+  }
+}

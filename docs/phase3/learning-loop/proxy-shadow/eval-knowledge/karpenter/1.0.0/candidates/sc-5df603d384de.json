@@ -35,6 +35,56 @@
         "excerpt": "- reimplement amiFamily (#6569) [#6569](https://github.com/aws/karpenter-provider-aws/pull/6569) ([Jason Deal](https://github.com/aws/karpenter-provider-aws/commit/094b57cf5453756564abac575a3404963f993f38))",
         "contentDigest": "sha256:e846961f22406466bf69a0da39428079fae9ac9eb27bbd0774cb3f738ce4acff",
         "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-8f96659f6232",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6569",
+        "locator": "title and description",
+        "excerpt": "PR: feat: reimplement amiFamily [closed]\nFixes #N/A\n\n**Description**\nReimplements `amiFamily` for Karpenter's v1 APIs. This enables users to use Karpenter's managed UserData with custom AMIs, along with custom UserData with aliases.\n\nExamples:\n```yaml\n# amiFamily is AL2023 since it is not otherwise specified\napiVersion: karpenter.k8s.aws/v1\nkind: EC2NodeClass\nspec:\namiSelectorTerms:\n- alias: 'al2023@latest'\n```\n\n```yaml\n# Automatically discover AMIs using the alias, but don't merge UserData\napiVersion: karpenter.k8s.aws/v1\nkind: EC2NodeClass\nspec:",
+        "contentDigest": "sha256:4005fe391041013bedd77a10148b1bb03803a9a141168e332df60b178df7885c",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-861fe889b810",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6569",
+        "locator": "description (part 2)",
+        "excerpt": "amiFamily: Custom\namiSelectorTerms:\n- alias: 'al2023@latest'\n```\n\n```yaml\n# Use a user-specified AMI ID, but generate AL2023 UserData and default BlockDeviceMappings\napiVersion: karpenter.k8s.aws/v1\nkind: EC2NodeClass\nspec:\n# Note: amiFamily is **required** with non-alias amiSelectorTerms\namiFamily: AL2023\namiSelectorTerms:\n- id: ami-0123456789abcdef\n```\n\nAdditionally, this PR fleshes out the Ubuntu migration path for v1. Since Karpenter is dropping native support for Ubuntu AMIs, there will be no Ubuntu alias. …",
+        "contentDigest": "sha256:4005fe391041013bedd77a10148b1bb03803a9a141168e332df60b178df7885c",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-52be2025a061",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6569",
+        "locator": "changed files",
+        "excerpt": "28 changed file(s): pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml, pkg/apis/v1/ec2nodeclass.go, pkg/apis/v1/ec2nodeclass_conversion.go, pkg/apis/v1/ec2nodeclass_conversion_test.go, pkg/apis/v1/ec2nodeclass_hash_test.go, pkg/apis/v1/ec2nodeclass_validation_cel_test.go, pkg/apis/v1/labels.go, pkg/apis/v1/zz_generated.deepcopy.go, pkg/cloudprovider/suite_test.go, pkg/controllers/nodeclass/hash/suite_test.go, pkg/controllers/nodeclass/status/ami_test.go, pkg/controllers/nodeclass/status/launchtemplate_test.go, pkg/controllers/nodeclass/status/readiness.go… +15 more",
+        "contentDigest": "sha256:4005fe391041013bedd77a10148b1bb03803a9a141168e332df60b178df7885c",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-776ab01b1452",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/commit/094b57cf5453756564abac575a3404963f993f38",
+        "locator": "title and description",
+        "excerpt": "commit: feat: reimplement amiFamily (#6569)\nCo-authored-by: Jonathan Innis <joinnis@amazon.com>\nCo-authored-by: Nick Tran <nichotr@amazon.com>",
+        "contentDigest": "sha256:e80c23d6d674ea54ddddfea6ae1cb6145f11b10fb7baefedba103af5fe56cc58",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-673f44a8a7c7",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/commit/094b57cf5453756564abac575a3404963f993f38",
+        "locator": "changed files",
+        "excerpt": "28 changed file(s): pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml, pkg/apis/v1/ec2nodeclass.go, pkg/apis/v1/ec2nodeclass_conversion.go, pkg/apis/v1/ec2nodeclass_conversion_test.go, pkg/apis/v1/ec2nodeclass_hash_test.go, pkg/apis/v1/ec2nodeclass_validation_cel_test.go, pkg/apis/v1/labels.go, pkg/apis/v1/zz_generated.deepcopy.go, pkg/cloudprovider/suite_test.go, pkg/controllers/nodeclass/hash/suite_test.go, pkg/controllers/nodeclass/status/ami_test.go, pkg/controllers/nodeclass/status/launchtemplate_test.go, pkg/controllers/nodeclass/status/readiness.go… +15 more",
+        "contentDigest": "sha256:e80c23d6d674ea54ddddfea6ae1cb6145f11b10fb7baefedba103af5fe56cc58",
+        "retrievedAt": "2026-10-06T01:27:47Z"
       }
     ],
     "producer": "semantic.candidates@v1",

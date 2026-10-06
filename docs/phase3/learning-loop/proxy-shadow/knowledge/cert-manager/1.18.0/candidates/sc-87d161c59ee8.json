@@ -36,6 +36,76 @@
         "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> ⚠️ Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle…",
         "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
         "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-9e5c64c18f2a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/pull/11819",
+        "locator": "title and description",
+        "excerpt": "PR: Enable security features by default [closed; labels cncf-cla: yes, lgtm, area/docs, size/L, kind/bug, priority/critical-urgent, approved, triage/accepted, area/helm]\n## What this PR does / why we need it:\nThis PR:\n* Lowers the acceptable annotation risk from Critical to High\n* Disables cross namespace consumption\n* Enables strict path validation\n\nAlso makes validation enabled by default\n\n## Types of changes\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] CVE Report (Scanner found CVE and adding report)\n- [X] Br…",
+        "contentDigest": "sha256:20800eb26a14722d2e6df6b70bd43ceff59719f83fc21f0eb1ddb637f46c273c",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-16ce8e0f07b6",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/pull/11819",
+        "locator": "description (part 2)",
+        "excerpt": "Documentation only",
+        "contentDigest": "sha256:20800eb26a14722d2e6df6b70bd43ceff59719f83fc21f0eb1ddb637f46c273c",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-a18be81327b5",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/pull/11819",
+        "locator": "changed files",
+        "excerpt": "28 changed file(s): .github/workflows/ci.yaml, .github/workflows/zz-tmpl-k8s-e2e.yaml, charts/ingress-nginx/README.md, charts/ingress-nginx/values.yaml, docs/user-guide/cli-arguments.md, internal/ingress/controller/config/config.go, pkg/flags/flags.go, test/e2e/admission/admission.go, test/e2e/annotations/auth.go, test/e2e/annotations/fromtowwwredirect.go, test/e2e/annotations/grpc.go, test/e2e/annotations/modsecurity/modsecurity.go, test/e2e/annotations/serversnippet.go, test/e2e/annotations/snippet.go, test/e2e/annotations/streamsnippet.go… +13 more",
+        "contentDigest": "sha256:20800eb26a14722d2e6df6b70bd43ceff59719f83fc21f0eb1ddb637f46c273c",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-4237ea73459a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/issues/11176",
+        "locator": "title and description",
+        "excerpt": "issue: strict-validate-path-type does not allow period/dot/. in Exact or Prefix path [closed; labels help wanted, priority/backlog, kind/documentation, good first issue, triage/accepted]\n**What happened**:\n\nThe documentation mentions the following text:\n\n> When pathType is configured as Exact or Prefix, there should be a more strict validation, allowing only paths starting with \"/\" and containing only alphanumeric characters and \"-\", \"_\" and additional \"/\".\n\nHowever the term `alphanumeric characters` is not specified and the term does not seem to be universally specified either. Some sources f…",
+        "contentDigest": "sha256:424041be4635f5813ea1d7d94c952dd7019d1fd020e15388c2be64e882103b94",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-ca2fe26ba484",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/issues/11176",
+        "locator": "description (part 2)",
+        "excerpt": "the strict checking.\n\nThe current text, depending on the definition of `alphanumeric characters`, seems to suggest that for example the period `.` character is not allowed when using Exact or Prefix. This would mean that a path of `https://example.com/index.html`, `https://example.com/.well-known/openid-configuration` or `https://example.com/.well-known/acme-challenge/3857265` would be invalid for path type Exact and Prefix. I cannot imagine that it's intentional that all these super common url's would be …",
+        "contentDigest": "sha256:424041be4635f5813ea1d7d94c952dd7019d1fd020e15388c2be64e882103b94",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-02757db4383a",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/commit/618aae18515213bcf3fb820e6f8c234703d844b2",
+        "locator": "title and description",
+        "excerpt": "commit: Ingresses: Allow `.` in `Exact` and `Prefix` paths. (#13798)",
+        "contentDigest": "sha256:d5655781752f406c468763908e8ec775eae1ce9ee34f8f8f1f575f4659077dff",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-a5b14b09c3d1",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/ingress-nginx/commit/618aae18515213bcf3fb820e6f8c234703d844b2",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): internal/ingress/inspector/inspector_test.go, internal/ingress/inspector/rules.go",
+        "contentDigest": "sha256:d5655781752f406c468763908e8ec775eae1ce9ee34f8f8f1f575f4659077dff",
+        "retrievedAt": "2026-10-06T01:24:57Z"
       }
     ],
     "hints": [

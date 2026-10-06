@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bccf50596530",
+    "reviewItemId": "ri-7669b8524d3b",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--server",
+              "component": "argocd-server",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "A bug fix enables the login return_url parameter to work correctly with custom server paths in Argo CD, where it previously did not function properly."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which argocd-server setting configures the custom base path for the UI; the release note and PR #21588 only say 'custom server paths' / 'base path' without naming the setting"
+            }
+          ]
+        }
+      },
+      "statement": "Bug fix: after login, the return_url redirect now works when the Argo CD UI is served under a custom base path. Exposed: environments upgrading from below 3.0.0 that serve the UI under a custom base path. The evidence does not name the setting that configures the base path."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:9d48aac182c6a069b8be8ee8da9db209fdb39a959f074c2646840051bbbeb618",
+      "inputEvidence": [
+        "ev-a6fc1c17efbb",
+        "ev-61ba1e0463de",
+        "ev-14505230d8c4",
+        "ev-1cef98424a3e",
+        "ev-ea73ef1da3cb",
+        "ev-1a6775553380",
+        "ev-6c6622ab2114",
+        "ev-0be662ae3ca9",
+        "ev-368a59fe5b7d",
+        "ev-7b73f24193c6",
+        "ev-7967a77f6bd2",
+        "ev-612bd9854853",
+        "ev-ff04fee04e63",
+        "ev-6f6e6c1a265b",
+        "ev-9e39578d4d4b",
+        "ev-60e58075bb9b",
+        "ev-d6d4588a3f9c",
+        "ev-d233a6889a2e",
+        "ev-be13d23a0cf1",
+        "ev-ec720a3ded74",
+        "ev-62113a7c59e0",
+        "ev-8a18453dbaf5",
+        "ev-719f4fa13f31",
+        "ev-cb66bf1bef0e",
+        "ev-aae2a6aa6ee6",
+        "ev-86b636e38d6e",
+        "ev-9337091e0b36",
+        "ev-c17a311dcffd",
+        "ev-b0ac73f2731e",
+        "ev-8102a79a3745",
+        "ev-8cb5385bf897",
+        "ev-d35ac549b565",
+        "ev-86fbebcd5678",
+        "ev-bacdc0376810",
+        "ev-74436eba649a",
+        "ev-867304e916e3",
+        "ev-24f797562416",
+        "ev-ab5d793962ea",
+        "ev-e3ced89ceb9e",
+        "ev-fb8b2703ee0d",
+        "ev-dd995a0718d4",
+        "ev-9e6400e3f91e",
+        "ev-4dd32352aea6",
+        "ev-4555b462d2c6",
+        "ev-4d5a8d4c450d",
+        "ev-1f885c8c6418",
+        "ev-95495ad6803b",
+        "ev-602e50572fe9",
+        "ev-acbc61fe8213",
+        "ev-d0bac62ab0c7",
+        "ev-cb27e256d164",
+        "ev-14f72c3e1b80",
+        "ev-35cf1ed1a407",
+        "ev-854b4f2a9857",
+        "ev-aa238df92e7f",
+        "ev-c5612ed57e07",
+        "ev-60daa9bc529f",
+        "ev-cfdd6703f154",
+        "ev-5c948e83cebd"
+      ],
+      "generatedAt": "2026-10-06T01:47:08.773Z",
+      "callId": "5768134d-f95c-4f72-b18c-ad961b99d59d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-61ba1e0463de] says the bug affects deployments served under a custom base path: the history API adds the base path automatically, so the fix strips it from the return URL. The fix changed only UI files [ev-14505230d8c4]. Nothing in the evidence links this to an argocd-server `--server` flag, so the proposed cli-flag leaf names the wrong setting. The evidence also never names the setting that configures the base path, so that part can only be an evidence-gap leaf, combined with the from-version check.",
+    "startedAt": "2026-10-06T01:46:56.383Z",
+    "decidedAt": "2026-10-06T01:47:08.773Z",
+    "resultingFact": "vf-8adab5d5a275"
+  }
+}

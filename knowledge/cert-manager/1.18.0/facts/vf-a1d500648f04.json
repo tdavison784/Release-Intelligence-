@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-a1d500648f04",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-7879e8f9d0d5"
+        ],
+        "statementKeys": [
+          "sk-9ceddeb0db8e"
+        ],
+        "changeIds": [
+          "chg-43064cdbc5dc"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-de248ee0f359"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "nodeSelector"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.nodeSelector",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The chart now emits nodeSelector values as quoted strings, so environments that set nodeSelector values see the rendered nodeSelector output change (notably values that are not plain strings, which are now rendered as strings).",
+        "remediation": "No action required; if your nodeSelector values are not plain strings (e.g. numbers or booleans), verify the rendered manifests after upgrade.",
+        "severity": "low"
+      },
+      "statement": "Quote nodeSelector values in Helm Chart"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-c9c079f330be"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-4d938bbc2b44"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b2a8c37c44cc"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-f0367fd07114"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-565f3761f656",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L358-L358 (v1.18.0 › Bug or Regression)",
+        "excerpt": "- Quote nodeSelector values in Helm Chart ([`#7579`](https://github.com/cert-manager/cert-manager/pull/7579), [`@tobiasbp`](https://github.com/tobiasbp))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-7a67f12867b2",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:59:26.314Z"
+  }
+}

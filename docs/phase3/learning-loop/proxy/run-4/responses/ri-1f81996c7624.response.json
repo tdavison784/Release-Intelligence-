@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1f81996c7624",
+  "promptDigest": "sha256:aef0da227a71e8e864cf159fb49e1b5621a0e2919532ffba9d546540893054c8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ce2b0495-f972-4627-956f-1aeb70b2c230",
+  "startedAt": "2026-10-06T01:38:56.515Z",
+  "decidedAt": "2026-10-06T01:39:08.318Z",
+  "durationMs": 10904,
+  "costUSD": 0.118572,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-fce5b51d8226] says the change \"adds default auth for `crossplane xpkg extract` when fetching from a remote registry, to support private repositories\", and it changes only one file, cmd/crank/xpkg/extract.go [ev-550788c9f271]. So this is a new capability in the CLI command, not a change to package installation or to anything running in a cluster. The release note [ev-a599a29bbeba] and the PR give no sign that existing behaviour changes, fails or needs a migration. An operator who does nothing has no operational consequence, so the kind should be none (informational), not behavior-change; the proposed remediation also wrongly brings in package installation.",
+    "citations": [
+      "ev-fce5b51d8226",
+      "ev-550788c9f271",
+      "ev-a599a29bbeba"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Crossplane 2.0.0 adds default registry authentication to the `crossplane xpkg extract` CLI command, so it can extract package.yaml from private repositories; this is an additive CLI capability with no operational consequence for operators who do nothing.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "Nothing breaks or changes for an operator who does nothing: the `crossplane xpkg extract` CLI command now uses default auth when fetching from a remote registry, so it can also read packages in private repositories. In-cluster package installation is not affected.",
+        "remediation": "No action required."
+      }
+    }
+  }
+}

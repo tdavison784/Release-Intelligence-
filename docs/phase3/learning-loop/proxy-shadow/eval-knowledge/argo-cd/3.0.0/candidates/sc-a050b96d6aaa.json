@@ -36,6 +36,56 @@
         "excerpt": "* 6fea0084478853777a43acfcd0165dfc137c68d7: fix: remove project from cache key for project scoped credentials (cherry-pick #22712) (#22817) (@gcp-cherry-pick-bot[bot])",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-8f68e1e40d83",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22712",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22712): fix: remove project from cache key for project scoped credentials [closed]\nRelated to https://github.com/argoproj/argo-cd/pull/20962 and https://github.com/argoproj/argo-cd/pull/18388/\n\nThis PR removes the project cache key from\n1. `gitRepoPaths` - This is a directory where we store cloned git repositories. Previously, the directory had repo URL + Project Name as the key. This resulted in having to re-clone already cloned repos for every project even if they are using the same git repo, which is a performance issue for large git repos.\n2. `chartCachePaths` - …",
+        "contentDigest": "sha256:5485aa19365a751579f622f787768646714df652d519206c131b50653c1f4f74",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-1b2170431290",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22712",
+        "locator": "description (part 2)",
+        "excerpt": "charts.\n\nFor security concerns:\nThe actual credentials are stored separately in Kubernetes secrets, and they are project-scoped. This means that even if we remove the project from the gitRepoPaths key, the security is still maintained because each project must use its own credentials to access the repository.\n\ni tested this case to verify\n1. Project A and B share the same Repo URL, but Repo B has a bad SSH key\n2. Added both Repos to ArgoCD\n3. Only project A can create an application using the Repo URL from step 1. …",
+        "contentDigest": "sha256:5485aa19365a751579f622f787768646714df652d519206c131b50653c1f4f74",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-8b69d3e179b0",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22712",
+        "locator": "changed files",
+        "excerpt": "6 changed file(s): reposerver/repository/repository.go, reposerver/repository/repository_test.go, test/e2e/scoped_repository_test.go, util/helm/client.go, util/helm/client_test.go, util/helm/mocks/Client.go",
+        "contentDigest": "sha256:5485aa19365a751579f622f787768646714df652d519206c131b50653c1f4f74",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-64ffdfd7101c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22817",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22817): fix: remove project from cache key for project scoped credentials (cherry-pick #22712) [closed]\nCherry-picked fix: remove project from cache key for project scoped credentials (#22712)\n\nSigned-off-by: Peter Jiang <peterjiang823@gmail.com>",
+        "contentDigest": "sha256:9bd9400ce9a32d78a2cbd36c7ed497a087dc2b349c0d423d279842318a0ba688",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-5a4a3604d043",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22817",
+        "locator": "changed files",
+        "excerpt": "6 changed file(s): reposerver/repository/repository.go, reposerver/repository/repository_test.go, test/e2e/scoped_repository_test.go, util/helm/client.go, util/helm/client_test.go, util/helm/mocks/Client.go",
+        "contentDigest": "sha256:9bd9400ce9a32d78a2cbd36c7ed497a087dc2b349c0d423d279842318a0ba688",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-824097857996",
+  "promptDigest": "sha256:17e81d7eb24fbc1111c94d3c215b06e370cfe0c7c3a6ef198cb14fab5e36e7af",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4b86f51f-1c1f-4b46-b246-9c86c5554cef",
+  "startedAt": "2026-10-06T01:48:02.993Z",
+  "decidedAt": "2026-10-06T01:48:11.342Z",
+  "durationMs": 7466,
+  "costUSD": 0.086128,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The changelog line alone [ev-f19f9439e7c8] doesn't name the setting, but the linked PR [ev-99f4ec8d6c64] does. It says the change adds a new option named key_prefix under the aws storage stanza, which puts a constant prefix on all created object keys. It also says this differs from compactor.shared_store_key_prefix because it covers files such as loki_cluster_seed.json too. That gives the subject (config key aws.key_prefix) and the change type (added). The PR describes the option as opt-in, for running many Loki installations in one bucket, so only environments that set it are exposed. Nothing in the evidence describes a default-behaviour change for environments that don't set it. The changed files [ev-36b3760baef9] support this: a new prefixed object client plus factory changes. The full storage_config path and the default value are not spelled out, but the evidence is enough to write the subject and applicability.",
+    "citations": [
+      "ev-99f4ec8d6c64",
+      "ev-f19f9439e7c8",
+      "ev-36b3760baef9"
+    ],
+    "confidence": "medium"
+  }
+}

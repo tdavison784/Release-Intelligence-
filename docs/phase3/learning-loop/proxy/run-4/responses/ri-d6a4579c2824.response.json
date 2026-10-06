@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d6a4579c2824",
+  "promptDigest": "sha256:eccd425ca40fc30a8dcd4bb2cf515d8babd57263d99dbf1def124ba65711fdc9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "722af4d5-a5e4-4fe8-ae0f-424644d71aa9",
+  "startedAt": "2026-10-06T01:56:32.930Z",
+  "decidedAt": "2026-10-06T01:56:47.576Z",
+  "durationMs": 13701,
+  "costUSD": 0.09654399999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The PR [ev-17f96431993d][ev-7f0dd9723b20] says the bug was a nil pointer dereference panic in the controller (seen in nodeclaim.disruption). It happened with instance types such as g2.xlarge, which report EbsOptimizedSupport \"default\" but have no EbsOptimizedInfo, during the EBS maximum bandwidth lookup added in #5925. The fix changes one file [ev-bb92a95e954f] and only adds a nil guard. An operator who upgrades and does nothing gets the fix: there is nothing to review, configure or migrate, and nothing else visibly changes. So the right kind is \"none\" (informational), not a medium-severity behavior-change that asks for review.",
+    "citations": [
+      "ev-4b121944161e",
+      "ev-17f96431993d",
+      "ev-7f0dd9723b20",
+      "ev-bb92a95e954f"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Karpenter 1.0.0 checks that EbsOptimizedInfo exists before using it to select instances by EBS maximum bandwidth. This fixes a nil pointer dereference panic for instance types such as g2.xlarge, which have no EbsOptimizedInfo. No operator action is needed.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "No operational consequence. The fix stops the controller panicking with a nil pointer dereference (for example in nodeclaim.disruption) on instance types that report EbsOptimizedSupport \"default\" but have no EbsOptimizedInfo. Nothing has to be configured or migrated.",
+        "remediation": "None required. The fix applies on upgrade."
+      }
+    }
+  }
+}

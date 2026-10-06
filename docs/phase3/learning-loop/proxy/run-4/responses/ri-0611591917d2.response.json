@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0611591917d2",
+  "promptDigest": "sha256:de4b71a7a8ba9d03c611d7b2a1db8e2c553d23b558d5186d565a3ba8cde677e5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0c30418d-c6b8-46d7-84bc-042aced80307",
+  "startedAt": "2026-10-06T01:36:17.104Z",
+  "decidedAt": "2026-10-06T01:36:27.520Z",
+  "durationMs": 9529,
+  "costUSD": 0.08921200000000001,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-bfaad53f61ab] says what the one-line changelog entry [ev-e0c05f8fedac] leaves out. Before this change, the query frontend retried any subquery that failed with a 5xx status immediately, and by default it made 5 attempts in total before failing the query. [ev-a085165fe32a] says the PR adds a simple exponential backoff between those retries, so fast-failing queries no longer use up all their attempts within a second. It also makes retries of queries that cause querier out-of-memory crashes less aggressive. The only changed code file is the query frontend's retry logic, pkg/querier/queryrange/queryrangebase/retry.go [ev-53f233b885bc]. Together this supports the open applicability aspect: exposed environments are those running the query frontend with subquery retries enabled, which the PR says is the default (5 attempts). No other gating condition is mentioned.",
+    "citations": [
+      "ev-bfaad53f61ab",
+      "ev-a085165fe32a",
+      "ev-53f233b885bc",
+      "ev-e0c05f8fedac"
+    ],
+    "confidence": "medium"
+  }
+}

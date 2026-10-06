@@ -1,0 +1,25 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7065b40bfd23",
+  "promptDigest": "sha256:38ba3ed2ba6c0e16086b9b291d944b074db8778d80c541b8cd449b7a6be55483",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "bdd2549b-5cd1-4bda-9c37-a725ce2defee",
+  "startedAt": "2026-10-06T01:46:25.996Z",
+  "decidedAt": "2026-10-06T01:46:33.441Z",
+  "durationMs": 6425,
+  "costUSD": 0.10216399999999999,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked issue and PR [ev-42fa75fce2bf][ev-8f88a1c550c9] describe the exposure condition: running `argocd cluster add` with `--cluster-endpoint kube-public` when the certificate_authority_data in the kubeconfig differs from the one in kube-public. They also describe the old behaviour: the CLI took the endpoint from kube-public but the CA from the kubeconfig. The reproduction in [ev-df926eb00efd] shows the consequence: an x509/TLS \"certificate signed by unknown authority\" error, so the cluster add fails. The fix touches only the CLI cluster code [ev-c19adf9bd20f] and makes it use the kube-public CA instead, so in 3.0.0 those additions succeed and nothing else is affected.",
+    "citations": [
+      "ev-e2524c52924c",
+      "ev-d363fe3d51a6",
+      "ev-8f88a1c550c9",
+      "ev-42fa75fce2bf",
+      "ev-df926eb00efd",
+      "ev-c19adf9bd20f"
+    ],
+    "confidence": "medium"
+  }
+}

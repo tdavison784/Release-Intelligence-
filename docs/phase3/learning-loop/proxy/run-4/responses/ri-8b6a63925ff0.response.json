@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8b6a63925ff0",
+  "promptDigest": "sha256:be4a115e237b336ae881c466bc9af414889e93c60cab5f5dec9c880c2b477844",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "27391f26-47ae-478a-9cc6-f0596ce7041e",
+  "startedAt": "2026-10-06T01:48:43.988Z",
+  "decidedAt": "2026-10-06T01:48:51.785Z",
+  "durationMs": 6893,
+  "costUSD": 0.07808799999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR and commit change only one file, test/suites/scheduling/suite_test.go [ev-b889081063a3] [ev-28bbf8a48e60]. The PR description says the flake came from a test NodePool that did not set the NodeClass group, so readiness was never re-reconciled [ev-f0215a9bf24c]. That makes this a fix to an E2E test flake, not a change to how Karpenter behaves at runtime. The proposed behavior-change, which says customer scheduling no longer flakes, is not supported. The consequence is none, and the class is informational, not review.",
+    "citations": [
+      "ev-b889081063a3",
+      "ev-28bbf8a48e60",
+      "ev-f0215a9bf24c",
+      "ev-518a56c0e2c1"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "PR #6491 fixes a flaky E2E scheduling test in which a test NodePool did not set its NodeClass group and so could stay unready. Only test/suites/scheduling/suite_test.go changed, so operators see no consequence.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "No operational consequence: the change touches only the E2E scheduling test suite (test/suites/scheduling/suite_test.go), and Karpenter's runtime behavior does not change.",
+        "remediation": "None required."
+      }
+    }
+  }
+}

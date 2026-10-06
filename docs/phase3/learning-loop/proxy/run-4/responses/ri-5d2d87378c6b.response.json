@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5d2d87378c6b",
+  "promptDigest": "sha256:980bbc4cabf39308e2de8fdf773e4cd6f4e8fec33bc16bd539b39c7bc0ebb4d6",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b978ce8f-ba08-486e-9ab2-ea0675ad138f",
+  "startedAt": "2026-10-06T01:44:13.677Z",
+  "decidedAt": "2026-10-06T01:44:22.341Z",
+  "durationMs": 7710,
+  "costUSD": 0.09821200000000001,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The changelog line [ev-fb8b2703ee0d] is too short on its own, but the linked PR fills the gap. [ev-8784ca5f0c2d] shows the subject: the built-in Lua health check for operators.coreos.com/Subscription (resource_customizations/.../Subscription/health.lua). [ev-e65c62e0ac29] gives the before and after: previously, when sync-wave annotations were used, Argo CD did not wait for a Subscription to be fully installed, because the first status update did not show that installation was still pending; the fix checks `.status.state` (AtLatestKnown, per the title) so health waits for the operator install. That covers applicability (Applications that manage OLM Subscription resources and rely on sync waves or health gating) and consequence (after upgrading, later waves wait until the Subscription reaches AtLatestKnown instead of moving on early), even though the exact health status reported for non-AtLatestKnown states is not shown.",
+    "citations": [
+      "ev-e65c62e0ac29",
+      "ev-8784ca5f0c2d",
+      "ev-fb8b2703ee0d"
+    ],
+    "confidence": "medium"
+  }
+}

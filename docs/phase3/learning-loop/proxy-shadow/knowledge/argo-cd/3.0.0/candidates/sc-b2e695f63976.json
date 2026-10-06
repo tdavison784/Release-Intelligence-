@@ -36,6 +36,56 @@
         "excerpt": "* ed3cc488471a26d1f342eaf92a62a2731ac77ebb: fix: Policy/policy.open-cluster-management.io stuck in progressing status when no clusters match the policy (#21296) (#21297) (@mbaldessari)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-bd6e10b0ebe4",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21296",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #21296): Policy/policy.open-cluster-management.io is in `Progressing` state even though there is nothing to do [closed; labels bug, version:2.13]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nThe newly introduced Policy/policy.open-cluster-management.io resource healthcheck is showing the `Progressing` state, even when a policy does not apply to any clusters. This is incorrect and it makes the whole…",
+        "contentDigest": "sha256:83572ecaeedf7e88658bafcdf213b8c60096f82ea17030b4ce56d3453fe54bc1",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-21ed50cd7373",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21296",
+        "locator": "description (part 2)",
+        "excerpt": "will never apply to any cluster.\n\n**To Reproduce**\n\nJust create a policy with a placementrule that does not match any existing cluster imported in ACM.\nFor example: https://gist.github.com/mbaldessari/f3f090ab7fabc904d2038379f61ad312\n\n**Expected behavior**\n\nThe policy should be in healthy state as there is nothing to do\n\n**Screenshots**\n\n![Screenshot 2024-12-23 at 10-25-29 acm - Application Details Tree - Argo CD](https://github.com/user-attachments/assets/74f156b3-9686-4884-9e94-c8abba58d76f)\n\nThe above shows all …",
+        "contentDigest": "sha256:83572ecaeedf7e88658bafcdf213b8c60096f82ea17030b4ce56d3453fe54bc1",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-d13371b1e9d8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21297",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21297): fix: Policy/policy.open-cluster-management.io stuck in progressing status when no clusters match the policy (#21296) [closed; labels ready-for-review]\nWhen a policy does not apply to a cluster because the placementrule matches no cluster at all then the status will look like the following:\n\nstatus:\nplacement:\n- placementBinding: group-one-placement-binding\nplacementRule: group-one-placement\n\nWithout this change the above will show up as progressing even though there is really nothing to progress.\n\nLet's take care of this case by returning healthy when there i…",
+        "contentDigest": "sha256:57721c7f1e1811f00e587a90dcbee4784ff7883032754b5ff21e42e0cd1caa35",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-fd2510a1ef7e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21297",
+        "locator": "description (part 2)",
+        "excerpt": "has happened and there is nothing to do.\n\nFixes: #21296\n\nIdeally this should be backported to release-2.13 (only)\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The title of the PR states what changed and the related issues number (used for the release note).\n* [x] The title of the PR conforms to the [Toolchain …",
+        "contentDigest": "sha256:57721c7f1e1811f00e587a90dcbee4784ff7883032754b5ff21e42e0cd1caa35",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-bb0d16bd892e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21297",
+        "locator": "changed files",
+        "excerpt": "4 changed file(s): resource_customizations/policy.open-cluster-management.io/Policy/health.lua, resource_customizations/policy.open-cluster-management.io/Policy/health_test.yaml, resource_customizations/policy.open-cluster-management.io/Policy/testdata/healthy_with_placement_empty_compliant.yaml (added), resource_customizations/policy.open-cluster-management.io/Policy/testdata/progressing_no_status.yaml (added)",
+        "contentDigest": "sha256:57721c7f1e1811f00e587a90dcbee4784ff7883032754b5ff21e42e0cd1caa35",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6eaa0e3f1bc7",
+  "promptDigest": "sha256:351ace1a6750d478e5441afcfbc721cee975bfd8d2eb9bf1060346121d93c43e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "afef2462-fcc2-4aaa-98a3-6381a72ba719",
+  "startedAt": "2026-10-06T01:46:14.394Z",
+  "decidedAt": "2026-10-06T01:46:25.002Z",
+  "durationMs": 9693,
+  "costUSD": 0.102484,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release note [ev-be13d23a0cf1] is only a commit title, but the linked PR [ev-b161f0981be8] says exactly what changed. In the application webhook handler, the `sourceRevisionHasChanged` method used to do a simple equality check. It now checks whether the revision sent by the webhook matches the application's target revision when that target revision is a semver constraint. The PR also notes that semver constraints for Git revisions exist only from 2.12. The changed files [ev-f67fb6fc7789][ev-b370efb62b5b] confirm the fix is limited to util/webhook/webhook.go, and the cherry-pick [ev-00578b61cfa7] is the same fix. This is enough to write the assertion. Subject: the webhook revision-change check. Change: equality check becomes a semver-constraint match. Exposure: apps that use Git webhooks and set the target revision to a semver constraint. Consequence (inferred, not stated by the PR): a webhook push of a matching tag now triggers the app refresh that the equality check would have skipped.",
+    "citations": [
+      "ev-b161f0981be8",
+      "ev-be13d23a0cf1",
+      "ev-f67fb6fc7789",
+      "ev-00578b61cfa7",
+      "ev-b370efb62b5b"
+    ],
+    "confidence": "medium"
+  }
+}

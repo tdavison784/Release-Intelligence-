@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6a79d8827d7c",
+  "promptDigest": "sha256:daead1f20fbfc015bd282163e02e03df3778708795d6a3c48f3c44414d0a90d4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dde505ed-59a7-48e6-bd4e-c5ae7fd23c4b",
+  "startedAt": "2026-10-06T01:45:46.423Z",
+  "decidedAt": "2026-10-06T01:45:59.003Z",
+  "durationMs": 11744,
+  "costUSD": 0.09696,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "[ev-763e8d85f263] and the linked PR [ev-870d95b635b4] say Loki 3.0.0 adds sharding for the `avg_over_time` range aggregation. The query is sharded directly when it doesn't group by fewer labels; otherwise it is rewritten as sum-by of sum_over_time divided by sum-by of count_over_time, and those parts are shardable. [ev-a3b2ad6f1bd6] shows the change sits in the LogQL shard mapper (`shardmapper.go`, `range_vector.go`). So applicability can be written as: deployments running LogQL queries that use `avg_over_time` through query sharding, with no new config key or breaking note. Confidence is low because the evidence doesn't say which setting enables query sharding.",
+    "citations": [
+      "ev-763e8d85f263",
+      "ev-870d95b635b4",
+      "ev-a3b2ad6f1bd6"
+    ],
+    "confidence": "low"
+  }
+}

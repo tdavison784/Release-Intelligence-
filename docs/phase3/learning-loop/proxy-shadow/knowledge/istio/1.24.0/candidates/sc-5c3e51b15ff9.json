@@ -36,6 +36,26 @@
         "excerpt": "- |\n    **Added** retry policy for inbound requests that automatically resets the requests that the service has not seen/processed.\n    It can be reverted by setting \"ENABLE_INBOUND_RETRY_POLICY\" to false.",
         "contentDigest": "sha256:afabb15052f18bb79f0579d51eeb4b3138639f9f7443c7ea8b3b543bc019ff10",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-90acbb433217",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/51704",
+        "locator": "title and description",
+        "excerpt": "issue: Implement retry on connection reset to upstream [closed; labels kind/enhancement, area/networking, area/user experience]\n**Describe the feature request**\nAlmost all 503's I see are connection resets.\n\n```\n{\"level\":\"debug\",\"time\":\"2024-06-25T09:10:35.552211Z\",\"scope\":\"envoy router\",\"msg\":\"[Tags: \\\"ConnectionId\\\":\\\"621\\\",\\\"StreamId\\\":\\\"15076901503968233471\\\"] upstream reset: reset reason: connection termination, transport failure reason: \",\"caller\":\"external/envoy/source/common/router/router.cc:1332\",\"thread\":55}\n```\n\nThese are connection resets between the Destination sidecar and the loc…",
+        "contentDigest": "sha256:670e2b92dc70a46701ce31d7da3f22912b8811366ae2b0f5667ccbca73e1c9de",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-fabb38fc8226",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/51704",
+        "locator": "description (part 2)",
+        "excerpt": "[connection resets](https://karlstoney.com/istio-503s-ucs-and-tcp-fun-times/).\n\n<img width=\"806\" alt=\"Screenshot 2024-06-25 at 10 21 42\" src=\"https://github.com/istio/istio/assets/1486729/d0cbc4a1-7278-4748-ab2c-5a235a228ac6\">\n\n**Many** istio users run up against this, it's a pain to debug, and a pain to resolve, and continually comes back. I believe if the destination sidecar implemented a retry policy on `reset` to the local app, it'd be a huge improvement for users of Istio out of the box.\n\nThe challenge at the …",
+        "contentDigest": "sha256:670e2b92dc70a46701ce31d7da3f22912b8811366ae2b0f5667ccbca73e1c9de",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

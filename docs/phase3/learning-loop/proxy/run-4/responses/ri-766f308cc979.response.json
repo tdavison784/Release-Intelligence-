@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-766f308cc979",
+  "promptDigest": "sha256:eed67e1dbfa79d7b9b7baef265eb630a97b6d81ef4acc6c037952f38f31c03c5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f4b3526e-61a9-422f-9005-4cb6da24b36d",
+  "startedAt": "2026-10-06T01:46:58.848Z",
+  "decidedAt": "2026-10-06T01:47:05.669Z",
+  "durationMs": 5919,
+  "costUSD": 0.086048,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-867e1b5ae410] fills in what the one-line note [ev-4f1d0d4d568e] leaves out. When Crossplane ran with the `--debug` flag, controller-runtime logs were never printed, because `ctrl.SetLogger` was called twice. For example, a reconciler panic's stack trace was never logged. The fix, in cmd/crossplane/main.go [ev-5480f90e702f], sets the discard logger only when debug is false. That gives each open aspect: the subject is controller-runtime logging in the crossplane binary under `--debug`, the change is a behavior change (those logs were dropped and are now emitted), and exposure is installations running with `--debug`. The consequence is informational: those installations now see the controller-runtime logs they were missing, with no breakage stated.",
+    "citations": [
+      "ev-867e1b5ae410",
+      "ev-5480f90e702f",
+      "ev-4f1d0d4d568e"
+    ],
+    "confidence": "medium"
+  }
+}

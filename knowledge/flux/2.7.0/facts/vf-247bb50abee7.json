@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-247bb50abee7",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-eaf36ef9911a"
+        ],
+        "statementKeys": [
+          "sk-af1ea71285b3"
+        ],
+        "changeIds": [
+          "chg-13346ed709a6"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-6c62cef5daa7"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "flux",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "where the flux binary is run (e.g. operator machines or CPU-limited CI containers) and whether GOMAXPROCS is set explicitly there, since the dynamically set GOMAXPROCS depends on the process's runtime environment and not on anything in the cluster manifests"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The affected Flux binary keeps working, but the Go runtime now sets its effective GOMAXPROCS dynamically. Its CPU parallelism may therefore differ from earlier releases. The release note mentions no failure, ignored setting or required operator step.",
+        "remediation": "No action is required. After upgrading, check the CPU behaviour of the affected binary, and set GOMAXPROCS explicitly if you need a fixed value.",
+        "severity": "low"
+      },
+      "statement": "Allow the Go runtime to dynamically set `GOMAXPROCS` by @stefanprodan in https://github.com/fluxcd/flux2/pull/5501"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-efa9e1b95fe0"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-efa9e1b95fe0"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-2c93ff2ca9e1"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-94064ff08fbf"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-0a0493889871",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L105-L105 (CLI changelog)",
+        "excerpt": "* Allow the Go runtime to dynamically set `GOMAXPROCS` by @stefanprodan in https://github.com/fluxcd/flux2/pull/5501",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:55:37.691Z"
+  }
+}

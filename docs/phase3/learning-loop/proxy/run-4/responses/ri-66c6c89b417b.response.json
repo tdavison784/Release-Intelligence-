@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-66c6c89b417b",
+  "promptDigest": "sha256:67a9a9ebaa1f1838dceb7aba455483d4f73fb2629e4f9ee27a1b613a351b593c",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dfd99eaa-b755-4dd7-b65c-7457fff382e0",
+  "startedAt": "2026-10-06T01:45:00.971Z",
+  "decidedAt": "2026-10-06T01:45:09.821Z",
+  "durationMs": 8019,
+  "costUSD": 0.094364,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release note alone [ev-44e4f5150126] is vague, but the linked PR fills the gap. [ev-da751251ff93] and [ev-49706aa0f16b] say the settings code used to hand out a pointer to the argocd-cm ConfigMap (and to secrets) held in the shared informer cache, which several threads used and could change. That caused a data race seen in tests. The fix returns a deep copy instead, at a slight performance cost. [ev-b7039b930620] shows the change is limited to internal code (util/settings and util/db), with no config key, flag or default changed. That is enough to write the assertion: the subject is Argo CD's internal settings/ConfigMap access, the change is a behaviour change to return copies, it applies to every installation, and the consequence is informational (a race is removed, a small performance cost is added, and operators need do nothing).",
+    "citations": [
+      "ev-da751251ff93",
+      "ev-49706aa0f16b",
+      "ev-b7039b930620",
+      "ev-44e4f5150126"
+    ],
+    "confidence": "medium"
+  }
+}

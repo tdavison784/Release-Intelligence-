@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1ae77e93f4c2",
+    "reviewItemId": "ri-dc7069c5e8a8",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:251f0ef78c175afbafaa8cc6db36c3238c838be006a100adc3034daa8d07aff0",
+      "inputEvidence": [
+        "ev-53101f583cb5",
+        "ev-dd7907f24ce5",
+        "ev-1f9807113c9e"
+      ],
+      "generatedAt": "2026-10-06T01:14:52.563Z",
+      "callId": "8e26f877-dbe0-4981-8a54-ea5e4f4c1545",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): [ev-53101f583cb5] names the subject directly: the already-deprecated metric `querier_cache_stale_gets_total`. It also states the change: the metric is removed in 3.0.0. The section it sits in, \"Embedded cache metric changes\" [ev-dd7907f24ce5][ev-1f9807113c9e], places it among the embedded cache metrics. That section also points to `loki_cache_fetched_keys`, `loki_cache_hits` and `loki_cache_request_duration_seconds` for the related removed querier_cache metrics, which instrument requests to the configured cache. From this an engineer can write applicability (deployments using the embedded cache that consume this metric) and the consequence (the series is no longer emitted, so anything that queries it gets no data). No direct replacement is named for this specific metric.",
+    "startedAt": "2026-10-06T01:14:43.766Z",
+    "decidedAt": "2026-10-06T01:14:52.563Z"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f0e3a45bd038",
+  "promptDigest": "sha256:5c4bc6e5d9e21c7e1499532e2d8d8b0d9076dab773c5948bf3b1c283e2070285",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "987d2463-fb60-4122-a85b-05adf1df9ec1",
+  "startedAt": "2026-10-06T01:58:33.383Z",
+  "decidedAt": "2026-10-06T01:58:48.769Z",
+  "durationMs": 14437,
+  "costUSD": 0.1401,
+  "output": {
+    "action": "correct",
+    "reason": "The release note [ev-b8d6f16e3c8c] and PR #7549 [ev-aa93430c028a] say DNS01 issuance on Cloudflare broke because Cloudflare stopped returning zone IDs. The fix is limited to the Cloudflare DNS01 provider code (pkg/issuer/acme/dns/cloudflare) [ev-2c7ddbc1fc1f]. So the exposed environments are those whose ACME Issuer or ClusterIssuer uses a Cloudflare DNS01 solver. The proposal's two extra branches on spec.acme.dns01.providers[].cloudflare are not supported by any evidence. That legacy layout does not belong to the cert-manager.io API group, so I removed those branches and kept the solvers[] predicate. The evidence does not name the field path itself, so confidence is low.",
+    "citations": [
+      "ev-b8d6f16e3c8c",
+      "ev-aa93430c028a",
+      "ev-2c7ddbc1fc1f"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "cert-manager 1.18.0 fixes certificate issuance through Cloudflare DNS01 challenges, which broke after Cloudflare stopped returning zone IDs in record responses. Exposed environments are those with an ACME Issuer or ClusterIssuer that configures a Cloudflare DNS01 solver.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "cert-manager.io",
+              "kind": "Issuer",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

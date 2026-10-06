@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-608980e057ab",
+    "reviewItemId": "ri-6302ce725206",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "cert-manager-istio-csr",
+          "state": "out-of-range",
+          "range": ">=0.12.1"
+        }
+      },
+      "statement": "Istio 1.24.0 introduces increased validation checks in gRPC communication to the control plane that are incompatible with cert-manager's istio-csr versions prior to v0.12.1, causing authentication handshake failures."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cert-manager-istio-csr",
+              "state": "in-range",
+              "range": "<=0.12.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "GRPC_ENFORCE_ALPN_ENABLED",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cert-manager-istio-csr",
+              "state": "in-range",
+              "range": "<=0.12.0"
+            },
+            {
+              "op": "env-var",
+              "name": "GRPC_ENFORCE_ALPN_ENABLED",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Istio 1.24.0 adds stricter ALPN validation to its internal gRPC calls to the control plane. This breaks cert-manager istio-csr releases up to v0.12.0, which lack the upstream fix, with 'missing selected ALPN property' handshake errors. Setting GRPC_ENFORCE_ALPN_ENABLED=false avoids the failure."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:d96cc277fd1eeb29b8360d3146041b0fc652815b7690f43c7bfdd9f3b5bcb404",
+      "inputEvidence": [
+        "ev-f0029965e392",
+        "ev-6ce6d5181b3b",
+        "ev-f73f0bc25f75",
+        "ev-4537c392da2e"
+      ],
+      "generatedAt": "2026-10-06T02:00:52.278Z",
+      "callId": "3792c368-f30c-4ca4-88c4-1e9925ec3e00",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f0029965e392] says istio-csr is broken by Istio 1.24's stricter gRPC validation and that no released istio-csr version has the fix yet (\"v0.12.0 does not have the fix\"). No source names v0.12.1 or any other fixed version, so the proposed range \">=0.12.1\" is made up. The known affected range is released istio-csr up to and including 0.12.0. [ev-6ce6d5181b3b] and [ev-f73f0bc25f75] name the workaround GRPC_ENFORCE_ALPN_ENABLED=false, so environments that set it are shielded and belong in overlap, not exposure.",
+    "startedAt": "2026-10-06T02:00:33.57Z",
+    "decidedAt": "2026-10-06T02:00:52.278Z",
+    "resultingFact": "vf-462f717f2f90"
+  }
+}

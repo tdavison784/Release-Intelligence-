@@ -36,6 +36,26 @@
         "excerpt": "- |\n    **Fixed** default retry policy to exclude retries on 503 which is potentially unsafe for idempotent requets.\n    It can be reverted by setting \"EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY\" to false. Please note that this flag is\n    only available for backward compatibility reasons and will be removed in future releases.",
         "contentDigest": "sha256:4b8866b7bebdada3a500eaeaabd482bde2c8440cd9bc78bb0bff54676c3a332c",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-cb114a5f2eb3",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/50506",
+        "locator": "title and description",
+        "excerpt": "issue: Add feature flag to disable default retry policy [closed; labels area/networking]\nThere is default retry policy hard coded which will retry twice on connection issue or 503 introduced by https://github.com/istio/istio/pull/10566:\nhttps://github.com/istio/istio/blob/master/pilot/pkg/networking/core/route/retry/retry.go#L34-L48\n```\nfunc DefaultPolicy() *route.RetryPolicy {\npolicy := route.RetryPolicy{\nNumRetries: &wrappers.UInt32Value{Value: 2},\nRetryOn: \"connect-failure,refused-stream,unavailable,cancelled,retriable-status-codes\",\nRetriableStatusCodes: []uint32{http.StatusServiceUnavaila…",
+        "contentDigest": "sha256:56a127c07be24e4fde5ce4ed0a1b513b861cdff512bf69c6378729ae3b594c0e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-8d8a75751b5d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/50506",
+        "locator": "description (part 2)",
+        "excerpt": "RetryHostPredicate: []*route.RetryPolicy_RetryHostPredicate{\n// to configure retries to prefer hosts that haven’t been attempted already,\n// the builtin `envoy.retry_host_predicates.previous_hosts` predicate can be used.\nxdsfilters.RetryPreviousHosts,\n},\n// TODO: allow this to be configured via API.\nHostSelectionRetryMaxAttempts: 5,\n}\nreturn &policy\n}\n```\n\nIn our production environment we have thousands of VirtualServices created without retry policy which means it's using the default.\n\nFor most cases we don't …",
+        "contentDigest": "sha256:56a127c07be24e4fde5ce4ed0a1b513b861cdff512bf69c6378729ae3b594c0e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

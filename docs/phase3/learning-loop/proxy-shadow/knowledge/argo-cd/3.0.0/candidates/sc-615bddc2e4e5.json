@@ -36,6 +36,36 @@
         "excerpt": "* 13b7b09668307f8365346dd74c7bd032e216fecf: fix(settings): race condition on settings configMap (#21225) (@agaudreault)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-da751251ff93",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21225",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21225): fix(settings): race condition on settings configMap [closed]\nSometimes, the test are failing with a race condition on settings usage. We return a pointer to the value of the ArgoCM in multiple thread and assume all methods will be nice and never update the object. `updateConfigMap` exist to write back the configMap to Kubernetes. Updating the object in the informer should never be done. The same is true for the secrets\n\nThis PR returns a deepCopy of what is in the informer, causing a slight performance impact. However, now threads can modify that object witho…",
+        "contentDigest": "sha256:ba6f6ad82c7dc72de050a6254031179a11943b643bae7fe58d4c4fb4633ddfa7",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-49706aa0f16b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21225",
+        "locator": "description (part 2)",
+        "excerpt": "on other threads. The usage is simpler than using a RW Mutex or a concurrent map.\n\nThis is not perfect, because the secret informer/lister are exposed externally, but it improves the current situation.\n\nRan on https://github.com/argoproj/argo-cd/commits/3057a285bc2dde547db0947f62115f32c4804838\n```\ntime=\"2024-12-16T22:49:44Z\" level=info msg=\"Comparing app state (cluster: https://localhost:6443, namespace: fake-dest-ns)\" application=fake-argocd-ns/my-app\n==================\nWARNING: DATA RACE\nRead at 0x00c0063468f0 by …",
+        "contentDigest": "sha256:ba6f6ad82c7dc72de050a6254031179a11943b643bae7fe58d4c4fb4633ddfa7",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-b7039b930620",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21225",
+        "locator": "changed files",
+        "excerpt": "5 changed file(s): util/db/db.go, util/db/gpgkeys.go, util/settings/accounts.go, util/settings/settings.go, util/settings/settings_test.go",
+        "contentDigest": "sha256:ba6f6ad82c7dc72de050a6254031179a11943b643bae7fe58d4c4fb4633ddfa7",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",
