@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-93ec19051b9f",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-f17a23891298"
+        ],
+        "statementKeys": [
+          "sk-af47d74da870"
+        ],
+        "changeIds": [
+          "chg-1301ed43aa2b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a2741b68e52a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "extract-package-yaml-private-repositories"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators run the `crossplane xpkg extract` CLI command (cmd/crank) against package images in private, authenticated registries; this is CLI usage on operator machines, not in-cluster configuration"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Nothing breaks or changes for an operator who does nothing: the `crossplane xpkg extract` CLI command now uses default auth when fetching from a remote registry, so it can also read packages in private repositories. In-cluster package installation is not affected.",
+        "remediation": "No action required.",
+        "severity": "low"
+      },
+      "statement": "Enable extracting package.yaml from private repositories"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-a31a398b39dc"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-a31a398b39dc"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-914ee7e9f089"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-247a2731e19f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a599a29bbeba",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L103-L103 (🏅 Release MVP › What's Changed)",
+        "excerpt": "* Enable extracting package.yaml from private repositories. by @jastang in https://github.com/crossplane/crossplane/pull/6493",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:50:33.972Z"
+  }
+}

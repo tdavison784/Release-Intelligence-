@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d28d96a72f4e",
+    "reviewItemId": "ri-a42e96210201",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:94d865b198bca79d5cd8becf0897130860f8cd89070f200495f2f374b67d6113",
+      "inputEvidence": [
+        "ev-772ebf21cd9f",
+        "ev-23c1f5dc1820",
+        "ev-18a6747b8635",
+        "ev-321dec271804",
+        "ev-98ed3532d87c",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-fe02a4220985",
+        "ev-fe0fca386a7a",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-e7cf2f463686",
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-06T01:51:39.582Z",
+      "callId": "b75dc322-ea9c-41c8-8d56-3bab55880fb7",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): The release note alone [ev-772ebf21cd9f] names no key, but the linked PR #7411 does. Its example uses `serviceAccount.create: false` with `global.imagePullSecrets` set, and it says that when the chart does not create the service account, the Deployments don't get the image pull secrets unless the user adds them to their own service account [ev-23c1f5dc1820][ev-98ed3532d87c]. The changed files show which Deployments are affected: the controller, cainjector and webhook templates in the cert-manager Helm chart [ev-321dec271804]. That is enough to type the subject as the chart's `global.imagePullSecrets` value, now rendered into those Deployments' pod spec when `serviceAccount.create` is false, as an additive rendering change.",
+    "startedAt": "2026-10-06T01:51:33.176Z",
+    "decidedAt": "2026-10-06T01:51:39.582Z"
+  }
+}

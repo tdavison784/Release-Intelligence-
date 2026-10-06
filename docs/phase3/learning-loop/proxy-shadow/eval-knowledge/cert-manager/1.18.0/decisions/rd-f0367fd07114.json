@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f0367fd07114",
+    "reviewItemId": "ri-3afd057726f2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The chart now emits nodeSelector values as quoted strings, so environments that set nodeSelector values see the rendered nodeSelector output change (notably values that are not plain strings, which are now rendered as strings).",
+        "remediation": "No action required; if your nodeSelector values are not plain strings (e.g. numbers or booleans), verify the rendered manifests after upgrade.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0 the Helm chart now quotes nodeSelector values, rendering them as quoted strings in the chart's generated manifests."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:c568f5b5156d52950f7cf6190f3337b24f929182ffb3a3ebff66ab19572d7b64",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-21fbf8161360",
+        "ev-0b2d3b4716f5",
+        "ev-af4ad78f2dff",
+        "ev-b2155ddceab6",
+        "ev-8a902cdb88e1",
+        "ev-c6232bc5c8d4",
+        "ev-8e895983c9dd",
+        "ev-695a6d7c7c6e",
+        "ev-4faa7ca81b54",
+        "ev-23e99dfde8d0",
+        "ev-ef5237d47ade",
+        "ev-a8c04d9f0485",
+        "ev-b8d6f16e3c8c",
+        "ev-2a805da381d1",
+        "ev-7a3fdefaaff7",
+        "ev-1861adfd42be",
+        "ev-bfe1f4f54646",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-06T01:41:32.827Z",
+      "callId": "6a00f47a-461f-4ad8-bcf7-bd96a2dc59ed",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-565f3761f656] lists this as a bug fix that quotes nodeSelector values in the Helm chart. The PR description [ev-21fbf8161360] says the chart now adds quotes to nodeSelector values, which is needed when a value is a boolean such as \"true\" for GKE Spot VMs. The changed files [ev-af4ad78f2dff] are only deployment templates. Nothing in the evidence says anything fails, is rejected or has to be migrated after the upgrade; only the rendered nodeSelector output changes, so a low-severity behavior-change for review is supported and a failure kind is not.",
+    "startedAt": "2026-10-06T01:41:23.628Z",
+    "decidedAt": "2026-10-06T01:41:32.827Z"
+  }
+}

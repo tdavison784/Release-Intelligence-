@@ -48,6 +48,36 @@
         "excerpt": "## `istiod-remote` chart replaced with `remote` profile\n\nInstalling istio clusters with a remote/external control plane via Helm has never been officially documented or stable.\nThis changes how clusters that use a remote istio instance are installed, in preparation for documenting this.\n\nThe `istiod-remote` Helm chart has been merged with the regular `istio-discovery` Helm chart.\n\nPreviously:\n- `helm install istiod-remote istio/istiod-remote`\n\nWith this change:\n- `helm install helm install istiod istio/istiod --set profile=remote`\n\nNote that, as per the above upgrade note, installing `istio-ba…",
         "contentDigest": "sha256:39808307f2fa17d6ba13c103f941f60a988469897b1d90f4382a5651961d40fe",
         "retrievedAt": "2026-10-02T02:35:49Z"
+      },
+      {
+        "id": "ev-e9a8bc3de4b8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/53318",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #53318): Default to always templating CRDs in the `base` chart. [closed; labels area/environments, size/L]\n**Please provide a description of this PR:**\n\nFixes: https://github.com/istio/istio/issues/43204\n\nSibling docs PR: https://github.com/istio/istio.io/pull/15744\n\nDiscussed in the [Sept. 4th Combined WG](https://docs.google.com/document/d/1wsa06GGiq1LEGwhkiPP0FKIZJqdAiue-VeBonWAzAyk/edit#heading=h.twias26undcl)\n\nThis changes how CRDs are upgraded.\n\nPreviously, we recommended:\n\n- Install: `helm install base`\n- Upgrade: `kubectl apply -f manifests/charts/base/crds` (…",
+        "contentDigest": "sha256:8b64928df37c58537a838286568eaf607211be9335a67b24e790e8d051ca6e1d",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-78f186669cbb",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/53318",
+        "locator": "description (part 2)",
+        "excerpt": "-oname | grep --color=never 'istio.io' | xargs kubectl delete`\n\nThis allows:\n\n- Install: `helm install base`\n- Upgrade: `helm upgrade base`\n- Uninstall: `kubectl get crd -oname | grep --color=never 'istio.io' | xargs kubectl delete`\n\n(we could also make Uninstall be `helm delete istio-base -n istio-system` easily but the WG decided to avoid that for now)\n\n### Background\n\nThis is [Method 2 in the Helm docs](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/#method-2-separate-charts), which we …",
+        "contentDigest": "sha256:8b64928df37c58537a838286568eaf607211be9335a67b24e790e8d051ca6e1d",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-550cd2fa368b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/53318",
+        "locator": "changed files",
+        "excerpt": "10 changed file(s): Makefile.core.mk, bin/update_crds.sh, manifests/charts/base/files/crd-all.gen.yaml, manifests/charts/base/templates/crds.yaml, manifests/charts/base/values.yaml, manifests/charts/ztunnel/templates/_helpers.tpl (removed), pkg/config/analysis/analyzers/deprecation/deprecation.go, pkg/config/crd/validator.go, releasenotes/notes/53318.yaml (added), tests/integration/helm/upgrade/util.go",
+        "contentDigest": "sha256:8b64928df37c58537a838286568eaf607211be9335a67b24e790e8d051ca6e1d",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

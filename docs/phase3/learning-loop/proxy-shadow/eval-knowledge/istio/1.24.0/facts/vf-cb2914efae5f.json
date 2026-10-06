@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-cb2914efae5f",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-81ed58bce8d0"
+        ],
+        "statementKeys": [
+          "sk-b263c4b9af7b"
+        ],
+        "changeIds": [
+          "chg-80885037d4fd"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e0a660fb11cb"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-connection-sni"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "security.istio.io",
+              "kind": "AuthorizationPolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether any AuthorizationPolicy is applied to a waypoint (the evidence does not say how waypoint attachment or the connection.sni rule appears in configuration)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is an additive feature that extends AuthorizationPolicy capabilities on waypoints without affecting existing configurations."
+      },
+      "statement": "Added support for `connection.sni` rule in `AuthorizationPolicy` applied to a waypoint"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-733416bbcd88"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-733416bbcd88"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-24c2edea9898"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-350e1af35e86"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-fee07e326846",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/53588.yaml",
+        "locator": "53588.yaml L7-L8",
+        "excerpt": "- |\n    **Added** support for `connection.sni` rule in `AuthorizationPolicy` applied to a waypoint.",
+        "contentDigest": "sha256:89f0ff7c4b1e19dccdc3b9481d03d5b7a23dff2e9166462d4c3acd23ac575d61",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:38:20.066Z"
+  }
+}

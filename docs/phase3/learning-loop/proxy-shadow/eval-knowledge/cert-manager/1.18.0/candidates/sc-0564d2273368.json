@@ -86,6 +86,96 @@
         "excerpt": "- The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. ([`#7723`](https://github.com/cert-manager/cert-manager/pull/7723), [`@wallrj`](https://github.com/wallrj))",
         "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
         "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-21531a24754d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/2814",
+        "locator": "title and description",
+        "excerpt": "PR: keymanager: support private key rotationPolicy field [closed; labels release-note, size/XL, approved, lgtm, area/api, kind/feature, dco-signoff: yes, area/testing, area/deploy]\n**What this PR does / why we need it**:\n\nBuilds on top of #2812 and adds support for a new `certificate.spec.privateKey.rotationPolicy` field.\n\nThis allows controlling whether private keys are rotated upon re-issuance or re-used.\n\nFor backward compatibility, the empty value is treated as 'Never' which matches the behaviour we have today. In a future API version, we can flip this default to be Always.\n\n**Which issue …",
+        "contentDigest": "sha256:27c75e8fd60e73da70feec4cbf2751f93fe03ee8f638c41340b80f0ab71dfbd6",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-59ac6e4c8edb",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/2814",
+        "locator": "description (part 2)",
+        "excerpt": "whilst I write unit tests 😄\n\n**Release note**:\n```release-note\nAdd support for private key rotation when renewing or re-issuing certificates. This feature requires use of the new 'experimental' certificates controller. Set `certificate.spec.privateKey.rotationPolicy` to `Always` to enable this functionality.\n```\n\n/hold",
+        "contentDigest": "sha256:27c75e8fd60e73da70feec4cbf2751f93fe03ee8f638c41340b80f0ab71dfbd6",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-4a9d56f45560",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/2814",
+        "locator": "changed files",
+        "excerpt": "17 changed file(s): deploy/crds/crd-certificates.yaml, pkg/apis/certmanager/v1alpha2/types_certificate.go, pkg/apis/certmanager/v1alpha2/zz_generated.deepcopy.go, pkg/apis/certmanager/v1alpha3/types_certificate.go, pkg/apis/certmanager/v1alpha3/zz_generated.deepcopy.go, pkg/controller/expcertificates/BUILD.bazel, pkg/controller/expcertificates/keymanager/keymanager_controller.go, pkg/controller/expcertificates/requestmanager/requestmanager_controller.go, pkg/controller/expcertificates/util.go, pkg/controller/expcertificates/util_test.go… +7 more",
+        "contentDigest": "sha256:27c75e8fd60e73da70feec4cbf2751f93fe03ee8f638c41340b80f0ab71dfbd6",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-1404913c4ce8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/issues/7601",
+        "locator": "title and description",
+        "excerpt": "issue: Change PrivateKeyRotationPolicy to default to `Always` [closed]\nEDIT: We decided to go with the more aggressive timeline, adding a beta-level feature flag to cert-manager in v1.18 which can be disabled. A future release - likely v1.19 - will make the flag GA and stop it from being disabled.\n\n---\n\nFlynn from Buoyant reminded me about the default value for [`PrivateKeyRotationPolicy`](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.PrivateKeyRotationPolicy) being `Never` and how unintuitive that can be for users.\n\nThis default can be harmful to say the least.",
+        "contentDigest": "sha256:ceba53c5a62ef265df8085fa9ad2e3b91ab19a56e24f5acd28880eae30290460",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-d99d6cd49fc0",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/issues/7601",
+        "locator": "description (part 2)",
+        "excerpt": "We document that there's a footgun but that only goes so far.\n\nFlynn's concerns have convinced me that we should move forwards with fixing this. Flynn advocated for a major version bump (cert-manager v2); I think our use of semver hasn't ever been literal and we've made bigger changes in minor releases before, though. Talking about v2 opens a big can of worms around other breaking changes which would distract from this specific issue, so I'm proposing a change in a minor release.\n\n## Why change?\n\nSecurity; if a …",
+        "contentDigest": "sha256:ceba53c5a62ef265df8085fa9ad2e3b91ab19a56e24f5acd28880eae30290460",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-e14ec8f3f652",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7723",
+        "locator": "title and description",
+        "excerpt": "PR: [VC-39805] Change the default `privateKey.rotationPolicy` to `Always` [closed; labels size/L, release-note, approved, lgtm, area/api, kind/feature, dco-signoff: yes, area/testing, area/deploy]\nThe motivation for this change is described by @SgtCoDFish in #7601:\n> Security; if a private key is exposed, users may (reasonably) assume that re-issuing a certificate (e.g. using cmctl renew) will generate a new private key. Flynn's point is that unless a user has already deeply read the cert-manager docs (which most won't have, it's pretty simple to get cert-manager working for most) this is high…",
+        "contentDigest": "sha256:05a12600c420a4b6381024f54a02d99e3ad36dd9d642cec217f9c7ec18183b35",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-9c3d3f00ee3c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7723",
+        "locator": "description (part 2)",
+        "excerpt": "need to not change the private key on rotation (e.g. if they want to preserve it and just change the cert, which is less common but still happens) would need to explicitly set the rotation policy to never to avoid losing the key.\n\nThere were two proposed strategies and the team decided on the first, which this PR now implements:\n> Timeline 1: Add to cert-manager v1.18 at beta level\n> Quickest: just change the default in v1.18. I think we've made bigger \"breaking\" changes than this in past minor releases, so we …",
+        "contentDigest": "sha256:05a12600c420a4b6381024f54a02d99e3ad36dd9d642cec217f9c7ec18183b35",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-4152b3e2abc8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7723",
+        "locator": "changed files",
+        "excerpt": "12 changed file(s): deploy/charts/cert-manager/templates/NOTES.txt, deploy/crds/crd-certificates.yaml, internal/apis/certmanager/v1/defaults.go, internal/apis/certmanager/v1/defaults_test.go (added), internal/apis/certmanager/validation/certificate.go, internal/apis/certmanager/validation/certificate_test.go, internal/apis/certmanager/validation/warnings.go, internal/controller/feature/features.go, pkg/apis/certmanager/v1/types_certificate.go, pkg/controller/certificates/keymanager/keymanager_controller.go, test/e2e/suite/conformance/certificates/tests.go… +1 more",
+        "contentDigest": "sha256:05a12600c420a4b6381024f54a02d99e3ad36dd9d642cec217f9c7ec18183b35",
+        "retrievedAt": "2026-10-06T01:24:57Z"
+      },
+      {
+        "id": "ev-63b569f111c9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7723",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #7723): [VC-39805] Change the default `privateKey.rotationPolicy` to `Always` [closed; labels size/L, release-note, approved, lgtm, area/api, kind/feature, dco-signoff: yes, area/testing, area/deploy]\nThe motivation for this change is described by @SgtCoDFish in #7601:\n> Security; if a private key is exposed, users may (reasonably) assume that re-issuing a certificate (e.g. using cmctl renew) will generate a new private key. Flynn's point is that unless a user has already deeply read the cert-manager docs (which most won't have, it's pretty simple to get cert-manager …",
+        "contentDigest": "sha256:05a12600c420a4b6381024f54a02d99e3ad36dd9d642cec217f9c7ec18183b35",
+        "retrievedAt": "2026-10-06T01:24:57Z"
       }
     ],
     "hints": [

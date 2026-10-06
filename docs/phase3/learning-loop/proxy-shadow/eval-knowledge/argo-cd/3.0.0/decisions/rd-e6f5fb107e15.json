@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e6f5fb107e15",
+    "reviewItemId": "ri-4ee23737e83d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The server's handling of objects from Kubernetes informers changes to use deep copies instead of direct references, preventing unintended mutations of shared state.",
+        "severity": "low"
+      },
+      "statement": "The server component now makes deep copies of objects returned by informers."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is an internal bug fix in the API server: informer objects are deep-copied before use, so they are no longer modified in place. The upstream issue says this was causing frequent server crashes. Operators do not need to act or check anything; the fix only means fewer crashes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 server now returns deep copies of objects from its informers instead of read-only shared objects. This fixes server crashes reported since 2.14 and has no operational consequence for operators."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:904f98db7b2c2124a3f9afe8dafac9d041900b0e7f80da4dfaf684758fec2665",
+      "inputEvidence": [
+        "ev-f9d32317b49c",
+        "ev-faa4a8aadfad",
+        "ev-2c224906fce2",
+        "ev-49b2bc313e8b",
+        "ev-ad89d60b5e00",
+        "ev-28eb892e1e02",
+        "ev-d83aa8e2cc23",
+        "ev-8ab94de966ea",
+        "ev-184bc27865b1",
+        "ev-69f678240211",
+        "ev-dd28456702c2",
+        "ev-b47e5003a748",
+        "ev-77235f54568b",
+        "ev-1c5771548249",
+        "ev-45cde2b9254f",
+        "ev-1beb163c050d",
+        "ev-5e95ef039bdc",
+        "ev-42b898158423",
+        "ev-674eb37b128f",
+        "ev-a56a8cf82a6c",
+        "ev-a4f8422ce445",
+        "ev-a17ed311b248",
+        "ev-80ec0aaa2676",
+        "ev-392c5d206c38",
+        "ev-a8f58ed72dde",
+        "ev-94fd89815781",
+        "ev-d4ddf21e4b56",
+        "ev-9648665f5fd5",
+        "ev-a1a9e7ab515f",
+        "ev-96b9309e8336",
+        "ev-6cf643c18c52",
+        "ev-6b09d547f030",
+        "ev-61a7d576a759",
+        "ev-70041c7d236e",
+        "ev-f66e20a1873d",
+        "ev-f810dce8b260",
+        "ev-acf625250e78",
+        "ev-78de9d381925",
+        "ev-4ff4285f6d72",
+        "ev-17b4a92134a4",
+        "ev-02bb073cfa55",
+        "ev-c2104d400177",
+        "ev-41df2d850c70",
+        "ev-44a03a4444c2",
+        "ev-f8aa0a8a4299",
+        "ev-eb81b209b10e",
+        "ev-750abcd0623c",
+        "ev-0a972c483827"
+      ],
+      "generatedAt": "2026-10-06T01:43:18.957Z",
+      "callId": "a8e2cfc9-6a32-4093-a4c8-b9001bb76ec7",
+      "provider": "anthropic"
+    },
+    "reason": "The linked issue [ev-faa4a8aadfad][ev-2c224906fce2] describes this as a bug: since 2.14, server informers returned read-only objects that were being modified, and the Argo CD Server crashed often. The PR [ev-49b2bc313e8b][ev-28eb892e1e02] fixes this inside the server code by making deep copies (it adds a deepinformer wrapper). No setting, default, API or output that an operator relies on changes. If the operator does nothing, they get the fix and the server should crash less, so there is nothing to review. The consequence is none (informational), not a behavior-change for review.",
+    "startedAt": "2026-10-06T01:43:07.756Z",
+    "decidedAt": "2026-10-06T01:43:18.957Z"
+  }
+}

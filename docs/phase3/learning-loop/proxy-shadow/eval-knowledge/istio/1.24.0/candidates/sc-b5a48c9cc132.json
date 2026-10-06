@@ -35,6 +35,56 @@
         "excerpt": "- |\n  **Removed** unused `istio_cni` values from the `istiod` chart that were marked as deprecated (#49290) 2 releases ago.",
         "contentDigest": "sha256:a5b43685ccba021917baea4f21cfbca40103d5e781d62bda0e81da3102ee5218",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-6dce7b519f9c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/49290",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #49290): Consolidate values API for CNI (values.cni vs values.istio_cni) [closed; labels kind/need more info, lifecycle/staleproof]\nWe currently have two almost-identical looking fields in the values that are concerned with CNI. The first is `values.cni` which if `enabled` is set to `true` will install CNI with the settings as they are configured in `values.cni`.\n\nThere's another field called `values.istio_cni` which only has two settings:\n\n```\nvalues:\nistio_cni:\n# if true, istiod will attempt to use an existing CNI installation\nenabled: true\n# has an effect on som…",
+        "contentDigest": "sha256:b7a4a6abd86b177be9ed00f9b155847a212aabf4d74bc43186e847134752fcce",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-018e2b8aef11",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/49290",
+        "locator": "description (part 2)",
+        "excerpt": "between them is that `values.cni` is the actual CNI configuration and installation, so it works like other parts of the values API, but `istio_cni` actually just configures istiod and the injection template to use an existing CNI installation - the distinction is necessary for cases like remote istiod, where you might want to enable CNI usage, but not install it, or if you're managing the lifecycles of istiod and CNI separately and want to be able to enable CNI usage without having to reinstall.\n\nBut I think the …",
+        "contentDigest": "sha256:b7a4a6abd86b177be9ed00f9b155847a212aabf4d74bc43186e847134752fcce",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-2efb0f574f31",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/52645",
+        "locator": "title and description",
+        "excerpt": "PR: Remove deprecated `istio_cni` values from pilot chart [closed; labels size/XXL]\nThe `istio_cni` values are strictly redundant with/replaced by `pilot.cni` values, and [were explicitly marked deprecated 2+ releases ago](https://github.com/istio/istio/blob/master/manifests/charts/istio-control/istio-discovery/values.yaml#L513) in PR: https://github.com/istio/istio/pull/49495\n\nSee also: https://github.com/istio/istio/issues/49290\n\nSince having multiple sets of values that do the same thing really complicates what is already our most complex chart, and generally makes it hard to see what is an…",
+        "contentDigest": "sha256:b2d8c5f7c06ecd216bb7c5617d59442bea6a77c92a16acc654e6efcae8f76ae9",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-9a7111a4491b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/52645",
+        "locator": "description (part 2)",
+        "excerpt": "not actually needed, and we have met the 2-release requirement for removal after deprecation, removing these values that we already decided to remove.\n\n90% of this PR is gen-churn, the relevant bits are in the `istiod` chart.",
+        "contentDigest": "sha256:b2d8c5f7c06ecd216bb7c5617d59442bea6a77c92a16acc654e6efcae8f76ae9",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-cca6ee5e8c96",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/pull/52645",
+        "locator": "changed files",
+        "excerpt": "73 changed file(s): manifests/charts/UPDATING-CHARTS.md, manifests/charts/istio-control/istio-discovery/files/injection-template.yaml, manifests/charts/istio-control/istio-discovery/templates/istiod-injector-configmap.yaml, manifests/charts/istio-control/istio-discovery/values.yaml, manifests/charts/istiod-remote/files/injection-template.yaml, manifests/charts/istiod-remote/templates/istiod-injector-configmap.yaml, manifests/charts/istiod-remote/values.yaml, operator/cmd/mesh/testdata/manifest-generate/data-snapshot.tar.gz… +65 more",
+        "contentDigest": "sha256:b2d8c5f7c06ecd216bb7c5617d59442bea6a77c92a16acc654e6efcae8f76ae9",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

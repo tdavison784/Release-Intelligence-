@@ -36,6 +36,56 @@
         "excerpt": "* 0973409273918eebe0f8ff436056261cc477bfc7: feat: Kustomize ignore missing components (#18634) (#21674) (@bradkwadsworth)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-b30ae924ccae",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/18634",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #18634): Support optional `components`/`patches` in kustomize applications (similar to `ignoreMissingValueFiles` for helm) [closed; labels enhancement, component:application-sets, component:config-management]\n# Summary\n\nHaving the possibility to define an application with optional `spec.source.kustomize.components/patches[]` items.\n\n# Motivation\n\nHere is my usecase: I use an applicationSet to define a set of (mostly) common apps over several clusters. Some of those apps are Helm charts, some are kustomize base, etc.\nI need to have common settings at different \"gene…",
+        "contentDigest": "sha256:5b6bea8ee12f33149b5b946e9c7f3dea666e4020d429d294e026032833d8183f",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-e6c747504db1",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/18634",
+        "locator": "description (part 2)",
+        "excerpt": "```\napp\n├── clusters\n├── prlvl\n└── zones\n```\nWhere all of clusters,prlvl,zones are optional.\nThis works well with helm apps with the following template:\n```yaml\ntemplate:\nmetadata: {}\nspec:\ndestination: {}\nproject: default\nsources:\n- repoURL: \"{{ repository }}\"\ntargetRevision: \"{{ version }}\"\nchart: \"{{ chart }}\"\nhelm:\nreleaseName: \"{{ values.application }}\"\nignoreMissingValueFiles: true\nvalueFiles:\n- \"$values/{{ values.application}}/values.yml\"\n- \"$values/{{ values.application}}/zones/{{ …",
+        "contentDigest": "sha256:5b6bea8ee12f33149b5b946e9c7f3dea666e4020d429d294e026032833d8183f",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-0235fd058426",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21674",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21674): feat: Kustomize ignore missing components (#18634) [closed]\nAdded ability to ignore Kustomize component directory if it does not exist. A new field called `ignoreMissingComponents`, if enabled, will verify if a given components directory exists and if not will log a debug message. Only found component directories will be used if `ignoreMissingComponents` is set to true.\n\nFixes #18634\n\nChecklist:\n\n* [ ] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug…",
+        "contentDigest": "sha256:b7dc5efc7c243c9b2ff0d2d26feaeda1ee024b140c3973639dee97378d370191",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-2b1b16bcb308",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21674",
+        "locator": "description (part 2)",
+        "excerpt": "this does not need to be in the release notes.\n* [X] The title of the PR states what changed and the related issues number (used for the release note).\n* [X] The title of the PR conforms to the [Toolchain Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [X] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [ ] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR …",
+        "contentDigest": "sha256:b7dc5efc7c243c9b2ff0d2d26feaeda1ee024b140c3973639dee97378d370191",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-ccae35ac0416",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21674",
+        "locator": "changed files",
+        "excerpt": "25 changed file(s): assets/swagger.json, cmd/argocd/commands/app.go, cmd/argocd/commands/app_test.go, cmd/util/app.go, cmd/util/app_test.go, docs/operator-manual/application.yaml, docs/user-guide/commands/argocd_admin_app_generate-spec.md, docs/user-guide/commands/argocd_app_add-source.md, docs/user-guide/commands/argocd_app_create.md, docs/user-guide/commands/argocd_app_set.md, docs/user-guide/commands/argocd_app_unset.md, docs/user-guide/kustomize.md, manifests/core-install-with-hydrator.yaml, manifests/core-install.yaml, manifests/crds/application-crd.yaml… +10 more",
+        "contentDigest": "sha256:b7dc5efc7c243c9b2ff0d2d26feaeda1ee024b140c3973639dee97378d370191",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",
