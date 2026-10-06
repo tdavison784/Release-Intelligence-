@@ -11,12 +11,9 @@ package render
 // vs target with their values) — is attributable to the key.
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,9 +22,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
-	"github.com/tdavison784/release-intelligence/internal/helm"
 	"github.com/tdavison784/release-intelligence/internal/impact"
-	"github.com/tdavison784/release-intelligence/internal/normalize"
 )
 
 // UnsetValues implements impact.UnsetValuesEvaluator over the environment's
@@ -42,11 +37,14 @@ type UnsetValues struct {
 	APIVersions []string
 	Ctx         context.Context
 
-	once       sync.Once
-	defaults   map[string]string // source chart values: flattened path → JSON
-	defaultErr string
-	mu         sync.Mutex
-	memo       map[string]impact.ConditionResult
+	once          sync.Once
+	defaults      map[string]string // source chart values: flattened path → JSON
+	defaultErr    string
+	toOnce        sync.Once
+	toDefaults    map[string]string // target chart values (the rendered chart)
+	toDefaultsErr string
+	mu            sync.Mutex
+	memo          map[string]impact.ConditionResult
 }
 
 var _ impact.UnsetValuesEvaluator = (*UnsetValues)(nil)
@@ -142,6 +140,16 @@ func (u *UnsetValues) evaluate(keys []string, kind string) impact.ConditionResul
 			r.Matches = append(r.Matches, domain.ImpactMatch{Kind: domain.MatchRenderedChange, Subject: m.subject, Evidence: []domain.EvidenceID{m.ev}})
 		}
 		return r
+	}
+	// chart-coverage guard (PO-7a): a key the rendered chart does not define
+	// never reached any rendered deployment, so "nothing attributable" would
+	// be vacuous — the pair that consumes it was never rendered. Unknown,
+	// never a clear.
+	if defaults, derr := u.targetDefaults(ctx); derr != "" {
+		needed = append(needed, "the chart's values could not be read: "+derr)
+	} else if unc := uncoveredKeys(defaults, keys); len(unc) > 0 {
+		needed = append(needed, "the rendered chart defines none of "+strings.Join(unc, ", ")+
+			" (another chart of "+u.Product+" owns them; no deployment consuming them was rendered)")
 	}
 	if len(needed) > 0 || cleared == 0 {
 		return unavailable(needed...)
@@ -253,38 +261,16 @@ func (u *UnsetValues) pinPrevious(ctx context.Context, keys []string, kind strin
 }
 
 // sourceDefaults reads the source chart's values.yaml, flattened exactly like
-// the values diff that produced the change.
+// the values diff that produced the change (memoized by the caller's once).
 func (u *UnsetValues) sourceDefaults(ctx context.Context) (map[string]string, string) {
-	if u.Engine == nil || u.Engine.Charts == nil {
-		return nil, "no chart resolver configured"
-	}
-	c, err := u.Engine.Charts.ResolveChart(ctx, u.Product, u.From)
-	if err != nil {
-		return nil, "source chart: " + err.Error()
-	}
-	var raw []byte
-	switch {
-	case len(c.Archive) > 0:
-		arc, err := helm.ReadArchive(bytes.NewReader(c.Archive))
-		if err != nil {
-			return nil, "source chart: " + err.Error()
-		}
-		raw = arc.Values
-	case c.Path != "":
-		raw, err = os.ReadFile(filepath.Join(c.Path, "values.yaml"))
-		if err != nil && !os.IsNotExist(err) {
-			return nil, "source chart values: " + err.Error()
-		}
-	}
-	flat, err := normalize.FlattenValues(raw)
-	if err != nil {
-		return nil, "source chart values: " + err.Error()
-	}
-	out := make(map[string]string, len(flat))
-	for _, f := range flat {
-		out[f.Path] = f.Value
-	}
-	return out, ""
+	return chartDefaults(ctx, u.Engine, u.Product, u.From)
+}
+
+// targetDefaults lazily flattens the target chart's values — the chart the
+// counterfactual renders — for the clear coverage guard.
+func (u *UnsetValues) targetDefaults(ctx context.Context) (map[string]string, string) {
+	u.toOnce.Do(func() { u.toDefaults, u.toDefaultsErr = chartDefaults(ctx, u.Engine, u.Product, u.To) })
+	return u.toDefaults, u.toDefaultsErr
 }
 
 // splitValuesPath splits a flattened values path (dotted keys, ["quoted.key"]

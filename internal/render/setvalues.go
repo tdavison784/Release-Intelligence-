@@ -48,6 +48,10 @@ type SetValues struct {
 
 	mu   sync.Mutex
 	memo map[string]impact.SetValuesResult
+
+	once        sync.Once
+	defaults    map[string]string // source chart values: flattened path → JSON
+	defaultsErr string
 }
 
 var _ impact.SetValuesEvaluator = (*SetValues)(nil)
@@ -81,6 +85,13 @@ func (s *SetValues) EvaluateSetValues(c domain.Change) impact.SetValuesResult {
 
 func undecided(needed ...string) impact.SetValuesResult {
 	return impact.SetValuesResult{Outcome: impact.SetValuesUndecided, Needed: needed}
+}
+
+// fromDefaults lazily flattens the source chart's values — the chart the
+// environment pairs render — for the no-effect coverage guard.
+func (s *SetValues) fromDefaults(ctx context.Context) (map[string]string, string) {
+	s.once.Do(func() { s.defaults, s.defaultsErr = chartDefaults(ctx, s.Engine, s.Product, s.From) })
+	return s.defaults, s.defaultsErr
 }
 
 func (s *SetValues) evaluate(keys []string) impact.SetValuesResult {
@@ -153,6 +164,16 @@ func (s *SetValues) evaluate(keys []string) impact.SetValuesResult {
 		// an attributable change stands even when another deployment could
 		// not be rendered
 		return impact.SetValuesResult{Outcome: impact.SetValuesAttributable, Matches: matches, Records: records}
+	}
+	// chart-coverage guard: a key the rendered chart does not define never
+	// reached any rendered deployment, so "nothing attributable" would be
+	// vacuous — the pair that consumes it (istio's cni chart under the
+	// istiod render) was never rendered. Undecided, never no-effect.
+	if defaults, derr := s.fromDefaults(ctx); derr != "" {
+		needed = append(needed, "the chart's values could not be read: "+derr)
+	} else if unc := uncoveredKeys(defaults, keys); len(unc) > 0 {
+		needed = append(needed, "the rendered chart defines none of "+strings.Join(unc, ", ")+
+			" (another chart of "+s.Product+" owns them; no deployment consuming them was rendered)")
 	}
 	if len(needed) > 0 || cleared == 0 {
 		return undecided(needed...)

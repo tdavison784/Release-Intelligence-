@@ -152,6 +152,34 @@ func TestSetValuesUndecided(t *testing.T) {
 	}
 }
 
+// PO-7a coverage guard: a key the rendered chart does not define (istio's
+// cni.* keys under the istiod render — another chart of the product owns
+// them) cannot be cleared: the counterfactual renders identically without
+// the chart ever consuming the key, so a no-effect verdict would be vacuous.
+// Undecided, naming the gap; a default ABOVE the key covers nothing.
+func TestSetValuesUncoveredKey(t *testing.T) {
+	e, p := rejPair(t, "1.1.0")
+	if p.Status != PairOK {
+		t.Fatalf("pair: %s %+v", p.Status, p.Failure)
+	}
+	s := rejSet(e, "1.1.0", p)
+	for name, key := range map[string]string{
+		"another chart's key":   "cni.ambient.dnsCapture",
+		"default above the key": "replicas.deeper",
+	} {
+		r := s.EvaluateSetValues(domain.Change{ID: "chg-f", Subjects: []string{key}})
+		if r.Outcome != impact.SetValuesUndecided || len(r.Matches) > 0 || len(r.Checks) > 0 {
+			t.Fatalf("%s: %s (needed %v)", name, r.Outcome, r.Needed)
+		}
+		if len(r.Needed) == 0 || !strings.Contains(strings.Join(r.Needed, "; "), key) {
+			t.Errorf("%s: needed must name the uncovered key: %v", name, r.Needed)
+		}
+		if !strings.Contains(strings.Join(r.Needed, "; "), "another chart") {
+			t.Errorf("%s: needed must say why: %v", name, r.Needed)
+		}
+	}
+}
+
 // The refusal matcher: dotted path or any ancestor prefix on word boundaries.
 func TestRefusalNames(t *testing.T) {
 	detail := `values don't meet the specifications of the schema(s): - (root): Additional property legacy is not allowed`

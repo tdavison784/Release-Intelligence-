@@ -116,6 +116,22 @@ func TestUnsetValuesUnavailable(t *testing.T) {
 	}
 }
 
+// PO-7a coverage guard: a default change or new key of another chart of the
+// product (not defined by the rendered chart) never clears — the
+// counterfactual renders identically, and "nothing attributable" would be
+// vacuous. Unknown, naming the gap.
+func TestUnsetValuesUncoveredKey(t *testing.T) {
+	e, p := permSetup(t)
+	r := permUnset(e, p).EvaluateUnsetValues(domain.Change{ID: "chg-f", Subjects: []string{"istio_cni.ambient.dnsCapture"}}, "default-changed")
+	if r.Value != impact.Unknown || len(r.Matches) > 0 || len(r.Checks) > 0 {
+		t.Fatalf("uncovered: %s (needed %v)", r.Value, r.Needed)
+	}
+	joined := strings.Join(r.Needed, "; ")
+	if !strings.Contains(joined, "istio_cni.ambient.dnsCapture") || !strings.Contains(joined, "another chart") {
+		t.Errorf("needed must name the key and the gap: %v", r.Needed)
+	}
+}
+
 // The join (internal/impact, PO-3 hunk): exposed → review-required with
 // rendered evidence on chain 2; clear → not-affected with a render check;
 // unavailable → not-affected as before, with "render unavailable" visible.
