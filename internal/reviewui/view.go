@@ -148,6 +148,14 @@ type rowView struct {
 	Severity  string
 	Agreement string // disagree | agree | single
 	AgreeText string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
+	// ux-v2 row: the plain-English question, the one reason it needs a
+	// human, and the suggested answer preview.
+	Question     string
+	Why, WhyTone string
+	Suggested    string
+	ClassLabel   string
+	ClassTone    string
+	HasClass     bool
 }
 
 func newRowView(row knowledge.InboxRow, back string) rowView {
@@ -168,6 +176,20 @@ func newRowView(row knowledge.InboxRow, back string) rowView {
 		v.Agreement, v.AgreeText = "agree", fmt.Sprintf("consensus · %s · %d calls", scope, row.Calls)
 	default:
 		v.Agreement, v.AgreeText = "single", "single call"
+	}
+	v.Question = plainQuestion(row.Item)
+	v.Why, v.WhyTone = whyYouBrief(row.Item, row.Calls), whyTone(row.Item, false)
+	v.Suggested = truncate(suggestedAnswer(row.Item, ""), 150)
+	if c := row.Item.Proposed.Consequence; c != nil && c.ExposedClass != "" {
+		v.ClassLabel, v.HasClass = classLabel(c.ExposedClass), true
+		switch c.ExposedClass {
+		case domain.ImpactActionRequired:
+			v.ClassTone = "danger"
+		case domain.ImpactReviewRequired:
+			v.ClassTone = "warn"
+		default:
+			v.ClassTone = "soft"
+		}
 	}
 	return v
 }
@@ -201,35 +223,19 @@ type validationView struct {
 	Proposal string // model of the proposal checked, if known
 }
 
-type matrixCell struct {
-	Text         string
-	Group        string // A, B, … (same letter = same aspect digest)
-	Undetermined bool
-	Reason       string
-	Empty        bool
-	AsProposed   bool
+// callView is one raw proposal in the Details fold: one separate stateless
+// call, never merged (PO-1), with its provenance for auditing.
+type callView struct {
+	Model, ModelRaw, Provider, Confidence  string
+	ID, CallID, ModelVersion, PromptDigest string
+	GeneratedAt                            string
+	Class, ClassTone                       string // the class the call suggested or REQUESTED (PO-2)
+	Undetermined                           string
+	Av                                     avatar
 }
 
-type matrixCol struct {
-	Model, Provider, Confidence, ID, CallID string
-	// Requested is the class the model suggested or REQUESTED (PO-2).
-	Requested string
-}
-
-type matrixRow struct {
-	Aspect     domain.Aspect
-	Status     string // agree | disagree | single | none
-	StatusText string
-	Proposed   string
-	Cells      []matrixCell
-	Asked      bool // the question verifies this aspect
-	// Legend labels each answer group: "A cross-model consensus · 2 calls · B single call".
-	Legend []groupLegend
-}
-
-type groupLegend struct{ Letter, Text string }
-
-// correctionView is the pre-filled edit form (per aspect).
+// correctionView is the pre-filled edit form (per aspect). The Prev* strings
+// are the plain-English previews of the proposed assertion's aspects.
 type correctionView struct {
 	Statement                                                                                    string
 	HasSubject, HasChange, HasApplicability, HasConsequence                                      bool
@@ -237,6 +243,7 @@ type correctionView struct {
 	ChangeType, ChangeBefore, ChangeAfter, ChangeReplacedBy                                      string
 	Exposure, Overlap                                                                            string
 	ConsKind, ConsStatement, ConsRemediation, ConsSeverity, ConsClass                            string
+	PrevSubject, PrevChange, PrevApplicability, PrevConsequence                                  string
 }
 
 type itemView struct {
@@ -244,8 +251,7 @@ type itemView struct {
 	Item        domain.ReviewItem
 	Candidate   domain.SemanticCandidate
 	Evidence    []evidenceView
-	Cols        []matrixCol
-	Matrix      []matrixRow
+	Calls       []callView
 	Proposed    []aspectText
 	Validations []validationView
 	Related     []domain.ReviewDecision
@@ -262,6 +268,25 @@ type itemView struct {
 	// lower class: they block a consensus ACTION (PO-5).
 	ConsensusDissent []string
 	ConsensusScope   string
+
+	// --- ux-v2 decision card -------------------------------------------------
+	Question                    string // §1: the plain-English question
+	QTypeLabel                  string
+	UpQuote                     string // §2: the most-cited evidence, verbatim
+	UpLink                      string
+	UpLocator                   string
+	UpSource                    string
+	UpMore                      int
+	Suggested                   string // §3: what the primary button accepts
+	ClassLabel                  string
+	ClassTone                   string
+	HasClass                    bool
+	Conf                        []confLine
+	PrimaryLabel, PrimaryAction string
+	WhyLine, WhyTone            string      // §4
+	Differ                      []differRow // §5
+	Agrees                      []agreeChip
+	Undetermined                string
 
 	Reviewer string
 	Started  string
@@ -300,7 +325,98 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 			v.Proposed = append(v.Proposed, aspectText{a, describeAspect(rc.Item.Proposed, a), slices.Contains(asked, a)})
 		}
 	}
-	v.buildMatrix(rc, asked)
+	// the raw calls for the Details fold, one column per separate call (PO-1)
+	props := slices.Clone(rc.Proposals)
+	sort.SliceStable(props, func(i, j int) bool { return props[i].Provenance.Model < props[j].Provenance.Model })
+	for _, p := range props {
+		cv := callView{
+			Model: modelShort(p.Provenance.Model), ModelRaw: p.Provenance.Model, Provider: p.Provider,
+			Confidence: string(p.Provenance.Confidence), ID: p.ID, CallID: p.Provenance.CallID,
+			ModelVersion: p.Provenance.ModelVersion, PromptDigest: p.Provenance.PromptDigest,
+			GeneratedAt: p.Provenance.GeneratedAt.UTC().Format("2006-01-02 15:04 UTC"),
+			Class:       classLabel(p.SuggestedClass), Av: avatarOf(p.Provenance.Model),
+		}
+		switch p.SuggestedClass {
+		case domain.ImpactActionRequired:
+			cv.ClassTone = "req-action-required"
+		case domain.ImpactReviewRequired:
+			cv.ClassTone = "req-review-required"
+		}
+		var und []string
+		for _, a := range p.Undetermined {
+			if w, ok := aspectWords[a]; ok {
+				und = append(und, w)
+			}
+		}
+		if p.UndeterminedReason != "" {
+			if len(und) > 0 {
+				cv.Undetermined = strings.Join(und, ", ") + " — " + p.UndeterminedReason
+			} else {
+				cv.Undetermined = p.UndeterminedReason
+			}
+		}
+		v.Calls = append(v.Calls, cv)
+	}
+	// PO-2 (b)/(d) + PO-5: consensus on an action-eligible consequence
+	for _, ag := range rc.Agreement {
+		if ag.Aspect != domain.AspectConsequence || len(ag.Groups) != 1 {
+			continue
+		}
+		var g []domain.SemanticProposal
+		for _, ids := range ag.Groups {
+			for _, id := range ids {
+				for _, p := range rc.Proposals {
+					if p.ID == id {
+						g = append(g, p)
+					}
+				}
+			}
+		}
+		if distinctCalls(g) >= 2 {
+			v.noteConsequenceConsensus(g)
+		}
+	}
+	// the card's own words (ux-v2): question, upstream quote, suggestion, reasons
+	v.Question, v.QTypeLabel = plainQuestion(rc.Item), questionWord(rc.Item.QuestionType)
+	v.Suggested = suggestedAnswer(rc.Item, gateReason(rc))
+	if c := rc.Item.Proposed.Consequence; c != nil && c.ExposedClass != "" {
+		v.ClassLabel, v.HasClass = classLabel(c.ExposedClass), true
+		switch c.ExposedClass {
+		case domain.ImpactActionRequired:
+			v.ClassTone = "danger"
+		case domain.ImpactReviewRequired:
+			v.ClassTone = "warn"
+		default:
+			v.ClassTone = "soft"
+		}
+	}
+	v.PrimaryLabel, v.PrimaryAction = "Accept suggested answer", "accept"
+	if rc.Item.QuestionType == domain.QuestionEvidenceSufficiency {
+		v.PrimaryLabel, v.PrimaryAction = "Send back — need more evidence", "need-more-evidence"
+	}
+	if n := len(rc.Candidate.Evidence); n > 0 {
+		best, bestN := 0, -1
+		citedN := map[domain.EvidenceID]int{}
+		for _, p := range rc.Proposals {
+			for _, id := range p.Citations {
+				citedN[id]++
+			}
+		}
+		for i, e := range rc.Candidate.Evidence {
+			if citedN[e.ID] > bestN {
+				best, bestN = i, citedN[e.ID]
+			}
+		}
+		e := rc.Candidate.Evidence[best]
+		v.UpQuote, v.UpLink, v.UpLocator, v.UpMore = e.Excerpt, evidenceLink(e), e.Locator, n-1
+		if v.UpQuote == "" {
+			v.UpQuote = rc.Candidate.Text
+		}
+		v.UpSource = string(e.SourceID) + " · " + string(e.Kind)
+	}
+	v.Conf = whyConfident(rc, v.ConsensusAction)
+	v.WhyLine, v.WhyTone = whyYou(rc, v.ConsensusAction), whyTone(rc.Item, v.ConsensusAction)
+	v.Differ, v.Agrees, v.Undetermined = buildDiffer(rc)
 	for _, val := range rc.Validations {
 		v.Validations = append(v.Validations, validationView{V: val, Proposal: modelOf[val.ProposalID]})
 	}
@@ -310,95 +426,8 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 	return v
 }
 
-func (v *itemView) buildMatrix(rc *knowledge.ReviewContext, asked []domain.Aspect) {
-	props := slices.Clone(rc.Proposals)
-	sort.SliceStable(props, func(i, j int) bool { return props[i].Provenance.Model < props[j].Provenance.Model })
-	for _, p := range props {
-		v.Cols = append(v.Cols, matrixCol{p.Provenance.Model, p.Provider, string(p.Provenance.Confidence), p.ID, p.Provenance.CallID, string(p.SuggestedClass)})
-	}
-	agree := map[domain.Aspect]knowledge.AspectAgreement{}
-	for _, a := range rc.Agreement {
-		agree[a.Aspect] = a
-	}
-	for _, a := range domain.Aspects {
-		row := matrixRow{Aspect: a, Asked: slices.Contains(asked, a), Proposed: describeAspect(rc.Item.Proposed, a)}
-		// group letters by sorted digest (deterministic)
-		digestOf := map[string]string{}
-		var digests []string
-		for _, p := range props {
-			d := p.Assertion.AspectDigest(a)
-			if ag, ok := agree[a]; ok {
-				for dg, ids := range ag.Groups {
-					if slices.Contains(ids, p.ID) {
-						d = dg
-					}
-				}
-			}
-			if d != "" {
-				digestOf[p.ID] = d
-				if !slices.Contains(digests, d) {
-					digests = append(digests, d)
-				}
-			}
-		}
-		sort.Strings(digests)
-		models := map[string]bool{}
-		any := false
-		for _, p := range props {
-			cell := matrixCell{}
-			switch {
-			case digestOf[p.ID] != "":
-				cell.Text = describeAspect(p.Assertion, a)
-				cell.Group = string(rune('A' + slices.Index(digests, digestOf[p.ID])))
-				cell.AsProposed = rc.Item.Proposed.Has(a) && rc.Item.Proposed.AspectDigest(a) == p.Assertion.AspectDigest(a)
-				models[p.Provenance.Model] = true
-				any = true
-			case slices.Contains(p.Undetermined, a):
-				cell.Undetermined, cell.Reason = true, p.UndeterminedReason
-				any = true
-			default:
-				cell.Empty = true
-			}
-			row.Cells = append(row.Cells, cell)
-		}
-		if !any && !row.Asked && row.Proposed == "" {
-			continue
-		}
-		// groups: the proposals behind each answer, to label consensus (PO-1)
-		groups := map[string][]domain.SemanticProposal{}
-		for _, p := range props {
-			if d := digestOf[p.ID]; d != "" {
-				groups[d] = append(groups[d], p)
-			}
-		}
-		consensus := 0
-		for i, d := range digests {
-			g := groups[d]
-			letter := string(rune('A' + i))
-			if n := distinctCalls(g); n >= 2 {
-				consensus++
-				row.Legend = append(row.Legend, groupLegend{letter, fmt.Sprintf("%s consensus · %d calls", domain.ConsensusScopeOf(g), n)})
-			} else {
-				row.Legend = append(row.Legend, groupLegend{letter, "single call"})
-			}
-		}
-		switch {
-		case len(digests) >= 2:
-			row.Status, row.StatusText = "disagree", fmt.Sprintf("disagree · %d variants", len(digests))
-		case consensus == 1:
-			g := groups[digests[0]]
-			row.Status, row.StatusText = "agree", fmt.Sprintf("consensus · %s · %d calls", domain.ConsensusScopeOf(g), distinctCalls(g))
-			if a == domain.AspectConsequence {
-				v.noteConsequenceConsensus(g)
-			}
-		case len(models) >= 1:
-			row.Status, row.StatusText = "single", "single call"
-		default:
-			row.Status, row.StatusText = "none", "no model committed"
-		}
-		v.Matrix = append(v.Matrix, row)
-	}
-}
+// buildMatrix was replaced by buildDiffer (english.go): the ux-v2 card shows
+// one plain row per differing aspect and collapses the agreeing ones.
 
 // distinctCalls counts the separate calls behind a group of proposals.
 func distinctCalls(ps []domain.SemanticProposal) int {
@@ -438,6 +467,20 @@ func (v *itemView) noteConsequenceConsensus(g []domain.SemanticProposal) {
 func newCorrectionView(a domain.SemanticAssertion, form url.Values) *correctionView {
 	c := &correctionView{Statement: a.Statement, HasSubject: a.Subject != nil, HasChange: a.Change != nil,
 		HasApplicability: a.Applicability != nil, HasConsequence: a.Consequence != nil}
+	// plain-English previews of what each fieldset currently says
+	c.PrevSubject = subjectPhrase(a.Subject)
+	if ch := a.Change; ch != nil {
+		c.PrevChange = changeSentence(a)
+	}
+	if ap := a.Applicability; ap != nil {
+		c.PrevApplicability = "Exposed: " + exposurePhrase(ap)
+		if ov := overlapPhrase(ap); ov != "" {
+			c.PrevApplicability += ". Shielded when " + ov
+		}
+	}
+	if cs := a.Consequence; cs != nil {
+		c.PrevConsequence = consequenceSentence(cs)
+	}
 	if s := a.Subject; s != nil {
 		c.SubjFamily, c.SubjProduct, c.SubjGroup, c.SubjVersion = string(s.Family), string(s.Product), s.Group, s.Version
 		c.SubjKind, c.SubjPath, c.SubjName, c.SubjComponent = s.Kind, s.Path, s.Name, s.Component
@@ -660,6 +703,8 @@ func funcs() template.FuncMap {
 			return ""
 		},
 		"label":    func(s any) string { return strings.ReplaceAll(fmt.Sprint(s), "-", " ") },
+		"mshort":   func(m string) string { return modelShort(m) },
+		"avatar":   func(m string) avatar { return avatarOf(m) },
 		"selected": func(a, b any) bool { return fmt.Sprint(a) == fmt.Sprint(b) },
 		"checked": func(xs []domain.FeedbackLabel, l domain.FeedbackLabel) bool {
 			return slices.Contains(xs, l)

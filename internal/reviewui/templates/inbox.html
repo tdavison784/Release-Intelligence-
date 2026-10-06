@@ -59,22 +59,23 @@
   {{if not .Rows}}<div class="empty"><h2>Nothing here</h2><p>No review items match this filter.</p></div>{{end}}
   <ol class="cards" id="cards">
   {{range .Rows}}
-    <li class="card" data-id="{{.Row.Item.ID}}" tabindex="-1">
+    <li class="card prio-{{.Row.Item.Routing.Priority}}" data-id="{{.Row.Item.ID}}" tabindex="-1">
       <div class="card-head">
         <input type="checkbox" class="sel" name="item" value="{{.Row.Item.ID}}" form="bulkform" aria-label="Select {{.Row.Item.ID}}" {{if not (eq .Row.Item.Status "pending" "needs-evidence" "deferred")}}disabled{{end}}>
         <button type="button" class="toggle" aria-expanded="false" aria-controls="d-{{.Row.Item.ID}}" data-detail="/items/{{.Row.Item.ID}}/detail?return={{$.Return | urlquery}}">
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
-            <span class="title">{{.Row.Title}}</span>
-            <span class="qtext">{{.Row.Item.Question}}</span>
+            <span class="title">{{.Question}}</span>
+            <span class="qtext">{{.Row.Title}}</span>
+            <span class="why {{.WhyTone}}">{{.Why}}</span>
+            <span class="sug"><b>Suggested:</b> {{.Suggested}}</span>
           </span>
         </button>
         <div class="meta">
-          <span class="badge">{{.Row.Item.Product}}{{if .Row.Item.Release}} {{.Row.Item.Release}}{{end}}</span>
-          <span class="badge soft">{{label .Row.Item.QuestionType}}</span>
-          {{if .Severity}}<span class="badge sev-{{.Severity}}">{{.Severity}}</span>{{end}}
-          <span class="badge prio-{{.Row.Item.Routing.Priority}}">{{.Row.Item.Routing.Priority}} priority</span>
+          <span class="badge accent">{{.Row.Item.Product}}{{if .Row.Item.Release}} {{.Row.Item.Release}}{{end}}</span>
+          {{if .HasClass}}<span class="badge {{.ClassTone}}">{{.ClassLabel}}</span>{{end}}
           <span class="badge agree-{{.Agreement}}" title="{{join ", " .Row.Models}} · {{.Row.Calls}} separate call(s)">{{.AgreeText}}</span>
+          <span class="badge prio-{{.Row.Item.Routing.Priority}}">{{.Row.Item.Routing.Priority}} priority</span>
           <span class="badge st-{{statusTone .Row.Item.Status}}">{{label .Row.Item.Status}}</span>
           <a class="open" href="{{.Href}}" title="Open as a page (deep link)">open ↗</a>
         </div>
