@@ -52,6 +52,11 @@ type renderCaseStat struct {
 	// rendered-change or a render check): what rendering actually decided.
 	DecidedByRender int `json:"decidedByRender"`
 	ActionByRender  int `json:"actionWithRenderEvidence"`
+	// CrdResolvedByRender counts CRD-rule findings whose identity question the
+	// FROM render's CRD documents resolved (renderedCRDResolution, PO-7a
+	// addendum 6): visibility-gap UNKNOWNs raised to review-required on
+	// rendered evidence, only in cases without an observed --crds input.
+	CrdResolvedByRender int `json:"crdResolvedByRender"`
 	// PO-3 (values defaults / new keys the customer leaves unset):
 	// DefaultExposed are impact:values-default-applies findings (an
 	// attributable rendered change), DefaultImages those whose attributed
@@ -127,6 +132,10 @@ func (r *renderEval) record(key string, run *app.ImpactRun) {
 		st.RestatedChanges = append(st.RestatedChanges, id)
 	}
 	sort.Strings(st.RestatedChanges)
+	renderedEvidence := map[domain.EvidenceID]bool{}
+	for _, x := range run.Report.EnvironmentEvidence {
+		renderedEvidence[x.ID] = x.Kind == domain.EvidenceRendered
+	}
 	for _, f := range run.Report.Findings {
 		if f.Classification == domain.ImpactUnknown {
 			st.Unknown++
@@ -135,6 +144,17 @@ func (r *renderEval) record(key string, run *app.ImpactRun) {
 			}
 			if restatedOK[f.ChangeID] {
 				st.UnknownRestatedOK++
+			}
+		}
+		// rendered-CRD resolutions: CRD-rule findings citing rendered evidence
+		// (renderedCRDResolution raises identity unknowns on the FROM render's
+		// CRD documents; observed --crds paths cite observed evidence instead)
+		if f.Classification == domain.ImpactReviewRequired {
+			for _, m := range f.Matches {
+				if (m.Kind == domain.MatchCRD || m.Kind == domain.MatchCRDVersion) && len(m.Evidence) > 0 && renderedEvidence[m.Evidence[0]] {
+					st.CrdResolvedByRender++
+					break
+				}
 			}
 		}
 		if f.Classification == domain.ImpactActionRequired {
@@ -207,9 +227,9 @@ func (r *renderEval) writeText(w io.Writer) {
 			fr = append(fr, fmt.Sprintf("%s %d", reason, n))
 		}
 		sort.Strings(fr)
-		fmt.Fprintf(w, "  %-70s renders %d/%d ok (failed %d, n/a %d, values incomplete %d, target rejects values %d%s) · %d rendered changes, %d undocumented · unknown %d, restated by a render %d (complete %d) · rendered-change leaves decided %d (ACTION %d) · ACTION corroborated by render %d/%d · unset defaults: exposed %d (image-only %d), cleared %d, render unavailable %d\n",
+		fmt.Fprintf(w, "  %-70s renders %d/%d ok (failed %d, n/a %d, values incomplete %d, target rejects values %d%s) · %d rendered changes, %d undocumented · unknown %d, restated by a render %d (complete %d) · rendered-change leaves decided %d (ACTION %d) · rendered CRDs resolved %d · ACTION corroborated by render %d/%d · unset defaults: exposed %d (image-only %d), cleared %d, render unavailable %d\n",
 			s.Case, s.Succeeded, s.Pairs, s.Failed, s.NotApplicable, s.Incomplete, s.TargetRejects, strings.TrimSuffix(" — "+strings.Join(fr, ", "), " — "),
-			s.Changes, s.Undocumented, s.Unknown, s.UnknownRestated, s.UnknownRestatedOK, s.DecidedByRender, s.ActionByRender, s.ActionCorroborated, s.Action, s.DefaultExposed, s.DefaultImages, s.DefaultCleared, s.DefaultUnavailable)
+			s.Changes, s.Undocumented, s.Unknown, s.UnknownRestated, s.UnknownRestatedOK, s.DecidedByRender, s.ActionByRender, s.CrdResolvedByRender, s.ActionCorroborated, s.Action, s.DefaultExposed, s.DefaultImages, s.DefaultCleared, s.DefaultUnavailable)
 		tot.Pairs += s.Pairs
 		tot.Succeeded += s.Succeeded
 		tot.Unknown += s.Unknown
@@ -217,6 +237,7 @@ func (r *renderEval) writeText(w io.Writer) {
 		tot.UnknownRestatedOK += s.UnknownRestatedOK
 		tot.DecidedByRender += s.DecidedByRender
 		tot.ActionByRender += s.ActionByRender
+		tot.CrdResolvedByRender += s.CrdResolvedByRender
 		tot.ActionCorroborated += s.ActionCorroborated
 		tot.Action += s.Action
 		tot.TargetRejects += s.TargetRejects
@@ -231,8 +252,8 @@ func (r *renderEval) writeText(w io.Writer) {
 	if tot.Pairs > 0 {
 		rate = float64(tot.Succeeded) / float64(tot.Pairs)
 	}
-	fmt.Fprintf(w, "  total: render success %d/%d (%.2f) · %d rendered changes (%d undocumented) · unknown %d, restated by a customer render %d (complete %d) · rendered-change leaves decided %d · ACTION with render evidence %d · ACTION corroborated by render %d/%d · target rejects values %d · unset defaults (PO-3): exposed %d (image-only %d), cleared %d, render unavailable %d\n",
-		tot.Succeeded, tot.Pairs, rate, tot.Changes, tot.Undocumented, tot.Unknown, tot.UnknownRestated, tot.UnknownRestatedOK, tot.DecidedByRender, tot.ActionByRender, tot.ActionCorroborated, tot.Action, tot.TargetRejects, tot.DefaultExposed, tot.DefaultImages, tot.DefaultCleared, tot.DefaultUnavailable)
+	fmt.Fprintf(w, "  total: render success %d/%d (%.2f) · %d rendered changes (%d undocumented) · unknown %d, restated by a customer render %d (complete %d) · rendered-change leaves decided %d · ACTION with render evidence %d · rendered CRDs resolved %d unknowns · ACTION corroborated by render %d/%d · target rejects values %d · unset defaults (PO-3): exposed %d (image-only %d), cleared %d, render unavailable %d\n",
+		tot.Succeeded, tot.Pairs, rate, tot.Changes, tot.Undocumented, tot.Unknown, tot.UnknownRestated, tot.UnknownRestatedOK, tot.DecidedByRender, tot.ActionByRender, tot.CrdResolvedByRender, tot.ActionCorroborated, tot.Action, tot.TargetRejects, tot.DefaultExposed, tot.DefaultImages, tot.DefaultCleared, tot.DefaultUnavailable)
 }
 
 // caseOf names the eval case an environment belongs to: the directory above
