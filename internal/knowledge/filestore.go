@@ -222,6 +222,24 @@ func sameRecord(a, b domain.KnowledgeRecord) (bool, error) {
 // an equal or more trusted one; ValidateFactBasis re-proves it on write).
 func mutableChange(old, next domain.KnowledgeRecord) error {
 	switch old.Kind {
+	case domain.RecordCandidate:
+		// CONTRACT-CHANGE(prtext): a candidate's evidence snapshot may GROW
+		// (linked PR/commit context, internal/linkedev): every stored record
+		// must survive in order, anything else must be identical. The id is
+		// member-derived, so it does not move.
+		a, b := *old.Candidate, *next.Candidate
+		if len(b.Evidence) >= len(a.Evidence) {
+			grown := true
+			for i := range a.Evidence {
+				grown = grown && a.Evidence[i].ID == b.Evidence[i].ID
+			}
+			if grown {
+				a.Evidence, b.Evidence = nil, nil
+				if reflect.DeepEqual(a, b) {
+					return nil
+				}
+			}
+		}
 	case domain.RecordReviewItem:
 		a, b := *old.ReviewItem, *next.ReviewItem
 		a.Status, b.Status = "", ""
@@ -261,6 +279,8 @@ func mutableChange(old, next domain.KnowledgeRecord) error {
 
 func mutableFields(k domain.RecordKind) string {
 	switch k {
+	case domain.RecordCandidate:
+		return "evidence, which may only grow"
 	case domain.RecordReviewItem:
 		return "status"
 	case domain.RecordFact:
