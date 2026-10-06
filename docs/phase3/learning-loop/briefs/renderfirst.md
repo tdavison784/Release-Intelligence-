@@ -31,3 +31,20 @@ internal/impact (knowledge composition). Branch `p3ll/renderfirst`.
    `docs/RENDER-FIRST.md`. Reply `LANE DONE: renderfirst`.
 
 Model: Opus.
+
+## Addendum (product owner, 2026-10-05): render CRDs locally as an environment input
+
+Helm renders already use `--include-crds` and kustomize builds include CRD bases, but the environment model's
+installed-CRDs dimension (`env.DimCRDs`) is filled only from a user-supplied `--crds` file — rendered CRDs are
+never fed in, so CRD-dependent questions go UNKNOWN or fall back to API-group evidence when `--crds` is absent.
+6. **Derive installed CRDs from the render of the customer's install at the FROM version** (helm template with
+   their values — honouring CRD gates such as `crds.enabled` / `installCRDs` exactly as they set them — and
+   `kustomize build` of their overlay): populate `DimCRDs` from rendered `CustomResourceDefinition` objects
+   with provenance `rendered (chart X@from, values digest …)`, distinct from observed `--crds`. Precedence: an
+   observed `--crds` input wins; a declared/detected separate CRD install path (CRDs gated off in the chart)
+   means the render says nothing about them ⇒ dimension stays absent/partial (absence is not knowledge), never
+   "no CRDs installed". Diff rendered CRDs FROM→TO (schema fields, versions, served/storage, defaults/enums)
+   with the customer's gates so CRD changes are evaluated against what they actually install.
+7. Tests (gated chart with CRDs on/off; kustomize base with CRDs; observed `--crds` overriding rendered;
+   separately-installed CRDs ⇒ partial) and report how many CRD-dependent UNKNOWNs this resolves on the eval
+   environments, with no new false ACTION.
