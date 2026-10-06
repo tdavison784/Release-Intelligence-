@@ -131,6 +131,7 @@ ri upgrade cert-manager v1.17.0 v1.18.0 -enrich # + AI clusters/explanations wit
 ri discover github.com/cert-manager/cert-manager -out proposed.yaml -report report.md
 ri semantic candidates cert-manager v1.17.0 v1.18.0  # learning loop: deterministic restatement clusters (docs/SEMANTIC.md)
 ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5 -llm-exchange /tmp/x -out /tmp/out
+ri evidence link cert-manager v1.17.0 v1.18.0  # learning loop: attach the referenced PR/commit text to stored candidates (docs/LINKED_EVIDENCE.md)
 ri knowledge route                              # learning loop: route candidates into review items / auto-verified facts (docs/KNOWLEDGE.md)
 ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts

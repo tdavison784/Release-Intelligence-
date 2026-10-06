@@ -36,6 +36,56 @@
         "excerpt": "* 606bd5b04393a06461d007d066da0f0d4a6c6d95: feat(rbac)!: disable fine-grained inheritance by default (#19988) (#20671) (@fffinkel)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-3c176b54b173",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/19988",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #19988): Enable fine-grained update/delete RBAC enforcement by default [closed; labels enhancement, component:rbac]\n### Summary\n\nIn 2.12 we introduced new RBAC for fine-grained update/delete in https://github.com/argoproj/argo-cd/pull/18124. To keep backward compatibility, the `applications, update` and `applications, delete` rbac implicitly grant permissions to update/delete application's resources.\n\n### Motivation\n\nStreamline behavior that was not possible without breaking changes.\n\n### Proposal\n\nWith the new fine-grained RBAC, `applications, update` and `applica…",
+        "contentDigest": "sha256:ae5ef1515a0dde17dd1074de0409b388584994bcf1c025afccc35814bf084fa5",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-e77b6a01ac75",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/19988",
+        "locator": "description (part 2)",
+        "excerpt": "Application, while `applications, update/*` and `applications, delete/*` are used for applications sub-resources.\n\nThe built-in policy should be updated to add `applications, update/*` and `applications, delete/*` for `role:admin` to preserve current privilege.",
+        "contentDigest": "sha256:ae5ef1515a0dde17dd1074de0409b388584994bcf1c025afccc35814bf084fa5",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-f1b8b1838187",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20671",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #20671): feat(rbac)!: disable fine-grained inheritance by default (#19988) [closed]\nWe would like to allow our engineers to use the rollback functionality while having auto-sync enabled, without granting them the ability to edit an application's sub-resource manifests. For compliance purposes, we can only deploy using a known set of manifests from a protected source, which is the git repo holding our manifests that engineers do not have access to.\n\nUsing the rollback functionality when auto-sync is enabled requires the user to disable auto-sync, which in turn requires…",
+        "contentDigest": "sha256:ac71f43705083151efcbafa8b36dbc5de0958cda62050bceeb1ffea3677833cf",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-12fd720b7580",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20671",
+        "locator": "description (part 2)",
+        "excerpt": "application itself. We can allow this by doing the following:\n\n```\np, my-user, applications, update, */*, allow\n```\n\nHowever, this will also allow engineers to edit application manifests. It follows that we would like to add a deny for the application's sub-resources, but as the RBAC documentation states, this deny is ignored.\n\nThis PR changes application resource RBAC to allow users to set separate update/delete permissions for the application itself, but still deny sub-resources. We can then do something like …",
+        "contentDigest": "sha256:ac71f43705083151efcbafa8b36dbc5de0958cda62050bceeb1ffea3677833cf",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-69d0a032cb9a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20671",
+        "locator": "changed files",
+        "excerpt": "7 changed file(s): assets/builtin-policy.csv, docs/operator-manual/rbac.md, docs/operator-manual/upgrading/2.14-3.0.md, server/application/application.go, server/application/application_test.go, util/settings/settings.go, util/settings/settings_test.go",
+        "contentDigest": "sha256:ac71f43705083151efcbafa8b36dbc5de0958cda62050bceeb1ffea3677833cf",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

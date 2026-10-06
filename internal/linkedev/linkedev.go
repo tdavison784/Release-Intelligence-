@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/fetch"
 	"github.com/tdavison784/release-intelligence/internal/github"
@@ -42,6 +43,39 @@ const (
 	descriptionChunk = 520
 	maxDescChunks    = 2
 )
+
+// fetchTarget reads t. A bare reference is looked up in the code repositories
+// first (see Options.CodeRepos), then where it was extracted; the resolved
+// target says where it was found. Any error other than not-found ends the
+// search (a throttle must stop the run, not be retried against another repo).
+func fetchTarget(ctx context.Context, f Fetcher, t Target, codeRepos []string) (*github.LinkedItem, Target, error) {
+	tries := []Target{t}
+	if t.Kind == "github-ref" {
+		tries = nil
+		own := strings.ToLower(t.Owner + "/" + t.Repo)
+		for _, r := range codeRepos {
+			if o, n, ok := strings.Cut(r, "/"); ok && strings.ToLower(r) != own {
+				c := t
+				c.Owner, c.Repo = o, n
+				c.URL = fmt.Sprintf("https://github.com/%s/%s/issues/%d", o, n, t.Number)
+				tries = append(tries, c)
+			}
+		}
+		tries = append(tries, t)
+	}
+	var err error
+	for _, c := range tries {
+		var it *github.LinkedItem
+		it, err = f.LinkedItem(ctx, c.Owner, c.Repo, c.Kind, c.Number, c.SHA)
+		if err == nil {
+			return it, c, nil
+		}
+		if !errors.Is(err, fetch.ErrNotFound) {
+			return nil, t, err
+		}
+	}
+	return nil, t, err
+}
 
 // Fetcher reads one linked item; *github.Client implements it.
 type Fetcher interface {
@@ -136,6 +170,33 @@ type Options struct {
 	MaxPerChange int       // referenced items fetched per change (default 4)
 	MaxFetches   int       // distinct items fetched per run (default 2000)
 	Now          time.Time // retrievedAt of the evidence (fetch time when zero)
+	// CodeRepos ("owner/name") are where a bare "#N" in the notes most likely
+	// lives: the product's version-source repositories (CodeReposOf). The
+	// ingested note carries the repository of the SOURCE it read (a docs
+	// repository for some products), which is not where such numbers point,
+	// so a bare reference is tried in these first and, if absent there, in
+	// the repository it was extracted with. Explicit URLs and owner/repo#N
+	// references are never re-targeted.
+	CodeRepos []string
+}
+
+// CodeReposOf returns the github repositories of the product's version
+// sources (github-releases / git-tags locators), in source priority order.
+func CodeReposOf(def *catalog.ProductDefinition) []string {
+	if def == nil {
+		return nil
+	}
+	var out []string
+	seen := map[string]bool{}
+	for _, src := range def.SourcesWithRole(domain.RoleVersions) {
+		repo := strings.TrimSuffix(strings.Trim(strings.TrimPrefix(strings.TrimPrefix(src.Locator.Repository, "https://"), "github.com/"), "/"), ".git")
+		if (src.Locator.Kind != catalog.LocatorGitHubReleases && src.Locator.Kind != "git-tags") || strings.Count(repo, "/") != 1 || seen[strings.ToLower(repo)] {
+			continue
+		}
+		seen[strings.ToLower(repo)] = true
+		out = append(out, repo)
+	}
+	return out
 }
 
 // Result is the outcome of Collect.
@@ -189,6 +250,7 @@ func Collect(ctx context.Context, f Fetcher, changes []domain.Change, opts Optio
 	type outcome struct {
 		status, detail string
 		ids            []domain.EvidenceID
+		target         Target
 	}
 	done := map[string]*outcome{}
 	haveEv := map[domain.EvidenceID]bool{}
@@ -196,18 +258,31 @@ func Collect(ctx context.Context, f Fetcher, changes []domain.Change, opts Optio
 		targets := TargetsOf(c.References)
 		for i, t := range targets {
 			l := Link{ChangeID: c.ID, Target: t}
-			switch o := done[t.Key()]; {
+			// a bare #N and an explicit reference to the same repo/number are
+			// different claims (the bare one may be re-targeted), so they do not
+			// share a result
+			ck := t.Key()
+			if t.Kind == "github-ref" {
+				ck = "bare:" + ck
+			}
+			switch o := done[ck]; {
 			case i >= opts.MaxPerChange:
 				l.Status, l.Detail = StatusCapped, fmt.Sprintf("more than %d referenced items on one change", opts.MaxPerChange)
 			case o != nil:
 				l.Status, l.Detail, l.Evidence = o.status, o.detail, o.ids
+				if o.target.Owner != "" {
+					l.Target = o.target
+				}
 			case res.Throttled:
 				l.Status, l.Detail = StatusThrottled, "not fetched: an earlier request was rate limited"
 			case res.Fetches >= opts.MaxFetches:
 				l.Status, l.Detail = StatusCapped, fmt.Sprintf("more than %d items in one run", opts.MaxFetches)
 			default:
 				res.Fetches++
-				item, err := f.LinkedItem(ctx, t.Owner, t.Repo, t.Kind, t.Number, t.SHA)
+				item, resolved, err := fetchTarget(ctx, f, t, opts.CodeRepos)
+				if err == nil {
+					l.Target = resolved
+				}
 				switch {
 				case errors.Is(err, fetch.ErrThrottled):
 					res.Throttled = true
@@ -218,16 +293,23 @@ func Collect(ctx context.Context, f Fetcher, changes []domain.Change, opts Optio
 					l.Status, l.Detail = StatusThrottled, err.Error()
 				case errors.Is(err, fetch.ErrNotFound):
 					l.Status, l.Detail = StatusNotFound, "the item does not exist or is not visible to this token"
-					done[t.Key()] = &outcome{status: l.Status, detail: l.Detail}
+					done[ck] = &outcome{status: l.Status, detail: l.Detail}
 				case err != nil:
 					l.Status, l.Detail = StatusError, err.Error()
-					done[t.Key()] = &outcome{status: l.Status, detail: l.Detail}
+					done[ck] = &outcome{status: l.Status, detail: l.Detail}
 				default:
 					at := opts.Now
 					if at.IsZero() {
 						at = time.Now()
 					}
-					evs := EvidenceFor(item, at)
+					cited := ""
+					if t.Kind == "github-ref" {
+						cited = "#" + strconv.Itoa(t.Number)
+						if !strings.EqualFold(resolved.Owner+"/"+resolved.Repo, t.Owner+"/"+t.Repo) {
+							l.Detail = fmt.Sprintf("bare #%d resolved in %s/%s (the notes' own repository is %s/%s)", t.Number, resolved.Owner, resolved.Repo, t.Owner, t.Repo)
+						}
+					}
+					evs := EvidenceForCited(item, at, cited)
 					for _, e := range evs {
 						l.Evidence = append(l.Evidence, e.ID)
 						if !haveEv[e.ID] {
@@ -236,7 +318,7 @@ func Collect(ctx context.Context, f Fetcher, changes []domain.Change, opts Optio
 						}
 					}
 					l.Status = StatusFetched
-					done[t.Key()] = &outcome{status: l.Status, ids: l.Evidence}
+					done[ck] = &outcome{status: l.Status, detail: l.Detail, ids: l.Evidence, target: l.Target}
 				}
 			}
 			res.Links = append(res.Links, l)
@@ -275,6 +357,13 @@ func cleanBody(s string) string {
 // domain.MaxExcerpt, and ids are content-derived (item digest included), so
 // re-running on unchanged content reproduces the same ids.
 func EvidenceFor(it *github.LinkedItem, at time.Time) []domain.Evidence {
+	return EvidenceForCited(it, at, "")
+}
+
+// EvidenceForCited is EvidenceFor for an item the notes cited as `cited`
+// ("#7553") rather than by URL; the spelling is part of the first record, so
+// a reviewer can see the repository was inferred.
+func EvidenceForCited(it *github.LinkedItem, at time.Time, cited string) []domain.Evidence {
 	kind := domain.EvidenceLinkedPR
 	label := "PR"
 	switch it.Kind {
@@ -287,6 +376,9 @@ func EvidenceFor(it *github.LinkedItem, at time.Time) []domain.Evidence {
 		return domain.NewEvidence(kind, Producer, it.URL, locator, excerpt, it.Digest, at)
 	}
 	head := fmt.Sprintf("%s: %s", label, it.Title)
+	if cited != "" {
+		head = fmt.Sprintf("%s (cited in the notes as %s): %s", label, cited, it.Title)
+	}
 	if it.State != "" || len(it.Labels) > 0 {
 		var meta []string
 		if it.State != "" {

@@ -36,6 +36,56 @@
         "excerpt": "* 7b1ed5218ae864d60792b7f424c13b7375a141ff: fix: On deployed trigger must consider race between last transition time and sync finished time (#9070) (#21944) (@andrii-korotkov-verkada)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-a5387388a48d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/9070",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #9070): Argo CD Notifications: the on-deployed trigger will trigger when Progressing instead of only Healthy [closed; labels bug]\nI'm using Argo CD v2.3.3 (both client and server) which has the built in notifications functionality.\n\n**Describe the bug**\n\nWhen using the `on-deployed` trigger which has:\n\n```yaml\n- when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'\n```\n\nIt will get triggered when progressing which is much different than healthy. Progressing can happen when something is unable to be deployed successfully (i…",
+        "contentDigest": "sha256:03bc913e1e68afe00cce3fd23d278eb515fd606a473154e62a92fccaadb460ca",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-54ad0a8bb848",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/9070",
+        "locator": "description (part 2)",
+        "excerpt": "`image:` tag to use `abc123` or any tag that you know won't exist.\n\n**Expected behavior**\n\nThe `on-deployed` trigger wouldn't fire because while the app did sync successfully, this deploy is not healthy. Technically the \"old\" deploy is healthy. The deploy that triggered this event has a pod in an error state while the health is considered \"Progressing\" not \"Healthy\" since it can't start (which is expected) which feels like this trigger is giving out false information.\n\n**Actual behavior**\n\nThe `on-deployed` trigger …",
+        "contentDigest": "sha256:03bc913e1e68afe00cce3fd23d278eb515fd606a473154e62a92fccaadb460ca",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-d739527c46a6",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21944",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21944): fix: On deployed trigger must consider race between last transition time and sync finished time (#9070) [closed; labels ready-for-review]\nFixes #9070\n\nThere are cases during legitimate sync/deploy, when the last transition time is like 1 second before the operation finished time. In theory, the gap can be a bit bigger if there are more sync waves that don't do any updates. So giving some more gap of 1 minute.\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the co…",
+        "contentDigest": "sha256:0310d671536bc3cde278b743df1add6c8cd5e63dee6d524c95b19c1aa8162cb5",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-1e75f33f5782",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21944",
+        "locator": "description (part 2)",
+        "excerpt": "The title of the PR states what changed and the related issues number (used for the release note).\n* [x] The title of the PR conforms to the [Toolchain Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [x] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [ ] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR with them.\n* [ ] Does this PR require documentation …",
+        "contentDigest": "sha256:0310d671536bc3cde278b743df1add6c8cd5e63dee6d524c95b19c1aa8162cb5",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-d7cc48e99b69",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21944",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): notifications_catalog/install.yaml, notifications_catalog/triggers/on-deployed.yaml",
+        "contentDigest": "sha256:0310d671536bc3cde278b743df1add6c8cd5e63dee6d524c95b19c1aa8162cb5",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

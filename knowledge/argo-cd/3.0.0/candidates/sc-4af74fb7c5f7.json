@@ -36,6 +36,56 @@
         "excerpt": "* 5b79c34c72300e6e2e6336051ce6992f6d54011c: fix: New kube applier for server side diff dry run with refactoring (#21488) (#21749) (@andrii-korotkov-verkada)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-bb9e7540628e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21488",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #21488): Server-Side Diff breaks Ingress modifications [closed; labels bug, feature:server-side-diff, component:diff, component:application-controller, version:2.13]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nDue to us enabling `strict-validate-path-type` in ingress-nginx, we had to modify some `PathType` in our Ingresses managed by helm via argocd. However argocd breaks when server-side diff is …",
+        "contentDigest": "sha256:552880fc1a98620f42a3dd9548f285f1b63bd4630340fd6c65dee665712ec5fc",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-53a4634f1a2c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21488",
+        "locator": "description (part 2)",
+        "excerpt": "a helm chart that has an ingress with a PathType change\n- ArgoCD fails with:\n\n```\nunmarshal error: invalid character '.' after top-level value\n\nFailed to compare desired state to live state: failed to calculate diff: error calculating server side diff: serverSideDiff error: error converting json string to unstructured for resource Ingress/xxx: unmarshal error: invalid character '.' after top-level value\n```\n\nHere is an example Ingress where we have the issue:\n\n```\napiVersion: networking.k8s.io/v1\nkind: Ingress …",
+        "contentDigest": "sha256:552880fc1a98620f42a3dd9548f285f1b63bd4630340fd6c65dee665712ec5fc",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-b0d8cf4ba6aa",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21749",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21749): fix: New kube applier for server side diff dry run with refactoring (#21488) [closed]\nFixes: #21488\n\nUse the new kube applier from gitops engine, which avoid the error arising from concatenating kube command stderr to stdout.\n\nNeeds to be cherry-picked to v2.14, but need a manual PR due to referencing v3 vs v2.\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The titl…",
+        "contentDigest": "sha256:50d77676fecfb7b3e9e3cb53f5c110bc6fd95b1639762a66c840e4fbb13aa1fb",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-4e5d2df6765a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21749",
+        "locator": "description (part 2)",
+        "excerpt": "related issues number (used for the release note).\n* [x] The title of the PR conforms to the [Toolchain Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [x] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [ ] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR with them.\n* [ ] Does this PR require documentation updates?\n* [ ] I've updated documentation as …",
+        "contentDigest": "sha256:50d77676fecfb7b3e9e3cb53f5c110bc6fd95b1639762a66c840e4fbb13aa1fb",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-ecf742cef7d1",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21749",
+        "locator": "changed files",
+        "excerpt": "7 changed file(s): cmd/argocd/commands/admin/app.go, controller/appcontroller.go, controller/state.go, controller/sync.go, go.mod, go.sum, util/kube/kubectl.go",
+        "contentDigest": "sha256:50d77676fecfb7b3e9e3cb53f5c110bc6fd95b1639762a66c840e4fbb13aa1fb",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

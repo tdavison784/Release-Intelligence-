@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/fetch"
 	"github.com/tdavison784/release-intelligence/internal/github"
@@ -228,5 +229,71 @@ func TestChunkingHandlesHostileText(t *testing.T) {
 				t.Error("chunk split a rune")
 			}
 		}
+	}
+}
+
+// A bare #N in notes read from a docs repository points at the code
+// repository: it is looked up there first, falls back to the notes' own
+// repository, and the evidence says it was inferred. Explicit references are
+// never re-targeted.
+func TestBareReferencesResolveInTheCodeRepository(t *testing.T) {
+	bare := func(owner, repo string, n int) domain.Reference {
+		return ref("github-ref", fmt.Sprintf("%s/%s#%d", owner, repo, n), fmt.Sprintf("https://github.com/%s/%s/issues/%d", owner, repo, n))
+	}
+	code := &github.LinkedItem{Kind: github.LinkedPullRequest, Owner: "o", Repo: "code", Number: 7, URL: "https://github.com/o/code/pull/7", Title: "the PR", Digest: "d1"}
+	docs := &github.LinkedItem{Kind: github.LinkedIssue, Owner: "o", Repo: "docs", Number: 8, URL: "https://github.com/o/docs/issues/8", Title: "docs issue", Digest: "d2"}
+	f := &fakeFetcher{items: map[string]*github.LinkedItem{"o/code#7": code, "o/docs#8": docs}}
+	changes := []domain.Change{
+		chg("a", bare("o", "docs", 7)), // exists only in the code repo
+		chg("b", bare("o", "docs", 8)), // exists only in the docs repo: the fallback
+		chg("c", ref("pull-request", "o/docs#7", "https://github.com/o/docs/pull/7")), // explicit: stays in docs, not found
+		chg("d", bare("o", "docs", 99)),
+	}
+	res := Collect(context.Background(), f, changes, Options{Now: t0, CodeRepos: []string{"o/code"}})
+	if got := strings.Join(f.calls, " "); got != "o/code#7 o/code#8 o/docs#8 o/docs#7 o/code#99 o/docs#99" {
+		t.Errorf("lookup order = %q", got)
+	}
+	by := map[string]Link{}
+	for _, l := range res.Links {
+		by[l.ChangeID] = l
+	}
+	if by["a"].Status != StatusFetched || by["a"].Target.Repo != "code" || !strings.Contains(by["a"].Detail, "resolved in o/code") {
+		t.Errorf("a = %+v", by["a"])
+	}
+	if by["b"].Status != StatusFetched || by["b"].Target.Repo != "docs" || by["b"].Detail != "" {
+		t.Errorf("b = %+v", by["b"])
+	}
+	if by["c"].Status != StatusNotFound || by["d"].Status != StatusNotFound {
+		t.Errorf("c/d = %s / %s", by["c"].Status, by["d"].Status)
+	}
+	var first string
+	for _, e := range res.Evidence {
+		if e.URI == "https://github.com/o/code/pull/7" && e.Locator == "title and description" {
+			first = e.Excerpt
+		}
+	}
+	if first != "PR (cited in the notes as #7): the PR" {
+		t.Errorf("excerpt = %q", first)
+	}
+	// without code repositories nothing changes
+	f2 := &fakeFetcher{items: f.items}
+	Collect(context.Background(), f2, changes[:1], Options{Now: t0})
+	if strings.Join(f2.calls, " ") != "o/docs#7" {
+		t.Errorf("calls = %v", f2.calls)
+	}
+}
+
+func TestCodeReposOf(t *testing.T) {
+	def := &catalog.ProductDefinition{Sources: []catalog.Source{
+		{ID: "notes", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Locator: catalog.Locator{Kind: "repo-file", Repository: "github.com/o/website"}},
+		{ID: "rel", Roles: []domain.SourceRole{domain.RoleVersions}, Priority: 0, Locator: catalog.Locator{Kind: catalog.LocatorGitHubReleases, Repository: "o/code"}},
+		{ID: "tags", Roles: []domain.SourceRole{domain.RoleVersions}, Priority: 1, Locator: catalog.Locator{Kind: "git-tags", Repository: "github.com/O/Code.git"}},
+		{ID: "gl", Roles: []domain.SourceRole{domain.RoleVersions}, Priority: 2, Locator: catalog.Locator{Kind: "git-tags", Repository: "gitlab.example.com/a/b/c"}},
+	}}
+	if got := CodeReposOf(def); len(got) != 1 || got[0] != "o/code" {
+		t.Errorf("code repos = %v (the docs repo, the duplicate and the non-github host are not code repositories)", got)
+	}
+	if CodeReposOf(nil) != nil {
+		t.Error("nil definition")
 	}
 }

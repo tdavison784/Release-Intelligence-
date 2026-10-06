@@ -93,7 +93,9 @@ func (c *cli) evidenceCmd(args []string) error {
 		if err != nil {
 			return fmt.Errorf("%s %s→%s: %w", e[0], e[1], e[2], err)
 		}
-		res := linkedev.Collect(c.ctx, gh, edge.Changes, linkedev.Options{MaxPerChange: *perChange, MaxFetches: *maxFetches, Now: edge.GeneratedAt})
+		def, _ := a.Catalog.Get(e[0])
+		res := linkedev.Collect(c.ctx, gh, edge.Changes, linkedev.Options{MaxPerChange: *perChange, MaxFetches: *maxFetches, Now: edge.GeneratedAt,
+			CodeRepos: linkedev.CodeReposOf(def)})
 		srep, err := linkedev.Apply(c.ctx, store, domain.ProductID(e[0]), edge.Changes, edge.Evidence, res, *dry)
 		if err != nil {
 			return err
