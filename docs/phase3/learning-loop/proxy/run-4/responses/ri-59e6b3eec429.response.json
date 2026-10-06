@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-59e6b3eec429",
+  "promptDigest": "sha256:578fa966d4adc9f1796d73814da7ea4c5d1fd0a3c5ab89fb65cb0110c50deecd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0a014208-54de-4b3e-93c4-af1a5878b2ab",
+  "startedAt": "2026-10-06T01:43:50.869Z",
+  "decidedAt": "2026-10-06T01:44:04.313Z",
+  "durationMs": 10909,
+  "costUSD": 0.115564,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PRs give what the one-line note leaves out. PR #20981 added graceful shutdown to the API server; without it, the API server \"will eventually return 502 during rolling update\" [ev-36db2d7dc61b], and it touched argocd-server, server.go and the redis/session code [ev-5edb143d99bd]. PR #21221 removed the whole change, including the e2e test, because it used syscall.SIGUSR1, which broke the Windows build and was \"blocking the 2.14 release\" [ev-c8ffbd25b5c2, ev-474be21313fd]. So an engineer can write the open aspects: the change applies to any deployment that runs argocd-server, with no setting involved, and the consequence is that the API server goes back to shutting down without the graceful handling, which can cause 502s during rolling updates. The evidence also suggests the fix was reverted before 2.14 shipped and so may never have been in a release, which would make this informational with no net behavior change from the previous release.",
+    "citations": [
+      "ev-d29ce67c9aa8",
+      "ev-36db2d7dc61b",
+      "ev-5edb143d99bd",
+      "ev-c8ffbd25b5c2",
+      "ev-474be21313fd"
+    ],
+    "confidence": "low"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7669b8524d3b",
+  "promptDigest": "sha256:9d48aac182c6a069b8be8ee8da9db209fdb39a959f074c2646840051bbbeb618",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5768134d-f95c-4f72-b18c-ad961b99d59d",
+  "startedAt": "2026-10-06T01:46:56.383Z",
+  "decidedAt": "2026-10-06T01:47:08.773Z",
+  "durationMs": 11517,
+  "costUSD": 0.151644,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-61ba1e0463de] says the bug affects deployments served under a custom base path: the history API adds the base path automatically, so the fix strips it from the return URL. The fix changed only UI files [ev-14505230d8c4]. Nothing in the evidence links this to an argocd-server `--server` flag, so the proposed cli-flag leaf names the wrong setting. The evidence also never names the setting that configures the base path, so that part can only be an evidence-gap leaf, combined with the from-version check.",
+    "citations": [
+      "ev-a6fc1c17efbb",
+      "ev-61ba1e0463de",
+      "ev-14505230d8c4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Bug fix: after login, the return_url redirect now works when the Argo CD UI is served under a custom base path. Exposed: environments upgrading from below 3.0.0 that serve the UI under a custom base path. The evidence does not name the setting that configures the base path.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "range": "<3.0.0",
+              "state": "in-range"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which argocd-server setting configures the custom base path for the UI; the release note and PR #21588 only say 'custom server paths' / 'base path' without naming the setting"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-191990b0a284",
+  "promptDigest": "sha256:0c3b41403583a32566d15d502da67969e04ee9b0a71c8c5af11f162353424d66",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "92faa6fe-dc47-4225-b7dc-287d946aad2c",
+  "startedAt": "2026-10-06T01:38:04.628Z",
+  "decidedAt": "2026-10-06T01:38:14.330Z",
+  "durationMs": 8842,
+  "costUSD": 0.092352,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release-note line is truncated [ev-4d5a8d4c450d], but the linked PR states the change concretely. The subject is the application controller's Dynamic Cluster Distribution sharding. The bug: when the shard configmap `argocd-app-controller-shard-cm` exists and there is more than one replica, a controller pod restarted by an image update or eviction gets shard number -1. That shard then processes no applications, and the applications get stuck in refreshing [ev-216c1792aec9]. The fix makes the readiness health check update `clusterSharding.shard` and `liveStateCache.clusterSharding.shard` when the shard number has changed, then resync all applications [ev-fc6423b07d19]. The changed files are all in controller sharding and cache code [ev-264f7cba20c6]. Together this is enough to write the subject, the change (a behaviour fix), who is exposed (dynamic distribution with the shard configmap and replicas > 1) and the consequence (on a pod restart, that shard's applications stop being processed).",
+    "citations": [
+      "ev-216c1792aec9",
+      "ev-fc6423b07d19",
+      "ev-264f7cba20c6",
+      "ev-4d5a8d4c450d"
+    ],
+    "confidence": "medium"
+  }
+}

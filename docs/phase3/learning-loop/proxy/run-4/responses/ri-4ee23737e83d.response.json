@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4ee23737e83d",
+  "promptDigest": "sha256:904f98db7b2c2124a3f9afe8dafac9d041900b0e7f80da4dfaf684758fec2665",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a8e2cfc9-6a32-4093-a4c8-b9001bb76ec7",
+  "startedAt": "2026-10-06T01:43:07.756Z",
+  "decidedAt": "2026-10-06T01:43:18.957Z",
+  "durationMs": 10340,
+  "costUSD": 0.10660800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "The linked issue [ev-faa4a8aadfad][ev-2c224906fce2] describes this as a bug: since 2.14, server informers returned read-only objects that were being modified, and the Argo CD Server crashed often. The PR [ev-49b2bc313e8b][ev-28eb892e1e02] fixes this inside the server code by making deep copies (it adds a deepinformer wrapper). No setting, default, API or output that an operator relies on changes. If the operator does nothing, they get the fix and the server should crash less, so there is nothing to review. The consequence is none (informational), not a behavior-change for review.",
+    "citations": [
+      "ev-f9d32317b49c",
+      "ev-faa4a8aadfad",
+      "ev-2c224906fce2",
+      "ev-49b2bc313e8b",
+      "ev-28eb892e1e02"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 server now returns deep copies of objects from its informers instead of read-only shared objects. This fixes server crashes reported since 2.14 and has no operational consequence for operators.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "This is an internal bug fix in the API server: informer objects are deep-copied before use, so they are no longer modified in place. The upstream issue says this was causing frequent server crashes. Operators do not need to act or check anything; the fix only means fewer crashes."
+      }
+    }
+  }
+}

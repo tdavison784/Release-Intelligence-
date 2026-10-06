@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ef4202ddf755",
+  "promptDigest": "sha256:0d7b79308cb35c89e37bc7b29ec85a65c77991ac9d8f02da52e39b294e877810",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "fc733041-0446-4a0d-abbe-1bfb3bd94be4",
+  "startedAt": "2026-10-06T01:58:28.248Z",
+  "decidedAt": "2026-10-06T01:58:41.428Z",
+  "durationMs": 12296,
+  "costUSD": 0.163028,
+  "output": {
+    "action": "correct",
+    "reason": "The bug is that when the exponential self-heal backoff delay exceeds the cap (`controller.self.heal.backoff.cap.seconds`), the controller uses the previously calculated delay instead of the cap [ev-37aaf197103c][ev-40fea6ee954f][ev-b07db6984567]. No evidence mentions a `--self-heal` CLI flag. Using `gvk-in-use` on Application would flag every Argo CD environment, so the proposed condition is both unsupported and far too broad. Exposure depends on whether self-heal attempts repeat at runtime until the computed delay passes the cap, which no static configuration shows.",
+    "citations": [
+      "ev-8a18453dbaf5",
+      "ev-37aaf197103c",
+      "ev-40fea6ee954f",
+      "ev-b07db6984567"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Bug fix in the application controller: when the exponential self-heal backoff delay exceeds controller.self.heal.backoff.cap.seconds, the delay is now capped at that maximum instead of the previously calculated delay. Exposure depends on runtime self-heal retry behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether self-healing applications go through enough consecutive self-heal attempts at runtime that the computed backoff delay exceeds controller.self.heal.backoff.cap.seconds"
+        }
+      }
+    }
+  }
+}

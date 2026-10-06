@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bb7816e88aae",
+  "promptDigest": "sha256:d1df277e99a455b3ea9267f6f793da8f346b8c1fe16f95f786580e1ac6a58824",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c10b195a-3da3-4ca4-bfeb-4aa51d3f6e0f",
+  "startedAt": "2026-10-06T01:54:03.404Z",
+  "decidedAt": "2026-10-06T01:54:10.332Z",
+  "durationMs": 5907,
+  "costUSD": 0.084608,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-c4924df5cd52] states the problem concretely: the memcached cache client's `Fetch` lost the request context inside `fetchKeysBatched`, so it kept fetching keys after the client cancelled. The fix checks `ctx.Done()` before sending work to `inputCh`, so batch fetch now stops when the context is cancelled. [ev-78772d0770ff] adds a `stopped` flag so already-closed channels are not closed twice, and updates the tests. Together with the changed files in pkg/storage/chunk/cache/memcached.go [ev-050599e0c6d9], this is enough to write the open aspects. Applicability: deployments that use memcached as a cache backend. Consequence: an internal bugfix that changes behaviour, needs no operator action and has no stated config change.",
+    "citations": [
+      "ev-c4924df5cd52",
+      "ev-78772d0770ff",
+      "ev-050599e0c6d9",
+      "ev-45b15b165cfe"
+    ],
+    "confidence": "medium"
+  }
+}

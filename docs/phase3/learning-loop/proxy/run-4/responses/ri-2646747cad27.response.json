@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2646747cad27",
+  "promptDigest": "sha256:9a04e86d042ea11b26f8f5b31e52d0aa3bae5bb69a95a00e0e0a216ed6c4e015",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "93ffec36-1ad3-4edd-9ad4-adb4863f5ed6",
+  "startedAt": "2026-10-06T01:39:33.120Z",
+  "decidedAt": "2026-10-06T01:39:42.731Z",
+  "durationMs": 8750,
+  "costUSD": 0.071164,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-c7ca6ba37e4a] says this change adds the Brotli compression algorithm to Traefik. It carries the \"breaking\" label and says that a request with `Accept-Encoding: *` now gets a compressed (Brotli) response where it used to get an uncompressed one. [ev-1e73c4689517] adds that when the header is present but empty, compression is disabled. The changed files [ev-efb242390d83] (docs/content/middlewares/http/compress.md, pkg/middlewares/compress/*, pkg/config/dynamic/middlewares.go) show the subject is the HTTP Compress middleware, so the subject and applicability can be written: setups using the compress middleware, with clients sending a wildcard or empty Accept-Encoding header. Both proposals cited only the one-line changelog [ev-ae9158566d1b] and missed this breaking behaviour change; the PR text about a missing Accept-Encoding header is cut off, so that one detail is incomplete.",
+    "citations": [
+      "ev-c7ca6ba37e4a",
+      "ev-1e73c4689517",
+      "ev-efb242390d83",
+      "ev-ae9158566d1b"
+    ],
+    "confidence": "medium"
+  }
+}

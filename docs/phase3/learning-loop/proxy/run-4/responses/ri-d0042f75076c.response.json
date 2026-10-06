@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d0042f75076c",
+  "promptDigest": "sha256:37eb9e744174adbfd99a78ea02e1f33d3da7f10e691811473aada75807550ddc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7d195e9d-a6c2-4e06-9263-43de53f1ae74",
+  "startedAt": "2026-10-06T01:55:49.848Z",
+  "decidedAt": "2026-10-06T01:56:01.136Z",
+  "durationMs": 10407,
+  "costUSD": 0.18148,
+  "output": {
+    "action": "correct",
+    "reason": "The PR changes only production/helm/loki/templates/write/statefulset-write.yaml [ev-2decf605ed93], so the write pods are a StatefulSet. The proposed condition's Deployment check is the wrong kind. Its `write` set check is also wrong: the chart renders write pods whether or not the user sets that key, and the evidence names no values key as a gate [ev-73055e956e96][ev-da504ac29a37]. The exposed environments are those where the rendered write StatefulSet's preStop hook differs between releases, which a rendered-change condition expresses.",
+    "citations": [
+      "ev-2decf605ed93",
+      "ev-73055e956e96",
+      "ev-da504ac29a37"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 Helm chart: the write StatefulSet's preStop hook now calls `/ingester/shutdown`. Exposed: environments whose rendered write StatefulSet's container preStop lifecycle changes between the from and to chart releases.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "StatefulSet",
+          "group": "apps",
+          "path": "spec.template.spec.containers[].lifecycle.preStop",
+          "state": "changed"
+        }
+      }
+    }
+  }
+}

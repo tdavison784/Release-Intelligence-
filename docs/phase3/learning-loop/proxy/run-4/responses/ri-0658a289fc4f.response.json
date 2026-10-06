@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0658a289fc4f",
+  "promptDigest": "sha256:abdcb39573fa0c7b2c5ca4661a0ca532fe4a1b8e0b969f5a8a07bb4ee22d7138",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f5fc3071-2626-4983-b1fa-24b3a073a1c9",
+  "startedAt": "2026-10-06T01:36:25.728Z",
+  "decidedAt": "2026-10-06T01:36:43.492Z",
+  "durationMs": 17083,
+  "costUSD": 0.168108,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-508cd6635da3] defines a malformed resource as one that applies to the whole cluster but has metadata.namespace set. The repo-server can't tell cluster-scoped from namespaced resources, so it may write the wrong tracking annotation, and the controller now corrects it [ev-9fdf3ef2828b]. The proposal's claim that 'malformed' is undefined is wrong. Exposure still depends on which resource types are cluster-scoped (including custom types), which only the live cluster knows, so an undecidable leaf with the PR's definition is the correct condition.",
+    "citations": [
+      "ev-508cd6635da3",
+      "ev-9fdf3ef2828b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0's controller fixes the tracking annotation that the repo-server may have written wrongly on cluster-scoped resources whose manifests have metadata.namespace set. An environment is exposed only if its Applications manage such resources. That depends on which resource types are cluster-scoped, which only the live cluster knows.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any Application manages a cluster-scoped resource whose manifest sets metadata.namespace (the PR's definition of malformed). Whether a type is cluster-scoped, including custom types, is known only from the live cluster's API discovery."
+        }
+      }
+    }
+  }
+}

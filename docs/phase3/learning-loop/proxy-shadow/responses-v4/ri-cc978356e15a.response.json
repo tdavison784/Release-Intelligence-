@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-cc978356e15a",
+  "promptDigest": "sha256:55c9866042b4468b1b4d1dc602b088c3191156289cb7cca04d9035ac5ce5d77a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8b525a2d-81c1-4986-aeaa-9b837bfb7bd0",
+  "startedAt": "2026-10-06T02:00:41.483Z",
+  "decidedAt": "2026-10-06T02:00:54.350Z",
+  "durationMs": 11925,
+  "costUSD": 0.089676,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c544b606e326] says v1 is \"fully dropping support for the ConfigMap-based configuration for our logging\", and [ev-cf5b63caae53] shows the chart template configmap-logging.yaml was removed. That supports setting-ignored for ConfigMap-based logging configuration. However, the proposed statement and remediation say the configuration must move to \"Log Paths\", and no evidence describes Log Paths or says it replaces the ConfigMap settings. I narrowed the consequence to what the evidence supports.",
+    "citations": [
+      "ev-c544b606e326",
+      "ev-cf5b63caae53",
+      "ev-6ec6b4ea132d"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Karpenter v1.0.0, support for ConfigMap-based logging configuration is dropped and the chart's configmap-logging.yaml template is removed. Logging settings supplied through that ConfigMap are no longer honoured.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "Environments that configure Karpenter logging through the ConfigMap-based logging configuration will have those settings no longer honoured after upgrading to v1.0.0. Upstream has fully dropped support for that configuration, and the chart no longer renders the logging ConfigMap.",
+        "remediation": "Before upgrading, review any ConfigMap-based Karpenter logging configuration and reconfigure logging through the settings the v1.0.0 chart still supports. The evidence does not say which replacement settings to use."
+      }
+    }
+  }
+}

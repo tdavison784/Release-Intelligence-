@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-365cabbf9d8c",
+  "promptDigest": "sha256:aefcc394e07a49993a4974732cbcd611a8e9ccdca05d1b253192410219a168f0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cbedc49b-ec86-42fb-960f-bbfd185992c5",
+  "startedAt": "2026-10-06T01:41:05.149Z",
+  "decidedAt": "2026-10-06T01:41:21.802Z",
+  "durationMs": 15938,
+  "costUSD": 0.16348400000000002,
+  "output": {
+    "action": "correct",
+    "reason": "The setting can be identified, so a semantic-ambiguity undecidable leaf is wrong. The linked PR [ev-043428f564d1] names it as PACKAGE_RUNTIME, shown in env-var form, and says the old form \"PACKAGE_RUNTIME=External\" still works; the new PACKAGE_RUNTIME=Independent plus PACKAGE_FUNCTION_RUNTIME options are added, and providers stay Deployments by default. The other change in the PR applies only when the runtime is External: the TLS Server/Client Secret is no longer set by the Revision Parent, and Crossplane now reads the secret names from the Revision status [ev-93b2baca7cff]. Exposure is therefore environments that set PACKAGE_RUNTIME=External; environments that do not set it keep the default Deployment runtime.",
+    "citations": [
+      "ev-043428f564d1",
+      "ev-93b2baca7cff",
+      "ev-9f3e6474c9d8"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Crossplane 2.0.0 splits the PACKAGE_RUNTIME setting so functions (PACKAGE_FUNCTION_RUNTIME, enabled by PACKAGE_RUNTIME=Independent) and providers can use different runtimes. The old PACKAGE_RUNTIME=External still works, but with the External runtime the Revision Parent no longer sets TLS secrets; their names now come from the Revision status. Exposed: environments setting PACKAGE_RUNTIME=External.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "env-var",
+          "name": "PACKAGE_RUNTIME",
+          "state": "equals",
+          "values": [
+            "External"
+          ]
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

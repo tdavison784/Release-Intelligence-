@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-de76c42b9cbb",
+  "promptDigest": "sha256:365c66cf94fe6b32e6be06c04a54abc56f19fadb81b1b1cf46e565281b1708e1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b59f8829-56b0-4046-8c37-25b3313f563b",
+  "startedAt": "2026-10-06T01:57:08.818Z",
+  "decidedAt": "2026-10-06T01:57:21.584Z",
+  "durationMs": 11875,
+  "costUSD": 0.109004,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release line only gives the title [ev-2dbd96ea35b3], but the linked issue and PR fill in the details. [ev-6a0c04d3a6f8] and [ev-19c39b8cae50] say source hydration fails with \"Invalid revision range\". Hydration had been working out changed files with a git diff between a dry-branch commit and a hydrated-branch commit, and those two can't be compared. [ev-09d984dc3bbd] fixes this by making the hydrator stop using manifest-generate-paths, and [ev-cd0ac2f59766] shows the change is limited to controller/hydrator_dependencies.go plus the source-hydrator docs. That is enough to write the assertion: the subject is the source hydrator's use of manifest-generate-paths, the change is that the hydrator no longer uses it, and the consequence is that the intermittent \"Invalid revision range\" hydration failures stop. Applicability (apps that use the source hydrator, possibly only those that set manifest-generate-paths) is partly inferred, because the issue's reproduction text is cut off, so confidence is low.",
+    "citations": [
+      "ev-2dbd96ea35b3",
+      "ev-6a0c04d3a6f8",
+      "ev-19c39b8cae50",
+      "ev-09d984dc3bbd",
+      "ev-cd0ac2f59766"
+    ],
+    "confidence": "low"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-68db3d6b9354",
+  "promptDigest": "sha256:b0bd686815f93a55b6b336795827cf7f3a3136aebe3795f5de38dbfd35a32686",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e09b65ae-166b-46e2-99d0-c9c2ea80b996",
+  "startedAt": "2026-10-06T01:45:17.749Z",
+  "decidedAt": "2026-10-06T01:45:24.622Z",
+  "durationMs": 6023,
+  "costUSD": 0.087764,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-a5ed22d10afa] fills in what the one-line note [ev-c9df3641c74f] leaves out. The subject is the `enforcedCompositionRef` field on a CompositeResourceDefinition (XRD), as handled by Crossplane core's `EnforcedCompositionSelector`. Before the fix, the selector cached the XRD when it started, so changes to `enforcedCompositionRef` were not picked up until the Crossplane pod restarted. After the fix, it fetches the XRD on every reconcile. The changed files in [ev-7cf5be00cb5e] are in the composite and definition controllers, which matches that description. So the exposed environments are those that change `enforcedCompositionRef` on an existing XRD, and the outcome is a behaviour fix: a changed enforced composition now takes effect without a restart. That is enough to write the subject, change, applicability and consequence aspects.",
+    "citations": [
+      "ev-a5ed22d10afa",
+      "ev-c9df3641c74f",
+      "ev-7cf5be00cb5e"
+    ],
+    "confidence": "medium"
+  }
+}

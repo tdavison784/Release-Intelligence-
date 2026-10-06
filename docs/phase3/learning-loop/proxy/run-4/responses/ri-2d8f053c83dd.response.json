@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2d8f053c83dd",
+  "promptDigest": "sha256:bc07e7316f4f45080f02861d75649493312bdb86d3bb56946eefdc3d09cbbffc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ac6ee729-3940-4340-a616-0e9e9a1234ac",
+  "startedAt": "2026-10-06T01:40:17.167Z",
+  "decidedAt": "2026-10-06T01:40:30.536Z",
+  "durationMs": 12472,
+  "costUSD": 0.100452,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The changelog line [ev-9e6400e3f91e] is terse, but the linked PR [ev-f1b3fbffbb2a] fills in what changed. A refresh request made with a delay is stored as the string `<appKey>/<compareWith>`. The code wrote the memory address of `compareWith` into that string instead of its value, so invalid refresh levels were used. The fix touches only controller/appcontroller.go and its test [ev-a0825e3d6a29]. The issue [ev-912972ca011e] shows the visible symptom: logs reported comparison levels like 825069003112 instead of a value from 0 to 3. That is enough to write the assertion: the subject is the application controller's delayed refresh comparison level, the change is a bugfix with no operator action needed, and the consequence is that the controller now uses correct refresh levels. The evidence does not say exactly which code paths request a delayed refresh, so applicability can only be stated broadly as any installation running the application controller.",
+    "citations": [
+      "ev-9e6400e3f91e",
+      "ev-f1b3fbffbb2a",
+      "ev-912972ca011e",
+      "ev-a0825e3d6a29"
+    ],
+    "confidence": "medium"
+  }
+}

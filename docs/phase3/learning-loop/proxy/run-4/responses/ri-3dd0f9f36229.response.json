@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3dd0f9f36229",
+  "promptDigest": "sha256:a1a751ee0c831fc60115ac3d45324dd93eaa6200c896b47bc653372fcc8c4caf",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7904a328-fd95-4d8b-9e6a-8dfe2a54da18",
+  "startedAt": "2026-10-06T01:41:45.978Z",
+  "decidedAt": "2026-10-06T01:42:02.605Z",
+  "durationMs": 15989,
+  "costUSD": 0.12051600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-75e7107870d4] says this is a bug fix (type/bug, size/XS). Its only stated reason is that the size check wasn't atomic, which made the TestBackgroundSizeLimit test flaky. Together with the changelog line [ev-49061bdffc5b] and the single changed file [ev-3d5e70cd2087], no upstream text describes a changed default or anything an operator should check. The proposed behavior-change claim that the cache behaves differently isn't supported, so the consequence is none (informational).",
+    "citations": [
+      "ev-75e7107870d4",
+      "ev-49061bdffc5b",
+      "ev-3d5e70cd2087"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 fixes the background cache so its size limit is checked atomically. Upstream gives test flakiness as the only reason and states no effect for operators.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "Upstream describes this as a bug fix: the background cache size check was not atomic, which made the TestBackgroundSizeLimit test flaky. Upstream states no changed default, failure or required action for operators.",
+        "remediation": "No operator action required."
+      }
+    }
+  }
+}

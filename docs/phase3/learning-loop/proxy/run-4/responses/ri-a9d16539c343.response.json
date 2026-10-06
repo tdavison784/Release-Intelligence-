@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a9d16539c343",
+  "promptDigest": "sha256:515e18ea021a911ec48599c20c3a7f6c5683e6f01cf823e23e2e26dc0cd63159",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a74f9de7-027e-43d1-a388-045aed7fe3eb",
+  "startedAt": "2026-10-06T01:51:57.654Z",
+  "decidedAt": "2026-10-06T01:52:10.472Z",
+  "durationMs": 11908,
+  "costUSD": 0.144084,
+  "output": {
+    "action": "correct",
+    "reason": "The 3.0.0 changelog lists this as an internal Argo CD server change: informer objects are now deep-copied [ev-f9d32317b49c]. The PR changes only server code (application.go, deepinformer.go) and adds no setting, flag or values key [ev-28eb892e1e02], so the only exposure is upgrading the server across this release. The linked issue describes server crashes since 2.14 [ev-faa4a8aadfad, ev-2c224906fce2]. The proposal uses product-version for Argo CD's own version, but product-version is for other products, and '>=3.0.0 in-range' reads the version an environment already runs, so it misses environments upgrading from 2.x; the right predicate is the upgrade from-version below 3.0.0 (whether the fix was backported to 2.x releases is not stated).",
+    "citations": [
+      "ev-f9d32317b49c",
+      "ev-28eb892e1e02",
+      "ev-faa4a8aadfad",
+      "ev-2c224906fce2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0's API server makes deep copies of objects returned by informers, so they are not shared. This applies to every environment upgrading from a version below 3.0.0. No configuration controls it.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      }
+    }
+  }
+}

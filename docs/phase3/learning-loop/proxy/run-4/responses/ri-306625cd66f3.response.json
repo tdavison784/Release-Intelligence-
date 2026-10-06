@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-306625cd66f3",
+  "promptDigest": "sha256:c81dfdfcf87afd7467e34ccca031a6a2d37470e2e5a827b961f499e6c46214cb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a327c64f-ce8f-4842-acc8-ab115346171c",
+  "startedAt": "2026-10-06T01:40:31.437Z",
+  "decidedAt": "2026-10-06T01:40:45.636Z",
+  "durationMs": 13283,
+  "costUSD": 0.119436,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-3881a5911482] shows this is a bug fix, not new validation: lifecycler config constructors now build the instance address with `net.JoinHostPort`. Before, only distributors handled IPv6 correctly, and the other components left the addr/port combination to the user. Nothing in [ev-068257f2da0f], [ev-3881a5911482] or [ev-87ec3af1d884] says anything fails or is rejected, so behavior-change at low severity holds. The proposed statement and remediation are wrong because they describe it as checking that operators' settings are valid IPv6, so I rewrote them to describe the address-formatting fix.",
+    "citations": [
+      "ev-3881a5911482",
+      "ev-068257f2da0f",
+      "ev-87ec3af1d884"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 all lifecycler config constructors (ring configs for components such as the ruler, not only distributors) join instance address and port with net.JoinHostPort. IPv6 instance addresses are now formed correctly; nothing is reported to fail.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "Components other than distributors now build their ring instance address with net.JoinHostPort, so IPv6 addresses get a valid host:port form. Before, this was left to the user's addr/port settings. Setups that use IPv6 instance addresses may see different address handling in the ring. Things keep working, and the upstream evidence states no failure.",
+        "remediation": "Where lifecycler/ring instance addresses are IPv6, check after the upgrade that ring members register and reach each other at the expected addresses. Remove any manual workaround that combined an IPv6 address and port by hand."
+      }
+    }
+  }
+}

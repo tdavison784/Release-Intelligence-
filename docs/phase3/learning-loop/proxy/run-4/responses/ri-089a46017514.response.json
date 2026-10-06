@@ -1,0 +1,47 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-089a46017514",
+  "promptDigest": "sha256:a262cbf2182ae33ba2b0a3f5cea61b4e5e2133c0a169d0130b555b14f98b76cd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3ae30abe-bc3c-4301-bad7-e83f621323d1",
+  "startedAt": "2026-10-06T01:36:40.124Z",
+  "decidedAt": "2026-10-06T01:36:52.605Z",
+  "durationMs": 11606,
+  "costUSD": 0.15834800000000002,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a0994163965b] and [ev-479e2806080c] only say that errors from generated apps now use the default requeue. The linked issue [ev-15b958339ff9] [ev-eff434b22c24] shows the change matters only when an ApplicationSet's generator fails at runtime, for example when an SCM generator hits GitHub rate limits and the resync storms. The proposed condition flags every environment that uses ApplicationSet, which is broader than that. Its v1beta1 GVK is also not stated anywhere in the evidence. Exposure is better written as ApplicationSet in use combined with a runtime-only condition: whether generation errors actually happen.",
+    "citations": [
+      "ev-a0994163965b",
+      "ev-479e2806080c",
+      "ev-15b958339ff9",
+      "ev-eff434b22c24",
+      "ev-5bc47e979dab"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The ApplicationSet controller now requeues with the default requeue after errors from generating apps (e.g. SCM generator rate-limit failures). Exposed: environments using ApplicationSets whose generators error at runtime.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether ApplicationSet generators (e.g. SCM generator hitting rate limits) return errors at runtime"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

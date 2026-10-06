@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-958c4889b46b",
+  "promptDigest": "sha256:3f8f4a4e023244a4291b4c0a53fddb796b1a317ac891febf91741820624bc2f3",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "69000b7d-4aa1-4649-b895-b6d697abfd39",
+  "startedAt": "2026-10-06T01:50:12.523Z",
+  "decidedAt": "2026-10-06T01:50:24.851Z",
+  "durationMs": 11431,
+  "costUSD": 0.0860812,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-508cd6635da3] names the exposure exactly: a cluster-scoped resource in an Application's generated manifests that wrongly has metadata.namespace set, which can make the repo-server apply the wrong tracking annotation. The fix changes controller/state.go [ev-1b4963e9b4f8]. Whether a kind is cluster-scoped depends on the live cluster's API discovery, and the manifests are produced at runtime by the repo-server, so an undecidable leaf is still justified. However, the proposed 'needed' text (\"processes malformed resources and how they are triggered\") is vague and does not state this condition, so I rewrote it to name the precise state.",
+    "citations": [
+      "ev-508cd6635da3",
+      "ev-1b4963e9b4f8",
+      "ev-9fdf3ef2828b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments are exposed when an Argo CD Application's generated manifests contain a cluster-scoped resource that wrongly sets metadata.namespace. Before this fix, the repo-server could apply the wrong tracking annotation to such resources. Now the controller normalizes the annotation afterwards.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any Application's repo-server-generated manifests contain a resource of a cluster-scoped kind (per the target cluster's API discovery) that has metadata.namespace set"
+        }
+      }
+    }
+  }
+}

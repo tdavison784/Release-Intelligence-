@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3041f89121ed",
+  "promptDigest": "sha256:05fc43cf966ecec1ffe0d8c8256ee32d8eba603191765af9a2b3c786f16e824c",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6f09bb7b-68d1-4c07-bc27-1f4ba38eea85",
+  "startedAt": "2026-10-06T01:40:26.992Z",
+  "decidedAt": "2026-10-06T01:40:38.765Z",
+  "durationMs": 10950,
+  "costUSD": 0.091,
+  "output": {
+    "action": "correct",
+    "reason": "The PR [ev-56e3b21bf0e2] says that for incoming gRPC or gRPC-Web requests, the metrics now get `grpc` or `grpcweb` as the protocol, and the `code` label holds the gRPC code (for example Unauthenticated) instead of the HTTP status. The proposed statement gets this wrong: nothing in the evidence says metrics endpoints \"accept and process\" gRPC requests. The kind behavior-change is right, because metrics keep working and only label values change for gRPC traffic. The PR also edits the v2-to-v3 migration guide [ev-ee47bb3f9ef7], so the change is worth reviewing, and nothing says anything fails.",
+    "citations": [
+      "ev-56e3b21bf0e2",
+      "ev-ee47bb3f9ef7",
+      "ev-f7d3abb12e99"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Traefik 3.0.0, metrics for gRPC and gRPC-Web requests report protocol=\"grpc\"/\"grpcweb\" and put the gRPC code (e.g. Unauthenticated) in the `code` label instead of the HTTP status. This is a behavior change to review.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "Metrics keep working. For incoming gRPC and gRPC-Web requests, Traefik now sets the protocol label to `grpc` or `grpcweb` and puts the gRPC code (e.g. Unauthenticated) in the `code` label instead of the HTTP status. Queries, dashboards or alerts that read these labels for gRPC traffic will see different values.",
+        "remediation": "Check metric queries, dashboards and alerts that filter on the `protocol` or `code` labels for gRPC/gRPC-Web traffic, and update them to use the new protocol values and gRPC code names (see the v2-to-v3 migration guide)."
+      }
+    }
+  }
+}

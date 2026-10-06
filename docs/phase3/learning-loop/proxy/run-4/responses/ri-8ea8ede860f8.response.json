@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8ea8ede860f8",
+  "promptDigest": "sha256:d93b53baf446e5abfedbf6963439683f03ac5205d6f7c687462785ff9399d7ae",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8affa205-a6fd-4d53-aa64-e29ba2c56a49",
+  "startedAt": "2026-10-06T01:49:09.919Z",
+  "decidedAt": "2026-10-06T01:49:20.643Z",
+  "durationMs": 9876,
+  "costUSD": 0.07402800000000001,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The changelog line [ev-33c3af75761f] only names a \"new logger\". The linked PR [ev-0afc985475c2] is labelled breaking, but it groups several separate changes into one entry: logrus is replaced by zerolog, there is a new console format, log fields are improved, and the USR1 signal no longer rotates logs because Traefik now handles rotation itself. Only the USR1 drop is concrete enough to say who is affected: operators who send USR1 to rotate logs. Even for that change, the evidence does not say what happens when USR1 is sent and nothing else changes, or which settings control the new rotation. It also does not describe the new console format or the field changes, so no consequence can be stated for log parsers. The rewritten logs documentation (docs/content/observability/logs.md), which the changed-file list [ev-c41d1ec327fa] shows the PR edited, or an upgrade-guide section, is needed to split these changes apart and decide applicability and consequence.",
+    "citations": [
+      "ev-33c3af75761f",
+      "ev-0afc985475c2",
+      "ev-c41d1ec327fa"
+    ],
+    "confidence": "low"
+  }
+}

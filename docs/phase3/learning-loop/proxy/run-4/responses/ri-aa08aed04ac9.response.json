@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-aa08aed04ac9",
+  "promptDigest": "sha256:311d99e27da67c01eb795e463ce3985be01d525059e887762f39192c42fe11bc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "81b58e94-c0ae-4004-91fd-1a24596c339d",
+  "startedAt": "2026-10-06T01:51:58.942Z",
+  "decidedAt": "2026-10-06T01:52:10.046Z",
+  "durationMs": 10063,
+  "costUSD": 0.097872,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The proposed \"none\" (\"existing configurations continue to work unchanged\") is contradicted by the linked PR. [ev-285fd18823f4] says \"There going to be a breaking change\": the AWS Secrets Manager PushSecret metadata moves from a flat `secretPushFormat: string` to a structured `apiVersion: kubernetes.external-secrets.io/v1alpha1 / kind: PushSecretMetadata / spec:` form. The release note also sits under \"BREAKING CHANGES\" [ev-4ae6a331ae89]. However, the excerpt is cut off (\"When not set, default to …\"), and no evidence says what happens to PushSecrets that still use the old flat metadata: whether they are rejected or fail, or whether the value is silently ignored and a default is used. A failure kind (resource-rejected, setting-ignored or workload-failure) can't be chosen without that. Missing: the rest of the PR description or the docs/code diff ([ev-70a8f45e3137] lists docs/provider/aws-secrets-manager.md and secretsmanager.go) showing how legacy flat metadata is handled.",
+    "citations": [
+      "ev-285fd18823f4",
+      "ev-73c7539b26ae",
+      "ev-4ae6a331ae89",
+      "ev-70a8f45e3137"
+    ],
+    "confidence": "low"
+  }
+}

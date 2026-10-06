@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f611ff37e98b",
+  "promptDigest": "sha256:56554d1b93e3b11faacd9c3920d9be21c8aebcebff74bc2bc641d03ded592fa9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "79d8b52f-a0ee-406b-bb93-eee84ae9be36",
+  "startedAt": "2026-10-06T01:59:09.421Z",
+  "decidedAt": "2026-10-06T01:59:17.974Z",
+  "durationMs": 7666,
+  "costUSD": 0.09194,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-466bcd622184] says allowing empty Nomad services \"would be an opt-in feature (false by default)\", so it lets routes persist when a service scales to 0 only if the operator turns it on. An environment that does nothing therefore keeps its previous behaviour. That makes this a new opt-in capability with no operational consequence, not a behaviour change that needs review. The changelog entry [ev-9b56ac76a332] lists it as an enhancement and says nothing that contradicts this.",
+    "citations": [
+      "ev-466bcd622184",
+      "ev-9b56ac76a332",
+      "ev-6ff10ab3a2a9"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Traefik 3.0.0's Nomad provider gains an opt-in option (false by default) to allow empty services, so routes persist when a service is scaled to 0; environments that do not enable it see no change.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "Allowing empty services is an opt-in Nomad provider feature that is false by default. An environment that does nothing keeps its previous behaviour, so there is no operational consequence.",
+        "remediation": "Optional: if you need routes to Nomad services scaled to zero to persist, enable the new Nomad provider option."
+      }
+    }
+  }
+}
