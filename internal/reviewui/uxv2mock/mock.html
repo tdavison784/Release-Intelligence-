@@ -1,0 +1,183 @@
+{{define "top"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · Release Intelligence review (ux-v2 mockup)</title>
+<style>{{.CSS}}</style>
+</head>
+<body>
+<div class="demo-banner" role="alert">DEMO DATA — fixtures, not real upstream evidence · ux-v2 MOCKUP for approval</div>
+<header class="bar"><div class="bar-row">
+  <a class="brand" href="{{.Home}}">Release Intelligence <span>review</span></a>
+  <span class="mocknote">ux-v2 · static mockup, buttons are non-functional</span>
+  <div class="spacer"></div>
+</div></header>
+<main class="page">
+{{end}}
+
+{{define "bottom"}}
+</main>
+</body>
+</html>
+{{end}}
+
+{{define "glossary"}}<span class="gl" tabindex="0">{{.}}<span class="tip">{{switch . "call" "One stateless request to a model. Each model column in the comparison is one separate call; agreement between separate calls is what the pipeline trusts." "aspect" "Every answer has four parts: what the thing is, what changed, who is exposed, and what happens. Models can agree on some and disagree on others." "validator" "A deterministic checker (no AI) that proves parts of an answer from artifacts — schemas, values files, compatibility tables." "digest" "A content hash. Two answers with the same digest are the same answer; that is how agreement is measured, not by wording." "render" "The output of templating the product's chart at the old and new version — what would actually change in your cluster."}}</span></span>{{end}}
+
+{{define "card"}}
+<article class="dcard" id="card">
+  <div class="dhead">
+    <div class="meta">
+      <span class="badge accent">{{.Product}} {{.Release}}</span>
+      <span class="badge soft">{{.QuestionTypeLabel}}</span>
+      <span class="badge prio-{{.Priority}}">{{.Priority}} priority</span>
+      <span class="badge {{.StatusTone}}">{{.StatusLabel}}</span>
+    </div>
+    <p class="qtype"><span class="num">1</span> {{.QuestionTypeLabel}} — needs a human decision</p>
+    <h1>{{.Question}}</h1>
+  </div>
+
+  <section class="dsec upstream">
+    <h3><span class="num">2</span> What changed upstream</h3>
+    <div class="upstream">
+      <blockquote class="quote">{{if .Fixture}}<span class="badge fixture" title="invented fixture text">fixture</span> {{end}}{{.UpQuote}}</blockquote>
+      <div class="src">
+        <a class="l" href="{{.UpLink}}" target="_blank" rel="noopener noreferrer">{{.UpLink}}</a>
+        {{if .UpLocator}}<span>{{.UpLocator}} · </span>{{end}}<span>{{.UpKind}}</span>
+        {{if .UpMore}}<div class="small">+ {{.UpMore}} more source{{if ne .UpMore 1}}s{{end}} in Details</div>{{end}}
+      </div>
+    </div>
+  </section>
+
+  <section class="dsec reco" id="recommendation">
+    <h3><span class="num">3</span> Recommendation</h3>
+    <p class="answer"><b>Suggested answer:</b> {{.Suggested}}{{if .ClassChip.Label}} <span class="cls badge {{.ClassChip.Tone}}">{{.ClassChip.Label}}</span>{{end}}</p>
+    <ul class="conf">
+      {{range .WhyConfident}}<li class="{{.Tone}}">{{.Text}}</li>{{end}}
+    </ul>
+    <div class="actions">
+      <button class="btn primary" type="button">{{.PrimaryLabel}}</button>
+      <button class="btn ghost" type="button">Other actions: reject · correct · more evidence · defer ↓</button>
+    </div>
+  </section>
+
+  <section class="dsec whyyou {{.WhyTone}}">
+    <h3><span class="num">4</span> Why this needs you</h3>
+    <p>{{.WhyYou}}</p>
+  </section>
+
+  <section class="dsec" id="differ">
+    <h3><span class="num">5</span> Where the models differ</h3>
+    {{if .DifferRows}}
+    {{range .DifferRows}}
+    <div class="drow">
+      <div class="dlabel">{{.AspectLabel}}</div>
+      <div class="dgroups">{{range .Cells}}<div class="dcell"><span class="who">{{.Who}}</span>{{.Text}}</div>{{end}}</div>
+    </div>
+    {{end}}
+    {{else if .Undetermined}}
+    <p class="noanswer">No model committed an answer — every {{template "glossary" "aspect"}} came back undetermined: <em>{{.Undetermined}}</em></p>
+    {{else}}
+    <p class="noanswer">No differences between the calls on any part.</p>
+    {{end}}
+    {{if .AgreeLine}}<p class="agreeline">{{.AgreeLine}}</p>{{end}}
+    <p class="small muted">One row per part the {{template "glossary" "call"}}s disagree on; models that gave the same answer are grouped in one cell. Proposals are never merged.</p>
+  </section>
+
+  <section class="dsec">
+    <details class="fold" id="correct">
+      <summary>6 · Correct the suggestion — edit any part; each field previews what it means</summary>
+      <div class="body">
+        <form onsubmit="return false">
+        {{range .CorrectFields}}
+        <fieldset>
+          <legend>{{.Label}}</legend>
+          <p class="prev">Currently says: <b>{{.Preview}}</b></p>
+          {{range .Inputs}}
+          <label>{{.Label}}
+          {{if .Options}}<select>{{range .Options}}<option{{if .Selected}} selected{{end}}>{{.Value}}</option>{{end}}</select>
+          {{else if .Area}}<textarea rows="4" class="mono">{{.Value}}</textarea>
+          {{else if .Mono}}<input value="{{.Value}}" class="mono">
+          {{else}}<input value="{{.Value}}">{{end}}
+          </label>
+          {{end}}
+        </fieldset>
+        {{end}}
+        <p class="small muted">Changing a part records a <code>wrong-*</code> label for it and keeps the original in the decision. Nothing is merged into the models' answers.</p>
+        <button class="btn" type="button">Record correction…</button>
+        </form>
+      </div>
+    </details>
+
+    <details class="fold deep" id="details">
+      <summary>7 · Details — evidence, checks, raw model output (for auditing)</summary>
+      <div class="body">
+        <div class="sub">
+          <h3>All evidence ({{.EvidenceCount}})</h3>
+          <ul class="evidence">
+          {{range .Evidence}}<li>
+            <span class="badge soft">{{.Kind}}</span> {{if .Fixture}}<span class="badge fixture">fixture</span>{{end}}
+            <a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.URI}}</a> <code>{{.Locator}}</code>
+            <blockquote class="ex">{{.Excerpt}}</blockquote>
+            <span class="small muted">{{if .Digest}}digest {{.Digest}} · {{end}}{{if .CitedBy}}cited by {{.CitedBy}}{{end}}</span>
+          </li>{{end}}
+          </ul>
+        </div>
+        {{if .Validations}}<div class="sub">
+          <h3>Validator checks</h3>
+          <table><tbody>{{range .Validations}}<tr>
+            <th><code>{{.Validator}}</code> · {{.Aspect}}</th>
+            <td><span class="badge {{.Tone}}">{{.Outcome}}</span></td><td>{{.Detail}} <code>{{.Rule}}</code></td>
+          </tr>{{end}}</tbody></table>
+        </div>{{end}}
+        <div class="sub">
+          <h3>Raw proposals (one per call, never merged)</h3>
+          <table><tbody>{{range .RawProposals}}<tr>
+            <th>{{.Model}}<br><span class="small muted">{{.Provider}} · {{.Confidence}}</span></th>
+            <td><code>{{.CallID}}</code> · {{.ModelVersion}} · prompt {{.PromptDigest}} · {{.GeneratedAt}}{{if .Class}}<br>suggested class: <b>{{.Class}}</b>{{end}}{{if .Undetermined}}<br>undetermined: {{.Undetermined}}{{end}}</td>
+          </tr>{{end}}</tbody></table>
+        </div>
+        <div class="sub">
+          <h3>Ids &amp; routing (machine-readable)</h3>
+          <p class="small mono">item {{.ID}} · candidate {{.CandidateID}} · route {{.Route}}/{{.Priority}} · signals {{.Signals}}{{if .Env}} · environment {{.Env}} (illustration only){{end}}</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="dsec decide" id="decide">
+    <h3>Decide — recorded as a human decision, with your name and the time you spent</h3>
+    <form onsubmit="return false">
+      <div class="row">
+        <label>Reviewer <input type="text" placeholder="your name"></label>
+        <label>Reason <span class="small">(required for reject / more evidence)</span> <textarea rows="2" placeholder="Why? Cite the evidence."></textarea></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button">{{.PrimaryLabel}}</button>
+        <button class="btn danger" type="button">Reject</button>
+        <button class="btn" type="button">Correct…</button>
+        <button class="btn" type="button">Need more evidence</button>
+        <button class="btn" type="button">Defer</button>
+      </div>
+      <p class="small muted">Bulk actions, keyboard shortcuts and the opened-before-accept guard carry over unchanged from the current UI.</p>
+    </form>
+  </section>
+</article>
+{{end}}
+
+{{define "inbox"}}
+<p class="small muted">Mockup of the redesigned inbox row: the plain-English question, the one reason it needs you, and the suggested answer — no aspect chips.</p>
+<ul class="cards">
+{{range .Rows}}<li class="card">
+  <div class="row1">
+    <span class="badge accent">{{.Product}} {{.Release}}</span>
+    <span class="badge prio-{{.Priority}}">{{.Priority}}</span>
+    <span class="badge {{.StatusTone}}">{{.StatusLabel}}</span>
+    {{if .ClassChip.Label}}<span class="badge {{.ClassChip.Tone}}">{{.ClassChip.Label}}</span>{{end}}
+    <h2><a href="{{.Href}}">{{.Question}}</a></h2>
+  </div>
+  <p class="why {{.WhyTone}}">{{.WhyYou}}</p>
+  <p class="sug"><b>Suggested:</b> {{.Suggested}}</p>
+</li>{{end}}
+</ul>
+{{end}}
