@@ -116,7 +116,9 @@
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-key]"); if (!b) return;
-    var form = b.closest("form.actions"); if (!form) return;
+    // the card's primary button sits above the form and references it via the
+    // form attribute, so closest() alone does not reach it
+    var form = b.closest("form.actions") || (b.form && b.form.matches("form.actions") ? b.form : null); if (!form) return;
     if (b.dataset.correct) { e.preventDefault(); showCorrect(form.closest(".detail-body")); return; }
     if (b.dataset.needsReason === "1") {
       var r = $('textarea[name="reason"]', form);
@@ -132,7 +134,9 @@
   function showCorrect(body) {
     if (!body) return;
     var f = $("form.correct", body); if (!f) return;
-    f.hidden = false; var first = $("select, input[type=text], input:not([type])", f); f.scrollIntoView({ block: "center", behavior: "smooth" });
+    f.hidden = false;
+    var fold = f.closest("details"); if (fold) fold.open = true; // §6 correct fold
+    var first = $("select, input[type=text], input:not([type])", f); f.scrollIntoView({ block: "center", behavior: "smooth" });
     var t = $('textarea[name="reason"]', f); if (t) t.focus();
   }
   function initKinds(root) {

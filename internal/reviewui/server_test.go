@@ -155,7 +155,7 @@ func TestInboxCountsAndDefaultFilter(t *testing.T) {
 		t.Fatal(st)
 	}
 	contains(t, body, "Pending", "Model disagreement", "Needs semantic mapping", "Applicability", "Needs more evidence", "Deferred",
-		"The default privateKey.rotationPolicy is now Always", `class="card"`, `aria-expanded="false"`, "Expand all", "Collapse all", "Select all")
+		"The default privateKey.rotationPolicy is now Always", `<li class="card `, `aria-expanded="false"`, "Expand all", "Collapse all", "Select all")
 	// the default view is pending only: decided/deferred/needs-evidence items are not listed
 	lacks(t, body, "Owner-reference flag default flipped", "Default retention changed", "Ambient data plane")
 	// nothing is truncated: no "first N of M" notice, and select-all counts the filter
@@ -185,7 +185,7 @@ func TestInboxSaysWhenTheListIsTruncated(t *testing.T) {
 	// cut, and select-all covers only the two rows shown
 	contains(t, body, fmt.Sprintf("Showing the first 2 of %d matching items", full.Matches), "Select all 2 shown", `class="truncated"`)
 	lacks(t, body, "in this filter")
-	if got := strings.Count(body, `class="card"`); got != 2 {
+	if got := strings.Count(body, `<li class="card `); got != 2 {
 		t.Fatalf("cards = %d, want 2", got)
 	}
 }
@@ -238,7 +238,7 @@ func TestInboxHandlesHundredsOfItems(t *testing.T) {
 	}
 	// the default page is the first 200 of 400 (priority order): every card
 	// renders, the page says what was cut, and the rest stay reachable
-	if got := strings.Count(body, `class="card"`); got != 200 {
+	if got := strings.Count(body, `<li class="card `); got != 200 {
 		t.Fatalf("cards = %d, want 200", got)
 	}
 	contains(t, body, "Showing the first 200 of 400 matching items", "Select all 200 shown", `data-id="item-scale-0199"`)
@@ -294,13 +294,15 @@ func TestItemPageShowsEveryG8Element(t *testing.T) {
 		t.Fatal(st)
 	}
 	contains(t, body,
-		"If a Certificate with rotationPolicy unset does nothing", // the concrete question
-		"Upstream statement", "Upgrading 1.17 → 1.18",
+		"If a Certificate with rotationPolicy unset does nothing", // the recorded question, verbatim in Details
+		"Does cert-manager v1.18.0 change what happens to", // the plain-English question (§1)
+		"What changed upstream", "Upgrading 1.17 → 1.18",
 		`href="https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md#L21-L30"`, // openable evidence
 		`rel="noopener noreferrer"`, "The default value of Certificate.spec.privateKey.rotationPolicy is now Always",
 		"Proposed assertion", "behavior-change → review-required",
-		"claude-opus-5-5", "claude-sonnet-5-5", "glm-5.3-flash", // per-model proposals side by side
-		"agree-disagree", "disagree · 3 variants", "consensus · cross-model · 3 calls", "call-claude-opus-5-5-", "single call",
+		"claude-opus-5-5", "claude-sonnet-5-5", "glm-5.3-flash", // raw proposals, one per call
+		"Opus 5.5", "Sonnet 5.5", "GLM 5.3 Flash", // display names in the differ cells
+		"models disagree", "same-model consensus · 2 calls", "consensus · cross-model · 3 calls", "call-claude-opus-5-5-", "single call",
 		"Validation results", "semvalidate.crd@v1", "out-confirmed", "out-inconclusive",
 		"Environment context", "illustration only",
 		"Previous related decisions",
@@ -325,10 +327,12 @@ func TestRenderedDeltaPanelOnlyWhenPresent(t *testing.T) {
 func TestPerAspectAgreementIsHighlighted(t *testing.T) {
 	r := newRig(t)
 	_, body := r.get("/items/" + r.id("RBAC default policy"))
-	contains(t, body, "m-disagree", "disagree · 2 variants", "g-A", "g-B", "as-proposed")
+	// ux-v2: one differ cell per answer group, group-colored, the group that
+	// matches the suggestion marked; agreeing aspects collapsed to chips
+	contains(t, body, "models disagree", `class="dcell g0"`, `class="dcell g1"`, "= the suggested answer")
 	_, body = r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
-	contains(t, body, "m-agree", "consensus · cross-model · 2 calls")
-	lacks(t, body, "m-disagree")
+	contains(t, body, "consensus · cross-model · 2 calls", "No differences between the calls")
+	lacks(t, body, "models disagree")
 }
 
 func TestDetailFragmentMarksItemOpened(t *testing.T) {
