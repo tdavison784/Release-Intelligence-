@@ -175,4 +175,11 @@ func TestRenderExposureDispatch(t *testing.T) {
 	if _, ok := b2.renderExposure(removed); ok {
 		t.Fatal("an unmatched removed key must not consult the set-values render")
 	}
+	// a change visible only at runtime (no render-verifiable family): the
+	// render abstains and the knowledge/deterministic fallback decides
+	runtime := eb.change(upgrade.RuleCompatChanged, "supported Kubernetes range narrowed", "1.29")
+	b3 := &builder{edge: eb.edge, env: en, set: stubSetEval{r: SetValuesResult{Outcome: SetValuesRejected}}}
+	if _, ok := b3.renderExposure(runtime); ok {
+		t.Fatal("a runtime-visible change must fall back to the knowledge layer")
+	}
 }
