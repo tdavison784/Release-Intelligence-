@@ -106,3 +106,37 @@ func TestRenderedCRDsOfSelection(t *testing.T) {
 		t.Errorf("the kustomize source carries only what the first pair did not: %s (%s)", got[1].Docs, got[1].Label)
 	}
 }
+
+// The FROM→TO rendered CRD diff honors the customer's gates (addendum 6):
+// the version the target drops appears in their rendered delta only when
+// their values open the gate — with it closed, the CRD change does not
+// reach their install and the delta says nothing about it.
+func TestRenderedCRDDeltaHonorsGates(t *testing.T) {
+	crdChanges := func(p *Pair) []Change {
+		var out []Change
+		for _, ch := range p.Diff.Changes {
+			if ch.Object.Kind == "CustomResourceDefinition" {
+				out = append(out, ch)
+			}
+		}
+		return out
+	}
+	on := crdgPairFor(t, "crdg-customer-on.yaml")
+	changes := crdChanges(on)
+	if len(changes) == 0 {
+		t.Fatal("gate open: the dropped v1alpha2 version must appear in the rendered CRD delta")
+	}
+	found := false
+	for _, ch := range changes {
+		if (ch.Class == FieldRemoved || ch.Class == FieldChanged || ch.Class == ResourceRemoved) &&
+			(strings.Contains(ch.Path, "versions") || ch.Name != "") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("the delta must carry the version change: %+v", changes)
+	}
+	if off := crdgPairFor(t, "crdg-customer-off.yaml"); len(crdChanges(off)) != 0 {
+		t.Errorf("gate closed: the CRD change must not reach their render: %+v", crdChanges(off))
+	}
+}
