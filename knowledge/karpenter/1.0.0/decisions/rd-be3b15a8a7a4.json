@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-be3b15a8a7a4",
+    "reviewItemId": "ri-fe83f0021e14",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:e134284190c5a8ec4ed1e7a6161e4eb3e91b023708fa328077ddb7bd0b27f55c",
+      "inputEvidence": [
+        "ev-3f84c56f02fe",
+        "ev-8f96659f6232",
+        "ev-861fe889b810",
+        "ev-52be2025a061",
+        "ev-776ab01b1452",
+        "ev-673f44a8a7c7",
+        "ev-cb56353c3c4e",
+        "ev-d430fc53fc72",
+        "ev-51e7bc07959c",
+        "ev-ab534de2a1e4",
+        "ev-e4e1acb49af8",
+        "ev-782350fea3b9",
+        "ev-18d30590a726",
+        "ev-6d7e63820de1",
+        "ev-6ec6b4ea132d",
+        "ev-c4d7d1a131dd"
+      ],
+      "generatedAt": "2026-10-06T01:59:52.462Z",
+      "callId": "992d5eaa-9ae7-480d-9482-cf5c7914b4fb",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): The release note [ev-3f84c56f02fe] is vague by itself, and all four proposals only read that line. The linked PR is concrete, though. [ev-8f96659f6232] says the change brings back the `amiFamily` field on the karpenter.k8s.aws/v1 EC2NodeClass. If you use an alias, `amiFamily` is optional and is taken from the alias (e.g. al2023@latest gives AL2023). Setting `amiFamily: Custom` with an alias picks AMIs from the alias but does not merge Karpenter's UserData. [ev-861fe889b810] says `amiFamily` is now required when amiSelectorTerms are not aliases (e.g. `id:`). This gives the subject (the EC2NodeClass spec.amiFamily field), the change (what the field means, and new required-field validation), who is exposed (v1 EC2NodeClasses with non-alias amiSelectorTerms and no amiFamily), and what happens to them (the required-field check fails, backed by the changed CRD and CEL validation test files in [ev-52be2025a061]).",
+    "startedAt": "2026-10-06T01:59:39.946Z",
+    "decidedAt": "2026-10-06T01:59:52.462Z"
+  }
+}

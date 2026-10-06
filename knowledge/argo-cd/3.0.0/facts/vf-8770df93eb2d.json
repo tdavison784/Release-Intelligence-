@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-8770df93eb2d",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-b6961f6d54b4"
+        ],
+        "statementKeys": [
+          "sk-54f44cc0f619"
+        ],
+        "changeIds": [
+          "chg-52d36b5ff1fa"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-b2e695f63976"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "open-cluster-management"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Progressing\"",
+        "after": "\"Healthy\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "policy.open-cluster-management.io",
+              "kind": "Policy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any managed Policy currently matches no clusters (placement/status at runtime)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy resources with no matching clusters are no longer reported as stuck in Progressing health status.",
+        "severity": "low"
+      },
+      "statement": "ed3cc488471a26d1f342eaf92a62a2731ac77ebb: fix: Policy/policy.open-cluster-management.io stuck in progressing status when no clusters match the policy"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-68778f82596f"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-68778f82596f"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-2f70e76c9428"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e1cf24003999"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b0ac73f2731e",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L144-L144 (Changelog › Bug fixes)",
+        "excerpt": "* ed3cc488471a26d1f342eaf92a62a2731ac77ebb: fix: Policy/policy.open-cluster-management.io stuck in progressing status when no clusters match the policy (#21296) (#21297) (@mbaldessari)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:54:11.183Z"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c4c9c89297cd",
+    "reviewItemId": "ri-6d962bf03c05",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:73c6a9f88d12672009c4819fd6253bf289e5877646d18eaaaa6da85bf7e5ceb5",
+      "inputEvidence": [
+        "ev-7a3fdefaaff7",
+        "ev-48e334033ca5",
+        "ev-f84c42c2ec43",
+        "ev-0279d513ba4c",
+        "ev-8a902cdb88e1",
+        "ev-c6232bc5c8d4",
+        "ev-8e895983c9dd",
+        "ev-695a6d7c7c6e",
+        "ev-4faa7ca81b54",
+        "ev-23e99dfde8d0",
+        "ev-ef5237d47ade",
+        "ev-a8c04d9f0485",
+        "ev-b8d6f16e3c8c",
+        "ev-2a805da381d1",
+        "ev-565f3761f656",
+        "ev-1861adfd42be",
+        "ev-bfe1f4f54646"
+      ],
+      "generatedAt": "2026-10-06T01:46:18.693Z",
+      "callId": "2541e83d-0fbe-48b2-ab87-de6fc62d44b0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-48e334033ca5] says the bug only caused problems when an annotation with a boolean value was added. That makes \"serviceAccount.annotations is set\" too broad, because it would also flag environments whose annotations are all strings. [ev-f84c42c2ec43] shows the fix touched only deploy/charts/cert-manager/templates/serviceaccount.yaml. However, no evidence names the values key that feeds those annotations, and the validator could not find serviceAccount.annotations in the chart's values. So the key path is a guess, and the narrower condition (an annotation with a boolean value) cannot be written reliably. Deciding this needs the PR diff or the chart's values schema showing which key carries the annotations, and how boolean values were handled before the fix.",
+    "startedAt": "2026-10-06T01:46:08.286Z",
+    "decidedAt": "2026-10-06T01:46:18.693Z"
+  }
+}

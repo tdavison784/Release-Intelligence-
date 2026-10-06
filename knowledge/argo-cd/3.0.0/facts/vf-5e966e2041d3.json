@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5e966e2041d3",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-a414af542065"
+        ],
+        "statementKeys": [
+          "sk-b4a1aa49a99c"
+        ],
+        "changeIds": [
+          "chg-12999b15061e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9c0a93e3b5b5"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "webhook-repo-url-matching"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.source.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "Application"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.sources[].repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "Application"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.generators[].git.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "ApplicationSet"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.generators[].matrix.generators[].git.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "ApplicationSet"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the git provider delivers webhook events to Argo CD (API server or ApplicationSet webhook) for these repositories"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Webhook payloads now match repo URLs that use ssh or altssh subdomains; environments receiving webhooks for such repositories see those payloads match (enabling webhook-triggered handling) where they previously did not.",
+        "remediation": "No operator action required; verify that webhook events for repositories whose URLs use ssh/altssh subdomains now trigger the expected refreshes.",
+        "severity": "low"
+      },
+      "statement": "073ccf7c35a63bb203b8c78dec3e8a7c2efecdeb: fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-08681a0fac94"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-08681a0fac94"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-00ba8cecd9c6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-061e9b8234de"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-27aaf3747c01",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L446-L446 (Changelog › Other work)",
+        "excerpt": "* 073ccf7c35a63bb203b8c78dec3e8a7c2efecdeb: fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload (#21227) (@mtbennett-godaddy)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:50:42.837Z"
+  }
+}

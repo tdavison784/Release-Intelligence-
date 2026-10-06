@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-d81dd7bb0461",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-8923cb5257d5"
+        ],
+        "statementKeys": [
+          "sk-8f31667427ce"
+        ],
+        "changeIds": [
+          "chg-fde9a1cc7d0b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-1c657b7315de"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "serviceAccount.annotations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "serviceAccount.annotations",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ServiceAccount annotation keys and values are now run through the built-in Helm tpl function, so any {{ ... }} template expressions they contain are rendered by Helm instead of being written as literal text.",
+        "remediation": "Verify that any ServiceAccount annotation keys or values containing {{ ... }} expressions are intended to be rendered as Helm templates rather than emitted literally.",
+        "severity": "low"
+      },
+      "statement": "Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-ebddc9f115c2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-ebddc9f115c2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-d5124c690a69"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-ebfc959eff62"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-e7cf2f463686",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L199-L199 (v1.17.0 › Feature)",
+        "excerpt": "- Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration ([#7501](https://github.com/cert-manager/cert-manager/pull/7501), [@fcrespofastly](https://github.com/fcrespofastly))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:53:00.814Z"
+  }
+}

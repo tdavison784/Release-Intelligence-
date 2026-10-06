@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5b9c2d92b519",
+    "reviewItemId": "ri-ad835b478516",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Taints are written into Bottlerocket node settings in the corrected format, so Bottlerocket nodes carrying taints receive differently-formatted (fixed) taint settings after the upgrade.",
+        "remediation": "After upgrading, verify that taints on Bottlerocket nodes are rendered and applied as expected.",
+        "severity": "low"
+      },
+      "statement": "Karpenter-provider-aws v1.0.0 fixes the format of taints written into Bottlerocket node settings (bug fix 'bottlerocket settings taint format', #6489), changing how taints are rendered in Bottlerocket settings."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, Karpenter writes Bottlerocket taints that have no value with a leading colon before the effect. Bottlerocket nodes with such taints can now register with the cluster; under the old format they could not. Nothing that worked before stops working.",
+        "remediation": "After upgrading, check that Bottlerocket nodes with value-less taints register and carry the expected taints.",
+        "severity": "low"
+      },
+      "statement": "Karpenter 1.0.0 changes how Bottlerocket userdata renders a taint with no value: it now keeps a leading colon before the effect. With the old format, such Bottlerocket instances could not register with the cluster."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:d0b9f345e93c5ce439e2011fb7a3b7cef606fa65a048f9f1da5d80d0ab2676cd",
+      "inputEvidence": [
+        "ev-5506a0d4614a",
+        "ev-be7b495ffc4a",
+        "ev-586dee25060d",
+        "ev-91c9df19a0a7",
+        "ev-6e8791f4bfdf",
+        "ev-664e993932dd",
+        "ev-aa6e55e47c2f",
+        "ev-518a56c0e2c1",
+        "ev-f21609ff075e",
+        "ev-24365f012a2a",
+        "ev-a907ed2193a8",
+        "ev-c7e999251f0a",
+        "ev-a7b3f6c5d3bd",
+        "ev-548fd57f2706",
+        "ev-1e1395778114",
+        "ev-296463ddfc76",
+        "ev-01f887c4c0c4",
+        "ev-e21588eef5b6",
+        "ev-373814c431a1",
+        "ev-4b121944161e",
+        "ev-089778a9e2c3"
+      ],
+      "generatedAt": "2026-10-06T01:52:44.716Z",
+      "callId": "fc93f375-8bac-458c-a298-5df7dfc38605",
+      "provider": "anthropic"
+    },
+    "reason": "The linked PR [ev-be7b495ffc4a] says the fix makes a taint with no value keep a leading colon before its effect in Bottlerocket settings, and that without it the Bottlerocket instance cannot register with the cluster. Upgrading therefore fixes a failure; nothing new breaks, so behavior-change with low severity (review) is right. The proposed statement is too broad: it says all tainted Bottlerocket nodes get a different format, but the fix covers only taints with no value. The changed files [ev-586dee25060d] are limited to the Bottlerocket bootstrap code and its userdata golden files.",
+    "startedAt": "2026-10-06T01:52:30.825Z",
+    "decidedAt": "2026-10-06T01:52:44.716Z"
+  }
+}

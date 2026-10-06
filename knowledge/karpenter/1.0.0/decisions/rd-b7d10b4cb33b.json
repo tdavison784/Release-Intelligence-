@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b7d10b4cb33b",
+    "reviewItemId": "ri-bc4568e75baf",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "karpenter",
+        "name": "terminationGracePeriod"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Karpenter v1.0.0 adds \"terminationGracePeriod RBAC permissions\" (bug fix, PR #6538) to the product's controller RBAC; the release note names no specific resource, verb, role, or consequence beyond the addition."
+    },
+    "corrected": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "karpenter",
+        "name": "pods/delete"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Karpenter 1.0.0 adds the missing pods delete RBAC permission (needed for terminationGracePeriod) to the controller's core ClusterRole in the Helm chart (PR #6538)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:4c9c70192e79a3fafa3b74d9c13cc81270eb9aa6346a7f44a9ddafbe4b142682",
+      "inputEvidence": [
+        "ev-a907ed2193a8",
+        "ev-3152f9abdc25",
+        "ev-f7b28f897879",
+        "ev-646258eacfd7",
+        "ev-890e363086c8",
+        "ev-664e993932dd",
+        "ev-aa6e55e47c2f",
+        "ev-5506a0d4614a",
+        "ev-518a56c0e2c1",
+        "ev-f21609ff075e",
+        "ev-24365f012a2a",
+        "ev-c7e999251f0a",
+        "ev-a7b3f6c5d3bd",
+        "ev-548fd57f2706",
+        "ev-1e1395778114",
+        "ev-296463ddfc76",
+        "ev-01f887c4c0c4",
+        "ev-e21588eef5b6",
+        "ev-373814c431a1",
+        "ev-4b121944161e",
+        "ev-089778a9e2c3",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-80331c11381f",
+        "ev-f91dbd14d0cc",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-f83dc72c2c99",
+        "ev-13278d059ceb",
+        "ev-4bcafa8a355e"
+      ],
+      "generatedAt": "2026-10-06T01:54:27.582Z",
+      "callId": "b88d2927-07c9-48ab-bad6-98e39884306f",
+      "provider": "anthropic"
+    },
+    "reason": "\"terminationGracePeriod\" is the feature the fix supports, not an RBAC resource. The linked PR [ev-3152f9abdc25] says it \"Adds the missing pod delete rbac permissions\", and its only changed file is the core ClusterRole template [ev-f7b28f897879]. The upgrade guide's RBAC changes list \"added `delete pods`\" [ev-873cf7661375]. So the permission is pods/delete, and the change type \"added\" is correct.",
+    "startedAt": "2026-10-06T01:54:19.943Z",
+    "decidedAt": "2026-10-06T01:54:27.582Z",
+    "resultingFact": "vf-0691bf84e01e"
+  }
+}

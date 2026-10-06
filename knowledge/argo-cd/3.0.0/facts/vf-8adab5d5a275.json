@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-8adab5d5a275",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-ed90c37af30c"
+        ],
+        "statementKeys": [
+          "sk-5d0747ab6632"
+        ],
+        "changeIds": [
+          "chg-c29ef9351ac4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9ef31d2b8d52"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "login-return-url-custom-server-paths"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which argocd-server setting configures the custom base path for the UI; the release note and PR #21588 only say 'custom server paths' / 'base path' without naming the setting"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Login return_url redirects now work when the server uses a custom path; before the fix they did not. Nothing fails, and operators may want to check that the post-login redirect behaves as expected.",
+        "severity": "low"
+      },
+      "statement": "eed70eed6ef38bb64cfa950dc5fcae37c244ce76: fix: login return_url doesn't work with custom server paths"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8f8687f59c5e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8f8687f59c5e"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-bccf50596530"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2b23934b3197"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a6fc1c17efbb",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L166-L166 (Changelog › Bug fixes)",
+        "excerpt": "* eed70eed6ef38bb64cfa950dc5fcae37c244ce76: fix: login return_url doesn't work with custom server paths (#21588) (@alexmt)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:47:08.773Z"
+  }
+}
