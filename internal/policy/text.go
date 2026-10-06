@@ -43,8 +43,10 @@ func WriteText(w io.Writer, v *Verdict, opts TextOptions) {
 			continue
 		}
 		inv := ""
-		if it.Invariant != "" {
-			inv = fmt.Sprintf(" (policy said %s; raised by invariant %s)", it.PolicyTier, it.Invariant)
+		if it.Invariant != "" && it.PolicyTier != it.Tier {
+			inv = fmt.Sprintf(" (policy said %s; raised by safety invariant %s)", it.PolicyTier, it.Invariant)
+		} else if it.Invariant != "" {
+			inv = fmt.Sprintf(" (safety invariant %s applies)", it.Invariant)
 		}
 		fmt.Fprintf(w, "  [%s] %s: %s — rule %s%s\n", it.Tier, it.Subject, it.Ref, it.Rule, inv)
 		if len(it.Evidence) > 0 {
@@ -52,7 +54,7 @@ func WriteText(w io.Writer, v *Verdict, opts TextOptions) {
 		}
 	}
 	if !opts.ShowAll && v.Counts[AutoPass] > 0 {
-		fmt.Fprintf(w, "  (%d auto-pass item(s) not listed; use -policy-all)\n", v.Counts[AutoPass])
+		fmt.Fprintf(w, "  (%d auto-pass item(s) not listed; use --tier-policy-all)\n", v.Counts[AutoPass])
 	}
 	for _, n := range v.Notes {
 		fmt.Fprintf(w, "  note: %s\n", n)

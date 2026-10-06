@@ -41,8 +41,9 @@ type Item struct {
 	PolicyTier Tier   `json:"policyTier"`
 	Tier       Tier   `json:"tier"`
 	Reason     string `json:"reason"`
-	// Invariant names the safety invariant that raised the tier above what
-	// the rules said (empty when no invariant applied).
+	// Invariant names the safety invariant that applies to this item (a floor
+	// no policy can lower); the tier is raised to it when the rules said less
+	// (PolicyTier shows what they said). Empty when no invariant applies.
 	Invariant string `json:"invariant,omitempty"`
 	// Attrs are the derived attributes the predicates saw (for example
 	// bump=minor, sameRepository=true); they never carry configuration values.
@@ -149,8 +150,11 @@ func (e *evaluator) decide(m func(Match) bool) (id string, o Outcome, ok bool) {
 
 func (e *evaluator) add(it Item, floor Tier, invariant string) {
 	it.PolicyTier = it.Tier
-	if invariant != "" && floor.rank() > it.Tier.rank() {
-		it.Tier, it.Invariant = floor, invariant
+	if invariant != "" {
+		// recorded whenever a floor applies; the tier only moves when the
+		// rules said less than the floor
+		it.Invariant = invariant
+		it.Tier = Max(it.Tier, floor)
 	}
 	e.items = append(e.items, it)
 }
