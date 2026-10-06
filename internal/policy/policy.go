@@ -339,7 +339,9 @@ func (m Match) validate(where string) []error {
 // written to cover something the invariants keep out of auto-pass.
 func (m Match) forbiddenAutoPass(where string) []error {
 	var errs []error
-	forbid := func(msg string) { errs = append(errs, fmt.Errorf("%s: auto-pass is not allowed %s (safety invariant)", where, msg)) }
+	forbid := func(msg string) {
+		errs = append(errs, fmt.Errorf("%s: auto-pass is not allowed %s (safety invariant)", where, msg))
+	}
 	switch m.Subject {
 	case SubjectRenderState:
 		forbid("for a render state: a render failure, rejection, missing render or incomplete values is never a pass")

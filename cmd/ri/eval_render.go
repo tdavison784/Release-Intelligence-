@@ -15,6 +15,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/impact"
+	"github.com/tdavison784/release-intelligence/internal/policy"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -71,6 +72,11 @@ type renderCaseStat struct {
 	// RestatedChanges are the edge change ids a complete customer render
 	// restates (for joining with the eval's per-link results).
 	RestatedChanges []string `json:"restatedChanges,omitempty"`
+	// Policy is the upgrade-level verdict of the shipped default policy
+	// (docs/POLICY.md) over this case's renders, edge and report; PolicyWhy
+	// names the rules that decided it. Measurement only: it feeds no gate.
+	Policy    string   `json:"policyTier,omitempty"`
+	PolicyWhy []string `json:"policyWhy,omitempty"`
 }
 
 func (p appPipeline) renderImpact(ctx context.Context, product, from, to string, inputs env.Inputs, facts []domain.VerifiedFact, min domain.VerificationLevel) (*domain.ImpactReport, error) {
@@ -181,6 +187,11 @@ func (r *renderEval) record(key string, run *app.ImpactRun) {
 			}
 		}
 	}
+	v := policy.Evaluate(policy.Default(), policy.Input{Pairs: run.Render.EnvironmentPairs(), Edge: run.Edge, Report: run.Report})
+	st.Policy = string(v.Tier)
+	for _, g := range v.Why {
+		st.PolicyWhy = append(st.PolicyWhy, fmt.Sprintf("%d×%s", g.Count, g.Rule))
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.stats == nil {
@@ -233,6 +244,14 @@ func (r *renderEval) writeText(w io.Writer) {
 	}
 	fmt.Fprintf(w, "  total: render success %d/%d (%.2f) · %d rendered changes (%d undocumented) · unknown %d, restated by a customer render %d (complete %d) · rendered-change leaves decided %d · ACTION with render evidence %d · ACTION corroborated by render %d/%d · target rejects values %d · unset defaults (PO-3): exposed %d (image-only %d), cleared %d, render unavailable %d\n",
 		tot.Succeeded, tot.Pairs, rate, tot.Changes, tot.Undocumented, tot.Unknown, tot.UnknownRestated, tot.UnknownRestatedOK, tot.DecidedByRender, tot.ActionByRender, tot.ActionCorroborated, tot.Action, tot.TargetRejects, tot.DefaultExposed, tot.DefaultImages, tot.DefaultCleared, tot.DefaultUnavailable)
+	dist := map[string]int{}
+	fmt.Fprintf(w, "\nUpgrade policy (PO-7b, shipped default; measurement only, feeds no gate)\n")
+	for _, k := range keys {
+		s := r.stats[k]
+		dist[s.Policy]++
+		fmt.Fprintf(w, "  %-70s %-9s %s\n", s.Case, s.Policy, strings.Join(s.PolicyWhy, ", "))
+	}
+	fmt.Fprintf(w, "  verdict distribution: auto-pass %d, review %d, block %d (of %d cases)\n", dist["auto-pass"], dist["review"], dist["block"], len(keys))
 }
 
 // caseOf names the eval case an environment belongs to: the directory above
