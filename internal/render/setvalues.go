@@ -206,7 +206,10 @@ func (s *SetValues) attribute(ctx context.Context, p *Pair, keys []string, overr
 		return a, "counterfactual render failed (" + reason + ")"
 	}
 	nondet := append(append([]string{}, p.FromResult.Nondeterministic...), cf.Nondeterministic...)
-	effect := Diff(cf.Objects, p.FromResult.Objects, DiffOptions{Nondeterministic: nondet})
+	// the counterfactual's effect in the pair-delta orientation: with the key
+	// (FromResult) → without it (cf), so a removal here intersects the pair's
+	// From→To removal (unset.go mirrors this: old state → new state)
+	effect := Diff(p.FromResult.Objects, cf.Objects, DiffOptions{Nondeterministic: nondet})
 	inEffect := map[string]bool{}
 	for _, c := range effect.Changes {
 		inEffect[changeKey(c)] = true
