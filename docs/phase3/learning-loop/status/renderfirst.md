@@ -21,18 +21,27 @@ Claude lead had not created it); it now carries the lane's running state.
   it) — with their `Validate` shapes (values-key + environment-render matches; no-
   attributable-change render check), schemagen meta rules, regenerated
   `schemas/impact-report.schema.json`, and the eval render-first panel wired per
-  run and per verification level in `cmd/ri/eval.go`.
+  run and per verification level in `cmd/ri/eval.go` (commit `3af064cc`).
+- **Values family end-to-end, commits `f1463a4c`, `c5619ef1`, `d2e6ed6c`**:
+  `internal/impact/setvalues.go` (SetValuesEvaluator contract + join emission:
+  rejected → `impact:render-target-rejects` ACTION citing the refusal, no-effect →
+  `impact:values-set-no-effect`, attributable/undecided/no evaluator → today's
+  `impact:values-removed` wording, render matches appended on chain 2) and
+  `internal/render/setvalues.go` (the evaluator: rejection pass — `TargetRejects`
+  plus a refusal that names the key or an ancestor; From-minus-key
+  counterfactual — a null values layer deletes the key, the diff in pair
+  orientation `FromResult → cf` intersects the pair delta by `changeKey`;
+  `--set` paths at/under the key make it undecided), wired as `in.Set` beside
+  `in.Unset` in `internal/app/impact.go`. Tests: live-helm `rej` chart family
+  (1.0.0 reads `legacy.feature`, 1.1.0 drops the section, 2.0.0 refuses unknown
+  keys via `values.schema.json`), join test incl. byte identity of the report
+  without a decisive render, and pure tests of the refusal matcher / null layer /
+  --set guard. `go build ./... && go vet ./... && go test ./...` green.
 
-## In progress (PO-7a steps 2–3, values family)
+## In progress (PO-7a steps 2–3)
 
-Generalising the PO-3 counterfactual to values keys the customer SETS whose key
-the target removes (`values:removed` / `values:section-removed` with a values
-match): the render decides between rejection (schema/chart-authored `fail` naming
-the key ⇒ `impact:render-target-rejects` ACTION), attributable rendered changes
-(⇒ today's `impact:values-removed` ACTION, now with rendered-change matches on
-chain 2), and nothing attributable (⇒ `impact:values-set-no-effect` not-affected).
-Without `--render`, or when the render cannot decide, the verdict is exactly
-today's (byte-identical). See the handoff log for state.
+The values family is done end-to-end (see Done). The same render-first pattern
+is next for the remaining render-expressible families (see Next).
 
 ## Next (not started)
 
@@ -56,6 +65,13 @@ today's (byte-identical). See the handoff log for state.
   existing deterministic class).
 - When the render is unavailable or cannot decide, today's verdicts stand (the
   render overrides only with a decisive result) — mirrors PO-3's aggregation.
+- The set-key counterfactual diff runs in the pair-delta orientation
+  (`FromResult → cf`), mirroring unset.go's old→new orientation, so a key
+  removal intersects the From→To delta by `changeKey` (class and target value
+  must match).
+- A `--set` override at or under the key (Argo/Helmfile parameters) makes the
+  set-key evaluation undecided: a values layer cannot delete an override, so the
+  counterfactual could not honestly unset the key.
 
 ## Files touched outside ownership (all additive)
 
@@ -74,11 +90,22 @@ last verified run.
 ### Window 1 (2026-10-05, glm-renderfirst)
 
 Inherited: step 1 committed; WIP on the tree adding the two domain rules, schema
-entries and the eval panel (no producers, no tests, no status file). Plan for this
-window: (a) this status file, (b) verify + commit the inherited WIP, (c) implement
-the producers for the values-removed-with-match case (`internal/impact/setvalues.go`
-+ `internal/render/setvalues.go`, wired through api/build/app), (d) render-side and
-join-side tests. Progress is recorded below as each lands.
+entries and the eval panel (no producers, no tests, no status file).
+
+Done this window (all four planned items):
+
+- (a) `ae2f107d` this status file.
+- (b) `3af064cc` banked the inherited WIP after verifying it (schemagen
+  regeneration produced no diff; domain/schemagen/eval tests green).
+- (c) `f1463a4c` the join emission (`internal/impact/setvalues.go`, `Input.Set`,
+  valuesFamily dispatch) and `c5619ef1` the render evaluator
+  (`internal/render/setvalues.go`) wired as `in.Set` in `internal/app/impact.go`.
+- (d) `d2e6ed6c` tests + the live-helm `rej` fixtures, including the fix for a
+  real bug the live test caught: the counterfactual diff was computed
+  cf→FromResult, reversing every change so the `changeKey` intersection was
+  always empty; it is now FromResult→cf (pair orientation).
+
+`go build ./... && go vet ./... && go test ./...` green at `d2e6ed6c`.
 
 Uncertainties (for the returning lead / commander):
 
@@ -94,3 +121,7 @@ Uncertainties (for the returning lead / commander):
 - The live 28-entry eval with `-render` was NOT rerun in this window (needs the
   warm primary-checkout state and network); the eval panel and the new rules are
   covered by unit/live-tool tests only.
+- The refusal matcher is case-sensitive (helm echoes property names verbatim);
+  if a real refusal lower-cases paths it will fall to undecided, which is safe
+  (today's verdict stands) but invisible — worth one live sample during the eval
+  rerun.
