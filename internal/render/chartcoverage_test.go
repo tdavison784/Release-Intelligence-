@@ -3,7 +3,22 @@ package render
 import (
 	"context"
 	"testing"
+
+	"github.com/tdavison784/release-intelligence/internal/normalize"
 )
+
+// normalizeFlatten flattens a values document to path → JSON (test helper).
+func normalizeFlatten(raw []byte) (map[string]string, error) {
+	flat, err := normalize.FlattenValues(raw)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]string, len(flat))
+	for _, f := range flat {
+		out[f.Path] = f.Value
+	}
+	return out, nil
+}
 
 // The coverage guard's path rule: a default covers a key it names exactly or
 // lies UNDER; a default above the key (the chart's parent map exists, the
@@ -39,7 +54,42 @@ func TestUncoveredKeys(t *testing.T) {
 	}
 }
 
-// chartDefaults flattens the fixture chart exactly like the values diff.
+// Istio's charts wrap every real key under one top-level `defaults` map; the
+// lift unwraps exactly that shape and nothing else.
+func TestLiftDefaultsWrap(t *testing.T) {
+	cases := []struct {
+		name, in string
+		want     string // expected flattened top key, "" = unchanged
+	}{
+		{"istio wrap", "defaults:\n  pilot:\n    replicas: 1\n", "pilot.replicas"},
+		{"two top keys", "defaults:\n  a: 1\nother: 2\n", ""},
+		{"defaults scalar", "defaults: gone\n", ""},
+		{"no wrap", "pilot:\n  replicas: 1\n", ""},
+	}
+	for _, tc := range cases {
+		out, ok := liftDefaultsWrap([]byte(tc.in))
+		if tc.want == "" {
+			if ok {
+				t.Errorf("%s: must not lift", tc.name)
+			}
+			continue
+		}
+		if !ok {
+			t.Fatalf("%s: must lift", tc.name)
+		}
+		d, why := chartDefaults(nil, nil, "", "")
+		if why != "no chart resolver configured" || d != nil {
+			t.Fatalf("resolver guard: %v %q", d, why)
+		}
+		flat, err := normalizeFlatten(out)
+		if err != nil {
+			t.Fatalf("%s: flatten: %v", tc.name, err)
+		}
+		if _, hit := flat[tc.want]; !hit {
+			t.Errorf("%s: lifted keys %v lack %s", tc.name, flat, tc.want)
+		}
+	}
+}
 func TestChartDefaults(t *testing.T) {
 	e := testEngine(t)
 	d, why := chartDefaults(context.Background(), e, "rej", "1.0.0")

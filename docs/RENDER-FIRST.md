@@ -43,15 +43,18 @@ under the key makes the evaluation undecided — a values layer cannot delete an
 Failed renders, incomplete values (`valuesFrom` outside the repo) and release-scope
 renders never decide anything (an evidence gap is UNKNOWN, never "no change").
 
-**Chart coverage**: a no-effect/clear verdict additionally requires the rendered chart
-to *define* the key — a default at the exact path or under it
-(`internal/render/chartcoverage.go`). Products ship several charts (istio renders
-istiod while `cni.*` belongs to the istio-cni chart), and a key the rendered chart
-never defined cannot have reached any rendered deployment: its counterfactual renders
-identically, and that vacuous "nothing attributable" would read as no-effect while the
-deployment consuming the key was never rendered. Uncovered keys make the conclusion
-undecided/unknown, naming the gap (an attributable match or a target-render refusal
-stands regardless).
+**Chart coverage**: a no-effect/clear verdict additionally requires the chart being
+rendered to *define* the key — a default at the exact path or under it
+(`internal/render/chartcoverage.go`; istio's single top-level `defaults:` wrapping is
+lifted exactly as the values snapshots lift it). Products ship several charts (istio
+renders istiod while `cni.*` belongs to the istio-cni chart), and a key the rendered
+chart never defined cannot have reached any rendered deployment: its counterfactual
+renders identically, and that vacuous "nothing attributable" would read as no-effect
+while the deployment consuming the key was never rendered. For set keys the guard reads
+the *target* chart, so a key the upgrade removed — by definition absent from the target
+— also returns to the deterministic verdict instead of a vacuous clear. Uncovered keys
+make the conclusion undecided/unknown, naming the gap (an attributable match or a
+target-render refusal stands regardless).
 
 ## The decision order in the join
 

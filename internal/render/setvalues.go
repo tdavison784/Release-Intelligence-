@@ -49,9 +49,12 @@ type SetValues struct {
 	mu   sync.Mutex
 	memo map[string]impact.SetValuesResult
 
-	once        sync.Once
-	defaults    map[string]string // source chart values: flattened path → JSON
-	defaultsErr string
+	once          sync.Once
+	defaults      map[string]string // source chart values: flattened path → JSON
+	defaultsErr   string
+	toOnce        sync.Once
+	toDefaults    map[string]string // target chart values
+	toDefaultsErr string
 }
 
 var _ impact.SetValuesEvaluator = (*SetValues)(nil)
@@ -88,10 +91,22 @@ func undecided(needed ...string) impact.SetValuesResult {
 }
 
 // fromDefaults lazily flattens the source chart's values — the chart the
-// environment pairs render — for the no-effect coverage guard.
+// counterfactual renders — for the no-effect coverage guard.
 func (s *SetValues) fromDefaults(ctx context.Context) (map[string]string, string) {
 	s.once.Do(func() { s.defaults, s.defaultsErr = chartDefaults(ctx, s.Engine, s.Product, s.From) })
 	return s.defaults, s.defaultsErr
+}
+
+// toOnce/toDefaults lazily flatten the target chart's values for the same
+// guard. Coverage is the UNION: a key the source defines can honestly show
+// "your setting renders nothing" even after the target dropped it (the
+// counterfactual renders the source — the chart the customer ran), while a
+// key NEITHER chart defines (istio's cni.* under the istiod render — another
+// chart of the product owns it) never reached any rendered deployment, and
+// "nothing attributable" would be vacuous.
+func (s *SetValues) targetDefaults(ctx context.Context) (map[string]string, string) {
+	s.toOnce.Do(func() { s.toDefaults, s.toDefaultsErr = chartDefaults(ctx, s.Engine, s.Product, s.To) })
+	return s.toDefaults, s.toDefaultsErr
 }
 
 func (s *SetValues) evaluate(keys []string) impact.SetValuesResult {
@@ -165,14 +180,16 @@ func (s *SetValues) evaluate(keys []string) impact.SetValuesResult {
 		// not be rendered
 		return impact.SetValuesResult{Outcome: impact.SetValuesAttributable, Matches: matches, Records: records}
 	}
-	// chart-coverage guard: a key the rendered chart does not define never
-	// reached any rendered deployment, so "nothing attributable" would be
-	// vacuous — the pair that consumes it (istio's cni chart under the
-	// istiod render) was never rendered. Undecided, never no-effect.
-	if defaults, derr := s.fromDefaults(ctx); derr != "" {
-		needed = append(needed, "the chart's values could not be read: "+derr)
-	} else if unc := uncoveredKeys(defaults, keys); len(unc) > 0 {
-		needed = append(needed, "the rendered chart defines none of "+strings.Join(unc, ", ")+
+	// chart-coverage guard: a key neither rendered chart defines never
+	// reached any rendered deployment — the pair that consumes it (istio's
+	// cni chart under the istiod render) was never rendered — so "nothing
+	// attributable" would be vacuous. Undecided, never no-effect.
+	if from, ferr := s.fromDefaults(ctx); ferr != "" {
+		needed = append(needed, "the chart's values could not be read: "+ferr)
+	} else if to, terr := s.targetDefaults(ctx); terr != "" {
+		needed = append(needed, "the chart's values could not be read: "+terr)
+	} else if unc := uncoveredKeysEither(from, to, keys); len(unc) > 0 {
+		needed = append(needed, "neither rendered chart defines "+strings.Join(unc, ", ")+
 			" (another chart of "+s.Product+" owns them; no deployment consuming them was rendered)")
 	}
 	if len(needed) > 0 || cleared == 0 {
