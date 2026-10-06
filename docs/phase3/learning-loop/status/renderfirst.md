@@ -50,11 +50,27 @@ Claude lead had not created it); it now carries the lane's running state.
   Kustomize), wired as `in.Image`. Tests: perm customers pinning repo-only
   (attributable) vs repo+tag (no-effect), join byte identity, failed/incomplete
   renders never clear. Full suite green.
+- **Decision order in the join, commit `1b7d576d`** (brief item 3):
+  `builder.renderExposure` (`internal/impact/renderfirst.go`) — when the
+  customer's render decisively decides a change's exposure, it wins over the
+  fact's applicability condition (knowledge conditions only decide what
+  rendering can't). Dispatch mirrors the join's own families: values:removed
+  with the key set → SetValues (rejection/attributable = True, no-effect =
+  False); values:default-changed/added with the key unset → the PO-3
+  counterfactual; image rules with the repo referenced → per-repo aggregation
+  (any attributable wins, one undecided abstains). Both consequences tested in
+  `internal/impact/renderfirst_test.go`: a decisive no-effect stops a trusted
+  fact's exposure claim (render's not-affected stands); an attributable render
+  + trusted action-grade consequence raises review to a knowledge ACTION
+  citing the rendered change on chain 2 — the only render+knowledge→ACTION
+  path, so the trust ladder holds. Without evaluators the composition is
+  byte-identical (full suite unchanged).
 
 ## In progress (PO-7a steps 2–3)
 
-The values family is done end-to-end (see Done). The same render-first pattern
-is next for the remaining render-expressible families (see Next).
+The values family, the image family and the decision order are done (see
+Done). Remaining render-expressible inputs ride along with the knowledge-inputs
+work (see Next).
 
 ## Next (not started)
 
@@ -122,9 +138,11 @@ Done this window (all four planned items):
   always empty; it is now FromResult→cf (pair orientation).
 
 Beyond the plan, same window: the image family end-to-end (`441ddb86` evaluator
-+ rules + wiring, `cab2f988` tests) — see Done.
++ rules + wiring, `cab2f988` tests) — see Done — and the decision order
+(`1b7d576d`: `renderExposure` override in knowledge composition + tests, brief
+item 3) — see Done.
 
-`go build ./... && go vet ./... && go test ./...` green at `cab2f988`.
+`go build ./... && go vet ./... && go test ./...` green at `1b7d576d`.
 
 Uncertainties (for the returning lead / commander):
 
@@ -144,3 +162,10 @@ Uncertainties (for the returning lead / commander):
   if a real refusal lower-cases paths it will fall to undecided, which is safe
   (today's verdict stands) but invisible — worth one live sample during the eval
   rerun.
+- Decision order (item 3): the render+knowledge→ACTION path only fires when the
+  fact's consequence kind is action-eligible (the fact contract pins
+  exposedClass to the kind — `semantic.go` `Kind.ExposedClass()`); a
+  behavior-change consequence caps at review, which the composition guard then
+  skips next to the deterministic review finding. That is the contract working
+  as designed, not a gap, but it means the render's practical raise is narrower
+  than "any trusted fact".
