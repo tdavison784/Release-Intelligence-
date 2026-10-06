@@ -281,6 +281,11 @@ func impactClassRules() []any {
 			"then", classIs(domain.ImpactReviewRequired)),
 		o("if", ruleIs(o("enum", []any{domain.RuleValuesDefaultNoEffect, domain.RuleValuesDefaultUnrendered})),
 			"then", classIs(domain.ImpactNotAffected)),
+		// PO-7a render-first verdicts (docs/RENDER-FIRST.md)
+		o("if", ruleIs(o("const", domain.RuleRenderTargetRejects)),
+			"then", classIs(domain.ImpactActionRequired)),
+		o("if", ruleIs(o("const", domain.RuleValuesSetNoEffect)),
+			"then", classIs(domain.ImpactNotAffected)),
 		// PO-4: a refinement comes from a trusted fact, stays affected, and
 		// refinedFrom is carried exactly by impact:knowledge-refined
 		o("if", o("required", []string{"refinedFrom"}),
