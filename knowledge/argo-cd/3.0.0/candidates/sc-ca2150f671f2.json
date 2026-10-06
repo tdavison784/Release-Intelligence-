@@ -36,6 +36,36 @@
         "excerpt": "* f6a84a470d1f8241207280a8d334ec9cb021443f: fix(appset): Reconcile appset only once when appset is refreshed (fix 21171) (#21172) (@dacofr)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-05f30f1392dc",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21172",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21172): fix(appset): Reconcile appset only once when appset is refreshed (#21171) [closed]\nFixes #21171\n\nCurrently, when webhook wants to refresh an appset, it's done by setting this annotation : **argocd.argoproj.io/application-set-refresh** via [refreshApplicationSet](https://github.com/argoproj/argo-cd/blob/master/applicationset/webhook/webhook.go#L149) method.\n\nAfter that, appset controller enter the reconcile loop because he receives a change on Kubernetes object,\nafter processing the appset, the controller removes the annotation, which has the consequence to en…",
+        "contentDigest": "sha256:0175766ffc70fa2051e1d4f81f13897a4f483e49a56bfa8d7685fb02a0e7286d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-e1e3591a7137",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21172",
+        "locator": "description (part 2)",
+        "excerpt": "Kubernetes object is updated a second time).\n\nIn current PR, we implement an `EventFilter` to not requeue the second appset change, based on logic :\n` if oldAppSet has refreshAnnotation and newAppSet do not have refreshAnnotation also do not requeue`.\n\nSigned-off-by: Philippe Da Costa <pdacosta@gmail.com>\n\nChecklist:\n\n* [ ] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to …",
+        "contentDigest": "sha256:0175766ffc70fa2051e1d4f81f13897a4f483e49a56bfa8d7685fb02a0e7286d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-713fc045290e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21172",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): applicationset/controllers/applicationset_controller.go, applicationset/controllers/applicationset_controller_test.go",
+        "contentDigest": "sha256:0175766ffc70fa2051e1d4f81f13897a4f483e49a56bfa8d7685fb02a0e7286d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",
