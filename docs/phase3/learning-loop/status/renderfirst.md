@@ -65,6 +65,29 @@ Claude lead had not created it); it now carries the lane's running state.
   citing the rendered change on chain 2 — the only render+knowledge→ACTION
   path, so the trust ladder holds. Without evaluators the composition is
   byte-identical (full suite unchanged).
+- **Rendered CRDs as an environment input (addendum items 6–7), commits
+  `2603e180`, `fd3767fc`, `52ab9dfc`, `40b16308`, `f042c869`**: new evidence
+  kind `rendered` (a document a render produced, distinct from every observed
+  kind); `env.Inputs.RenderedCRDs` loads the CustomResourceDefinition
+  documents of the FROM render of the customer's install (their CRD gates
+  exactly as set) through the same CRD machinery — marked
+  `InstalledCRD.Rendered`, cited by an `EvidenceRendered` record naming the
+  render and its chart/values digests. Observed `--crds` wins (also
+  per-CRD against manifest-observed ones); the dimension never becomes
+  "supplied" (absence conclusions stay off) and stays PARTIAL; a render
+  without CRDs loads nothing (gate or separate install path — absence is not
+  knowledge). `render.RenderedCRDsOf` extracts from the environment pairs'
+  FROM renders (dedup by name, never the chart-default pair); `ImpactRun`
+  reloads the environment with them before the join. In the join,
+  `renderedCRDResolution` resolves the identity question of
+  crd:removed / crd:version-removed / -unserved / -deprecated that a missing
+  `--crds` leaves unknown — raise-only: review-required at medium confidence
+  on the rendered evidence, never action, never not-affected, all-or-nothing
+  per change. The FROM→TO rendered CRD delta rides the existing pair diff
+  (CRDs are ordinary rendered objects); tested that the target's dropped
+  version appears in the customer's delta only when their gate is open.
+  Fixtures: `crdg` chart with `crds.enabled`-gated CRDs (customer values
+  on/off; 1.1.0 drops v1alpha2).
 
 ## In progress (PO-7a steps 2–3)
 
@@ -138,11 +161,13 @@ Done this window (all four planned items):
   always empty; it is now FromResult→cf (pair orientation).
 
 Beyond the plan, same window: the image family end-to-end (`441ddb86` evaluator
-+ rules + wiring, `cab2f988` tests) — see Done — and the decision order
-(`1b7d576d`: `renderExposure` override in knowledge composition + tests, brief
-item 3) — see Done.
++ rules + wiring, `cab2f988` tests), the decision order (`1b7d576d`:
+`renderExposure` override in knowledge composition + tests, brief item 3), and
+the rendered-CRDs addendum items 6–7 end-to-end (`2603e180` evidence kind,
+`fd3767fc` env input, `52ab9dfc` extraction, `40b16308` join resolution +
+wiring, `f042c869` the gate-honoring FROM→TO delta test) — see Done.
 
-`go build ./... && go vet ./... && go test ./...` green at `1b7d576d`.
+`go build ./... && go vet ./... && go test ./...` green at `f042c869`.
 
 Uncertainties (for the returning lead / commander):
 
