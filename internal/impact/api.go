@@ -128,6 +128,10 @@ type Input struct {
 	// rendering (PO-7a; nil: today's values-removed verdict).
 	// CONTRACT-CHANGE(renderfirst).
 	Set SetValuesEvaluator
+	// Image decides image changes against the customer's rendered upgrade
+	// delta (PO-7a; nil: today's image-changed verdict).
+	// CONTRACT-CHANGE(renderfirst).
+	Image ImageRenderEvaluator
 }
 
 // Build assembles the ImpactReport. The result must pass

@@ -206,6 +206,13 @@ const (
 	// not-affected, with a no-attributable-change render check citing the
 	// render evidence.
 	RuleValuesSetNoEffect = "impact:values-set-no-effect"
+	// RuleImageRenderUnchanged: the environment references the image repository
+	// of the change, but the customer's own From→To render (with their
+	// configuration) contains no change for it — typically because they pin the
+	// reference — so the change never reaches their rendered deployment →
+	// not-affected, with a no-attributable-change render check citing both
+	// compared renders.
+	RuleImageRenderUnchanged = "impact:image-render-unchanged"
 )
 
 // ImpactMatchKind names what part of the environment matched.
@@ -824,7 +831,7 @@ func (r *ImpactReport) validateValuesDefaults() []error {
 			if !ok || !keyed {
 				bad("%s needs a values-key match and a rendered-change match backed by environment-render evidence", f.Rule)
 			}
-		case RuleValuesDefaultNoEffect, RuleValuesSetNoEffect:
+		case RuleValuesDefaultNoEffect, RuleValuesSetNoEffect, RuleImageRenderUnchanged:
 			if f.Classification != ImpactNotAffected || !renderCheck(RenderNoAttributableChange) {
 				bad("%s is not-affected with a no-attributable-change render check", f.Rule)
 			}

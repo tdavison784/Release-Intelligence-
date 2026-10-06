@@ -106,6 +106,7 @@ type builder struct {
 
 	unset UnsetValuesEvaluator // CONTRACT-CHANGE(render): PO-3, nil without --render
 	set   SetValuesEvaluator   // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
+	image ImageRenderEvaluator // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -121,7 +122,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
 		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
-		unset: in.Unset, set: in.Set,
+		unset: in.Unset, set: in.Set, image: in.Image,
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -733,7 +734,9 @@ func (b *builder) imageFamily() {
 			if strings.TrimSpace(c.Detail) != "" {
 				detail = c.Detail + "\nYour environment references this repository (as " + firstImageRef(uses) + ")."
 			}
-			b.add(RuleImageChanged, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — the customer's rendered
+			// upgrade delta decides (their pin may keep the change away)
+			b.imageVerdict(b.image, c, s, matches, detail, title)
 		}
 		if len(unmatched) > 0 && len(unmatched) == len(c.Subjects) {
 			title := fmt.Sprintf("Your environment does not reference %s", codeList(unmatched, 3))

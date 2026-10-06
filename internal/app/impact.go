@@ -97,6 +97,10 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 		in.Set = &render.SetValues{Engine: a.RenderEngine(), Product: productID,
 			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
 			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
+		// PO-7a: image changes are decided by the customer's rendered delta
+		// (a pinned reference keeps the change away)
+		in.Image = &render.RenderImages{Product: productID,
+			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs()}
 	}
 	if run.Report, err = impact.Build(in); err != nil {
 		return nil, err

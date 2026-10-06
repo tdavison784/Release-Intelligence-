@@ -286,6 +286,8 @@ func impactClassRules() []any {
 			"then", classIs(domain.ImpactActionRequired)),
 		o("if", ruleIs(o("const", domain.RuleValuesSetNoEffect)),
 			"then", classIs(domain.ImpactNotAffected)),
+		o("if", ruleIs(o("const", domain.RuleImageRenderUnchanged)),
+			"then", classIs(domain.ImpactNotAffected)),
 		// PO-4: a refinement comes from a trusted fact, stays affected, and
 		// refinedFrom is carried exactly by impact:knowledge-refined
 		o("if", o("required", []string{"refinedFrom"}),
