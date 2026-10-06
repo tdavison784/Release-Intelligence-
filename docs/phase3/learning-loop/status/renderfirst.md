@@ -37,6 +37,19 @@ Claude lead had not created it); it now carries the lane's running state.
   keys via `values.schema.json`), join test incl. byte identity of the report
   without a decisive render, and pure tests of the refusal matcher / null layer /
   --set guard. `go build ./... && go vet ./... && go test ./...` green.
+- **Image family end-to-end, commits `441ddb86`, `cab2f988`**: the customer's
+  own From→To render decides a referenced image repository (no counterfactual
+  needed — the pair delta IS their upgrade). New not-affected rule
+  `impact:image-render-unchanged` (domain const + validate shape + schemagen +
+  regenerated schema); `impact.ImageRenderEvaluator` (`internal/impact/images.go`)
+  with `imageFamily` dispatch (attributable → today's review-required
+  `impact:image-changed` with rendered matches on chain 2; no-effect — a pinned
+  reference keeps the chart's image change out of the customer's render →
+  not-affected with a no-attributable-change render check; undecided/nil →
+  today's verdict); `render.RenderImages` over the environment pairs (Helm and
+  Kustomize), wired as `in.Image`. Tests: perm customers pinning repo-only
+  (attributable) vs repo+tag (no-effect), join byte identity, failed/incomplete
+  renders never clear. Full suite green.
 
 ## In progress (PO-7a steps 2–3)
 
@@ -45,8 +58,11 @@ is next for the remaining render-expressible families (see Next).
 
 ## Next (not started)
 
-- Steps 2–3 for the remaining render-expressible families: image/tag changes,
-  removed/renamed flags & env vars, knowledge-fact subject+change inputs.
+- Steps 2–3 for the remaining render-expressible inputs: knowledge-fact
+  subject+change inputs (render decides what it can see; knowledge conditions
+  only what rendering can't) and removed/renamed flags & env vars, which exist
+  only as render diff classes and note-derived changes (no computed upgrade
+  rule) — they ride along with the knowledge-inputs work.
 - Adversarial tests at system level (brief item 4) and the full eval with/without
   `-render` (item 5) — numbers must be re-run before quoting; the stored
   `eval/results/*` are untouched.
@@ -105,7 +121,10 @@ Done this window (all four planned items):
   cf→FromResult, reversing every change so the `changeKey` intersection was
   always empty; it is now FromResult→cf (pair orientation).
 
-`go build ./... && go vet ./... && go test ./...` green at `d2e6ed6c`.
+Beyond the plan, same window: the image family end-to-end (`441ddb86` evaluator
++ rules + wiring, `cab2f988` tests) — see Done.
+
+`go build ./... && go vet ./... && go test ./...` green at `cab2f988`.
 
 Uncertainties (for the returning lead / commander):
 
