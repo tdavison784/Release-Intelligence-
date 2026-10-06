@@ -124,6 +124,10 @@ type Input struct {
 	// customer leaves unset by rendering (PO-3; nil: today's values-unset
 	// verdict). CONTRACT-CHANGE(render).
 	Unset UnsetValuesEvaluator
+	// Set decides values-removed changes whose keys the customer sets by
+	// rendering (PO-7a; nil: today's values-removed verdict).
+	// CONTRACT-CHANGE(renderfirst).
+	Set SetValuesEvaluator
 }
 
 // Build assembles the ImpactReport. The result must pass
