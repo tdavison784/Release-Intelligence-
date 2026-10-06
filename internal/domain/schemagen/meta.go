@@ -56,7 +56,7 @@ var enums = []enumSet{
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
-		domain.EvidenceLocalFile, domain.EvidenceInput, domain.EvidenceRenderedDiff,
+		domain.EvidenceLocalFile, domain.EvidenceInput, domain.EvidenceRenderedDiff, domain.EvidenceRendered,
 		domain.EvidenceLinkedPR, domain.EvidenceLinkedCommit,
 	),
 	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages, domain.SnapshotLines),
