@@ -257,3 +257,15 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   - $149.47 of the ~$150 cap.
   - Findings: duplicate release mismatch (fixed in prompt v4, not yet run); in the shadow the proxy superseded 3
     auto-approved consensus facts through audit corrections; capture is the lever for one-line changelog closes.
+
+## proxy-5 (branch `p3ll/proxy-5`, commander order 2026-10-05)
+
+- **5a DONE.** Prompt v4 (same-release duplicates + a LINKED PULL REQUESTS block, designed before prtext exists:
+  `proxyreview.LinkedPR` = kind `linked-pr`, or a document with a GitHub PR URI; render nothing when absent) and
+  `proxy-prompt -linked-pr-only`. The 178 leftover gates: 178 decided (64 sufficient / 113 need-more-evidence /
+  1 defer), $11.96. See [proxy/run-4/REPORT.md](../proxy/run-4/REPORT.md).
+- **5b WAITING** for the commander's note that prtext is merged. Then, under one ~$100 guard (the $11.96 counts):
+  1. v4 on items closed as need-more-evidence whose candidate has linked-PR evidence: real store (non-high) and
+     the shadow copy (high);
+  2. rebuild the eval view with `--base-git`.
+  - If prtext's evidence shape differs from the assumption, adapt `LinkedPR` first.

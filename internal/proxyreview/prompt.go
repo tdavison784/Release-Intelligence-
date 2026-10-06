@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -102,6 +103,8 @@ type Request struct {
 	HumanDecisionsShown int `json:"humanDecisionsShown"`
 	// Sections are the upstream sections shown around the cited text (v3).
 	Sections []SectionRef `json:"sections,omitempty"`
+	// LinkedPRs counts the candidate's linked-PR evidence records shown (v4).
+	LinkedPRs int `json:"linkedPRs,omitempty"`
 }
 
 // Options tune what a prompt shows.
@@ -150,6 +153,9 @@ func Build(rc *knowledge.ReviewContext, opts Options) (*Request, error) {
 	}
 	for _, e := range rc.Candidate.Evidence {
 		req.CandidateEvidence = append(req.CandidateEvidence, e.ID)
+		if LinkedPR(e) {
+			req.LinkedPRs++
+		}
 	}
 	ps := append([]domain.SemanticProposal(nil), rc.Proposals...)
 	sort.Slice(ps, func(i, j int) bool { return ps[i].ID < ps[j].ID })
@@ -256,8 +262,9 @@ must not imagine one.
 
 Rules
 ` + dataRule + `
-- Evidence only. Decide from the EVIDENCE excerpts, the UPSTREAM SECTION CONTEXT (when shown) and the
-  validation results. Do not use what you remember about the product, later releases or common practice; do
+- Evidence only. Decide from the EVIDENCE excerpts (including LINKED PULL REQUESTS, when shown), the UPSTREAM
+  SECTION CONTEXT (when shown) and the validation results. A linked pull request often states what a one-line
+  note leaves out (the key, the default, what breaks); it is upstream evidence like the rest. Do not use what you remember about the product, later releases or common practice; do
   not fill gaps with plausible guesses.
 - Proposals are claims to check, not evidence. Agreement among them is a signal, not proof: models share
   misreadings. A validator "confirmed" check is a deterministic proof from artifacts; "refuted" means the
@@ -378,8 +385,20 @@ func renderUser(rc *knowledge.ReviewContext, ps []domain.SemanticProposal, label
 	}
 
 	b.WriteString("\nEVIDENCE (upstream)\n")
+	var prs []domain.Evidence
 	for _, e := range c.Evidence {
+		if LinkedPR(e) {
+			prs = append(prs, e)
+			continue
+		}
 		writeEvidence(e, "")
+	}
+	if len(prs) > 0 { // v4: absent → nothing rendered
+		b.WriteString("\nLINKED PULL REQUESTS (the upstream pull requests the release text links to; part of the EVIDENCE: citable,\n" +
+			"and a correction may cite them)\n")
+		for _, e := range prs {
+			writeEvidence(e, "")
+		}
 	}
 	secIDs, refs := renderSections(&b, rel, blocks)
 	for _, id := range secIDs {
@@ -803,4 +822,19 @@ func literal(s string) any {
 		return s
 	}
 	return x
+}
+
+// prURL matches a GitHub pull-request URL.
+var prURL = regexp.MustCompile(`^https://github\.com/[^/]+/[^/]+/pull/[0-9]+`)
+
+// EvidenceLinkedPR is the evidence kind of a pull request linked from release
+// text (added by the prtext lane). Declared here until the domain names it.
+const EvidenceLinkedPR domain.EvidenceKind = "linked-pr"
+
+// LinkedPR reports whether a candidate evidence record is a linked pull
+// request: kind linked-pr, or a document whose URI is a GitHub pull request.
+// The one place that decides it, so the prtext lane's final shape needs a
+// change here only.
+func LinkedPR(e domain.Evidence) bool {
+	return e.Kind == EvidenceLinkedPR || (e.Kind == domain.EvidenceDocument && prURL.MatchString(e.URI))
 }

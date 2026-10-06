@@ -33,6 +33,7 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 	noHuman := fs.Bool("no-human-context", false, "leave earlier human decisions out of the prompts (shadow pass)")
 	limit := fs.Int("limit", 0, "at most N requests (0 = all)")
 	statuses := fs.String("status", "pending", "comma-separated item statuses to review: pending, needs-evidence, deferred (a re-review of closed items)")
+	linkedOnly := fs.Bool("linked-pr-only", false, "only items whose candidate has linked-PR evidence (prompt v4; proxyreview.LinkedPR)")
 	noSections := fs.Bool("no-sections", false, "leave out the upstream section context (prompt v3 shows it from the ingested release store under -state)")
 	if _, err := parse(fs, args); err != nil {
 		return err
@@ -67,9 +68,17 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 			human[d.ReviewItemID] = true
 		}
 	}
+	withPR := map[string]bool{}
+	for _, c := range snap.Candidates {
+		for _, e := range c.Evidence {
+			if proxyreview.LinkedPR(e) {
+				withPR[c.ID] = true
+			}
+		}
+	}
 	var sel []domain.ReviewItem
 	for _, it := range snap.ReviewItems {
-		if !want[it.Status] || human[it.ID] {
+		if !want[it.Status] || human[it.ID] || (*linkedOnly && !withPR[it.CandidateID]) {
 			continue
 		}
 		if len(only) > 0 {

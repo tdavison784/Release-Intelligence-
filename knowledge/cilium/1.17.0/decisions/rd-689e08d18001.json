@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-689e08d18001",
+    "reviewItemId": "ri-ee2fc805d155",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:76b055ffcd7291c08853b54ed2a91a0015c6c3b7b7a80e7d85a3594e60b0dcfd",
+      "inputEvidence": [
+        "ev-f3d0a6f12b97",
+        "ev-72ecae3c2fc1",
+        "ev-070e2e78535d",
+        "ev-fd031f140d8c"
+      ],
+      "generatedAt": "2026-10-06T01:16:19.792Z",
+      "callId": "a18ed383-d0ca-44d5-be22-8a74092c5d97",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): [ev-f3d0a6f12b97] names one specific metric, `cilium_cidrgroup_translation_time_stats_seconds`, and says it was removed in 1.17 with no replacement because the code path it measured no longer exists. That gives the subject (a named Cilium metric), the change (removed) and the consequence: the metric stops being emitted, so any scrape, dashboard or alert that uses it gets no data. The open aspect, applicability, follows from this: an environment is exposed if it upgrades to 1.17 and consumes this metric name. The note doesn't say whether the metric was enabled by default or gated by a feature, but that doesn't make the change itself unclear. The sibling items in the same Removed Metrics section [ev-72ecae3c2fc1][ev-070e2e78535d][ev-fd031f140d8c] are separate removals and don't bundle anything into this change.",
+    "startedAt": "2026-10-06T01:16:10.551Z",
+    "decidedAt": "2026-10-06T01:16:19.792Z"
+  }
+}
