@@ -36,6 +36,26 @@
         "excerpt": "- |\n  **Fixed** DestinationRules on same host but with different ExportTo can behave inconsistently, so stop merging the destinationRules when the exportTo attributes are totally different. If you want to toggle this behavior, you can set the `ENABLE_ENHANCED_DESTINATIONRULE_MERGE` environment variable to `false` in the pilot deployment.",
         "contentDigest": "sha256:76ca5bf14fb15b868abffca17fc3b067798a701e048d49c94e819c041d67630b",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-917738b779fb",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52519",
+        "locator": "title and description",
+        "excerpt": "issue: Applying DestinationRule with exportTo seems inconsistent. [closed; labels area/networking, lifecycle/stale, lifecycle/automatically-closed, kind/bug]\n### Is this the right place to submit this?\n\n- [X] This is not a security vulnerability or a crashing bug\n- [X] This is not a question about how to use Istio\n\n### Bug Description\n\nI'm not sure if this is a bug or the expected behavior.\nI need to apply different DestinationRules on the same host to istio-ingressgateway and sidecar proxies. I'm trying to use `exportTo` in the DRs to achieve that.\n\nHere is the DR that I used to apply on isti…",
+        "contentDigest": "sha256:4d0367ea031edd5cf2b98b3fe8e69ab1e96a3d75eb225f2418dcb9afacc5c058",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-a69dbc2b59bb",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52519",
+        "locator": "description (part 2)",
+        "excerpt": "DestinationRule\nmetadata:\nname: httpbin-ingress-dr\nnamespace: test\nspec:\nexportTo:\n- istio-system\nhost: httpbin.mesh.global\ntrafficPolicy:\nloadBalancer:\nsimple: ROUND_ROBIN\ntls:\nmode: ISTIO_MUTUAL\n```\n\nHere is the one for dataplane proxies\n```\napiVersion: networking.istio.io/v1beta1\nkind: DestinationRule\nmetadata:\nname: httpbin-dr\nnamespace: test\nspec:\nexportTo:\n- sleep\n- httpbin\nhost: httpbin.mesh.global\ntrafficPolicy:\nconnectionPool:\nhttp:\nhttp2MaxRequests: 1000\nmaxRequestsPerConnection: 5\nloadBalancer:\nsimple: …",
+        "contentDigest": "sha256:4d0367ea031edd5cf2b98b3fe8e69ab1e96a3d75eb225f2418dcb9afacc5c058",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

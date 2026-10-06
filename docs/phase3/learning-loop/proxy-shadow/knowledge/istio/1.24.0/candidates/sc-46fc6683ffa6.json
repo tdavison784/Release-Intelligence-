@@ -35,6 +35,26 @@
         "excerpt": "- |\n  **Removed** writing kubeconfig to CNI net directory.",
         "contentDigest": "sha256:1893e63290c283be7dab7c5f0fd832a4560f5eb6bee342cf7a809ef8ca681d0b",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-7ef42ff9e677",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52315",
+        "locator": "title and description",
+        "excerpt": "issue: `istio-cni` - stop writing a `kubeconfig` to disk for the plugin to consume. [closed; labels kind/enhancement, area/security, area/ambient]\n**Describe the feature request**\n\nRight now we\n\n- Hostmount the CNI_NET_DIR to a fixed spot within the `istio-cni` node agent (/host/etc/cni/net.d)\n- Write the CNI config there\n- Write our CNI plugin binary to `/opt/whatever`\n- Also read our own (node agent's) K8S token, build a `kubeconfig` and write that kubeconfig as another file alongside the CNI config\n- Using a user-set env var, pass CNI_NET_DIR to the CNI plugin.\n- The CNI plugin does _not_ n…",
+        "contentDigest": "sha256:1e62bdd5248541bec6b8b5cede0277a5df7369e6f3107ca00709bdfd653cb6cc",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-c7426fc8e54f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52315",
+        "locator": "description (part 2)",
+        "excerpt": "find that `kubeconfig` we wrote, _from the perspective of the hostfs_.\n- The CNI plugin loads this kubeconfig and uses it to call the kubernetes API server.\n\n**Describe alternatives you've considered**\n\nJust don't write that `kubeconfig` and pass around a reference to the `CNI_NET_DIR` that we otherwise do not need.\n\nThis also avoids having to watch/sync the extra `ZZZ_xxx_kubeconfig` we write alongside the CNI config in the netdir.\n\nTwo ways to do this\n\n- Simply put the svcaccount token in the CNI config so the …",
+        "contentDigest": "sha256:1e62bdd5248541bec6b8b5cede0277a5df7369e6f3107ca00709bdfd653cb6cc",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "producer": "semantic.candidates@v1",

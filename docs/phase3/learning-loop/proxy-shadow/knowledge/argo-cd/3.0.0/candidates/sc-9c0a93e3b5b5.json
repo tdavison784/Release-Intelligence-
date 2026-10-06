@@ -36,6 +36,76 @@
         "excerpt": "* 073ccf7c35a63bb203b8c78dec3e8a7c2efecdeb: fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload (#21227) (@mtbennett-godaddy)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-85ff92346718",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/19314",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #19314): Webhooks not compatible with alternative SSH addressing schemes [closed; labels bug, component:application-sets, version:EOL]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nMy environment doesn’t allow traffic on SSH port so i have to use GitHub’s alternative here to do SSH over 443: https://docs.github.com/en/authentication/troubleshooting-ssh/using-ssh-over-the-https-port. There are no…",
+        "contentDigest": "sha256:d910f36a74d8366836c0d10d6c53119d18fe840c8106ea9605feeb565c5c1494",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-232d1413254c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/19314",
+        "locator": "description (part 2)",
+        "excerpt": "can’t get webhooks to work because the hostname in the payload doesn’t match the hostname in the `ApplicationSet`’s repo URL:\n\n```\nssh://git@ssh.github.com:443/ORG/REPO.git does not match (?i)(http://|https://|\\\\w+@|ssh://(\\\\w+@)?)github.com(:[0-9]+|)[:/]ORG/REPO(\\\\.git)?\n```\n\nUsing that alternative addressing scheme, we point to `ssh` subdomain but the URL in the webhook payload has no subdomain.\n\n**To Reproduce**\n\nIn our particular case, we’re using an `ApplicationSet` with a matrix generator where one of …",
+        "contentDigest": "sha256:d910f36a74d8366836c0d10d6c53119d18fe840c8106ea9605feeb565c5c1494",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-d8be3b41b860",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/15700",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #15700): 2.9.0-RC1: Azure Devops git webhooks do not match with http[s] schemas [closed; labels bug]\nChecklist:\n\n* [+ ] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [ +] I've included steps to reproduce the bug.\n* [ +] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nI'm trying to setup Argocd webhook integration with Service Hooks in Azure DevOps.\nI can see that the notifications from Azure do come through to Argo and I see these messages logged by ArgoCD-Server:\n\n```\n{\"level\":\"debug\",\"msg\":\"https://tenant-name@de…",
+        "contentDigest": "sha256:341be44c6c2cfb818d48e3daa66853cf7980f39661e8cc7596d885a818ee55f4",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-636f706e3247",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/15700",
+        "locator": "description (part 2)",
+        "excerpt": "not match (?i)^(http://|https://|[a-zA-Z0-9_\\\\.][a-zA-Z0-9_\\\\.-]{0,30}[a-zA-Z0-9_\\\\.\\\\$-]?@|ssh://([a-zA-Z0-9_\\\\.][a-zA-Z0-9_\\\\.-]{0,30}[a-zA-Z0-9_\\\\.\\\\$-]?@)?)dev\\\\.azure\\\\.com(:[0-9]+|)[:/]tenant-name/Project/_git/GitOps(\\\\.git)?$\",\"time\":\"2023-09-27T18:57:10Z\"}\n```\n\nYou can see that the notificaiton and the app configuration look the same but the regexp still doesn't match thus making the webhook to ignore the Service Hook notification.\n\nI believe the root cause is the issue with the regexp in this section …",
+        "contentDigest": "sha256:341be44c6c2cfb818d48e3daa66853cf7980f39661e8cc7596d885a818ee55f4",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-5dfd16d143dd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21227",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21227): fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload [closed; labels ready-for-review]\nFixes #19314. Fixes #15700 (cc: @robinlieb). Possibly fixes #16854 (cc: @aki-ks).\n\n* Splits `util/webhook`’s `getWebURLRegex` into separate `GetWebURLRegex` and `GetAPIURLRegex`.\n* `GetWebURLRegex` allows for optional `altssh` or `ssh` subdomain. (Addresses #19314.)\n* `GetWebURLRegex` and `GetAPIURLRegex` both allow for username in `https?` URLs. (Addresses #15700.)\n* Updates `util/webhook` and `applicationset/webhook` to use the two …",
+        "contentDigest": "sha256:3f132fa8e2ebcece047ef3973c0323b390a553cfabe04db29486bd7b83b391db",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-5234d1699b10",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21227",
+        "locator": "description (part 2)",
+        "excerpt": "GitHub supports `ssh` subdomain over `443`: https://docs.github.com/en/authentication/troubleshooting-ssh/using-ssh-over-the-https-port\n* GitLab supports `altssh` subdomain over `443`: https://about.gitlab.com/blog/2016/02/18/gitlab-dot-com-now-supports-an-alternate-git-plus-ssh-port/#how-to-use-the-alternate-ssh-connection-on-gitlab.com\n* Bitbucket supports `altssh` subdomain over `443`: https://confluence.atlassian.com/bbkb/port-22-is-blocked-on-local-network-1168865232.html\n* Azure DevOps does not support such …",
+        "contentDigest": "sha256:3f132fa8e2ebcece047ef3973c0323b390a553cfabe04db29486bd7b83b391db",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-f1f886c7e03b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21227",
+        "locator": "changed files",
+        "excerpt": "8 changed file(s): applicationset/webhook/testdata/gitlab-event.json, applicationset/webhook/testdata/gitlab-merge-request-approval-event.json, applicationset/webhook/testdata/gitlab-merge-request-open-event.json, applicationset/webhook/webhook.go, applicationset/webhook/webhook_test.go, util/webhook/testdata/gitlab-event.json, util/webhook/webhook.go, util/webhook/webhook_test.go",
+        "contentDigest": "sha256:3f132fa8e2ebcece047ef3973c0323b390a553cfabe04db29486bd7b83b391db",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "hints": [

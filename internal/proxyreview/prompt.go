@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -262,7 +261,7 @@ must not imagine one.
 
 Rules
 ` + dataRule + `
-- Evidence only. Decide from the EVIDENCE excerpts (including LINKED PULL REQUESTS, when shown), the UPSTREAM
+- Evidence only. Decide from the EVIDENCE excerpts (including LINKED PULL REQUESTS / ISSUES / COMMITS, when shown), the UPSTREAM
   SECTION CONTEXT (when shown) and the validation results. A linked pull request often states what a one-line
   note leaves out (the key, the default, what breaks); it is upstream evidence like the rest. Do not use what you remember about the product, later releases or common practice; do
   not fill gaps with plausible guesses.
@@ -394,8 +393,8 @@ func renderUser(rc *knowledge.ReviewContext, ps []domain.SemanticProposal, label
 		writeEvidence(e, "")
 	}
 	if len(prs) > 0 { // v4: absent → nothing rendered
-		b.WriteString("\nLINKED PULL REQUESTS (the upstream pull requests the release text links to; part of the EVIDENCE: citable,\n" +
-			"and a correction may cite them)\n")
+		b.WriteString("\nLINKED PULL REQUESTS / ISSUES / COMMITS (fetched from the references in the release text: title,\n" +
+			"description, changed files; part of the EVIDENCE: citable, and a correction may cite them)\n")
 		for _, e := range prs {
 			writeEvidence(e, "")
 		}
@@ -824,17 +823,10 @@ func literal(s string) any {
 	return x
 }
 
-// prURL matches a GitHub pull-request URL.
-var prURL = regexp.MustCompile(`^https://github\.com/[^/]+/[^/]+/pull/[0-9]+`)
-
-// EvidenceLinkedPR is the evidence kind of a pull request linked from release
-// text (added by the prtext lane). Declared here until the domain names it.
-const EvidenceLinkedPR domain.EvidenceKind = "linked-pr"
-
-// LinkedPR reports whether a candidate evidence record is a linked pull
-// request: kind linked-pr, or a document whose URI is a GitHub pull request.
-// The one place that decides it, so the prtext lane's final shape needs a
-// change here only.
+// LinkedPR reports whether a candidate evidence record is linked upstream
+// evidence attached by `ri evidence link` (docs/LINKED_EVIDENCE.md): kind
+// linked-pr (pull requests and issues) or linked-commit. The prtext lane's
+// shape replaced this lane's earlier URI-pattern assumption.
 func LinkedPR(e domain.Evidence) bool {
-	return e.Kind == EvidenceLinkedPR || (e.Kind == domain.EvidenceDocument && prURL.MatchString(e.URI))
+	return e.Kind == domain.EvidenceLinkedPR || e.Kind == domain.EvidenceLinkedCommit
 }

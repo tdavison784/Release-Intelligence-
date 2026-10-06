@@ -467,17 +467,18 @@ func TestLinkedPRBlock(t *testing.T) {
 	if strings.Contains(plain.Request.Messages[0].Content, "LINKED PULL REQUESTS") || plain.LinkedPRs != 0 {
 		t.Error("linked-PR block without linked-PR evidence")
 	}
-	pr := domain.NewEvidence(EvidenceLinkedPR, "prtext", "https://github.com/cert-manager/cert-manager/pull/7000", "description",
+	pr := domain.NewEvidence(domain.EvidenceLinkedPR, "prtext", "https://github.com/cert-manager/cert-manager/pull/7000", "description",
 		"Changes the default rotationPolicy to Always; set Never explicitly to keep the old behaviour.", "sha256:pr", t0)
-	doc := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://github.com/o/r/pull/12", "", "PR as a document", "sha256:pr2", t0)
-	rc.Candidate.Evidence = append(rc.Candidate.Evidence, pr, doc)
+	doc := domain.NewEvidence(domain.EvidenceLinkedCommit, "linkedev", "https://github.com/o/r/commit/abc", "", "commit message", "sha256:pr2", t0)
+	page := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://github.com/o/r/pull/12", "", "a release-notes document that merely lives under a PR URL", "sha256:pr3", t0)
+	rc.Candidate.Evidence = append(rc.Candidate.Evidence, pr, doc, page)
 	req, err := Build(rc, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	user := req.Request.Messages[0].Content
 	i, j := strings.Index(user, "LINKED PULL REQUESTS"), strings.Index(user, string(pr.ID))
-	if i < 0 || j < i || !strings.Contains(user[i:], string(doc.ID)) || req.LinkedPRs != 2 {
+	if i < 0 || j < i || !strings.Contains(user[i:], string(doc.ID)) || strings.Contains(user[i:], string(page.ID)) || req.LinkedPRs != 2 {
 		t.Errorf("linked-PR block: %d %d %d", i, j, req.LinkedPRs)
 	}
 	// a correction citing only the PR is recorded: it is candidate evidence

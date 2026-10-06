@@ -36,6 +36,26 @@
         "excerpt": "- |\n    **Improved** the memory footprint of the `istio-cni-node` DaemonSet. In many cases this can result in up to 80% memory reduction.",
         "contentDigest": "sha256:c974054524e66130811938b9931abfe99dfe8b62f756a753be6297d1438bf545",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-12f90c84868b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/53493",
+        "locator": "title and description",
+        "excerpt": "issue: CNI highly skewed by pagecaches [closed; labels area/perf and scalability]\nVersion: 1.24\nPlatform: EKS, **cgroupv1** Amazon Linux 2\n\nI noticed some behavior where CNI is using a large amount of memory. I've seen this many times in the past without investigating it as well. K8s reports ~100mb usage, but Go says its heap is only 5mb.\n\nI did some investigation and found a bit of info\n\n![2024-10-09_16-11-27](https://github.com/user-attachments/assets/32e51e1d-3033-4685-b30f-82e4a3fc4a50)\n\nAbove shows a CNI pod memory usage. The spike is me running /debug/pprof/heap (why does this cause a",
+        "contentDigest": "sha256:b73a8e863fc7808adf819ecdd075d2375380ca5c7153896a18a266d0d451fc85",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-41b088e4f2ea",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/53493",
+        "locator": "description (part 2)",
+        "excerpt": "spike?? no clue, but its reproducible!)\n\nThe drop is after running `echo 1 > /proc/sys/vm/drop_caches`.\n\nThis seems to me a fairly known issue: https://github.com/kubernetes/kubernetes/issues/43916. There is some suggestions cgroupv2 is not impacted.\n\nUnclear if we can do anything about it. drop_caches is bad since its the entire node, not container scoped.\n\nEasy reproducer:\n\n```\n$ cat /sys/fs/cgroup/memory/memory.stat | grep ^active_file\nactive_file 53403648\n$ stat -c %s /host/opt/cni/bin/istio-cni\n52166808\n$ echo …",
+        "contentDigest": "sha256:b73a8e863fc7808adf819ecdd075d2375380ca5c7153896a18a266d0d451fc85",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [
