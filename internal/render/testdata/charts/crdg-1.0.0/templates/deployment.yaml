@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crdg-controller
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels: {app: crdg}
+  template:
+    metadata:
+      labels: {app: crdg}
+    spec:
+      containers:
+        - name: controller
+          image: example.org/crdg/controller:v1.0.0
