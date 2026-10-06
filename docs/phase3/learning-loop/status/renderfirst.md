@@ -194,3 +194,67 @@ Uncertainties (for the returning lead / commander):
   skips next to the deterministic review finding. That is the contract working
   as designed, not a gap, but it means the render's practical raise is narrower
   than "any trusted fact".
+
+### Window 2 (2026-10-05, glm-renderfirst)
+
+Inherited: brief items 1–4 and addendum 6–7 committed; remaining: the full eval
+±render (item 5/addendum 7 count), docs/RENDER-FIRST.md uncommitted, and an istio
+E1 regression discovered in the first `-render` eval run (impactLinksHit 1→0).
+
+Done this window:
+
+- Root-caused the istio regression: the product's primary chart is **base**, so the
+  rendered pair never consumes `pilot.*` (istiod chart) or `cni.*` (cni chart) — both
+  true values-removed ACTIONs became vacuous `values-set-no-effect` because the
+  counterfactual renders identically when no rendered deployment reads the key.
+- `f9a17f25` the chart-coverage guard: a no-effect/clear verdict additionally requires
+  the rendered charts to define the key (`internal/render/chartcoverage.go`; exact path
+  or under it — a default above the key covers nothing). Uncovered keys → undecided,
+  naming the gap; attributable matches and target refusals stay decisive.
+- `ce9d09c6` two guard fixups found by the istio repro: coverage is the UNION of
+  source and target chart defaults (the counterfactual renders the source — rej's
+  `legacy.dead` must stay clearable), and istio's values wrapper (`defaults` ≤1.23,
+  `_internal_defaults_do_not_set` 1.24+) is lifted exactly as the values snapshots
+  lift it. Also caught and fixed a sync.Once re-entrancy deadlock in unset.go's
+  sourceDefaults memoization before it ever ran.
+- `a63455a2` `crdResolvedByRender` in the R17 panel — the addendum-7 measurement.
+- `bf380d02` brief item 4 residual closed (runtime-visible fallback pinned in
+  TestRenderExposureDispatch).
+- Full eval ±render, warm cache (item 5): base applicability 0.525 / false-action
+  0.059 (1/17) / links 23/71, no regressions. With `--render`: applicability 0.564 /
+  false-action 0.062 (**still only the known kyverno E9 — no new false ACTION**) /
+  links 28/71. Gates: criticalRecall 1.000 ✓, importantRecall 0.970 ✓, the two known
+  FAILs unchanged in kind. Diffs vs stored, all accounted for (see RENDER-FIRST.md):
+  cilium-1.15-1.17 findingsFound 5→4 (designed target-rejects replacement),
+  plant-edge links 2→4 better + notAffectedViolations 0→1 (case-matcher artifact on a
+  correct values-default-applies review), kyverno links 3→6 better. **istio regression
+  resolved.**
+- Addendum 7 count: **rendered CRDs resolve 21 CRD-change unknowns** — kyverno 15,
+  karpenter 3+3 (two cases); cert-manager/cilium CRD gates off in fixture values,
+  istio's base render ships no CRD documents, external-secrets' observed --crds wins.
+- docs/RENDER-FIRST.md completed (measurements + chart-coverage section) and committed
+  with the guard.
+
+Lane brief items 1–5 and addendum 6–7 are complete. `go build ./... && go vet ./... &&
+go test ./...` green.
+
+Uncertainties (for the returning lead / commander):
+
+- The guard's uncovered-key message says "another chart of X owns them" — for a key
+  the rendered chart's own versions never defined that is right; for istio the
+  primary artifact being the base chart (not istiod) is a catalog fact worth knowing
+  when reading the message.
+- `uncoveredKeysEither` treats a key covered when either chart defines it at-or-under.
+  For section-level subjects (a 40-key `pilot.*` section change) this is all-or-
+  nothing per change: one uncovered sibling makes the whole section change undecided.
+  That is the conservative direction (baseline ACTION stands), and it is what
+  restored istio E1, but a future split-subject refinement could clear the covered
+  subset.
+- plant-edge E3 `notAffectedViolations 0→1` is a case-matcher artifact (the case's
+  `(?i)bgpControlPlane` text catches a correct `values-default-applies` review on
+  `bgpControlPlane.statusReport.enabled` under a not-affected expectation). Not
+  edited — eval expectations are read-only for this lane.
+- cilium-1.15-1.17 findingsFound 5→4 is the designed SetValuesRejected replacement
+  (the case's expected rule names values-removed; the new ACTION is helm's own
+  refusal). If the case is ever updated to expect `render-target-rejects`, the diff
+  disappears.

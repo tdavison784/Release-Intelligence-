@@ -124,11 +124,33 @@ Eval dataset (28 entries), run with the warm shared state cache, gates as in
 | run | applicability accuracy | false-action rate | notes |
 |---|---|---|---|
 | before (no `--render`) | 0.525 | 0.059 (1/17, the known kyverno E9) | no regressions vs stored results |
-| with `--render` | see below | see below | |
+| with `--render` | 0.564 | 0.062 (1/16 — still only kyverno E9) | impact links 28/71 (before 23/71); see below |
+
+Both runs fail the applicabilityAccuracy and falseActionRate gates as before (known
+FAILs, unchanged in kind); criticalRecall 1.000 and importantRecall 0.970 pass in both.
+No new false ACTION: the one false action is the same kyverno E9 finding, over a larger
+(true-positive) ACTION set.
+
+Diffs vs the stored render-free results, all accounted for:
+
+- cilium-1.15-1.17 findingsFound 5→4 — designed: the values-removed finding becomes
+  `impact:render-target-rejects` (Helm's own refusal of the customer's values), which the
+  case's expected-rule matcher does not name;
+- cilium-1.16-1.17--plant-edge impactLinksHit 2→4 (better) and notAffectedViolations
+  0→1 — the violation is a case-matcher artifact: a correct render-backed
+  `values-default-applies` review on `bgpControlPlane.statusReport.enabled` matches
+  E3's `(?i)bgpControlPlane` text under a not-affected expectation;
+- kyverno-1.12-1.13 impactLinksHit 3→6 (better).
 
 The `--render` run's render-first panel (per renderability bucket: links, affected hit
 by render, not-affected cleaned by render, accuracy) is printed by `ri eval -render
 [-render-json stats.json]`; the stored `eval/results` stay the render-free baseline.
-
-Rendered-CRD resolution on this dataset: see the lane status file
-(`docs/phase3/learning-loop/status/renderfirst.md`) for the resolved-UNKNOWN count.
+Totals this dataset: 11/12 renders ok · 2022 rendered changes (1329 undocumented) ·
+106 unknowns restated by a complete customer render · 6 rendered-change decisions
+(5 ACTION with render evidence) · **rendered CRDs resolve 21 CRD-change unknowns**
+(kyverno 15, karpenter 3+3 across its two cases; cert-manager's and cilium's CRD gates
+are off in the fixture values, istio's base render ships no CRD documents, and
+external-secrets has an observed `--crds` input that wins) · 4/16 ACTION corroborated ·
+1 target-rejects · unset defaults: 58 exposed (18 image-only), 60 cleared,
+143 render-unavailable (the chart-coverage guard returns vacuous clears to the
+deterministic baseline rather than deciding them).
