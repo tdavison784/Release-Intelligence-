@@ -36,6 +36,76 @@
         "excerpt": "* 46bfc10e4d4e84ec75245f554b2c9d0ed2348ab4: Revert \"fix: Graceful shutdown for the API server (#18642) (#20981)\" (#21221) (@pasha-codefresh)",
         "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
         "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-4869937d020a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/18642",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #18642): Implement graceful shutdown in all Argo CD components [closed; labels bug, component:api, component:application-sets, component:notifications, component:repo-server, version:2.14]\nProcfile sets GOCOVDIR for five Argo CD components. But only one (applicationset-controller) shuts down gracefully enough for code coverage data to be produced. In other words, go writes a covmeta file, but not a covcounters file (the file that actually contains coverage info). So today we get partial code coverage info for e2e tests.\n\nThe task is to do two things for the remaini…",
+        "contentDigest": "sha256:094b8f7d8979d83b246f204e5f28a6759b39799e15d5c3a3436bb1acf41d1efe",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-6e09dc836c08",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/18642",
+        "locator": "description (part 2)",
+        "excerpt": "CI](https://github.com/argoproj/argo-cd/blob/master/.github/workflows/ci-build.yaml#L367-L371).\n\n- [x] applicationset-controller\n- [x] controller\n- [ ] api-server ([WIP](https://github.com/argoproj/argo-cd/pull/15938))\n- [x] repo-server\n- [x] notification\n\nExactly what \"graceful shutdown means\" may vary by component. Concretely, I think it means we need to listen to shutdown signals and end all running goroutines. But the \"graceful\" part depends on what's running.",
+        "contentDigest": "sha256:094b8f7d8979d83b246f204e5f28a6759b39799e15d5c3a3436bb1acf41d1efe",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-36db2d7dc61b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20981",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #20981): fix: Graceful shutdown for the API server (#18642) [closed; labels ready-for-review]\nCloses #18642\nfix #18576\n\nImplements a graceful shutdown the the API server. Without this, ArgoCD API server will eventually return 502 during rolling update. However, healthcheck would return 503 if the server is terminating.\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The title…",
+        "contentDigest": "sha256:c62479519b4b6fbe202e9700b56f9e3cc165b1c6f6e444867c61ff7360435ebe",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-67c5f00be96f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20981",
+        "locator": "description (part 2)",
+        "excerpt": "related issues number (used for the release note).\n* [x] The title of the PR conforms to the [Toolchain Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [x] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [ ] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR with them.\n* [ ] Does this PR require documentation updates?\n* [ ] I've updated documentation as …",
+        "contentDigest": "sha256:c62479519b4b6fbe202e9700b56f9e3cc165b1c6f6e444867c61ff7360435ebe",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-5edb143d99bd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/20981",
+        "locator": "changed files",
+        "excerpt": "9 changed file(s): cmd/argocd-application-controller/commands/argocd_application_controller.go, cmd/argocd-repo-server/commands/argocd_repo_server.go, cmd/argocd-server/commands/argocd_server.go, server/server.go, server/server_test.go, test/e2e/graceful_restart_test.go (added), util/cache/redis.go, util/cache/redis_test.go, util/session/state.go",
+        "contentDigest": "sha256:c62479519b4b6fbe202e9700b56f9e3cc165b1c6f6e444867c61ff7360435ebe",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-c8ffbd25b5c2",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21221",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21221): chore: revert \"fix: Graceful shutdown for the API server (#18642) (#20981)\" [closed]\nIt's not compatible with Windows and is blocking the 2.14 release.\n\nError during the release:\n```\n# github.com/argoproj/argo-cd/v2/server\nError: server/server.go:716:24: undefined: syscall.SIGUSR1\nError: server/server.go:850:22: undefined: syscall.SIGUSR1\n\ntarget: windows_amd64_v1\nError: The process '/opt/hostedtoolcache/goreleaser-action/2.5.0/x64/goreleaser' failed with exit code 1\n```\n\nDiscussion thread:\n- https://cloud-native.slack.com/archives/C020XM04CUW/p17344513220038…",
+        "contentDigest": "sha256:42deb2d29c3f63fe86686b4882d3e4bc395eb222622b5589883a6d3ebece9464",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-474be21313fd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21221",
+        "locator": "changed files",
+        "excerpt": "9 changed file(s): cmd/argocd-application-controller/commands/argocd_application_controller.go, cmd/argocd-repo-server/commands/argocd_repo_server.go, cmd/argocd-server/commands/argocd_server.go, server/server.go, server/server_test.go, test/e2e/graceful_restart_test.go (removed), util/cache/redis.go, util/cache/redis_test.go, util/session/state.go",
+        "contentDigest": "sha256:42deb2d29c3f63fe86686b4882d3e4bc395eb222622b5589883a6d3ebece9464",
+        "retrievedAt": "2026-10-06T01:19:49Z"
       }
     ],
     "producer": "semantic.candidates@v1",

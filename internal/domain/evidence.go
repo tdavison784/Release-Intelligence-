@@ -27,6 +27,12 @@ const (
 	// (Evidence.Render says how, at which scope). CONTRACT-CHANGE(render):
 	// RENDER-MISSION R5 names this evidence kind.
 	EvidenceRenderedDiff EvidenceKind = "rendered-diff"
+	// EvidenceLinkedPR: what GitHub states about a pull request or issue that
+	// a release note references (title, description, changed files);
+	// EvidenceLinkedCommit: the same for a referenced commit. Fetched
+	// context for a reviewer, never a conclusion (internal/linkedev).
+	EvidenceLinkedPR     EvidenceKind = "linked-pr"
+	EvidenceLinkedCommit EvidenceKind = "linked-commit"
 )
 
 // Evidence is a verifiable pointer to source material that supports a fact or

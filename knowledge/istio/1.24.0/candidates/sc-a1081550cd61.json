@@ -35,6 +35,46 @@
         "excerpt": "- |\n  **Fixed** Allow for re-executions of istio-iptables by skipping apply step if existing rules are compatible.",
         "contentDigest": "sha256:9f872ec7391b8420f750d0fd0e81e7cd8260287c5f3d4e6038e0b34aa2893582",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-548c1f882394",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/30393",
+        "locator": "title and description",
+        "excerpt": "issue: panic in istio-init [closed; labels area/networking, area/perf and scalability, lifecycle/stale, lifecycle/automatically-closed, feature/Multi-cluster]\n```\nEnvironment:\n------------\nENVOY_PORT=\nINBOUND_CAPTURE_PORT=\nISTIO_INBOUND_INTERCEPTION_MODE=\nISTIO_INBOUND_TPROXY_MARK=\nISTIO_INBOUND_TPROXY_ROUTE_TABLE=\nISTIO_INBOUND_PORTS=\nISTIO_OUTBOUND_PORTS=\nISTIO_LOCAL_EXCLUDE_PORTS=\nISTIO_SERVICE_CIDR=\nISTIO_SERVICE_EXCLUDE_CIDR=\n\nVariables:\n----------\nPROXY_PORT=15001\nPROXY_INBOUND_CAPTURE_PORT=15006\nPROXY_TUNNEL_PORT=15008\nPROXY_UID=1337\nPROXY_GID=1337\nINBOUND_INTERCEPTION_MODE=REDIRECT\nINB…",
+        "contentDigest": "sha256:c99e0bc7de6d82a852476f9715e86b9e6bb607bd556c741b05edd1d41922d3f3",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-9559ac5edfe9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/30393",
+        "locator": "description (part 2)",
+        "excerpt": "INBOUND_PORTS_EXCLUDE=15090,15021,15020\nOUTBOUND_IP_RANGES_INCLUDE=*\nOUTBOUND_IP_RANGES_EXCLUDE=\nOUTBOUND_PORTS_INCLUDE=\nOUTBOUND_PORTS_EXCLUDE=\nKUBEVIRT_INTERFACES=\nENABLE_INBOUND_IPV6=false\n\nWriting following contents to rules file: /tmp/iptables-rules-1611663316986592165.txt253404344\n* nat\n-N ISTIO_INBOUND\n-N ISTIO_REDIRECT\n-N ISTIO_IN_REDIRECT\n-N ISTIO_OUTPUT\n-A ISTIO_INBOUND -p tcp --dport 15008 -j RETURN\n-A ISTIO_REDIRECT -p tcp -j REDIRECT --to-ports 15001\n-A ISTIO_IN_REDIRECT -p tcp -j REDIRECT --to-ports …",
+        "contentDigest": "sha256:c99e0bc7de6d82a852476f9715e86b9e6bb607bd556c741b05edd1d41922d3f3",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-404aa4039d8a",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/42792",
+        "locator": "title and description",
+        "excerpt": "issue: Multiple runs of istio-init container leads to crashloopbackoff status [closed; labels area/test and release, area/networking, area/user experience, lifecycle/stale, lifecycle/automatically-closed]\n### Bug Description\n\nWe are testing Istio in a small test setup before expanding it into our production cluster. With sidecar injection, in a pod, istio-init container completes just fine for the first time, setting up all the iptables rules and the sidecar proxy thereafter works fine too.\nHowever, for reasons that we are \"aware\" of, the istio-init containers re-run without the pod restarting…",
+        "contentDigest": "sha256:a0096a90130ea7b22d9df5547d4979ed404e524a6fb351f15d81dc01d8c4c945",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-2166a6422ba7",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/42792",
+        "locator": "description (part 2)",
+        "excerpt": "Kubelet to start the init container again. This situation is much discussed in the past at https://github.com/kubernetes/kubernetes/issues/67261 for e.g.\n\nNote: even though the container and the pod shows `Init:CrashLoopBackOff ` status post that, the app container and proxy container keep on working fine but it's throwing us off.\n\nHowever I was under the impression that istio-init runs are idempotent and a comment from around 3 years back indicates the same: …",
+        "contentDigest": "sha256:a0096a90130ea7b22d9df5547d4979ed404e524a6fb351f15d81dc01d8c4c945",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "producer": "semantic.candidates@v1",

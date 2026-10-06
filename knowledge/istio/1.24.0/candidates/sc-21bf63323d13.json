@@ -35,6 +35,26 @@
         "excerpt": "- |\n    **Fixed** an issue causing any `portLevelSettings` to be ignored in DestinationRules for waypoints.",
         "contentDigest": "sha256:1979a7c5c6fecf6297ed4d56c0dc4b0f33d52e4cf9eb827c6f1cd9e05b65c8a9",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-520674d717ac",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52532",
+        "locator": "title and description",
+        "excerpt": "issue: [Ambient] Restrict outgoing traffic through an egress gateway [closed; labels area/networking, area/ambient]\n### Is this the right place to submit this?\n\n- [X] This is not a security vulnerability or a crashing bug\n- [X] This is not a question about how to use Istio\n\n### Bug Description\n\nI configured the egress gateway to restrict the outgoing traffic following [this document](https://istio.io/latest/docs/tasks/traffic-management/egress/egress-gateway/#egress-gateway-for-https-traffic). Here are my manifests as follows:\n1. Istio Gateway\n```\napiVersion: networking.istio.io/v1\nkind: Gatew…",
+        "contentDigest": "sha256:42c0f84f98ac638a84a1743e0d57e44d45276171c9a83fee2e8f362a08aab7c9",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-3e4e48460094",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52532",
+        "locator": "description (part 2)",
+        "excerpt": "namespace: common-gateway\nspec:\nselector:\nistio: egressgateway\nservers:\n- hosts:\n- \"*\"\nport:\nname: http\nnumber: 80\nprotocol: HTTP\n- hosts:\n- \"*\"\nport:\nname: tls\nnumber: 443\nprotocol: TLS\ntls:\nmode: PASSTHROUGH\n```\n\n2. K8S Gateway\n```\napiVersion: gateway.networking.k8s.io/v1\nkind: Gateway\nmetadata:\nlabels:\nistio.io/waypoint-for: all\nname: waypoint\nnamespace: istio-egress\nspec:\ngatewayClassName: istio-waypoint\nlisteners:\n- allowedRoutes:\nnamespaces:\nfrom: Same\nname: mesh\nport: 15008\nprotocol: HBONE\n```\n\n3. Istio …",
+        "contentDigest": "sha256:42c0f84f98ac638a84a1743e0d57e44d45276171c9a83fee2e8f362a08aab7c9",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [

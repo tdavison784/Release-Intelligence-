@@ -35,6 +35,26 @@
         "excerpt": "- |\n  **Added** a new flag `remote-contexts` to the `istioctl analyze` command to specify remote cluster contexts during multi-cluster analysis.",
         "contentDigest": "sha256:c472a032b5c5f4a73bbb23f0ecbc265d6920e43aeae34518ee6a42b0cb33bdff",
         "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-86f95d3c512d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/51934",
+        "locator": "title and description",
+        "excerpt": "issue: Include additional kubeconfig fields in encoded data when creating remote secret [closed]\n**Describe the feature request**\n\nBackground:\n`istioctl analyze` doesn't work for multi cluster setups where each cluster needs to be accessed via different proxies. This is because `istioctl create-remote-secret` ignores the `proxy-url` field in the kubeconfig when creating the secret (or more accurately, sets only a [specific set of fields](https://github.com/istio/istio/blame/23fc23c669d0567a029e77fa0fa9ee5dcee094ac/istioctl/pkg/multicluster/remote_secret.go#L702)).\n\nClarification:\nI'm curious i…",
+        "contentDigest": "sha256:1c78dd9cd9ff19a8227f0adf187105ed18193fea2ad76580b31534ec8a4afc8d",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-5b99594444a5",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/51934",
+        "locator": "description (part 2)",
+        "excerpt": "specific rationale behind not using the kubeconfig as-is when creating the remote secret, except for maybe few fields like the [service account token secret](https://github.com/istio/istio/blame/23fc23c669d0567a029e77fa0fa9ee5dcee094ac/istioctl/pkg/multicluster/remote_secret.go#L683)?\n\nProposal:\nA general solution to the above problem could be to improve `istioctl/pkg/multicluster/remote_secret.go` to consider additional fields in the supplied kubeconfig when creating the remote secret (`proxy-url` being one of …",
+        "contentDigest": "sha256:1c78dd9cd9ff19a8227f0adf187105ed18193fea2ad76580b31534ec8a4afc8d",
+        "retrievedAt": "2026-10-06T01:27:31Z"
       }
     ],
     "hints": [
