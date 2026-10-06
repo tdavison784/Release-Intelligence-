@@ -264,8 +264,33 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   `proxyreview.LinkedPR` = kind `linked-pr`, or a document with a GitHub PR URI; render nothing when absent) and
   `proxy-prompt -linked-pr-only`. The 178 leftover gates: 178 decided (64 sufficient / 113 need-more-evidence /
   1 defer), $11.96. See [proxy/run-4/REPORT.md](../proxy/run-4/REPORT.md).
-- **5b WAITING** for the commander's note that prtext is merged. Then, under one ~$100 guard (the $11.96 counts):
-  1. v4 on items closed as need-more-evidence whose candidate has linked-PR evidence: real store (non-high) and
-     the shadow copy (high);
-  2. rebuild the eval view with `--base-git`.
-  - If prtext's evidence shape differs from the assumption, adapt `LinkedPR` first.
+- **5b DONE (2026-10-05 21:01–22:10 CDT; calls by the Claude agent, packaging/report by the GLM handoff).**
+  prtext merged and `LinkedPR` adapted to its kinds (`linked-pr`: PRs and issues; `linked-commit`), shadow
+  rebased at 7b493755. v4 on every item in status needs-evidence with linked evidence: real store (non-high)
+  522 decided (accept 50 / correct 43 / reject 13 / nme 207 / defer 209; 106 of 159 non-gate items now decided;
+  22 new proxy facts), shadow (high) 12 decided (4 correct / 3 reject / 5 nme; 2 proxy facts, action-eligible
+  but ladder-capped). 0 refused, 0 failures, $50.63; proxy-5 total **$62.59 of ~$100**. Eval view rebuilt with
+  `--base-git=7b493755`: **363 facts (33 consensus, 330 proxy), 0 conflicts**. See
+  [proxy/run-4/REPORT.md](../proxy/run-4/REPORT.md) §5b.
+
+## GLM handoff log — takeover 5 (2026-10-05 21:05 CDT, glm-5.3 as glm-proxy, branch `p3ll/proxy-5`)
+
+- Took over with the lane lead (marked held by glm-proxy 21:01:45) after the Claude agent hit a usage-limit
+  window. Audit: the agent had launched 5b at 20:35 CDT (4 parallel) and **all calls completed cleanly at
+  21:00:57** — runner stdout says "522 requests, 522 answered, 0 calls failed" (real) and "12/12, 0 failed"
+  (shadow); no STOP file, no `.failed` markers, 0 REFUSED lines. Nothing runnable was left: the uncommitted
+  work was the finished run's store changes + two ledgers. I killed the agent's leftover watchdog
+  (`tail -F` PIDs 93933/93934; its run was done, it could only ever touch STOP again).
+- Verified consistency before committing: 315 modified real review files = 522 decisions − 207 nme (an nme on a
+  needs-evidence item changes no review field), 7 = 12 − 5 in the shadow; `go build ./... && go vet ./... &&
+  go test ./...` pass (incl. the shadow integrity tests over both stores); every request file is
+  `proxy-review/v4` with `itemStatus: needs-evidence`.
+- Committed in four provenance commits, subjects prefixed `[glm-handoff] `: real store + ledger (b4e74859),
+  shadow + ledger (37f67b1a), eval view (2db51cd4), packaging + REPORT §5b (7e7c95d1), then this log.
+- Uncertain / for the commander:
+  - The 5b selection is all-claude-family proposals (341 claude-only, 180 claude+glm), so this run's
+    self-family split carries no signal — noted in the report.
+  - 154 gates remain need-more-evidence with linked evidence already present: the linked PR bodies themselves
+    are not ingested as upstream documents. That is a capture lever for the ingest/loop lanes, not a proxy fix.
+  - Open contract items unchanged: `Provenance.Provider`; proxy-agreement still waits for the product owner.
+  - Budget: $62.59 of the ~$100 proxy-5 guard is spent; $37 headroom remains if more 5b-class work is ordered.
