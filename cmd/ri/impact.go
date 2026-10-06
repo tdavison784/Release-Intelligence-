@@ -11,6 +11,8 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/impact"
 	"github.com/tdavison784/release-intelligence/internal/impactenrich"
+	"github.com/tdavison784/release-intelligence/internal/policy"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 // impact runs `ri impact <product> <from> <to>`: the upgrade edge joined with
@@ -35,7 +37,9 @@ func (c *cli) impact(args []string) error {
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
 	inventory := fs.String("inventory", "", "declared product inventory: a YAML list of {product, version, note?} (which other products run here, e.g. ingress-nginx 1.12.1); in --repo mode <repo>/inventory.yaml is used when present")
-	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
+	pathPolicy := fs.String("policy", "", "path policy override: minor-lineage|all")
+	tierPolicy := fs.String("tier-policy", "", "tiered upgrade policy file (docs/POLICY.md), or \"default\" for the shipped one: classifies each rendered change, upstream change and finding as auto-pass|review|block and prints the upgrade-level verdict (use with --render; without a render the verdict is review)")
+	tierPolicyAll := fs.Bool("tier-policy-all", false, "with --tier-policy: also list the auto-pass items")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
 	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge (the knowledge/ record tree): facts are evaluated against the environment (impact:knowledge-* findings)")
@@ -54,7 +58,7 @@ func (c *cli) impact(args []string) error {
 	if err := ef.check(); err != nil {
 		return err
 	}
-	in := app.ImpactOptions{Policy: *policy}
+	in := app.ImpactOptions{Policy: *pathPolicy}
 	in.Environment.KubernetesVersion = *kubernetes
 	in.Environment.Repo = *repo
 	in.Environment.Inventory = *inventory
@@ -81,6 +85,14 @@ func (c *cli) impact(args []string) error {
 		in.Facts, in.MinVerification = ks.Facts, lvl
 	} else if *minVerification != "" {
 		return fmt.Errorf("%w: -min-verification needs -knowledge", app.ErrUsage)
+	}
+	var tierPol *policy.Policy
+	if *tierPolicy != "" {
+		tp, err := policy.Load(*tierPolicy)
+		if err != nil {
+			return err
+		}
+		tierPol = tp
 	}
 	if *doRender {
 		in.Render = &app.RenderOptions{
@@ -119,15 +131,26 @@ func (c *cli) impact(args []string) error {
 			}
 		}
 	}
+	var verdict *policy.Verdict
+	if tierPol != nil {
+		verdict = policy.Evaluate(tierPol, policy.Input{Pairs: renderPairs(rres), Edge: edge, Report: rep})
+	}
 	if *output == "json" {
+		// the impact report unchanged, plus the rendered delta and the policy
+		// verdict beside it
+		out := struct {
+			*domain.ImpactReport
+			Render *renderReport   `json:"render,omitempty"`
+			Policy *policy.Verdict `json:"policy,omitempty"`
+		}{ImpactReport: rep, Policy: verdict}
 		if rres != nil {
-			// the impact report unchanged, plus the rendered delta beside it
-			return c.writeJSON(struct {
-				*domain.ImpactReport
-				Render renderReport `json:"render"`
-			}{rep, renderJSON(rres, *rf.showValues)})
+			rr := renderJSON(rres, *rf.showValues)
+			out.Render = &rr
 		}
-		return c.writeJSON(rep)
+		if rres == nil && verdict == nil {
+			return c.writeJSON(rep)
+		}
+		return c.writeJSON(out)
 	}
 	if err := impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown}); err != nil {
 		return err
@@ -136,7 +159,24 @@ func (c *cli) impact(args []string) error {
 		fmt.Fprintln(c.out)
 		writeRenderText(c.out, rres, *rf.showValues)
 	}
+	if verdict != nil {
+		fmt.Fprintln(c.out)
+		policy.WriteText(c.out, verdict, policy.TextOptions{ShowAll: *tierPolicyAll})
+	}
 	return nil
+}
+
+// renderPairs lists every render pair of a run (release-level first), nil
+// without a render.
+func renderPairs(r *app.RenderDiffResult) []*render.Pair {
+	if r == nil {
+		return nil
+	}
+	var out []*render.Pair
+	if r.Release != nil {
+		out = append(out, r.Release)
+	}
+	return append(out, r.Pairs...)
 }
 
 // impactEnrich runs the optional AI step over the deterministic report and

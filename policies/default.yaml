@@ -1,0 +1,67 @@
+# Default tiered upgrade policy (docs/POLICY.md).
+#
+# Rules are ordered; the FIRST rule whose `match` fits a change decides its tier.
+# The upgrade auto-passes only when every rendered change, every non-routine
+# upstream change and every non-cleared finding lands on an auto-pass rule.
+# Otherwise the upgrade takes the strictest tier present (block > review).
+#
+# Safety invariants are NOT expressed here and cannot be edited away: an ACTION
+# REQUIRED finding, a security advisory affecting the target, a render failure,
+# an UNKNOWN finding on a non-routine change and anything not covered by a
+# complete render are never auto-passed, whatever the rules below say.
+apiVersion: ri.dev/upgrade-policy/v1alpha1
+name: default
+description: Conservative default. Wave through what a reviewer would wave through in a helm diff (an image tag bump, label churn); stop on anything structural.
+default:
+  tier: review
+  reason: Not covered by an auto-pass or block rule; a person should look at it.
+rules:
+  # ---- block: structural changes that can break a running environment -------
+  - id: render-rejects-config
+    tier: block
+    reason: The target chart rejects the customer's values (values.schema.json / required values); the upgrade would fail at render time.
+    match: {subject: render-state, states: [rejects-config]}
+  - id: rbac-permission-removed
+    tier: block
+    reason: A permission the workload had was removed; whatever relied on it will start failing with 403s.
+    match: {subject: rendered, classes: [rbac-permission-removed]}
+  - id: resource-removed
+    tier: block
+    reason: An object that exists today is no longer rendered; it will be pruned or orphaned by the upgrade.
+    match: {subject: rendered, classes: [resource-removed]}
+  - id: crd-api-version-changed
+    tier: block
+    reason: A CustomResourceDefinition changed its storage or served versions; stored objects and clients may need migration.
+    match: {subject: rendered, classes: [field-added, field-removed, field-changed], kinds: [CustomResourceDefinition], pathSuffixes: [".storage", ".served"]}
+  - id: api-version-changed
+    tier: block
+    reason: An object moved to a different API version; clusters or tooling that do not serve it will reject the manifest.
+    match: {subject: rendered, classes: [api-version-changed]}
+
+  # ---- auto-pass: changes with no structural effect -------------------------
+  - id: image-tag-same-repository-patch-minor
+    tier: auto-pass
+    reason: Same image repository, patch or minor semver tag bump. Safe only together with the all-changes-covered rule of the verdict (any other rendered change keeps the upgrade out of auto-pass).
+    match: {subject: rendered, classes: [image-changed], image: {sameRepository: true, bump: [patch, minor]}}
+  - id: label-annotation-only
+    tier: auto-pass
+    reason: Label and annotation churn does not change what the workload runs.
+    match: {subject: rendered, classes: [label-added, label-removed, label-changed, annotation-added, annotation-removed, annotation-changed]}
+  - id: upstream-non-breaking-bugfix
+    tier: auto-pass
+    reason: A non-breaking bug fix or dependency update in the release notes, with no directive, no security content and no finding that needs a person.
+    match: {subject: upstream, categories: [bugfix, dependency], breaking: false, actionRequired: false, security: false}
+  - id: finding-informational
+    tier: auto-pass
+    reason: Informational findings (for example a security fix that ships with the target) need no action.
+    match: {subject: finding, findingClasses: [informational]}
+
+  # ---- review: named explicitly so the report says why ----------------------
+  - id: image-major-or-other-bump
+    tier: review
+    reason: A major, pre-release, downgrade, digest-only or non-semver image change, or a change of repository, needs a person to read the release notes.
+    match: {subject: rendered, classes: [image-changed]}
+  - id: rbac-permission-added
+    tier: review
+    reason: New permissions widen what the workload can do.
+    match: {subject: rendered, classes: [rbac-permission-added]}

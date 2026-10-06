@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/upgrade-policy/v1alpha1.json",
+  "title": "UpgradePolicy",
+  "description": "Org-configurable tiered upgrade policy (docs/POLICY.md): ordered, first-match-wins rules assign auto-pass | review | block to each rendered change, upstream change, finding and render state. Safety invariants are enforced by the evaluator regardless of what a policy says.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "name", "default", "rules"],
+  "properties": {
+    "apiVersion": {"const": "ri.dev/upgrade-policy/v1alpha1"},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "default": {"$ref": "#/$defs/verdict"},
+    "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}}
+  },
+  "$defs": {
+    "tier": {"enum": ["auto-pass", "review", "block"]},
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "reason"],
+      "properties": {
+        "tier": {"$ref": "#/$defs/tier"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "strings": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tier", "reason", "match"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+        "tier": {"$ref": "#/$defs/tier"},
+        "reason": {"type": "string", "minLength": 1},
+        "match": {"$ref": "#/$defs/match"}
+      }
+    },
+    "match": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject"],
+      "properties": {
+        "subject": {"enum": ["rendered", "upstream", "finding", "render-state"]},
+        "classes": {"$ref": "#/$defs/strings"},
+        "kinds": {"$ref": "#/$defs/strings"},
+        "namespaces": {"$ref": "#/$defs/strings"},
+        "pathSuffixes": {"$ref": "#/$defs/strings"},
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sameRepository": {"type": "boolean"},
+            "repositories": {"$ref": "#/$defs/strings"},
+            "bump": {"type": "array", "minItems": 1, "uniqueItems": true,
+              "items": {"enum": ["patch", "minor", "major", "digest", "prerelease", "downgrade", "unknown"]}}
+          }
+        },
+        "categories": {"$ref": "#/$defs/strings"},
+        "routine": {"type": "boolean"},
+        "routineKinds": {"$ref": "#/$defs/strings"},
+        "breaking": {"type": "boolean"},
+        "actionRequired": {"type": "boolean"},
+        "security": {"type": "boolean"},
+        "findingClasses": {"$ref": "#/$defs/strings"},
+        "findingRules": {"$ref": "#/$defs/strings"},
+        "verification": {"type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["none", "deterministic", "human", "consensus", "proxy"]}},
+        "states": {"type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["not-rendered", "failed", "rejects-config", "not-applicable", "incomplete-values"]}}
+      }
+    }
+  }
+}
