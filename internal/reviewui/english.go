@@ -546,10 +546,19 @@ func plainQuestion(it domain.ReviewItem) string {
 	case domain.QuestionEvidenceSufficiency:
 		return fmt.Sprintf("Is the %s release note specific enough to record what actually changed?", head)
 	case domain.QuestionSemanticMapping:
+		if a.Subject == nil {
+			return fmt.Sprintf("What exactly changed in %s?", head)
+		}
 		return fmt.Sprintf("What exactly is %s in %s — and how did it change?", subjectPhrase(a.Subject), head)
 	case domain.QuestionApplicability:
+		if a.Subject == nil {
+			return fmt.Sprintf("Who exactly is exposed to the %s change?", head)
+		}
 		return fmt.Sprintf("Who exactly is exposed to the %s change to %s?", head, subjectPhrase(a.Subject))
 	case domain.QuestionClassification:
+		if a.Subject == nil {
+			return fmt.Sprintf("Is the %s change something to act on, or just to know?", head)
+		}
 		return fmt.Sprintf("Is the %s change to %s something to act on, or just to know?", head, subjectPhrase(a.Subject))
 	case domain.QuestionRelationship:
 		if a.Subject != nil && a.Subject.Name != "" {

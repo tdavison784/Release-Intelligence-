@@ -53,15 +53,55 @@ visual only:
   `-profile` (no cache), and the four light shots pin `data-theme="light"` in a sed'd copy because
   this machine runs macOS dark mode (otherwise `prefers-color-scheme` renders both variants dark).
 
-## Next — step 2 (blocked on PO approval of the mockup)
+## Done — step 2: ux-v2 is the real review UI (PO: "make this the new standard", 2026-10-05)
 
-- Port the renderers into `internal/reviewui` (view.go + templates) with tests: every condition op,
-  every question type, every routing signal, undetermined/abstention, gate items.
-- Keep all existing behaviour: five actions, bulk flow + guard, keyboard, reviewer/timing contract,
-  demo banner + fixture tags, no-JS operation. No new dependencies (stdlib only).
-- Rendered-delta section (RenderedDeltaSource) needs a ux-v2 treatment too — not in the three
-  representative items; will design with the http01 fixture during implementation.
-- Re-take the real screenshots; delete `internal/reviewui/uxv2mock`.
+- `internal/reviewui/english.go` — the renderers, ported from the mock and extended:
+  `plainQuestion` (every QuestionType + nil-subject variants + fallback to the recorded question),
+  `condEnglish` (every condition op incl. field states in-range/out-of-range/exists/none that the mock
+  missed, version ranges, undecidable, generic fallback), `subjectPhrase` (every family), `changeSentence`,
+  `consequenceSentence`, `aspectSentence`, `exposurePhrase`/`overlapPhrase` (shielded-when), `suggestedAnswer`
+  (normal + gate with the models' undetermined reason), `gateReason`, `whyYou` (every routing signal, incl.
+  the PO-2 consensus-action audit phrasing), `whyYouBrief` (signals-only, for inbox rows), `whyTone`,
+  `whyConfident` (per-aspect agree/disagree/abstain, validator outcomes, evidence breadth), `buildDiffer`
+  (one cell per answer group, biggest-first + model-name tie-break, consensus labels per PO-1,
+  "= the suggested answer" marker, single-group aspects → chips, undetermined reason), `modelShort`
+  (claude-opus-5-5 → Opus 5.5; title-cases unknown tokens) + `avatarOf` (hue hashed from the raw id).
+- `view.go` — `rowView` gains Question/Why/WhyTone/Suggested/ClassLabel; `itemView` rebuilt for the
+  card (UpQuote/UpLink/UpSource/UpMore best-cited evidence, Conf, PrimaryLabel/PrimaryAction,
+  WhyLine/WhyTone, Differ/Agrees/Undetermined, raw per-call `Calls` with avatars); the matrix
+  (`buildMatrix`) is deleted; `noteConsequenceConsensus` (PO-2) and `distinctCalls` kept; correction
+  view gains plain-English "Currently says:" previews per fieldset.
+- Templates rewritten: `detail.html` is the 7-section decision card (rendered-delta section between 5
+  and 6 when present; decide form and correct form markup preserved verbatim — only wrapped);
+  `item.html` slimmed to bar + card; `inbox.html` rows lead with the plain question + why-line +
+  suggested answer (fixture title kept as `.qtext` so title-based tests/filters still work).
+- `app.css`: tokens extended (glow/dot/rail/serif/group hues), layered background, priority stripes,
+  the whole dcard system (stepper rail, quote, gradient primary, differ cells, avatars, folds,
+  glossary tooltips, narrow + print). Dead matrix CSS removed; demo-banner/fixture/req-*/agree-*
+  badge styles kept (test-asserted).
+- `app.js`: two changes only — the delegated click handler also resolves `b.form` (the §3 primary
+  button sits outside `form.actions` and references it via the `form` attribute), and `showCorrect`
+  opens the §6 fold.
+- Tests: `english_test.go` (new) — every condition op and field state, version range shapes, every
+  question type incl. fallbacks, every routing signal for `whyYou`/`whyYouBrief`/`whyTone`,
+  `suggestedAnswer` normal/gate/statement-only, differ grouping/ordering/chips/undetermined,
+  conf-line tones, model names/avatars, sentences, truncate. `server_test.go` layout assertions
+  updated to the new rendering (behavior tests untouched; the recorded question stays verbatim in
+  Details; a "models disagree" badge marks §5).
+- Browser verification re-run, all three scripts green against the new DOM: `e2e_firefox.py` (every
+  behavior assertion passes; script updated — `steady()` pins transitions/transforms because the
+  ux-v2 hover lift and fixed bulk bar made coordinate clicks racy, targets scrolled into view, and the
+  inline-reason selector scoped to `form.actions` because the §6 correct fold's hidden `reason`
+  textarea now precedes the decide form), `shots_firefox.py` (selectors `table.matrix` → `#differ`;
+  `os.makedirs` added), `shot_priority_firefox.py` (unchanged). Each e2e run needs a fresh server —
+  the suite records decisions and the demo queue is in-memory.
+- Screenshots re-taken from the live server (fresh Firefox profiles, light pinned via sed):
+  `docs/phase3/learning-loop/review-ui/screenshots/` — the ux-v2 design set (0x/1x: inbox, item,
+  details fold, correct form, consensus-action, rendered delta, gate, narrow) plus the verified
+  behaviors from the e2e and section scripts (2x). No-server snapshots regenerated as
+  `docs/phase3/learning-loop/review-ui/ux2-*.html` (+ `inbox-truncated.html`); old pre-ux-v2
+  snapshots removed. `internal/reviewui/uxv2mock/` deleted; its README keeps the design record with
+  an "implemented" banner. `docs/REVIEW_UI.md` rewritten around the 7-section card.
 
 ## Decisions taken (local)
 
@@ -79,11 +119,17 @@ visual only:
 
 ## Files touched outside ownership
 
-- None. Everything new: `internal/reviewui/uxv2mock/` (owned), `docs/phase3/learning-loop/review-ui/ux-v2/`
-  (lane artifact), this status file.
+- Step 1/1b: none. Step 2 works in this lane's owned surface: `internal/reviewui/` (all of it:
+  english.go, view.go, templates, static, server_test.go, english_test.go — the review UI is this
+  lane's file list per FLEET.md), `docs/REVIEW_UI.md` (the review UI's own doc), and the lane
+  artifacts under `docs/phase3/learning-loop/review-ui/`.
 
 ## Test status
 
-- `go build ./...`, `go vet ./...` clean; `go test ./...` green (2026-10-05) — the mockup generator
-  adds no tests (throwaway; the renderers get tests when they land in internal/reviewui in step 2).
+- `go build ./...`, `go vet ./...` clean; `go test ./...` green (2026-10-05), including the new
+  english_test.go and the updated server_test.go.
 - No new third-party dependencies (stdlib + existing module packages only).
+
+## Lane complete
+
+Both steps done; the approved ux-v2 is the review UI standard. Nothing blocked, nothing deferred.

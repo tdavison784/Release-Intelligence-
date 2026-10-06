@@ -1,4 +1,11 @@
-# Review item ux-v2 — "decision card" mockup (step 1, for approval)
+# Review item ux-v2 — "decision card" mockup (step 1) — APPROVED and IMPLEMENTED
+
+> **Status: step 2 is done.** This direction was approved on 2026-10-05 ("make this the new standard")
+> and is now the real review UI (`internal/reviewui`, stdlib only, all actions/bulk/keyboard/guards
+> kept; renderers live in `internal/reviewui/english.go` with full test coverage in
+> `english_test.go`). The `uxv2mock` generator was deleted as planned. These mock pages are kept as
+> the design record of the approved direction; current screenshots of the real UI are in
+> `../screenshots/` and no-server snapshots in `../ux2-*.html`. See `docs/REVIEW_UI.md`.
 
 Product-owner feedback this answers (2026-10-05): *"very hard to understand … not easy to see what was
 recommended by the models, what the issue is that it wasn't able to resolve … a lot of data grouped
@@ -46,22 +53,20 @@ is rejected"); the few remaining terms (*call*, *aspect*, *validator*) have hove
 
 ## Everything shown is real fixture data
 
-The pages are generated (`go run ./internal/reviewui/uxv2mock`) from the same demo fixtures the review
-UI serves with `-demo`: the wording is produced by deterministic renderers in
-`internal/reviewui/uxv2mock/english.go` — nothing is hand-written per item, and no LLM runs at render
-time. Those renderers are what step 2 ports into `internal/reviewui` with tests once this direction is
-approved. The DEMO DATA banner and fixture tags stay.
+The pages were generated (`go run ./internal/reviewui/uxv2mock`, deleted in step 2) from the same demo
+fixtures the review UI serves with `-demo`: the wording was produced by deterministic renderers,
+nothing hand-written per item, and no LLM ran at render time. Step 2 ported those renderers into
+`internal/reviewui/english.go` and extended them. The DEMO DATA banner and fixture tags stayed.
 
-## What we need from you
+## What we asked for (answered)
 
-- Does the card answer "what was recommended, and what couldn't the models resolve" within ~30 seconds?
-- Is the single **Accept suggested answer** primary button the right default action?
-- Anything you still want visible without expanding (currently: rendered-delta evidence appears only in
-  step 2's item design — say if it belongs in section 2 instead of Details).
+- Does the card answer "what was recommended, and what couldn't the models resolve" within ~30 seconds? — **yes**
+- Is the single **Accept suggested answer** primary button the right default action? — **yes**
+- Anything else visible without expanding? — no change requested.
 
-## Step 2 (after approval)
+## Step 2 — done (2026-10-05)
 
-Implement in `internal/reviewui` (stdlib only): the English renderers with tests (every op, every
+Implemented in `internal/reviewui` (stdlib only): the English renderers with tests (every op, every
 question type, every routing signal), the redesigned inbox rows, keeping all existing actions, bulk
-flow, keyboard shortcuts, guards and the demo banner; re-take screenshots. The `uxv2mock` generator is
-deleted then.
+flow, keyboard shortcuts, guards and the demo banner; screenshots re-taken in `../screenshots/`. The
+`uxv2mock` generator is deleted.

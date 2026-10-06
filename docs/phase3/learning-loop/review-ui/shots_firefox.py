@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 base,out=sys.argv[1],sys.argv[2]
+os.makedirs(out, exist_ok=True)
 o=Options(); o.add_argument("-headless"); o.binary_location="/Applications/Firefox.app/Contents/MacOS/firefox"
 d=webdriver.Firefox(options=o); d.set_window_size(1440,1000)
 try:
@@ -16,9 +17,9 @@ try:
                 d.execute_script("document.getElementById('rendered').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/20-rendered-delta-{theme}.png")
             if "Consensus requests ACTION REQUIRED" in src:
                 d.execute_script("document.querySelector('.consensus-action').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/23-consensus-action-{theme}.png")
-            if "consensus · same-model · 2 calls" in src and "m-disagree" not in src:
-                d.execute_script("document.querySelector('table.matrix').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/24-same-model-consensus-{theme}.png")
-            if "disagree · 3 variants" in src:
-                d.execute_script("document.querySelector('table.matrix').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/21-proposals-matrix-{theme}.png")
+            if "consensus · same-model · 2 calls" in src and "models disagree" not in src:
+                d.execute_script("document.getElementById('differ').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/24-same-model-consensus-{theme}.png")
+            if "same-model consensus · 2 calls" in src:
+                d.execute_script("document.getElementById('differ').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/21-differ-cells-{theme}.png")
                 d.execute_script("document.querySelector('.decide').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/22-decide-{theme}.png")
 finally: d.quit()

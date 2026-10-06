@@ -295,7 +295,7 @@ func TestItemPageShowsEveryG8Element(t *testing.T) {
 	}
 	contains(t, body,
 		"If a Certificate with rotationPolicy unset does nothing", // the recorded question, verbatim in Details
-		"Does cert-manager v1.18.0 change what happens to", // the plain-English question (§1)
+		"Does cert-manager v1.18.0 change what happens to",        // the plain-English question (§1)
 		"What changed upstream", "Upgrading 1.17 → 1.18",
 		`href="https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md#L21-L30"`, // openable evidence
 		`rel="noopener noreferrer"`, "The default value of Certificate.spec.privateKey.rotationPolicy is now Always",
