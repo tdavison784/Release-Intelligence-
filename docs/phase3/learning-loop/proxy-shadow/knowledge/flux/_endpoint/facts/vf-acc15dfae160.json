@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-acc15dfae160",
+    "product": "flux",
+    "candidates": [
+      "sc-01dac2541bc1"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository schema, status.artifact.digest is now a required field, so the API server rejects objects or status writes that set status.artifact without a digest.",
+        "remediation": "Make sure every client or controller that writes HelmRepository v1beta2 status fills in status.artifact.digest.",
+        "severity": "low"
+      },
+      "statement": "HelmRepository v1beta2 schema: 1 field now required: `status.artifact.digest`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-03a943672983",
+          "val-075fd5ee259c",
+          "val-09c056ea2bf1",
+          "val-13444d86ea1c",
+          "val-22e8d298e985",
+          "val-296eb0574e8c",
+          "val-5ace5177200d",
+          "val-666f8730a3a9",
+          "val-66b0c3b48147",
+          "val-7362f70b2f0b",
+          "val-a19ff38c8468",
+          "val-ccda9ac4f8a7",
+          "val-e985bf2bc492",
+          "val-f9855a1ecb41"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e0093437cfec"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-3caa3ea0379b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-ac0601425475"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:01:39.029Z"
+  }
+}

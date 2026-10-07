@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d8076b76ec24",
+    "candidateId": "sc-c03e26a7040c",
+    "proposalId": "sp-da2b541c5acb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "memcached-chunk-fetch-timeout"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "memcached"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using memcached, the timeout applied when Loki fetches chunks from memcached is now forced to the correct value, so chunk-fetch timeout behavior may differ from the previous release.",
+        "remediation": "Verify that the timeout now enforced on memcached chunk fetches is appropriate for your memcached deployment.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 forces the correct memcached timeout when fetching chunks, so the timeout applied to memcached chunk fetches changes behavior for environments that use memcached."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

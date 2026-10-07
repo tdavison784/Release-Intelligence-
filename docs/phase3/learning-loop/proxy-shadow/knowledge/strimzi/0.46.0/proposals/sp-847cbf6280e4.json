@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-847cbf6280e4",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which Kafka clusters in the environment are still ZooKeeper-based rather than KRaft-based"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "All Kafka clusters must be using KRaft before upgrading to Strimzi 0.46.0 or newer; ZooKeeper-based clusters and the migration from ZooKeeper-based clusters to KRaft are no longer supported, so an environment with ZooKeeper-based clusters must migrate them to KRaft before the upgrade.",
+        "remediation": "Migrate every ZooKeeper-based Kafka cluster to KRaft before upgrading to Strimzi 0.46.0 or newer (the ZooKeeper-to-KRaft migration path is also removed in 0.46.0, so it cannot be done after upgrading).",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based Kafka clusters and for migration from ZooKeeper-based clusters to KRaft; operators must make sure all their clusters are using KRaft before upgrading to Strimzi 0.46.0 or newer."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ba3ce7240250d7b8a9631deac50e83ac76a6997192446df7367444c9e59d1274",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-03T08:36:47Z",
+      "callId": "b84f0a71-dea8-41f3-8f9a-8414913bb8f0"
+    }
+  }
+}

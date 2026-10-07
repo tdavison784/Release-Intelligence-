@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8a901b0aac74",
+    "candidateId": "sc-f117b7291fa1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "unstructured-log-messages"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"log messages that were not structured\"",
+        "after": "\"structured logs\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any log pipeline, alerting rule, parser or dashboard matches on specific cert-manager log strings — this configuration is external to the chart and cluster manifests and no static input carries it"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager itself keeps working, but log-based matching on specific log strings could break, since those messages are now emitted as structured logs.",
+        "remediation": "Audit log-based alerting, parsing or dashboards that rely on specific cert-manager log strings and update them for the new structured log output.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager's log messages that were not structured have been replaced with structured logs, which could break setups that match on specific log strings."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-df7847de6bcb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:55c4b5ccd1639f100081968f578914196e5052d1ad814d543228fa9cf6f3b802",
+      "inputEvidence": [
+        "ev-df7847de6bcb"
+      ],
+      "generatedAt": "2026-10-02T11:44:11Z",
+      "callId": "2332b267-6d98-46fd-9315-04d1ccc8db2b"
+    }
+  }
+}

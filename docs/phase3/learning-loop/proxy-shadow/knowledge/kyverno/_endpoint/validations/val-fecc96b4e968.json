@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fecc96b4e968",
+    "candidateId": "sc-7560741348ad",
+    "proposalId": "sp-dcae4aa3180e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration",
+        "component": "policyexceptions.kyverno.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v2beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "policyexceptions.kyverno.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects stay stored as v2beta1 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v2beta1.",
+        "remediation": "Re-write all PolicyException objects (storage version migration) and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the policyexceptions.kyverno.io CRD changes from v2beta1 to v2, so existing PolicyException objects stay stored as v2beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

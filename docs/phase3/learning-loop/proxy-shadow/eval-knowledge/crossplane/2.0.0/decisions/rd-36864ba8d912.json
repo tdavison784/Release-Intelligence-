@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-36864ba8d912",
+    "reviewItemId": "ri-3689d4743189",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The operator must execute the documented upgrade steps (helm repo add, helm upgrade, and pod verification) to complete the migration to Crossplane v2.0.0; failure to follow these steps will prevent successful upgrade completion.",
+        "severity": "high"
+      },
+      "statement": "Upgrading Crossplane to v2.0.0 requires executing the documented migration steps: adding the Crossplane Helm repository, upgrading via helm upgrade, and verifying the upgrade completion."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:89919331f058b5eb05b7c0e31a81962e4174ba81fc57461c5f8a36422b4da6e0",
+      "inputEvidence": [
+        "ev-c28095f20093"
+      ],
+      "generatedAt": "2026-10-03T12:49:23.342Z",
+      "callId": "bf6e9538-962b-4fb2-a72f-ccf1a36d2750",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c28095f20093] is just the standard upgrade procedure: add the Helm repo, run helm upgrade, then check the pods. It does not describe a change in Crossplane v2, and it says nothing about anything failing, being rejected or needing migration if an operator skips these steps; skipping them simply means not upgrading. Calling this migration-required (mandatory work, high severity) claims more than the evidence supports, and no other consequence follows from this text.",
+    "startedAt": "2026-10-03T12:49:16.563Z",
+    "decidedAt": "2026-10-03T12:49:23.342Z"
+  }
+}

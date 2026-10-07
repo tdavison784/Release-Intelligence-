@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cdc032a83dbe",
+    "candidateId": "sc-050133dc7ea5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "pkg.crossplane.io",
+        "kind": "DeploymentRuntimeConfig",
+        "path": "spec.deploymentTemplate.spec"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.deploymentTemplate.spec",
+              "state": "set"
+            }
+          ],
+          "group": "pkg.crossplane.io",
+          "kind": "DeploymentRuntimeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The runtime Deployment created from a DeploymentRuntimeConfig now receives a deep copy of the deployment template's spec rather than a direct reference to it, so the generated spec no longer shares underlying objects with the template.",
+        "remediation": "No operator action required; after upgrading, verify that runtime Deployments generated from DeploymentRuntimeConfigs behave as expected.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 now uses DeepCopy when assigning from the runtime config Deployment template's spec, so the spec assigned out of a DeploymentRuntimeConfig's deployment template is deep-copied instead of assigned directly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e4380102a652"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6dc4716af7a3b28a2bb4695ffba09daaaab67be2fb7d10c96b376ceb1eb613d7",
+      "inputEvidence": [
+        "ev-e4380102a652"
+      ],
+      "generatedAt": "2026-10-03T07:44:26Z",
+      "callId": "b308b6a9-2cb7-4d95-9290-3082335ec104"
+    }
+  }
+}

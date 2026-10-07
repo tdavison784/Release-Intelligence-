@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-049f2ce510a3",
+    "candidateId": "sc-006852306c28",
+    "proposalId": "sp-8268439d18c3",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "set-period-config-path-prefix"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the YAML shared_store_key_prefix setting is configured to a value other than index/"
+            }
+          ]
+        }
+      },
+      "statement": "If shared-store key-prefix was set to something other than `index/` for boltdb-shipper or tsdb, set `path_prefix` on all existing period configs using that index to the previously configured value."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

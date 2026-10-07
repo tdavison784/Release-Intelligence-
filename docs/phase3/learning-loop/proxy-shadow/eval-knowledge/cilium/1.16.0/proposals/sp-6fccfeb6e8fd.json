@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6fccfeb6e8fd",
+    "candidateId": "sc-f68243010efc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.securityContext"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The clustermesh-apiserver now runs with all capabilities dropped and as a non-root user by default; verify it still works under these defaults.",
+        "severity": "low"
+      },
+      "statement": "The clustermesh-apiserver podSecurityContext and securityContext Helm settings now default to dropping all capabilities and running as a non-root user."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-da6e6a1ea917"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:15b9c8f6727217f8cb49b712081e03b0f7424ab51246f61e5b8b40d2b3b8b96a",
+      "inputEvidence": [
+        "ev-da6e6a1ea917"
+      ],
+      "generatedAt": "2026-10-02T05:56:53Z",
+      "callId": "859578cb-ce81-411f-935a-fb44050fadc4"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5da1ad1846a1",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-6fcdbc11ed94"
+        ],
+        "statementKeys": [
+          "sk-a7186eb6096f"
+        ],
+        "changeIds": [
+          "chg-643812b9a9d5"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2314fa6c1596"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "seLinuxOptions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "seLinuxOptions.type",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the cluster platform (e.g. OpenShift) enforces SELinux constraints on hostPath volumes used by istio-cni-node pods"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "seLinuxOptions.type",
+          "state": "equals",
+          "values": [
+            "\"spc_t\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new seLinuxOptions value is available for configuration but is not required for environments outside of platforms with SELinux constraints; on platforms like OpenShift that enforce SELinux, setting seLinuxOptions.type to spc_t may be necessary to prevent istio-cni-nodes pod startup failures."
+      },
+      "statement": "Added value `seLinuxOptions` to istio-cni chart"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-715fa80c3979"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-715fa80c3979"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-466b90bd79aa"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c5f0521b6e7a"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-117557f906cd",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/53566.yaml",
+        "locator": "53566.yaml L10-L13",
+        "excerpt": "- |\n  **Added** value `seLinuxOptions` to istio-cni chart. On some platforms (e.g. OpenShift) it is necessary to set \n  `seLinuxOptions.type` to `spc_t` in order to work around some SELinux constraints related to hostPath volumes. \n  Without this setting, the istio-cni-nodes pods may fail to start.",
+        "contentDigest": "sha256:bb19227bdb0e248ea4e05ce746da8c0245e0f7f27d55a847fa613518d175c534",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:38:45.888Z"
+  }
+}

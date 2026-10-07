@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-119a338b4c05",
+    "candidateId": "sc-7795416d8d95",
+    "proposalId": "sp-229216d27bce",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-embeddedcache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or other metric consumers query the old embedded cache metric names (querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries, querier_cache_memory_bytes)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps running but exports the embedded cache metrics under the new loki_embeddedcache_* names, so any dashboard, alert or other consumer querying the old querier_cache_* names no longer matches those metrics.",
+        "remediation": "Update dashboards, alert rules and other metric consumers to the new loki_embeddedcache_* metric names.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0 the embedded cache metrics are renamed: querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries and querier_cache_memory_bytes become loki_embeddedcache_added_new_total, loki_embeddedcache_evicted_total, loki_embeddedcache_entries and loki_embeddedcache_memory_bytes respectively."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

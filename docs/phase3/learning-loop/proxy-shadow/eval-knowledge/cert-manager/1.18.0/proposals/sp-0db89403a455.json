@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0db89403a455",
+    "candidateId": "sc-0564d2273368",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.privateKey.rotationPolicy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Never\"",
+        "after": "\"Always\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate resources that do not explicitly set spec.privateKey.rotationPolicy will now default to Always, so re-issuing a certificate (e.g. via `cmctl renew`) will generate a new private key where it previously reused the old one; the change still functions but with different semantics for every Certificate relying on the old default.",
+        "remediation": "To preserve the old behavior, explicitly set `rotationPolicy: Never` on Certificate resources, or turn off the feature gate in this release and explicitly set `rotationPolicy: Never` on all Certificates before release 1.19 (in 1.19 the feature is GA and the gate can no longer be turned off).",
+        "severity": "medium"
+      },
+      "statement": "In cert-manager 1.18.0 the default value of the Certificate field spec.privateKey.rotationPolicy changed from Never to Always (feature gated, enabled by default), so Certificates that leave the field unset will now rotate their private key on re-issuance instead of keeping it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9a2f8d3ec5e9",
+      "ev-c92478af13c4",
+      "ev-cf14b14073be"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2c3249d8d52ffca4fb7c998ffe234ebc19eb4d9467c94841b777ea6cb8ce0fad",
+      "inputEvidence": [
+        "ev-9a2f8d3ec5e9",
+        "ev-c92478af13c4",
+        "ev-cf14b14073be"
+      ],
+      "generatedAt": "2026-10-02T11:37:33Z",
+      "callId": "32bc4f9d-f80d-4a14-9494-2f8f3829bb0d"
+    }
+  }
+}

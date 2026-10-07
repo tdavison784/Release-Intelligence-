@@ -1,0 +1,34 @@
+# Attack: the same cross-product fact, but the declared inventory does not
+# list ingress-nginx at all — and does NOT declare itself complete. Treating
+# "not in the inventory" as "not installed" would clear the change; the
+# honest verdict is UNKNOWN (a non-complete inventory proves absence of
+# nothing).
+id: knowledge-missing-product-inventory
+attacks: cross-product fact with the product missing from a non-complete inventory
+expectation: >-
+  unknown (impact:knowledge-undecided, cross-product-context-gap): missing
+  from a non-complete inventory is never "not installed"; never clear
+knowledge:
+  facts:
+    - level: human
+      subject: {family: product-relationship, name: ingress-nginx}
+      change: {type: requirement-changed, after: ">=1.12.0"}
+      exposure: {op: product-version, name: ingress-nginx, state: in-range, range: ">=1.12.0"}
+      consequence: {kind: workload-failure, statement: "HTTP01 challenges fail: ingress-nginx rejects the Exact-path Ingress the solver creates."}
+      statement: "HTTP01 solver paths are now PathType Exact; ingress-nginx >= 1.12 rejects them under strict path validation."
+      anchors: ["ingress-nginx 1.12 rejects the Exact-path Ingress the HTTP01 solver creates"]
+edge:
+  changes:
+    - rule: note
+      title: "ingress-nginx 1.12 rejects the Exact-path Ingress the HTTP01 solver creates"
+      subjects: [ingress-nginx]
+      category: compatibility
+environment:
+  inventory: inventory.yaml
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-clear
+    - classification: not-affected

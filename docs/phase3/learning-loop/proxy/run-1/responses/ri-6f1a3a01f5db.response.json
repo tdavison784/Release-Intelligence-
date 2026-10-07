@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6f1a3a01f5db",
+  "promptDigest": "sha256:11fe656cc2019f163521e01d368881859e12a720dcfe89ea50809dbaf7102f72",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b58a8f16-30f9-4caf-8a1c-576d56cf6fcc",
+  "startedAt": "2026-10-02T12:59:05.257Z",
+  "decidedAt": "2026-10-02T12:59:16.839Z",
+  "durationMs": 10589,
+  "costUSD": 0.062312,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-bcdbfe5ecd01] says the hubble-relay `--dial-timeout` flag is \"now a no-op\" in 1.17, so any value an operator sets is already ignored in this release. That is not just a future removal. The 'deprecation' kind covers things that still work today and break later, so it does not fit. A configured value that stops being honoured is setting-ignored, and removal in 1.18 is the next step after that.",
+    "citations": [
+      "ev-bcdbfe5ecd01"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the hubble-relay flag `--dial-timeout` is deprecated and is now a no-op, so any configured dial timeout is no longer honoured. The flag will be removed in Cilium 1.18.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "A `--dial-timeout` value set on hubble-relay has no effect from 1.17.0 because the flag is now a no-op. The flag will be removed in Cilium 1.18.",
+        "remediation": "Remove `--dial-timeout` from the hubble-relay arguments, and do not rely on it to set the dial timeout.",
+        "severity": "low"
+      }
+    }
+  }
+}

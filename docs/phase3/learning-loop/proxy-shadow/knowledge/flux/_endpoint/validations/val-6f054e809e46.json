@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6f054e809e46",
+    "candidateId": "sc-4cf375704f66",
+    "proposalId": "sp-a9f42fb8fc3c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "Bucket"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.artifact.digest",
+                  "state": "unset"
+                }
+              ],
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "Bucket"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket v1beta2 resources that omit status.artifact.digest are rejected by validation.",
+        "severity": "high"
+      },
+      "statement": "The status.artifact.digest field of source.toolkit.fluxcd.io/v1beta2 Bucket resources is now required; existing Bucket objects that omit it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

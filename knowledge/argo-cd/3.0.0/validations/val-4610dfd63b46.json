@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4610dfd63b46",
+    "candidateId": "sc-22716bcf1be8",
+    "proposalId": "sp-31d4130aaedd",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.resources[].health"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "controller.resource.health.persist",
+                  "state": "unset"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "status.resourceHealthSource",
+                      "state": "equals",
+                      "values": [
+                        "\"\""
+                      ]
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "version": "v1alpha1",
+                  "kind": "Application"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "controller.resource.health.persist",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Tools and CLI commands that parse `.status.resources[].health` directly will not find persisted health status; they must use the Argo CD CLI or API instead to retrieve health information.",
+        "remediation": "Update any custom tooling or scripts parsing `.status.resources[].health` to use the Argo CD CLI or API for health status queries. Alternatively, set `controller.resource.health.persist: true` in the `argocd-cmd-params-cm.yaml` ConfigMap to restore the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "The health status is no longer persisted in the Application CR's `/status` by default in 3.0.0; it is stored externally instead, and can be reverted by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm.yaml` ConfigMap."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

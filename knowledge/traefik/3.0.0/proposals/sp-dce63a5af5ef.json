@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dce63a5af5ef",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "logs.access.addInternals"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Observability data (access logs, metrics, and tracing) for internal routers and services will no longer be collected and exposed unless the addInternals option is explicitly configured for each observability component."
+      },
+      "statement": "Observability for internal routers or services (e.g., ping@internal) is disabled by default in v3; users must explicitly set the addInternals option for AccessLogs, Metrics, or Tracing to re-enable it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-093b8f2b924f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b20028f91507b8c739fd8bdafe081a492abfd6fcec98da591f82b9f3a4eee8ba",
+      "inputEvidence": [
+        "ev-093b8f2b924f"
+      ],
+      "generatedAt": "2026-10-02T16:15:14Z",
+      "callId": "d155102b-c099-40c7-b958-37d52832840c"
+    }
+  }
+}

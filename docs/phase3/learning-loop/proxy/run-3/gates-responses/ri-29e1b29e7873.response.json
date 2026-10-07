@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-29e1b29e7873",
+  "promptDigest": "sha256:b4829c9fc9181d87e4fcbdd79ed686c1d958e1e4ba099dbc0795a15827d67484",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5e1b7f91-4c03-4590-88b1-adfb791ee961",
+  "startedAt": "2026-10-03T17:12:48.383Z",
+  "decidedAt": "2026-10-03T17:12:54.921Z",
+  "durationMs": 5657,
+  "costUSD": 0.066636,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The cited line [ev-287398e6dcf6] is only a bare metric name, but it sits in the list introduced by [ev-1f419676f177], which says what the change is. It says metrics prefixed `cortex_` are renamed to start with `loki_` in this release, because the `metrics_namespace` default is `loki`, and that operators who set `metrics_namespace` to `cortex` keep the old prefix. That gives the subject (the metric `cortex_ruler_config_updates_total`), the change (renamed to `loki_ruler_config_updates_total`) and who is exposed (setups that do not set `metrics_namespace: cortex`). The consequence is that the old metric name stops being emitted, so anything still querying it (for example dashboards or alerts) gets no data; the excerpt implies this rather than stating it outright.",
+    "citations": [
+      "ev-287398e6dcf6",
+      "ev-1f419676f177"
+    ],
+    "confidence": "medium"
+  }
+}

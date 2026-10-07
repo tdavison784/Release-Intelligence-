@@ -127,6 +127,7 @@ to decide applicability. If a deciding dimension is absent, the verdict is
 | Upstream unit | Deciding dimensions | Note |
 |---|---|---|
 | `values:*` diff rules | `values` | values are a flat mapping: absence of a key is a fact, not a blind spot |
+| `values:default-changed` / `values:added`, key **unset** (PO-3) | `values` + `render` | the new default reaches whoever does not pin the key, so "not set" is not "not affected". A render attributing a change to the key → `impact:values-default-applies` · review-required; both renders succeed and nothing attributable changes → `impact:values-default-no-effect` · not-affected (render check as evidence); no render → `impact:values-default-unrendered` · not-affected with a visible `render unavailable` check (the product owner's choice, docs/phase3/learning-loop/DECISIONS.md) |
 | `crd:removed`, `crd:version-*` | `crds` | installed CRDs are authoritative for what the cluster runs; manifests refine affected-path confidence |
 | `crd:fields-removed` | `manifests` | field paths are manifest facts |
 | `images:*`, moved image artifacts | `images` | visible when any image-bearing input was supplied (`--images`, `--values`, `--manifests` all yield image facts) |
@@ -186,3 +187,49 @@ an exact pin and an adjacent section — contributes one finding to each
 class, so the sum can exceed the analyzed change count). `NOT AFFECTED`
 appears in the summary and in verbose mode only; per-finding sections print
 `action-required`, `review-required`, `informational` and `unknown`.
+
+## 8. Findings from verified knowledge (learning loop)
+
+Findings whose rule starts with `impact:knowledge-` come from evaluating a
+**verified, release-level semantic fact** against the environment
+(docs/phase3/learning-loop/DESIGN.md). They follow every rule above, plus the
+trust ladder, which `ImpactReport.Validate()` and the schema enforce:
+
+- They carry `knowledge: {fact, verification}`, and only they do.
+- `not-affected` requires a fact verified at `deterministic` or `human` level.
+- `action-required` requires either:
+  - a fact verified at `deterministic` or `human` level (**verified**), or, by
+    product-owner decision PO-2 (docs/phase3/learning-loop/DECISIONS.md),
+  - a `consensus` fact with `consensusAction` (**model consensus**): every
+    aspect at consensus or better; an action-eligible consequence that every
+    agreeing separate model call requested as action-required; no aspect
+    refuted.
+
+  Both paths still need the deterministic environment match and both evidence
+  chains. A model-consensus finding carries `knowledge.verification:
+  consensus`, is rendered "ACTION REQUIRED · model consensus · unaudited"
+  until a human accepts its audit item (PO-6), and its fact is always sampled
+  into human review. A single dissenting call on the consequence (one that
+  requested review-required, informational or unknown) blocks the consensus
+  path while the consequence rests on consensus (PO-5).
+- A `proxy`-verified fact (an AI acting as reviewer), or a consensus fact
+  without `consensusAction`, yields at most `review-required`, never at `high`
+  confidence.
+- A change with a knowledge finding carries no other `unknown` finding: the
+  knowledge finding supersedes it.
+- **Refinement (PO-4)** is the one way a fact changes a deterministic
+  finding's class. Only a `deterministic`/`human` fact may do it, and only when
+  its subject covers the finding's matches on the same change. The deterministic
+  finding is replaced by `impact:knowledge-refined`, which carries
+  `refinedFrom: {classification, rule}`, keeps both evidence chains, and stays
+  action-required, review-required or informational, never not-affected. Example:
+  a removed values key whose function was `superseded-upstream` moves from ACTION
+  to REVIEW.
+- `unknownReason` (unknown-only) names why a finding is unknown:
+  `release-knowledge-gap`, `environment-visibility-gap`,
+  `cross-product-context-gap`, `runtime-behavior-gap`, `evidence-gap`,
+  `semantic-ambiguity`.
+
+Model proposals never reach the engine; only facts do. A proposal's
+`action-required` is a request that takes effect only through such a consensus
+fact.

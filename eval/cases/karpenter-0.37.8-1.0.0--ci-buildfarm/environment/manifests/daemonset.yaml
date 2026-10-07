@@ -1,0 +1,29 @@
+# Ships build logs off the node while Karpenter drains it; tolerates the
+# disruption taint so collection keeps running during consolidation.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-log-collector
+  namespace: ci
+spec:
+  selector:
+    matchLabels:
+      app: node-log-collector
+  template:
+    metadata:
+      labels:
+        app: node-log-collector
+    spec:
+      serviceAccountName: node-log-collector
+      tolerations:
+        - key: karpenter.sh/disruption
+          operator: Equal
+          value: disrupting
+          effect: NoSchedule
+      containers:
+        - name: collector
+          image: fluent/fluent-bit:3.1.7
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi

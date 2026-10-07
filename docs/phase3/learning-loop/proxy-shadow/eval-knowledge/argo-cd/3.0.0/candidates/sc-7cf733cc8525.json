@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-7cf733cc8525",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-559f0aefcf09",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-d80d4f386ae4"
+          ],
+          "statementKeys": [
+            "sk-0e9f1833c1ee"
+          ],
+          "changeIds": [
+            "chg-559f0aefcf09"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "613d06d0b1f258bfe8dd7f5aa5a57d9b231ddb22: fix(cli): use correct CA when adding kube-public clusters",
+    "text": "613d06d0b1f258bfe8dd7f5aa5a57d9b231ddb22: fix(cli): use correct CA when adding kube-public clusters (#21326) (#21327) (@aminarefzadeh)",
+    "evidence": [
+      {
+        "id": "ev-e2524c52924c",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L97-L97 (Changelog › Bug fixes)",
+        "excerpt": "* 613d06d0b1f258bfe8dd7f5aa5a57d9b231ddb22: fix(cli): use correct CA when adding kube-public clusters (#21326) (#21327) (@aminarefzadeh)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-d363fe3d51a6",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21326",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #21326): x509: certificate signed by unknown authority error when adding cluster with kube-public option using cli [closed; labels bug, component:cli, version:2.13]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\nWe want to add a new cluster using ArgoCD cli with `--cluster-endpoint kube-public` option. The problem is, when Argo uses the endpoint specified in _kube-public_ config, it does not use the c…",
+        "contentDigest": "sha256:d0d2b7a30348a8744331455ee479eaf16213f66b551a842053aedba53bde50d9",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-8f88a1c550c9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/21326",
+        "locator": "description (part 2)",
+        "excerpt": "problem only happens when the certificate_authority_data are not the same in _kubeconfig_ and _kube-public_.\n\nif we want to change the endpoint according to _kube-public_, it's logical to use the certificate_authority_data in _kube-public_ as well, since certificate_authority_data and endpoint are related.\n\n**To Reproduce**\n\nAdding a cluster using Argocd cli with `--cluster-endpoint kube-public` option. When certificate_authority_data is different in _kubeconfig_ and _kube-public_, raises x509 error.\n\n``` …",
+        "contentDigest": "sha256:d0d2b7a30348a8744331455ee479eaf16213f66b551a842053aedba53bde50d9",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-42fa75fce2bf",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21327",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21327): fix(cli): use correct CA when adding kube-public clusters (#21326) [closed]\nFixes #21326\n\n**Describe the bug**\n\nWe want to add a new cluster using ArgoCD cli with `--cluster-endpoint kube-public` option. The problem is, Argo uses the endpoint specified in _kube-public_ config, but it does not use the certificate_authority_data associated with this endpoint, instead it uses the ca_data in kube config, And this will produce x509 error when adding a new cluster.\n\n**To Reproduce**\n\nAdding a cluster using Argocd cli with `--cluster-endpoint kube-public` option. Wh…",
+        "contentDigest": "sha256:f1f86ecff5696f6ed2740e4d86704686f5edd20021ae5ba410b5f8f4a9a40c96",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-df926eb00efd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21327",
+        "locator": "description (part 2)",
+        "excerpt": "is different in _kubeconfig_ and _kube-public_.\n\n```\nroot@runner:/# argocd cluster add --name neda-dog --core --system-namespace argocd --cluster-endpoint kube-public --upsert -y neda-dog\nINFO[0000] ServiceAccount \"argocd-manager\" already exists in namespace \"argocd\"\nINFO[0000] ClusterRole \"argocd-manager-role\" updated\nINFO[0000] ClusterRoleBinding \"argocd-manager-role-binding\" updated\nERRO[0001] finished unary call with code Unknown error=\"Get \\\"https://api.k8s-dog.***.cloud:443/version?timeout=32s\\\": tls: failed …",
+        "contentDigest": "sha256:f1f86ecff5696f6ed2740e4d86704686f5edd20021ae5ba410b5f8f4a9a40c96",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-c19adf9bd20f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21327",
+        "locator": "changed files",
+        "excerpt": "3 changed file(s): cmd/argocd/commands/cluster.go, cmd/util/cluster.go, cmd/util/cluster_test.go",
+        "contentDigest": "sha256:f1f86ecff5696f6ed2740e4d86704686f5edd20021ae5ba410b5f8f4a9a40c96",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

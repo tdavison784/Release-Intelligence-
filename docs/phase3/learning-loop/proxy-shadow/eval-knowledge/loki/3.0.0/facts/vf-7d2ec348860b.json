@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-7d2ec348860b",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-1845164224e2"
+        ],
+        "statementKeys": [
+          "sk-ea467d899a5f"
+        ],
+        "changeIds": [
+          "chg-df51ff6ce162"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a6585a7675ea"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "shared_store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `shared_store` value is no longer honoured, and `object_store` in `period_config` decides where the index is stored. If the old value matched `object_store` for every period, only the deleted option needs removing. If it did not match, you lose access to the index for those periods, so they cannot be queried.",
+        "remediation": "Remove the deleted `shared_store` option from your configuration. For any period where it did not match `object_store`, move or copy the index tables to the store set in `object_store` so the index can be queried again.",
+        "severity": "high"
+      },
+      "statement": "The `shared_store` config is removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-9fbc984b41a5"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-1e216a225ae2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c2c314e54358"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-89b0d95ce79b"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-1d0876135bde",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L415-L415 (3.0.0)",
+        "excerpt": "* The `shared_store` config is removed. Refer to [Removed `shared_store` and `shared_store_key_prefix` from shipper configuration](#removed-shared_store-and-shared_store_key_prefix-from-shipper-configuration).",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:06:20.995Z"
+  }
+}

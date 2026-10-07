@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-00e98fcd9364",
+  "promptDigest": "sha256:5a80d64a06fd1645fce440f12683ffbe0365cb69d44bdf7f58e802a275b2ade1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ac4ad491-e96e-4074-81f5-6e16beeeb196",
+  "startedAt": "2026-10-06T01:35:38.669Z",
+  "decidedAt": "2026-10-06T01:35:51.900Z",
+  "durationMs": 11960,
+  "costUSD": 0.09711600000000001,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR [ev-8b0e88f56478] says what the one-line note [ev-c70532147f60] leaves out. It undoes a field rename that an earlier commit made in the RunFunction protobufs, so the field is called `extra_resources` again. It gives the reason: the rename had an \"unexpected impact on the function ecosystem\" because many functions expect `extra_resources`. The changed-files list [ev-fa1dfa6980ef] shows that proto/fn/v1 and proto/fn/v1beta1 run_function.proto are affected, which pins down the subject. So the subject is the `extra_resources` field in the RunFunction protobufs. The change is that the original name comes back, so functions expecting it are compatible again; follow-up changes in the function SDKs are still to come [ev-8281b5c31d5c]. Confidence is low because the excerpts never give the interim name or say whether the rename was ever released, so the net before/after compared with the previous release is only implied.",
+    "citations": [
+      "ev-8b0e88f56478",
+      "ev-8281b5c31d5c",
+      "ev-fa1dfa6980ef",
+      "ev-c70532147f60"
+    ],
+    "confidence": "low"
+  }
+}

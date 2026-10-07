@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-14fb874e05ca",
+    "reviewItemId": "ri-6bcfcc8a5671",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Ingress"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "product-version",
+                      "name": "ingress-nginx",
+                      "state": "in-range",
+                      "range": ">=1.8.0"
+                    },
+                    {
+                      "op": "undecidable",
+                      "reason": "runtime-behavior-gap",
+                      "needed": "whether strict-validate-path-type configuration option is explicitly enabled in ingress-nginx"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 changes ACME HTTP01 Ingress challenge routes to use PathType `Exact` instead of `ImplementationSpecific`, which is incompatible with ingress-nginx versions that have the buggy `strict-validate-path-type` validation enabled by default (>= 1.12.0)."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].http01.ingress",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].http01.ingress",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.8.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"strict-validate-path-type\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"false\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"strict-validate-path-type\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"true\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.8.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"strict-validate-path-type\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "Exposed: environments where an ACME Issuer/ClusterIssuer uses an HTTP01 Ingress solver, ingress-nginx is >=1.8.0, strict-validate-path-type is not explicitly false, and either ingress-nginx is >=1.12.0 (on by default) or the option is explicitly true. Their challenge Ingress with PathType Exact is denied by the ingress-nginx admission webhook."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b368af355c2c45790a65f9c6c759c93c922406b7636ebb9fe5dd598f9c8656f8",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-03T12:56:57.735Z",
+      "callId": "4a30d218-2137-4067-9e4f-6fa4eb927ef6",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-110340e9c914] says the breakage needs ingress-nginx >=1.8.0 with the strict-validate-path-type option on, and that the option is on by default from 1.12.0. The proposed condition flags every Ingress user rather than only HTTP01 Ingress solvers. It also flags every ingress-nginx >=1.12.0 install, even one that turned the option off. It treats a named configuration option as runtime behaviour (undecidable), when a predicate should read it. The corrected condition requires an HTTP01 Ingress solver, ingress-nginx >=1.8.0, no explicit \"false\", and either >=1.12.0 or an explicit \"true\". The field and ConfigMap locations are not stated in the evidence, so confidence is low.",
+    "startedAt": "2026-10-03T12:56:17.658Z",
+    "decidedAt": "2026-10-03T12:56:57.735Z",
+    "resultingFact": "vf-7e44e1fc96e4"
+  }
+}

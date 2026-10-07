@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9b484a0374a2",
+    "reviewItemId": "ri-c65afa49e865",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "DNS resolution failures occur if the required upgrade steps are not followed in order (Upgrade Istio CNI, restart workloads enrolled in ambient mode, upgrade Ztunnel). Workload restarts can resolve the issue if it occurs, but the ordered procedure must be followed during upgrade.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 with Ambient mode and cni.ambient.dnsCapture=true configured requires following a specific ordered upgrade procedure: upgrade Istio CNI, restart ambient-enrolled workloads, then upgrade Ztunnel; failure to follow this order results in DNS resolution failures."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:112f5a3f562d330aa5d14350cd10ce54967020e1f6b6cfd01673d7b8bb43c84d",
+      "inputEvidence": [
+        "ev-1558dd759b77"
+      ],
+      "generatedAt": "2026-10-03T17:01:21.683Z",
+      "callId": "dd34de86-fdb7-462a-9965-36450d9644cf",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-1558dd759b77] says users upgrading to 1.24.0 in Ambient mode with `cni.ambient.dnsCapture=true` \"will need to follow\" an ordered procedure: upgrade Istio CNI, restart ambient-enrolled workloads, then upgrade Ztunnel. It also says \"Failure to do so will result in DNS resolution failures.\" A required operator step with a stated failure if it is skipped fits migration-required (action-required). The proposed statement matches the evidence, and high severity fits DNS resolution failing for enrolled workloads.",
+    "startedAt": "2026-10-03T17:01:13.443Z",
+    "decidedAt": "2026-10-03T17:01:21.683Z"
+  }
+}

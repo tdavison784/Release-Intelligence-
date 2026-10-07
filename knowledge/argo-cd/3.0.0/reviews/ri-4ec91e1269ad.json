@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-4ec91e1269ad",
+    "candidateId": "sc-5fad4fea330e",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"4a1d0f3af5cb1f093b3b17a82093f48f36959b99: fix: Switch default logging to JSON (issue: 20897)\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD log output format defaults to JSON instead of text; existing log parsing, monitoring, and alerting rules expecting text format logs may need to be updated.",
+        "remediation": "Review and update log parsing and monitoring tools to handle JSON-formatted logs, or explicitly set the logging format to text by configuring the --log-format flag or ARGOCD_LOG_FORMAT environment variable if text format is required.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 switches the default logging output format from text to JSON."
+    },
+    "proposals": [
+      "sp-b39d40bf4c90",
+      "sp-e9477e8cdc27"
+    ],
+    "validations": [
+      "val-10692eb81017",
+      "val-7a0cc85274ef",
+      "val-9780abe500c1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:43Z"
+  }
+}

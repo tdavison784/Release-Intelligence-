@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cb9e56bb1278",
+    "candidateId": "sc-a64aedeb967c",
+    "proposalId": "sp-90055ed15c34",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "statefulset-pod-name-label"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "strimzi",
+          "name": "strimzi-pod-name-label"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Custom setups leveraging the removed `statefulset.kubernetes.io/pod-name` label stop working once the label is gone from pods and external listener Services and must be changed to use `strimzi.io/pod-name` instead.",
+        "remediation": "Update any custom setup that leverages the statefulset.kubernetes.io/pod-name label to use the strimzi.io/pod-name label instead.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the `statefulset.kubernetes.io/pod-name` label from the pods it manages and from external listeners' Kubernetes Services; any custom setup leveraging that label must be changed to use the `strimzi.io/pod-name` label instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

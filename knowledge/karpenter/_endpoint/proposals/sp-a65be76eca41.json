@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a65be76eca41",
+    "candidateId": "sc-42373ba011a8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration",
+        "component": "nodepools.karpenter.sh"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "nodepools.karpenter.sh"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects remain stored as v1beta1 until rewritten; the operator must re-write all objects and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration (re-write all NodePool objects) and update status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the nodepools.karpenter.sh CRD changes from v1beta1 to v1, so existing NodePool objects stay stored as v1beta1 until they are rewritten, and a storage version migration is needed before a later release removes v1beta1."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-760ae3491f13",
+      "ev-09bbe26d2f4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:93e6beb7f4957cfbe2a84c0ca4910c8ee6c398515a46d50b882dd1254890921b",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-03T07:05:27Z",
+      "callId": "c5e634e1-b5c0-4317-af67-e81c59d2a775"
+    }
+  }
+}

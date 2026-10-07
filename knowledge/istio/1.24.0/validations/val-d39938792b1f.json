@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d39938792b1f",
+    "candidateId": "sc-4330cdde4865",
+    "proposalId": "sp-9ed2cdafa531",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with totally different exportTo attributes are no longer merged, which changes how traffic policy resolves for such hosts.",
+        "remediation": "Set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false on the pilot deployment to restore the previous merge behavior.",
+        "severity": "low"
+      },
+      "statement": "Istiod no longer merges DestinationRules for the same host when their exportTo attributes are totally different; setting env var ENABLE_ENHANCED_DESTINATIONRULE_MERGE to false in pilot restores the old merging."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:istio|name=ENABLE_ENHANCED_DESTINATIONRULE_MERGE: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:istio|name=ENABLE_ENHANCED_DESTINATIONRULE_MERGE: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

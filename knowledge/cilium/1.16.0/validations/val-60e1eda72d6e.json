@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-60e1eda72d6e",
+    "candidateId": "sc-c230c4031817",
+    "proposalId": "sp-58b394e611c6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "envoy.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "envoy.enabled",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "envoy.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Cilium Envoy DaemonSet is enabled by default, adding one Pod per Node; Nodes at maximum Pod capacity will see one non-system-critical Pod evicted after upgrading.",
+        "remediation": "Set upgradeCompatibility to 1.15 or earlier to keep the previous behavior, or set envoy.enabled explicitly."
+      },
+      "statement": "The Helm value envoy.enabled now defaults to enabled when unspecified for new installs (previously false); existing clusters should set upgradeCompatibility to 1.15 or earlier to keep the old behavior, otherwise one extra Pod per Node is added."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

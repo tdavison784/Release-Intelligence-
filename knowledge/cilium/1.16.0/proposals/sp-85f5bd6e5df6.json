@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-85f5bd6e5df6",
+    "candidateId": "sc-2c880c539366",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableRuntimeDeviceDetection"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "nodePort.addresses"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "enableRuntimeDeviceDetection",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "enableRuntimeDeviceDetection",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "enableRuntimeDeviceDetection",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Native device detection and BPF program loading on dynamically appearing devices is now active by default; NodePort services are now available on addresses assigned after Cilium starts, with the set of addresses configurable via nodePort.addresses."
+      },
+      "statement": "Runtime device detection and reconfiguration is now enabled by default in Cilium 1.16.0; the Helm option enableRuntimeDeviceDetection is deprecated."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-540db624a6ea"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2a158c48aaf7c6a7fdcef372437df9ddad0cc6ea5d242c5d0604e17da00d4a0d",
+      "inputEvidence": [
+        "ev-540db624a6ea"
+      ],
+      "generatedAt": "2026-10-02T05:53:42Z",
+      "callId": "8492798d-ed86-4e12-81f6-fc4fc88ef272"
+    }
+  }
+}

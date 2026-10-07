@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-63f86067ced4",
+    "reviewItemId": "ri-7b57b6826555",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        }
+      },
+      "statement": "Starting in Argo CD 3.0, application `update` and `delete` RBAC policies no longer apply to sub-resources; the v2 behavior can be kept by setting server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"policy.csv\"]",
+                      "state": "exists",
+                      "pattern": "^\\s*p\\s*,[^,]*,\\s*applications\\s*,\\s*(update|delete)\\s*,"
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "argocd-rbac-cm"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.roles[].policies[]",
+                      "state": "matches",
+                      "pattern": ",\\s*applications\\s*,\\s*(update|delete)\\s*,"
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "AppProject"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"false\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "argocd-cm"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "In Argo CD 3.0, policies granting update or delete on an Application no longer cover its sub-resources. Exposed: environments with such policies that do not set server.rbac.disableApplicationFineGrainedRBACInheritance to \"false\" in argocd-cm."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:29b0c0603ba7a1eea324d1c713a48b5c660c6e2cc77409ca034ad047ca41e6df",
+      "inputEvidence": [
+        "ev-d0cda25040fe"
+      ],
+      "generatedAt": "2026-10-03T12:58:39.339Z",
+      "callId": "c89882cf-f725-4ff5-bed2-e53bece62280",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d0cda25040fe] says the change affects policies that grant `update` or `delete` on an application. Before v3 those grants also covered the application's sub-resources; v3 needs new `update/*` or `delete/*` policies instead. The proposed condition only checks that argocd-cm does not set `server.rbac.disableApplicationFineGrainedRBACInheritance` to `false`. That flags every installation, including ones with no such policies, so it is too broad. The corrected condition also requires an RBAC policy line granting update or delete on applications. The evidence does not say where policies are stored, so the policy locations (argocd-rbac-cm `policy.csv` and AppProject roles) are an inference, and confidence is low.",
+    "startedAt": "2026-10-03T12:58:17.263Z",
+    "decidedAt": "2026-10-03T12:58:39.339Z"
+  }
+}

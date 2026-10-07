@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f6cdafda7a2c",
+    "reviewItemId": "ri-bf0a4518bd13",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is an enhancement that adds support for multiple namespaces in the Nomad provider; the evidence states no operational consequence for existing setups."
+      },
+      "statement": "The Nomad provider now supports multiple namespaces."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Setups that configure the Nomad provider's `namespace` option keep working, but the option is deprecated in favour of the new `namespaces` option. The evidence does not say it stops being honoured in this release.",
+        "remediation": "Replace the Nomad provider `namespace` option with `namespaces` (a list of namespaces).",
+        "severity": "low"
+      },
+      "statement": "The Nomad provider adds a `namespaces` option to discover services across multiple namespaces and deprecates the single `namespace` option."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:356fc8724835d8a18c52277f23cd009b06a0f8240f51f424229f67073d557b1e",
+      "inputEvidence": [
+        "ev-4ea791764206",
+        "ev-b33df1271538",
+        "ev-5ed60486c56b",
+        "ev-0860dd927120",
+        "ev-351b6ab48cff",
+        "ev-a63eb025d087",
+        "ev-9e92c97ef99e",
+        "ev-557f1044ff4e",
+        "ev-a4518986637f",
+        "ev-177a6106bc02",
+        "ev-3f297f766443",
+        "ev-636c346e8c61",
+        "ev-4aa7e3fe937e",
+        "ev-dd15d8ccb61e",
+        "ev-8a2c7ab7a3a5",
+        "ev-33c3af75761f",
+        "ev-dcba186fd8d7",
+        "ev-00bf6ae74af0",
+        "ev-7328189b4db1",
+        "ev-e7ee234202c6",
+        "ev-f7d3abb12e99",
+        "ev-9ddb01602beb",
+        "ev-5ce528be35f7",
+        "ev-ee73106833c6",
+        "ev-83cbbcabe1b7",
+        "ev-ae9158566d1b",
+        "ev-a714bf0cb614",
+        "ev-7b4ea0fc44f3",
+        "ev-983fcb0d825d",
+        "ev-9b56ac76a332",
+        "ev-bfb9c0ed4d28",
+        "ev-fac54af24634",
+        "ev-f387a976e3cf",
+        "ev-2f28e1ec1c46",
+        "ev-e60b03c8ec6d",
+        "ev-7d645bb4f295",
+        "ev-6c51e98dbb14",
+        "ev-9f33f28bdfe0",
+        "ev-53aef8a0056b",
+        "ev-38adf39801bd"
+      ],
+      "generatedAt": "2026-10-06T01:54:40.907Z",
+      "callId": "66528185-c79f-40f4-9409-df9e8dab8c85",
+      "provider": "anthropic"
+    },
+    "reason": "The changelog line [ev-4ea791764206] only lists this as an enhancement. However, the linked PR [ev-b33df1271538] says it \"Deprecates the `namespace` option in the Nomad provider\" and adds a `namespaces` option. It also changed the deprecation and migration docs [ev-0860dd927120]. So \"none\" is wrong for setups that use `namespace`: the option is deprecated, and nothing here says it stops working, which makes the kind deprecation (review) rather than a failure kind.",
+    "startedAt": "2026-10-06T01:54:30.574Z",
+    "decidedAt": "2026-10-06T01:54:40.907Z"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e9284c2a73d",
+    "candidateId": "sc-be5f4f756888",
+    "proposalId": "sp-ade823bbf0da",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "pilot.token"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PILOT_TOKEN",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "(?m)^\\s*pilot\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "(?m)^\\s*pilot\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "(?m)^\\s*\\[pilot\\]"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If any Pilot related configuration remains in the static configuration when upgrading to Traefik v3 (e.g. --pilot.token=foobar, a pilot section in traefik.yml/traefik.toml), Traefik is prevented from starting.",
+        "remediation": "Remove all Pilot related configuration (the pilot section in traefik.yml/traefik.yaml/traefik.toml, the --pilot.token CLI flag, or the TRAEFIK_PILOT_TOKEN environment variable) from the static configuration before upgrading to Traefik v3.",
+        "severity": "critical"
+      },
+      "statement": "Traefik v3 removes support for the v2 Pilot static configuration (pilot.token / --pilot.token): Pilot configuration that was deprecated and ineffective in v2 is now unsupported, and any Pilot-related entry left in the static configuration prevents Traefik from starting, so all Pilot configuration must be removed before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

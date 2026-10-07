@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-c46ee72ef64a",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "members": [
+      {
+        "changeId": "chg-03554379f194",
+        "anchor": {
+          "release": "2.0.0",
+          "evidenceKeys": [
+            "ek-d68204726291"
+          ],
+          "statementKeys": [
+            "sk-e71caa4eb740"
+          ],
+          "changeIds": [
+            "chg-03554379f194"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Updating compositions for v2: Existing Compositions work with Crossplane v2 with minimal changes",
+    "text": "Updating compositions for v2: Existing Compositions work with Crossplane v2 with minimal changes. v2 managed resources are schematically identical to v1 managed resources - they're just namespaced. Don't update existing compositions that are actively used by composite resources in your control plane. Updating a live composition that's in use by existing XRs could disrupt or replace your resources. Use the below migration approach only when creating new compositions for new resources. To use v2 namespaced managed resources in compositions: - Update the API group from `.crossplane.io` to `.m.crossplane.io` - Check the API version - v2 namespaced providers often reset the API version to `v1beta1` For example `provider-aws-s3:v2.0.0` has two `Bucket` MRs: - `apiVersion: s3.aws.upbound.io/v1beta2` - Legacy, cluster scoped - `apiVersion: s3.aws.m.upbound.io/v1beta1` - Namespaced The `spec.forProvider` and `status.atProvider` fields are schematically identical. Use `kubectl get mrds` to see available MR API versions. Not all providers use `.crossplane.io` domains. For example, `provider-aws-s3` uses `.upbound.io` domains for historical reasons. The general pattern for namespaced…",
+    "evidence": [
+      {
+        "id": "ev-11fb66b0329a",
+        "kind": "document",
+        "sourceId": "upgrade-to-v2-archive",
+        "uri": "https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md",
+        "locator": "L254-L363 (Updating compositions for v2)",
+        "excerpt": "## Updating compositions for v2\n\nExisting Compositions work with Crossplane v2 with minimal changes. v2 managed\nresources are schematically identical to v1 managed resources - they're just\nnamespaced.\n\n{{<hint \"important\">}}\n**Don't update existing compositions that are actively used by composite\nresources in your control plane.**\n\nUpdating a live composition that's in use by existing XRs could disrupt or\nreplace your resources. Use the below migration approach only when creating new\ncompositions for new resources.\n{{</hint>}}\n\nTo use v2 namespaced managed resources in compositions:\n\n1. **Upda…",
+        "contentDigest": "sha256:9573df98bd97eb85e60f8c53683a475ad7aaf7ecfa5bd8a789751281cc2e74fd",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "hints": [
+      "code:crossplane.io",
+      "code:m.crossplane.io",
+      "code:v1beta1",
+      "code:provider-aws-s3:v2.0.0",
+      "code:Bucket",
+      "code:apiVersion: s3.aws.upbound.io/v1beta2",
+      "code:apiVersion: s3.aws.m.upbound.io/v1beta1",
+      "code:spec.forProvider",
+      "code:status.atProvider",
+      "code:kubectl get mrds",
+      "code:provider-aws-s3",
+      "code:upbound.io",
+      "path:spec.forProvider",
+      "path:status.atProvider",
+      "apiVersion:s3.aws.upbound.io/v1beta2",
+      "apiVersion:s3.aws.m.upbound.io/v1beta1",
+      "version:v2.0.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:22Z"
+  }
+}

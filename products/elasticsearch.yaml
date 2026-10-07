@@ -338,3 +338,65 @@ provenance:
     relationship is verified against its canonical host. No upstream Helm
     chart exists for the server (elastic/helm-charts is deprecated; ECK is a
     separate product).
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: elasticsearch-yml
+  channel: config-file
+  component: elasticsearch
+  summary: Node and cluster settings live in elasticsearch.yml in the config directory (relocatable with ES_PATH_CONF);
+    values may reference environment variables with ${...} substitution.
+  file: elasticsearch.yml
+  format: yaml
+  references:
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/configure-elasticsearch
+    quote: 'Elasticsearch has three configuration files: elasticsearch.yml for configuring Elasticsearch'
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/configure-elasticsearch
+    quote: The elasticsearch.yml configuration format is YAML.
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/configure-elasticsearch
+    quote: Environment variables referenced with the ${...} notation within the elasticsearch.yml configuration
+      file will be replaced with the value of the environment variable.
+- id: docker-setting-env-vars
+  channel: env-vars
+  component: elasticsearch (Docker image)
+  summary: In the Docker image any Elasticsearch setting can be passed as an environment variable, either by its
+    setting name directly or in the ES_SETTING_ form (uppercased, underscores doubled, periods turned into underscores).
+  references:
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-docker-configure
+    quote: You can set individual Elasticsearch configuration parameters using Docker environment variables.
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-docker-configure
+    quote: Change the setting name to uppercase Prefix it with ES_SETTING_ Escape any underscores (_) by duplicating
+      them Convert all periods (.) to underscores (_)
+- id: jvm-options
+  channel: config-file
+  component: elasticsearch
+  summary: JVM arguments (heap size etc.) are set in custom *.options files under config/jvm.options.d/, one JVM
+    argument per line; the root jvm.options file is not to be edited.
+  file: jvm.options.d/*.options
+  format: text
+  references:
+  - url: https://www.elastic.co/docs/reference/elasticsearch/jvm-settings
+    quote: JVM options files must have the suffix .options and contain a line-delimited list of JVM arguments.
+  - url: https://www.elastic.co/docs/reference/elasticsearch/jvm-settings
+    quote: In production, use JVM options files to override the default settings.
+- id: startup-env-vars
+  channel: env-vars
+  component: elasticsearch
+  summary: ES_JAVA_OPTS sets JVM options (overriding all other JVM options; not recommended for production) and
+    ES_PATH_CONF relocates the config directory.
+  references:
+  - url: https://www.elastic.co/docs/reference/elasticsearch/jvm-settings
+    quote: The ES_JAVA_OPTS variable overrides all other JVM options. We do not recommend using ES_JAVA_OPTS in
+      production.
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/configure-elasticsearch
+    quote: The location of the config directory can be changed using the ES_PATH_CONF environment variable
+- id: cli-settings
+  channel: cli-flags
+  component: bin/elasticsearch
+  summary: Any setting from elasticsearch.yml can be given on the command line at startup with -E<setting>=<value>.
+  references:
+  - url: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-from-archive-on-linux-macos
+    quote: Any settings that can be specified in the config file can also be specified on the command line, using
+      the -E syntax as follows

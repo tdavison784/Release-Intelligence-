@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e3ea2d1e440a",
+  "promptDigest": "sha256:567bb26d17df303662077345c59be3a8cd708d3aa2e037077062ce348dca6848",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "20b5d31c-d69b-4209-864e-088a47cd0f55",
+  "startedAt": "2026-10-02T16:01:37.259Z",
+  "decidedAt": "2026-10-02T16:01:54.189Z",
+  "durationMs": 16232,
+  "costUSD": 0.09331600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e24f6e836412] says that starting in Argo CD 3.0 the `spec.applyNestedSelectors` field is ignored and nested selectors are always applied, as if the field were `true`. The guide lists this under Breaking Changes and tells operators to remove nested selectors before upgrading. A configured value (`false`, which is also the documented default when unset) that stops being honoured is setting-ignored, not a new default that keeps working. So the proposed behavior-change kind and review class understate the consequence.",
+    "citations": [
+      "ev-e24f6e836412"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0 the ApplicationSet spec.applyNestedSelectors field is ignored. For ApplicationSets that have nested selectors and leave the field unset or set to false, that value is no longer honoured, and the nested selectors are always applied as if the field were true.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "An ApplicationSet that has nested selectors and leaves spec.applyNestedSelectors unset or set to false no longer has that value honoured after the upgrade: the field is ignored and its nested selectors are always applied, where before they were not applied.",
+        "remediation": "Before upgrading, check the ApplicationSet controller logs for 'ignoring nested selector' to find affected ApplicationSets. Remove the nested selectors from any ApplicationSet where applyNestedSelectors is not explicitly set to true, then upgrade.",
+        "severity": "medium"
+      }
+    }
+  }
+}

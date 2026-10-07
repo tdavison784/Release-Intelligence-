@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b2ed89852876",
+  "promptDigest": "sha256:68ee618018f9301c6cc7960064ef729d0f84c3a26bb4ea4cc47e397495535fe3",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "23f6eaa2-3802-467c-ae5a-90106887efca",
+  "startedAt": "2026-10-03T16:58:47.778Z",
+  "decidedAt": "2026-10-03T16:58:59.848Z",
+  "durationMs": 11180,
+  "costUSD": 0.062817,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-4fdefdd841ec] says the `statefulset.kubernetes.io/pod-name` label was removed from pods and external listener Services, and that custom setups should use `strimzi.io/pod-name` instead. So the removal and the replacement are both stated. But this is a label the operator puts on the resources it manages. It is not a key in a configuration file or ConfigMap, so the config-key family is wrong. The component \"strimzi-kafka-operator\" is also just the product's repository name, which the rules say never to use as a component. A short free-form protocol-behavior name built from the evidence's own words fits better, and two proposals already use it.",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Strimzi 0.46.0 no longer sets the statefulset.kubernetes.io/pod-name label on pods and external listener Kubernetes Services; custom setups that use this label should use the strimzi.io/pod-name label instead.",
+      "subject": {
+        "determination": "asserted",
+        "family": "protocol-behavior",
+        "name": "statefulset-pod-name-label"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "name": "strimzi-pod-name-label"
+        }
+      }
+    },
+    "labels": [
+      "wrong-subject"
+    ]
+  }
+}

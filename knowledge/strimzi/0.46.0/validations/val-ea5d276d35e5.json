@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ea5d276d35e5",
+    "candidateId": "sc-a8771d6dc75d",
+    "proposalId": "sp-85ee7db0886f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "StableConnectIdentities"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"enabled\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.38.99"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "StableConnectIdentities",
+                  "state": "enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "When upgrading from Strimzi 0.38 or older with Kafka Connect or MirrorMaker 2, the StableConnectIdentities feature gate must be enabled (and StrimziPodSets used) before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/now-required",
+        "detail": "feature-gate now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/now-required",
+        "detail": "feature-gate now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

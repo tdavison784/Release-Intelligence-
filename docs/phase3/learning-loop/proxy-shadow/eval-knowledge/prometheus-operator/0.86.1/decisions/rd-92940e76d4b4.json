@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-92940e76d4b4",
+    "reviewItemId": "ri-87549f3503bb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the fix, Kubernetes events are formatted correctly; the product keeps working but the event output differs from before, and the evidence states no failure, rejection or required operator action.",
+        "remediation": "If any tooling consumes these Kubernetes events, verify it against the corrected formatting.",
+        "severity": "low"
+      },
+      "statement": "Prometheus Operator 0.86.1 fixes the formatting of Kubernetes events; the changelog line gives no further detail about the component, field or output affected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:2cba33fecad3165e66d5c520996645aa8227fe28d8de2696e84fba6285afbeb4",
+      "inputEvidence": [
+        "ev-f92afdf0fcdc"
+      ],
+      "generatedAt": "2026-10-03T01:52:27.089Z",
+      "callId": "d915d7a9-d39f-4ca8-a07b-7ca2c5bb7eda"
+    },
+    "reason": "[ev-f92afdf0fcdc] says only that 0.86.1 fixes the formatting of Kubernetes events. That means the event output changes, but the line reports no failure, rejection, ignored setting or required operator step. So behavior-change (review, low severity) is the strongest kind the evidence supports, and calling it mandatory work would overstate it. Confidence is low because the line doesn't describe the old or new formatting, so none (no operational consequence) cannot be fully ruled out.",
+    "startedAt": "2026-10-03T01:52:17.375Z",
+    "decidedAt": "2026-10-03T01:52:27.089Z"
+  }
+}

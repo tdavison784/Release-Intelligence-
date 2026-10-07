@@ -1,0 +1,139 @@
+id: cilium-1.16-1.17--plant-edge
+transferOf: cilium-1.16-1.17
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+  - https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
+  - https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
+  - https://github.com/cilium/cilium/blob/v1.16.0/examples/kubernetes-tls-inspection/l7-visibility-tls.yaml
+  - https://github.com/cilium/cilium/blob/v1.16.0/Documentation/network/bgp-control-plane/bgp-control-plane-v2.rst
+  - https://github.com/cilium/cilium/tree/v1.16.0/pkg/k8s/apis/cilium.io/client/crds
+  - https://github.com/cilium/cilium/tree/v1.17.0/pkg/k8s/apis/cilium.io/client/crds
+environment:
+  description: >-
+    plant-edge: a 3-node bare-metal Kubernetes 1.30 edge cluster at a
+    manufacturing site, running Cilium v1.16.1, installed with the Helm
+    chart. WireGuard transparent encryption is enabled with the userspace
+    fallback (encryption.wireguard.userspaceFallback: true) because two of
+    the three nodes run Ubuntu 20.04 kernels without in-tree WireGuard. The
+    cluster is in a ClusterMesh with a central cluster (clustermesh-apiserver
+    deployed, one peer) and two legacy historian VMs are joined as external
+    workloads (externalWorkloads.enabled: true). LoadBalancer IPs are
+    announced to the site router with the BGP control plane
+    (bgpControlPlane.enabled: true plus CiliumBGPClusterConfig /
+    CiliumBGPPeerConfig / CiliumBGPAdvertisement resources); the legacy
+    metallb-bgp bgp.* values were never used. One TLS-aware
+    CiliumNetworkPolicy reads its terminatingTLS secret from kube-system,
+    and neither tls.secretsBackend nor its replacement
+    tls.readSecretsOnlyFromSecretsNamespace is set. Hubble and Hubble Relay
+    are enabled with auto-generated certificates via the certgen CronJob
+    method, hubble.tls.auto.certValidityDuration left unset, as is
+    dnsProxy.endpointMaxIpPerHostname. The checked-in values file carries no
+    agent extraArgs.
+  kubernetes: "1.30"
+  expectedImpact:
+    - expected: E11
+      relevance: action-required
+      why: >-
+        the values file enables WireGuard transparent encryption and sets
+        encryption.wireguard.userspaceFallback: true (two nodes have no
+        in-tree WireGuard); v1.17.0 removes the fallback ("Users of
+        WireGuard transparent encryption are required to use a Linux kernel
+        with WireGuard support"), so pod traffic on those nodes loses
+        transparent encryption until their kernels are upgraded.
+      exposure: {op: values-key, path: encryption.wireguard.userspaceFallback, state: set}
+      environmentEvidence: values.yaml#L26-L34
+    - expected: E9
+      relevance: review
+      why: >-
+        externalWorkloads is enabled (two historian VMs registered); v1.17.0
+        only deprecates the feature and removes it in v1.18, so the VMs keep
+        working after this upgrade but the site must plan their replacement
+        before v1.18.
+      exposure: {op: values-key, path: externalWorkloads.enabled, state: set}
+      environmentEvidence: values.yaml#L43-L46
+    - expected: E5
+      relevance: review
+      why: >-
+        hubble.tls.auto.method is cronJob and certValidityDuration is left
+        unset, so certificates generated after the upgrade pick up the
+        lowered 365-day default instead of 1095; the quarterly certgen
+        CronJob keeps rotating them, but the operator should confirm the
+        shorter validity window.
+      exposure: {op: values-key, path: hubble.tls.auto.certValidityDuration, state: unset}
+      environmentEvidence: values.yaml#L56-L67
+    - expected: E6
+      relevance: informational
+      why: >-
+        dnsProxy.endpointMaxIpPerHostname is unset and the cluster's
+        TLS-aware policy uses toFQDNs (so the DNS proxy is in the path);
+        after the upgrade the raised 1000-IP default applies silently.
+        Upstream frames the change as scaling headroom with no failure mode.
+      exposure: {op: values-key, path: dnsProxy.endpointMaxIpPerHostname, state: unset}
+      environmentEvidence: values.yaml#L68-L71
+    - expected: E4
+      relevance: review        # corrected 2026-10-02 from not-affected, motivated by pipeline output (render-4; eval/CHANGELOG.md)
+      why: >-
+        the cluster sets neither tls.secretSync.enabled nor upgradeCompatibility, so v1.17.0 applies the
+        new-cluster TLS-interception defaults (tls-visibility.rst v1.17.0: SDS mode is "default for new
+        clusters"; upgrade.rst: "The defaults for upgraded clusters (where upgradeCompatibility is v1.16) do
+        not enable SDS"). Its TLS-intercepting CiliumNetworkPolicy references a Secret in kube-system, which
+        the operator will now copy into the new cilium-secrets namespace (plus Roles/RoleBindings) and serve
+        to Envoy via SDS — a change in how this policy's key material is handled that the operator should
+        verify. The deprecated tls.secretsBackend itself is not set.
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: tls.secretSync.enabled, state: unset}
+          - {op: values-key, path: upgradeCompatibility, state: unset}
+          - op: any
+            of:
+              - {op: resource, group: cilium.io, kind: CiliumNetworkPolicy, of: [{op: field, path: 'spec.egress[].toPorts[].terminatingTLS', state: set}]}
+              - {op: resource, group: cilium.io, kind: CiliumNetworkPolicy, of: [{op: field, path: 'spec.egress[].toPorts[].originatingTLS', state: set}]}
+      environmentEvidence: [values.yaml#L52-L55, manifests/historian-scrape-cnp.yaml#L5-L24]
+    - expected: E3
+      relevance: not-affected
+      why: >-
+        LoadBalancer IPs are announced with the BGP control plane
+        (bgpControlPlane.enabled plus the CiliumBGPClusterConfig /
+        CiliumBGPPeerConfig / CiliumBGPAdvertisement resources), and none of
+        the removed metallb-bgp keys appears in the values file, so the
+        removal leaves this cluster's announcements untouched.
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: bgp.enabled, state: set}
+          - {op: values-key, path: bgp.announce.loadbalancerIP, state: set}
+          - {op: values-key, path: bgp.announce.podCIDR, state: set}
+      environmentEvidence:
+        - values.yaml#L47-L51
+        - manifests/bgp-advertisement.yaml#L5-L49
+  undecidedImpact:
+    - expected: E10
+      reason: environment-visibility-gap
+      needed: >-
+        the cilium-agent's rendered container args (kubectl get ds cilium -n
+        kube-system -o yaml) or the release's full values (helm get values
+        cilium -n kube-system --all): the checked-in values file carries no
+        extraArgs, but install-time --set flags or a CI overlay would not
+        appear in it.
+      why: >-
+        the cluster runs ClusterMesh with a central peer, exactly the
+        deployment whose install runbook may have tuned the removed
+        --clustermesh-ip-identities-sync-timeout agent flag; the fixture has
+        no workload manifest showing the agent's args, so whether the flag
+        is present is UNKNOWN.
+      exposure: {op: cli-flag, name: --clustermesh-ip-identities-sync-timeout, component: cilium-agent, state: set}
+      environmentEvidence: values.yaml#L35-L42
+  expectedFindings:
+    - id: F1
+      match:
+        subject: encryption.wireguard.userspaceFallback
+      why: the values file sets a key the v1.17.0 chart no longer has (absent from its values.yaml; upstream notes the fallback's removal)
+  notExpectedFindings:
+    - title: no Cilium CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: >-
+        the CRD file sets of v1.16.0 and v1.17.0 are identical (repo tree
+        comparison at both tags), including the v2alpha1 BGP control-plane
+        resources this cluster uses.

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e596c050203b",
+    "candidateId": "sc-1ba13d17afbf",
+    "proposalId": "sp-ad71c98eedf6",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "experimental injector list",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"prints webhooks not related to istio\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an operator runs `istioctl experimental injector list` (CLI usage is not carried by any static configuration input)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The command keeps working but its listing changes: `istioctl experimental injector list` no longer prints webhooks not related to Istio, so any workflow that read the previously unfiltered output will see fewer entries.",
+        "remediation": "No operator action required; if any tooling consumes this command's output, verify it expects only Istio-related webhooks.",
+        "severity": "low"
+      },
+      "statement": "The istioctl subcommand `experimental injector list` no longer prints webhooks not related to Istio (it previously listed non-Istio webhooks as well); this is an output-correctness fix, nothing fails."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

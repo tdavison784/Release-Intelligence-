@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b956391eb70c",
+    "candidateId": "sc-3012458cf09f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "kvstore-subsystem-status-reporting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"OK state with Disabled message\"",
+        "after": "\"Disabled state\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The KVStore subsystem in the Cilium status API response changes from reporting OK state with Disabled message to reporting Disabled state; clients parsing the state field will see different values.",
+        "severity": "medium"
+      },
+      "statement": "The Cilium status API now reports the KVStore subsystem with Disabled state instead of OK state with Disabled message."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: exposure depends on runtime behavior of status API clients and their parsing logic, which no static configuration shows",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e6b268264713"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7a917764700795dbadbbf7826ce879cafbe31ff90986a5fde9d4a192eba82234",
+      "inputEvidence": [
+        "ev-e6b268264713"
+      ],
+      "generatedAt": "2026-10-02T06:01:22Z",
+      "callId": "b01bb2c2-11e0-4f60-ae2f-031bfe5c6cb3"
+    }
+  }
+}

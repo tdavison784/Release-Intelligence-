@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3b863869c149",
+    "candidateId": "sc-cabf835b2a76",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.loadBalancer.warmup"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.trafficPolicy.loadBalancer",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1beta1",
+              "kind": "DestinationRule"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new warmup configuration fields are optional and do not affect existing DestinationRule configurations that do not use them."
+      },
+      "statement": "Istio 1.24.0 adds support for warmup configuration in DestinationRule's load balancing traffic policy, introducing duration, minimumPercent, and aggression fields to control warmup mode behavior."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-c2809b3da7db"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b1b85e056cfb59a13afbdbafa3b43a5c0c8b1ab4b6aca700c17437ec0f405e37",
+      "inputEvidence": [
+        "ev-c2809b3da7db"
+      ],
+      "generatedAt": "2026-10-02T05:55:56Z",
+      "callId": "aee76dba-e80e-4e3e-93cb-be69699a85b8"
+    }
+  }
+}

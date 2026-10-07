@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9041090696e6",
+    "reviewItemId": "ri-6c0e6ffce02d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new `enabled` Helm value is allowed for toggling cert-manager as a dependency; no operational consequence is stated."
+      },
+      "statement": "The Helm chart now accepts an `enabled` value so cert-manager can be toggled when used as a dependency."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:4364073e6c7923614744feb4cd5870bdf9bad06d06393b25f7b9a2b0212eb3d7",
+      "inputEvidence": [
+        "ev-c3fa8260181b",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-02T12:58:43.056Z",
+      "callId": "b7dbcf6a-df8b-4b43-ab37-227946eda0fc"
+    },
+    "reason": "The release note [ev-c3fa8260181b] describes only a new capability: the chart now accepts an `enabled` value for toggling cert-manager as a dependency. It does not say that anything fails, is rejected or behaves differently for an environment that does nothing. The values snapshots [ev-fdc96eee87bf] and [ev-717ddb6f40cd] confirm that `enabled` is a newly added key, and the canonical validator confirms that an added subject has no consequence for existing environments. Nothing in the evidence supports P2's claim that `enabled: false` was already set somewhere and would now take effect, so the consequence \"none\" (informational) stands. The excerpts do not show the default value of `enabled`, which is why confidence is low.",
+    "startedAt": "2026-10-02T12:58:34.258Z",
+    "decidedAt": "2026-10-02T12:58:43.056Z"
+  }
+}

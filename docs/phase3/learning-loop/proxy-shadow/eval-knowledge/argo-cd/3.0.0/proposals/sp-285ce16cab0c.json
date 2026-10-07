@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-285ce16cab0c",
+    "candidateId": "sc-df479e04bf5f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "version": "v1alpha1",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"field value was honored (nested selectors applied only if true)\"",
+        "after": "\"field is ignored (nested selectors always applied, behavior as if true)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.applyNestedSelectors",
+                  "state": "unset"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.applyNestedSelectors",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "field",
+              "path": "spec.generators[].selector",
+              "state": "set"
+            }
+          ],
+          "group": "argoproj.io",
+          "version": "v1alpha1",
+          "kind": "ApplicationSet"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSets with applyNestedSelectors unset or set to false will have nested selectors always applied starting in Argo CD 3.0, changing behavior from previous versions where the field value was honored.",
+        "remediation": "Review ApplicationSets with nested selectors where applyNestedSelectors is unset or false. If the new behavior (nested selectors always applied) is not desired, remove the nested selectors before upgrading to Argo CD 3.0.",
+        "severity": "medium"
+      },
+      "statement": "The spec.applyNestedSelectors field in ApplicationSet is now ignored in Argo CD 3.0; nested selectors are always applied regardless of the field's value."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e24f6e836412"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e2ae2e4e967d258df596c61a62001788c96725a4987684915a7343cc6bd8e5e4",
+      "inputEvidence": [
+        "ev-e24f6e836412"
+      ],
+      "generatedAt": "2026-10-02T05:53:52Z",
+      "callId": "ed3c7035-75a3-4edc-96a0-47b163a87d8f"
+    }
+  }
+}

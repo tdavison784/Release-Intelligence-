@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2ad95d6b3a98",
+    "candidateId": "sc-2122e380f43d",
+    "proposalId": "sp-d943c224c3a4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "kube-virt-rules-removal",
+        "component": "istio-clean-iptables"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "istio-clean-iptables",
+          "component": "istio-clean-iptables",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The istio-clean-iptables tool will now successfully remove kube-virt-related iptables rules, whereas previously such rules were not being removed.",
+        "severity": "medium"
+      },
+      "statement": "The istio-clean-iptables tool now correctly removes kube-virt-related iptables rules."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b759d2034f45",
+    "candidateId": "sc-c9e607a2cdf4",
+    "proposalId": "sp-e326deec9c2f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-messages-structured-data"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external log tooling matches literal strings in cert-manager log lines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log lines now include more contextual structured data, so matching on literal strings in log lines may break.",
+        "remediation": "Check log-based alerts, parsers and searches that match literal cert-manager log strings, and update them for the new log format.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, log messages across cert-manager now carry better contextual structured data, so tooling that matches literal strings in log lines may break."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-751887696931",
+  "promptDigest": "sha256:b3e5c96259bca49203ab570f835b9eac5846d105c15cb533f7d9b328c09e5f6b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "35beda13-b7fd-4aef-9014-a0f4bbdf7805",
+  "startedAt": "2026-10-03T02:21:55.393Z",
+  "decidedAt": "2026-10-03T02:22:11.650Z",
+  "durationMs": 15543,
+  "costUSD": 0.0869,
+  "output": {
+    "action": "correct",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "reason": "[ev-e54c7ef2acc9] says support for the 1.20 compatibilityProfile was removed and that ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT were removed from Istio entirely. That supports setting-ignored: the profile and those flags stop being honoured. The evidence does not say anything \"causes failures\", so the proposed statement claims too much. ENABLE_AUTO_SNI is only the one flag that was not removed, not a replacement, so the remediation misreads the text and the severity should be lowered.",
+    "citations": [
+      "ev-e54c7ef2acc9"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Istio 1.24.0 removed the 1.20 compatibilityProfile. It also removed the flags ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT, so selecting that profile or setting those flags is no longer honoured.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "After the upgrade, selecting the 1.20 compatibilityProfile no longer applies the 1.20 settings, because support was removed. Values set for ENABLE_EXTERNAL_NAME_ALIAS, PERSIST_OLDEST_FIRST_HEURISTIC_FOR_VIRTUAL_SERVICE_HOST_MATCHING and VERIFY_CERTIFICATE_AT_CLIENT are no longer honoured, because these flags were removed from Istio entirely. ENABLE_AUTO_SNI was not removed.",
+        "remediation": "Remove references to the 1.20 compatibilityProfile and to the removed flags. Check that the mesh works correctly without the 1.20-era behaviour these settings provided. ENABLE_AUTO_SNI is still available as its own flag.",
+        "severity": "medium"
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cb8cf3807b96",
+    "candidateId": "sc-5c66197e4890",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that set renewBeforePercentage now follow the field's spec. The evidence does not say what the old behaviour was or how renewal timing changes, so check renewal behaviour for these Certificates.",
+        "remediation": "Review Certificates that set spec.renewBeforePercentage and confirm their renewal timing matches the field's spec.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, how Certificate spec.renewBeforePercentage is handled was fixed so that it complies with its spec. Certificates that set this field may now behave differently than before."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-cae85181502c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b2b49327538c451440af516bafb6cfa784309afd0ea8593b693ca101b460ed45",
+      "inputEvidence": [
+        "ev-cae85181502c"
+      ],
+      "generatedAt": "2026-10-02T06:12:42Z",
+      "callId": "19eaef79-a8c2-44f5-b49a-a067ef4f0fd2"
+    }
+  }
+}

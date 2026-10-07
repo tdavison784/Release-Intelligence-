@@ -1,0 +1,81 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f7ac7d29e578",
+  "promptDigest": "sha256:e7964af5656102203ec79fc9fa2949f2ea006ec26718989f661cc3c6b764e66b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9f9905b2-d21e-4135-b8df-de5252b26bf2",
+  "startedAt": "2026-10-03T02:34:56.038Z",
+  "decidedAt": "2026-10-03T02:35:12.520Z",
+  "durationMs": 15829,
+  "costUSD": 0.11993600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-19231a7aa629] names the affected users directly: no `policy.default` in `argocd-rbac-cm`, and `server.rbac.log.enforce.enable` either set to false or not set at all in `argocd-cm`. The proposed exposure is broader than that, because it also flags environments whose `policy.default` is set to some other role. The evidence never calls those environments affected. The proposal also compares against the literal values \"\\\"false\\\"\" and \"\\\"true\\\"\" with the quote characters included, which would never match a real setting. The corrected version requires `policy.default` to be unset, compares against plain false/true, and keeps the two shielded cases from the evidence as the overlap.",
+    "citations": [
+      "ev-19231a7aa629"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "An environment is exposed when argocd-rbac-cm has no policy.default and argocd-cm either does not set server.rbac.log.enforce.enable or sets it to false. Environments with the flag set to true, or with policy.default set to role:readonly or role:admin, are unaffected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "unset"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "false",
+                    false
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+              "state": "equals",
+              "values": [
+                "true",
+                true
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "equals",
+              "values": [
+                "role:readonly",
+                "role:admin"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

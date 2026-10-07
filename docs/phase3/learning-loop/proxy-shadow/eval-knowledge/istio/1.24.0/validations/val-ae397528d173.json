@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ae397528d173",
+    "candidateId": "sc-478fa231ae3d",
+    "proposalId": "sp-d8ca9eb2a110",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "sidecar.istio.io/native-side"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[\"sidecar.istio.io/native-side\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new opt-in annotation for controlling native sidecar injection per pod. Pods without it keep following the global ENABLE_NATIVE_SIDECARS setting.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds a pod annotation, sidecar.istio.io/native-side. Setting it to true or false turns native sidecar injection on or off for that pod, and it overrides the global ENABLE_NATIVE_SIDECARS environment variable."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

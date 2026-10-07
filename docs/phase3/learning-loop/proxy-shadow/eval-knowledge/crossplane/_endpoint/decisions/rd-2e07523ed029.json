@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2e07523ed029",
+    "reviewItemId": "ri-a5d969ae07d4",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "protection.crossplane.io",
+                  "version": "v1beta1",
+                  "kind": "ClusterUsage"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether CRDs are managed separately from the release or installed automatically"
+            }
+          ]
+        }
+      },
+      "statement": "A new CRD ClusterUsage in the protection.crossplane.io API group, v1beta1 version, is added and must be installed before upgrading if CRDs are managed separately."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:35b1944872cc707aa673de109d0325093b76bcc967dca4ff05dbf6aec67774d5",
+      "inputEvidence": [
+        "ev-95c4d9181c78",
+        "ev-30934c6c9b63",
+        "ev-b12db1ba30d3",
+        "ev-2cf0a7dd0095",
+        "ev-4cb106f172c6",
+        "ev-ac8a7bba9777",
+        "ev-5957f2297008",
+        "ev-024ae1616362",
+        "ev-9b42493c58c4",
+        "ev-81b24803c1c9",
+        "ev-9734c97600b9",
+        "ev-13f94d4596b3",
+        "ev-1f38a21f6bdd",
+        "ev-13bb08e10750",
+        "ev-9422233ca172",
+        "ev-dfd597f842c9",
+        "ev-8b680076ce65",
+        "ev-6e79b5dc61ae",
+        "ev-a3bca45d2477",
+        "ev-497295c94a3d",
+        "ev-7b1bee6d2352",
+        "ev-270c9e3fe130",
+        "ev-a51a53aa04ee",
+        "ev-e2735e756cbf",
+        "ev-9b2aa10ff338",
+        "ev-d8a9fd80558b",
+        "ev-28c27515399d",
+        "ev-4fbe071b2844",
+        "ev-754e8c2767c7",
+        "ev-ef56bb524889",
+        "ev-3b5cfc1e9589",
+        "ev-b44a4511845b",
+        "ev-d5a5794a9446",
+        "ev-f83c864e3d52",
+        "ev-0d3738246a50",
+        "ev-067b435b635b",
+        "ev-147c26b74d68"
+      ],
+      "generatedAt": "2026-10-03T16:57:11.752Z",
+      "callId": "a3fcd50c-802b-416a-a674-575e1a49a16f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-067b435b635b] only shows that the ClusterUsage CRD file exists in v2.0.0. The change text says nothing about which environments are affected, other than a general note to install CRDs if you manage them separately. The proposed exposure is wrong for three reasons. First, it uses an undecidable leaf with a reason that is not allowed (\"environment-visibility-gap\"). Second, it uses undecidable to cover a configuration-visibility question, which the rules forbid. Third, it treats gvk-in-use of a GVK that did not exist before the upgrade as an exposure signal. No predicate can express \"CRDs are managed separately\" and the evidence states no other condition, so no corrected exposure follows and applicability should stay undetermined.",
+    "startedAt": "2026-10-03T16:57:03.622Z",
+    "decidedAt": "2026-10-03T16:57:11.752Z"
+  }
+}

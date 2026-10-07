@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-14b614be42d6",
+    "reviewItemId": "ri-e22df662b19b",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "statement": "Loki 3.0.0 adds a new cache statistic `query_length_served` to the Results Cache to measure the length of query results served from cache."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "statement": "Loki 3.0.0 adds a `query_length_served` stat to the results cache that measures the length of the query served from cache. It is unconditional and additive, so every environment upgrading from a version before 3.0.0 gets it."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:60f52e63e6b3b1679db6ff788e0d087d3a6ad5ffe18aa17bb80a33759ce4ebdd",
+      "inputEvidence": [
+        "ev-daa5d5e91665"
+      ],
+      "generatedAt": "2026-10-03T02:04:25.734Z",
+      "callId": "85713bd5-e8f4-4add-8a76-a5aa0f84abf5"
+    },
+    "reason": "[ev-daa5d5e91665] describes only a new results-cache stat, `query_length_served`, added in Loki 3.0.0. It names no configuration, flag or value that controls it, so every environment that upgrades to 3.0.0 gets it. The proposed condition, product-version loki >=3.0.0, misuses the product-version op, which is meant for another product's version, and it checks the version after the upgrade instead of the version being upgraded from. The upgrade-edge form, edge-from-version <3.0.0, expresses this exposure directly.",
+    "startedAt": "2026-10-03T02:04:16.706Z",
+    "decidedAt": "2026-10-03T02:04:25.734Z"
+  }
+}

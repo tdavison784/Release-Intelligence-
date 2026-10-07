@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-da5a52d3fa48",
+    "candidateId": "sc-1c908e6fdb6b",
+    "proposalId": "sp-a0dabd5059cc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "enabled"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `enabled` value is now honoured to toggle cert-manager on or off as a chart dependency, so values that already set `enabled: false` (previously without this effect) will now toggle cert-manager off.",
+        "remediation": "Check whether any values files (including parent/umbrella charts) set `enabled`; if cert-manager should still be installed, set `enabled: true` or remove the key.",
+        "severity": "medium"
+      },
+      "statement": "The cert-manager 1.17.0 Helm chart now allows the `enabled` value to be set, toggling cert-manager on or off when it is installed as a chart dependency."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

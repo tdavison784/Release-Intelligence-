@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3916c045704d",
+    "candidateId": "sc-5211de5a6cde",
+    "proposalId": "sp-a2b8f2ef29d3",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-used-total"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-used"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether dashboards, alerting rules, or other metric consumers reference the metric name lbipam_ips_used_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The same LB IPAM usage metric is exposed under the new name lbipam_ips_used, so any reference to the old name lbipam_ips_used_total must be updated to lbipam_ips_used.",
+        "remediation": "Update dashboards, alerting rules, and any other metric references from lbipam_ips_used_total to lbipam_ips_used.",
+        "severity": "low"
+      },
+      "statement": "The Prometheus metric `lbipam_ips_used_total` has been renamed to `lbipam_ips_used` in Cilium 1.17.0, so metric references using the old name must be updated to the new name."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

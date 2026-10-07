@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ae84eec0ef2b",
+  "promptDigest": "sha256:a354a5af1d8c3b2689db2261b261c9d1ff6da0e12f2cdb38cb4390369f0747bd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5381daf8-fbeb-42ae-af1a-eff4909f4497",
+  "startedAt": "2026-10-03T16:58:19.826Z",
+  "decidedAt": "2026-10-03T16:58:31.379Z",
+  "durationMs": 10743,
+  "costUSD": 0.06337999999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The change comes from a computed CRD storage-version diff between the v2.6.4 and v2.7.0 install manifests [ev-782bc47d120d] [ev-c2c6c790d6b2]. The change text says existing ImageRepository objects stay stored as v1beta2 and still work, and that migration is needed only before a later release removes v1beta2. Nothing fails, gets rejected or must be migrated in this release, so calling this mandatory migration-required work over-claims. It is a deprecation (review class).",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Storage version of imagerepositories.image.toolkit.fluxcd.io changes v1beta2 → v1. v1beta2 is deprecated: objects stored as v1beta2 keep working now but must be migrated before a later release removes v1beta2.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "severity": "medium",
+        "statement": "Existing ImageRepository objects stay stored as v1beta2 until rewritten and keep working in this release. They will break when a later release removes v1beta2 unless storage is migrated to v1 first.",
+        "remediation": "Before upgrading to a release that removes v1beta2, run a storage version migration for imagerepositories.image.toolkit.fluxcd.io (re-write all ImageRepository objects) and update status.storedVersions."
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "duplicateOf": "none"
+  }
+}

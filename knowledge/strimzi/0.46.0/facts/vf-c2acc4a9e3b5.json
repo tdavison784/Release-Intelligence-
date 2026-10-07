@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c2acc4a9e3b5",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-80f7070faf4e"
+        ],
+        "statementKeys": [
+          "sk-1d0fb395f33d"
+        ],
+        "changeIds": [
+          "chg-7c4737e52236"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f71e5a991048"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "kafka-node-certificate-secrets"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"one Secret per pod\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "version": "v1beta2",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, Kafka node certificates are stored in separate Secrets, one Secret per pod; the changelog states no failure, rejected resource or required operator action, only the changed storage layout.",
+        "severity": "low"
+      },
+      "statement": "Store Kafka node certificates in separate Secrets, one Secret per pod"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-5db968731b6b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-5db968731b6b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7bf07e54ceb9"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-d528f9c96e50"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-acec48f57273",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L11-L11 (0.46.0)",
+        "excerpt": "* Store Kafka node certificates in separate Secrets, one Secret per pod.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:30:34.495Z"
+  }
+}

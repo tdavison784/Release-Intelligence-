@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5a3e8078e4b0",
+  "promptDigest": "sha256:0b00e625c3b0f63806bf2dbdc223995d0dd3ef4e4762a34e7f62c34aaf23c0f2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5a66d802-942a-4fad-a5e3-8e2a6de735a5",
+  "startedAt": "2026-10-02T12:55:55.257Z",
+  "decidedAt": "2026-10-02T12:56:04.385Z",
+  "durationMs": 8137,
+  "costUSD": 0.087632,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a486e34929cd] describes a fix to the output of the operator-run CLI command `istioctl experimental injector list`. 'experimental' is a subcommand, not a flag, and istioctl is not a container argument of the product's workloads. So the proposed cli-flag{name: experimental, set} leaf does not describe any environment state, and the engine could never evaluate it meaningfully. Exposure depends on whether operators run this command against clusters that have non-istio webhooks, and no static configuration input shows that, so the condition should be undecidable.",
+    "citations": [
+      "ev-a486e34929cd"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "`istioctl experimental injector list` no longer prints webhooks that are not related to istio. Exposure cannot be determined from static environment inputs: it depends on whether operators run this istioctl command against clusters that also contain non-istio webhooks.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `istioctl experimental injector list` (an operator-side CLI command, not a workload argument) against clusters that also contain mutating webhooks not related to istio"
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

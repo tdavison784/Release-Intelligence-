@@ -1,0 +1,29 @@
+# Container-log shipping for eu-platform. The Fluent Bit DaemonSet is
+# platform-managed: its parsers and grep filters live in the central
+# ConfigMap platform-fluent-bit-config, maintained by the logging team in
+# the platform-config repository (not in this repository).
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: platform-fluent-bit
+  namespace: logging
+spec:
+  selector:
+    matchLabels:
+      app: platform-fluent-bit
+  template:
+    metadata:
+      labels:
+        app: platform-fluent-bit
+    spec:
+      serviceAccountName: platform-fluent-bit
+      containers:
+        - name: fluent-bit
+          image: fluent/fluent-bit:3.2.10
+          volumeMounts:
+            - name: config
+              mountPath: /fluent-bit/etc
+      volumes:
+        - name: config
+          configMap:
+            name: platform-fluent-bit-config

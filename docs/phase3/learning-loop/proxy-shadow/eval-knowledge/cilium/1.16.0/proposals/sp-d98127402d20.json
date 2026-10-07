@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d98127402d20",
+    "candidateId": "sc-18e3c0f40ba7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--verbose",
+        "component": "cilium-dbg"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or tooling read or parse the health data output of `cilium-dbg status --verbose`"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The health tree in `cilium-dbg status --verbose` output is now structured and ordered differently: health from non-leaf components can appear under a `reporter` leaf, and branches are sorted by fully qualified identifier. Scripts that parse this output may need to be updated.",
+        "remediation": "Check any tooling that parses the health data from `cilium-dbg status --verbose` and update it for the `reporter` leaf and the new sort order.",
+        "severity": "low"
+      },
+      "statement": "The health data printed by `cilium-dbg status --verbose` may now show health reported on a non-leaf component under a leaf named `reporter`, and tree branches are now sorted by the fully qualified health status identifier."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-dc0997efed20"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3fd49fe2470ba92fe112ab3552977ab16c5ac4162cb4603390004e9cc5bbfc1a",
+      "inputEvidence": [
+        "ev-dc0997efed20"
+      ],
+      "generatedAt": "2026-10-03T07:07:20Z",
+      "callId": "e25387b8-80ae-4287-9f16-2b622851f19d"
+    }
+  }
+}

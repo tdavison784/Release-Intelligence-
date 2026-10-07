@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-985a8fcba32d",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "members": [
+      {
+        "changeId": "chg-5facf6216af6",
+        "anchor": {
+          "release": "1.17.0",
+          "evidenceKeys": [
+            "ek-33291c664957"
+          ],
+          "statementKeys": [
+            "sk-7982c2b453c1"
+          ],
+          "changeIds": [
+            "chg-5facf6216af6"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072…",
+    "text": "Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072 bits and above. If you were previously using a larger RSA key as a CA, be sure to check that your systems support the new hash algorithms. (#7368, @SgtCoDFish)",
+    "evidence": [
+      {
+        "id": "ev-53fb690413df",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L188-L188 (v1.17.0 › Feature)",
+        "excerpt": "- Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072 bits and above. If you were previously using a larger RSA key as a CA, be sure to check that your systems support the new hash algorithms. ([#7368](https://github.com/cert-manager/cert-manager/pull/7368), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-e89018c14175",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7368",
+        "locator": "title and description",
+        "excerpt": "PR: Use different hash algorithms for larger RSA keys [closed; labels size/L, release-note, approved, lgtm, kind/feature, dco-signoff: yes]\nSee also #7357\n\nA [US DoD document](https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/pdf/unclass-memo_dodcryptoalgorithms.pdf) states that:\n\n> Effective immediately, all Public Key enabled commercial-off-the-shelf\n> software and Public Key enabled Open-Source software integrations [...]\n> must support at least RSA-3072 (4096 is preferred) and SHA-384.\n\ncert-manager already supports large RSA keys - that's no problem. But we always use SHA256 with all RS…",
+        "contentDigest": "sha256:1b3306c5185fdf229d9aaa0f5a50cf40b1ff733aa2cc190bbe366c3c4b3f0ba2",
+        "retrievedAt": "2026-10-06T01:24:40Z"
+      },
+      {
+        "id": "ev-56104cb1e836",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7368",
+        "locator": "description (part 2)",
+        "excerpt": "for RSA keys 4096 bits and above, or else SHA384 for RSA keys 3072 bits and above, or else SHA256.\n\nWe discussed in standups / in the issue how to roll this out, and the consensus so far has been to roll this out unilaterally. Albeit we don't have data to support our assumption, we believe there won't be any huge compatibility problems from using this approach.\n\nOne potential issue is that SHA512 can take (much) longer on some low powered 32-bit platforms (think older Raspberry Pis). We decided that the risk of …",
+        "contentDigest": "sha256:1b3306c5185fdf229d9aaa0f5a50cf40b1ff733aa2cc190bbe366c3c4b3f0ba2",
+        "retrievedAt": "2026-10-06T01:24:40Z"
+      },
+      {
+        "id": "ev-7e5bd340ee45",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7368",
+        "locator": "changed files",
+        "excerpt": "4 changed file(s): pkg/controller/certificaterequests/ca/ca.go, pkg/controller/certificaterequests/selfsigned/selfsigned.go, pkg/util/pki/csr.go, pkg/util/pki/csr_test.go",
+        "contentDigest": "sha256:1b3306c5185fdf229d9aaa0f5a50cf40b1ff733aa2cc190bbe366c3c4b3f0ba2",
+        "retrievedAt": "2026-10-06T01:24:40Z"
+      },
+      {
+        "id": "ev-d94b93ae4555",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/cert-manager/cert-manager/pull/7368",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #7368): Use different hash algorithms for larger RSA keys [closed; labels size/L, release-note, approved, lgtm, kind/feature, dco-signoff: yes]\nSee also #7357\n\nA [US DoD document](https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/pdf/unclass-memo_dodcryptoalgorithms.pdf) states that:\n\n> Effective immediately, all Public Key enabled commercial-off-the-shelf\n> software and Public Key enabled Open-Source software integrations [...]\n> must support at least RSA-3072 (4096 is preferred) and SHA-384.\n\ncert-manager already supports large RSA keys - that's no problem. But we…",
+        "contentDigest": "sha256:1b3306c5185fdf229d9aaa0f5a50cf40b1ff733aa2cc190bbe366c3c4b3f0ba2",
+        "retrievedAt": "2026-10-06T01:24:40Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

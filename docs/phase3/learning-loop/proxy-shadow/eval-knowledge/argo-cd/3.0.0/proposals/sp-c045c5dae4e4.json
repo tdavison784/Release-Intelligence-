@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c045c5dae4e4",
+    "candidateId": "sc-22716bcf1be8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "controller.resource.health.persist",
+        "component": "argocd-cmd-params-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "unset"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Health status is no longer stored in the Application CR's .status.resources[].health by default; tools or CLI commands parsing that field must use the argocd CLI/API instead.",
+        "remediation": "Set controller.resource.health.persist to true in argocd-cmd-params-cm, or update tools to use the argocd CLI/API to get health status.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0 no longer persists per-resource health under .status.resources[].health in the Application CR by default; set controller.resource.health.persist to true in argocd-cmd-params-cm to revert."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5616a3c7f69a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:92ccf8d0e1118ce79c63164e0744575e8818133fd3aa000eb10ae4c86f594783",
+      "inputEvidence": [
+        "ev-5616a3c7f69a"
+      ],
+      "generatedAt": "2026-10-02T06:06:21Z",
+      "callId": "291a298e-918f-4b17-bcca-2cf488363487"
+    }
+  }
+}

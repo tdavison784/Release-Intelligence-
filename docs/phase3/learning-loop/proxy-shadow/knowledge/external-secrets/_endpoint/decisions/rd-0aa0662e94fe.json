@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0aa0662e94fe",
+    "reviewItemId": "ri-b4cf70230b1d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret",
+        "path": "spec.externalSecretSpec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\"",
+        "after": "null"
+      },
+      "statement": "The v1beta1 ClusterExternalSecret schema no longer allows \"v1\" for spec.externalSecretSpec.target.template.engineVersion, so resources setting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6ac2a7a32a00e21934e20a167bf4cdf3986b9b850848ece5ceeb48d2a455da07",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T16:59:12.301Z",
+      "callId": "e973486f-ff75-4d00-acf9-b4d3493f79c1",
+      "provider": "anthropic"
+    },
+    "reason": "The computed CRD diff between the v0.15.0 bundle [ev-9889c9b8706d] and the v0.16.0 bundle [ev-e08924afdc47] shows that, in the external-secrets.io/v1beta1 ClusterExternalSecret schema, the enum for spec.externalSecretSpec.target.template.engineVersion lost \"v1\" and gained nothing. That is a validation-tightened change with before \"v1\" on that exact crd-field. Deterministic validators confirmed both the field identity and the tightened enum from these artifacts.",
+    "startedAt": "2026-10-03T16:59:06.747Z",
+    "decidedAt": "2026-10-03T16:59:12.301Z"
+  }
+}

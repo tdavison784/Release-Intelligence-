@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cfa7ca1f6840",
+    "candidateId": "sc-f117b7291fa1",
+    "proposalId": "sp-70582531cb09",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "structured-logs"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Log messages that were not structured\"",
+        "after": "\"structured logs\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external log processing, alerting or tooling matches on specific cert-manager log strings"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log messages that were not structured are now emitted as structured logs; if you were matching on specific log strings, this could break your setup.",
+        "remediation": "Check any log-based alerts, parsers or searches that match specific cert-manager log strings, and update them for the structured log output.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, log messages that were not structured have been replaced with structured logs, so any setup that matches on specific log strings could break."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

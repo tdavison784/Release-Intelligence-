@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-854cefb4f9be",
+    "candidateId": "sc-80222d5899d0",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ist0145-wildcard-host-subdomain",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which analyzed resources (resource kind and host fields) combine a wildcard host with a specific subdomain and previously triggered IST0145; the evidence does not name the resource kind or fields involved"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "istioctl analyze output changes for configurations combining a wildcard host with a specific subdomain: the IST0145 error previously reported there is no longer emitted.",
+        "remediation": "No operator action required; rerun istioctl analyze — the previously reported IST0145 for a wildcard host combined with a specific subdomain no longer appears.",
+        "severity": "low"
+      },
+      "statement": "istioctl analyze no longer reports the IST0145 error when a wildcard host is used together with a specific subdomain, fixing a false-positive analyzer report."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a660cba27ffe"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5c4ee519cba82927f410c7564f9079bc923db8399480298419ccebbd02718c8b",
+      "inputEvidence": [
+        "ev-a660cba27ffe"
+      ],
+      "generatedAt": "2026-10-03T07:41:27Z",
+      "callId": "e1dabf02-ea0d-48fe-bbd9-2977e60e5a4e"
+    }
+  }
+}

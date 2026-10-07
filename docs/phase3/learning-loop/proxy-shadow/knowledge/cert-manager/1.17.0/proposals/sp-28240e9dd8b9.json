@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-28240e9dd8b9",
+    "candidateId": "sc-8fd875d322fd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "ClusterIssuer"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "A v1.16.0 regression made the ACME ClusterIssuer look in the wrong namespace for issuance resources such as credential Secrets; this is fixed in v1.16.1+ and v1.17.0+."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Evidence is a bugfix for a v1.16.0 regression; it does not state what happens to an environment upgrading to 1.17.0.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-aa02449851f9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f00b801c5549a0071a82daca141cd739e9b25ffc8f7eb8f7b99caa0a51f40f21",
+      "inputEvidence": [
+        "ev-aa02449851f9"
+      ],
+      "generatedAt": "2026-10-02T06:02:26Z",
+      "callId": "f14c083b-ed2f-4493-b34f-eeec79222523"
+    }
+  }
+}

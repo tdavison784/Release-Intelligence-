@@ -1,0 +1,127 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: karpenter
+name: karpenter-provider-aws
+homepage: https://github.com/aws/karpenter-provider-aws
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:rc\.\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/aws/karpenter-provider-aws
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:rc\.\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: aws/karpenter-provider-aws
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: aws/karpenter-provider-aws
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 1.12.0
+      - 1.12.2
+      - 1.13.0
+      - 1.13.1
+      - 1.14.0
+      - 1.14.1
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: aws/karpenter-provider-aws
+artifacts:
+  - id: karpenter-crd-chart
+    type: helm-chart
+    name: karpenter-crd
+    version:
+      strategy: lookup
+      field: appVersion
+      match: '{{.Version}}'
+      select: latest
+    channels:
+      - kind: oci
+        repository: public.ecr.aws/karpenter/karpenter-crd
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/aws/karpenter-provider-aws
+          path: charts/karpenter-crd/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/aws/karpenter-provider-aws
+          path: charts/karpenter-crd/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 1.12.0 unverifiable (no version index answered: oci index public.ecr.aws/karpenter/karpenter-crd does not expose appVersion); 1.12.2 unverifiable (no version index answered: oci index public.ecr.aws/karpenter/karpenter-crd does not expose appVersion); 1.13.0 unverifiable (no version index answered: oci index public.ecr.aws/karpenter/karpenter-crd does not expose appVersion); 1.13.1 unverifiable (no version index answered: oci index public.ecr.aws/karpenter/karpenter-crd does not expose appVersion); …).'
+  - id: karpenter-chart
+    type: helm-chart
+    name: karpenter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: public.ecr.aws/karpenter/karpenter
+      - kind: oci
+        repository: public.ecr.aws/karpenter
+      - kind: helm-repo
+        url: https://charts.karpenter.sh
+        chart: karpenter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/aws/karpenter-provider-aws
+          path: charts/karpenter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/aws/karpenter-provider-aws
+          path: charts/karpenter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 1.12.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.12.2 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.13.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.13.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/aws/karpenter-provider-aws
+        path: pkg/apis/crds
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 1.12.0
+      - 1.12.2
+      - 1.13.0
+      - 1.13.1
+      - 1.14.0
+      - 1.14.1
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v1.12.0
+    - v1.12.2
+    - v1.13.0
+    - v1.13.1
+    - v1.14.0
+    - v1.14.1
+  notes: Proposed by automated discovery; relationship checks run against v1.12.0, v1.12.2, v1.13.0, v1.13.1, v1.14.0, v1.14.1.

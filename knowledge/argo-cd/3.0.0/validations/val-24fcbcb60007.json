@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-24fcbcb60007",
+    "candidateId": "sc-4af74fb7c5f7",
+    "proposalId": "sp-5909254bc062",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "server-side-diff-dry-run"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which environments/apps use server-side diff dry run and how it is enabled — the evidence names no setting, flag, feature gate or field controlling it"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Server-side diff dry run still works but is now executed by a new kube applier (a bug fix with refactoring), so dry-run diff results may differ from the previous implementation.",
+        "remediation": "After upgrading to 3.0.0, review application diff results that rely on server-side diff dry run for unexpected differences.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 (bug fix 5b79c34) introduces a new kube applier for server-side diff dry run, together with refactoring, changing how server-side diff dry runs are performed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

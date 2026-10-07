@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3b1717748b78",
+    "reviewItemId": "ri-da15dcfdc4a8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which live service connections use Direct-Server-Return and were established while the cluster ran a Cilium version prior to v1.13.3"
+        }
+      },
+      "statement": "Service connections that use Direct-Server-Return and were established prior to Cilium v1.13.3 will be disrupted by the upgrade to Cilium 1.16.0 and need to be re-established."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e7837e60845549329a8678960e973f38cc5a4d5201a8b1540d6d59ae2527148a",
+      "inputEvidence": [
+        "ev-89034c5d2c74",
+        "ev-e24450bf8fed",
+        "ev-736cdc5fc0d2",
+        "ev-5ba316aaead4",
+        "ev-25984c3785d4",
+        "ev-dc0997efed20",
+        "ev-b5190a359c10",
+        "ev-2c2bce4c1f26",
+        "ev-fbe2aedc4ddc",
+        "ev-540db624a6ea",
+        "ev-7994b2163342",
+        "ev-4dff543b3882",
+        "ev-6e35b4906b1d",
+        "ev-abfbf30753a5",
+        "ev-2bdafc717eab",
+        "ev-793f1f2f3e70",
+        "ev-12660f87be40",
+        "ev-b62da9c1ceb5",
+        "ev-ee4d25413bf4",
+        "ev-8aa9ac2ddd3a",
+        "ev-a6c56e62cf47",
+        "ev-e6932b8a5ba9",
+        "ev-e477115a445b",
+        "ev-f64f7c540c6d",
+        "ev-0b06499d6851",
+        "ev-b8b62ef806f0",
+        "ev-91fac6720d6f",
+        "ev-07d6be356398"
+      ],
+      "generatedAt": "2026-10-03T17:03:36.332Z",
+      "callId": "b2768717-4d7d-4792-b8a9-8a9f30003cf0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-89034c5d2c74] defines exposure solely by connection state: service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 are disrupted. The text names no configuration setting enabling DSR, and the condition concerns which live connections were opened under an older version, which is runtime state rather than current configuration. An edge-from-version leaf would be narrower than the stated condition, because connections opened before v1.13.3 can outlive later upgrades. So the undecidable runtime-behavior-gap exposure matches the evidence.",
+    "startedAt": "2026-10-03T17:03:25.095Z",
+    "decidedAt": "2026-10-03T17:03:36.332Z",
+    "resultingFact": "vf-b916860d23c5"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-62fc5bc29dd0",
+    "candidateId": "sc-cd58ebd83118",
+    "proposalId": "sp-68d1fae94060",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key-support"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment uses IPsec with single key configuration (+ sign in secrets)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "IPsec configurations using single key mode will automatically transition to per-tunnel keys; tunnel behavior may change depending on the per-tunnel key configuration.",
+        "severity": "medium"
+      },
+      "statement": "IPsec single key support (indicated by the + sign in secrets) has been removed; per-tunnel keys are now always used regardless of the + sign's presence."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

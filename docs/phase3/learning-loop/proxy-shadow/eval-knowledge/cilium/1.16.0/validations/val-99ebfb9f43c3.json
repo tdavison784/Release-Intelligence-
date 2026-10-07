@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-99ebfb9f43c3",
+    "candidateId": "sc-08185c9e1f20",
+    "proposalId": "sp-56e298d0a5be",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "clusterName"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "clusterName",
+                  "state": "set"
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "upgradeCompatibility",
+                      "state": "equals",
+                      "values": [
+                        "\"v1.15\""
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "upgradeCompatibility",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clusterName",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "upgradeCompatibility",
+              "state": "equals",
+              "values": [
+                "\"v1.15\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Cluster names that do not consist of at most 32 lower case alphanumeric characters and '-', or do not start and end with an alphanumeric character, will be rejected during installation/upgrade unless upgradeCompatibility is set to v1.15 or earlier; strict validation will be enforced in Cilium v1.17.",
+        "remediation": "Ensure the cluster name conforms to the validation rules (max 32 chars, lowercase alphanumeric and '-' only, start/end with alphanumeric), or temporarily set upgradeCompatibility to v1.15 or earlier as a workaround.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.16.0 introduces validation of the cluster name to require at most 32 lower case alphanumeric characters and hyphens, starting and ending with alphanumeric characters; this can be temporarily bypassed with upgradeCompatibility set to v1.15 or earlier, but will be strictly enforced in v1.17."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/validation-tightened",
+        "detail": "no canonical exposure condition for config-key validation-tightened"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

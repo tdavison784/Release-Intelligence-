@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e8221c98dc16",
+    "candidateId": "sc-a847d032ada6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "base.enableCRDTemplates"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CRD templating is now enabled by default in the base chart; previously it defaulted to disabled and required manual kubectl intervention to upgrade under certain install flag conditions.",
+        "remediation": "If the legacy behavior is required, explicitly set Values.base.enableCRDTemplates to false; prepare for this option's removal in a future release.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `base.enableCRDTemplates` now defaults to `true` instead of `false`, enabling templated CRD installation by default in the base chart and fixing a previous issue where certain install flags could require manual kubectl intervention."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fa194382072a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e84f8e2b097959384f8afd79d6ed82fa2af622e32d5a0c1be9cd4f922245182e",
+      "inputEvidence": [
+        "ev-fa194382072a"
+      ],
+      "generatedAt": "2026-10-02T05:59:17Z",
+      "callId": "11a595cd-092a-4f24-8780-4cd8fd7ac2a9"
+    }
+  }
+}

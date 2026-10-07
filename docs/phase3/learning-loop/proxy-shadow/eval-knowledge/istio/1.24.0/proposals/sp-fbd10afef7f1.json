@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fbd10afef7f1",
+    "candidateId": "sc-67a485dccf6c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "logAsJson",
+        "name": "ztunnel"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logAsJson",
+              "state": "unset"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "Deployment"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new logAsJson helm value is optional and does not impact existing deployments that do not explicitly set it."
+      },
+      "statement": "The logAsJson helm value was added to the ztunnel helm chart."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d0208f15e021"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:905004398dbf03e620a903b3d5cc79d77c34a096191cc0acf948e6394496efc3",
+      "inputEvidence": [
+        "ev-d0208f15e021"
+      ],
+      "generatedAt": "2026-10-02T05:54:26Z",
+      "callId": "d0fad547-2317-4964-8973-71e44c12ef61"
+    }
+  }
+}

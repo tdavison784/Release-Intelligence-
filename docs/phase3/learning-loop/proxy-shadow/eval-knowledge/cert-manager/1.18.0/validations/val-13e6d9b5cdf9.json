@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-13e6d9b5cdf9",
+    "candidateId": "sc-e6aeab8aaf40",
+    "proposalId": "sp-37feaf99d4fe",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--extra-certificate-annotations",
+        "component": "ingress-shim"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--extra-certificate-annotations",
+          "component": "ingress-shim",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When ingress-shim runs with --extra-certificate-annotations set, the listed annotation keys are copied from Ingress-like resources onto the resulting Certificate objects; environments that do not set the flag are unaffected.",
+        "severity": "low"
+      },
+      "statement": "Release 1.18.0 adds the ingress-shim option --extra-certificate-annotations, which sets a list of annotation keys to be copied from Ingress-like resources to the resulting Certificate object."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

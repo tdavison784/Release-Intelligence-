@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7f0cfd962847",
+    "candidateId": "sc-8b9acf590523",
+    "proposalId": "sp-05a66aca85cd",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "installCRDs",
+          "state": "not-equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "statement": "If CRDs are installed separately, apply the v0.16.1 CRD bundle first, verify no error, then migrate external-secrets to v0.16.1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

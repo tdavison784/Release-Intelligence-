@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ce54c3f6e0e4",
+    "candidateId": "sc-5cacf5c21582",
+    "proposalId": "sp-9eb54e8e5d6e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "app-refresh-comparewith"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which application refresh requests with delay are issued at runtime (live traffic such as UI or API refresh calls)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Application refresh requests made with a delay now set compareWith correctly; environments that hit the previous buggy behavior (issue #18998) will see the corrected refresh behavior.",
+        "remediation": "No operator action required; after upgrading, verify that delayed application refreshes now set compareWith as expected.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes a bug so that compareWith is now set correctly when an application refresh is requested with delay (issue #18998)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

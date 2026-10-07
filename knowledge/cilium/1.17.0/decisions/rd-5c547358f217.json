@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5c547358f217",
+    "reviewItemId": "ri-b9b5c28b52a9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or other Prometheus consumers query the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_update_success"
+        }
+      },
+      "statement": "Cilium 1.17.0 renames the metric envoy_cilium_policymap_<node-ip>_<node-id>_update_success to envoy_cilium_npds_update_success."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b21f9d8864e6e8a1597e558ea019d14ebaf28d4c7a8b57a89716cd8b1441d1e1",
+      "inputEvidence": [
+        "ev-0739bc6582ad",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:32:57.309Z",
+      "callId": "a20165a2-73a1-4d29-82fd-eb7cd3bba188",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0739bc6582ad] and the section lead [ev-77f05428497a] only say that the metric prefix changed from envoy_cilium_policymap_<node-ip>_<node-id>_ to envoy_cilium_npds_. Nothing breaks inside Cilium. Only consumers that still query the old name are affected, such as dashboards, alerts and recording rules. Cilium's configuration (values, flags, CRDs) doesn't record those consumers, and the evidence names no setting that controls exposure. So an undecidable leaf asking whether anything queries the old name is the right exposure condition.",
+    "startedAt": "2026-10-03T12:32:47.146Z",
+    "decidedAt": "2026-10-03T12:32:57.309Z"
+  }
+}

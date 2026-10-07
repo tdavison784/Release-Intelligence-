@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5ee377472d2e",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-bf1aee9aacc8"
+        ],
+        "statementKeys": [
+          "sk-00732a031343"
+        ],
+        "changeIds": [
+          "chg-353ab9f172e5"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f2b93d9f65be"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--k8s-mode",
+        "component": "bugtool"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether bugtool is invoked with --k8s-mode, --cilium-agent-container-name, --k8s-namespace or --k8s-label in scripts or tooling"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The flags still work in 1.17 but will be removed in Cilium 1.18, so usage must move to the Cilium CLI for sysdump collection.",
+        "remediation": "Use the Cilium CLI to gather a sysdump from a K8s cluster.",
+        "severity": "low"
+      },
+      "statement": "The flag `k8s-mode` (and related flags `cilium-agent-container-name`, `k8s-namespace` & `k8s-label`) have been deprecated and will be removed in a Cilium 1.18"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7fea95ff1d44"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7fea95ff1d44"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e141c23a9a09"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-8bd2c0e2e9d3"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a7d9e5f931b3",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L415-L416 (1.17 Upgrade Notes › Bugtool Options)",
+        "excerpt": "* The flag `k8s-mode` (and related flags `cilium-agent-container-name`, `k8s-namespace` & `k8s-label`)\n  have been deprecated and will be removed in a Cilium 1.18. Cilium CLI should be used to gather a sysdump from a K8s cluster.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:03:28.723Z"
+  }
+}

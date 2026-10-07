@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0674f5b84faa",
+    "candidateId": "sc-377c29502c2a",
+    "proposalId": "sp-05f2af9882fb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "defaultRuleSyntax"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"v3\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "core.defaultRuleSyntax",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Router rules without an explicit syntax are now interpreted with the v3 matcher syntax by default (e.g. Headers/HeadersRegexp renamed to Header/HeaderRegexp, PathPrefix no longer regex-based), so existing v2-style rules may match differently; v2 syntax is deprecated.",
+        "remediation": "Migrate rules to the v3 syntax, or set defaultRuleSyntax to v2 for backward compatibility.",
+        "severity": "medium"
+      },
+      "statement": "The default router rule matcher syntax (static option `defaultRuleSyntax`) is now `v3` instead of the v2 syntax, and the v2 syntax is deprecated, with support to be removed in the next major version."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

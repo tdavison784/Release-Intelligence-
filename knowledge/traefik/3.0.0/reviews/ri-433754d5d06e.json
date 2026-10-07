@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-433754d5d06e",
+    "candidateId": "sc-ea68fa62a919",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Rancher v1 Provider: In v3, the Rancher v1 provider has been removed because Rancher v1 is no longer actively maintained, and Rancher v2 is supported as a…\", what happens, and is that review or action? proposed: upgrade-blocked",
+    "proposed": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if Rancher v1 provider configuration (providers.rancher) is present in the static configuration.",
+        "remediation": "Remove all Rancher v1 provider configuration from static configuration and migrate to the Kubernetes CRD provider for Rancher 2.x deployments.",
+        "severity": "critical"
+      },
+      "statement": "The Rancher v1 provider has been removed in Traefik v3; configurations using it will prevent Traefik from starting."
+    },
+    "proposals": [
+      "sp-707c8fc04fee",
+      "sp-8d2bfaaecb9c"
+    ],
+    "validations": [
+      "val-11d4c7790045",
+      "val-962b568f9d77",
+      "val-b98e435f4476",
+      "val-e28b878adebd"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:59:29Z"
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3cc61e79e2f4",
+  "promptDigest": "sha256:bdb244d4a83d5412c644a96f22a6b327f7b2108de5921717993582e94bb20d45",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "30b05d32-afaa-4b34-80c3-aad2c67dda36",
+  "startedAt": "2026-10-02T23:10:58.957Z",
+  "decidedAt": "2026-10-02T23:11:25.041Z",
+  "durationMs": 25292,
+  "costUSD": 0.2903846,
+  "output": {
+    "action": "correct",
+    "reason": "The proposed exposure (any Kubernetes >=1.0.0) matches every environment, which is too broad. [ev-2835c7c71165] says the change adds reporting for mutate (including mutateExisting) and generate rules. Environments with no such rules see no new report entries. [ev-b2a444d8e5e6], [ev-bc837634eaa2], [ev-ff42ab09a455] and [ev-206280e3108c] show that the chart default turns on `--enableReporting` for those rule types, so exposure is: the environment has a Policy or ClusterPolicy with mutate or generate rules, and those rule types are still enabled in the flag.",
+    "citations": [
+      "ev-2835c7c71165",
+      "ev-b2a444d8e5e6",
+      "ev-bc837634eaa2",
+      "ev-ff42ab09a455",
+      "ev-206280e3108c",
+      "ev-d18fb0498594"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13 adds the --enableReporting container flag; its chart default (validate,mutate,mutateExisting,imageVerify,generate) makes Kyverno also report on mutate, mutateExisting and generate rules. This affects environments that have Policy or ClusterPolicy objects with mutate or generate rules, as long as those rule types are still enabled in --enableReporting.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "kyverno.io",
+                  "kind": "Policy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "kyverno.io",
+                  "kind": "Policy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enableReporting",
+              "state": "has-token",
+              "values": [
+                "mutate",
+                "mutateExisting",
+                "generate"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

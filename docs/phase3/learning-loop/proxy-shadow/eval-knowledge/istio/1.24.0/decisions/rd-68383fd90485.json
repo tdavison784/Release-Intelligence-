@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-68383fd90485",
+    "reviewItemId": "ri-163e3170d27c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "The istiod-remote Helm chart is replaced by the istiod chart installed with --set profile=remote; remote-control-plane clusters must install this way."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:f737d4dd9737e19c21805f431a0051e9eb6c00e87fab504ec09f65a8593a968d",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-fa194382072a",
+        "ev-85eccdc718e3",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T12:45:12.53Z",
+      "callId": "5d0de107-f1f4-4365-9756-999be8876380",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5a31c0781dc5] and the upgrade guide [ev-1295567312b0] say the `istiod-remote` Helm chart has been merged into the `istio-discovery` chart. Installs that used `helm install istiod-remote istio/istiod-remote` must now use `helm install istiod istio/istiod --set profile=remote`. [ev-274ce3859ab9] confirms the `istiod-remote` chart is removed. That makes this an operator step, so the migration family with migration-required is the right choice. The kebab-case name 'istiod-remote-to-remote-profile' is short, clear and built from the evidence's own key words.",
+    "startedAt": "2026-10-03T12:45:05.642Z",
+    "decidedAt": "2026-10-03T12:45:12.53Z"
+  }
+}

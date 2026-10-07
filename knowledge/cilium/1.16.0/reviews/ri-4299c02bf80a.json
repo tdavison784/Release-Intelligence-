@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-4299c02bf80a",
+    "candidateId": "sc-2a33dcd96146",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The implementation of `toFQDNs` selectors in policies has been overhauled to improve performance when many different IPs are observed for a selector: Instead…\", what happens, and is that review or action? proposed: workload-failure",
+    "proposed": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Temporary packet drops may occur for connections allowed by toFQDNs policies during the initial endpoint regeneration on Cilium v1.16 when upgrading from a version older than v1.15.6.",
+        "remediation": "Upgrade to Cilium v1.15.6 or newer before upgrading to v1.16.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Cilium 1.16 from a version older than 1.15.6 with toFQDNs policies may cause temporary packet drops during initial endpoint regeneration; run v1.15.6 or newer first."
+    },
+    "proposals": [
+      "sp-47d5a927246c",
+      "sp-f13b8a4410cb"
+    ],
+    "validations": [
+      "val-625000fde4b9",
+      "val-9878ef131259",
+      "val-d09f76bd9871",
+      "val-fc3a6ca663fa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:03:53Z"
+  }
+}

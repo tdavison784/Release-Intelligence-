@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-65d9b1bd1f0a",
+    "candidateId": "sc-95b8b6a5377b",
+    "proposalId": "sp-1372976382ca",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingresses that cert-manager creates now use pathType `Exact` instead of `ImplementationSpecific`, so the way ingress controllers match their paths may change; the release notes do not say that anything fails.",
+        "remediation": "Check that your ingress controller routes `Exact` paths on the Ingresses cert-manager creates as expected.",
+        "severity": "low"
+      },
+      "statement": "In 1.18.0, cert-manager sets the `pathType` of the Kubernetes Ingress it uses to `Exact` instead of `ImplementationSpecific`, so ingress controllers handle it reliably and security is improved."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

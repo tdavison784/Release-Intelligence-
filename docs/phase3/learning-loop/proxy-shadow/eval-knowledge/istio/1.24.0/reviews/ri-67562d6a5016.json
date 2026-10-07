@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-67562d6a5016",
+    "candidateId": "sc-b210c27f94c7",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Improved Istiod's validation webhook to accept versions it does not know about\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "VirtualService"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether resources with API versions unknown to the running Istiod version are deployed in the environment"
+            }
+          ]
+        }
+      },
+      "statement": "Istiod's validation webhook is improved to accept API versions it does not recognize, ensuring an older Istio can validate resources created by newer CRDs."
+    },
+    "proposals": [
+      "sp-2c6c2616a2c6",
+      "sp-c525b54fce81"
+    ],
+    "validations": [
+      "val-7b545103d294",
+      "val-876a2c56501e",
+      "val-f3f125c75453"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:01:13Z"
+  }
+}

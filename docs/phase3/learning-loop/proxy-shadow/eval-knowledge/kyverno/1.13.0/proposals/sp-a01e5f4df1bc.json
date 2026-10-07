@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a01e5f4df1bc",
+    "candidateId": "sc-370b61e2abdd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2alpha1",
+        "kind": "GlobalContextEntry",
+        "path": "spec.apiCall.retryLimit"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2alpha1",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry resources that use apiCall will now automatically retry failed API calls up to 3 times by default; existing resources without explicit retryLimit will gain this behavior.",
+        "severity": "low"
+      },
+      "statement": "Kyverno's GlobalContextEntry API adds an optional `retryLimit` field to the `spec.apiCall` object, which defaults to 3 and specifies the number of times Kyverno will retry failed API calls."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-a6027c299092",
+      "ev-eb301d25a0b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:4b992cbedbf6acfd5a85a821adb86a94be5a4ac415a80853ef8e0a69dc1a4edc",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7"
+      ],
+      "generatedAt": "2026-10-02T21:02:40Z",
+      "callId": "9e8aa570-915c-4c45-87ae-98db19155810"
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a542d2bd523b",
+    "candidateId": "sc-d36d7e8ce169",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"IPWhiteList: In v3, we renamed the `IPWhiteList` middleware to `IPAllowList` without changing anything to the configuration\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        }
+      },
+      "statement": "The IPWhiteList middleware field is renamed to IPAllowList in Traefik v3.0.0 without configuration changes; existing resources using spec.ipWhiteList must be updated to spec.ipAllowList."
+    },
+    "proposals": [
+      "sp-47851f2870e7",
+      "sp-c2073fc5e8e9"
+    ],
+    "validations": [
+      "val-1fed26691185",
+      "val-3ebeae4ddc81",
+      "val-452ca80c0540",
+      "val-72904a263285",
+      "val-a1a5071fe19e",
+      "val-a408c2295f7a",
+      "val-de9eb817f2c4",
+      "val-e0aefc74420a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed",
+        "validation-refuted"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:53:20Z"
+  }
+}

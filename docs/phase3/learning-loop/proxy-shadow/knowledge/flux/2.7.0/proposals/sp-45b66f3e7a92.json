@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-45b66f3e7a92",
+    "candidateId": "sc-55aa41cb3e29",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider",
+        "component": "flux push artifact"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether CI pipelines run `flux push artifact --provider azure` on Azure DevOps runners (this is a CLI call, not a controller container arg)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a bug fix: on Azure DevOps runners, `flux push artifact --provider azure` can now use Azure CLI calls. Operators don't need to do anything.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, `flux push artifact --provider azure` can call the Azure CLI when it runs on Azure DevOps runners."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-b4b297bb4480"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1ef19a7050e667a7f5bc9e503aea5b313601549ea35744ed7e24ad77b77556b8",
+      "inputEvidence": [
+        "ev-b4b297bb4480"
+      ],
+      "generatedAt": "2026-10-03T07:07:30Z",
+      "callId": "53018e2d-ef87-4d46-a239-c2a9b2bfd9a2"
+    }
+  }
+}

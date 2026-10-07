@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5a82176bea98",
+    "candidateId": "sc-d9778d71f629",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "venafi-vcert"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.algorithm",
+                  "state": "equals",
+                  "values": [
+                    "\"RSA\""
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072"
+                  ]
+                },
+                {
+                  "op": "ref",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.venafi.tpp",
+                      "state": "set"
+                    }
+                  ],
+                  "path": "spec.issuerRef"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Venafi TPP certificate enrollment requesting an RSA 3072 bit key size, which previously did not work, now succeeds once cert-manager 1.17.0 is running; no operator action is needed to benefit from the fix.",
+        "remediation": "No operator action is required; TPP enrollments requesting RSA 3072 bit keys should now succeed after upgrading to cert-manager 1.17.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 upgrades the Venafi vCert library, fixing a bug that caused the RSA 3072 bit key size to not work for Venafi TPP certificate enrollment."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-12d2733c5dd3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f8d5fde1144d2cdc3b8c11fd753ca2387ddeaf13dc4d669e18af0d90a21331ff",
+      "inputEvidence": [
+        "ev-12d2733c5dd3"
+      ],
+      "generatedAt": "2026-10-02T11:33:25Z",
+      "callId": "03a09691-1158-4f9e-8347-c3d41d6b1b6c"
+    }
+  }
+}

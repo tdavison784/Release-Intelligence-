@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f8a4f96add57",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager signs with RSA keys of 3072 or 4096 bits (e.g. CA or self-signed issuer keys held in Secrets)"
+        }
+      },
+      "statement": "In v1.17.0, cert-manager stops always using SHA-256 when signing with RSA and picks the hash from the RSA key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys."
+    },
+    "proposals": [
+      "sp-46a95c489845",
+      "sp-7b7c665df04f",
+      "sp-814087949f6a",
+      "sp-eb57cf8dc61d"
+    ],
+    "validations": [
+      "val-23f9df8d87a8",
+      "val-448cc071e835",
+      "val-4e707eb13eed",
+      "val-620143d2ffdb",
+      "val-94d15010c5d5",
+      "val-aff595b72c03",
+      "val-be6fd451dfb7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:28:52Z"
+  }
+}

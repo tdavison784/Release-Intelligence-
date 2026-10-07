@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d54dc6c3649b",
+    "reviewItemId": "ri-23f7af1cc446",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Write dedupe cache is deprecated and will be removed in Loki 4.0; environments using legacy index types must migrate to TSDB before upgrading to Loki 4.0.",
+        "severity": "high"
+      },
+      "statement": "Write dedupe cache is deprecated in Loki 3.0.0 because it is not required by newer single store indexes (TSDB and boltdb-shipper); users with legacy index types must migrate to TSDB to use Loki 4.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Write dedupe cache still works in Loki 3.0.0 but is deprecated because the single store indexes (TSDB and boltdb-shipper) do not require it. Environments using a legacy index type must migrate to TSDB to use Loki 4.0.",
+        "remediation": "Plan to stop relying on the write dedupe cache. If you use a legacy index type, migrate to TSDB before upgrading to Loki 4.0.",
+        "severity": "medium"
+      },
+      "statement": "Write dedupe cache is deprecated in Loki 3.0.0 because TSDB and boltdb-shipper do not need it. It still works, but environments on a legacy index type must migrate to TSDB to use Loki 4.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:5ce934402b39c2f6c3ac389cb4c04953344166fb27816c666555e0f27c185381",
+      "inputEvidence": [
+        "ev-af4f90a534ca"
+      ],
+      "generatedAt": "2026-10-02T23:08:18.947Z",
+      "callId": "799b9a99-57f5-4fb6-ad70-920a934dbe0f"
+    },
+    "reason": "[ev-af4f90a534ca] says only that the write dedupe cache is deprecated in 3.0.0 because TSDB and boltdb-shipper do not need it, so it still works and \"deprecation\" (review) is the right kind. The proposed statement also says the cache \"will be removed in Loki 4.0\", which the evidence never says. The only Loki 4.0 requirement it gives is that environments on a legacy index type must migrate to TSDB. Severity \"high\" is too strong for something that keeps working in 3.0.0, so I corrected the statement and lowered severity to medium.",
+    "startedAt": "2026-10-02T23:08:08.437Z",
+    "decidedAt": "2026-10-02T23:08:18.947Z"
+  }
+}

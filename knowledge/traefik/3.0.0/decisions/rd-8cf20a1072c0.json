@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8cf20a1072c0",
+    "reviewItemId": "ri-82ab0d980714",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.kubernetesGateway.experimentalChannel"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "statement": "In v3 the Kubernetes Gateway API provider no longer enables experimental channel resources (TLSRoute, TCPRoute) by default; set providers.kubernetesGateway.experimentalChannel to true to enable them."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.kubernetesGateway.experimentalChannel"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In v3 the Kubernetes Gateway API provider no longer enables experimental channel resources (TLSRoute, TCPRoute) by default; set providers.kubernetesGateway.experimentalChannel to true to enable them."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d5c51495a186eb0656c768f82757a15de217cc76f1c4aade4a30b457ff888bc8",
+      "inputEvidence": [
+        "ev-5b58f5805519"
+      ],
+      "generatedAt": "2026-10-02T23:20:51.542Z",
+      "callId": "1a2ab16b-5555-4d03-817e-7594e6f73e34"
+    },
+    "reason": "[ev-5b58f5805519] says that in v3 the Kubernetes Gateway API provider does not enable experimental channel resources (TLSRoute, TCPRoute) by default, and that the `experimentalChannel` option enables them. It never states a v2 default of true for providers.kubernetesGateway.experimentalChannel, so default-changed with before \"true\" is not supported. The evidence supports a behavior-changed on this config key with no before/after values: if the option is left unset, experimental channel resources are no longer supported.",
+    "startedAt": "2026-10-02T23:20:40.292Z",
+    "decidedAt": "2026-10-02T23:20:51.542Z",
+    "resultingFact": "vf-39ecb9219816"
+  }
+}

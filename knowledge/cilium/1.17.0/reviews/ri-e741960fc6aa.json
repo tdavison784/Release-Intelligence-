@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e741960fc6aa",
+    "candidateId": "sc-cc1a2a90f761",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced` -> `envoy_cilium_npds_control_plane_rate_limit_enforced`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is no longer exposed under the name envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced and is instead exposed as envoy_cilium_npds_control_plane_rate_limit_enforced, so metric consumers still querying the old name no longer receive it.",
+        "remediation": "Update dashboards, alerts and queries that reference the old metric name to use envoy_cilium_npds_control_plane_rate_limit_enforced.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17 renames the metric `envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced` to `envoy_cilium_npds_control_plane_rate_limit_enforced`."
+    },
+    "proposals": [
+      "sp-235984d97093",
+      "sp-8361264eb006",
+      "sp-864b393cec3e"
+    ],
+    "validations": [
+      "val-11ed7792036e",
+      "val-599002a33f6e",
+      "val-e8e0731c8f11"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T11:55:32Z"
+  }
+}

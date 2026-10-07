@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-69cc3343a582",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "internal-resources-observability"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"enabled\"",
+        "after": "\"disabled by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs, metrics and traces for internal routers/services (e.g. ping@internal) are no longer produced unless addInternals is set.",
+        "remediation": "Set the addInternals option for AccessLogs, Metrics or Tracing if internal resource observability is needed.",
+        "severity": "low"
+      },
+      "statement": "In v3, observability (access logs, metrics, tracing) for internal routers/services such as ping@internal is disabled by default and must be enabled with the new addInternals option."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-093b8f2b924f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f3f44eeca137515907f53b2383927018cbfa3af20a5aca2e5e92388b0db9c584",
+      "inputEvidence": [
+        "ev-093b8f2b924f"
+      ],
+      "generatedAt": "2026-10-02T20:59:32Z",
+      "callId": "811a222e-bf6d-4ec9-8d4c-d2f042b911e7"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d8417216f5e9",
+    "candidateId": "sc-370b61e2abdd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2alpha1",
+        "kind": "GlobalContextEntry",
+        "path": "spec.apiCall.retryLimit"
+      },
+      "change": {
+        "type": "added",
+        "after": "3"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry apiCall now retries failed calls up to the default of 3 times unless retryLimit is set; existing entries keep working.",
+        "severity": "low"
+      },
+      "statement": "GlobalContextEntry (kyverno.io/v2alpha1) gains an optional spec.apiCall.retryLimit field, default 3, controlling API call retries on failure."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-a6027c299092",
+      "ev-eb301d25a0b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:3b5930e37acb3077c6f66e07b618478a8021d7aafee7451dc17fd168ed4e2e2e",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7"
+      ],
+      "generatedAt": "2026-10-02T21:00:38Z",
+      "callId": "976673b8-4835-4a48-8c49-c5e66168f5fb"
+    }
+  }
+}

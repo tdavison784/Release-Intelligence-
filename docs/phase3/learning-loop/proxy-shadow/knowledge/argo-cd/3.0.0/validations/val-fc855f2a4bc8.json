@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fc855f2a4bc8",
+    "candidateId": "sc-5f87aa9a3fb5",
+    "proposalId": "sp-2871aa90d304",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "portforward-pod-exec-protocol"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SPDY\"",
+        "after": "\"WebSocket\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--port-forward",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--exec",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Argo CD 3.0.0 replaces SPDY with WebSocket as the protocol for portforward and pod exec operations."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

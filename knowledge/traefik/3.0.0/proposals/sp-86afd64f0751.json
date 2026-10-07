@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-86afd64f0751",
+    "candidateId": "sc-4b9080e9db9b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.tls.caOptional",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The Docker provider `tls.caOptional` static option no longer exists in v3, so a configured value is not honoured; the guide says to remove it from the Docker provider static configuration.",
+        "remediation": "Remove `tls.caOptional` (e.g. --providers.docker.tls.caOptional, providers.docker.tls.caOptional in traefik.yml/toml) from the Docker provider static configuration; configure TLS client authentication on the server side instead.",
+        "severity": "low"
+      },
+      "statement": "In Traefik v3 the Docker provider's static-configuration option `tls.caOptional` (providers.docker.tls.caOptional) has been removed, because TLS client authentication is a server-side option; remove it from the Docker provider static configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dac3a3c51ce8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7b965bf71de021ca3d6f06a9af964fde0309d4a3efd5f40ffbe3a0218e44f344",
+      "inputEvidence": [
+        "ev-dac3a3c51ce8"
+      ],
+      "generatedAt": "2026-10-03T07:15:01Z",
+      "callId": "4fb96f8d-7094-4ba3-a76b-7bf01c4a3c5d"
+    }
+  }
+}

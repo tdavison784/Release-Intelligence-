@@ -18,7 +18,7 @@ func (i *Ingester) checkRelationships(ctx context.Context, def *catalog.ProductD
 	if def == nil {
 		return nil, nil, errors.New("ingest: nil product definition")
 	}
-	rep := &RelationshipReport{Product: domain.ProductID(def.ID)}
+	rep := &RelationshipReport{Product: domain.ProductID(def.ID), DefinitionDigest: DefinitionDigest(def)}
 	var rels []*domain.Release
 	byID := map[domain.EvidenceID]domain.Evidence{}
 	var evs domain.EvidenceSet

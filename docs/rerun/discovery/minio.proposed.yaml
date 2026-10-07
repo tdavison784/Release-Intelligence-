@@ -1,0 +1,66 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: minio
+name: minio
+homepage: https://github.com/minio/minio
+versioning:
+  scheme: semver
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/minio/minio
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: minio/minio
+    notes: 'Security policy: SECURITY.md'
+artifacts:
+  - id: minio-chart
+    type: helm-chart
+    name: minio
+    version:
+      strategy: independent
+    channels:
+      - kind: helm-repo
+        url: https://charts.min.io
+        chart: minio
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/minio/minio
+          path: helm/minio/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/minio/minio
+          path: helm/minio/Chart.yaml
+  - id: mc
+    type: container-image
+    name: mc
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/minio/mc
+  - id: minio
+    type: container-image
+    name: minio
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/minio/minio
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  notes: Proposed by automated discovery; NOT validated against releases (only 0 stable releases available, 3 required). Review before use.

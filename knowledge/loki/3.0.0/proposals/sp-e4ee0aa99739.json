@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e4ee0aa99739",
+    "candidateId": "sc-b5410801d8a4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "drop_labels",
+        "component": "lambda-promtail"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "lambda-promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Empty strings in drop_labels configuration are no longer evaluated, which corrects the handling of this configuration parameter in lambda-promtail.",
+        "severity": "low"
+      },
+      "statement": "The lambda-promtail tool no longer evaluates empty strings when processing drop_labels configuration."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-fff1292f7fe3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7b80de2e0bced362d25b8ab0fb5c8d871ec553a20530655d2a53b4adb007873d",
+      "inputEvidence": [
+        "ev-fff1292f7fe3"
+      ],
+      "generatedAt": "2026-10-02T16:15:43Z",
+      "callId": "60f88084-e789-48a5-bf52-b58f10d66149"
+    }
+  }
+}

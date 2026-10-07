@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a91fcbe63e1b",
+  "promptDigest": "sha256:d4075de5fcf706f2f185395b7d870335ae801018a794d218665b37be32fa835a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "53677bac-b455-4eaa-bf40-a1bd085e3711",
+  "startedAt": "2026-10-03T17:25:08.760Z",
+  "decidedAt": "2026-10-03T17:25:15.385Z",
+  "durationMs": 5704,
+  "costUSD": 0.068968,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "On its own, the cited bullet [ev-7e0c2d4b7db5] only names the metric `cortex_kv_request_duration_seconds_count`. The intro to its section [ev-1f419676f177] fills in the rest. It says this release changes metrics that start with `cortex_` to start with `loki_`, and the bullet is one of the listed \"metrics [that] will be changed\". So the change is a rename from `cortex_kv_request_duration_seconds_count` to `loki_kv_request_duration_seconds_count`. The same intro gives the exposure condition: deployments where `metrics_namespace` is left at its new default `loki` (setting it to `cortex` keeps the old name). The consequence is that the metric appears under the new `loki_` name, so queries that use the old name stop matching. That intro also says `metrics_namespace` is deprecated and will be removed in the next minor release.",
+    "citations": [
+      "ev-7e0c2d4b7db5",
+      "ev-1f419676f177"
+    ],
+    "confidence": "medium"
+  }
+}

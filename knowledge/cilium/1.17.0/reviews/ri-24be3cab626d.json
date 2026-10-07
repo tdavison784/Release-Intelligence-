@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-24be3cab626d",
+    "candidateId": "sc-1115e82f20f4",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"MTU auto-detection will now use the lowest MTU of all external interfaces\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (ENI secondary interfaces excluded); manual MTU configuration still works."
+    },
+    "proposals": [
+      "sp-4e02ea4e9661",
+      "sp-f34e610893b1"
+    ],
+    "validations": [
+      "val-03004468a6f7",
+      "val-13688f238d0d",
+      "val-1e28f29d9d76",
+      "val-e248d44a9ed7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:56Z"
+  }
+}

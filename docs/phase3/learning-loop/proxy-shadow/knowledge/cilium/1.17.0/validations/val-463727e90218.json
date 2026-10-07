@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-463727e90218",
+    "candidateId": "sc-91b91829d5ee",
+    "proposalId": "sp-a721afa493aa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_only_count",
+        "component": "metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_kvstore_only_identities",
+          "component": "metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring systems and dashboards that reference the old metric name doublewrite_identity_kvstore_only_count will no longer receive data; they must be updated to use the new name doublewrite_kvstore_only_identities.",
+        "severity": "medium"
+      },
+      "statement": "The metric doublewrite_identity_kvstore_only_count has been renamed to doublewrite_kvstore_only_identities."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/renamed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/renamed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

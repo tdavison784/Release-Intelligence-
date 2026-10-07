@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c5707b9c97ee",
+    "candidateId": "sc-4e85a3e173fb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "argo-cd",
+        "name": "--redis-compress"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--redis-compress",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether redis compression is currently enabled or disabled in the environment before this upgrade"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The flag is newly available for use; no consequence for environments that do not set it, as it is an additive feature. Operators can optionally use this flag to enable redis compression if desired."
+      },
+      "statement": "A new global command-line flag `--redis-compress` was added to enable redis compression."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-17b4a92134a4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:62942866cf904dcfe6a559458dd41027364388eeb241915a69edb21fea4ad96e",
+      "inputEvidence": [
+        "ev-17b4a92134a4"
+      ],
+      "generatedAt": "2026-10-02T06:03:49Z",
+      "callId": "d6394f37-582d-4f57-bc71-ea7dadb03a31"
+    }
+  }
+}

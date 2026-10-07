@@ -1,0 +1,36 @@
+{{define "top"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.}} · Release Intelligence review</title>
+<script>try{var t=localStorage.getItem("ri-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body{{if demo}} class="demo"{{end}}>
+{{if demo}}<div class="demo-banner" role="alert">DEMO DATA — fixtures, not real upstream evidence</div>{{end}}
+{{end}}
+{{define "bottom"}}
+<div id="help" class="help" hidden role="dialog" aria-label="Keyboard shortcuts">
+  <div class="help-card">
+    <h2>Keyboard shortcuts</h2>
+    <dl>
+      <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>next / previous question</dd>
+      <dt><kbd>Enter</kbd> / <kbd>o</kbd></dt><dd>expand / collapse the focused question</dd>
+      <dt><kbd>x</kbd></dt><dd>select the focused question for a bulk action</dd>
+      <dt><kbd>a</kbd></dt><dd>accept — then <kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>r</kbd></dt><dd>reject — type the reason, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>c</kbd></dt><dd>correct — opens the edit form</dd>
+      <dt><kbd>e</kbd></dt><dd>need more evidence — reason, <kbd>Ctrl</kbd>+<kbd>Enter</kbd></dd>
+      <dt><kbd>d</kbd></dt><dd>defer — then <kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>/</kbd></dt><dd>focus the filters</dd>
+      <dt><kbd>?</kbd></dt><dd>this help</dd>
+    </dl>
+    <p class="muted">Nothing is submitted by a single key: actions are armed first, then confirmed.</p>
+  </div>
+</div>
+<script src="/static/app.js" defer></script>
+</body>
+</html>
+{{end}}
+{{define "flashes"}}{{range .}}<div class="flash flash-{{.Level}}" role="status">{{.Text}}</div>{{end}}{{end}}

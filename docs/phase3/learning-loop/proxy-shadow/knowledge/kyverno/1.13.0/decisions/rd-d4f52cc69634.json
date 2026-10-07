@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d4f52cc69634",
+    "reviewItemId": "ri-9f0e242a7b48",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "CleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "ClusterCleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "existing stored CleanupPolicy, ClusterCleanupPolicy or PolicyException objects at the dropped kyverno.io/v2alpha1 storage version, which manifests do not show"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 drops the deprecated kyverno.io/v2alpha1 API versions of the CleanupPolicy, ClusterCleanupPolicy and PolicyException CRDs, and existing resources at the dropped versions must be migrated — automatically by the Helm chart's migration hook, or via kube-storage-version-migrator when upgrading without Helm (or without the hook)."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "CleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "ClusterCleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "cleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustercleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "policyexceptions.kyverno.io"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 drops kyverno.io/v2alpha1 from the CleanupPolicy, ClusterCleanupPolicy and PolicyException CRDs. Exposed: environments whose manifests still use v2alpha1 for these kinds, or whose CRD status.storedVersions still lists v2alpha1. Those stored objects must be migrated, either by the Helm hook or by kube-storage-version-migrator."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:aa7711d3167d5679c4da9458f66702c18b88d720f5702259269e5db17ff6e9f8",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T16:56:19.893Z",
+      "callId": "04f827b4-ae24-401f-9d39-bab9b68c0c40",
+      "provider": "anthropic"
+    },
+    "reason": "The rendered diffs show v2alpha1 removed from the cleanuppolicies, clustercleanuppolicies and policyexceptions CRDs [ev-d4e66123c4de][ev-9fdd5d1096ef][ev-b8120a2bb840]. The upgrade guide says existing resources must be migrated, either by the Helm hook or by kube-storage-version-migrator [ev-816adf94e987]. The proposal's undecidable leaf uses an invalid reason (\"environment-visibility-gap\"), and stored versions are not hidden runtime state: each CRD's status.storedVersions records them, so the canonical stored-version shape expresses this. I kept the gvk-in-use leaves for manifests that still apply v2alpha1 and replaced the undecidable leaf with storedVersions checks on the three CRDs.",
+    "startedAt": "2026-10-03T16:56:04.317Z",
+    "decidedAt": "2026-10-03T16:56:19.893Z"
+  }
+}

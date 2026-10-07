@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-947304de9cf1",
+    "candidateId": "sc-4ad98c3722c5",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"`doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total`\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--prometheus-serve-addr",
+              "component": "cilium-agent",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "CILIUM_PROMETHEUS_SERVE_ADDR",
+              "component": "cilium-agent",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "proposals": [
+      "sp-b0902bf6586b",
+      "sp-e6d29fba8472"
+    ],
+    "validations": [
+      "val-2eb1dc2803e0",
+      "val-9d09f6fee6cb",
+      "val-f835d1689658"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T06:03:04Z"
+  }
+}

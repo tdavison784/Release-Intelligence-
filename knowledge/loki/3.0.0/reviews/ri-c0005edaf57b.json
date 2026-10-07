@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-c0005edaf57b",
+    "candidateId": "sc-e5a9be233eaa",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`delete_request_store` should be explicitly configured: `-compactor.delete-request-store` or its YAML setting should be explicitly configured when retention is…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Delete requests cannot be stored if `-compactor.delete-request-store` is not explicitly configured when retention is enabled, breaking the delete functionality of the compactor.",
+        "severity": "high"
+      },
+      "statement": "The `-compactor.delete-request-store` CLI flag or its YAML configuration setting must be explicitly configured when retention is enabled in Loki 3.0.0, as it is required for storing delete requests."
+    },
+    "proposals": [
+      "sp-4417a047593e",
+      "sp-9a53e5e42bc4"
+    ],
+    "validations": [
+      "val-035da8b220f7",
+      "val-4641c5a1705e",
+      "val-60f501a291e0"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:02:26Z"
+  }
+}

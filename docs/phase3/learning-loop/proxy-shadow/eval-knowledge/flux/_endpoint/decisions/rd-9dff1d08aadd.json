@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9dff1d08aadd",
+    "reviewItemId": "ri-89f160dbb1ad",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An exposed environment whose operator does nothing is unaffected: the removed-values list is empty, so no previously accepted spec.chartRef.kind value is rejected; the previously invalid value ExternalArtifact simply becomes accepted.",
+        "severity": "low"
+      },
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the enum of spec.chartRef.kind gained the allowed value ExternalArtifact (computed artifact diff between the v2.6.4 and v2.7.0 install bundles), with no values removed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:53a696e581af484bce5c849404aafd99ea3c0074042632051f47aed6c28f55ef",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T16:53:32.194Z",
+      "callId": "20a31b9a-85b6-4da3-8e50-3db821710617",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] shows the spec.chartRef.kind enum with \"removed [], added [\\\"ExternalArtifact\\\"]\". The API server rejects only removed values, and no value was removed, so no existing HelmRelease is rejected and nothing stops working. That makes the kind \"none\" (informational), not P2's resource-rejected: P2 misread the empty removed list as removing an empty-string value. A crd-schema:tightened validator reports this field's enum as unchanged, which conflicts with the diff, but either reading means nothing is rejected, so it does not change the consequence.",
+    "startedAt": "2026-10-03T16:53:23.868Z",
+    "decidedAt": "2026-10-03T16:53:32.194Z"
+  }
+}

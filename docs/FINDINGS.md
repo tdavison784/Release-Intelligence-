@@ -29,6 +29,12 @@ the three newest lines. No relationship fails.
 | Istio | 26 | none | every chart, image and archive verified directly at its registry |
 | Argo CD | 11 | none | chart marked optional; v3.4.0 asset exception recorded |
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the cert-manager "Unverifiable here" cell describes the sandbox run only.
+> With network access the chart and all six images validate directly (17
+> validated subjects, 0 unverifiable; `docs/onboarding/checks/cert-manager.json`
+> was replaced by the live run). The Argo CD "v3.4.0 asset exception" note is
+> corrected below.
+
 ## What worked
 
 - **Treating the product as the entity.** A single release fans out into 5–15
@@ -55,9 +61,17 @@ the three newest lines. No relationship fails.
   artifact the definition merely predicts is `expected`. Cross-references
   (the image tag inside the install manifest) recover `referenced` status
   with line-level evidence.
+  > **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** those four hosts were blocked by the sandbox, not by upstream: all
+  > answer with network access, the `referenced` stand-ins became direct `oci`
+  > passes, and `covered` GitHub-release checks became `pass` (212 sandbox-artifact
+  > differences across 28 products). The honesty rule itself is unchanged and
+  > proved right: nothing was ever shown as `verified` that the live run later
+  > contradicted. Rate limiting is now a separate `throttled` state.
 - **Historical validation finds real things.** `ri check argo-cd` discovered
   that the Argo CD **v3.4.0** GitHub release has no assets at all, while
-  v3.4.1 has them. It also confirmed that only about half of Argo CD app
+  v3.4.1 has them. (**Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** v3.4.0 is a git tag that was never published as a GitHub
+  release: the release object itself returns 404, so its assets 404 too;
+  v3.4.1 is the first release after v3.4.0-rc7 and has 11 assets.) It also confirmed that only about half of Argo CD app
   releases ship as a chart `appVersion`, which is why the chart is optional.
 - **Evidence is checkable.** Spot checks of line-range evidence against the
   live documents matched in every case. Each evidence record carries the
@@ -96,7 +110,7 @@ the three newest lines. No relationship fails.
   source at the tag. That is correct for cert-manager and Argo CD. Istio's
   release tooling rewrites image hub and tag, which are therefore ignored.
   Reading the published chart archive would be more faithful. Here, ghcr
-  blobs and blob.istio.io were unreachable.
+  blobs and blob.istio.io were unreachable. (**Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** blob.istio.io (Helm index) and registry.istio.io answer with network access.)
 - **Commit logs are a noisy substitute for release notes.** Argo CD's curated
   notes exist only behind the GitHub API. The `git-log` fallback is
   deterministic and correctly classifies `feat!`/`fix!`, but it is noisy:

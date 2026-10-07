@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-973528fb7a57",
+    "candidateId": "sc-63496e6fa647",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "loki-distributor-ingester-append-failures-total",
+        "component": "distributor"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-distributor-ingester-append-timeouts-total",
+          "component": "distributor"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The metric loki_distributor_ingester_append_failures_total is no longer emitted; loki_distributor_ingester_append_timeouts_total replaces it, so queries or alerts on the old metric need to use the new one.",
+        "severity": "low"
+      },
+      "statement": "The metric loki_distributor_ingester_append_failures_total was removed and replaced by loki_distributor_ingester_append_timeouts_total."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether dashboards or alerts consume the removed metric; no static input shows that.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-511b366fad93"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d2c341b1155d83766b8a83abe7d25e5a03d15c060d1e2bb166174538de83c2b6",
+      "inputEvidence": [
+        "ev-511b366fad93"
+      ],
+      "generatedAt": "2026-10-02T16:17:45Z",
+      "callId": "091d0431-f33d-439d-bd0e-a179b5a08335"
+    }
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-64530d6b9634",
+    "candidateId": "sc-985a8fcba32d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ca-selfsigned-rsa-signing-hash"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"SHA-512 when signing with RSA keys 4096 bits and above; SHA-384 when signing with RSA keys 3072 bits and above\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.algorithm",
+                  "state": "equals",
+                  "values": [
+                    "\"RSA\""
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.keySize",
+                  "state": "matches",
+                  "pattern": "^(307[2-9]|30[89][0-9]|3[1-9][0-9]{2}|[4-9][0-9]{3}|[1-9][0-9]{4,})$"
+                },
+                {
+                  "op": "ref",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer",
+                  "path": "spec.issuerRef"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.algorithm",
+                  "state": "equals",
+                  "values": [
+                    "\"RSA\""
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.keySize",
+                  "state": "matches",
+                  "pattern": "^(307[2-9]|30[89][0-9]|3[1-9][0-9]{2}|[4-9][0-9]{3}|[1-9][0-9]{4,})$"
+                },
+                {
+                  "op": "ref",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer",
+                  "path": "spec.issuerRef"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca.secretName",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether the RSA private key stored in the Secret referenced by the CA Issuer's spec.ca.secretName is 3072 bits or larger (4096 bits and above for SHA-512)"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca.secretName",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether the RSA private key stored in the Secret referenced by the CA ClusterIssuer's spec.ca.secretName is 3072 bits or larger (4096 bits and above for SHA-512)"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates issued or renewed by the CA and SelfSigned issuers whose signing RSA key is 3072 bits and above are now signed with SHA-384 (or SHA-512 for 4096 bits and above), so systems that consume or validate those certificates must support the new hash algorithms.",
+        "remediation": "Before upgrading, check that every system relying on certificates from CA or SelfSigned issuers with RSA keys of 3072 bits and above supports SHA-384 and SHA-512 signatures.",
+        "severity": "medium"
+      },
+      "statement": "The CA and SelfSigned issuers now sign with SHA-512 when the RSA signing key is 4096 bits and above and SHA-384 when it is 3072 bits and above, so environments using larger RSA keys as a CA (or for SelfSigned certificates) must check that their systems support the new hash algorithms."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-53fb690413df"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6fd8feda1b9956d8c746335dfeeab8771d01929da49fdbac5627eb138124eacf",
+      "inputEvidence": [
+        "ev-53fb690413df"
+      ],
+      "generatedAt": "2026-10-03T07:34:03Z",
+      "callId": "b7b03937-748e-48af-ad37-122591c8f68b"
+    }
+  }
+}

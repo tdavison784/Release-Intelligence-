@@ -1,0 +1,67 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: opensearch
+name: OpenSearch
+homepage: https://github.com/opensearch-project/OpenSearch
+versioning:
+  scheme: semver
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/opensearch-project/OpenSearch
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: opensearch-project/OpenSearch
+    priority: 1
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/opensearch-project/OpenSearch
+      path: release-notes/opensearch.release-notes-{{.Version}}.md
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 3.6.0
+      - 3.7.0
+      - 3.8.0
+      - 3.9.0
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: opensearch-project/OpenSearch
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 3.6.0
+      - 3.7.0
+      - 3.8.0
+      - 3.9.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: opensearch-project/OpenSearch
+    notes: 'Security policy: SECURITY.md → https://github.com/opensearch-project/.github/blob/…/SECURITY.md'
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - 3.6.0
+    - 3.7.0
+    - 3.8.0
+    - 3.9.0
+  notes: Proposed by automated discovery; relationship checks run against 3.6.0, 3.7.0, 3.8.0, 3.9.0.

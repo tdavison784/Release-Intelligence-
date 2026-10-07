@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b3257402fa16",
+  "promptDigest": "sha256:001ae616d105fc17400b7c0044700b546a49aa5cc83553d61a5d35ddf5acd226",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "be16a85c-4c39-46f6-b27f-00ae3192ad5c",
+  "startedAt": "2026-10-06T01:53:20.396Z",
+  "decidedAt": "2026-10-06T01:53:35.219Z",
+  "durationMs": 13959,
+  "costUSD": 0.16514,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-2955a2390de6][ev-a95dca88b623] says installing a provider with a DeploymentRuntimeConfig was \"currently broken on main\". It shows this on a development build (v1.21.0-rc.0.163…), where duplicate /tls volumeMounts made the Deployment invalid. The DeepCopy change in one file [ev-c8ee24a21df6] fixes that bug. The evidence describes a regression that existed only on main before the release, so it shows no operator-visible change to verify when upgrading from a released version. The proposed behavior-change rests on an internal detail (\"no longer shares underlying objects\"), so I am correcting the kind to none (informational).",
+    "citations": [
+      "ev-2955a2390de6",
+      "ev-a95dca88b623",
+      "ev-c8ee24a21df6",
+      "ev-e4380102a652"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Crossplane 2.0.0 deep-copies the DeploymentRuntimeConfig deployment template spec when building a provider runtime Deployment. This fixes a main-branch regression in which duplicate /tls volumeMounts made the Deployment invalid. Operators do not need to do anything.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "Internal fix for a bug the PR reports only on the main branch (a development build): provider runtime Deployments built from a DeploymentRuntimeConfig were rejected for duplicate /tls/client and /tls/server mountPaths. The fix ships with 2.0.0, and an operator who does nothing is not affected.",
+        "remediation": "None required."
+      }
+    }
+  }
+}

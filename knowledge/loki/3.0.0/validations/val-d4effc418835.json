@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d4effc418835",
+    "candidateId": "sc-00c8dd09dcde",
+    "proposalId": "sp-79909874b385",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metric.prefix",
+        "component": "embedded-cache"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring configurations and queries using the old `querier_cache_` metric prefix will no longer match the renamed `loki_embeddedcache_` metrics; dashboards, alerts, and recording rules referencing the old prefix must be updated."
+      },
+      "statement": "The metric prefix for embedded cache metrics is renamed from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/value-changed",
+        "detail": "no canonical exposure condition for config-key value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

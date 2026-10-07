@@ -168,3 +168,64 @@ func TestValidateColumnKindVocabulary(t *testing.T) {
 		t.Errorf("kind \"at-most\": expected an error")
 	}
 }
+
+// collect/where select operand-version sets from yaml-records (Strimzi's
+// kafka-versions.yaml); collect needs no key, other modes still do.
+func TestValidateCollectAndReduce(t *testing.T) {
+	mk := func(ex Extract) *ProductDefinition {
+		return &ProductDefinition{
+			APIVersion: APIVersion, Kind: Kind, ID: "x", Name: "x",
+			Versioning: Versioning{Scheme: "semver"},
+			Sources: []Source{
+				{ID: "t", Roles: []domain.SourceRole{domain.RoleVersions}, Locator: Locator{Kind: LocatorGitTags, Repository: "example.com/a/b"}},
+				{ID: "c", Roles: []domain.SourceRole{domain.RoleCompatibility},
+					Locator: Locator{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "v.yaml"},
+					Extract: &ex}},
+		}
+	}
+	cols := func(reduce string) []ColumnSpec {
+		return []ColumnSpec{{Platform: "kafka", Headers: []string{"version"}, Reduce: reduce}}
+	}
+	ok := Extract{Type: ExtractYAMLRecords, Collect: true, Where: map[string]string{"supported": "^true$"}, Columns: cols("minor")}
+	if rep := Validate(mk(ok)); len(rep.Errors()) != 0 {
+		t.Errorf("collect: unexpected errors %v", rep.Errors())
+	}
+	for name, ex := range map[string]Extract{
+		"no key without collect": {Type: ExtractYAMLRecords, Columns: cols("")},
+		"bad reduce":             {Type: ExtractYAMLRecords, Collect: true, Columns: cols("patch")},
+		"bad where regex":        {Type: ExtractYAMLRecords, Collect: true, Where: map[string]string{"a": "("}, Columns: cols("")},
+		"collect on a table":     {Type: ExtractMarkdownTable, Collect: true, Columns: cols("")},
+	} {
+		if rep := Validate(mk(ex)); len(rep.Errors()) == 0 {
+			t.Errorf("%s: expected an error", name)
+		}
+	}
+}
+
+func TestValidateLinesContent(t *testing.T) {
+	mk := func(c Content) *ProductDefinition {
+		return &ProductDefinition{
+			APIVersion: APIVersion, Kind: Kind, ID: "x", Name: "x",
+			Versioning: Versioning{Scheme: "semver"},
+			Sources:    []Source{{ID: "t", Roles: []domain.SourceRole{domain.RoleVersions}, Locator: Locator{Kind: LocatorGitTags, Repository: "example.com/a/b"}}},
+			Artifacts: []Artifact{{ID: "doc", Type: domain.ArtifactDocumentation, Name: "doc",
+				Version:  VersionRelation{Strategy: VersionTemplate, Template: "{{.Tag}}"},
+				Channels: []Locator{{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "x.md"}},
+				Contents: []Content{c}}},
+		}
+	}
+	if rep := Validate(mk(Content{Kind: ContentLines, Pattern: `(?i)removed`, Label: "page"})); len(rep.Errors()) != 0 {
+		t.Errorf("valid lines content: %v", rep.Errors())
+	}
+	for name, c := range map[string]Content{
+		"no pattern":              Content{Kind: ContentLines},
+		"invalid pattern":         Content{Kind: ContentLines, Pattern: "("},
+		"pattern on another kind": Content{Kind: ContentCRDs, Pattern: "x"},
+		"label on another kind":   Content{Kind: ContentImageRefs, Label: "x"},
+		"stripPrefix on lines":    Content{Kind: ContentLines, Pattern: "x", StripPrefix: "a"},
+	} {
+		if rep := Validate(mk(c)); len(rep.Errors()) == 0 {
+			t.Errorf("%s: expected an error", name)
+		}
+	}
+}

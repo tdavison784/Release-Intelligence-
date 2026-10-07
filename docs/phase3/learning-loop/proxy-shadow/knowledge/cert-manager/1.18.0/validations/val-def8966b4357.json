@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-def8966b4357",
+    "candidateId": "sc-2ca1ae551e15",
+    "proposalId": "sp-59f0366d875d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "cloudflare"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.dns01.providers[].cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.dns01.providers[].cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Issuing of certificates via DNS01 challenges on Cloudflare, which had been broken by a breaking change to the Cloudflare API, works again after upgrading to cert-manager 1.18.0.",
+        "remediation": "After upgrading to 1.18.0, verify that Cloudflare DNS01 challenges complete and affected certificates issue and renew successfully; no configuration change is stated as required.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager 1.18.0 fixes the issuing of certificates via DNS01 challenges on Cloudflare, which had been broken by a breaking change to the Cloudflare API."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e1dd52ad2e48",
+    "reviewItemId": "ri-72d0e21db3b7",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "statement": "Prometheus metric name prefixes were renamed: crossplane_composition_controllers_* to engine_controllers_*, crossplane_composition_watches_* to engine_watches_*, and crossplane_composition_run_function_* to function_run_function_*."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Crossplane's Prometheus metric names changed: crossplane_composition_controllers_* became engine_controllers_*, crossplane_composition_watches_* became engine_watches_*, and crossplane_composition_run_function_* became function_run_function_*."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c08a57d7c20af955f581b11ea54a7e9f14d0c9c6fedbc56816b035ce16515817",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-02T23:18:22.538Z",
+      "callId": "d3650a6c-afea-45aa-b7b2-882c914e1458"
+    },
+    "reason": "[ev-c3df0dece271] lists the Prometheus metric renames together, under one breaking-change heading with one rationale, so treating them as a single protocol-behavior change (prometheus-metric-names, behavior-changed) is supported. The proposed before/after literals are wrong: they are comma-joined strings that the text never states, and they contain stray embedded quote characters. Before/after are optional for behavior-changed, so I dropped them and put the exact renames in the statement.",
+    "startedAt": "2026-10-02T23:18:10.626Z",
+    "decidedAt": "2026-10-02T23:18:22.538Z"
+  }
+}

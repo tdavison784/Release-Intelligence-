@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4bd3d7e5a371",
+    "reviewItemId": "ri-e5a8fedb325a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The -querier.engine.timeout flag and the corresponding YAML setting are removed, so they are no longer honoured if still configured."
+      },
+      "statement": "The already-deprecated -querier.engine.timeout CLI flag (and its YAML setting) is removed in Loki 3.0.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:96a29b26f5a1687daa0a96969dcc0b21479204b32a04d3d8b9b76067dc30ce12",
+      "inputEvidence": [
+        "ev-da0f06f8da24",
+        "ev-dc20110f4f4b",
+        "ev-a0b618cd90db",
+        "ev-c8a8a9c16d41",
+        "ev-03b4fbe630df",
+        "ev-8fea3a0e7308",
+        "ev-3f6039ca92c8",
+        "ev-3cb906d8d02b",
+        "ev-f5a61f629314",
+        "ev-9f4292160fa2",
+        "ev-c0bb5c52ce78",
+        "ev-7b384eb00d22",
+        "ev-7b76cb015d7e",
+        "ev-f15092605ae3"
+      ],
+      "generatedAt": "2026-10-03T17:05:26.531Z",
+      "callId": "1cfb7d32-0835-472e-ac45-ad9b4edb6820",
+      "provider": "anthropic"
+    },
+    "reason": "The upgrade guide states directly that Loki 3.0.0 removes the already deprecated `-querier.engine.timeout` CLI flag and its YAML setting [ev-da0f06f8da24]. A removed key that is still configured stops being honoured, which is what setting-ignored means, so it counts as action rather than review. The evidence does not say whether a leftover flag or YAML key makes startup fail, so a stronger failure kind would claim more than the evidence supports. The next item says `query_timeout` is now configured in limits_config [ev-a0b618cd90db], but the evidence does not explicitly name it as the replacement for this flag.",
+    "startedAt": "2026-10-03T17:05:17.687Z",
+    "decidedAt": "2026-10-03T17:05:26.531Z",
+    "resultingFact": "vf-4466d2ef3369"
+  }
+}

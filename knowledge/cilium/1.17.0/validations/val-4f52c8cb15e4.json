@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4f52c8cb15e4",
+    "candidateId": "sc-d8211760345d",
+    "proposalId": "sp-ccd5bf20c213",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing services without a protocol set are preserved as such to avoid disruption, and must be deleted and recreated for the agent to take their protocol into account. On downgrade, services with a protocol set are deleted and recreated without it, disrupting connections."
+      },
+      "statement": "Cilium 1.17 adds services protocol differentiation, controlled by --bpf-lb-proto-diff and enabled by default; existing services without a protocol are preserved and must be deleted and recreated for their protocol to be taken into account."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

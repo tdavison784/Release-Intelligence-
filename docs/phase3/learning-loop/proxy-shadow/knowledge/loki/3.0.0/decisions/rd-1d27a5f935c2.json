@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1d27a5f935c2",
+    "reviewItemId": "ri-4138a18d426c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "statement": "The metric prefix for embedded cache metrics is renamed from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the embedded cache is in use and whether dashboards, alerts or recording rules refer to `querier_cache_` metric names (or the removed duplicate metrics)"
+            }
+          ]
+        }
+      },
+      "statement": "In Loki 3.0.0, embedded cache metrics are renamed from the `querier_cache_` prefix to `loki_embeddedcache_`, and duplicate metrics are removed. Exposed: environments upgrading from before 3.0.0 that use the embedded cache and whose dashboards, alerts or rules refer to `querier_cache_` metric names."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c433fcbd8de41d48e571a71778b87f3419cfccdb3bbf102da671c98be8547f67",
+      "inputEvidence": [
+        "ev-e4b24ba811ff"
+      ],
+      "generatedAt": "2026-10-02T23:11:49.017Z",
+      "callId": "0b3e1123-47d3-42f5-a66b-318ffb05ea67"
+    },
+    "reason": "[ev-e4b24ba811ff] only says that embedded cache metrics are renamed from the `querier_cache_` prefix to `loki_embeddedcache_`, and that duplicate metrics are removed. The only environments exposed are ones upgrading from before 3.0.0 that use the embedded cache and whose dashboards, alerts or recording rules refer to the old metric names. The proposed product-version loki >=3.0.0 condition is wrong: it flags every environment running Loki, and product-version is meant for other products, not the product's own upgrade edge. Whether monitoring refers to the old names is not visible in any static input, and the evidence does not name the config key that turns on the embedded cache, so that part must stay undecidable.",
+    "startedAt": "2026-10-02T23:11:39.087Z",
+    "decidedAt": "2026-10-02T23:11:49.017Z"
+  }
+}

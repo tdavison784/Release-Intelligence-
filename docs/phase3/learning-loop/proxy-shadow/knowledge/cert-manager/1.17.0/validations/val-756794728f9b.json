@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-756794728f9b",
+    "candidateId": "sc-1c908e6fdb6b",
+    "proposalId": "sp-dd2ea8199f49",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "enabled"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Adding the `enabled` value is additive. It lets cert-manager be toggled when used as a chart dependency, and an operator does not need to do anything.",
+        "severity": "low"
+      },
+      "statement": "The cert-manager Helm chart now accepts an `enabled` value, so a parent chart can toggle cert-manager when it is used as a dependency."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/added",
+        "detail": "no canonical exposure condition for helm-value added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "confirmed",
+        "rule": "canonical:added/none",
+        "detail": "a newly added subject has no consequence for existing environments"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-fdc96eee87bf",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:6cc03b3cfa9205cd76f35956d008dbc5f97d6b0a2b68427b182fb40747de7e92",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

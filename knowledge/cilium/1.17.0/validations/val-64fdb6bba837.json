@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-64fdb6bba837",
+    "candidateId": "sc-58144fc373f6",
+    "proposalId": "sp-23ae3b08a6fb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "doublewrite-identity-crd-only-count"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"doublewrite_identity_crd_only_count\"",
+        "after": "\"doublewrite_crd_only_identities\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "doublewrite-crd-only-identities"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerting rules or PromQL queries reference the old metric name doublewrite_identity_crd_only_count"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exposed under the new name doublewrite_crd_only_identities, so monitoring that still references doublewrite_identity_crd_only_count no longer receives that data.",
+        "remediation": "Update dashboards, alerts and queries to use the new metric name doublewrite_crd_only_identities.",
+        "severity": "low"
+      },
+      "statement": "The Cilium metric doublewrite_identity_crd_only_count has been renamed to doublewrite_crd_only_identities in 1.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-03a8964c5a18",
+  "promptDigest": "sha256:5b8ca42c8df44610a25478397f346b2dde9113cc67cc2f89d5c236d36e08d6bf",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2c33fadb-fdc7-4d94-aaae-2e84bb5ca076",
+  "startedAt": "2026-10-03T06:58:19.018Z",
+  "decidedAt": "2026-10-03T06:58:31.462Z",
+  "durationMs": 11033,
+  "costUSD": 0.118232,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-2df1b23f32ac] says HTTP/3 can now be enabled on entry points without `experimental.http3`, that the option has been removed, and that setting it would prevent Traefik from starting. That means only environments that still set `experimental.http3` in their static configuration are exposed. The proposed `undecidable` operand covers every environment that uses HTTP/3, which is broader than that, because HTTP/3 enabled on entry points keeps working. I removed it and kept the two leaves that check whether the option is set.",
+    "citations": [
+      "ev-2df1b23f32ac",
+      "ev-177a6106bc02"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik 3.0.0 removes the static option experimental.http3 because HTTP/3 is no longer experimental. Setting it stops Traefik from starting. Only environments that still set experimental.http3 are exposed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "experimental.http3",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

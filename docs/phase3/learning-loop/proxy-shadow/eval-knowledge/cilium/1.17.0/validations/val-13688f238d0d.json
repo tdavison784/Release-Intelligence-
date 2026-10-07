@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-13688f238d0d",
+    "candidateId": "sc-1115e82f20f4",
+    "proposalId": "sp-4e02ea4e9661",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces is used\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Auto-detected MTU may now be lower than before, as the lowest MTU across all external interfaces is used rather than the primary interface's MTU.",
+        "remediation": "Verify the detected MTU, or set it manually via the MTU helm option, --mtu agent flag or mtu in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (ENI secondary interfaces excluded); manual MTU configuration still works."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

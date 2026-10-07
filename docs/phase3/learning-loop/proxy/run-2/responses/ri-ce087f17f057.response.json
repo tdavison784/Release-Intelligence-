@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ce087f17f057",
+  "promptDigest": "sha256:e4b391fcab80dbbb90ac854d95f8400c82a0ef42d84d755857d6be228bf64f09",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "bcc35bfb-f0e9-4370-a7fc-7e1b58a66f97",
+  "startedAt": "2026-10-03T02:01:12.698Z",
+  "decidedAt": "2026-10-03T02:01:23.482Z",
+  "durationMs": 9959,
+  "costUSD": 0.05882,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9e5eb9f249fd] lists this under Features and only says the change \"allows\" customisable splitting of queries that overlap the query_ingester_within window. It describes an optional capability and says nothing about a changed default or a change in behaviour for operators who do nothing. The proposed behavior-change statement contradicts itself: it says behaviour changes, then says the reduction only applies \"if configured\". With nothing pointing to a change for setups that are left alone, the supported consequence is none (informational). I chose low confidence because the excerpt does not say outright that the default is unchanged.",
+    "citations": [
+      "ev-9e5eb9f249fd"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 Query Frontend adds optional, customisable splitting of queries that overlap the query_ingester_within window to reduce query pressure on ingesters; the evidence states no change for environments that do not configure it.",
+      "consequence": {
+        "kind": "none",
+        "determination": "asserted",
+        "statement": "New opt-in capability: queries that overlap the query_ingester_within window can be split in a customisable way. The release note states no change in default behaviour, so existing setups that do nothing are unaffected.",
+        "severity": "low"
+      }
+    }
+  }
+}

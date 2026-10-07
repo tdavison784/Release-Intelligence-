@@ -1,0 +1,41 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2a3cfcf98333",
+  "promptDigest": "sha256:50cd00e133ceeaa2e1861cc5e412009e8e79948f27c96eafd0a8a25ff4ebebd2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "05191c40-6edc-453f-adf6-6f5ef4d5b124",
+  "startedAt": "2026-10-03T02:14:16.125Z",
+  "decidedAt": "2026-10-03T02:14:36.080Z",
+  "durationMs": 19338,
+  "costUSD": 0.11641199999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d55f4ac0a53f] shows that from 0.15.0 to 0.16.0 the clustersecretstores.external-secrets.io CRD's spec.versions[name=v1beta1].storage changed from true to false. So the v1beta1 ClusterSecretStore GVK is still served but is no longer the storage version. A validator confirmed the subject, and behavior-changed is the right change type for it. The before/after values in the diff are the YAML booleans true → false, not the strings \"true\"/\"false\", so I corrected the literals.",
+    "citations": [
+      "ev-d55f4ac0a53f",
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "In 0.16.0, external-secrets.io/v1beta1 ClusterSecretStore stops being the storage version of the clustersecretstores.external-secrets.io CRD (spec.versions[name=v1beta1].storage: true → false); v1 becomes the storage version, and existing objects stay stored as v1beta1 until they are rewritten.",
+      "subject": {
+        "family": "gvk",
+        "determination": "asserted",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "determination": "asserted",
+        "before": true,
+        "after": false
+      }
+    }
+  }
+}

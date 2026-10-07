@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-a00de7a3b477",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-93bc80be845c"
+        ],
+        "statementKeys": [
+          "sk-0b6b3a07bd31"
+        ],
+        "changeIds": [
+          "chg-a9602fa1c81c"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-193bebd104fa"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if InfluxDB v1 metrics configuration (metrics.influxDB) is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "InfluxDB v1: InfluxDB v1.x maintenance ended in 2021"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-80c42080cd0b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-80c42080cd0b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-a6fd0f448060"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-045e161408e4"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a8010075f3de",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L502-L526 (Migration Guide: From v2 to v3 › Static configuration › InfluxDB v1)",
+        "excerpt": "### InfluxDB v1\n\nInfluxDB v1.x maintenance [ended in 2021](https://www.influxdata.com/blog/influxdb-oss-and-enterprise-roadmap-update-from-influxdays-emea/).\nIn v3, the InfluxDB v1 metrics provider has been removed.\n\n??? example \"An example of Traefik v2 InfluxDB v1 metrics configuration\"\n\n    ```yaml tab=\"File (YAML)\"\n    metrics:\n      influxDB: {}\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [metrics.influxDB]\n    ```\n\n    ```bash tab=\"CLI\"\n    --metrics.influxDB=true\n    ```\n\nThis configuration is now unsupported and would prevent Traefik to start.\n\n#### Remediation\n\nAll InfluxDB v1 metrics …",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:06:01.912Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1c7fc0c6993c",
+    "candidateId": "sc-76ca511eb130",
+    "proposalId": "sp-c96d20e831b0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core pod is still started with --registry, the core command returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\" and does not run.",
+        "remediation": "Remove --registry from the Crossplane args and make sure every package, and each of its dependencies, uses a fully qualified name that states its registry.",
+        "severity": "high"
+      },
+      "statement": "In v2.0.0 the Crossplane core command no longer supports the --registry flag: setting it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\", and all packages and their dependencies must use fully qualified names that state their registry."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:crossplane|name=--registry: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:crossplane|name=--registry: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-03T07:03:23Z"
+  }
+}

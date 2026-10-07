@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e0ae89be668f",
+  "promptDigest": "sha256:3db1310ff557e1fb65c53728089f22260af709db1e5f83de34e51cef95e376dc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2f6d9742-b5d3-4f4d-bf07-469c22e67f2e",
+  "startedAt": "2026-10-03T02:32:44.270Z",
+  "decidedAt": "2026-10-03T02:32:59.467Z",
+  "durationMs": 14245,
+  "costUSD": 0.10031879999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The computed diff for compositions.apiextensions.crossplane.io v1 says spec.mode lost the enum value Resources, and a removed value is rejected by the API server [ev-b12db1ba30d3, ev-a3bca45d2477]. So the exposed Compositions are those whose spec.mode equals Resources; narrowing to that value is correct, since other values still pass. The proposed condition matches the literal string with quote characters (\"\\\"Resources\\\"\"), which a real field value never contains, so it would miss every exposed resource. The corrected condition matches the bare value Resources on Composition v1.",
+    "citations": [
+      "ev-b12db1ba30d3",
+      "ev-a3bca45d2477"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The Composition apiextensions.crossplane.io/v1 schema no longer allows spec.mode value Resources; Compositions with spec.mode equal to Resources are rejected by the API server.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apiextensions.crossplane.io",
+          "version": "v1",
+          "kind": "Composition",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "equals",
+              "values": [
+                "Resources"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

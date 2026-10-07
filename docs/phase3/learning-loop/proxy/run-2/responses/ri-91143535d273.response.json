@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-91143535d273",
+  "promptDigest": "sha256:38ca7947328b9f48578119fb824aac0d340e1b25c3a88af20312d8ba8ed0c52b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "acb65cc1-6489-4165-83ce-580d8bef7a95",
+  "startedAt": "2026-10-03T01:53:34.051Z",
+  "decidedAt": "2026-10-03T01:53:44.409Z",
+  "durationMs": 9458,
+  "costUSD": 0.09596400000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-cd6e13ea0600] says only that the Flux 2.7.0 manifests add the `app.kubernetes.io/part-of: flux` label to the controller pods. Every environment that upgrades from an earlier version gets this label. The proposed condition, any Deployment, StatefulSet or DaemonSet in use, is too broad. It is not tied to the Flux controllers and would flag any cluster that runs any workload. The evidence does not name the controller workload kind, so the corrected condition uses the upgrade from-version (<2.7.0) instead of a rendered-change on an assumed kind.",
+    "citations": [
+      "ev-cd6e13ea0600"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Flux 2.7.0 manifests add the label app.kubernetes.io/part-of: flux to the controller pods. Every environment upgrading from a Flux version earlier than 2.7.0 receives the label on its controller pods.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.7.0"
+        }
+      }
+    }
+  }
+}

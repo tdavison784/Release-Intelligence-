@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5b46d6038e56",
+    "reviewItemId": "ri-75add794603d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-tsdb.shipper.shared-store.key-prefix",
+          "state": "set"
+        }
+      },
+      "statement": "The CLI flag -tsdb.shipper.shared-store.key-prefix was removed from the shipper configuration in Loki 3.0.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:0a2d0a970990fa80a9125aada2c448c646c5be5bce240c5a3595fd9e6403dd7d",
+      "inputEvidence": [
+        "ev-19d4f84472e6",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T12:57:50.372Z",
+      "callId": "c0556c94-a227-42eb-ba44-348886086934",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] and [ev-19d4f84472e6] say `-tsdb.shipper.shared-store.key-prefix` is removed in 3.0.0. [ev-76a46c52508c] says no changes are needed for environments that never configured it, so only environments that set it are exposed. That matches the standard condition for a removed CLI flag: cli-flag set. One gap: the matching YAML setting is also removed ([ev-632a3911583a]). The evidence names neither its full key path nor where the config file is stored, so I can't write a check for it from the evidence alone.",
+    "startedAt": "2026-10-03T12:57:30.115Z",
+    "decidedAt": "2026-10-03T12:57:50.372Z",
+    "resultingFact": "vf-3d4fe939d6d1"
+  }
+}

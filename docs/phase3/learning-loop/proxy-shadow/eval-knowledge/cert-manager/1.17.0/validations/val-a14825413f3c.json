@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a14825413f3c",
+    "candidateId": "sc-c770479afc97",
+    "proposalId": "sp-e8205e62aee9",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "certificate-reconcile-while-deleting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"The Certificate object creates CertificateRequest or Secret objects while being deleted\"",
+        "after": "\"The Certificate object no longer creates CertificateRequest or Secret objects while being deleted\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "While a Certificate is being deleted, cert-manager will no longer create CertificateRequest or Secret objects for that Certificate.",
+        "remediation": "No operator action required; verify that no workflow or automation relies on CertificateRequest or Secret objects being created for a Certificate that is in the process of being deleted.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, a Certificate that is being deleted no longer causes CertificateRequest or Secret objects to be created for it."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

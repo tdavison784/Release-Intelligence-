@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f47c6050082a",
+  "promptDigest": "sha256:f231aac59e5a04bf622a2ac61adafa0d81e2dd84b40327f1202c189d2628425a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "644bbbbe-c825-4426-8b55-de7550e0340d",
+  "startedAt": "2026-10-03T17:06:48.977Z",
+  "decidedAt": "2026-10-03T17:06:59.475Z",
+  "durationMs": 9576,
+  "costUSD": 0.08640400000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-69b054a33ac2] says the Helm options `proxy.prometheus.enabled` and `proxy.prometheus.port` have been removed and tells users to switch to `envoy.prometheus.*`. Values set under a removed key are no longer honoured, so setting-ignored (mandatory work) is the right kind. The validators confirm the keys are gone from the target values [ev-28e0ccb5774a, ev-39a22d88e2f5]. The proposed statement is wrong in two ways: it leaves out `proxy.prometheus.port`, and it claims monitoring \"will not be enabled\", which assumes a default for `envoy.prometheus.enabled` that the evidence never states. I corrected the statement and set severity to medium.",
+    "citations": [
+      "ev-69b054a33ac2"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.16.0 the deprecated Helm values `proxy.prometheus.enabled` and `proxy.prometheus.port` were removed. Anything set under them is no longer honoured; use `envoy.prometheus.enabled` and `envoy.prometheus.port` instead.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "medium",
+        "statement": "Values set under `proxy.prometheus.enabled` and `proxy.prometheus.port` are no longer honoured after the upgrade because the options have been removed; the equivalent settings must be provided via `envoy.prometheus.enabled` and `envoy.prometheus.port`.",
+        "remediation": "Move any `proxy.prometheus.enabled` and `proxy.prometheus.port` settings in your Helm values to `envoy.prometheus.enabled` and `envoy.prometheus.port` when upgrading to 1.16.0."
+      }
+    }
+  }
+}

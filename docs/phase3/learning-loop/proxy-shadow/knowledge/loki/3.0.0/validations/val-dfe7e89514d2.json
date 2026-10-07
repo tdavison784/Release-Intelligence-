@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-dfe7e89514d2",
+    "candidateId": "sc-d79c5b534d98",
+    "proposalId": "sp-2f9b7f6f887e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "GET /prometheus/api/v1/rules",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ruler.enable-api",
+              "component": "ruler",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "RULER_ENABLE_API",
+              "component": "ruler",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `/prometheus/api/v1/rules` endpoint now accepts optional filtering query parameters (rule_name, rule_group, file, type) to narrow results; existing queries without these parameters continue to work unchanged.",
+        "severity": "low"
+      },
+      "statement": "Loki Ruler's `/prometheus/api/v1/rules` API endpoint now supports filtering results by rule_name, rule_group, file, and type query parameters."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:api-endpoint/behavior-changed",
+        "detail": "no canonical exposure condition for api-endpoint behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

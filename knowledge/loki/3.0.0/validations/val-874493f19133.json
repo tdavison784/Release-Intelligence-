@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-874493f19133",
+    "candidateId": "sc-930198f08f58",
+    "proposalId": "sp-8c090d4611b2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--ingester.max-transfer-retries",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `max_transfer_retries` setting will be ignored and no longer honored during chunk transfer operations when ingesters shut down during rolling restarts, requiring reliance on the Write Ahead Log (WAL) instead.",
+        "severity": "high"
+      },
+      "statement": "The ingester configuration setting `max_transfer_retries` and its corresponding CLI flag `-ingester.max-transfer-retries` are removed in Loki 3.0.0 in favor of the Write Ahead Log (WAL)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

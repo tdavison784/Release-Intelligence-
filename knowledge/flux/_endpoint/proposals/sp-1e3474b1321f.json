@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1e3474b1321f",
+    "candidateId": "sc-f83f7d1d03e2",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmChart",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmChart"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmChart objects submitted on source.toolkit.fluxcd.io/v1beta2 that omit status.artifact.digest are rejected by the tightened schema validation.",
+        "remediation": "Ensure HelmChart objects submitted on source.toolkit.fluxcd.io/v1beta2 include status.artifact.digest (the value the source controller records in status.artifact).",
+        "severity": "medium"
+      },
+      "statement": "The computed artifact diff between the v2.6.4 and v2.7.0 install bundles shows that status.artifact.digest is newly required in the source.toolkit.fluxcd.io/v1beta2 schema of helmcharts.source.toolkit.fluxcd.io, and HelmChart objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:215ed1875f87aadfa04ead6dfd9aaaff20e63273808dedb6e179a01cc3fad556",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:26:03Z",
+      "callId": "efedce6b-0c33-4b5b-a540-fc43294bcc4b"
+    }
+  }
+}

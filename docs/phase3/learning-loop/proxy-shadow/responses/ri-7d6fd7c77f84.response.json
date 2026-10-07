@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7d6fd7c77f84",
+  "promptDigest": "sha256:f4a442675b5fc3e1a17f96dd0ee33ccf437deb97d9aed0af511071f91bdeea81",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ba446f2b-7dd1-4e04-8278-2f8438e9d71d",
+  "startedAt": "2026-10-03T02:22:59.251Z",
+  "decidedAt": "2026-10-03T02:23:14.561Z",
+  "durationMs": 14480,
+  "costUSD": 0.074216,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-430fc91e4c1d] says the `--registry` default-registry flag is removed, that all packages must use fully qualified names including the registry host name, and to \"Update any packages without registry host names before upgrading\". That is a required step before upgrading (migration-required). The evidence never says unqualified packages \"will not resolve\", so the proposed setting-ignored statement goes beyond the text. The action-required class and high severity stay the same.",
+    "citations": [
+      "ev-430fc91e4c1d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Crossplane 2.0 removes the `--registry` default package registry flag. All packages must use fully qualified names including the registry host name, and packages without one must be updated before upgrading.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "migration-required",
+        "severity": "high",
+        "statement": "The `--registry` flag for a default package registry is removed and all packages must now use fully qualified names including the registry host name. The upgrade guide requires updating any package without a registry host name before upgrading.",
+        "remediation": "Run `kubectl get pkg -o wide` and, before upgrading, update any package reference without a registry host name to a fully qualified name, e.g. `crossplane-contrib/provider-aws-s3:v1.23.0` -> `xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v1.23.0`."
+      }
+    }
+  }
+}

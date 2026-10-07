@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f455fa3435d",
+    "reviewItemId": "ri-6a367d0f95e6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The pending-requests metric is emitted only under the new name envoy_cilium_npds_control_plane_pending_requests, so monitoring that references the old per-node name will no longer receive data for it.",
+        "remediation": "Update dashboards, alerts and queries that reference envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests to use envoy_cilium_npds_control_plane_pending_requests.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests is renamed to envoy_cilium_npds_control_plane_pending_requests, so it is no longer exposed under the old per-node name."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:f07f139399e80573a2e60560ce9bc3256b2e24f294d8c619b7f7801c1535d82a",
+      "inputEvidence": [
+        "ev-b142822738f9",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:26:20.287Z",
+      "callId": "6c515714-a105-4d87-9e9f-151b24892e10",
+      "provider": "anthropic"
+    },
+    "reason": "The upgrade notes say all Envoy NPDS metrics had their prefix renamed from `envoy_cilium_policymap_<node-ip>_<node-id>_` to `envoy_cilium_npds_` [ev-77f05428497a]. They list this metric's old name becoming `envoy_cilium_npds_control_plane_pending_requests` [ev-b142822738f9]. So the metric is now published only under the new name, and monitoring that queries the old name gets no data. The evidence does not say that anything fails, is rejected or must be migrated, so a review-class behavior-change at low severity is the right reading. A failure kind would claim more mandatory work than the evidence supports.",
+    "startedAt": "2026-10-03T12:26:13.491Z",
+    "decidedAt": "2026-10-03T12:26:20.287Z"
+  }
+}

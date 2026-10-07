@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-85f59a2224d0",
+    "candidateId": "sc-f0397237fdc5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.emitWarning"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for an operator who does nothing: the field is new and optional with schema default false, so existing policies keep the previous behaviour; setting it is an opt-in that returns admission-response warnings at the documented cost of extended admission request processing times.",
+        "remediation": "None required; an operator may opt in by setting spec.emitWarning on a Policy/ClusterPolicy to receive warnings for mutate rules or validate rules with validationFailureAction Audit.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional boolean spec.emitWarning field (schema default false) to kyverno.io ClusterPolicy and Policy resources which, when set, returns warning messages along with admission responses to report policy violations as well as mutations upon admission events."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-e47234304fa3",
+      "ev-fb4370b76542",
+      "ev-4cfdef775223",
+      "ev-6aaf9d482a51",
+      "ev-50d874fa9a77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:f5753aac60fe667af4c0fafab9045041f52c6997de3f9272df3021d5c35ae8c8",
+      "inputEvidence": [
+        "ev-e47234304fa3",
+        "ev-fb4370b76542",
+        "ev-4cfdef775223",
+        "ev-6aaf9d482a51",
+        "ev-50d874fa9a77"
+      ],
+      "generatedAt": "2026-10-02T16:23:11Z",
+      "callId": "cfea1aec-97e1-47f7-9c7a-0ca6f002a93a"
+    }
+  }
+}

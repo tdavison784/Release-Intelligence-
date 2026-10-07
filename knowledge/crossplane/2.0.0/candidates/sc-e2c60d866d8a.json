@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-e2c60d866d8a",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "members": [
+      {
+        "changeId": "chg-d41aa841159d",
+        "anchor": {
+          "release": "2.0.0",
+          "evidenceKeys": [
+            "ek-295d83b0a0f5"
+          ],
+          "statementKeys": [
+            "sk-580535a86544"
+          ],
+          "changeIds": [
+            "chg-d41aa841159d"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Pass provider, function and revisions names to runtime pods by @turkenh in https://github.com/crossplane/crossplane/pull/6634",
+    "evidence": [
+      {
+        "id": "ev-dd5406a09d5e",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L173-L173 (🏅 Release MVP › What's Changed)",
+        "excerpt": "* Pass provider, function and revisions names to runtime pods by @turkenh in https://github.com/crossplane/crossplane/pull/6634",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      },
+      {
+        "id": "ev-825d5637095d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6634",
+        "locator": "title and description",
+        "excerpt": "PR: Pass provider, function and revisions names to runtime pods [closed]\n### Description of your changes\n\nThere could be some cases where the process running inside the provider/function runtime may want to know the provider or revision name.\nThis PR passes `REVISION_NAME`, `REVISION_UID` and `PROVIDER_NAME` or `FUNCTION_NAME` environment variables to runtime pods through downwards api.\n\nI've validated the resulting function has the following, and I can access the correct values from the process running inside (similarly for provider):\n\n```yaml\ncontainers:\n- env:\n- name: FUNCTION_NAME",
+        "contentDigest": "sha256:1cc28569ed78c8e31e6a728e2385f1dd1e0c14a48d08161be19b4dcd4b4ef795",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      },
+      {
+        "id": "ev-52f028ee60f5",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6634",
+        "locator": "description (part 2)",
+        "excerpt": "valueFrom:\nfieldRef:\napiVersion: v1\nfieldPath: metadata.labels['pkg.crossplane.io/function']\n- name: REVISION_NAME\nvalueFrom:\nfieldRef:\napiVersion: v1\nfieldPath: metadata.labels['pkg.crossplane.io/revision']\n- name: REVISION_UID\nvalue: 87d9b221-3608-4ba5-b421-b2282e616cea\n```\n\nI have:\n\n- [x] Read and followed Crossplane's [contribution process].\n- [x] Run `earthly +reviewable` to ensure this PR is ready for review.\n- [x] Added or updated unit tests.\n- [ ] ~Added or updated e2e tests.~\n- [ ] ~Linked a PR or a [docs …",
+        "contentDigest": "sha256:1cc28569ed78c8e31e6a728e2385f1dd1e0c14a48d08161be19b4dcd4b4ef795",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      },
+      {
+        "id": "ev-3431e6cf1ca2",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6634",
+        "locator": "changed files",
+        "excerpt": "8 changed file(s): apis/pkg/v1/interfaces.go, cmd/crank/beta/top/top_test.go, internal/controller/pkg/runtime/migration.go, internal/controller/pkg/runtime/migration_test.go, internal/controller/pkg/runtime/runtime.go, internal/controller/pkg/runtime/runtime_function.go, internal/controller/pkg/runtime/runtime_provider.go, internal/controller/pkg/runtime/runtime_test.go",
+        "contentDigest": "sha256:1cc28569ed78c8e31e6a728e2385f1dd1e0c14a48d08161be19b4dcd4b4ef795",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:22Z"
+  }
+}

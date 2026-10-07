@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-80c77b52be94",
+    "candidateId": "sc-7ad78a77e858",
+    "proposalId": "sp-0990e3beb518",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cilium",
+        "name": "consul"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "consul",
+          "state": "in-range",
+          "range": ">=1.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Cilium deployments configured to use Consul for state synchronization will fail to function, as Consul support has been removed and is no longer available in this release.",
+        "remediation": "Remove Consul configuration from Cilium settings before upgrading, or keep Cilium on v1.16 or earlier. Migrate state synchronization to supported backends.",
+        "severity": "high"
+      },
+      "statement": "Support for Consul state synchronization, deprecated since v1.12, is removed and no longer available."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/removed",
+        "detail": "no canonical exposure condition for product-relationship removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2ba26d665a9d",
+    "candidateId": "sc-c6e8607e8d3a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret",
+        "path": "spec.externalSecretSpec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.externalSecretSpec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterExternalSecret v1beta1 resources with spec.externalSecretSpec.target.template.engineVersion set to \"v1\" are rejected by the API server.",
+        "remediation": "Change engineVersion to a value still allowed by the schema before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The v1beta1 ClusterExternalSecret schema no longer allows \"v1\" for spec.externalSecretSpec.target.template.engineVersion, so resources setting it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:97309d76d87433edbfa9e7a660100e72a5cfeb2a0d2c9524010e79b169d22be6",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T16:12:16Z",
+      "callId": "687ad04a-39cd-4567-b9fd-0929b5fcd48d"
+    }
+  }
+}

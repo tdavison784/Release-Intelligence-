@@ -1,5 +1,7 @@
 # Go toolchain release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** go.googlesource.com and go.dev/dl answer; `storage.googleapis.com/golang` still answers 403 (dl.google.com serves the same objects, range GET 206). The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could not be checked here (egress policy or inferred).
 `RAW` = `https://raw.githubusercontent.com/golang/go`. go.googlesource.com is the canonical git host (UNVERIFIED: not needed, the GitHub mirror carried every ref used here); `github.com/golang/go` is the mirror the definition uses.
 

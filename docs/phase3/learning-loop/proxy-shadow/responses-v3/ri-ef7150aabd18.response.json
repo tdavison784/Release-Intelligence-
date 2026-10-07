@@ -1,0 +1,70 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ef7150aabd18",
+  "promptDigest": "sha256:ebca2970b823b204073e81d37e433a553d99b6937c7f9bce3d4280793d698024",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "655ea681-eeb1-4f8f-ba0c-26af901a4eae",
+  "startedAt": "2026-10-03T17:06:21.948Z",
+  "decidedAt": "2026-10-03T17:06:35.448Z",
+  "durationMs": 12683,
+  "costUSD": 0.141632,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a1ca6a9f17f1] only says the HTTP handler `/ingester/flush_shutdown` was removed. It never mentions `--ingester.flush-on-shutdown`, and that flag does not decide whether anything calls the removed endpoint, so the proposed condition flags the wrong environments. Only callers of the endpoint are exposed. A workload preStop hook pointing at the path can be seen in the config: [ev-73055e956e96] shows preStop hooks call ingester shutdown endpoints. External scripts or clients calling it are runtime-only and are marked undecidable.",
+    "citations": [
+      "ev-a1ca6a9f17f1",
+      "ev-73055e956e96"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the legacy ingester HTTP handler `/ingester/flush_shutdown`. Exposed: environments whose workloads point a preStop httpGet hook at that path, or whose external scripts or clients call it at runtime.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "StatefulSet",
+              "group": "apps",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.spec.containers[].lifecycle.preStop.httpGet.path",
+                  "state": "equals",
+                  "values": [
+                    "/ingester/flush_shutdown"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "Deployment",
+              "group": "apps",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.spec.containers[].lifecycle.preStop.httpGet.path",
+                  "state": "equals",
+                  "values": [
+                    "/ingester/flush_shutdown"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any external script, operator tooling or client calls /ingester/flush_shutdown at runtime"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+# Customer Helm values for Cilium (eval fixture cilium-1.16-1.17--plant-edge,
+# a 3-node bare-metal edge cluster at a manufacturing site).
+# Grounding, chart values at the two tags:
+#   1.16.0: encryption.wireguard.userspaceFallback: false ("Enables the
+#           fallback to the user-space implementation (deprecated)");
+#           externalWorkloads.enabled: false; hubble.tls.auto.method:
+#           helm|cronJob|certmanager with certValidityDuration: 1095;
+#           dnsProxy.endpointMaxIpPerHostname: 50; bgpControlPlane.enabled:
+#           false next to the legacy bgp.enabled metallb-bgp block.
+#   1.17.0: userspaceFallback gone; certValidityDuration: 365;
+#           endpointMaxIpPerHostname: 1000; bgp.* block gone;
+#           tls.secretsBackend deprecated (~) in favour of
+#           tls.readSecretsOnlyFromSecretsNamespace.
+# https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
+# https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
+cluster:
+  name: plant-edge
+kubeProxyReplacement: true
+k8sServiceHost: 10.60.0.1
+k8sServicePort: 443
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.60.0.0/16
+encryption:
+  enabled: true
+  type: wireguard
+  wireguard:
+    # Two of the three nodes run Ubuntu 20.04 (5.4 kernels, no in-tree
+    # WireGuard); the userspace fallback keeps their pod traffic encrypted.
+    # v1.17.0 removes it: "Users of WireGuard transparent encryption are
+    # required to use a Linux kernel with WireGuard support."
+    userspaceFallback: true
+clustermesh:
+  useAPIServer: true
+  config:
+    enabled: true
+    clusters:
+      - name: plant-central
+        ips:
+          - 10.60.255.10
+externalWorkloads:
+  # Two legacy historian VMs are registered with
+  # `cilium clustermesh vm register` over the plant WAN.
+  enabled: true
+bgpControlPlane:
+  # LoadBalancer IPs are announced to the site router with the BGP control
+  # plane (see manifests/bgp-advertisement.yaml); the legacy metallb-bgp
+  # `bgp:` block was never used on this cluster.
+  enabled: true
+# TLS visibility: tls.secretsBackend (deprecated in v1.17.0), its replacement
+# readSecretsOnlyFromSecretsNamespace, tls.secretSync.* and upgradeCompatibility
+# are all unset (chart defaults); manifests/historian-scrape-cnp.yaml keeps its
+# terminatingTLS certificate in kube-system.
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  tls:
+    auto:
+      enabled: true
+      # The quarterly certgen CronJob (hubble-generate-certs) regenerates
+      # certificates; certValidityDuration is deliberately left unset, so
+      # the 1.16 default of 1095 days applies today and the lowered 365-day
+      # default applies to certificates generated after the v1.17.0 upgrade.
+      method: cronJob
+dnsProxy:
+  # endpointMaxIpPerHostname deliberately unset: the 1.16 default of 50
+  # applies to the toFQDNs rule in manifests/historian-scrape-cnp.yaml;
+  # v1.17.0 raises the default to 1000.
+operator:
+  replicas: 1

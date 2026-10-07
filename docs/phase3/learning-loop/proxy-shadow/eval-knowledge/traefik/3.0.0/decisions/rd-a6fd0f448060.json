@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a6fd0f448060",
+    "reviewItemId": "ri-e978278b8499",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The InfluxDB v1 metrics provider (metrics.influxDB) was removed in Traefik v3; leaving its static configuration in place prevents Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6ce57b06041d109ceee38feba69a31222c014d155f05ef861a957f80ccf8ffcf",
+      "inputEvidence": [
+        "ev-a8010075f3de"
+      ],
+      "generatedAt": "2026-10-03T17:06:01.912Z",
+      "callId": "6b724c6b-3fb2-43b2-994c-bf4a8609a962",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-a8010075f3de] says the InfluxDB v1 metrics provider was removed in v3. It gives `metrics: influxDB: {}` (file) and `--metrics.influxDB=true` (CLI) as v2 static configuration that \"would prevent Traefik to start\". The proposed exposure reads both of those places: the metrics.influxDB key and the --metrics.influxDB flag. It does not flag environments that have no InfluxDB v1 configuration. Two gaps keep this at low confidence: no source lists where this product reads configuration, and a static file supplied through a ConfigMap, or a sub-option flag such as --metrics.influxDB.address, could be missed.",
+    "startedAt": "2026-10-03T17:05:44.802Z",
+    "decidedAt": "2026-10-03T17:06:01.912Z",
+    "resultingFact": "vf-a00de7a3b477"
+  }
+}

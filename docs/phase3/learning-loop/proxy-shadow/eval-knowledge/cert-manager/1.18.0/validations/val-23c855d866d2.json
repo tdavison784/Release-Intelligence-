@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-23c855d866d2",
+    "candidateId": "sc-f7925b79e2e4",
+    "proposalId": "sp-1c41b949505f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "global.rbac.disableHTTPChallengesRole"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Operators who leave the new value unset are unaffected: the default (false) keeps HTTP-01 ACME challenges enabled and cert-manager's pod-creation permission in place, so nothing changes on upgrade.",
+        "remediation": "Optionally set global.rbac.disableHTTPChallengesRole=true if HTTP-01 ACME challenges are not required, to drop cert-manager's permission to create pods.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds the Helm value global.rbac.disableHTTPChallengesRole (default false), which when set disables HTTP-01 ACME challenges so cert-manager can drop its permission to create pods."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

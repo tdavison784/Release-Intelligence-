@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-033a2cbe88a3",
+    "candidateId": "sc-413ea0b3d406",
+    "proposalId": "sp-8fe6e84211fd",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "proxy.prometheus.enabled"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "envoy.prometheus.enabled"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "proxy.prometheus.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration key `proxy.prometheus.enabled` is no longer honoured; Prometheus monitoring for the proxy/Envoy will not be enabled unless the new `envoy.prometheus.enabled` key is used.",
+        "remediation": "Replace `proxy.prometheus.enabled` with `envoy.prometheus.enabled` and `proxy.prometheus.port` with `envoy.prometheus.port` in your Helm values before or during the upgrade to 1.16.0.",
+        "severity": "high"
+      },
+      "statement": "The deprecated Helm values `proxy.prometheus.enabled` and `proxy.prometheus.port` have been removed in Cilium 1.16.0; users must migrate to `envoy.prometheus.enabled` and `envoy.prometheus.port`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

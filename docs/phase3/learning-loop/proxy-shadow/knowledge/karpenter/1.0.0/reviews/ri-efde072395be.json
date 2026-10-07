@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-efde072395be",
+    "candidateId": "sc-a94334b2979e",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Add eks:eks-cluster-name tag and remove karpenter.sh/managed-by annotation (#6589) #6589 (Reed Schalo)\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Karpenter no longer applies the karpenter.sh/managed-by annotation and instead adds an eks:eks-cluster-name tag, so the identifying metadata on affected resources differs from previous releases; anything matching the old annotation will no longer find it.",
+        "remediation": "Verify whether any tooling, selectors or automation read the karpenter.sh/managed-by annotation or should consume the new eks:eks-cluster-name tag.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 removes the karpenter.sh/managed-by annotation and adds an eks:eks-cluster-name tag instead."
+    },
+    "proposals": [
+      "sp-168bdd23731f",
+      "sp-2190dd733add",
+      "sp-859cfd645ed1",
+      "sp-a4fbdee5ac56",
+      "sp-b2bcfb90bd66",
+      "sp-c5479384f1d4"
+    ],
+    "validations": [
+      "val-073dde800282",
+      "val-c5295519dd13"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-03T08:19:32Z"
+  }
+}

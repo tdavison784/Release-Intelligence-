@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-08fe8c2055df",
+    "candidateId": "sc-e57ca6092b51",
+    "proposalId": "sp-8a4f211383ac",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--probe",
+        "component": "cilium-health"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or automation invoke `cilium-health status --probe` (e.g. via kubectl exec, scripts, or monitoring jobs) and rely on it performing a synchronous probe"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "An environment whose operators or automation invoke `cilium-health status --probe` still gets output, but the hidden flag now returns the results of the most recent cached probe instead of performing a synchronous probe, and the option will be removed in a future release (breaking those invocations then).",
+        "remediation": "Stop relying on `cilium-health status --probe` for fresh synchronous probe results: its output is now the most recent cached probe, and usages should be reworked before the option is removed in a future release.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, `cilium-health status --probe` no longer runs a synchronous probe: it is now a hidden option that returns the results of the most recent cached probe, and it will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/deprecated",
+        "detail": "no canonical exposure condition for cli-flag deprecated"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

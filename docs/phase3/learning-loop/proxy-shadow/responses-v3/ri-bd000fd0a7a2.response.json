@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bd000fd0a7a2",
+  "promptDigest": "sha256:9340210fc56f42df78438b5922e91c4c0bec9268ad1451d39129190aca370cd2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f32235f3-cd5c-4dd4-b45b-ee3a5d9225dd",
+  "startedAt": "2026-10-03T17:00:03.956Z",
+  "decidedAt": "2026-10-03T17:00:20.032Z",
+  "durationMs": 15378,
+  "costUSD": 0.099104,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c3d5e62490c3] says OperatorHub packages are no longer published and v1.16.5 is the last release there. The publishing has already stopped, and no later break is announced, so this isn't a deprecation. The evidence also doesn't say that existing OperatorHub installs fail, that upgrades fail or that a migration is required, so no failure kind is supported. The effect is that these environments stop getting newer releases through that channel, which fits behavior-change and stays a review item.",
+    "citations": [
+      "ev-c3d5e62490c3"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "cert-manager no longer publishes OperatorHub packages (RedHat OpenShift OperatorHub, operatorhub.io); v1.16.5 is the last release there. Environments that get cert-manager from OperatorHub will receive nothing newer through that channel. The release note does not say existing installs fail.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "An environment that gets cert-manager from OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io) will not receive any release after v1.16.5 through that channel, because the maintainers no longer publish packages there. The release note does not say that existing installations stop working.",
+        "remediation": "To get cert-manager releases newer than v1.16.5, install and upgrade it through a distribution channel other than OperatorHub. The cert-manager-olm repository is archived."
+      }
+    }
+  }
+}

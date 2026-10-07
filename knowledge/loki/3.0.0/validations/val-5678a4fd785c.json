@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5678a4fd785c",
+    "candidateId": "sc-767b68dac593",
+    "proposalId": "sp-20d6a536ce0c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "write.lifecycle.preStop.exec.command"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"/ingester/shutdown\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "values-key",
+              "path": "write",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Write pods now use the `/ingester/shutdown` endpoint for graceful shutdown during termination.",
+        "severity": "low"
+      },
+      "statement": "The Helm chart for Loki 3.0.0 uses `/ingester/shutdown` for the preStop hook in write pods."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/behavior-changed",
+        "detail": "no canonical exposure condition for helm-value behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

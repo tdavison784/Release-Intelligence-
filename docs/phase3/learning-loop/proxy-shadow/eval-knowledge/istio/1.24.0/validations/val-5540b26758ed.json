@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5540b26758ed",
+    "candidateId": "sc-cacb159a2363",
+    "proposalId": "sp-73b9e0538e32",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_DEFERRED_STATS_CREATION",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ENABLE_DEFERRED_STATS_CREATION",
+          "component": "agent",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Envoy statistics are now created lazily by default, which saves memory and CPU cycles when stats are not referenced; the previous behavior of creating all statistics upfront can be restored by setting ENABLE_DEFERRED_STATS_CREATION to false.",
+        "severity": "low"
+      },
+      "statement": "An experimental environment variable ENABLE_DEFERRED_STATS_CREATION was added to the agent Deployment to control lazy creation of Envoy statistics; the feature is enabled by default and can be disabled by setting it to false."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

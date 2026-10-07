@@ -1,0 +1,35 @@
+# Attack: a cross-product requirement fact ("ingress-nginx >= 1.12 rejects
+# Exact-path HTTP01 Ingresses") evaluated against an environment whose only
+# ingress-nginx version is a CHART version (an Argo CD Application pinned to
+# chart 4.12.1, which is ingress-nginx 1.12.x but proves nothing about the app
+# version). A join that read chart-as-app would decide; the honest verdict is
+# UNKNOWN.
+id: knowledge-chart-version-inventory
+attacks: cross-product fact decided by a chart version the inventory lists
+expectation: >-
+  unknown (impact:knowledge-undecided, cross-product-context-gap): a chart
+  version is never read as the app version; never exposed, never clear
+knowledge:
+  facts:
+    - level: human
+      subject: {family: product-relationship, name: ingress-nginx}
+      change: {type: requirement-changed, after: ">=1.12.0"}
+      exposure: {op: product-version, name: ingress-nginx, state: in-range, range: ">=1.12.0"}
+      consequence: {kind: workload-failure, statement: "HTTP01 challenges fail: ingress-nginx rejects the Exact-path Ingress the solver creates."}
+      statement: "HTTP01 solver paths are now PathType Exact; ingress-nginx >= 1.12 rejects them under strict path validation."
+      anchors: ["ingress-nginx 1.12 rejects the Exact-path Ingress the HTTP01 solver creates"]
+edge:
+  changes:
+    - rule: note
+      title: "ingress-nginx 1.12 rejects the Exact-path Ingress the HTTP01 solver creates"
+      subjects: [ingress-nginx]
+      category: compatibility
+environment:
+  files: [manifests/app.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-exposed
+    - rule: impact:knowledge-clear

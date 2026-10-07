@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e1a4c6192690",
+    "candidateId": "sc-3b226877c4f2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "loki",
+        "name": "StructuredMetadata"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "loki",
+              "state": "in-range",
+              "range": ">=3.0.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schema",
+                      "state": "matches",
+                      "pattern": ".*tsdb.*"
+                    }
+                  ]
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schemaVersion",
+                      "state": "equals",
+                      "values": [
+                        "\"v13\""
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Structured Metadata is enabled by default in Loki 3.0, but environments without both tsdb index type and v13 storage schema active will not have this feature function properly.",
+        "severity": "medium"
+      },
+      "statement": "Structured Metadata is enabled by default in Loki 3.0 and requires both tsdb index type and v13 storage schema to function."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8b7267b73a1c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2e1326692c8e78e56ef066342b6a3d61657ef415c53589b1a02d51c4e6f1c743",
+      "inputEvidence": [
+        "ev-8b7267b73a1c"
+      ],
+      "generatedAt": "2026-10-02T20:53:46Z",
+      "callId": "f69fc8d5-4713-466f-ab5e-c41e313183b2"
+    }
+  }
+}

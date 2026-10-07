@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ac8b43a11e63",
+    "candidateId": "sc-0c94872faeb9",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"gRPC Metrics: In v3, the reported status code for gRPC requests is now the value of the `Grpc-Status` header\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The reported status code in gRPC request metrics now reflects the Grpc-Status header value instead of the HTTP response status code, which may change observed metrics and alert thresholds.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3.0.0, the status code reported for gRPC requests in metrics changes from the HTTP response status code to the value of the Grpc-Status header."
+    },
+    "proposals": [
+      "sp-856e2e7a2044",
+      "sp-ebb5154fe2e5"
+    ],
+    "validations": [
+      "val-7ad456d0c4e4",
+      "val-c4d14a7d7e46"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:59:28Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d66193ccaba7",
+    "candidateId": "sc-7560741348ad",
+    "proposalId": "sp-c6871b23d7c7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration",
+        "component": "policyexceptions.kyverno.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2beta1",
+          "kind": "PolicyException"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects stay stored as v2beta1 until rewritten; a storage version migration and a status.storedVersions update are needed before a later release removes v2beta1.",
+        "remediation": "Re-write all PolicyException objects and update status.storedVersions before a later release removes v2beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the policyexceptions.kyverno.io CRD changes from v2beta1 to v2, so existing objects stay stored as v2beta1 until a storage version migration is run and status.storedVersions is updated before v2beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

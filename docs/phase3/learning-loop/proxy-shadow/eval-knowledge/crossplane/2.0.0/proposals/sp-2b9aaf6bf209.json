@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2b9aaf6bf209",
+    "candidateId": "sc-3be44400117a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "xpkg login/xpkg logout",
+        "component": "Crossplane CLI"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "CI pipelines or local scripts that call `crossplane xpkg login` or `crossplane xpkg logout` will fail because the commands no longer exist in the Crossplane CLI.",
+        "remediation": "Replace `crossplane xpkg login`/`crossplane xpkg logout` in workflows and scripts with `docker login` locally or the `docker/login-action` from CI before pushing a package, as done for example in the function-auto-ready CI workflow.",
+        "severity": "medium"
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI; the release notes recommend using `docker login` locally or the `docker/login-action` from CI to authenticate to a registry before pushing a package."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The exposure condition is that an external CI pipeline or local script invokes `crossplane xpkg login`/`crossplane xpkg logout`; the release notes name no configuration key, flag, manifest field, ConfigMap key or other input among this product's configuration sources that a predicate could read to detect this, and it is not runtime behaviour, so no exposure predicate can be written.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5bbbbea35c34"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a5361fd94e780f5fdb9d75ca90af172142c35b908690968f132cfb435e652126",
+      "inputEvidence": [
+        "ev-5bbbbea35c34"
+      ],
+      "generatedAt": "2026-10-03T08:11:39Z",
+      "callId": "ca453b27-8e48-4a6f-bb30-cc2b2ea6e914"
+    }
+  }
+}

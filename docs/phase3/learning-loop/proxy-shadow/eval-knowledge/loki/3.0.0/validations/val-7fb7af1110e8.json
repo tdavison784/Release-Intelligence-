@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7fb7af1110e8",
+    "candidateId": "sc-635ece4ca068",
+    "proposalId": "sp-05731fbbafc4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--metrics-namespace"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"cortex\"",
+        "after": "\"loki\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics-namespace",
+          "component": "loki",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Metrics emitted by Loki will use the 'loki' namespace by default instead of 'cortex', changing the metric namespace prefix unless explicitly configured otherwise.",
+        "remediation": "Verify that metric scrape configurations, dashboards, and alerting rules that reference metrics with the 'cortex' namespace are updated to use the 'loki' namespace, or explicitly set --metrics-namespace=cortex to retain the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "The `metrics-namespace` CLI flag is added to Loki with a default value changed to 'loki', replacing the previous default of 'cortex' for the namespace of emitted metrics."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/default-changed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/default-changed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

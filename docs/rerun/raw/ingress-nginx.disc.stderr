@@ -1,0 +1,107 @@
+# Discovery report: ingress-nginx
+
+- Repository: `github.com/kubernetes/ingress-nginx` at `helm-chart-4.15.1` (commit `0a5901f3c64f…`)
+- Generated: 2026-10-02T12:35:14Z
+- LLM: not used (deterministic resolver only)
+- Tags: 275 tags: prefix "helm-chart-", 119 stable, 6 prereleases (beta.N×6), 150 junk; latest stable helm-chart-4.15.1; lineage minor
+- Strict tag pattern: `^helm-chart-(?P<version>\d+\.\d+\.\d+(?:-(?:beta\.\d+))?)$` (junk sample: controller-v0.34.0, controller-v0.34.1, controller-v0.35.0, controller-v0.40.0, controller-v0.40.1, controller-v0.40.2)
+- Scanned `github.com/kubernetes/ingress-nginx@helm-chart-4.15.1` (source profile): 1146 files listed, 503 read
+- Scanned `github.com/kubernetes/k8s.io@main` (docs profile): 16823 files listed, 118 read
+- Validation: done against helm-chart-4.13.0, helm-chart-4.13.9, helm-chart-4.14.0, helm-chart-4.14.5, helm-chart-4.15.0, helm-chart-4.15.1
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 8 | git-tags github.com/kubernetes/ingress-nginx; github-releases kubernetes/ingress-nginx |
+| release-notes | found | 2 | repo-file github.com/kubernetes/ingress-nginx charts/ingress-nginx/changelog/helm-chart-{{.Version}}.md; github-releases kubernetes/ingress-nginx  @{{.Tag}} |
+| changelog | candidates-only | 1 |  |
+| helm-charts | found | 7 | ingress-nginx via helm-repo:https://kubernetes.github.io/ingress-nginx, helm-repo:https://raw.githubusercontent.com/kubernetes/ingress-nginx/gh-pages, helm-git:github.com/kubernetes/ingress-nginx |
+| registries | found | 8 | eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256; k8s.gcr.io/kubernetes; quay.io/repository/kubernetes-ingress-controller; quay.io/repository/kubernetes-ingress-controller/nginx-ingress… |
+| images | found | 32 | eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories kubernetes/ingress-nginx |
+| version-relations | found | 1 | ingress-nginx-chart: version = {{.Version}}; deploy-static-provider-aws-deploy: version = {{.Tag}}; deploy-static-provider-do-deploy: version = {{.Tag}}; deploy-static-provider-scw-deploy: version = {{.Tag}}; deploy-stat… |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:deploy-static-provider-aws-deploy | historically-validated | manifest.in-repo-install | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/deploy/static/provider/aws/deploy.yaml#L396 |
+| artifact:deploy-static-provider-baremetal-deploy | historically-validated | manifest.in-repo-install | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/.github/ISSUE_TEMPLATE/bug_report.md#L98 |
+| artifact:deploy-static-provider-do-deploy | historically-validated | manifest.in-repo-install | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/deploy/static/provider/do/deploy.yaml#L395 |
+| artifact:deploy-static-provider-scw-deploy | historically-validated | manifest.in-repo-install | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/deploy/static/provider/scw/deploy.yaml#L395 |
+| artifact:ingress-nginx-chart | historically-validated | helm.version-matches-release | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/charts/ingress-nginx/Chart.yaml#L20 (+1) |
+| source:release-notes-docs | historically-validated | notes.per-release-file | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/charts/ingress-nginx/changelog/helm-chart-4.15.1.md# |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/.github/workflows/plugin.yaml#L30 (+1) |
+| artifact:controller | unverified | image.tag-assumed-release | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/.github/workflows/vulnerability-scans.yaml#L59 |
+| artifact:defaultbackend-amd64 | unverified | image.tag-assumed-release | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/charts/ingress-nginx/values.yaml#L1031 |
+| artifact:kubectl-ingress-nginx-binary | unverified | asset.hosted-release-download | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/.goreleaser.yaml#L28 |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/SECURITY.md#L1 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.15.1/.github/workflows/plugin.yaml#L30 (+1) |
+| source:tags | discovered | versions.git-tags | https://github.com/kubernetes/ingress-nginx/releases/tag/helm-chart-4.15.1#refs/tags/helm-chart-4.15.1 |
+| versioning | discovered | tags.scheme | https://github.com/kubernetes/ingress-nginx/releases/tag/helm-chart-4.15.1#refs/tags/helm-chart-4.15.1 |
+
+Statuses: 7 historically-validated, 4 discovered, 3 unverified.
+
+## Open questions for the reviewer
+
+- Changelog.md stops at 1.5.1; confirm it is abandoned (release notes come from other sources).
+- Ambiguity (registry-roles): 11 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | helm-chart-4.13.0 | helm-chart-4.13.9 | helm-chart-4.14.0 | helm-chart-4.14.5 | helm-chart-4.15.0 | helm-chart-4.15.1 |
+|---|---|---|---|---|---|---|---|
+| artifact:controller | failing |  |  |  |  |  |  |
+| artifact:defaultbackend-amd64 | unverifiable |  |  |  |  |  |  |
+| artifact:deploy-static-provider-aws-deploy | validated |  |  |  |  |  |  |
+| artifact:deploy-static-provider-baremetal-deploy | validated |  |  |  |  |  |  |
+| artifact:deploy-static-provider-do-deploy | validated |  |  |  |  |  |  |
+| artifact:deploy-static-provider-scw-deploy | validated |  |  |  |  |  |  |
+| artifact:ingress-nginx-chart | validated |  |  |  |  |  |  |
+| artifact:kubectl-ingress-nginx-binary | failing |  |  |  |  |  |  |
+| content:deploy-static-provider-aws-deploy/image-refs | validated |  |  |  |  |  |  |
+| content:deploy-static-provider-baremetal-deploy/image-refs | validated |  |  |  |  |  |  |
+| content:deploy-static-provider-do-deploy/image-refs | validated |  |  |  |  |  |  |
+| content:deploy-static-provider-scw-deploy/image-refs | validated |  |  |  |  |  |  |
+| content:ingress-nginx-chart/chart-metadata | validated |  |  |  |  |  |  |
+| content:ingress-nginx-chart/helm-values | validated |  |  |  |  |  |  |
+| source:release-notes-docs | validated |  |  |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:kubectl-ingress-nginx-binary` (deterministic): failed validation: 4.13.0 fail (absent from https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.13.0/kubectl-ingress-nginx_linux_amd64.tar.gz); 4.13.9 fail (absent from https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.13.9/kubectl-ingress-nginx_linux_amd64.tar.gz); 4.14.0 fail (absent from https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.14.0/kubectl-ingress-nginx_linux_amd64.tar.gz); 4.14.5 fail (absent from https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.14.5/kubectl-ingress-nginx_linux_amd64.tar.gz); …
+- `artifact:controller` (deterministic): failed validation: 4.13.0 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.0); 4.13.9 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.9); 4.14.0 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.14.0); 4.14.5 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.14.5); …
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 275 tags: prefix "helm-chart-", 119 stable, 6 prereleases (beta.N×6), 150 junk; latest stable helm-chart-4.15.1; lineage minor; strict tagPattern excludes junk tags such as controller-v0.34.0, controller-v0.34.1, contro… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (275 tags: prefix "helm-chart-", 119 stable, 6 prereleases (beta.N×6), 150 junk; latest stable helm-chart-4.15.1; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-docs | include | notes.per-release-file | heuristic | One notes document per release (127 instances, newest charts/ingress-nginx/changelog/helm-chart-4.15.1.md). |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:ingress-nginx-chart | include | helm.version-matches-release | heuristic | Chart.yaml at the scanned release carries version "4.15.1", the release version; chart versions follow the release ({{.Version}}). Published via 3 channel(s); OCI locations first. |
+| artifact:deploy-static-provider-aws-deploy | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:deploy-static-provider-do-deploy | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:deploy-static-provider-scw-deploy | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:deploy-static-provider-baremetal-deploy | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:kubectl-ingress-nginx-binary | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (6 reference(s)). |
+| artifact:controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:defaultbackend-amd64 | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. Published to 5 registries; ordered by evidence strength. |
+| artifact:kubectl-ingress-nginx-binary | drop | validate.failed | computed | Relationship check failed: 4.13.0 fail (absent from https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.13.0/kubectl-ingress-nginx_linux_amd64.tar.gz); 4.13.9 fail (absent from https://github.com/k… |
+| artifact:controller | drop | validate.failed | computed | Relationship check failed: 4.13.0 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.0); 4.13.9 fail (absent from registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.9); 4.14.0 fail (absent f… |
+| artifact:defaultbackend-amd64 | annotate | validate.unverifiable | computed | Kept unverified: 4.13.0 unverifiable (absent from k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.13.0; not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultb… |
+
+85 candidates were found; 39 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/ingress-nginx.report.md
+proposed definition written to docs/rerun/discovery/ingress-nginx.proposed.yaml

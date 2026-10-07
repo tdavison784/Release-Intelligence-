@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-a847d032ada6",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-d139253e7605",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-dfa0917acfda"
+          ],
+          "statementKeys": [
+            "sk-8f93c4fc78d3"
+          ],
+          "changeIds": [
+            "chg-d139253e7605"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "Fixed templated CRD installation in the `base` chart by default",
+    "text": "Fixed templated CRD installation in the `base` chart by default. Previously this only worked under certain conditions, and when certain install flags were used, could result in CRDs that could only be upgraded via manual `kubectl` intervention. Deprecated `Values.base.enableCRDTemplates`. This option now defaults to `true` and will be removed in a future release. Until then, the legacy behavior can be enabled by setting this to `false`",
+    "evidence": [
+      {
+        "id": "ev-fa194382072a",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/53318.yaml",
+        "locator": "53318.yaml L7-L11",
+        "excerpt": "- |\n  **Fixed** templated CRD installation in the `base` chart by default. Previously this only worked under certain conditions,\n  and when certain install flags were used, could result in CRDs that could only be upgraded via manual `kubectl` intervention.\n  **Deprecated** `Values.base.enableCRDTemplates`. This option now defaults to `true` and will be removed\n  in a future release. Until then, the legacy behavior can be enabled by setting this to `false`",
+        "contentDigest": "sha256:49c2919c7619d36ddf60925c0821da3d2a2e89d2897d86599a1dcf509b93c5c2",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-b53e6eba6d17",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/43204",
+        "locator": "title and description",
+        "excerpt": "issue: Istio-base helm chart does not apply CRDs with correct app, chart, and release labels [closed; labels area/user experience, lifecycle/staleproof, area/upgrade]\n### Bug Description\n\nHi,\n\nDeploying istio/base chart via Helm (with base.enableCRDTemplates set to \"true\") make CRDs be applied by following manifests :\nhttps://github.com/istio/istio/blob/master/manifests/charts/base/crds/\n\nIssue is that when you want to redeploy those CRDs (when some of them have new features, in my case EnvoyFilter getting \"priority\" spec, included in istiod since 1.14) via Helm, I got an error saying that the…",
+        "contentDigest": "sha256:ecdaa4fa3d96b5ec97d44baff4fbb6b1651194b4257ef7abdb319cd4af895620",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-281258f5d703",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/43204",
+        "locator": "description (part 2)",
+        "excerpt": "manifests contain a resource that already exists. Unable to continue with update: CustomResourceDefinition \"wasmplugins.extensions.istio.io\" in namespace \"\" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key \"app.kubernetes.io/managed-by\": must be set to \"Helm\"; annotation validation error: missing key \"meta.helm.sh/release-name\": must be set to \"istio-base\"; annotation validation error: missing key \"meta.helm.sh/release-namespace\": must be set to …",
+        "contentDigest": "sha256:ecdaa4fa3d96b5ec97d44baff4fbb6b1651194b4257ef7abdb319cd4af895620",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:base",
+      "code:kubectl",
+      "code:Values.base.enableCRDTemplates",
+      "code:true",
+      "code:false",
+      "path:Values.base.enableCRDTemplates"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

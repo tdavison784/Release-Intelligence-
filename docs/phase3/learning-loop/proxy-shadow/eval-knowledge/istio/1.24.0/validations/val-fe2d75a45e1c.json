@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe2d75a45e1c",
+    "candidateId": "sc-d676f61f0b1c",
+    "proposalId": "sp-7e4829c9f44d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istio-clean-iptables",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs pilot-agent istio-clean-iptables on pods whose iptables contain the ISTIO_OUTPUT chain (live pod network-namespace state and operator action, not static configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Running `pilot-agent istio-clean-iptables` now removes the ISTIO_OUTPUT iptables chain that the command previously left behind, so pods cleaned with the command get a complete rule cleanup instead of a partial one.",
+        "remediation": "No operator action required; if you use istio-clean-iptables to strip intercept rules, re-run it and verify the ISTIO_OUTPUT chain is gone.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0, running `pilot-agent istio-clean-iptables` now also removes the `ISTIO_OUTPUT` iptables chain, which the command previously failed to remove."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-859143e5cd2e",
+    "candidateId": "sc-a7ff62a3be31",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "operatorhub",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "operators.coreos.com",
+              "kind": "Subscription"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments using OperatorHub or Operator Lifecycle Manager (OLM) to deploy or update cert-manager can no longer obtain versions beyond v1.16.5 from those sources; updates must switch to alternative distribution methods.",
+        "remediation": "Switch to alternative cert-manager installation methods (Helm, direct manifests, or cloud-provider distributions) for versions after v1.16.5.",
+        "severity": "high"
+      },
+      "statement": "cert-manager no longer publishes packages to OperatorHub, with v1.16.5 being the last release available on OperatorHub and the cert-manager-olm repository archived."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c3d5e62490c3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:716d3c2b135545352149b0da22b54b9b56b95c17f8e6d5dc94a6b9d376bb4eb5",
+      "inputEvidence": [
+        "ev-c3d5e62490c3"
+      ],
+      "generatedAt": "2026-10-02T05:58:39Z",
+      "callId": "a00e39fb-6096-40c3-a23a-8e8a5d090fb3"
+    }
+  }
+}

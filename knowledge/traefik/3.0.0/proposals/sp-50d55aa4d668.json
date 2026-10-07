@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-50d55aa4d668",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "internal-resources-observability"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"enabled by default\"",
+        "after": "\"disabled by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "logs.access.addInternals",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    },
+                    {
+                      "op": "values-key",
+                      "path": "metrics.addInternals",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    },
+                    {
+                      "op": "values-key",
+                      "path": "tracing.addInternals",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to v3, internal routers and services such as ping@internal no longer appear in access logs, metrics, or tracing unless the new addInternals option is enabled for the relevant observability component.",
+        "remediation": "Set the new addInternals option to true for the observability outputs where internal resources are needed (Helm values keys logs.access.addInternals, metrics.addInternals, tracing.addInternals).",
+        "severity": "low"
+      },
+      "statement": "In Traefik v3, observability for internal routers or services (e.g. ping@internal) is disabled by default, and the new addInternals option for AccessLogs, Metrics or Tracing must be used to re-enable it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-093b8f2b924f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:9032794c26b8d1a8b476f80fd412bd7da851f986d3d403f93f4dec8f41ac977c",
+      "inputEvidence": [
+        "ev-093b8f2b924f"
+      ],
+      "generatedAt": "2026-10-03T08:51:48Z",
+      "callId": "ceda717e-83ab-4dd7-9307-6145720f18ba"
+    }
+  }
+}

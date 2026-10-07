@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-422ee14b63aa",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "zookeeper-to-kraft-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Kafka cluster is still ZooKeeper-based rather than KRaft; the evidence names no field or setting that shows it"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters still ZooKeeper-based must be migrated to KRaft before upgrading to Strimzi 0.46.0 or newer, because ZooKeeper support and the migration path are removed.",
+        "remediation": "Migrate all clusters to KRaft using a Strimzi version that still supports migration, then upgrade to 0.46.0 or newer.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based clusters and for ZooKeeper-to-KRaft migration, so all clusters must already be on KRaft before upgrading to 0.46.0 or newer."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e491c8a41a478d4e03cbc46e0131310c557ff002c2a380a6aa35f7e2e0b655a1",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-02T06:00:26Z",
+      "callId": "0fa95066-1905-4ff2-b0a3-9797352eebd5"
+    }
+  }
+}

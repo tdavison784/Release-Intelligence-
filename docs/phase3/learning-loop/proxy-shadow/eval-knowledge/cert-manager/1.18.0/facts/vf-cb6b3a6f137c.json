@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-cb6b3a6f137c",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-bfdcf7c6baa6"
+        ],
+        "statementKeys": [
+          "sk-67c1e2fbda85"
+        ],
+        "changeIds": [
+          "chg-4c931993832d"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2ca1ae551e15"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "cloudflare"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Issuing of certificates via DNS01 challenges on Cloudflare, which had been broken by a breaking change to the Cloudflare API, works again after upgrading to cert-manager 1.18.0.",
+        "remediation": "After upgrading to 1.18.0, verify that Cloudflare DNS01 challenges complete and affected certificates issue and renew successfully; no configuration change is stated as required.",
+        "severity": "medium"
+      },
+      "statement": "Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-87a27574f1bd"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-87a27574f1bd"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-44e4119e6af9"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-cec9e81cdddd"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b8d6f16e3c8c",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L355-L355 (v1.18.0 › Bug or Regression)",
+        "excerpt": "- Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API ([`#7549`](https://github.com/cert-manager/cert-manager/pull/7549), [`@LukeCarrier`](https://github.com/LukeCarrier))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:58:48.769Z"
+  }
+}

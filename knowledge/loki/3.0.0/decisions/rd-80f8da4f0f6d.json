@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-80f8da4f0f6d",
+    "reviewItemId": "ri-7a8158d33274",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log query results with empty responses now correctly honor the limit and direction parameters from the request, fixing cases where incorrect values were previously returned.",
+        "severity": "low"
+      },
+      "statement": "Loki's log results cache now composes empty responses based on the request being served, correctly respecting limit and direction parameters instead of potentially returning incorrect values."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d96d05747595d84fe92f499310df7a28dbe07155e05e25c9602fd95df2688ce1",
+      "inputEvidence": [
+        "ev-180d9754a48a"
+      ],
+      "generatedAt": "2026-10-02T23:19:17.832Z",
+      "callId": "e0d0719b-48b9-47e2-9f48-d5ef22af4167"
+    },
+    "reason": "[ev-180d9754a48a] lists this under 3.0.0 Bug Fixes. It says the log results cache now builds an empty response from the request being served, so it no longer returns an incorrect limit or direction. Nothing fails, is rejected or stops being honoured, so no failure kind is justified. The only effect is that cached empty responses now carry different, corrected values. That fits a low-severity behavior-change; calling it none would also be defensible, so confidence is low.",
+    "startedAt": "2026-10-02T23:19:10.293Z",
+    "decidedAt": "2026-10-02T23:19:17.832Z"
+  }
+}

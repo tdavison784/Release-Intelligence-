@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-864b393cec3e",
+    "candidateId": "sc-cc1a2a90f761",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The rate-limit-enforced control-plane metric is reported under the new name `envoy_cilium_npds_control_plane_rate_limit_enforced` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced`.",
+        "remediation": "Update any dashboards, alerts or queries that use the old metric name to use `envoy_cilium_npds_control_plane_rate_limit_enforced`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced` is renamed to `envoy_cilium_npds_control_plane_rate_limit_enforced`, so monitoring that queries the old name needs review."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and none of the available subject families can name a metric exactly.; change: The evidence states a rename (old -> new under 'Changed Metrics'), but no subject family fits a metric, so the required same-family replacedBy cannot be written.; applicability: Exposure depends on whether dashboards, alerts or recording rules query the old metric name. None of the listed config sources (Helm values, cilium-config, flags) carry this, and no predicate expresses it.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-caf88a546536"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7161d27cbcdf62462b028eee6763974c640105657dd72e6a62bddc7fb0429378",
+      "inputEvidence": [
+        "ev-caf88a546536"
+      ],
+      "generatedAt": "2026-10-03T11:55:32Z",
+      "callId": "6a4cda6e-5a97-467f-a493-431f7adce0e9"
+    }
+  }
+}

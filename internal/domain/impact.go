@@ -97,10 +97,24 @@ const (
 	// DimensionCluster: the cluster version of a platform (Platform names
 	// it, e.g. "kubernetes", "openshift").
 	DimensionCluster EnvironmentDimension = "cluster-version"
+	// DimensionProducts: the product inventory (--inventory, or detected
+	// from the environment), consulted by product-version conditions of
+	// verified knowledge.
+	DimensionProducts EnvironmentDimension = "products"
+	// DimensionFromVersion: the version the environment runs today, as
+	// supplied to `ri impact <product> <from> <to>` (edge-from-version
+	// conditions of verified knowledge). Always supplied.
+	// CONTRACT-CHANGE(applicability): a false edge-from-version leaf needs a
+	// check, and no other dimension names the from-version input.
+	DimensionFromVersion EnvironmentDimension = "from-version"
+	// DimensionRender: the environment's From/To renders with the customer's
+	// configuration (--render), consulted by rendered-change conditions.
+	// CONTRACT-CHANGE(render).
+	DimensionRender EnvironmentDimension = "render"
 )
 
 // AllEnvironmentDimensions lists every dimension in display order.
-var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster}
+var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts, DimensionFromVersion, DimensionRender}
 
 // ImpactCheck is one entry of a NOT AFFECTED (or partially-evaluated UNKNOWN)
 // evaluation record: which environment dimension was consulted, how many
@@ -119,7 +133,87 @@ type ImpactCheck struct {
 	// File-backed dimensions are audited through the report's
 	// environment.files section, which pins every input file by digest.
 	Evidence []EvidenceID `json:"evidence,omitempty"`
+	// Render is the render-based evaluation record of a DimensionRender
+	// check (PO-3): what the customer render (and its counterfactual
+	// variant) established. Set exactly on render-dimension checks.
+	Render *RenderCheck `json:"render,omitempty"`
 }
+
+// RenderOutcome is what a render-based evaluation established (PO-3).
+type RenderOutcome string
+
+const (
+	// RenderAttributableChange: the customer From/To renders differ, and the
+	// counterfactual variant (target with the key unset vs pinned to the old
+	// default) attributes the difference to the key.
+	RenderAttributableChange RenderOutcome = "attributable-change"
+	// RenderNoAttributableChange: both renders succeeded and nothing
+	// attributable to the key changed.
+	RenderNoAttributableChange RenderOutcome = "no-attributable-change"
+	// RenderUnavailable: no render could be produced (renderer, chart or
+	// values unavailable, or a render failed); Reason says which.
+	RenderUnavailable RenderOutcome = "unavailable"
+)
+
+// RenderCheck is the render evaluation behind a values-default verdict.
+type RenderCheck struct {
+	Outcome RenderOutcome `json:"outcome"`
+	// Key is the values key whose changed or new default was evaluated.
+	Key string `json:"key"`
+	// Counterfactual reports that the counterfactual variant (target with
+	// the key unset vs pinned to the old default) was rendered.
+	Counterfactual bool `json:"counterfactual,omitempty"`
+	// Reason explains an unavailable render (required then).
+	Reason string `json:"reason,omitempty"`
+}
+
+// Join rules of the PO-3 values-default verdicts (docs/phase3/learning-loop/
+// DECISIONS.md): a changed default (values:default-changed) or a new key
+// (values:added) that the customer leaves unset is decided by rendering.
+// They are domain constants because Validate enforces their shape.
+const (
+	// RuleValuesDefaultApplies: the render shows a change attributable to
+	// the key → review-required (stronger classes only through knowledge).
+	// Carries ≥1 rendered-change match backed by environment-render evidence.
+	RuleValuesDefaultApplies = "impact:values-default-applies"
+	// RuleValuesDefaultNoEffect: both renders succeeded and nothing
+	// attributable to the key changed → not-affected, with a render check
+	// (outcome no-attributable-change) citing the render evidence.
+	RuleValuesDefaultNoEffect = "impact:values-default-no-effect"
+	// RuleValuesDefaultUnrendered: no render was possible → not-affected (the
+	// product owner's choice), with a render check (outcome unavailable,
+	// reason) so the missing render is visible on the finding.
+	RuleValuesDefaultUnrendered = "impact:values-default-unrendered"
+)
+
+// CONTRACT-CHANGE(renderfirst): join rules of the PO-7a render-first
+// verdicts (docs/RENDER-FIRST.md). The customer's render decides exposure for
+// render-expressible changes; these are the two verdicts no earlier rule
+// could express.
+const (
+	// RuleRenderTargetRejects: the target chart refuses the customer's
+	// configuration (values.schema.json, a chart-authored fail/required)
+	// that the source chart rendered, and the refusal names a values key of
+	// the change the customer sets. The upgrade as configured fails: the
+	// consequence is established deterministically, so it is
+	// action-required. Carries a values-key match (chain 2, the customer's
+	// file) and a rendered-change match citing the environment render record
+	// of the rejection.
+	RuleRenderTargetRejects = "impact:render-target-rejects"
+	// RuleValuesSetNoEffect: the customer sets a key the target removes or
+	// newly reads, and rendering their configuration with and without it
+	// (source and target) attributes nothing of their upgrade to it →
+	// not-affected, with a no-attributable-change render check citing the
+	// render evidence.
+	RuleValuesSetNoEffect = "impact:values-set-no-effect"
+	// RuleImageRenderUnchanged: the environment references the image repository
+	// of the change, but the customer's own From→To render (with their
+	// configuration) contains no change for it — typically because they pin the
+	// reference — so the change never reaches their rendered deployment →
+	// not-affected, with a no-attributable-change render check citing both
+	// compared renders.
+	RuleImageRenderUnchanged = "impact:image-render-unchanged"
+)
 
 // ImpactMatchKind names what part of the environment matched.
 type ImpactMatchKind string
@@ -132,6 +226,20 @@ const (
 	MatchManifestField ImpactMatchKind = "manifest-field" // a field path set in a manifest
 	MatchImage         ImpactMatchKind = "image"          // a container image reference in use
 	MatchKubernetes    ImpactMatchKind = "kubernetes"     // the cluster Kubernetes version
+	// CONTRACT-CHANGE(applicability): match kinds of findings evaluated from
+	// verified knowledge (internal/impact condition evaluation).
+	MatchProduct     ImpactMatchKind = "product"      // a product-inventory entry (product + version)
+	MatchTextLine    ImpactMatchKind = "text-line"    // a line of embedded text (ConfigMap data, a multi-line string)
+	MatchReference   ImpactMatchKind = "reference"    // a resolved *Ref reference between two resources
+	MatchFromVersion ImpactMatchKind = "from-version" // the version the environment runs today (the edge's from)
+	// MatchAbsence is an examined environment record that proves something
+	// is NOT stated: a resource that leaves a field unset, a values file that
+	// does not set a key, a text block none of whose lines match. Only ever
+	// produced from a supplied, healthy dimension.
+	MatchAbsence ImpactMatchKind = "absence"
+	// MatchRenderedChange: a difference between the environment's From and
+	// To renders (customer configuration). CONTRACT-CHANGE(render).
+	MatchRenderedChange ImpactMatchKind = "rendered-change"
 )
 
 // ImpactMatch is one environment fact that made a finding fire: what matched
@@ -190,6 +298,73 @@ type ImpactFinding struct {
 	// Unknown-only, and review-required only (the AI never suggests
 	// action-required). Validate enforces the 1:1 with those enrichments.
 	SuggestedClassification ImpactClass `json:"suggestedClassification,omitempty"`
+
+	// UnknownReason says why an unknown finding is unknown (MISSION G18;
+	// docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only.
+	UnknownReason UnknownReason `json:"unknownReason,omitempty"`
+	// Knowledge is set exactly on findings produced by evaluating a
+	// VerifiedFact against the environment (rules impact:knowledge-*): which
+	// fact, and how trusted it is. The trust ladder is enforced by Validate:
+	// not-affected requires a trusted (deterministic or human) fact;
+	// action-required a trusted fact or a consensus-action fact (PO-2,
+	// labelled "model consensus"); a proxy-verified fact yields neither.
+	Knowledge *KnowledgeRef `json:"knowledge,omitempty"`
+	// RefinedFrom is set exactly on a finding (rule impact:knowledge-refined)
+	// that refines a deterministic join finding of the same change with a
+	// TRUSTED fact whose subject covers the finding's subject (PO-4): the
+	// original class and rule stay visible. The refined finding keeps the
+	// original matches and both evidence chains and replaces the original.
+	RefinedFrom *Refinement `json:"refinedFrom,omitempty"`
+}
+
+// Refinement records the deterministic finding a knowledge finding refined.
+type Refinement struct {
+	Classification ImpactClass    `json:"classification"`
+	Rule           string         `json:"rule"`
+	Severity       ImpactSeverity `json:"severity,omitempty"`
+}
+
+// RuleKnowledgeRefined is the rule of a refined finding (PO-4).
+const RuleKnowledgeRefined = KnowledgeRulePrefix + "refined"
+
+// KnowledgeRulePrefix starts the rule of every finding produced from
+// verified knowledge (impact:knowledge-exposed / -overlap / -clear /
+// -undecided).
+const KnowledgeRulePrefix = "impact:knowledge-"
+
+// KnowledgeRef links a finding to the verified fact it was evaluated from.
+type KnowledgeRef struct {
+	Fact string `json:"fact"` // VerifiedFact id (vf-…)
+	// Verification is the fact's level (its weakest aspect): deterministic,
+	// human, consensus or proxy.
+	Verification VerificationLevel `json:"verification"`
+	// Consensus labels a consensus-level fact cross-model or same-model.
+	Consensus ConsensusScope `json:"consensus,omitempty"`
+	// ConsensusAction is copied from the fact: it may yield ACTION REQUIRED
+	// through model consensus (PO-2).
+	ConsensusAction bool `json:"consensusAction,omitempty"`
+	// Audited is copied from the fact (AuditedBy set): a human accepted the
+	// fact's audit item (PO-6). Only on consensus-action findings.
+	Audited   bool   `json:"audited,omitempty"`
+	Statement string `json:"statement,omitempty"`
+	// Subject is the fact's subject; required on refined findings, whose
+	// matches it must cover (Subject.CoversMatch).
+	Subject *Subject `json:"subject,omitempty"`
+}
+
+// ActionLabel is how an ACTION REQUIRED finding from this fact is labelled
+// for humans: "verified" (deterministic/human) or "model consensus" (PO-2).
+//
+// PO-6: until a human accepts the fact's audit item the consensus label
+// reads "model consensus · unaudited".
+func (k KnowledgeRef) ActionLabel() string {
+	if k.Verification == VerifiedConsensus {
+		if !k.Audited {
+			return "model consensus · unaudited"
+		}
+		return "model consensus"
+	}
+	return "verified"
 }
 
 // ImpactSummary counts the funnel: all upstream changes, how many produced
@@ -229,8 +404,30 @@ type ImpactEnvironment struct {
 	CRDs          int `json:"crds"`
 	ManifestPaths int `json:"manifestPaths"`
 	Images        int `json:"images"`
+	// Products is the product inventory (which products run at which
+	// versions); omitted when the products dimension is absent. Entries of one
+	// product that state different versions are all kept, each naming the
+	// others in Conflict. Evidence ids resolve in ImpactReport.EnvironmentEvidence.
+	Products []ImpactProduct `json:"products,omitempty"`
+	// ProductsHealth is the state of the products dimension: "absent" (no
+	// inventory supplied or detected — NOT "no other products"), "ok" or
+	// "partial". Omitted when absent.
+	ProductsHealth string `json:"productsHealth,omitempty"`
 	// Warnings report degraded parsing (unparsable documents, caps hit, ...).
 	Warnings []string `json:"warnings,omitempty"`
+}
+
+// ImpactProduct is one product-inventory entry of the environment.
+type ImpactProduct struct {
+	Product    string       `json:"product"`
+	Catalog    bool         `json:"catalog,omitempty"` // Product is a products/<id>.yaml id
+	Version    string       `json:"version,omitempty"` // normalized semver; "" when unparsable or unstated
+	RawVersion string       `json:"rawVersion,omitempty"`
+	VersionOf  string       `json:"versionOf,omitempty"` // "app" | "chart"
+	Source     string       `json:"source"`              // declared | detected-helm | detected-argo | detected-flux | detected-image | ...
+	Note       string       `json:"note,omitempty"`
+	Conflict   string       `json:"conflict,omitempty"` // other entries of this product that state a different version
+	Evidence   []EvidenceID `json:"evidence,omitempty"`
 }
 
 // ImpactReport is the result of joining an UpgradeEdge with an environment:
@@ -436,11 +633,18 @@ func (r *ImpactReport) Validate() error {
 					errs = append(errs, fmt.Errorf("finding %s check %q references unknown environment evidence %s", f.ID, c.Dimension, id))
 				}
 			}
+			if (c.Dimension == DimensionRender) != (c.Render != nil) {
+				errs = append(errs, fmt.Errorf("finding %s: a render record is carried exactly by render-dimension checks", f.ID))
+			}
 		}
+		errs = append(errs, f.validateKnowledge()...)
 		if (f.ChangeID == "") != (f.ChangeTitle == "") {
 			errs = append(errs, fmt.Errorf("finding %s: changeId and changeTitle must be given together", f.ID))
 		}
 	}
+	errs = append(errs, r.validateKnowledgeSupersession()...)
+	errs = append(errs, r.validateValuesDefaults()...)
+	errs = append(errs, r.validateRefinements()...)
 	if r.Summary.AffectEnvironment != counts[ImpactActionRequired]+counts[ImpactReviewRequired]+counts[ImpactInformational] ||
 		r.Summary.ActionRequired != counts[ImpactActionRequired] ||
 		r.Summary.ReviewRequired != counts[ImpactReviewRequired] ||
@@ -457,6 +661,260 @@ func (r *ImpactReport) Validate() error {
 		errs = append(errs, errors.New("report 'from' must be lower than 'to'"))
 	}
 	return errors.Join(errs...)
+}
+
+// validateKnowledge enforces the unknown-reason and trust-ladder rules of one
+// finding (docs/phase3/learning-loop/DESIGN.md §4).
+func (f ImpactFinding) validateKnowledge() []error {
+	var errs []error
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("finding %s: %s", f.ID, fmt.Sprintf(format, args...)))
+	}
+	if f.UnknownReason != "" {
+		if !f.UnknownReason.Valid() {
+			bad("unknown unknownReason %q", f.UnknownReason)
+		}
+		if f.Classification != ImpactUnknown {
+			bad("unknownReason is unknown-only, class is %q", f.Classification)
+		}
+	}
+	// CONTRACT-CHANGE(applicability): mandatory now that the join assigns a
+	// reason to every unknown verdict (DESIGN.md §1.5).
+	if f.Classification == ImpactUnknown && f.UnknownReason == "" {
+		bad("an unknown finding must say why it is unknown (unknownReason)")
+	}
+	knowledgeRule := strings.HasPrefix(f.Rule, KnowledgeRulePrefix)
+	if knowledgeRule != (f.Knowledge != nil) {
+		bad("a knowledge reference is carried exactly by %s* rules", KnowledgeRulePrefix)
+	}
+	k := f.Knowledge
+	if k == nil {
+		return errs
+	}
+	// CONTRACT-CHANGE(applicability): each knowledge rule carries exactly its
+	// class(es) (DESIGN.md §4): exposed → affected, overlap → informational,
+	// clear → not-affected, undecided → unknown.
+	ruleClasses := map[string][]ImpactClass{
+		KnowledgeRulePrefix + "exposed":   {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
+		KnowledgeRulePrefix + "overlap":   {ImpactInformational},
+		KnowledgeRulePrefix + "clear":     {ImpactNotAffected},
+		KnowledgeRulePrefix + "undecided": {ImpactUnknown},
+		// PO-4: a refinement stays affected (validateRefinements has the rest).
+		RuleKnowledgeRefined: {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
+	}
+	if want, ok := ruleClasses[f.Rule]; !ok {
+		bad("unknown knowledge rule %q", f.Rule)
+	} else {
+		fits := false
+		for _, c := range want {
+			fits = fits || c == f.Classification
+		}
+		if !fits {
+			bad("rule %s cannot carry class %q", f.Rule, f.Classification)
+		}
+	}
+	if !strings.HasPrefix(k.Fact, FactIDPrefix) {
+		bad("knowledge fact %q lacks the %s prefix", k.Fact, FactIDPrefix)
+	}
+	if !k.Verification.Valid() {
+		bad("unknown knowledge verification %q", k.Verification)
+	}
+	if f.ChangeID == "" {
+		bad("a knowledge finding joins an upstream change (changeId required)")
+	}
+	if (k.Verification == VerifiedConsensus) != (k.Consensus != "") {
+		bad("knowledge.consensus (cross-model | same-model) is set exactly for consensus-verified facts")
+	}
+	if k.Consensus != "" && k.Consensus != ConsensusCrossModel && k.Consensus != ConsensusSameModel {
+		bad("unknown knowledge.consensus %q", k.Consensus)
+	}
+	if k.ConsensusAction && k.Verification != VerifiedConsensus {
+		bad("knowledge.consensusAction is for consensus-verified facts only")
+	}
+	if k.Audited && !k.ConsensusAction {
+		bad("knowledge.audited marks a human-audited consensus-action fact (PO-6)")
+	}
+	consensusAction := k.Verification == VerifiedConsensus && k.ConsensusAction
+	switch f.Classification {
+	case ImpactActionRequired:
+		if !k.Verification.Trusted() && !consensusAction {
+			bad("ACTION REQUIRED from knowledge requires a deterministic- or human-verified fact, or a consensus-action fact (PO-2); got %q (cap at review-required)", k.Verification)
+		}
+	case ImpactNotAffected:
+		if !k.Verification.Trusted() {
+			bad("NOT AFFECTED from knowledge requires a deterministic- or human-verified fact, got %q (consensus and proxy never clear)", k.Verification)
+		}
+	}
+	if k.Verification.Valid() && !k.Verification.Trusted() && f.Provenance.Confidence == ConfidenceHigh &&
+		!(consensusAction && f.Classification == ImpactActionRequired) {
+		bad("a %s-verified fact cannot carry high confidence (only a consensus-action ACTION REQUIRED may, labelled model consensus)", k.Verification)
+	}
+	return errs
+}
+
+// validateValuesDefaults enforces the PO-3 shapes: default-applies is
+// review-required with a rendered-change match backed by an environment
+// render; default-no-effect is not-affected with a no-attributable-change
+// render check citing render evidence; default-unrendered is not-affected
+// with an unavailable render check that says why.
+func (r *ImpactReport) validateValuesDefaults() []error {
+	local := map[EvidenceID]Evidence{}
+	for _, e := range r.EnvironmentEvidence {
+		local[e.ID] = e
+	}
+	rendered := func(ids []EvidenceID) bool {
+		if len(ids) == 0 {
+			return false
+		}
+		for _, id := range ids {
+			e, ok := local[id]
+			if !ok || e.Render == nil || e.Render.Scope != RenderEnvironment {
+				return false
+			}
+		}
+		return true
+	}
+	var errs []error
+	for _, f := range r.Findings {
+		bad := func(format string, args ...any) {
+			errs = append(errs, fmt.Errorf("finding %s: %s", f.ID, fmt.Sprintf(format, args...)))
+		}
+		for _, c := range f.Checks {
+			if c.Render == nil {
+				continue
+			}
+			switch c.Render.Outcome {
+			case RenderAttributableChange, RenderNoAttributableChange:
+				if !rendered(c.Evidence) {
+					bad("a %s render check must cite environment-render evidence", c.Render.Outcome)
+				}
+			case RenderUnavailable:
+				if strings.TrimSpace(c.Render.Reason) == "" {
+					bad("an unavailable render check must say why")
+				}
+			default:
+				bad("unknown render outcome %q", c.Render.Outcome)
+			}
+			if strings.TrimSpace(c.Render.Key) == "" {
+				bad("a render check names the values key it evaluated")
+			}
+		}
+		renderCheck := func(want RenderOutcome) bool {
+			for _, c := range f.Checks {
+				if c.Render != nil && c.Render.Outcome == want {
+					return true
+				}
+			}
+			return false
+		}
+		switch f.Rule {
+		case RuleValuesDefaultApplies:
+			if f.Classification != ImpactReviewRequired {
+				bad("%s is review-required (stronger classes come only from knowledge), got %q", f.Rule, f.Classification)
+			}
+			ok := false
+			for _, m := range f.Matches {
+				ok = ok || (m.Kind == MatchRenderedChange && rendered(m.Evidence))
+			}
+			if !ok {
+				bad("%s needs a rendered-change match backed by environment-render evidence", f.Rule)
+			}
+		case RuleRenderTargetRejects:
+			if f.Classification != ImpactActionRequired {
+				bad("%s is action-required, got %q", f.Rule, f.Classification)
+			}
+			ok, keyed := false, false
+			for _, m := range f.Matches {
+				ok = ok || (m.Kind == MatchRenderedChange && rendered(m.Evidence))
+				keyed = keyed || m.Kind == MatchValuesKey
+			}
+			if !ok || !keyed {
+				bad("%s needs a values-key match and a rendered-change match backed by environment-render evidence", f.Rule)
+			}
+		case RuleValuesDefaultNoEffect, RuleValuesSetNoEffect, RuleImageRenderUnchanged:
+			if f.Classification != ImpactNotAffected || !renderCheck(RenderNoAttributableChange) {
+				bad("%s is not-affected with a no-attributable-change render check", f.Rule)
+			}
+		case RuleValuesDefaultUnrendered:
+			if f.Classification != ImpactNotAffected || !renderCheck(RenderUnavailable) {
+				bad("%s is not-affected with a visible unavailable render check", f.Rule)
+			}
+		}
+	}
+	return errs
+}
+
+// validateRefinements enforces PO-4: a refined finding comes from a TRUSTED
+// fact (never consensus or proxy), stays affected (never not-affected or
+// unknown), refines an affected deterministic finding of a different class,
+// every match lies within the fact's subject, and the original finding is
+// gone (the refinement replaces it).
+func (r *ImpactReport) validateRefinements() []error {
+	var errs []error
+	for _, f := range r.Findings {
+		bad := func(format string, args ...any) {
+			errs = append(errs, fmt.Errorf("finding %s: %s", f.ID, fmt.Sprintf(format, args...)))
+		}
+		if (f.RefinedFrom != nil) != (f.Rule == RuleKnowledgeRefined) {
+			bad("refinedFrom is carried exactly by rule %s", RuleKnowledgeRefined)
+		}
+		rf := f.RefinedFrom
+		if rf == nil {
+			continue
+		}
+		k := f.Knowledge
+		if k == nil || !k.Verification.Trusted() {
+			bad("only a trusted (deterministic or human) fact may refine a deterministic finding")
+		}
+		if !f.Classification.Affected() {
+			bad("a refinement never yields %q (only action-required, review-required or informational)", f.Classification)
+		}
+		if !rf.Classification.Affected() {
+			bad("only an affected deterministic finding can be refined, not %q", rf.Classification)
+		}
+		if rf.Classification == f.Classification {
+			bad("a refinement changes the class")
+		}
+		if rf.Rule == "" || strings.HasPrefix(rf.Rule, KnowledgeRulePrefix) {
+			bad("refinedFrom.rule must name the deterministic join rule, got %q", rf.Rule)
+		}
+		if k != nil {
+			if k.Subject == nil {
+				bad("a refining fact states its subject")
+			} else {
+				for _, m := range f.Matches {
+					if !k.Subject.CoversMatch(m) {
+						bad("match %s %q lies outside the refining fact's subject %s", m.Kind, m.Subject, k.Subject.Key())
+					}
+				}
+			}
+		}
+		for _, o := range r.Findings {
+			if o.ID != f.ID && o.ChangeID == f.ChangeID && o.Rule == rf.Rule {
+				bad("the refined %s finding %s of change %s must be replaced, not kept", rf.Rule, o.ID, f.ChangeID)
+			}
+		}
+	}
+	return errs
+}
+
+// validateKnowledgeSupersession: a knowledge finding replaces the unknown
+// records of its change — a change with a knowledge finding carries no other
+// unknown finding (no double counting).
+func (r *ImpactReport) validateKnowledgeSupersession() []error {
+	known := map[string]bool{}
+	for _, f := range r.Findings {
+		if f.Knowledge != nil && f.ChangeID != "" {
+			known[f.ChangeID] = true
+		}
+	}
+	var errs []error
+	for _, f := range r.Findings {
+		if known[f.ChangeID] && f.Knowledge == nil && f.Classification == ImpactUnknown {
+			errs = append(errs, fmt.Errorf("finding %s: change %s has a knowledge finding, which supersedes this unknown record", f.ID, f.ChangeID))
+		}
+	}
+	return errs
 }
 
 // validateReportEnrichmentKinds are the enrichment kinds an ImpactReport may

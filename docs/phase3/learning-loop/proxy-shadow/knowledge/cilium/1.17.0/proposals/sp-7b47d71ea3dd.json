@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7b47d71ea3dd",
+    "candidateId": "sc-6069811be30d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"changing device MTU requires restarting the agent to pick up the new MTU\"",
+        "after": "\"MTU auto-detection is continuous during agent lifetime\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The running agent now picks up device MTU changes automatically, without an agent restart, instead of keeping the MTU it detected at startup.",
+        "remediation": "Check that environments which change device MTU at runtime expect the agent to apply the new MTU without a restart.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, the agent keeps detecting the MTU while it runs, so it picks up a changed device MTU without needing a restart."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence names no setting that turns MTU auto-detection on or off, so no configuration predicate can be written without inventing a key.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-01a5226ddc9a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:aecda4a3b59afc9122b5ced8f8959e8935e0f1c11c0b1549151fa7ac249d80cc",
+      "inputEvidence": [
+        "ev-01a5226ddc9a"
+      ],
+      "generatedAt": "2026-10-03T07:07:16Z",
+      "callId": "3d5fb3c0-b916-4825-aaad-272e18a8c2e9"
+    }
+  }
+}

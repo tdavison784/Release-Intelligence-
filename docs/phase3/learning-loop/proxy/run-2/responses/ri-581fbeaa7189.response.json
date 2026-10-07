@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-581fbeaa7189",
+  "promptDigest": "sha256:2afe6baa437502da37fef83485c9ef7c661af4eaf667a85ad2b98350e898301b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "da43364a-020c-499f-925f-b3c3df8c013b",
+  "startedAt": "2026-10-02T23:14:37.397Z",
+  "decidedAt": "2026-10-02T23:14:47.668Z",
+  "durationMs": 9390,
+  "costUSD": 0.09314800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-bfb9c0ed4d28] says only that the http-wasm host used for plugins was upgraded to v0.6.0 so that it supports clients (guests) using v0.4.0. Nothing in it names a Kubernetes kind called \"Plugin\". The proposed gvk-in-use{kind: Plugin}, which has no group, is therefore unsupported: it could flag unrelated resources and miss environments that are exposed. Exposure depends on whether the environment runs WASM plugins built against http-wasm and which guest version they use. The evidence gives no configuration predicate for that, so the condition should be undecidable.",
+    "citations": [
+      "ev-bfb9c0ed4d28"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Traefik 3.0.0 upgrades its http-wasm host to v0.6.0 to support plugin clients using http-wasm v0.4.0. Environments are exposed only if they run http-wasm (WASM) plugins, which the evidence does not tie to any static configuration predicate.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment loads Traefik WASM plugins built on http-wasm, and which http-wasm guest version they use; the evidence names no configuration key, flag or resource kind for this"
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

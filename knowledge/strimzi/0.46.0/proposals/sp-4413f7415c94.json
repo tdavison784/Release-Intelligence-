@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4413f7415c94",
+    "candidateId": "sc-5851fd4cdacf",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On Kafka 4.0.0 and later, the JMXReporter is not enabled unless metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added to `metric.reporters`.",
+        "remediation": "If you rely on the JMXReporter, enable metrics in `.spec.kafka.metrics` or add JMXReporter to `metric.reporters` in the Kafka configuration.",
+        "severity": "low"
+      },
+      "statement": "From Kafka 4.0.0, the JMXReporter is only enabled when metrics are enabled in `.spec.kafka.metrics` or when JMXReporter is explicitly added to `metric.reporters`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence names `.spec.kafka.metrics`, but the target schema only has `spec.kafka.metricsConfig`. The evidence also does not say how the Kafka 4.0.0 condition maps to the Kafka resource (explicit or default `spec.kafka.version`), or how JMXReporter has to be spelled in `metric.reporters`. So no exposure predicate can be pinned without guessing.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f432b7205700"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:22ba42811836ad5f89d59e6aaf8f73b4fdf3882ab9680da4b4f9cf99bb83c870",
+      "inputEvidence": [
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-03T07:05:45Z",
+      "callId": "055d9f2f-b467-4d7b-8262-0160bf8976e4"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9e535bf8a946",
+    "reviewItemId": "ri-03b5bd2de9a8",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:466c50f4c9922afd85a917b324fdeef39899891c9cc6bb163a4f354d6f37e3cd",
+      "inputEvidence": [
+        "ev-4b121944161e",
+        "ev-17f96431993d",
+        "ev-7f0dd9723b20",
+        "ev-bb92a95e954f",
+        "ev-261f7a60eb27",
+        "ev-d42ae42e9039",
+        "ev-664e993932dd",
+        "ev-aa6e55e47c2f",
+        "ev-5506a0d4614a",
+        "ev-518a56c0e2c1",
+        "ev-f21609ff075e",
+        "ev-24365f012a2a",
+        "ev-a907ed2193a8",
+        "ev-c7e999251f0a",
+        "ev-a7b3f6c5d3bd",
+        "ev-548fd57f2706",
+        "ev-1e1395778114",
+        "ev-296463ddfc76",
+        "ev-01f887c4c0c4",
+        "ev-e21588eef5b6",
+        "ev-373814c431a1",
+        "ev-089778a9e2c3"
+      ],
+      "generatedAt": "2026-10-06T01:36:24.832Z",
+      "callId": "4c88a325-e5b6-4e38-bfe1-851e3bd4793f",
+      "provider": "anthropic"
+    },
+    "reason": "The linked PR gives the subject, the change and the consequence. Instance types such as g2.xlarge report EbsOptimizedSupport \"default\" but have no EbsOptimizedInfo, and this causes a nil pointer dereference panic in the reconciler. The fix adds a check that EbsOptimizedInfo exists, in pkg/providers/instancetype/types.go [ev-17f96431993d][ev-7f0dd9723b20][ev-bb92a95e954f]. For applicability, though, the evidence does not settle who is exposed. The title says the problem happens \"when selecting instances by EBS maximum bandwidth\", but the PR says it happens \"when gathering instance info\", and no diff is shown to tell which is right [ev-4b121944161e][ev-17f96431993d]. It also names no requirement key that triggers the code path, gives g2.xlarge as the only affected instance type, and does not say which releases shipped #5925, the change that introduced the faulty code.",
+    "startedAt": "2026-10-06T01:36:02.424Z",
+    "decidedAt": "2026-10-06T01:36:24.832Z"
+  }
+}

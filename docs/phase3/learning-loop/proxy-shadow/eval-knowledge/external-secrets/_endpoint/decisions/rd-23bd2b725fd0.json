@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-23bd2b725fd0",
+    "reviewItemId": "ri-936e84e2656e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ExternalSecret objects stay stored as v1beta1 until rewritten; the operator must re-write all objects and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration (re-write all ExternalSecret objects) and update status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The ExternalSecret CRD's v1beta1 version stops being the storage version (true → false), so objects stay stored as v1beta1 until rewritten and a storage version migration is needed before v1beta1 is removed."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing ExternalSecret objects keep working but stay stored as v1beta1 until rewritten, while new and rewritten objects are stored as v1. The evidence does not say that anything fails or is rejected in this release.",
+        "remediation": "Optionally run a storage version migration (re-write all ExternalSecret objects) and update status.storedVersions, ahead of any later release that removes v1beta1.",
+        "severity": "low"
+      },
+      "statement": "After upgrading to 0.16.0, v1 replaces v1beta1 as the storage version of externalsecrets.external-secrets.io. Existing ExternalSecret objects keep working and stay stored as v1beta1 until they are rewritten. Nothing fails in this release, so this is a behavior change to review."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9d7ac87a753908b7a8f3fc3605964da48eaaebf3fc502d1d2261457fa488b0e0",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-03T16:54:48.347Z",
+      "callId": "9e2910d3-89cd-445c-991f-0b28931c5dc6",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-10a72c580d6b] shows only that v1beta1 stops being the storage version of externalsecrets.external-secrets.io (storage: true → false) between 0.15.0 and 0.16.0. Neither that diff nor the CRD bundles [ev-9889c9b8706d][ev-e08924afdc47] say that anything fails, is rejected or must be migrated in this release. The change text itself says existing objects simply stay stored as v1beta1 until rewritten. The migration only matters before a later release that may remove v1beta1, and no evidence shown here states that removal, so a mandatory migration-required kind over-claims. This is a behavior change to review.",
+    "startedAt": "2026-10-03T16:54:36.311Z",
+    "decidedAt": "2026-10-03T16:54:48.347Z"
+  }
+}

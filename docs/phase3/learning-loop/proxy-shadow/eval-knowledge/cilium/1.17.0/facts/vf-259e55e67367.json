@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-259e55e67367",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-b76f53e5aaec"
+        ],
+        "statementKeys": [
+          "sk-7f64376efda1"
+        ],
+        "changeIds": [
+          "chg-2dc5cbe8d7b7"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e57ca6092b51"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--probe",
+        "component": "cilium-health"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"runs a synchronous probe\"",
+        "after": "\"returns the results of the most recent cached probe\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators or scripts invoke `cilium-health status --probe` and rely on it running a synchronous probe rather than returning cached results"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`cilium-health status --probe` still runs but no longer performs a synchronous probe. It returns the results of the most recent cached probe instead. The option is hidden and will be removed in a future release.",
+        "remediation": "Check any scripts or health checks that call `cilium-health status --probe` and expect a fresh synchronous probe. Make sure cached results are acceptable, and plan to stop using the flag before it is removed.",
+        "severity": "medium"
+      },
+      "statement": "The option to run a synchronous probe using `cilium-health status --probe` is no longer supported, and is now a hidden option that returns the results of the…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-14fbce21fd3a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-14fbce21fd3a"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c6dcbe642267"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-acf755d296af"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5f4aedc964f4",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L332-L334 (1.17 Upgrade Notes)",
+        "excerpt": "* The option to run a synchronous probe using `cilium-health status --probe` is no longer supported,\n  and is now a hidden option that returns the results of the most recent cached probe. It will be\n  removed in a future release.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:01:23.238Z"
+  }
+}

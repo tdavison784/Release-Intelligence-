@@ -33,6 +33,12 @@ type ProductDefinition struct {
 	// Lifecycle states that the product (or some of its releases) is
 	// deprecated or end-of-life; see Lifecycle.
 	Lifecycle []Lifecycle `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+	// ConfigSources state where the product reads its configuration
+	// (config files in ConfigMaps, chart values, flags, env vars, feature
+	// gates, custom resources), each citing upstream documentation. The
+	// learning loop shows them to proposers so applicability conditions use
+	// a decidable predicate instead of `undecidable` (configsources.go).
+	ConfigSources []ConfigSource `yaml:"configSources,omitempty" json:"configSources,omitempty"`
 
 	// Provenance documents how this definition was produced and validated.
 	Provenance *DefinitionProvenance `yaml:"provenance,omitempty" json:"provenance,omitempty"`
@@ -259,6 +265,15 @@ type Extract struct {
 	// item. For documents like Karpenter's upgrade guide, whose per-version
 	// sections open with a warning callout before the bullet list.
 	ListItems bool `yaml:"listItems,omitempty" json:"listItems,omitempty"`
+	// Where (yaml-records) keeps only records whose field matches the regex
+	// (field name, case-insensitive → regex, e.g. {supported: '^true$'}).
+	Where map[string]string `yaml:"where,omitempty" json:"where,omitempty"`
+	// Collect (yaml-records) turns the selection around: instead of one record
+	// picked by keyColumns/keyMatch, every record passing Where contributes,
+	// and each column cell becomes the distinct field values joined with ", ".
+	// For tables that list one record per operand version with a supported
+	// flag. keyColumns/keyMatch are then not used.
+	Collect bool `yaml:"collect,omitempty" json:"collect,omitempty"`
 }
 
 // ColumnSpec maps a table column to a platform constraint.
@@ -272,6 +287,10 @@ type ColumnSpec struct {
 	// Part selects the 0-based piece.
 	Separator string `yaml:"separator,omitempty" json:"separator,omitempty"`
 	Part      int    `yaml:"part,omitempty" json:"part,omitempty"`
+	// Reduce coarsens every version of a ", "-joined cell to its "major" or
+	// "minor" line (3.9.1 → 3.9) and drops duplicates, so a patch-level
+	// version list compares as the set of supported lines.
+	Reduce string `yaml:"reduce,omitempty" json:"reduce,omitempty"`
 }
 
 // ClassifyRule maps a note item to a category. Section and Text are regexes;
@@ -365,6 +384,7 @@ const (
 	ContentChartMetadata = "chart-metadata" // Chart.yaml (kubeVersion → compatibility)
 	ContentCRDs          = "crds"           // CRD YAML (single or multi-doc, or a directory)
 	ContentImageRefs     = "image-refs"     // image references inside manifests
+	ContentLines         = "lines"          // the lines of a document matching Pattern (statements the artifact makes)
 )
 
 // Content is a structured view of an artifact to capture per release.
@@ -397,6 +417,18 @@ type Content struct {
 	// one key exactly; an entry ending in ".*" matches every key below it
 	// ("global.image.*" matches "global.image.tag").
 	IgnoreKeys []string `yaml:"ignoreKeys,omitempty" json:"ignoreKeys,omitempty"`
+	// Pattern (lines only) is an RE2 expression applied to every line of the
+	// document; matching lines are kept (trimmed, de-duplicated). With a
+	// capture group, the first group is kept instead of the whole line. The
+	// two releases of an edge are compared as sets: a line only one of them
+	// has is a change, so a statement that stays put is none. Use it for what
+	// an artifact says about itself that has no structure of its own (a
+	// removal or deprecation notice in a CRD description or a source file, an
+	// annotated comment, a list of tested versions).
+	Pattern string `yaml:"pattern,omitempty" json:"pattern,omitempty"`
+	// Label (lines only) names the document in the changes ("compatibility
+	// page"); default: the base name of the document.
+	Label string `yaml:"label,omitempty" json:"label,omitempty"`
 }
 
 // DefinitionProvenance documents the origin of the definition itself.

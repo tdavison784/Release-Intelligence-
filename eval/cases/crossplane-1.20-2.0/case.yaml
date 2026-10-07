@@ -1,0 +1,539 @@
+id: crossplane-1.20-2.0
+product: crossplane
+from: v1.20.1
+to: v2.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+  - https://github.com/crossplane/crossplane/releases/tag/v1.20.1
+  - https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+  - https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+  - https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/get-started/install.md
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/charts/crossplane/values.yaml
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/charts/crossplane/values.yaml
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/charts/crossplane/templates/deployment.yaml
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/charts/crossplane/templates/deployment.yaml
+  - https://github.com/crossplane/crossplane/tree/v1.20.1/cluster/crds
+  - https://github.com/crossplane/crossplane/tree/v2.0.0/cluster/crds
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/crds/pkg.crossplane.io_providers.yaml
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/pkg.crossplane.io_providers.yaml
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositeresourcedefinitions.yaml
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/cmd/crossplane/core/core.go
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go
+  - https://github.com/crossplane/crossplane/blob/v1.20.1/internal/xpkg/name.go
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/internal/controller/apiextensions/composite/reconciler.go
+  - https://github.com/crossplane/crossplane/blob/v2.0.0/internal/controller/apiextensions/definition/reconciler.go
+  - https://github.com/crossplane/crossplane/commit/8bf617ac571095c0b5e2b2b72bfedef2aaf4b308
+  - https://github.com/crossplane/crossplane/commit/7efa0a73
+  - https://github.com/crossplane/crossplane/commit/0cc3abf419fd1118d25bdc2504eee3b2bb39f2e1
+  - https://github.com/crossplane/crossplane/pull/6473
+  - https://github.com/crossplane/crossplane/pull/6520
+  - https://github.com/crossplane/crossplane/pull/6548
+  - https://github.com/crossplane/crossplane/pull/6640
+  - https://github.com/crossplane-contrib/provider-upjet-aws/releases/tag/v2.0.0
+  - https://github.com/crossplane-contrib/function-patch-and-transform/releases/tag/v0.9.0
+expected:
+  - id: E1
+    title: Native patch-and-transform composition (spec.mode Resources) removed; Compositions must be migrated to function pipelines before upgrading
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)native patch.and.transform'
+      - text: '(?i)mode: ?Resources'
+      - text: '(?i)convert pipeline-composition'
+      # added 2026-10-02, motivated by pipeline output (trustfix; eval/CHANGELOG.md): E1's own
+      # semantic subjects — the Composition fields the v2 schema drops or restricts (CRD quotes below)
+      - {subject: spec.mode, text: '(?i)\bComposition\b'}
+      - {subject: 'spec.resources[]', text: '(?i)\bComposition\b'}
+      - {subject: 'spec.patchSets[]', text: '(?i)\bComposition\b'}
+    evidence:
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "If you're using `spec.mode: Resources` in your Compositions, migrate to composition functions before upgrading."
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "Native patch and transform within composition (`mode: Resources`)"
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+        quote: "Crossplane deprecated native patch and transform composition in Crossplane v1.17. It's replaced by composition functions."
+      - url: https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+        quote: "All Compositions should use Pipeline mode. Resources mode is deprecated."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+        quote: "default: Pipeline"
+      - url: https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+        quote: "Resources is a list of resource templates that will be used when a composite resource referring to this composition is created."   # spec.resources (and spec.patchSets, "PatchSets define a named set of patches") exist at v1.20.1 and are absent from the v2.0.0 Composition schema
+    semantics:
+      - subject: {family: crd-field, product: crossplane, group: apiextensions.crossplane.io, kind: Composition, path: spec.mode}
+        change: {type: validation-tightened, before: '"Resources"'}
+        consequence:
+          kind: migration-required
+          exposedClass: action-required
+          statement: The v2 Composition CRD only accepts mode Pipeline (enum [Pipeline], default changed from Resources to Pipeline) and Crossplane no longer implements patch-and-transform, so XRs and claims that use a Resources-mode Composition stop being composed.
+          remediation: Convert each Resources-mode Composition with the v1.20 CLI (crossplane beta convert pipeline-composition) and switch XRs/claims to it before upgrading.
+          severity: critical
+        note: before names the value that was accepted (and was the CRD default) at v1.20 and is rejected at v2.0
+      - subject: {family: crd-field, product: crossplane, group: apiextensions.crossplane.io, kind: Composition, path: spec.resources}
+        change:
+          type: removed
+          replacedBy: {family: crd-field, product: crossplane, group: apiextensions.crossplane.io, kind: Composition, path: spec.pipeline}
+        consequence:
+          kind: migration-required
+          exposedClass: action-required
+          statement: spec.resources (and spec.patchSets) are no longer part of the v2 Composition schema, so the patch-and-transform templates of an unmigrated Composition are dropped and its composed resources are no longer managed.
+          remediation: Move the resource templates into a function pipeline step (function-patch-and-transform) before upgrading.
+          severity: critical
+
+  - id: E2
+    title: ControllerConfig type removed (replaced by DeploymentRuntimeConfig); spec.controllerConfigRef removed from package types
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: not-affected   # class in this environment (link); generic release-level class: action-required
+    match:
+      - text: '(?i)ControllerConfig'
+      - text: '(?i)convert deployment-runtime'
+    evidence:
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+        quote: "Crossplane deprecated the `ControllerConfig` type in v1.11. It's replaced by the `DeploymentRuntimeConfig` type."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "Update any ControllerConfig resources to use DeploymentRuntimeConfig instead."
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "Remove `spec.controllerConfigRef` from package types by @negz in https://github.com/crossplane/crossplane/pull/6520"
+    semantics:
+      - subject: {family: gvk, product: crossplane, group: pkg.crossplane.io, version: v1alpha1, kind: ControllerConfig}
+        change:
+          type: removed
+          replacedBy: {family: gvk, product: crossplane, group: pkg.crossplane.io, version: v1beta1, kind: DeploymentRuntimeConfig}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: The v2.0.0 CRD set no longer contains controllerconfigs.pkg.crossplane.io, so ControllerConfig manifests are rejected and the provider runtime settings they carried are no longer applied.
+          remediation: Convert with crossplane beta convert deployment-runtime (v1.20 CLI) and reference the DeploymentRuntimeConfig via spec.runtimeConfigRef.
+          severity: high
+      - subject: {family: crd-field, product: crossplane, group: pkg.crossplane.io, kind: Provider, path: spec.controllerConfigRef}
+        change:
+          type: removed
+          replacedBy: {family: crd-field, product: crossplane, group: pkg.crossplane.io, kind: Provider, path: spec.runtimeConfigRef}
+        consequence:
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: Providers that still point at a ControllerConfig through spec.controllerConfigRef lose that runtime configuration (IRSA annotations, pod settings) because the field no longer exists in the v2 Provider schema.
+          remediation: Set spec.runtimeConfigRef to a DeploymentRuntimeConfig instead.
+          severity: high
+
+  - id: E3
+    title: External secret stores (alpha) removed; --enable-external-secret-stores now stops Crossplane at startup and the StoreConfig API is gone
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: not-affected   # class in this environment (link); generic release-level class: action-required
+    match:
+      - text: '(?i)external secret stores?'
+      - text: '(?i)enable-external-secret-stores'
+      - text: '(?i)\bStoreConfigs?\b'   # narrowed 2026-10-02, motivated by pipeline output (trustfix; eval/CHANGELOG.md): the StoreConfig kind, not the substring inside Composition spec.publishConnectionDetailsWithStoreConfigRef
+    evidence:
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+        quote: "Crossplane added external secret stores in v1.7. External secret stores have remained in alpha for over two years and are now unmaintained."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "If you're using external secret stores, migrate to native Kubernetes secrets or [External Secrets Operator](https://external-secrets.io/latest/) before upgrading."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go
+        quote: "Crossplane removed support for external secret stores. The --enable-external-secret-stores flag will be removed in a future release."
+      - url: https://github.com/crossplane/crossplane/tree/v1.20.1/cluster/crds
+        quote: "secrets.crossplane.io_storeconfigs.yaml"   # listed at v1.20.1, absent from cluster/crds at v2.0.0: the StoreConfig API the title names
+    semantics:
+      - subject: {family: cli-flag, product: crossplane, name: --enable-external-secret-stores, component: crossplane}
+        change: {type: removed}
+        consequence:
+          kind: workload-failure
+          exposedClass: action-required
+          statement: With --enable-external-secret-stores in the core args, crossplane core start returns the error "Crossplane removed support for external secret stores" and the Crossplane pod never becomes ready.
+          remediation: Move connection details to in-cluster Secrets (writeConnectionSecretToRef) or External Secrets Operator PushSecrets, then drop the flag.
+          severity: critical
+      - subject: {family: gvk, product: crossplane, group: secrets.crossplane.io, version: v1alpha1, kind: StoreConfig}
+        change: {type: removed}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: The v2.0.0 CRD set no longer contains storeconfigs.secrets.crossplane.io, so StoreConfig manifests are rejected and nothing publishes connection details to external stores.
+          severity: high
+
+  - id: E4
+    title: Default package registry removed; every package (and dependency) must be a fully qualified image reference and --registry is rejected
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)default registry'
+      - text: '(?i)fully qualified (image|package|url)'
+      - text: '(?i)--registry\b'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "If a registry is not specified, then an error will be returned for the package."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+        quote: "Crossplane v2 drops the `--registry` flag that allowed users to specify a default registry value and now requires users to always specify a fully qualified URL when installing packages, both directly via `spec.package` and indirectly as dependencies."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/pkg.crossplane.io_providers.yaml
+        quote: "must be a fully qualified image name, including the registry, repository, and tag or digest."
+      - url: https://github.com/crossplane/crossplane/blob/v1.20.1/internal/xpkg/name.go
+        quote: 'DefaultRegistry string = "xpkg.crossplane.io"'
+    semantics:
+      - subject: {family: crd-field, product: crossplane, group: pkg.crossplane.io, kind: Function, path: spec.package}
+        change: {type: validation-tightened}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: A Function whose spec.package has no registry host (crossplane-contrib/function-patch-and-transform:v0.9.0) fails the v2 CEL rule and Crossplane returns an error for the package instead of resolving it against xpkg.crossplane.io, so the function is not installed or upgraded and pipelines using it fail.
+          remediation: Prefix the package with its registry (xpkg.crossplane.io/crossplane-contrib/function-patch-and-transform:v0.9.0) before upgrading; check package dependencies too.
+          severity: critical
+      - subject: {family: crd-field, product: crossplane, group: pkg.crossplane.io, kind: Provider, path: spec.package}
+        change: {type: validation-tightened}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: A Provider whose spec.package has no registry host is rejected by the v2 CEL validation and errors in the package manager.
+          severity: critical
+      - subject: {family: crd-field, product: crossplane, group: pkg.crossplane.io, kind: Configuration, path: spec.package}
+        change: {type: validation-tightened}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: A Configuration whose spec.package (or one of its dependencies) has no registry host errors in the package manager.
+          severity: critical
+      - subject: {family: cli-flag, product: crossplane, name: --registry, component: crossplane}
+        change: {type: removed}
+        consequence:
+          kind: workload-failure
+          exposedClass: action-required
+          statement: Crossplane core start returns an error when --registry is set, so the Crossplane pod does not start.
+          severity: critical
+
+  - id: E5
+    title: Composite resource connection details removed for modern (Namespaced/Cluster) XRs; LegacyCluster XRs from v1 XRDs keep them
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: not-affected   # class in this environment (link); generic release-level class: action-required
+    match:
+      - text: '(?i)composite resource connection details'
+      - text: '(?i)writeConnectionSecretToRef.{0,20}v2 XRs'
+      - text: '(?i)XR connection secrets'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "Composite resources no longer have native connection details support."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositeresourcedefinitions.yaml
+        quote: "Only LegacyCluster XRs support connection secrets."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/internal/controller/apiextensions/composite/reconciler.go
+        quote: "Modern v2 XRs don't support connection details, but legacy v1 XRs do."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
+        quote: "When you use v1 of the XRD API `scope` defaults to a special `LegacyCluster` mode."
+    semantics:
+      subject: {family: crd-field, product: crossplane, group: apiextensions.crossplane.io, kind: CompositeResourceDefinition, path: spec.connectionSecretKeys}
+      change: {type: removed}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: For an XRD with scope Namespaced or Cluster (the apiextensions.crossplane.io/v2 default is Namespaced), Crossplane does not publish XR connection details, so consumers expecting the connection Secret get nothing.
+        remediation: Compose the connection details Secret explicitly in the function pipeline (connection details composition guide).
+        severity: high
+      note: removal is scoped to modern XRs; the definition reconciler still wires a secret publisher when scope is LegacyCluster (the v1 XRD default)
+
+  - id: E6
+    title: CompositeResourceDefinition apiextensions.crossplane.io/v1 deprecated in favour of v2
+    kind: deprecation
+    importance: important
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)CompositeResourceDefinition v1 is deprecated'
+      - text: '(?i)deprecation warning for v1 XRD'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositeresourcedefinitions.yaml
+        quote: "CompositeResourceDefinition v1 is deprecated and will be removed in a future release; consider migrating to v2"
+      - url: https://github.com/crossplane/crossplane/commit/0cc3abf419fd1118d25bdc2504eee3b2bb39f2e1
+        quote: "add deprecation warning for v1 XRD"
+    semantics:
+      subject: {family: gvk, product: crossplane, group: apiextensions.crossplane.io, version: v1, kind: CompositeResourceDefinition}
+      change:
+        type: deprecated
+        replacedBy: {family: gvk, product: crossplane, group: apiextensions.crossplane.io, version: v2, kind: CompositeResourceDefinition}
+      consequence:
+        kind: deprecation
+        exposedClass: review-required
+        statement: v1 XRDs keep working (LegacyCluster scope, claims) but the API server returns a deprecation warning on every apply and the version is scheduled for removal.
+        remediation: Plan the move to apiextensions.crossplane.io/v2 (no automated migration tooling for existing XRs yet, crossplane/crossplane#6726).
+        severity: low
+
+  - id: E7
+    title: Upgrade providers to v2 releases (e.g. provider-aws-s3 v2.0.0) that serve both legacy cluster-scoped and namespaced managed resources
+    kind: compatibility
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)upgrade (your )?providers'
+      - text: '(?i)both\s+(legacy\s+)?(namespaced\s+and\s+cluster.scoped|cluster.scoped\s+and\s+(new\s+)?namespaced)\s+managed\s+resources'
+    evidence:
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "Upgrade your providers to versions that support both namespaced and cluster-scoped managed resources:"
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "Provider v2 releases support both legacy cluster-scoped and new namespaced managed resources. Your existing cluster-scoped MRs continue working unchanged."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "For example `provider-aws-s3:v2.0.0` has two `Bucket` MRs:"
+    semantics:
+      subject: {family: product-relationship, product: crossplane, name: provider-aws-s3}
+      change: {type: requirement-changed, after: '>=2.0.0'}
+      consequence:
+        kind: none
+        exposedClass: informational
+        statement: Existing cluster-scoped MRs keep working with provider-aws-s3 v1.x; the namespaced s3.aws.m.upbound.io MRs only exist from provider v2.0.0.
+        remediation: Upgrade the provider after Crossplane core (upgrade guide step 4) when namespaced MRs are wanted.
+      note: the guide frames this as step 4 of the recommended approach, not a precondition; the >=2.0.0 bound comes from its provider-aws-s3:v2.0.0 example
+
+  - id: E8
+    title: Retired core feature flags now break startup (--enable-composition-webhook-schema-validation errors; GA no-op flags --enable-composition-revisions/-functions/-functions-extra-resources removed)
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)enable-composition-webhook-schema-validation'
+      - text: '(?i)structural Composition validation'
+      - text: '(?i)Cleanup core flags'
+      - text: '(?i)enable-composition-(revisions|functions)'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go
+        quote: "Crossplane now uses CEL to validate Compositions. The --enable-composition-webhook-schema-validation flag will be removed in a future release."
+      - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go
+        quote: "These are features that we've removed support for. Crossplane returns an error when you enable them."
+      - url: https://github.com/crossplane/crossplane/commit/8bf617ac571095c0b5e2b2b72bfedef2aaf4b308
+        quote: "Also, add errors for flags that won't do anything anymore in v2."
+      - url: https://github.com/crossplane/crossplane/blob/v1.20.1/cmd/crossplane/core/core.go
+        quote: "These are GA features that previously had alpha or beta feature flags. You can't turn off a GA feature. We maintain the flags to avoid breaking folks who are passing them, but they do nothing."
+    semantics:
+      - subject: {family: cli-flag, product: crossplane, name: --enable-composition-webhook-schema-validation, component: crossplane}
+        change: {type: removed}
+        consequence:
+          kind: workload-failure
+          exposedClass: action-required
+          statement: With --enable-composition-webhook-schema-validation in the core args, crossplane core start returns "Crossplane now uses CEL to validate Compositions" as an error and the v2 Crossplane pod crash-loops.
+          remediation: Remove the flag from the Helm args before upgrading.
+          severity: critical
+      - subject: {family: cli-flag, product: crossplane, name: --enable-composition-functions, component: crossplane}
+        change: {type: removed}
+        consequence:
+          kind: workload-failure
+          exposedClass: action-required
+          statement: The hidden no-op flag no longer exists in the v2 start command, so passing it makes the command-line parser reject the arguments and the Crossplane pod does not start.
+          remediation: Remove --enable-composition-revisions, --enable-composition-functions and --enable-composition-functions-extra-resources from the Helm args.
+          severity: critical
+        note: the same holds for --enable-composition-revisions and --enable-composition-functions-extra-resources (one subject per flag the fixture uses)
+
+  - id: E9
+    title: Upgrade to v2.0 only from v1.20 (one minor version at a time) so Crossplane's CRD storage migrations run
+    kind: migration-step
+    importance: critical
+    actionRequired: true
+    classification: not-affected   # class in this environment (link); generic release-level class: action-required
+    match:
+      - text: '(?i)one minor version at a time'
+      - text: '(?i)upgrade (to (crossplane )?v2(\.0)? )?from (crossplane )?`?v1\.20'
+      - text: '(?i)running a `?v1\.20`? version before you upgrade'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "To reiterate, you should be running a `v1.20` version before you upgrade to `v2.0`."
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "Upon upgrade for each minor release, Crossplane performs any necessary migrations of its CRDs to ensure the latest versions are stored in the Kubernetes API server. Therefore, it is important to upgrade sequentially through one minor version at a time."
+      - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
+        quote: "Only upgrade to Crossplane v2 from Crossplane `v1.20`, the final `v1.x` release."
+    semantics:
+      subject: {family: migration, product: crossplane, name: sequential-minor-upgrade-via-v1.20}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: Jumping to v2.0 from a release older than v1.20 skips the CRD storage migrations Crossplane performs on each minor upgrade, so the API server can be left storing Crossplane objects at versions other than the latest ones v2.0 expects.
+        remediation: Upgrade to the latest v1.20 patch first, then to v2.0.
+        severity: critical
+
+  - id: E10
+    title: Prometheus metric names changed (crossplane_composition_* to engine_* / function_run_function_*)
+    kind: behaviour-change
+    importance: important
+    actionRequired: true
+    classification: unknown   # class in this environment (link); generic release-level class: review-required
+    match:
+      - text: '(?i)crossplane_composition_(controllers|watches|run_function)'
+      - text: '(?i)metrics name changes'
+      - text: '(?i)Update metrics to reflect function and controller scope'
+    evidence:
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "The names of these metrics have been updated as follows:"
+      - url: https://github.com/crossplane/crossplane/releases/tag/v2.0.0
+        quote: "`crossplane_composition_run_function_*` --> `function_run_function_*`"
+    semantics:
+      - subject: {family: api-endpoint, product: crossplane, name: 'metric crossplane_composition_controllers_*', component: metrics}
+        change:
+          type: renamed
+          replacedBy: {family: api-endpoint, product: crossplane, name: 'metric engine_controllers_*', component: metrics}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: Dashboards and alerts querying the old series names return no data after the upgrade.
+          remediation: Rename the series in PromQL queries, recording rules and dashboards.
+          severity: medium
+      - subject: {family: api-endpoint, product: crossplane, name: 'metric crossplane_composition_watches_*', component: metrics}
+        change:
+          type: renamed
+          replacedBy: {family: api-endpoint, product: crossplane, name: 'metric engine_watches_*', component: metrics}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: Dashboards and alerts querying the old series names return no data after the upgrade.
+          severity: medium
+      - subject: {family: api-endpoint, product: crossplane, name: 'metric crossplane_composition_run_function_*', component: metrics}
+        change:
+          type: renamed
+          replacedBy: {family: api-endpoint, product: crossplane, name: 'metric function_run_function_*', component: metrics}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: Dashboards and alerts querying the old series names return no data after the upgrade.
+          severity: medium
+notExpected:
+  - title: CI action digest bumps from Renovate listed in the release body
+    match:
+      - text: '(?i)update (github/codeql-action|actions/[a-z-]+|docker/login-action|bufbuild/buf-action|mheap/require-checklist-action) digest'
+    classification: action-required
+environment:
+  description: >-
+    Production control plane on Kubernetes 1.31. Crossplane v1.20.1 is installed
+    with the Helm chart; its values pass the core args
+    --enable-composition-webhook-schema-validation, --enable-composition-functions,
+    --max-reconcile-rate=50 and --poll-interval=5m, and enable metrics. Packages:
+    provider-aws-s3 v1.23.0 (xpkg.crossplane.io/crossplane-contrib/provider-aws-s3)
+    configured through a DeploymentRuntimeConfig (spec.runtimeConfigRef, IRSA);
+    function-patch-and-transform v0.9.0 installed as
+    crossplane-contrib/function-patch-and-transform:v0.9.0, i.e. without a registry
+    host (resolved through the v1.20 default registry). No ControllerConfig and no
+    StoreConfig exists, and external secret stores were never enabled. One
+    apiextensions.crossplane.io/v1 XRD (XBucket, claim Bucket, connectionSecretKeys)
+    with two Compositions: xbuckets-aws-pt still uses mode Resources and is the one
+    the claims select; xbuckets-aws-pipeline is the converted mode Pipeline copy.
+    Grafana dashboards and Prometheus alert rules for Crossplane are maintained
+    outside this repository.
+  kubernetes: "1.31"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: Composition xbuckets-aws-pt sets mode Resources with spec.resources and the claim selects it; v2 neither accepts the mode nor implements patch-and-transform. The Pipeline copy alone would not be exposed, so the scope must pick the right Composition.
+      exposure:
+        op: resource
+        group: apiextensions.crossplane.io
+        kind: Composition
+        of:
+          - op: any
+            of:
+              - {op: field, path: spec.mode, state: equals, values: ['"Resources"']}
+              - {op: field, path: spec.resources, state: set}
+      environmentEvidence: [manifests/compositions.yaml#L4-L17, manifests/xrd.yaml#L41-L42]
+    - expected: E2
+      relevance: not-affected
+      why: No ControllerConfig is applied and the Provider already uses spec.runtimeConfigRef to a DeploymentRuntimeConfig; nothing sets spec.controllerConfigRef.
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: pkg.crossplane.io, kind: ControllerConfig}
+          - op: resource
+            group: pkg.crossplane.io
+            kind: Provider
+            of: [{op: field, path: spec.controllerConfigRef, state: set}]
+          - op: resource
+            group: pkg.crossplane.io
+            kind: Function
+            of: [{op: field, path: spec.controllerConfigRef, state: set}]
+      environmentEvidence: [manifests/packages.yaml#L2-L32, manifests/packages.yaml#L34-L39]
+    - expected: E3
+      relevance: not-affected
+      why: The core args do not contain --enable-external-secret-stores, no StoreConfig is applied and no Composition sets publishConnectionDetailsWithStoreConfigRef; connection details go to in-cluster Secrets only.
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: args, state: matches, pattern: '--enable-external-secret-stores(=true)?($|[",\] ])'}
+          - {op: gvk-in-use, group: secrets.crossplane.io, kind: StoreConfig}
+          - op: resource
+            group: apiextensions.crossplane.io
+            kind: Composition
+            of: [{op: field, path: spec.publishConnectionDetailsWithStoreConfigRef, state: set}]
+      environmentEvidence: [values.yaml#L13-L17, manifests/compositions.yaml#L11-L17, manifests/compositions.yaml#L47-L53]
+    - expected: E4
+      relevance: action-required
+      why: The Function package crossplane-contrib/function-patch-and-transform:v0.9.0 has no registry host; v1.20 resolved it against xpkg.crossplane.io, v2 rejects it. The Provider package is already fully qualified.
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: pkg.crossplane.io
+            kind: Function
+            of: [{op: field, path: spec.package, state: matches, pattern: '^"?[^./"]+/'}]
+          - op: resource
+            group: pkg.crossplane.io
+            kind: Provider
+            of: [{op: field, path: spec.package, state: matches, pattern: '^"?[^./"]+/'}]
+          - op: resource
+            group: pkg.crossplane.io
+            kind: Configuration
+            of: [{op: field, path: spec.package, state: matches, pattern: '^"?[^./"]+/'}]
+          - {op: values-key, path: args, state: matches, pattern: '(--registry|"-r")($|[=",\] ])'}
+      environmentEvidence: [manifests/packages.yaml#L34-L39]
+    - expected: E5
+      relevance: not-affected
+      why: The only XRD is apiextensions.crossplane.io/v1 without spec.scope, so after the upgrade it runs as LegacyCluster and Crossplane keeps publishing the claim's connection Secret (reports-bucket-conn); only Namespaced/Cluster XRs lost connection details.
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: apiextensions.crossplane.io, version: v2, kind: CompositeResourceDefinition}
+          - op: resource
+            group: apiextensions.crossplane.io
+            kind: CompositeResourceDefinition
+            of: [{op: field, path: spec.scope, state: equals, values: ['"Namespaced"', '"Cluster"']}]
+      environmentEvidence: [manifests/xrd.yaml#L2-L18, manifests/xrd.yaml#L34-L44]
+    - expected: E6
+      relevance: review
+      why: The XBucket XRD is applied as apiextensions.crossplane.io/v1, which v2.0.0 marks deprecated; it keeps working but warns and is slated for removal.
+      exposure: {op: gvk-in-use, group: apiextensions.crossplane.io, version: v1, kind: CompositeResourceDefinition}
+      environmentEvidence: manifests/xrd.yaml#L2-L5
+    - expected: E7
+      relevance: informational
+      why: provider-aws-s3 v1.23.0 predates the v2 provider line; existing cluster-scoped Buckets keep working, namespaced MRs need provider v2.0.0.
+      exposure: {op: product-version, name: provider-aws-s3, state: out-of-range, range: '>=2.0.0'}
+      environmentEvidence: [inventory.yaml#L4-L5, manifests/packages.yaml#L28]
+    - expected: E8
+      relevance: action-required
+      why: The Helm args pass --enable-composition-webhook-schema-validation (now a startup error) and --enable-composition-functions (no longer a flag of the v2 start command); the v2 pod would not start.
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: args, state: matches, pattern: '--enable-composition-webhook-schema-validation(=true)?($|[",\] ])'}
+          - {op: values-key, path: args, state: matches, pattern: '--enable-composition-(revisions|functions|functions-extra-resources)($|[=",\] ])'}
+      environmentEvidence: values.yaml#L13-L15
+    - expected: E9
+      relevance: not-affected
+      why: The cluster already runs v1.20.1, the release line v2.0 must be upgraded from.
+      exposure: {op: edge-from-version, state: out-of-range, range: '>=1.20.0, <1.21.0'}
+      environmentEvidence: from
+  undecidedImpact:
+    - expected: E10
+      reason: environment-visibility-gap
+      needed: the Prometheus alert rules / recording rules and Grafana dashboards that query Crossplane metrics (maintained outside this repository)
+      why: metrics are enabled in the Helm values, so the series are scraped, but whether anything queries the renamed crossplane_composition_* names is not in the fixture
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: metrics.enabled, state: equals, values: ['true']}
+          - {op: undecidable, reason: environment-visibility-gap, needed: 'queries (alerts, recording rules, dashboards) that reference crossplane_composition_* metric names'}
+      environmentEvidence: [values.yaml#L33-L34]
+  notExpectedFindings:
+    - title: no Helm values key is removed by this upgrade
+      match: {rule: impact:values-removed}
+      why: the v2.0.0 chart values.yaml only adds keys (image.ignoreTag, provider.defaultActivations, extraEnvVarsCrossplaneInit) relative to v1.20.1 (diff of the two files); none is removed

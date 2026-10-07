@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-43f56d608466",
+    "candidateId": "sc-45471c788722",
+    "proposalId": "sp-4bed39a6a8fc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "external-secrets",
+        "name": "github/codeql-action"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"3.28.13\"",
+        "after": "\"3.28.15\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator's environment builds external-secrets from source using the repository's GitHub Actions CI, which is the only place github/codeql-action is used"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "github/codeql-action is a GitHub Actions CI dependency of the external-secrets repository, so this pinned-version bump (3.28.13 to 3.28.15) has no operational effect on an external-secrets deployment (chart values, CRDs, images or workloads)."
+      },
+      "statement": "external-secrets 0.16.0 bumped the repository's CI dependency github/codeql-action from 3.28.13 to 3.28.15 (PR #4645), which does not affect external-secrets deployments."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

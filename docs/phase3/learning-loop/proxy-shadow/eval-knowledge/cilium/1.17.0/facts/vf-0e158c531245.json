@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-0e158c531245",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-f7081862d672"
+        ],
+        "statementKeys": [
+          "sk-e06a058c5dfe"
+        ],
+        "changeIds": [
+          "chg-9f7c13f94fe0"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-0183f4d8b953"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-update-rejected"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_update_rejected\"",
+        "after": "\"envoy_cilium_npds_update_rejected\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-update-rejected"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alert rules or other metric consumers reference the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The rejected-update metric is now published as `envoy_cilium_npds_update_rejected` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected`.",
+        "remediation": "Change any monitoring queries, dashboards or alerts that use the old metric name to use `envoy_cilium_npds_update_rejected`.",
+        "severity": "low"
+      },
+      "statement": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` -> `envoy_cilium_npds_update_rejected`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8c7722359e29"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8c7722359e29"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-2fcaee576ded"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-20a800410a56"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-f7021b9d3606",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L446-L446 (1.17 Upgrade Notes › Changed Metrics)",
+        "excerpt": "* `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` -> `envoy_cilium_npds_update_rejected`",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:24:46.398Z"
+  }
+}

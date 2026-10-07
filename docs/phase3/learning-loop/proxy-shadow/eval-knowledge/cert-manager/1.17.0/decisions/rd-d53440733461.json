@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d53440733461",
+    "reviewItemId": "ri-4c67d0df540a",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:a5f4b2ae5a7cf9f7238c155c8b9bb7c4d88fcd490540f79ae9b1851dc2f39662",
+      "inputEvidence": [
+        "ev-12d2733c5dd3",
+        "ev-1098d359d892",
+        "ev-de3e03be9899",
+        "ev-9dd0c62d8b77",
+        "ev-aa02449851f9",
+        "ev-d176cffb7417",
+        "ev-4fef58672646",
+        "ev-cae85181502c",
+        "ev-c3fa8260181b",
+        "ev-36b8d942ea46",
+        "ev-ab4bd1639399",
+        "ev-10c8b1c28d66"
+      ],
+      "generatedAt": "2026-10-06T01:43:01.816Z",
+      "callId": "88c4fc7f-1b5e-4469-b4ea-708023687b2a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-12d2733c5dd3] and the PR [ev-1098d359d892] only say that upgrading vCert to v5.8.0 fixes RSA 3072 key size for TPP enrollment. Neither names a cert-manager field. The changed files [ev-de3e03be9899] are only go.mod, go.sum and LICENSES. So the proposed paths (spec.privateKey.algorithm/size and spec.issuerRef → spec.venafi.tpp) are not grounded in the evidence. The condition also requires algorithm to equal RSA, so it may miss Certificates that leave the algorithm unset or request the key size another way, such as a CertificateRequest CSR or a TPP zone policy. To decide, we need the vCert v5.8.0 bug details or cert-manager text showing which request settings trigger the bug.",
+    "startedAt": "2026-10-06T01:42:48.335Z",
+    "decidedAt": "2026-10-06T01:43:01.816Z"
+  }
+}

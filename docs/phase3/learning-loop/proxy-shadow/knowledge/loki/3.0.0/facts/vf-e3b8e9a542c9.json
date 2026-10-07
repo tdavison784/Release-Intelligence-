@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e3b8e9a542c9",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-03449befd635"
+        ],
+        "statementKeys": [
+          "sk-4932e41f2812"
+        ],
+        "changeIds": [
+          "chg-58e465827310"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-cf7c7afd323f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "/ingester/flush_shutdown",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.spec.containers[].lifecycle.preStop.httpGet.path",
+                  "state": "equals",
+                  "values": [
+                    "\"/ingester/flush_shutdown\""
+                  ]
+                }
+              ],
+              "group": "apps",
+              "kind": "StatefulSet"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.spec.containers[].lifecycle.preStop.httpGet.path",
+                  "state": "equals",
+                  "values": [
+                    "\"/ingester/flush_shutdown\""
+                  ]
+                }
+              ],
+              "group": "apps",
+              "kind": "Deployment"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any external script, operator tooling or client calls /ingester/flush_shutdown at runtime"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The `/ingester/flush_shutdown` handler is removed in 3.0.0, so any script, hook or tool that calls it to shut down an ingester no longer reaches a handler and its shutdown call fails.",
+        "remediation": "Move callers of `/ingester/flush_shutdown` to `/ingester/shutdown`. This release lets it accept GET, and the Helm chart now uses it for the write pods' preStop hook. Check that it gives the shutdown behaviour you need.",
+        "severity": "medium"
+      },
+      "statement": "loki Remove legacy ingester shutdown handler `/ingester/flush_shutdown`. 10655"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-171becd27839"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-171becd27839"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-442f9afea179"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-97302dcd9b18"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a1ca6a9f17f1",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L49-L49 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki** Remove legacy ingester shutdown handler `/ingester/flush_shutdown`. [10655](https://github.com/grafana/loki/pull/10655)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:06:35.448Z"
+  }
+}

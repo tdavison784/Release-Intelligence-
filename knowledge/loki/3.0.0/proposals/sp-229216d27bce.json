@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-229216d27bce",
+    "candidateId": "sc-7795416d8d95",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-embeddedcache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or other metric consumers query the old embedded cache metric names (querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries, querier_cache_memory_bytes)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps running but exports the embedded cache metrics under the new loki_embeddedcache_* names, so any dashboard, alert or other consumer querying the old querier_cache_* names no longer matches those metrics.",
+        "remediation": "Update dashboards, alert rules and other metric consumers to the new loki_embeddedcache_* metric names.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0 the embedded cache metrics are renamed: querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries and querier_cache_memory_bytes become loki_embeddedcache_added_new_total, loki_embeddedcache_evicted_total, loki_embeddedcache_entries and loki_embeddedcache_memory_bytes respectively."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1f9807113c9e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3070dd26fe1220229db3a3a07f08c974531fa24ef623a9773ae5bfc1dfb8f9af",
+      "inputEvidence": [
+        "ev-1f9807113c9e"
+      ],
+      "generatedAt": "2026-10-03T08:23:24Z",
+      "callId": "9c9e0c54-f51d-4acd-8788-913af43b66c4"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ab7c9dfac9a4",
+  "promptDigest": "sha256:a268bffa0ee1b49dbfbfeffef6af384ce66b04a764aa43734ebcf87400d7faa9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c5dae106-fffd-4135-8dbf-c18771f6456d",
+  "startedAt": "2026-10-03T16:57:57.268Z",
+  "decidedAt": "2026-10-03T16:58:08.450Z",
+  "durationMs": 10202,
+  "costUSD": 0.059083399999999994,
+  "output": {
+    "action": "correct",
+    "reason": "The computed diff between the v2.6.4 [ev-782bc47d120d] and v2.7.0 [ev-c2c6c790d6b2] install bundles says spec.chartRef.kind had \"removed []\", meaning no values were removed, and \"ExternalArtifact\" was added. The proposed exposure reads \"removed []\" as the empty string \"\" being removed, which is a misreading. No existing value becomes invalid, so exposure cannot hinge on kind == \"\". The environments that touch this subject are HelmRelease v2 objects that set spec.chartRef.kind. A widened enum leaves them unaffected.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the spec.chartRef.kind enum gained ExternalArtifact and lost no values. The subject touches HelmRelease v2 objects that set spec.chartRef.kind, and no previously accepted value is rejected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

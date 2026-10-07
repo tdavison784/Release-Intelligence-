@@ -417,3 +417,49 @@ provenance:
     open-source artifacts; their carrier is the corresponding edge release
     (mapping published in linkerd.io/data/versions.yaml) — see the record's
     representability notes.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: control-plane-values
+  channel: helm-values
+  component: linkerd-control-plane
+  summary: The linkerd-control-plane Helm chart's values configure the control plane and the cluster-wide proxy
+    defaults (e.g. proxy.logLevel); the linkerd-crds chart has no values.
+  valuesPath: .
+  references:
+  - url: https://linkerd.io/2/tasks/install-helm/
+    quote: Our advice is to use a values.yaml file that stores all custom overrides that you have for your chart.
+  - url: https://raw.githubusercontent.com/linkerd/linkerd2/main/charts/linkerd-control-plane/values.yaml
+    quote: '# -- Log level for the proxy'
+- id: cli-install-values
+  channel: cli-flags
+  component: linkerd (CLI install/upgrade)
+  summary: When installed with the linkerd CLI, the same chart values are set with linkerd install's --set, --values,
+    --set-string and --set-file flags (plus dedicated flags such as --ha or --proxy-log-level).
+  references:
+  - url: https://linkerd.io/2/reference/cli/install/
+    quote: The installation can be configured by using the --set, --values, --set-string and --set-file flags.
+- id: linkerd-config
+  channel: configmap-file
+  component: control plane
+  summary: The chart renders the effective control-plane values (with private keys removed) as YAML into the values
+    key of the linkerd-config ConfigMap in the control-plane namespace.
+  file: values
+  format: yaml
+  configMap: linkerd-config
+  references:
+  - url: https://raw.githubusercontent.com/linkerd/linkerd2/main/charts/linkerd-control-plane/templates/config.yaml
+    quote: 'name: linkerd-config'
+- id: proxy-inject-overrides
+  channel: cli-flags
+  component: linkerd inject / proxy
+  summary: Per-workload proxy configuration overrides are given as linkerd inject command-line flags, or as config.linkerd.io/*
+    annotations on namespaces and workloads for auto-injected proxies.
+  references:
+  - url: https://linkerd.io/2/reference/proxy-configuration/
+    quote: For proxies injected using the linkerd inject command, configuration can be overridden using the command-line
+      flags.
+  - url: https://linkerd.io/2/reference/proxy-configuration/
+    quote: Linkerd provides a set of annotations that can be used to override the data plane proxy’s configuration.

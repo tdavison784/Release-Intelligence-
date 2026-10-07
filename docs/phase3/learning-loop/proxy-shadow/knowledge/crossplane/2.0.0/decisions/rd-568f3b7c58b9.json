@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-568f3b7c58b9",
+    "reviewItemId": "ri-db939ec7a234",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "CI pipelines or local scripts that call `crossplane xpkg login` or `crossplane xpkg logout` will fail because the commands no longer exist in the Crossplane CLI.",
+        "remediation": "Replace `crossplane xpkg login`/`crossplane xpkg logout` in workflows and scripts with `docker login` locally or the `docker/login-action` from CI before pushing a package, as done for example in the function-auto-ready CI workflow.",
+        "severity": "medium"
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI; the release notes recommend using `docker login` locally or the `docker/login-action` from CI to authenticate to a registry before pushing a package."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:c5f0ca8e9706fc21e7606cc6358abc868ecee90c17c38bf4643ff6b39f231ee7",
+      "inputEvidence": [
+        "ev-5bbbbea35c34"
+      ],
+      "generatedAt": "2026-10-03T17:03:49.521Z",
+      "callId": "c053d1af-eb4c-4d96-b29e-e80425cb5978",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5bbbbea35c34] lists this under \"Warnings and breaking changes\" and says the `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI. So any script or CI workflow that still calls them to log in before pushing a package breaks, which is an integration failure (workload-failure), not a changed default that keeps working. The suggested replacements (`docker login`, `docker/login-action`) are outside tools the user must switch to, not an upstream mechanism that takes over the function, so superseded-upstream does not fit. The proposed remediation and medium severity match the evidence.",
+    "startedAt": "2026-10-03T17:03:37.254Z",
+    "decidedAt": "2026-10-03T17:03:49.521Z",
+    "resultingFact": "vf-2a49659e69f5"
+  }
+}

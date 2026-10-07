@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b78d0885a125",
+    "candidateId": "sc-635ece4ca068",
+    "proposalId": "sp-05731fbbafc4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--metrics-namespace"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"cortex\"",
+        "after": "\"loki\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics-namespace",
+          "component": "loki",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Metrics emitted by Loki will use the 'loki' namespace by default instead of 'cortex', changing the metric namespace prefix unless explicitly configured otherwise.",
+        "remediation": "Verify that metric scrape configurations, dashboards, and alerting rules that reference metrics with the 'cortex' namespace are updated to use the 'loki' namespace, or explicitly set --metrics-namespace=cortex to retain the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "The `metrics-namespace` CLI flag is added to Loki with a default value changed to 'loki', replacing the previous default of 'cortex' for the namespace of emitted metrics."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/default-changed",
+        "detail": "no canonical exposure condition for cli-flag default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

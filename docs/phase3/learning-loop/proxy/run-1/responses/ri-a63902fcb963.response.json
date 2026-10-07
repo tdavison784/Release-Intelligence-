@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a63902fcb963",
+  "promptDigest": "sha256:fa86ca06791006c6d55270d113a34911b2f096da0d90d341ab43b30d17927881",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "59ea2c54-c73b-43a2-ae29-7e301a7228c8",
+  "startedAt": "2026-10-02T15:53:11.240Z",
+  "decidedAt": "2026-10-02T15:53:23.804Z",
+  "durationMs": 11532,
+  "costUSD": 0.088764,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-da6e6a1ea917] names the clustermesh-apiserver `podSecurityContext` Helm setting, which [ev-28e0ccb5774a]/[ev-39a22d88e2f5] confirm is a values key in both releases, so the subject is right. However, the evidence gives no literal before value (\\\"null\\\" is invented) and the \\\"after\\\" is a paraphrase of the new semantics, not a value; the validator also notes the key is a section, not a single value. The evidence only supports that leaving the setting unset now yields a restricted (all capabilities dropped, non-root) security context, i.e. behavior-changed with no literals.",
+    "citations": [
+      "ev-da6e6a1ea917",
+      "ev-28e0ccb5774a",
+      "ev-39a22d88e2f5"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "The clustermesh-apiserver Helm setting clustermesh.apiserver.podSecurityContext now defaults to a security context that drops all capabilities and runs as a non-root user.",
+      "subject": {
+        "determination": "asserted",
+        "family": "helm-value",
+        "path": "clustermesh.apiserver.podSecurityContext"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed"
+      }
+    }
+  }
+}

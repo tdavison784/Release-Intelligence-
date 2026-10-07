@@ -1,0 +1,40 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a3981c9ce4d4",
+  "promptDigest": "sha256:33a0812f1efe92817657ca58f2b76005916b79f5e862a258678d411c6370de67",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a1d3ffa8-b49b-498f-a909-5896de3d4dbb",
+  "startedAt": "2026-10-03T16:56:43.861Z",
+  "decidedAt": "2026-10-03T16:56:56.291Z",
+  "durationMs": 11280,
+  "costUSD": 0.128668,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide [ev-9f4292160fa2] says the `querier.worker-parallelism` CLI flag and its YAML setting are removed, and recommends `querier.max-concurrent` instead; the changelog [ev-4b79cb1a8226] also says it is removed. So \"removed\" with max-concurrent as the replacement is right. The subject is wrong, though. The evidence names a CLI flag, `querier.worker-parallelism`. It never spells out the YAML key, so the proposed config-key (path \"worker-parallelism\", component \"querier\") was made up by splitting the flag name. The default change for `querier.max-concurrent` is a separate change and is left out here.",
+    "citations": [
+      "ev-9f4292160fa2",
+      "ev-4b79cb1a8226"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "The `querier.worker-parallelism` CLI flag (and its corresponding YAML setting) is removed in Loki 3.0.0; operators should use `querier.max-concurrent` to limit concurrent querier requests instead.",
+      "subject": {
+        "determination": "asserted",
+        "family": "cli-flag",
+        "name": "--querier.worker-parallelism"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "name": "--querier.max-concurrent"
+        }
+      }
+    },
+    "labels": [
+      "wrong-subject"
+    ]
+  }
+}

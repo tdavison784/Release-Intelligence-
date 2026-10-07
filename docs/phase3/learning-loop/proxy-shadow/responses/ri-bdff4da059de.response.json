@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bdff4da059de",
+  "promptDigest": "sha256:d69ad0f23351cc9859dbe5f2df621c363459c10f1e3ef9f6d8a7184acc806ed0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b2e6c7db-0fb8-45e9-b1f0-a3849adf4297",
+  "startedAt": "2026-10-03T02:29:47.071Z",
+  "decidedAt": "2026-10-03T02:29:58.510Z",
+  "durationMs": 10587,
+  "costUSD": 0.080996,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-526028ea7180] says only that Kafka 4.0+ uses Log4j2 instead of Reload4j/Log4j1 and that custom logging configuration \"might need\" updating during the upgrade. It does not say anything fails, is rejected or stops being honoured, so a review-class behavior-change is the right kind and the class is correct. However, the proposed statement goes beyond the evidence: it says configurations \"may not work correctly\" and \"require updates\" to match the new format and features. The corrected statement sticks to the changelog's hedged wording.",
+    "citations": [
+      "ev-526028ea7180"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Kafka 4.0 and newer logs via Log4j2 instead of Reload4j/Log4j1. Environments with custom logging configuration might need to update it during the upgrade to Kafka 4.0. The evidence does not say that anything fails.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "After the upgrade to Kafka 4.0, Kafka logs via Log4j2 instead of Reload4j/Log4j1. The changelog says custom logging configuration might need to be updated during the upgrade. It does not say what happens if it is left unchanged.",
+        "remediation": "Review any custom logging configuration and update it for Log4j2 when upgrading to Kafka 4.0, as the changelog advises.",
+        "severity": "medium"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5fa8b1ca8312",
+    "candidateId": "sc-b2e695f63976",
+    "proposalId": "sp-9e10d2ca26a8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "argo-cd",
+        "group": "policy.open-cluster-management.io",
+        "version": "v1",
+        "kind": "Policy"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "policy.open-cluster-management.io",
+          "kind": "Policy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy resources with no matching clusters are no longer reported as stuck in Progressing health status.",
+        "severity": "low"
+      },
+      "statement": "Argo CD health assessment for Policy (policy.open-cluster-management.io) resources no longer leaves them stuck in Progressing when no clusters match the policy."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:gvk/behavior-changed",
+        "detail": "no canonical exposure condition for gvk behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -103,6 +103,44 @@ as fact attributes — representation `registry-manifest`.
 All downloads go through `fetch.Client`: cached, offline-replayable, token
 exchanges never persisted.
 
+## CRD schema capture
+
+A `crds` content records, per CRD version, the dotted `schemaPaths` and a
+`fields` list with one entry per path: `type`, `default` (canonical JSON, ""
+when none), `enum` (canonical JSON values, taken from the items schema for
+arrays) and `required` (the parent schema lists the property in `required`).
+`upgrade.Build` diffs the entries of paths present on both sides, citing the
+CRD evidence of both releases, as `crd:default-changed`, `crd:enum-changed`,
+`crd:field-required` and `crd:field-type-changed`. They are computed facts a
+validator can use to prove or refute a proposed "default changed" / "value
+removed" / "now required" statement; the impact join treats them as
+not-yet-joined (unknown with a specific reason). Snapshots captured before
+this field existed carry no `fields` and produce no attribute diff.
+
+Charts published only to a registry (Karpenter on ECR Public) declare
+`contents: [helm-values, chart-metadata]` with no locator: the artifact's `oci`
+channel serves the packaged chart (representation `published-oci-chart`).
+
+## Statements the artifact makes about itself (`lines`)
+
+Some upstream facts have no structure: a CRD field description that says it "has been removed", a source file that
+rejects a retired flag, a documentation page that lists the tested operand versions. A `lines` content keeps the
+lines of a document matching a declared pattern as a snapshot (`Snapshot.lines`: source label, pattern, sorted
+trimmed lines) and `upgrade.Build` diffs the two releases as sets: `lines:added` / `lines:removed`, one computed
+change per line (category `other`, subject = the line, evidence = the snapshot documents of both releases), at most 25
+per direction plus one summary. A line both releases have is no change, however often the statement is repeated.
+
+```yaml
+contents:
+  - kind: lines
+    label: install.yaml
+    locator: {kind: http, url: "https://github.com/o/r/releases/download/{{.Tag}}/install.yaml"}
+    pattern: '(?i)\b(?:has|have) been removed\b|^\s*Deprecated:'
+```
+
+The impact join treats these changes as not-yet-joined (unknown with a specific reason). One lines content per
+artifact (snapshots are keyed by artifact and kind).
+
 ## Definition surface
 
 ```yaml

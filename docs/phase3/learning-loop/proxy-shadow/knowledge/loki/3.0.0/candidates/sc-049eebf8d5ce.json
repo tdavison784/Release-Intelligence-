@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-049eebf8d5ce",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-23dd7c70f86c",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-f73e831c44c4"
+          ],
+          "statementKeys": [
+            "sk-e0b7a6daf470"
+          ],
+          "changeIds": [
+            "chg-23dd7c70f86c"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "loki Tracing: elide small traces for Stats call",
+    "text": "loki Tracing: elide small traces for Stats call. 10308",
+    "evidence": [
+      {
+        "id": "ev-8ff725c31bf6",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L40-L40 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki** Tracing: elide small traces for Stats call. [10308](https://github.com/grafana/loki/pull/10308)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-1d34880808f8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10308",
+        "locator": "title and description",
+        "excerpt": "PR: Tracing: elide small traces for Stats call [closed; labels size/M]\n**What this PR does / why we need it**:\n\nAt work I see a lot of traces getting data dropped due to being tens of megabytes in size.\nLooking at what was captured, I see many many repeats of these four spans:\n<img width=\"1070\" alt=\"image\" src=\"https://github.com/grafana/loki/assets/8125524/4268e664-6910-49bb-8f68-69b139a5a66b\">\n\nEvents on the parent trace are cheaper and, for small operations like this, just as useful.\nWhere there was an event line I added a `function` field matching the previous span name.\nFor",
+        "contentDigest": "sha256:3c78edd34bd1a588fed875b7023cf8512c41de4c8ada80393ceb65ed11df1857",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-b302f4766214",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10308",
+        "locator": "description (part 2)",
+        "excerpt": "`storeEntry.Stats()` I didn't add an event line as it doesn't seem to do very much.\nBut please correct me; I'm not hugely familiar with the Loki codebase.\n\n**Special notes for your reviewer**:\n\n**Checklist**\n- [x] Reviewed the [`CONTRIBUTING.md`](https://github.com/grafana/loki/blob/main/CONTRIBUTING.md) guide (**required**)\n- NA Documentation added\n- NA Tests updated\n- [x] `CHANGELOG.md` updated\n- NA If the change is worth mentioning in the release notes, add `add-to-release-notes` label\n- NA Changes that require …",
+        "contentDigest": "sha256:3c78edd34bd1a588fed875b7023cf8512c41de4c8ada80393ceb65ed11df1857",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-ae5a245aeedd",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10308",
+        "locator": "changed files",
+        "excerpt": "4 changed file(s): CHANGELOG.md, pkg/ingester/instance.go, pkg/storage/stores/composite_store_entry.go, pkg/storage/stores/tsdb/index_client.go",
+        "contentDigest": "sha256:3c78edd34bd1a588fed875b7023cf8512c41de4c8ada80393ceb65ed11df1857",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

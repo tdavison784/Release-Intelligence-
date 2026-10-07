@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0664ccbeaa2f",
+    "candidateId": "sc-a8b00c6ca141",
+    "proposalId": "sp-9e2ec1a9b4ad",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--frontend.cache-split-interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--querier.split-queries-by-interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--frontend.cache-split-interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments setting the frontend.cache-split-interval CLI flag will have that configuration ignored; results caching interval must be controlled via querier.split-queries-by-interval instead.",
+        "remediation": "Replace the frontend.cache-split-interval CLI flag with querier.split-queries-by-interval in your Loki configuration or deployment.",
+        "severity": "high"
+      },
+      "statement": "The frontend.cache-split-interval CLI flag is removed; results caching interval is now determined by querier.split-queries-by-interval."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

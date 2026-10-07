@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-073dde800282",
+    "candidateId": "sc-a94334b2979e",
+    "proposalId": "sp-168bdd23731f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "karpenter",
+        "name": "karpenter-sh-managed-by-annotation"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which objects carry the karpenter.sh/managed-by annotation and whether any tooling, selectors or workloads rely on that annotation (or on the new eks:eks-cluster-name tag) at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Karpenter no longer applies the karpenter.sh/managed-by annotation and instead adds an eks:eks-cluster-name tag, so the identifying metadata on affected resources differs from previous releases; anything matching the old annotation will no longer find it.",
+        "remediation": "Verify whether any tooling, selectors or automation read the karpenter.sh/managed-by annotation or should consume the new eks:eks-cluster-name tag.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 removes the karpenter.sh/managed-by annotation and adds an eks:eks-cluster-name tag instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

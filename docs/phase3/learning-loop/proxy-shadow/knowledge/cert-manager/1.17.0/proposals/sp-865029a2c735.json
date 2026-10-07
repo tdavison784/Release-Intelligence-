@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-865029a2c735",
+    "candidateId": "sc-a2b29fc53908",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-data-parsing-capacity",
+        "component": "pki"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "the actual size of TLS trust bundles configured in the environment and whether they previously exceeded the PEM parsing limit"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments with TLS trust bundles that previously exceeded the PEM parsing limit can now successfully read larger trust bundles, enabling previously failing configurations to work."
+      },
+      "statement": "The pki.DecodeX509CertificateSetBytes function increases its capacity to parse PEM data, enabling support for reading larger TLS trust bundles."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-db955cc00d69"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2b7e07702cc96fa66df25cdd6950f4760f53a6aaf19f5cbf662e682c6d9741be",
+      "inputEvidence": [
+        "ev-db955cc00d69"
+      ],
+      "generatedAt": "2026-10-02T06:06:27Z",
+      "callId": "28a611a9-e8cc-43cd-9eef-4f599f1153d6"
+    }
+  }
+}

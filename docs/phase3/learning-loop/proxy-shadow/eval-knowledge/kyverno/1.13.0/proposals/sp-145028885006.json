@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-145028885006",
+    "candidateId": "sc-8076d0a3c442",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers no longer have wildcard view permissions. Mutate and generate policies for custom resources, and reporting of validation results on custom resources, may be affected.",
+        "remediation": "Follow the 1.13 upgrade guidance and use the Helm option it describes so existing policies keep working, or grant Kyverno the permissions it needs on the custom resources.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permissions that earlier versions granted and replaces them with a role binding to the system view role. This may affect mutate and generate policies for custom resources, and reporting of validation results on custom resources."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on using mutate/generate policies or validation reporting for custom resources, and on not setting an unnamed Helm option. The evidence does not name that Helm option, and no predicate can tell which policy kinds are custom resources.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e6df95267b63"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:d6c65d03ab9b15609f5e96ee5d2a7d9ba50358bb8fc69ded60570fcbb33444a7",
+      "inputEvidence": [
+        "ev-e6df95267b63",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T07:04:36Z",
+      "callId": "99d5cdbf-9785-41db-a447-730c43beddda"
+    }
+  }
+}

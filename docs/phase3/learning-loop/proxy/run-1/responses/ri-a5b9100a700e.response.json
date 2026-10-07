@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a5b9100a700e",
+  "promptDigest": "sha256:a3caec7297a398619fe5bc113f720273ee553a100f6c382ab0c0f6e3d0d2f6ac",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d7059a1b-ed70-4a30-b8b5-b58837a847d4",
+  "startedAt": "2026-10-02T15:52:55.272Z",
+  "decidedAt": "2026-10-02T15:53:07.357Z",
+  "durationMs": 11148,
+  "costUSD": 0.089152,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-80c52188197b] and [ev-927d998f5cdd] both say Istio now resolves conflicts the same way whether or not a `Sidecar` resource is defined. This covers two cases: multiple services with the same hostname, and multiple Gateway API routes for the same service. So behavior-changed is the right change type. The subject name \"sidecar-service-resolution\" covers only the service case, so I renamed it from the evidence's own words (\"Sidecar scoping\", \"conflict resolution\") to cover both. The proposed before/after values are reworded summaries rather than literal values from the text, and they leave out the route case, so I dropped them; before/after are optional for behavior-changed.",
+    "citations": [
+      "ev-80c52188197b",
+      "ev-927d998f5cdd"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 changes how it resolves service conflicts so that the result is the same with or without a Sidecar resource. With multiple services on the same hostname, it now prefers the service in the proxy's namespace, then a Kubernetes Service over a ServiceEntry, then picks arbitrarily. With multiple Gateway API routes for the same service, it prefers the local proxy namespace.",
+      "subject": {
+        "family": "protocol-behavior",
+        "name": "sidecar-scope-conflict-resolution",
+        "determination": "asserted"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "determination": "asserted"
+      }
+    }
+  }
+}

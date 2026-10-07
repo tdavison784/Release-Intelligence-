@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-d2afc4a4ba4f",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "members": [
+      {
+        "changeId": "chg-be5c1fe63bfd",
+        "anchor": {
+          "release": "1.17.0",
+          "evidenceKeys": [
+            "ek-d3bdbfefacc8"
+          ],
+          "statementKeys": [
+            "sk-00b924fda72e"
+          ],
+          "changeIds": [
+            "chg-be5c1fe63bfd"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure…",
+    "text": "RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure Algorithms in 2022 which introduced some requirements on the kinds of cryptography they require to be supported in software they use. In effect, the memo requires that software be able to support larger RSA keys (3072-bit and 4096-bit) and hashing algorithms (SHA-384 at a minimum). cert-manager supported large RSA keys long before the memo was published, but a quirk in implementation meant that cert-manager always used SHA-256 when signing with RSA. In v1.17.0, cert-manager will choose a hash algorithm based on the RSA key length: 3072-bit keys will use SHA-384, and 4096-bit keys will use SHA-512. This matches similar behavior already present for ECDSA signatures. Our expectation is that this change will have minimal impact beyond a slight increase in security and better compliance; we're not aware of Kubernetes-based environments which support RSA 2048 and SHA-256 but fail with RSA 4096 and SHA-512. However, if you're using larger RSA keys, you should be aware of the change.",
+    "evidence": [
+      {
+        "id": "ev-c76ce5c9366c",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L27-L37 (Major Themes › RSA Certificate Compliance)",
+        "excerpt": "### RSA Certificate Compliance\n\nThe United States Department of Defense published a [memo: Department of Defense Transition to Stronger Public Key Infrastructure Algorithms](https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/pdf/unclass-memo_dodcryptoalgorithms.pdf) in 2022 which introduced some requirements on the kinds of cryptography they require to be supported in software they use.\n\nIn effect, the memo requires that software be able to support larger RSA keys (3072-bit and 4096-bit) and hashing algorithms (SHA-384 at a minimum).\n\ncert-manager supported large RSA keys long before the memo…",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "hints": [
+      "version:v1.17.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

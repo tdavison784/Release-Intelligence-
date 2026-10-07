@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f7558417aec",
+    "reviewItemId": "ri-a0af68af66f7",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:d9809d6ae060d83702670defa3956bd5fc0aaf4aaff208b89b657307b509b981",
+      "inputEvidence": [
+        "ev-acec48f57273"
+      ],
+      "generatedAt": "2026-10-02T15:52:45.03Z",
+      "callId": "40bedfef-abeb-4a00-a7ef-f2f44351e134"
+    },
+    "reason": "The only evidence, [ev-acec48f57273], is one changelog line saying Kafka node certificates are now stored in separate Secrets, one per pod. It does not say what the old layout was, whether the old shared Secret is removed or renamed, or what reads it. Without that, the evidence cannot show which environments are actually exposed. The proposed condition, any use of kafka.strimzi.io/v1beta2 Kafka, is a guess: it treats every Kafka cluster as exposed and adds a v1beta2 version the evidence never mentions. Deciding this needs the upgrade notes or docs that name the old and new Secrets and say whether anything reading the old Secret will break.",
+    "startedAt": "2026-10-02T15:52:36.239Z",
+    "decidedAt": "2026-10-02T15:52:45.03Z"
+  }
+}

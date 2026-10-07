@@ -1,0 +1,148 @@
+# Lane `dashboard` — status
+
+**State: done** (build, vet and the full test suite green on `p3ll/dashboard`).
+
+## Done
+- `internal/reviewui` (stdlib: `net/http`, `html/template`, `embed`; vanilla JS, no vendored library):
+  `server.go` (routes, per-browser session, same-origin guard), `decision.go` (decision + correction
+  building, proxy refusal), `bulk.go` (plan, guard, confirmation, one `Decide` call), `view.go`, `rendered.go`,
+  `demo.go` (`DemoQueue` fixtures), `templates/`, `static/app.{css,js}`.
+- `cmd/ri/review.go`: `ri review serve [-addr] [-demo] [-reviewer]` (`-knowledge DIR` reserved, see open items).
+- Inbox: G7 counters (clickable) + every G7 filter, sticky header, collapsible cards with inline lazy detail,
+  expand/collapse all, light/dark + toggle, responsive. Item page: every G8 element. Actions ACCEPT / REJECT /
+  CORRECT (per-aspect pre-filled form with enum dropdowns, class follows kind) / NEED MORE EVIDENCE / DEFER, each
+  with reason + labels; reviewer required; StartedAt = served, DecidedAt = submit. Keyboard shortcuts.
+- Bulk (product-owner addendum): multi-select + range + select-all, confirmation page, one decision per item with a
+  shared `BatchID`/`BatchSize` in one `Queue.Decide` call, high-priority/disagreement guard for bulk accept (lifted per item
+  by opening it in the session), exclude-blocked, per-item skip reporting, correct individual-only.
+- Render panel (commander note): "Rendered delta" on the item page and expanded card; hidden when absent.
+- Docs: `docs/REVIEW_UI.md`, README command line, ARCHITECTURE package entry, HTML snapshots under
+  `docs/phase3/learning-loop/review-ui/`.
+
+## Decisions (and why)
+- **No vendored JS library.** Vanilla JS (~200 lines) covers expand, selection, shortcuts; nothing to license.
+- **Lazy inline detail** (`/items/{id}/detail`): keeps the inbox cheap for hundreds of items, and the fetch is what
+  marks an item as "opened" for the bulk-accept guard (server-side session, not client trust).
+- **Bulk needs ≥ 2 decidable items** (contract invariant `BatchID ⇔ BatchSize ≥ 2`); a lone item uses its own controls.
+  The batch is the decidable items only; skipped ones are reported per item.
+- **Bulk confirm is two-step** (`POST /bulk` previews, `confirm=1` records). `BatchID = domain.BatchID(ids, reviewer, decidedAt)`.
+- **Applicability correction is JSON** (strictly decoded, then `Validate`d): the condition tree is the one thing a
+  form cannot sensibly flatten. Everything else is dropdowns/fields.
+- **`wrong-*` labels on correct are derived** from the aspects whose digest changed, unless the reviewer ticks labels.
+- **Defaults**: pending-only view; `Decide` is only offered for pending / needs-evidence / deferred items.
+- No auth (non-goal); cross-origin POSTs refused; redirects limited to local paths.
+
+## Contract changes
+- `BatchID` / `BatchSize` were already in `domain.ReviewDecision` (contract lane) — nothing added.
+- `CONTRACT-CHANGE(dashboard)` (GLM handoff, in `internal/knowledge/api.go`): additive `Inbox.Matches int` — the filter's
+  full match count before `Limit` truncates `Items`. Set by the real queue and the reviewui `DemoQueue`. Lets the inbox say
+  "first N of M" and keeps *Select all* honest when a large filter is paginated; same additive pattern as `InboxRow.Calls`.
+- `CONTRACT-CHANGE(dashboard)` (in `internal/reviewui/rendered.go`, not in `internal/knowledge`): the render panel reads
+  `reviewui.RenderedDelta` through the optional `RenderedDeltaSource` port. When the render lane adds render evidence to
+  `knowledge.ReviewContext`, replace `renderedDelta()` in `server.go` to map that field into `RenderedDelta` (the view/templates
+  need no change). Fields mirror RENDER-MISSION goal 18: object identity, change class, path, source/target, renderer+version,
+  chart digests, relation.
+
+## Files touched outside ownership (all additive)
+- `cmd/ri/main.go`: `review` command + usage lines. `README.md`, `docs/ARCHITECTURE.md`: one line each.
+
+## Open items / for the commander
+
+- The UI does not see `ValidationResult`s for a *correction* before submit (queue-side concern).
+
+
+## Test status
+`go build ./... && go vet ./... && go test ./...` green. `internal/reviewui`: fixtures validate against the domain rules;
+every route; every filter; every action; refusals (correct without change, proxy kind/provenance, no reviewer, bad
+started, outcome label by hand, cross-origin, already-decided); bulk (confirm step, one decision per item + batch id +
+timing, shared reason/labels, mixed valid/invalid, high-priority/disagreement guard incl. per-item lifting and per-session
+scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
+
+## Pending contract follow-ups (PO-1 / PO-2, from commander; not implemented until `p3ll/contract-3` is merged)
+- Show the consensus label per aspect in the proposals matrix: cross-model vs same-model (separate calls), using the call id each proposal will carry.
+- Show the requested class (`SuggestedClass`) per proposal, including a model's request for action-required, and the "ACTION REQUIRED · model consensus" outcome that auto-sampled review items will carry.
+- Nothing built so far contradicts these: the matrix groups by aspect digest and never merges proposals, and the UI never sets or caps a class.
+
+## dashboard-2 follow-up (commander request)
+- **`-knowledge DIR` wired**: `ri review serve -knowledge DIR` uses `knowledge.NewQueue(knowledge.NewFileStore(DIR), nil)` (a missing dir = empty store).
+  `TestAgainstTheFileStoreQueue` runs inbox, item page, an individual decision, a bulk batch and a correction through the real queue.
+- **Atomicity of `Queue.Decide` (findings)**: it validates every decision, computes all facts/follow-ups against an in-memory view and dry-runs the
+  fact basis *before the first write*, so invalid input anywhere in a call (unknown item, bad batch, bad fact) writes nothing — pinned by
+  `TestDecideRefusedBatchWritesNothing`. It is not transactional against a *store failure mid-write* (JSON files cannot roll back): but decisions are
+  content-addressed and the call is idempotent, so retrying the same decisions completes it exactly once — `TestDecideRetryAfterAStoreFailureCompletesOnce`
+  (marked `CONTRACT-CHANGE(dashboard)`, tests only, no production change). One gap, handled in the UI: `Decide` does not refuse a *second* decision on an
+  already-`decided` item (only superseded); the UI refuses these per item (409 / "skip"). The knowledge lane may want to refuse them too.
+- **Real-browser verification (Firefox 152 headless + Selenium in a venv; Chrome is not installed)**: 28 assertions, all pass (list in docs/REVIEW_UI.md).
+  Screenshots reviewed critically; fixed from them: sticky header was ~220px (filters moved into a collapsible, non-sticky panel; tiles compacted and
+  aligned to the page width), the item-page question rendered tiny (CSS class collision), magenta checkboxes (`accent-color`), a raw timestamp in the
+  Decide heading, a redundant reviewer field in every inline form (now the header's), and inline forms now refuse early when no reviewer name is set.
+  Screenshots: `docs/phase3/learning-loop/review-ui/screenshots/` (light + dark, narrow window).
+- Still untested in a browser: Safari/Chrome specifics, touch input, very large inboxes (hundreds of cards).
+
+
+## dashboard-3: PO-1 / PO-2 (contract-3 merged)
+- **Fixtures fixed**: every demo proposal now has its own `Provenance.CallID` (`call-<model>-<n>`, part of the proposal id), a test asserts all
+  call ids are distinct. New examples: **same-model consensus** (txt-prefix: two separate Opus calls), **cross-model consensus** (opus + glm; note
+  `ModelFamily` makes opus + sonnet the same family, so that pair is labelled same-model), and a **consensus-ACTION audit item** (RSA < 2048 rejected:
+  opus + glm both `requested action-required`, action-eligible kind, no refutation, high priority).
+- **UI**: proposals matrix is now "by call" with call id and requested class per column, consensus scope per aspect row (and a legend per
+  answer group when they disagree), and a "Consensus requests ACTION REQUIRED · model consensus" banner (reports PO-2 condition (b)+(d) from the
+  proposals/validations; (a) and (c) are the pipeline's). Inbox badge: "consensus · cross-model|same-model · N calls" / "single call" / "models disagree".
+- **CONTRACT-CHANGE(dashboard)**: `knowledge.InboxRow.Calls int` (additive; filled in `reviewQueue.Inbox` from distinct `Provenance.CallID`s) so the inbox
+  can label consensus by separate calls rather than distinct models (two Opus calls are a consensus; `Models` alone says "1 model").
+- Decisions are untouched: a consensus-ACTION audit decision is a normal human decision; the UI never sets or caps a class.
+- Firefox script updated (10 pending cards), screenshots refreshed incl. `23-consensus-action-*`, `24-same-model-consensus-*`.
+
+## dashboard-4 (GLM handoff): large inboxes are no longer silently partial
+- The open "very large inboxes (hundreds of cards)" gap had a real defect inside it: a filter matching more than
+  `Options.InboxLimit` (200) rendered a silent partial list — the toolbar said "Select all 200 in this filter" while the tiles
+  counted every match, so bulk select-all acted on only the visible subset with nothing saying so.
+- Fix: `knowledge.Inbox.Matches` (above); the inbox shows a *Showing the first N of M matching items* notice (highest priority
+  first, bulk covers what is shown) and *Select all N **shown*** wording when truncated. A `Queue` implementor that leaves
+  `Matches` at 0 cannot make the page claim truncation (fallback to `len(Items)`).
+- Tests: queue-side `Matches` vs `Items` (`TestInboxReportsMatchesBeyondTheLimit`), notice present/absent + honest wording
+  (`TestInboxSaysWhenTheListIsTruncated`, extended `TestInboxCountsAndDefaultFilter`), and a 400-item inbox through the real
+  handler/templates (`TestInboxHandlesHundredsOfItems`: exactly 200 cards, ids `…0199` present / `…0200` absent). Render time is
+  logged, not asserted (no flaky timing gates).
+- Docs: one paragraph in `docs/REVIEW_UI.md`.
+
+## GLM handoff log (GLM-5.3, 2026-10-01)
+- Context: took over the paused dashboard lane. Branch was clean at `de7c927` with status "done"; verified `go build ./...`,
+  `go vet ./...`, `go test ./...` green (also `-race -count=1` on `internal/reviewui`), gofmt clean, all screenshots/snapshots
+  present, before changing anything.
+- Did the dashboard-4 increment above (commit `941cb5f` + this status/doc commit). Nothing else looked unfinished: PO-1/PO-2 are
+  implemented, `-knowledge` is wired, the render panel stands behind its port awaiting the render lane.
+- Uncertainties / for the commander:
+  - `knowledge.Inbox.Matches` touches the knowledge lane's package (additive field + one line in `queue.go`); flagged as
+    `CONTRACT-CHANGE(dashboard)` here. The knowledge lane's own fakes (if any reimplement `Inbox`) should set it, but the UI's
+    fallback makes a missing value harmless.
+  - Browser-level gaps I could not close headlessly: Safari (needs "Allow Remote Automation" enabled by the user), Chrome (not
+    installed), touch input, and the *layout* of 200 rendered cards in a real browser (the 400-item test covers the server
+    render path only). The existing Firefox venv/scripts are in `docs/phase3/learning-loop/review-ui/`.
+  - The truncation notice's exact wording is mine, not the product owner's; easy to adjust if they want it different.
+  - Not done (deliberately): no `-limit` demo flag to preview truncation in `-demo` mode (demo has ~10 pending items); say the
+    word and it's a three-line addition to `cmd/ri/review.go`.
+- No worktrees other than this one were touched; no merge/rebase/push; every commit subject starts `[glm-handoff] `.
+
+## dashboard-5: demo data is unmistakable
+- `-demo` → `Options.Demo`: persistent red "DEMO DATA — fixtures, not real upstream evidence" banner on every page (inbox, item, detail, bulk confirm, error;
+  light + dark; the sticky header sits below it), and `fixture` / `fixture excerpt` tags on the upstream statement, evidence records and excerpts. Absent
+  without `-demo`. Test: `TestDemoModeBannerAndFixtureTags`.
+- `ri review serve -limit N` (3 lines) so the truncation notice is demonstrable (`TestInboxLimitShowsTheTruncationNotice`; snapshot `inbox-truncated.html`).
+- Screenshots and HTML snapshots re-taken (all 25 PNGs carry the banner); the Firefox script still passes.
+
+## dashboard-6 (branch `p3ll/dashboard-6`): route-priority filter
+- `?priority=high|normal|low` filter (select in the filters panel, active-state aware) and a clickable red **High priority N** chip.
+- **CONTRACT-CHANGE(dashboard)** (additive, `internal/knowledge`): `InboxFilter.Priority`, `InboxCounts.HighPriority` (pending + high; independent of the
+  status/priority filters, like the other counters); implemented in `reviewQueue.Inbox` (`TestInboxPriorityFilterAndHighCounter`) and in the demo queue.
+- Proxy awareness: proxy-decided items are `decided` and so already hidden from pending; pinned by `TestProxyDecidedItemsLeavePendingAndAreMarked` (no behaviour change).
+- For the ~211 high items: the inbox default limit is 200 (a "first 200 of 211" notice shows; select-all/bulk cover the shown rows) — run with `-limit 500` to see all.
+  Bulk accept of high-priority items still requires opening each item first (the guard).
+- Screenshots `30-high-priority-filter-{light,dark}.png`.
+
+## dashboard-7 (branch `p3ll/dashboard-7`): prose-only corrections (contract-5)
+- `decision.go`: a CORRECT that changes only the consequence statement/remediation is accepted and labelled exactly `[corrected, improved-statement]`
+  (Original and Corrected kept); ticking `wrong-*` on it is refused; a typed change plus prose change gets `[corrected, wrong-*…, improved-statement]`; a
+  correction that changes nothing typed or prose (e.g. only the assertion's own statement) is still refused.
+- Tests: `TestProseOnlyCorrectionIsLabelledImprovedStatement`, `TestTypedAndProseChangeTogetherAddsImprovedStatement`, and a prose-only correction through the
+  real FileStore queue. The running review server of `human-review` was not touched.

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-42d1087a290f",
+    "candidateId": "sc-13463f9d40e5",
+    "proposalId": "sp-fabdaf2e2403",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "version": "v1",
+        "kind": "EC2NodeClass"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "statement": "Karpenter 1.0.0 adds conversion webhooks for the v1 EC2NodeClass API."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:gvk",
+        "detail": "/v1 EC2NodeClass is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:added",
+        "detail": "the API version is not in the snapshots"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

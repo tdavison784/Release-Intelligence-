@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-39ecb9219816",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-979a6c2ed334"
+        ],
+        "statementKeys": [
+          "sk-8591b7a0fecc"
+        ],
+        "changeIds": [
+          "chg-1acc647052b2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e35ee2a5c098"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.kubernetesGateway.experimentalChannel"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway",
+              "state": "set"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "providers.kubernetesGateway.experimentalChannel",
+                  "state": "equals",
+                  "values": [
+                    "true",
+                    "\"true\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "TLSRoute"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "kind": "TCPRoute"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "providers.kubernetesGateway.experimentalChannel",
+          "state": "equals",
+          "values": [
+            "true",
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Unless experimentalChannel is enabled, the Kubernetes Gateway API provider does not support TLSRoute and TCPRoute resources, so routing defined by them is no longer provided after the upgrade to v3.",
+        "remediation": "Set providers.kubernetesGateway.experimentalChannel: true in the static configuration.",
+        "severity": "high"
+      },
+      "statement": "Experimental Channel Resources (TLSRoute and TCPRoute): In v3, the Kubernetes Gateway API provider does not enable support for the experimental channel API…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8cf20a1072c0"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8cf20a1072c0"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-adbfa99fde44"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-fadaf0050c5f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5b58f5805519",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L97-L121 (Migration Guide: From v2 to v3 › Static configuration › Kubernetes Gateway API › Experimental Channel Resources (TLSRoute and TCPRoute))",
+        "excerpt": "#### Experimental Channel Resources (TLSRoute and TCPRoute)\n\nIn v3, the Kubernetes Gateway API provider does not enable support for the experimental channel API resources by default.\n\n##### Remediation\n\nThe `experimentalChannel` option should be used to enable the support for the experimental channel API resources.\n\n??? example \"An example usage of the Kubernetes Gateway API provider with experimental channel support enabled\"\n\n    ```yaml tab=\"File (YAML)\"\n    providers:\n      kubernetesGateway:\n        experimentalChannel: true\n    ```\n    \n    ```toml tab=\"File (TOML)\"\n    [providers.kuberne…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T23:20:51.542Z"
+  }
+}

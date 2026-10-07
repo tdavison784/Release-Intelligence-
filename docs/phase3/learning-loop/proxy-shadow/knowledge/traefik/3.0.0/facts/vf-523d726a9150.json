@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-523d726a9150",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-8ad804de689f"
+        ],
+        "statementKeys": [
+          "sk-08df4befdb48"
+        ],
+        "changeIds": [
+          "chg-d9619525c07c"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-92568b622146"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.http.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.http.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yml\"]",
+                      "state": "exists",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.yaml\"]",
+                      "state": "exists",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"traefik.toml\"]",
+                      "state": "exists",
+                      "pattern": "(?i)^\\s*caOptional\\s*[:=]"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `tls.caOptional` option in the HTTP provider static configuration will be ignored and not processed by Traefik v3.0.0.",
+        "remediation": "Remove the `tls.caOptional` option from the HTTP provider static configuration in all formats (YAML, TOML, or CLI flags)."
+      },
+      "statement": "TLS.CAOptional: HTTP provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-b2a52e6256d7"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b2a52e6256d7"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-5f9adfa9e40d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-f8f1728b951e"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-030a6d8de1b4",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L420-L444 (Migration Guide: From v2 to v3 › Static configuration › HTTP Provider › TLS.CAOptional)",
+        "excerpt": "#### TLS.CAOptional\n\nHTTP provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType).\n\n??? example \"An example usage of the TLS.CAOptional option\"\n\n    ```yaml tab=\"File (YAML)\"\n    providers:\n      http:\n        tls: \n          caOptional: true\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [providers.http.tls]\n        caOptional=true\n    ```\n\n    ```bash tab=\"CLI\"\n    --providers.http.tls.caOptional=true\n    ```\n\n##### Remediation\n\nThe `tls.caOptional` option should be removed from the HTTP prov…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:53:15.098Z"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-842e48b93fde",
+    "candidateId": "sc-ca60de420e92",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "argo-cd",
+        "name": "batch-event-processing",
+        "component": "controller"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "batch-event-processing",
+              "component": "controller",
+              "state": "unset"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The controller will process events in batch mode by default, which changes event processing behavior from prior versions where this was not the default.",
+        "severity": "medium"
+      },
+      "statement": "Batch event processing is enabled by default in the Argo CD controller in version 3.0.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-77235f54568b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b275bba4d3ef992510cc117b030ad7c5448e01fdc8f12cc94696152b5f6eaba6",
+      "inputEvidence": [
+        "ev-77235f54568b"
+      ],
+      "generatedAt": "2026-10-02T05:53:46Z",
+      "callId": "0ca9c0b5-23b1-4a52-b980-5af28de2cdcf"
+    }
+  }
+}

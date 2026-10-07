@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f9bfc830d1a9",
+    "candidateId": "sc-3e8896f66ab7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--mode",
+              "component": "user-operator",
+              "state": "equals",
+              "values": [
+                "\"standalone\""
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "TLS_ENABLED",
+                  "component": "user-operator",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The User Operator no longer fails when the Cluster CA certificate Secret is missing in non-TLS configurations."
+      },
+      "statement": "The standalone User Operator was updated to gracefully handle the Cluster CA certificate Secret being absent when TLS is not needed."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the change describes component behavior improvement rather than a specific configuration artifact, CLI flag, field, or other named subject",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-35ea1afad43d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:30018a0ae46f6baa91cec0b40d4d416c928c483a046512822dd31916f5ef3e0b",
+      "inputEvidence": [
+        "ev-35ea1afad43d"
+      ],
+      "generatedAt": "2026-10-02T05:55:41Z",
+      "callId": "6eb8d0c6-fe3a-4815-a07d-c89415efb355"
+    }
+  }
+}

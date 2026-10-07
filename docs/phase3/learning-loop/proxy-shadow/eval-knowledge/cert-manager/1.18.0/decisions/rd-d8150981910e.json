@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d8150981910e",
+    "reviewItemId": "ri-f754ed39616e",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:99b61365812fbad6379a422b77a13be40a0004543728cbe4fb6036ab4e9a457e",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-02T16:04:29.821Z",
+      "callId": "2e23a9c0-015b-4909-80bd-7a15412b6d7e"
+    },
+    "reason": "The only upstream evidence is the release-note line \"Quote nodeSelector values in Helm Chart\" [ev-565f3761f656]. It does not say which values key or keys are affected, or how the rendered output differed before and after. The validator only confirms that a top-level `nodeSelector` key exists in both values.yaml snapshots [ev-717ddb6f40cd][ev-7a67f12867b2]. It does not show that this key, rather than (or as well as) a component-specific nodeSelector key, is the one that changed, and the render and values checks for behavior-changed were inconclusive. To settle the subject and change, I need the diff from PR #7579 or a rendered-template diff showing which nodeSelector keys are now quoted.",
+    "startedAt": "2026-10-02T16:04:19.449Z",
+    "decidedAt": "2026-10-02T16:04:29.821Z"
+  }
+}

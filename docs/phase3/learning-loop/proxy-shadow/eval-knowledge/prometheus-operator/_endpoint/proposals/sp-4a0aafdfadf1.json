@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4a0aafdfadf1",
+    "candidateId": "sc-0b440661e117",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "ServiceMonitor",
+        "path": "status.bindings[].resource"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"[]\"",
+        "after": "\"[\\\"alertmanagers\\\", \\\"thanosrulers\\\"]\""
+      },
+      "statement": "The ServiceMonitor v1 schema validation changed for the status.bindings[].resource field enum: the empty array value was removed and \"alertmanagers\" and \"thanosrulers\" were added as allowed values."
+    },
+    "undetermined": [
+      "applicability",
+      "consequence"
+    ],
+    "undeterminedReason": "applicability: status.bindings[].resource is a read-only status field set by the operator, not user-configured. The consequence depends on whether the operator was updated to conform to the new enum constraint, which is not stated in the evidence.; consequence: As a read-only status field, the impact depends on whether the operator's implementation was updated to produce only the newly allowed enum values. If ServiceMonitor resources exist with status containing the removed value, they could be rejected by validation, but this depends on runtime operator behavior not shown in the evidence.",
+    "citations": [
+      "ev-7a53a3520025",
+      "ev-13be12903c5c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:38deca98b75aec311f61cc1a11892c9348f9a1a990865133754b00a1c5b98621",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456"
+      ],
+      "generatedAt": "2026-10-02T16:19:29Z",
+      "callId": "46f85825-021a-4cd6-8ca3-effadbefae9b"
+    }
+  }
+}

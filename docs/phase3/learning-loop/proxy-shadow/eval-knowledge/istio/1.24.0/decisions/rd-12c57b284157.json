@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-12c57b284157",
+    "reviewItemId": "ri-3a78f8214d69",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.waypoint.nodeSelector",
+          "state": "unset"
+        }
+      },
+      "statement": "Waypoint pod nodeSelector is now configurable using the Helm value `.Values.global.waypoint.nodeSelector`."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.waypoint.nodeSelector",
+          "state": "set"
+        }
+      },
+      "statement": "The new Helm value global.waypoint.nodeSelector (istiod chart, added in 1.24.0) lets operators set the Waypoint pod nodeSelector. Only environments that set this value are affected, because their waypoint pods get the configured nodeSelector. Environments that leave it unset see no change."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:0beb5cb9e021bfdf2c586cfa8c5434709b7e656c684437260094444237892712",
+      "inputEvidence": [
+        "ev-bd37367bcc6f",
+        "ev-2139315891c3",
+        "ev-257bea760fce"
+      ],
+      "generatedAt": "2026-10-02T12:52:22.832Z",
+      "callId": "7cf296b3-9613-42c2-9fc4-3840051937a1"
+    },
+    "reason": "[ev-bd37367bcc6f] says only that the Waypoint pod nodeSelector can now be configured through `.Values.global.waypoint.nodeSelector`. The values diff ([ev-2139315891c3] in 1.23.4, [ev-257bea760fce] in 1.24.0) shows the key is new in this release. Nothing changes for environments that leave the key unset, so an `unset` exposure would mark every environment as exposed. The only environments whose rendered output can change are those that set the new key, so exposure should be values-key global.waypoint.nodeSelector set.",
+    "startedAt": "2026-10-02T12:52:11.731Z",
+    "decidedAt": "2026-10-02T12:52:22.832Z",
+    "resultingFact": "vf-fc5f1965c5e2"
+  }
+}

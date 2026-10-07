@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-db25a2f57b02",
+    "candidateId": "sc-5c66197e4890",
+    "proposalId": "sp-c828348cabad",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates configured with renewBeforePercentage will now behave according to the specification, which may result in different renewal timing compared to the previous buggy behavior.",
+        "severity": "medium"
+      },
+      "statement": "The behavior of the renewBeforePercentage field in cert-manager Certificate resources was corrected to comply with its specification."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

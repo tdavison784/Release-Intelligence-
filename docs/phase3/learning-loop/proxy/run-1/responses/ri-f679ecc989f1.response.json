@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f679ecc989f1",
+  "promptDigest": "sha256:0e6ddb798e71ead7a58ef660b1058c1c66a2e041a9927e1511212f0f3136ff03",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "eaeb7f51-87bd-4c2b-9bb0-d0cc062d5332",
+  "startedAt": "2026-10-02T16:04:14.935Z",
+  "decidedAt": "2026-10-02T16:04:25.879Z",
+  "durationMs": 9800,
+  "costUSD": 0.07784,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a3e90b78f6fa] says a bug that caused \"any `portLevelSettings`\" in DestinationRules to be ignored for waypoints was fixed. That means the field is now honoured, so behavior-changed is the right change type. Nothing in the evidence limits the fix to subsets, so the proposed path spec.subsets[].trafficPolicy.portLevelSettings is an unsupported narrowing. The general DestinationRule location spec.trafficPolicy.portLevelSettings is the better subject. No CRD snapshot was available to check the schema spelling, so confidence is low.",
+    "citations": [
+      "ev-a3e90b78f6fa"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 fixes a bug that caused portLevelSettings in DestinationRules to be ignored for waypoints, so waypoints now honour them.",
+      "subject": {
+        "determination": "asserted",
+        "family": "crd-field",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed"
+      }
+    }
+  }
+}

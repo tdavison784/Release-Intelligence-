@@ -1,0 +1,75 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7328ed2d4848",
+  "promptDigest": "sha256:06a8dc88e248697f4f4661103484cd8eab5a12845b941e3f1dcff9365f351b26",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "730f7720-4948-4431-8043-8ad8c9222a93",
+  "startedAt": "2026-10-03T12:57:00.263Z",
+  "decidedAt": "2026-10-03T12:57:17.577Z",
+  "durationMs": 16563,
+  "costUSD": 0.114484,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9f3bf592e4e8] says any Pilot static configuration, whether in a YAML file (`pilot:`), a TOML file (`[pilot]`) or the CLI (`--pilot.token`), is now unsupported and stops Traefik from starting. The proposed undecidable leaf uses a reason (\"environment-visibility-gap\") that is not allowed, and undecidable is only for runtime state, not for configuration the engine might not see. A static config file can be read with text-line predicates instead. The static config file names (traefik.yml/.yaml/.toml) do not appear in the evidence; they are assumed, which is why confidence is low.",
+    "citations": [
+      "ev-9f3bf592e4e8"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik v3 no longer supports Pilot static configuration (e.g. pilot.token) and will not start if any is present. Exposed: environments that set --pilot.token or have a pilot section in a YAML/TOML static configuration file.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "pattern": "^pilot:",
+                  "state": "exists"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "pattern": "^pilot:",
+                  "state": "exists"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "pattern": "^\\[pilot\\]",
+                  "state": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

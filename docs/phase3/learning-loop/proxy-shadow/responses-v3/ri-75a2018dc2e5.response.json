@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-75a2018dc2e5",
+  "promptDigest": "sha256:2e190b856a12e2e6868cbeaaf6ffd3efa3e0c78dff7468da38360895b2f21a56",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e72356a8-c587-4969-b425-af5b9fc0e47a",
+  "startedAt": "2026-10-03T12:57:28.620Z",
+  "decidedAt": "2026-10-03T12:57:40.970Z",
+  "durationMs": 11483,
+  "costUSD": 0.079876,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f15092605ae3] says the `boltdb.shipper.compactor.`-prefixed compactor CLI flags are removed and that the `compactor.`-prefixed flags should be used instead. That is a removed or renamed key, so the values set through the old flags are no longer honoured: setting-ignored fits. The proposed statement also says the flags \"will be ignored\", meaning silently skipped. Neither this excerpt nor the section context ([ev-7b76cb015d7e]) says how a removed flag is handled at startup, so the statement is corrected to say only what the evidence supports.",
+    "citations": [
+      "ev-f15092605ae3",
+      "ev-7b76cb015d7e"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "In Loki 3.0.0 the compactor CLI flags with the `boltdb.shipper.compactor.` prefix are removed. Values set through them are no longer honoured, and the matching `compactor.`-prefixed flags must be used instead.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "high",
+        "statement": "Compactor settings passed with `boltdb.shipper.compactor.`-prefixed CLI flags stop being honoured because those flags are removed in 3.0.0.",
+        "remediation": "Replace every --boltdb.shipper.compactor.* CLI flag with its --compactor.* equivalent before upgrading."
+      }
+    },
+    "labels": [
+      "wrong-consequence"
+    ]
+  }
+}

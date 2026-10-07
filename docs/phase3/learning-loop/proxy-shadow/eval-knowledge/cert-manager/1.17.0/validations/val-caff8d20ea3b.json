@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-caff8d20ea3b",
+    "candidateId": "sc-d9778d71f629",
+    "proposalId": "sp-01cd23b508b2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "venafi-vcert"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"version with RSA 3072 bit key bug\"",
+        "after": "\"version with RSA 3072 bit key bug fixed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.venafi",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.venafi.tpp",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA 3072 bit key enrollment with Venafi TPP now works correctly, fixing a previously broken feature.",
+        "severity": "medium"
+      },
+      "statement": "Venafi vCert library upgraded to fix RSA 3072 bit key size handling in TPP certificate enrollment."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

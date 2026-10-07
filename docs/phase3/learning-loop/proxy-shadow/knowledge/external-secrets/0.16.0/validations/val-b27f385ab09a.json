@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b27f385ab09a",
+    "candidateId": "sc-8b9acf590523",
+    "proposalId": "sp-2c06164b7e5b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment installs external-secrets CRDs separately rather than through the chart"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Where CRDs are installed separately, the CRD bundle must be bumped to v0.16.1 before external-secrets is upgraded, and the operator must check that no error occurs.",
+        "remediation": "kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml, check that no error occurs, then upgrade external-secrets to v0.16.1.",
+        "severity": "medium"
+      },
+      "statement": "When CRDs are installed separately, operators must first bump the CRDs by applying the v0.16.1 deploy/crds/bundle.yaml and check that no error occurs, and only then upgrade external-secrets to v0.16.1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

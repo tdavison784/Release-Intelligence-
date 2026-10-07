@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3c40b351bc89",
+    "reviewItemId": "ri-1cddc4a5b5be",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:09f12f48b71139e9cf2006f2b50bf20c93bb45686036eff810ded74783ff01f9",
+      "inputEvidence": [
+        "ev-9f3945740531",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T17:11:41.64Z",
+      "callId": "9dc5bf13-bd13-4f78-ae9d-bf0dceda7943",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): [ev-9f3945740531] states the exact rename: the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_failure` is now `envoy_cilium_npds_update_failure`. [ev-77f05428497a] adds that this is part of renaming the prefix of all Envoy NPDS (NetworkPolicy discovery service) metrics from `envoy_cilium_policymap_<node-ip>_<node-id>_` to `envoy_cilium_npds_` in 1.17. That gives the subject, the change type and its replacement. It also shows who is exposed: deployments that use Cilium's Envoy NPDS metrics and refer to the old per-node name. The evidence does not name a configuration setting that controls whether these metrics are emitted. The real gap is that no Cilium configuration check can express \"monitoring uses the old name\". This is a limit of the condition language, not missing evidence, so a reviewer should route it, not ask for more evidence.",
+    "startedAt": "2026-10-03T17:11:31.589Z",
+    "decidedAt": "2026-10-03T17:11:41.64Z"
+  }
+}

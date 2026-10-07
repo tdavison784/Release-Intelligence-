@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b597ceb24109",
+    "candidateId": "sc-c84f15e509fa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "argo-cd",
+        "name": "applicationsets",
+        "component": "application-controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1beta1",
+              "kind": "ApplicationSet"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The application controller can now access ApplicationSet resources as needed for its operation; this fixes a prior permissions gap and enables proper functionality without requiring manual RBAC adjustments."
+      },
+      "statement": "The application controller now has RBAC rights on ApplicationSets."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-7a52ae1356d7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:99e2a3338f8000c7020aaaf8160dedb80200c8b41f74ac7578f010699bdfa7f1",
+      "inputEvidence": [
+        "ev-7a52ae1356d7"
+      ],
+      "generatedAt": "2026-10-02T06:04:32Z",
+      "callId": "03d51075-3297-4da2-89de-8db14bd5d502"
+    }
+  }
+}

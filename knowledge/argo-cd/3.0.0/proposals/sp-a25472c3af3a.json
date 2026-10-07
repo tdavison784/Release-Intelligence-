@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a25472c3af3a",
+    "candidateId": "sc-e5359dd00579",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"port-forward to all pods regardless of readiness\"",
+        "after": "\"port-forward only to ready pods\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Port-forwarding now only connects to ready pods; connections to previously reachable but non-ready pods will no longer be established.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 fixes port-forwarding to only target ready pods instead of all pods."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: the evidence identifies the behavior as 'port-forward to ready pods' but does not specify which component (CLI, server, controller) or configuration family the port-forwarding originates from; applicability: the evidence states this is a bugfix but does not specify which environments are exposed (e.g., which CLI commands, configurations, or use cases trigger port-forwarding, or whether it applies conditionally)",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c17a311dcffd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f5bf49158d181ab1661ec9316bd6606cf9ab0c8d04f7140be6b84af3e6e9dbf8",
+      "inputEvidence": [
+        "ev-c17a311dcffd"
+      ],
+      "generatedAt": "2026-10-02T06:01:33Z",
+      "callId": "a6b16042-5bd5-4bc6-a79c-1ec42fbad20d"
+    }
+  }
+}

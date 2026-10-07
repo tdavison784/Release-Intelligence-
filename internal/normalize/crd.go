@@ -2,6 +2,7 @@ package normalize
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -131,14 +132,16 @@ func collectCRDs(n *yaml.Node, out map[string]domain.CRDSummary) {
 			if schema == nil {
 				schema = topSchema
 			}
-			info.SchemaPaths = schemaPaths(schema)
+			info.SchemaPaths, info.Fields = schemaPathsAndFields(schema)
 			sum.Versions = append(sum.Versions, info)
 		}
 	} else if ver := scalarField(spec, "version"); ver != "" {
 		// legacy v1beta1 single-version CRD
-		sum.Versions = append(sum.Versions, domain.CRDVersionInfo{
-			Name: ver, Served: true, Storage: true, SchemaPaths: schemaPaths(topSchema),
-		})
+		info := domain.CRDVersionInfo{
+			Name: ver, Served: true, Storage: true,
+		}
+		info.SchemaPaths, info.Fields = schemaPathsAndFields(topSchema)
+		sum.Versions = append(sum.Versions, info)
 	}
 	out[name] = sum
 }
@@ -176,10 +179,18 @@ func boolField(n *yaml.Node, key string) bool {
 }
 
 func schemaPaths(root *yaml.Node) []string {
+	paths, _ := schemaPathsAndFields(root)
+	return paths
+}
+
+// schemaPathsAndFields walks the schema once and returns the sorted path list
+// plus one CRDFieldSchema per path (type, default, enum, required).
+func schemaPathsAndFields(root *yaml.Node) ([]string, []domain.CRDFieldSchema) {
 	if root == nil {
-		return nil
+		return nil, nil
 	}
 	var paths []string
+	fields := map[string]domain.CRDFieldSchema{}
 	var walk func(s *yaml.Node, prefix string, depth int)
 	walk = func(s *yaml.Node, prefix string, depth int) {
 		if depth > maxSchemaDepth || len(paths) >= MaxSchemaPaths {
@@ -202,6 +213,12 @@ func schemaPaths(root *yaml.Node) []string {
 			list = append(list, kv{name, resolveAlias(props.Content[i+1])})
 		}
 		sort.SliceStable(list, func(i, j int) bool { return list[i].name < list[j].name })
+		required := map[string]bool{}
+		if req := field(s, "required"); req != nil && req.Kind == yaml.SequenceNode {
+			for _, r := range req.Content {
+				required[r.Value] = true
+			}
+		}
 		for _, p := range list {
 			if len(paths) >= MaxSchemaPaths {
 				return
@@ -211,6 +228,10 @@ func schemaPaths(root *yaml.Node) []string {
 				path = prefix + "." + p.name
 			}
 			sub := p.node
+			fs := domain.CRDFieldSchema{Path: path, Type: scalarField(p.node, "type"), Required: required[p.name]}
+			if d := field(p.node, "default"); d != nil {
+				fs.Default = nodeJSON(d)
+			}
 			// arrays: "name[]", with the properties of the items below it
 			for sub != nil && scalarField(sub, "type") == "array" {
 				path += "[]"
@@ -220,6 +241,16 @@ func schemaPaths(root *yaml.Node) []string {
 				}
 			}
 			paths = append(paths, path)
+			// enum values of an array property live on its items
+			if sub != nil {
+				if en := field(sub, "enum"); en != nil && en.Kind == yaml.SequenceNode {
+					for _, e := range en.Content {
+						fs.Enum = append(fs.Enum, nodeJSON(e))
+					}
+				}
+			}
+			fs.Path = path
+			fields[path] = fs
 			if sub != nil {
 				walk(sub, path, depth+1)
 			}
@@ -234,5 +265,23 @@ func schemaPaths(root *yaml.Node) []string {
 			out = append(out, p)
 		}
 	}
-	return out
+	list := make([]domain.CRDFieldSchema, 0, len(out))
+	for _, p := range out {
+		list = append(list, fields[p])
+	}
+	return out, list
+}
+
+// nodeJSON renders a YAML value as canonical JSON (map keys sorted by
+// encoding/json), so equal values compare equal as strings.
+func nodeJSON(n *yaml.Node) string {
+	var v any
+	if err := n.Decode(&v); err != nil {
+		return n.Value
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return n.Value
+	}
+	return string(b)
 }

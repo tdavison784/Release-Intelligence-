@@ -1,0 +1,44 @@
+Proxy review report (proxy models: claude-opus-5-5)
+
+Decisions recorded: 2344
+By action: accept 954, correct 352, defer 103, need-more-evidence 816, reject 119
+By label: accepted 954, corrected 352, duplicate 1, insufficient-evidence 816, rejected 118, wrong-applicability 217, wrong-change-type 87, wrong-classification 52, wrong-consequence 79, wrong-subject 134
+
+By question type:
+  applicability          n=503: accept 179 (36%), correct 170 (34%), reject 47 (9%), need-more-evidence 107 (21%)
+  classification         n=17: accept 12 (71%), need-more-evidence 5 (29%)
+  consequence            n=667: accept 449 (67%), correct 67 (10%), reject 14 (2%), need-more-evidence 137 (21%)
+  evidence-sufficiency   n=601: need-more-evidence 503 (84%), defer 98 (16%)
+  semantic-mapping       n=556: accept 314 (56%), correct 115 (21%), reject 58 (10%), need-more-evidence 64 (12%), defer 5 (1%)
+
+By author of the proposed assertion (relative to the proxy):
+  includes self-model                n=92: accept 79 (86%), correct 7 (8%), need-more-evidence 6 (7%)
+  mixed (self + other family)        n=192: accept 155 (81%), correct 14 (7%), reject 9 (5%), need-more-evidence 14 (7%)
+  none                               n=24: accept 13 (54%), correct 2 (8%), reject 2 (8%), need-more-evidence 7 (29%)
+  other-family only                  n=132: accept 50 (38%), correct 11 (8%), reject 16 (12%), need-more-evidence 55 (42%)
+  self-family only (not self-model)  n=1303: accept 657 (50%), correct 318 (24%), reject 92 (7%), need-more-evidence 231 (18%), defer 5 (0%)
+
+Per proposing model (knowledge.ComputeMetrics over the proxy decisions only; proposals/abstain count the whole store):
+  model                relation      proposals     as-is corrected  rejected   insuff.   abstain accept rate (as-is+corr / judged)
+  claude-haiku-4-5     self-family         972       474       247       397         0       539 0.64 (as-is 0.42)
+  claude-opus-5-5      self-model          333       215        12       137         0       236 0.62 (as-is 0.59)
+  claude-sonnet-5-5    self-family        1074       615       108       261         0       906 0.73 (as-is 0.62)
+  glm-5.3              other-family        304       219        25       159         0       151 0.61 (as-is 0.54)
+
+Active facts by level: consensus 31, proxy 234
+Facts minted at proxy level: 234 · by exposed class: action-required 69, informational 67, review-required 98 · by family: cli-flag 34, config-key 28, crd-field 44, env-var 6, feature-gate 4, gvk 18, helm-value 27, migration 16, product-relationship 4, protocol-behavior 52, rbac-permission 1
+
+Ledger: 550 entries, 0 skipped (no longer pending, not called), failures by stage: record 2, verdict 10
+Cost: $46.76 (CLI-reported) · median call 8.6s · p90 14.8s · wall clock 25m55s
+  failed ri-003f2299c9ba [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-0c2b2b3ce496 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-2a3cfcf98333 [semantic-mapping] verdict: correction refused: the correction changes no aspect
+  failed ri-7348b73db8e9 [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-75a2018dc2e5 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-8d8e07fb5520 [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-90df2dce7dfa [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-936e84e2656e [consequence] record: decision rd-cbaca99991df: fact vf-a07a74f8656f: change migration-required and subject family migration go together (got migration-required on gvk)
+  failed ri-a52785036b5e [applicability] record: decision rd-ad6c79da2e14: fact vf-860273a49345: change migration-required and subject family migration go together (got migration-required on gvk)
+  failed ri-b34efd8dd130 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-bdff4da059de [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-c8dd2c155ed9 [applicability] verdict: correction refused: the correction changes no aspect

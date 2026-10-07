@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e68a8b399480",
+    "candidateId": "sc-03aa929e64d5",
+    "proposalId": "sp-1d04929025c9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": "3.17.1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether environment's helm values.yaml files for subcharts contain null object values"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Null values in values.yaml files for subcharts will now be applied to override K8s objects instead of being silently ignored, which may result in invalid null objects in rendered manifests unless null values are removed from values.yaml files.",
+        "remediation": "Identify and remove null values from values.yaml files in subcharts that are causing override issues.",
+        "severity": "high"
+      },
+      "statement": "Helm was upgraded to 3.17.1, which changes behavior for null values in values.yaml files: previously null values produced a warning and were not applied, but now they are applied and override the K8s object, potentially requiring removal of null values from values.yaml in subcharts."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

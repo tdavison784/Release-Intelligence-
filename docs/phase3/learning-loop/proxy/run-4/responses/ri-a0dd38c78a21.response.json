@@ -1,0 +1,25 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a0dd38c78a21",
+  "promptDigest": "sha256:e9924e901649fbfe93a8511a6364c110cd9d9e139949db74607fedfff8440d5d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "70096924-4038-4601-9399-ae3ad3ee079e",
+  "startedAt": "2026-10-06T01:51:21.527Z",
+  "decidedAt": "2026-10-06T01:51:37.297Z",
+  "durationMs": 15092,
+  "costUSD": 0.11879200000000001,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR states the change: the port-forwarding helper in util/kube/portforwarder.go no longer port-forwards to pods that have Failed or are otherwise not ready [ev-033cda2ed80c, ev-859a23cd07ab, ev-730f43c1dcd3]. The linked issue gives the subject and who is exposed: the argocd CLI using direct access auth (port-forwarding) picked the first argocd-repo-server pod in the list, including evicted ghost pods with Init:ContainerStatusUnknown [ev-859eee04d430]. Without the fix, commands fail with \"unable to upgrade connection: pod not found\" until the stale pod is deleted [ev-8ce0ad2f5de9]. That is enough to write the subject (the CLI port-forward pod selection) and the applicability (direct-access/port-forward CLI use while the component has non-ready or failed pods), although the evidence does not name the exact flag.",
+    "citations": [
+      "ev-033cda2ed80c",
+      "ev-859eee04d430",
+      "ev-8ce0ad2f5de9",
+      "ev-859a23cd07ab",
+      "ev-730f43c1dcd3",
+      "ev-c17a311dcffd"
+    ],
+    "confidence": "medium"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c156f2526755",
+    "candidateId": "sc-3b226877c4f2",
+    "proposalId": "sp-e1a4c6192690",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "loki",
+        "name": "StructuredMetadata"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "loki",
+              "state": "in-range",
+              "range": ">=3.0.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schema",
+                      "state": "matches",
+                      "pattern": ".*tsdb.*"
+                    }
+                  ]
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schemaVersion",
+                      "state": "equals",
+                      "values": [
+                        "\"v13\""
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Structured Metadata is enabled by default in Loki 3.0, but environments without both tsdb index type and v13 storage schema active will not have this feature function properly.",
+        "severity": "medium"
+      },
+      "statement": "Structured Metadata is enabled by default in Loki 3.0 and requires both tsdb index type and v13 storage schema to function."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/added",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/added",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

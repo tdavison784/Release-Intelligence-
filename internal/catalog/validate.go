@@ -109,7 +109,7 @@ var channelKinds = map[domain.ArtifactType][]string{
 }
 
 var knownContent = map[string]bool{
-	ContentHelmValues: true, ContentChartMetadata: true, ContentCRDs: true, ContentImageRefs: true,
+	ContentHelmValues: true, ContentChartMetadata: true, ContentCRDs: true, ContentImageRefs: true, ContentLines: true,
 }
 
 var knownCategories = func() map[domain.Category]bool {
@@ -305,6 +305,16 @@ func Validate(d *ProductDefinition) ValidationReport {
 				}
 			}
 			v.constraint(cp+".availability", c.Availability)
+			switch {
+			case c.Kind == ContentLines && strings.TrimSpace(c.Pattern) == "":
+				v.errf(cp+".pattern", "required for %s contents", ContentLines)
+			case c.Kind == ContentLines:
+				if _, err := regexp.Compile(c.Pattern); err != nil {
+					v.errf(cp+".pattern", "invalid regular expression: %v", err)
+				}
+			case c.Pattern != "" || c.Label != "":
+				v.errf(cp+".pattern", "pattern and label are only supported for %s contents", ContentLines)
+			}
 			if c.StripPrefix != "" && c.Kind != ContentHelmValues {
 				v.errf(cp+".stripPrefix", "only supported for %s contents", ContentHelmValues)
 			}
@@ -326,6 +336,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 		v.exceptions(p+".exceptions", a.Exceptions)
 	}
 	v.lifecycle(d)
+	v.configSources(d)
 	return v.r
 }
 
@@ -445,13 +456,23 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 			v.regexTemplate(path+".heading", e.Heading, rc)
 		}
 	case ExtractMarkdownTable, ExtractYAMLRecords:
-		if len(e.KeyColumns) == 0 {
-			v.errf(path+".keyColumns", "required for %s", e.Type)
+		if (e.Collect || len(e.Where) > 0) && e.Type != ExtractYAMLRecords {
+			v.errf(path+".collect", "collect and where apply to %s only", ExtractYAMLRecords)
 		}
-		if e.KeyMatch == "" {
-			v.errf(path+".keyMatch", "required for %s", e.Type)
+		if e.Collect && len(e.Columns) > 0 && len(e.KeyColumns) == 0 && e.KeyMatch == "" {
+			// collect mode needs no key
 		} else {
-			v.regexTemplate(path+".keyMatch", e.KeyMatch, rc)
+			if len(e.KeyColumns) == 0 {
+				v.errf(path+".keyColumns", "required for %s", e.Type)
+			}
+			if e.KeyMatch == "" {
+				v.errf(path+".keyMatch", "required for %s", e.Type)
+			} else {
+				v.regexTemplate(path+".keyMatch", e.KeyMatch, rc)
+			}
+		}
+		for f, re := range e.Where {
+			v.regexTemplate(path+".where."+f, re, rc)
 		}
 		if len(e.Columns) == 0 {
 			v.errf(path+".columns", "at least one column required for %s", e.Type)
@@ -466,6 +487,11 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 			}
 			if c.Part < 0 || (c.Part > 0 && c.Separator == "") {
 				v.errf(cp+".part", "part requires a separator and must be >= 0")
+			}
+			switch c.Reduce {
+			case "", "major", "minor":
+			default:
+				v.errf(cp+".reduce", "must be major or minor")
 			}
 			switch c.Kind {
 			case "", "supported", "tested", "minimum", "maximum":

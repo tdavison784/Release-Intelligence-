@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-37b48a379082",
+    "candidateId": "sc-a8771d6dc75d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-stable-connect-identities-and-strimzi-podsets"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.38"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "StableConnectIdentities",
+                  "state": "unset"
+                },
+                {
+                  "op": "feature-gate",
+                  "name": "StableConnectIdentities",
+                  "state": "disabled"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Kafka Connect / MirrorMaker 2 operands are managed through StrimziPodSets (as required) rather than another workload kind"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading from Strimzi 0.38 or older, environments using Kafka Connect or Kafka MirrorMaker 2 operands must have the StableConnectIdentities feature gate enabled and StrimziPodSets in use; the upgrade is gated on this operator step.",
+        "remediation": "Enable the StableConnectIdentities feature gate and ensure the Kafka Connect / Kafka MirrorMaker 2 operands use StrimziPodSets before starting the upgrade."
+      },
+      "statement": "When upgrading from Strimzi 0.38 or older, environments using Kafka Connect or Kafka MirrorMaker 2 operands must enable the StableConnectIdentities feature gate and use StrimziPodSets before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fc31b5e2b6ae664228382ece1a029cec551e91b47435c22ca3449524aefeea76",
+      "inputEvidence": [
+        "ev-17b3774eb9ee"
+      ],
+      "generatedAt": "2026-10-02T06:31:31Z",
+      "callId": "5f9c3af3-3566-4a3c-9d94-18db6bd5f86e"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e05b5ecded7c",
+    "candidateId": "sc-a1d88092526a",
+    "proposalId": "sp-fa95ed58d530",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications configured to sync on the in-cluster cluster will enter Unknown state without the possibility to sync resources; new Applications cannot be created using the in-cluster cluster; and deleting Applications will not delete the previously managed resources.",
+        "remediation": "Perform cleanup or migration of existing in-cluster Applications before upgrading when in-cluster is disabled. To perform post-migration cleanup, the in-cluster will need to be enabled temporarily.",
+        "severity": "high"
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

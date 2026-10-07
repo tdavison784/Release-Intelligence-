@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ab158737010c",
+    "candidateId": "sc-621425375be9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "telemetry-cel-peer-metadata-attributes"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Telemetry API CEL expressions use the old attributes (filter_state[\"wasm.downstream_peer\"], filter_state[\"wasm.upstream_peer\"], node, or unqualified wasm attributes such as istio_responseClass)"
+        }
+      },
+      "statement": "Telemetry API CEL expressions must be updated to use standard Envoy attributes (filter_state.downstream_peer/upstream_peer, xds.node, fully qualified wasm.* attributes) instead of the custom Wasm extended attributes."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The text says expressions must use the new attributes but does not state what happens to expressions left unchanged.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-7e3267b542c5",
+      "ev-a3db376e8800"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1e034179d5210c995a66de7f77e98ab3c30fddb082cbe4a073968582f4052f69",
+      "inputEvidence": [
+        "ev-7e3267b542c5",
+        "ev-a3db376e8800"
+      ],
+      "generatedAt": "2026-10-02T05:57:26Z",
+      "callId": "e47ff9cf-2ebc-4c43-a91a-b1f49fbdecc8"
+    }
+  }
+}

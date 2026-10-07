@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e7db507124ea",
+    "reviewItemId": "ri-8400dbaae4fa",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator builds the API documentation from the repository's /hack/api-docs tooling using mkdocs-material"
+        }
+      },
+      "statement": "external-secrets 0.16.0 bumps the pinned mkdocs-material dependency used by the /hack/api-docs documentation tooling from 9.6.10 to 9.6.11, with no effect on the deployed operator."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:74d74f3cac9e5e113c66bb51ef25990180c526893c56bc1112a64b0941c96ef8",
+      "inputEvidence": [
+        "ev-7fa7364f4707"
+      ],
+      "generatedAt": "2026-10-02T23:21:11.816Z",
+      "callId": "cb9f4655-7fb6-4acb-806e-e24d85f87d2f"
+    },
+    "reason": "[ev-7fa7364f4707] describes only a Dependabot bump of mkdocs-material from 9.6.10 to 9.6.11 inside the repository's /hack/api-docs documentation tooling. No deployed workload, chart value, CRD or image in a customer environment depends on it. The proposed undecidable exposure would mark every environment as possibly exposed, which is too broad. Whether someone builds the project's docs is not a customer environment state, and the condition vocabulary cannot express that no environment is exposed. So no valid applicability condition follows from the evidence.",
+    "startedAt": "2026-10-02T23:21:03.033Z",
+    "decidedAt": "2026-10-02T23:21:11.816Z"
+  }
+}

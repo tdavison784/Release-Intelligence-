@@ -1,5 +1,7 @@
 # Traefik Proxy release-channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** mirror.gcr.io and Docker Hub tag metadata answer (HTTP 200); the live `ri check` shows 0 unverifiable subjects. The original text below is kept as the record of 2026-10-01.
+
 Scope: product `traefik` = Traefik Proxy, github.com/traefik/traefik ("REPO").
 NOT in scope: Traefik Hub / Traefik Enterprise (the `hub-manager` chart in the
 chart repository, ghcr.io/traefik/traefik-hub, traefik.io products).

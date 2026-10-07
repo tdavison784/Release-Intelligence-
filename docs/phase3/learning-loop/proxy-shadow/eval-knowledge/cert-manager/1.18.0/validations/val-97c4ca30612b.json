@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-97c4ca30612b",
+    "candidateId": "sc-df4d0167852e",
+    "proposalId": "sp-1c950fa9033e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "gateway-tls-listener-passthrough"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Gateway TLS listeners in Passthrough mode are skipped\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now skips Gateway TLS listeners in Passthrough mode. Before this bugfix, it processed them.",
+        "remediation": "Check that no workflow relies on cert-manager acting on Gateway TLS listeners in Passthrough mode.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Gateway TLS listeners configured in Passthrough mode are skipped. This was released as a bugfix."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

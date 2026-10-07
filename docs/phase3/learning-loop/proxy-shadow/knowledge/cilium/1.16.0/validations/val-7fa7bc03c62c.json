@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7fa7bc03c62c",
+    "candidateId": "sc-fa168da2703d",
+    "proposalId": "sp-bba656d93d1c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "endpointStatus"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "endpointStatus",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus (endpointStatus.enabled, endpointStatus.status) will no longer take effect; operators must migrate to monitoring endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or the cilium-dbg endpoint get command.",
+        "remediation": "Remove endpointStatus keys from Helm values and switch to metric-based endpoint status monitoring as documented in the upgrade guide.",
+        "severity": "medium"
+      },
+      "statement": "The Helm values option endpointStatus has been removed from the Cilium Helm chart; existing configurations using endpointStatus.enabled or endpointStatus.status will no longer be honored."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

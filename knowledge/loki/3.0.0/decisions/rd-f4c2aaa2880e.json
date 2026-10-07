@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f4c2aaa2880e",
+    "reviewItemId": "ri-0754881ae931",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-frontend.encoding"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"protobuf\""
+      },
+      "statement": "When -frontend.encoding=protobuf is set, Loki frontend v2 now sends pure Protobuf requests via the scheduler to the querier instead of wrapping them."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "frontend-protobuf-encoding"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "When -frontend.encoding=protobuf is set, Loki frontend v2 no longer wraps requests. It now sends pure Protobuf through the scheduler to the querier."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9b82e13562d001c160ceccca28299a53b1fa34dfd3bd67ce304053d5236adc0b",
+      "inputEvidence": [
+        "ev-3f7dccc9a7e0"
+      ],
+      "generatedAt": "2026-10-02T23:05:06.464Z",
+      "callId": "7dd446c8-d365-47fc-918b-f3f1f98bebe9"
+    },
+    "reason": "[ev-3f7dccc9a7e0] describes a change in how frontend v2 sends requests over the wire through the scheduler to the querier: they are no longer wrapped and are sent as pure Protobuf. The value of `-frontend.encoding` did not change. `=protobuf` is only the setting under which the new wire behaviour applies, so it belongs in applicability. That makes protocol-behavior the right subject family. Setting after=\"protobuf\" on the flag misstates this as a new flag value, so I left before/after out because the text gives no literal values for them.",
+    "startedAt": "2026-10-02T23:04:52.89Z",
+    "decidedAt": "2026-10-02T23:05:06.464Z"
+  }
+}

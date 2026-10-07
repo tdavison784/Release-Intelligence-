@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-19ddadf25c6d",
+    "candidateId": "sc-5996f84cf28b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the Loki configuration file or command-line flags set experimental.ruler.enable-api"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A configuration still setting experimental.ruler.enable-api no longer has that option honoured, because it is removed.",
+        "remediation": "Use ruler.enable-api instead.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated configuration option `experimental.ruler.enable-api` is removed in Loki 3.0.0; use `ruler.enable-api` instead."
+    },
+    "citations": [
+      "ev-8fea3a0e7308"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f6d3b434d52723f84b7d7741d6e0bd6ca717d40653d98ff20d2293e816365159",
+      "inputEvidence": [
+        "ev-8fea3a0e7308"
+      ],
+      "generatedAt": "2026-10-02T16:12:54Z",
+      "callId": "d3617b09-abb9-4b3b-a6d0-fc8c6f3a49f9"
+    }
+  }
+}

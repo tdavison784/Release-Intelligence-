@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-cc106f4cc8ef",
+  "promptDigest": "sha256:6b520f79b1bb6707aefd6cb25414aceda39865cf8146379d54aa8f55525501f9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b4586c19-4207-4df3-a1e2-009bee124d13",
+  "startedAt": "2026-10-02T15:58:04.201Z",
+  "decidedAt": "2026-10-02T15:58:16.114Z",
+  "durationMs": 10967,
+  "costUSD": 0.06611600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9a62461ebaa9] only says, under \"Changed Metrics\", that `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`. It says nothing about what happens to dashboards, alerts or scrapers. Behavior-change (review) is the right conservative kind, because the evidence never says that anything fails or must be migrated. The proposed statement, though, claims that dashboards and alerting rules \"will stop functioning\". That is a failure claim the evidence does not make, and it conflicts with the behavior-change kind, so the statement is corrected to say only what the rename implies.",
+    "citations": [
+      "ev-9a62461ebaa9"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "In Cilium 1.17.0 the metric `lbipam_services_unsatisfied_total` is exposed as `lbipam_services_unsatisfied`. Monitoring queries, dashboards or alerts that use the old name should be checked and updated to the new name.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "After the upgrade, the LB-IPAM unsatisfied-services metric is reported as `lbipam_services_unsatisfied` instead of `lbipam_services_unsatisfied_total`, so anything that looks up the old name will not find the metric under that name.",
+        "remediation": "Update any monitoring queries, dashboards or alert rules that use `lbipam_services_unsatisfied_total` to use `lbipam_services_unsatisfied`."
+      }
+    },
+    "labels": [
+      "wrong-consequence"
+    ]
+  }
+}

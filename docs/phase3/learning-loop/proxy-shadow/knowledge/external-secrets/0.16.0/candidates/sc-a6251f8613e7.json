@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-a6251f8613e7",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "members": [
+      {
+        "changeId": "chg-cee5c5f9a39e",
+        "anchor": {
+          "release": "0.16.0",
+          "evidenceKeys": [
+            "ek-f462dea1eeb7"
+          ],
+          "statementKeys": [
+            "sk-443ead43abde"
+          ],
+          "changeIds": [
+            "chg-cee5c5f9a39e"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "My issue is not here What do I do?",
+    "text": "My issue is not here What do I do? Add a message to https://github.com/external-secrets/external-secrets/issues/4662",
+    "evidence": [
+      {
+        "id": "ev-18bc6416716a",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0",
+        "locator": "L65-L66 (Guide to Promoting to 0.16 › Troubleshooting › My issue is not here What do I do?)",
+        "excerpt": "### My issue is not here What do I do?\nAdd a message to https://github.com/external-secrets/external-secrets/issues/4662",
+        "contentDigest": "sha256:ad35031444c5561cdf137b1210832a8fdcc7d563b71fdbbecb737053b94163b8",
+        "retrievedAt": "2026-10-02T10:52:59Z"
+      },
+      {
+        "id": "ev-439748fbbeee",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/external-secrets/external-secrets/issues/4662",
+        "locator": "title and description",
+        "excerpt": "issue: Promoting to `0.16` [closed]\n# Guide to Promoting to 0.16\n\n## Pre Upgrade checks\n\n### Make sure you are not using any `v1alpha1` resources across all of your infrastructure.\nYou can do that by performing manual inspection on your manifests, tooling, etc.\n\n### Make sure there are no storedVersions on v1alpha1:\nRun the following command:\n\n```\nkubectl get crd \\\nexternalsecrets.external-secrets.io\\\nsecretstores.external-secrets.io\\\nclustersecretstores.external-secrets.io\\\nclusterexternalsecrets.external-secrets.io\\\n-o",
+        "contentDigest": "sha256:65643ccc429a222fd9b2b6a91ac3cb79ae97e899ed5da2c42ede59c9321ae74e",
+        "retrievedAt": "2026-10-06T01:26:11Z"
+      },
+      {
+        "id": "ev-41e22df329b9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/external-secrets/external-secrets/issues/4662",
+        "locator": "description (part 2)",
+        "excerpt": "jsonpath='{.items[*].status.storedVersions[?(@==\"v1alpha1\")]}' | \\\ngrep -q v1alpha1 && echo \"NOT SAFE! REMOVE v1alpha1 FROM YOUR STORED VERSIONS\" || echo \"Safe to Continue\"\n```\n\nIf that command returns not safe, remove v1alpha1 from your stored versions. Make sure this status is persisted after you verify these commands.\n\n```\nkubectl patch --subresource=status crd externalsecrets.external-secrets.io --type=json -p='[{\"op\": \"replace\", \"path\": \"/status/storedVersions\", \"value\": [\"v1\", \"v1beta1\"]}]'\nkubectl patch …",
+        "contentDigest": "sha256:65643ccc429a222fd9b2b6a91ac3cb79ae97e899ed5da2c42ede59c9321ae74e",
+        "retrievedAt": "2026-10-06T01:26:11Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:23Z"
+  }
+}

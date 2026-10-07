@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-097ff2b16b4a",
+    "reviewItemId": "ri-287a5996e3b3",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Karpenter scheduling ever hit the intermittent nodepool-readiness flake (intermittent runtime behavior, not visible in any static configuration)"
+        }
+      },
+      "statement": "Karpenter v1.0.0 fixes an intermittent scheduling flake caused by nodepool readiness handling (PR #6491), changing scheduling behavior with no configuration change on the operator side."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:6dbe117b080ef07804a47deb6cf9f6bfe485c49000171ee6e49d677202563205",
+      "inputEvidence": [
+        "ev-518a56c0e2c1",
+        "ev-f0215a9bf24c",
+        "ev-394548fbb435",
+        "ev-b889081063a3",
+        "ev-ce3b0fd6bad0",
+        "ev-28bbf8a48e60",
+        "ev-664e993932dd",
+        "ev-aa6e55e47c2f",
+        "ev-5506a0d4614a",
+        "ev-f21609ff075e",
+        "ev-24365f012a2a",
+        "ev-a907ed2193a8",
+        "ev-c7e999251f0a",
+        "ev-a7b3f6c5d3bd",
+        "ev-548fd57f2706",
+        "ev-1e1395778114",
+        "ev-296463ddfc76",
+        "ev-01f887c4c0c4",
+        "ev-e21588eef5b6",
+        "ev-373814c431a1",
+        "ev-4b121944161e",
+        "ev-089778a9e2c3"
+      ],
+      "generatedAt": "2026-10-06T01:39:54.763Z",
+      "callId": "a36d2471-0352-4016-82dc-2f56c16ab552",
+      "provider": "anthropic"
+    },
+    "reason": "The linked PR says the flake came from a NodePool that \"did not set the group\", so the readiness controller did not reconcile it again [ev-f0215a9bf24c]. The PR and commit change only test/suites/scheduling/suite_test.go [ev-b889081063a3] [ev-28bbf8a48e60], meaning this fixes the upstream e2e test suite, not shipped product behaviour. No customer environment is exposed, so the proposed undecidable runtime-behaviour condition is wrong and no correct product assertion follows from the evidence.",
+    "startedAt": "2026-10-06T01:39:43.628Z",
+    "decidedAt": "2026-10-06T01:39:54.763Z"
+  }
+}

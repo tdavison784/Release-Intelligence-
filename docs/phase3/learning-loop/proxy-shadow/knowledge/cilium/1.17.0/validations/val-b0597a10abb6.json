@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b0597a10abb6",
+    "candidateId": "sc-afaa2eebc526",
+    "proposalId": "sp-653bcffe7c89",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "wireguard.userspaceFallback"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "wireguard.userspaceFallback",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The wireguard.userspaceFallback setting is no longer honoured; the userspace fallback is gone, so WireGuard encryption requires a Linux kernel with WireGuard support.",
+        "remediation": "Remove wireguard.userspaceFallback from values and ensure nodes run a Linux kernel with WireGuard support.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value wireguard.userspaceFallback (built-in WireGuard userspace-mode fallback) has been removed; WireGuard transparent encryption now requires a Linux kernel with WireGuard support."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject refuted)"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

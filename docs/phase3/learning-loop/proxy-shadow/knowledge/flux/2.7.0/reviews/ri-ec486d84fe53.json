@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ec486d84fe53",
+    "candidateId": "sc-3caf50c85cc9",
+    "product": "flux",
+    "release": "2.7.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Upgrade procedure: :warning: The Flux APIs `v1beta1` and `v2beta1` (deprecated in 2023) have reached end-of-life and have been removed from the CRDs\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters not deployed via Flux Operator must run `flux migrate` before upgrading, because the v1beta1 and v2beta1 APIs have been removed from the CRDs.",
+        "remediation": "Run `flux migrate` on the cluster before upgrading to Flux 2.7; see the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Flux APIs v1beta1 and v2beta1 were removed from the CRDs; unless Flux Operator deploys the controllers, `flux migrate` must be run on clusters before upgrading to 2.7."
+    },
+    "proposals": [
+      "sp-52102daa7cde",
+      "sp-9277eb2ac9fc",
+      "sp-92c408727481"
+    ],
+    "validations": [
+      "val-1186832ad5ea",
+      "val-24afcef38900",
+      "val-61ddad531ba0",
+      "val-633df7a4ebf4",
+      "val-6da1becbe755"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:59:00Z"
+  }
+}

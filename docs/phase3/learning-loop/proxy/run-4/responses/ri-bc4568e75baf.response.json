@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bc4568e75baf",
+  "promptDigest": "sha256:4c9c70192e79a3fafa3b74d9c13cc81270eb9aa6346a7f44a9ddafbe4b142682",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b88d2927-07c9-48ab-bad6-98e39884306f",
+  "startedAt": "2026-10-06T01:54:19.943Z",
+  "decidedAt": "2026-10-06T01:54:27.582Z",
+  "durationMs": 6686,
+  "costUSD": 0.108756,
+  "output": {
+    "action": "correct",
+    "reason": "\"terminationGracePeriod\" is the feature the fix supports, not an RBAC resource. The linked PR [ev-3152f9abdc25] says it \"Adds the missing pod delete rbac permissions\", and its only changed file is the core ClusterRole template [ev-f7b28f897879]. The upgrade guide's RBAC changes list \"added `delete pods`\" [ev-873cf7661375]. So the permission is pods/delete, and the change type \"added\" is correct.",
+    "citations": [
+      "ev-3152f9abdc25",
+      "ev-f7b28f897879",
+      "ev-873cf7661375",
+      "ev-a907ed2193a8"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Karpenter 1.0.0 adds the missing pods delete RBAC permission (needed for terminationGracePeriod) to the controller's core ClusterRole in the Helm chart (PR #6538).",
+      "subject": {
+        "family": "rbac-permission",
+        "name": "pods/delete",
+        "determination": "asserted"
+      },
+      "change": {
+        "type": "added",
+        "determination": "asserted"
+      }
+    },
+    "labels": [
+      "wrong-subject"
+    ]
+  }
+}

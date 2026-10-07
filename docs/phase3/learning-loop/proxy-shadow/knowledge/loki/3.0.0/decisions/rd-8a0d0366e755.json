@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8a0d0366e755",
+    "reviewItemId": "ri-b42cffe08eef",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "shipper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The cli-flags -boltdb.shipper.shared-store and -tsdb.shipper.shared-store, and their corresponding YAML configuration keys, have been removed and are no longer honored in Loki 3.0.0; environments that had not configured these settings are unaffected."
+    },
+    "corrected": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The CLI flag -boltdb.shipper.shared-store and its corresponding YAML setting are removed in Loki 3.0.0. The object_store setting in period_config now determines the index store."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2c0a1afabcc741c20fcd9a07183f4c7c01e0067646c33620c9292afb7ff04147",
+      "inputEvidence": [
+        "ev-0483f04624d3",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T16:59:07.161Z",
+      "callId": "a224ff13-ebc1-4bf4-8d2f-c228de97f27b",
+      "provider": "anthropic"
+    },
+    "reason": "The section says the CLI flags and YAML settings that configure the shared store for the TSDB and BoltDB shippers \"are now removed\" [ev-43cc6d389282], and lists `-boltdb.shipper.shared-store` [ev-3d75e7ce1720]. The cited sentence assumes this removal [ev-0483f04624d3], so change type \"removed\" is right. The text does not name a component called \"shipper\" that owns the flag. \"Shipper\" is only part of the flag name, and the text mentions two separate shippers (BoltDB and TSDB), so the component field should be left out.",
+    "startedAt": "2026-10-03T16:58:57.351Z",
+    "decidedAt": "2026-10-03T16:59:07.161Z"
+  }
+}

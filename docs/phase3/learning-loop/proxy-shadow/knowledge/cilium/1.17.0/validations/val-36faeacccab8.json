@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-36faeacccab8",
+    "candidateId": "sc-3012458cf09f",
+    "proposalId": "sp-efc21e5655c1",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "cilium",
+        "name": "cilium-status-kvstore-state"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"OK\"",
+        "after": "\"Disabled\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The KVStore subsystem in the Cilium status API shows state `Disabled` instead of state `OK` with message `Disabled` when the KVStore is disabled; consumers that check the state may see different results.",
+        "severity": "low"
+      },
+      "statement": "The Cilium status API now reports the KVStore subsystem with state `Disabled` when disabled, instead of state `OK` with message `Disabled`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/behavior-changed",
+        "detail": "api-endpoint behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/behavior-changed",
+        "detail": "api-endpoint behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

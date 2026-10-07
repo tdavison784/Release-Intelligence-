@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e2666ab685ab",
+    "reviewItemId": "ri-76e306eb71b6",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "metadata.labels",
+                  "state": "exists",
+                  "pattern": ".*xrd.*|.*crossplane.*"
+                }
+              ],
+              "kind": "ClusterRole"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "metadata.labels",
+                  "state": "exists",
+                  "pattern": ".*xrd.*|.*crossplane.*"
+                }
+              ],
+              "kind": "Role"
+            }
+          ]
+        }
+      },
+      "statement": "RBAC roles created by XRDs no longer receive labels identifying which XRD created them."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "the exact label key that was removed from XRD-created RBAC roles, and whether the environment's selectors, aggregation rules or tooling select roles by that label"
+        }
+      },
+      "statement": "RBAC roles that Crossplane creates for an XRD are no longer labelled with the XRD that created them. Environments are exposed only if their tooling, selectors or aggregation rules rely on that label, which static inputs cannot show."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:eda0f7a3240878c17805fe807f7de1e76c77449d659ac4ba5d9d70c1f7bd466a",
+      "inputEvidence": [
+        "ev-9f092216dc42"
+      ],
+      "generatedAt": "2026-10-02T23:18:46.112Z",
+      "callId": "e47b5ad7-1dcf-47f3-b149-3d38cb1705c6"
+    },
+    "reason": "[ev-9f092216dc42] only says that Crossplane no longer labels the RBAC roles it creates for an XRD with the XRD that created them. It does not name the label key or say what depends on that label. The proposed condition flags any Role or ClusterRole whose labels mention \"xrd\" or \"crossplane\". That is far broader than the real exposure, and it also misuses text-line on a labels map. Exposure really depends on whether the operator's tooling, selectors or aggregation rules rely on that label, and no static input shown here reveals this. So undecidable is the honest condition.",
+    "startedAt": "2026-10-02T23:18:35.333Z",
+    "decidedAt": "2026-10-02T23:18:46.112Z"
+  }
+}

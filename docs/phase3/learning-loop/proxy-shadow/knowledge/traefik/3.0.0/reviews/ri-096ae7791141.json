@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-096ae7791141",
+    "candidateId": "sc-3e520936a5c1",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"namespace: The ConsulCatalog provider `namespace` option was deprecated in v2 and is now removed in v3\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_CONSULCATALOG_NAMESPACE",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*="
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "The ConsulCatalog provider `namespace` static-configuration option, deprecated in v2, is removed in Traefik v3 and is now unsupported in a way that prevents Traefik from starting; the `namespaces` option must be used instead."
+    },
+    "proposals": [
+      "sp-30ea2f68859e",
+      "sp-8affeac49395",
+      "sp-917757267f5f",
+      "sp-9dffcb8286aa",
+      "sp-be0078bfce5b"
+    ],
+    "validations": [
+      "val-1d5174646f73",
+      "val-67c3db6d3d3f",
+      "val-709d1dec1b9d",
+      "val-7a27583db075",
+      "val-8e778a12e9b5",
+      "val-b42afa3b0bbc",
+      "val-bf7ed7b74a09",
+      "val-d5c8b0aea7b8",
+      "val-e192a36f1c64",
+      "val-f46004917e7f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:45:19Z"
+  }
+}

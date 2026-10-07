@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-029d0474266c",
+  "promptDigest": "sha256:d8931c368dcf112d2f6432b7fd82ae4b433c06e368379aafef94417f6757332d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2b291e91-eb80-4b15-9e1e-9cce144da8a7",
+  "startedAt": "2026-10-03T12:42:19.396Z",
+  "decidedAt": "2026-10-03T12:42:31.534Z",
+  "durationMs": 11190,
+  "costUSD": 0.116424,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c3d5e62490c3] says cert-manager no longer publishes OperatorHub packages, so v1.16.5 is the last OperatorHub release, and the package path is operators/cert-manager on both OperatorHub catalogs. The proposed undecidable leaf is wrong. It uses \"environment-visibility-gap\", which is not an allowed reason. Also, whether cert-manager is installed through OperatorHub/OLM is a configuration fact, not runtime state: an OLM Subscription for the cert-manager package shows it. The exposure should read that Subscription.",
+    "citations": [
+      "ev-c3d5e62490c3"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "cert-manager no longer publishes OperatorHub packages; v1.16.5 is the last release on RedHat OpenShift OperatorHub and operatorhub.io. Exposed: environments that install cert-manager through an OLM Subscription to the OperatorHub package named cert-manager.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "operators.coreos.com",
+          "kind": "Subscription",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.name",
+              "state": "equals",
+              "values": [
+                "cert-manager"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -212,7 +212,15 @@ artifacts:
       hubble-ui, ztunnel, startup-script), whose changes show up in the
       values diff.
 
-  # --- CRDs (cilium.io/v2 API group; also rendered into the chart) ------------
+  # --- CRDs (cilium.io; also rendered into the chart) ------------------------
+  # The generated CRD manifests live in one directory per API version
+  # (crds/v2, crds/v2alpha1), and the repo-dir locator recurses: reading the
+  # parent keeps the snapshot complete across a CRD moving between versions
+  # (CiliumNodeConfig v2alpha1 -> v2 in 1.16) and includes the v2alpha1-only
+  # kinds (CiliumLoadBalancerIPPool, CiliumBGP*, CiliumCIDRGroup,
+  # CiliumL2AnnouncementPolicy, CiliumPodIPPool, CiliumEndpointSlice). Reading
+  # only crds/v2 had left those kinds out of the snapshot, which a validator
+  # then took for "the group ships no such kind".
   - id: crds
     type: crd
     name: cilium.io CRDs
@@ -220,7 +228,7 @@ artifacts:
     channels:
       - kind: repo-dir
         repository: github.com/cilium/cilium
-        path: pkg/k8s/apis/cilium.io/client/crds/v2
+        path: pkg/k8s/apis/cilium.io/client/crds
         glob: "*.yaml"
     contents:
       - kind: crds
@@ -321,3 +329,59 @@ provenance:
     cloud variants; quay.io and helm.cilium.io were reachable from this
     sandbox (unlike earlier waves recorded), so all relationships are
     verified against the registries.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: helm-values
+  channel: helm-values
+  summary: The official cilium chart; values are converted into agent/operator arguments stored in the cilium-config
+    ConfigMap.
+  valuesPath: .
+  references:
+  - url: https://docs.cilium.io/en/stable/configuration/
+    quote: These helm values are converted to arguments
+  - url: https://docs.cilium.io/en/stable/helm-reference/
+    quote: The table below serves as a reference for the values that can be set on
+- id: cilium-config
+  channel: configmap-file
+  component: cilium-agent, cilium-operator
+  summary: Agent and operator options as flat keys (flag names without the leading --) of the shared cilium-config
+    ConfigMap, read through --config-dir (one file per option); changed via helm upgrade, cilium config set, or
+    extraConfig.
+  configMap: cilium-config
+  valuesPath: extraConfig
+  references:
+  - url: https://docs.cilium.io/en/stable/configuration/
+    quote: These arguments are stored in a shared ConfigMap called cilium-config
+  - url: https://docs.cilium.io/en/stable/cmdref/cilium-agent/
+    quote: --config-dir string Configuration directory that contains a file for each option
+  - url: https://raw.githubusercontent.com/cilium/cilium/main/install/kubernetes/cilium/values.yaml
+    quote: '# -- extraConfig allows you to specify additional configuration parameters to be'
+- id: cilium-node-config
+  channel: custom-resource
+  component: cilium-agent
+  summary: CiliumNodeConfig objects override cilium-config keys for the nodes matched by their label selector.
+  resource:
+    group: cilium.io
+    kind: CiliumNodeConfig
+  references:
+  - url: https://docs.cilium.io/en/stable/configuration/per-node-config/
+    quote: A CiliumNodeConfig object allows for overriding ConfigMap / Agent arguments.
+  - url: https://docs.cilium.io/en/stable/configuration/per-node-config/
+    quote: 'apiVersion: cilium.io/v2'
+- id: agent-flags
+  channel: cli-flags
+  component: cilium-agent
+  summary: cilium-agent command-line flags (the same option names used as cilium-config keys).
+  references:
+  - url: https://docs.cilium.io/en/stable/cmdref/cilium-agent/
+    quote: Run the cilium agent
+- id: operator-flags
+  channel: cli-flags
+  component: cilium-operator
+  summary: cilium-operator command-line flags, also read from cilium-config via --config-dir.
+  references:
+  - url: https://docs.cilium.io/en/stable/cmdref/cilium-operator/
+    quote: Run cilium-operator

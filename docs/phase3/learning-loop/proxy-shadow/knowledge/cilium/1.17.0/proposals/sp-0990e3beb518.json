@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0990e3beb518",
+    "candidateId": "sc-7ad78a77e858",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cilium",
+        "name": "consul"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "consul",
+          "state": "in-range",
+          "range": ">=1.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Cilium deployments configured to use Consul for state synchronization will fail to function, as Consul support has been removed and is no longer available in this release.",
+        "remediation": "Remove Consul configuration from Cilium settings before upgrading, or keep Cilium on v1.16 or earlier. Migrate state synchronization to supported backends.",
+        "severity": "high"
+      },
+      "statement": "Support for Consul state synchronization, deprecated since v1.12, is removed and no longer available."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-ddf5fd344d03"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b1a6c54c89078475247e1e2dcf8f02a82d31b4066b978c8773840a15671e97e4",
+      "inputEvidence": [
+        "ev-ddf5fd344d03"
+      ],
+      "generatedAt": "2026-10-02T06:02:09Z",
+      "callId": "804fdf76-8fe8-4b8d-b1e3-3eedc1798164"
+    }
+  }
+}

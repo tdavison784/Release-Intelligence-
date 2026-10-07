@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-079c8a5af9b7",
+    "candidateId": "sc-dc6014b3811a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "OCIRepository v1 objects whose status.artifact omits digest are rejected by the schema validation.",
+        "remediation": "Make sure any OCIRepository status that has an artifact also has status.artifact.digest set. This field is normally written by source-controller.",
+        "severity": "low"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1 OCIRepository CRD schema, status.artifact.digest is now a required field, so objects that have status.artifact without a digest are rejected."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6d5a302df3a643fb5c1ee4866c31bf4117cb46fd4c22d4d1adeeeed5b3c27d68",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T07:13:47Z",
+      "callId": "4e1e92aa-6213-428a-9e33-e1eb4035a564"
+    }
+  }
+}

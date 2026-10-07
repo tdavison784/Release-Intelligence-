@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f70fa139df32",
+  "promptDigest": "sha256:3c0c697fe2af74868b362ff72b19ef3a0bde2827bdfaedc16e28d75044170ae9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "86c63917-011d-4eb0-8ee5-e16c5f70cddb",
+  "startedAt": "2026-10-03T17:07:12.751Z",
+  "decidedAt": "2026-10-03T17:07:23.644Z",
+  "durationMs": 9974,
+  "costUSD": 0.06651380000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f07fad593227] shows that between 0.15.0 and 0.16.0, spec.versions[name=v1beta1].storage on the secretstores.external-secrets.io CRD changed from true to false. The change text says existing objects stay stored as v1beta1 until rewritten. So exposure is about which version the objects are stored in: the CRD's status.storedVersions still lists v1beta1. Whether manifests are written with apiVersion v1beta1 doesn't decide that. The proposed gvk-in-use{v1beta1} is too broad, because new v1beta1 manifests get stored as v1. It is also too narrow, because objects created before the upgrade from v1 manifests, or from manifests the engine can't see, are still stored as v1beta1. The correct exposure is the canonical stored-version migration condition on the CRD.",
+    "citations": [
+      "ev-f07fad593227"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The storage version of the secretstores.external-secrets.io CRD changes from v1beta1 to v1. Environments are exposed when the CRD's status.storedVersions still lists v1beta1. Those SecretStore objects must be rewritten and storedVersions updated before a later release removes v1beta1.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "secretstores.external-secrets.io",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "v1beta1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

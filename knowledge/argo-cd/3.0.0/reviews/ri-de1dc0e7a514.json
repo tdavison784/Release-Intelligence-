@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-de1dc0e7a514",
+    "candidateId": "sc-03aa929e64d5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "semantic-mapping",
+    "question": "Does \"Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1\" mean a change to protocol-behavior:argo-cd|name=helm-null-values-override (behavior-changed)?",
+    "proposed": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"null object in values.yaml warned 'cannot overwrite table with non table' and the resulting K8s object was not overridden\"",
+        "after": "\"warning still shown but the resulting K8s object is overridden with the invalid null value\""
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value (previously it was not overridden)."
+    },
+    "proposals": [
+      "sp-1d04929025c9",
+      "sp-b96301c7e644"
+    ],
+    "validations": [
+      "val-22cf9e70b825",
+      "val-2e8e2338a0e0",
+      "val-5e048590ec3f",
+      "val-e68a8b399480"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:57:44Z"
+  }
+}

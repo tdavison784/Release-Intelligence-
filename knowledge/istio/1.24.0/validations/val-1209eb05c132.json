@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1209eb05c132",
+    "candidateId": "sc-478fa231ae3d",
+    "proposalId": "sp-77fa92ef8d4f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "sidecar.istio.io/native-side"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[sidecar.istio.io/native-side]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Nothing fails: pods that do not carry the annotation are unaffected, and pods that do carry it get native sidecar injection enabled or disabled according to the annotation value, which takes precedence over the global ENABLE_NATIVE_SIDECARS environment variable.",
+        "remediation": "No action needed; the annotation is a new opt-in per-pod control over native sidecar injection.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds the pod annotation `sidecar.istio.io/native-side`, settable to `true` or `false`, which enables or disables native sidecar injection on a per-pod basis and takes precedence over the global ENABLE_NATIVE_SIDECARS environment variable."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/added",
+        "detail": "no canonical exposure condition for config-key added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

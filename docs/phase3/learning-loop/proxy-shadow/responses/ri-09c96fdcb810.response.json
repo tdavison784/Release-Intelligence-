@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-09c96fdcb810",
+  "promptDigest": "sha256:cc7a55d238580e3603547ad803f3bda70512f35c9fc973b831dac4836b89533e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "18e87b5f-ffd8-4f6f-9223-dbe1bc858b59",
+  "startedAt": "2026-10-03T02:10:50.743Z",
+  "decidedAt": "2026-10-03T02:11:01.215Z",
+  "durationMs": 9599,
+  "costUSD": 0.093248,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c0bb5c52ce78] says that both the `ruler.evaluation-delay-duration` CLI flag and the corresponding YAML setting are removed. The proposed exposure only checks whether the CLI flag is set, so it would miss environments that use the YAML setting instead. The evidence does not give the YAML key's path. P2's values-key `ruler.evaluation-delay-duration` just reuses the flag name and is not supported by the evidence. That part of the exposure is therefore marked undecidable rather than guessed.",
+    "citations": [
+      "ev-c0bb5c52ce78"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the `ruler.evaluation-delay-duration` CLI flag and its YAML setting are removed. Exposed environments either pass `--ruler.evaluation-delay-duration` to a Loki container or set the matching YAML option in Loki's configuration. The release evidence does not give that option's path.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ruler.evaluation-delay-duration",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML configuration key path that corresponds to `ruler.evaluation-delay-duration`, and whether the environment's Loki config sets it"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

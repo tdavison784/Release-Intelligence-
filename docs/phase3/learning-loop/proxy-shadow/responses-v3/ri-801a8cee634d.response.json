@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-801a8cee634d",
+  "promptDigest": "sha256:e2d5cdf7d998c762bdcf3a34b190bcccc3711ce6ce819e08736526a29c6b4044",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8f782ab9-39e4-4f76-8999-ef9214533507",
+  "startedAt": "2026-10-03T16:52:23.038Z",
+  "decidedAt": "2026-10-03T16:52:33.942Z",
+  "durationMs": 9964,
+  "costUSD": 0.083268,
+  "output": {
+    "action": "correct",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "The storage version of imageupdateautomations.image.toolkit.fluxcd.io changes from v1beta2 to v1. v1beta2 is still served but deprecated, so existing objects keep working. They stay stored as v1beta2 until rewritten, and that has to be fixed before a later release removes v1beta2.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "severity": "medium",
+        "statement": "Existing ImageUpdateAutomation objects keep working after this upgrade but stay stored as v1beta2, which is deprecated and still served. If no storage version migration runs before a later release removes v1beta2, those stored objects will be at risk then.",
+        "remediation": "Before upgrading to a release that removes v1beta2, rewrite all ImageUpdateAutomation objects so they are stored as v1, then update status.storedVersions on the imageupdateautomations.image.toolkit.fluxcd.io CRD to drop v1beta2."
+      }
+    },
+    "reason": "The install.yaml diff between v2.6.4 and v2.7.0 [ev-782bc47d120d] [ev-c2c6c790d6b2] shows a storage version change. The validators confirm that v1beta2 is still an API version in both releases and is only marked deprecated. The change text itself puts the migration deadline at \"before a later release removes v1beta2\". Nothing fails, is rejected or must run for this upgrade, so this is deprecation (review), not migration-required (action).",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low"
+  }
+}

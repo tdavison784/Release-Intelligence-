@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -28,6 +29,7 @@ type Fake struct {
 	mu       sync.Mutex
 	requests []Request
 	next     int
+	calls    int
 }
 
 // Complete implements Client.
@@ -38,6 +40,8 @@ func (f *Fake) Complete(ctx context.Context, req Request) (*Response, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.requests = append(f.requests, req)
+	f.calls++
+	callID := fmt.Sprintf("fake-call-%d", f.calls) // every Complete is a separate call
 	model := f.Model
 	if model == "" {
 		model = "fake-model"
@@ -51,7 +55,7 @@ func (f *Fake) Complete(ctx context.Context, req Request) (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &Response{Text: text, Model: model, ModelVersion: version, Origin: OriginFake}, nil
+		return &Response{Text: text, Model: model, ModelVersion: version, Origin: OriginFake, CallID: callID}, nil
 	}
 	if f.next >= len(f.Responses) {
 		return nil, ErrFakeExhausted
@@ -61,7 +65,7 @@ func (f *Fake) Complete(ctx context.Context, req Request) (*Response, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	return &Response{Text: r.Text, Model: model, ModelVersion: version, Origin: OriginFake}, nil
+	return &Response{Text: r.Text, Model: model, ModelVersion: version, Origin: OriginFake, CallID: callID}, nil
 }
 
 // Requests returns a copy of the recorded requests.

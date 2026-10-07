@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-81d3acb0bb5c",
+    "reviewItemId": "ri-14727fc62030",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cli.kyverno.io",
+          "version": "v1alpha1",
+          "kind": "Value"
+        }
+      },
+      "statement": "Kyverno CLI 1.13.0 adds the ability to inject global context entries during policy evaluation by defining global values (e.g. request.operation) and rule-specific values in a cli.kyverno.io/v1alpha1 Values file (new globalValues field), without modifying GlobalContextEntry resources in the cluster."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e9d663075743eb8c2b2c8f66941ad4c8e81858484718ae927af46753dfc46677",
+      "inputEvidence": [
+        "ev-7f40c22f3620"
+      ],
+      "generatedAt": "2026-10-02T23:06:37.668Z",
+      "callId": "960b5264-16ec-4860-b383-1e08a6324bee"
+    },
+    "reason": "[ev-7f40c22f3620] describes a purely additive, opt-in Kyverno CLI capability: global and rule-specific values in a cli.kyverno.io/v1alpha1 Value file, used for local policy testing \"without modifying GlobalContextEntry resources in your cluster\". Nothing in it says anything fails, changes or must be acted on for an environment that does nothing, so no environment state leads to a consequence. The proposed gvk-in-use{cli.kyverno.io/v1alpha1 Value} condition would mark existing CLI Value-file users as exposed, even though they are unaffected. That makes the condition too broad, and no correct exposure predicate follows from the evidence.",
+    "startedAt": "2026-10-02T23:06:28.909Z",
+    "decidedAt": "2026-10-02T23:06:37.668Z"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-89cb731beb73",
+    "candidateId": "sc-895e84ff5606",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "migrate-schema-to-tsdb-v13"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "none",
+                  "pattern": "\\btsdb\\b"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "none",
+                  "pattern": "\\bv13\\b"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "\\btsdb\\b"
+            },
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "\\bv13\\b"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, Loki will not start after the upgrade because structured metadata is enabled by default and the existing schema configuration is not tsdb with v13.",
+        "remediation": "Bring the schema configuration to the tsdb store with v13 schema before upgrading to Loki 3.0.0, following the upgrade guide's Structured Metadata, Open Telemetry, Schemas and Indexes section.",
+        "severity": "critical"
+      },
+      "statement": "Loki 3.0.0 enables structured metadata by default, and this requires the `tsdb` store and `v13` schema, so Loki will not start unless the schema is migrated to tsdb with v13 before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5dacaee98643"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:43082d9c110620c339c9921da4f1eca115fe6428bca4c24689cdaa7cc25563cb",
+      "inputEvidence": [
+        "ev-5dacaee98643"
+      ],
+      "generatedAt": "2026-10-03T07:52:11Z",
+      "callId": "fe2a0200-203b-43e4-afe6-7f04e6cfa1f2"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e4c0acb85b45",
+    "candidateId": "sc-3aa4cb777553",
+    "proposalId": "sp-ba549f34be74",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-implicit-ipv4-preference"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.jmxOptions",
+              "state": "set"
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Clusters with JMX enabled now use JVM defaults instead of the implicit IPv4 preference, so they boot up correctly in IPv6-only environments where the IPv4 preference previously broke the boot up.",
+        "severity": "low"
+      },
+      "statement": "The implicit IPv4 preference that was applied when JMX is enabled has been removed in Strimzi 0.46.0, so JMX-enabled clusters now use JVM defaults and boot up correctly in IPv6-only environments."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

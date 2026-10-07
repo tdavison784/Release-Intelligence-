@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-489b0f10fbfa",
+    "candidateId": "sc-34b3723bdd39",
+    "proposalId": "sp-4877a166160e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "karpenter",
+        "name": "terminationGracePeriod"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "ClusterRole",
+          "path": "rules",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The controller's RBAC is granted the new terminationGracePeriod permissions; the release note describes no operator action, rejection, or failure — only the addition of permissions as a bug fix.",
+        "remediation": "No operator action described; upgrading grants the added permissions via the chart's RBAC objects.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 adds \"terminationGracePeriod RBAC permissions\" (bug fix, PR #6538) to the product's controller RBAC; the release note names no specific resource, verb, role, or consequence beyond the addition."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:karpenter|name=terminationGracePeriod: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:karpenter|name=terminationGracePeriod: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

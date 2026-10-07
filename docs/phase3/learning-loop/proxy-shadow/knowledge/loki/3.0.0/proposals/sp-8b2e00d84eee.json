@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8b2e00d84eee",
+    "candidateId": "sc-69152174e9e5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are no longer emitted. Monitoring that relies on them should switch to loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds.",
+        "remediation": "Update dashboards and alerts to use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total; use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds instead."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a set of three exported Prometheus metrics, and none of the subject families covers metric names.; applicability: Exposure depends on whether dashboards, alerts or recording rules outside Loki's configuration query the removed metrics. No predicate here can read that, and the evidence states no condition.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dd7907f24ce5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:b2596c507a8b77078828e21840d7a85af7eabb493e421549ae312d140afddd17",
+      "inputEvidence": [
+        "ev-dd7907f24ce5"
+      ],
+      "generatedAt": "2026-10-03T07:10:21Z",
+      "callId": "36f43254-b37d-47f5-bb26-57685e907bf8"
+    }
+  }
+}

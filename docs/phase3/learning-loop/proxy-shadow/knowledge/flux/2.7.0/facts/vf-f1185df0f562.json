@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-f1185df0f562",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-f97ea657ff1b"
+        ],
+        "statementKeys": [
+          "sk-e8bf607534c9"
+        ],
+        "changeIds": [
+          "chg-1e7a7044bfd5"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2df51b6789d6"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "diff-ks-force-enabled"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators run `flux diff ks` against Kustomization resources that carry the `force: enabled` annotation"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Running `flux diff ks` on resources annotated with `force: enabled` may give different output than before, because the command now handles this annotation.",
+        "remediation": "Check `flux diff ks` output for resources annotated with `force: enabled` after upgrading the CLI.",
+        "severity": "low"
+      },
+      "statement": "Handle `force: enabled` annotation in `flux diff ks` command by @stefanprodan in https://github.com/fluxcd/flux2/pull/5528"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7ff012923b01"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7ff012923b01"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c9b79e54df07"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2deaec6fc91c"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5644801ced86",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L120-L120 (CLI changelog)",
+        "excerpt": "* Handle `force: enabled` annotation in `flux diff ks` command by @stefanprodan in https://github.com/fluxcd/flux2/pull/5528",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T01:57:20.666Z"
+  }
+}

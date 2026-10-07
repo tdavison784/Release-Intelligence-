@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dc0f0437ce21",
+    "candidateId": "sc-30917389637f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "karpenter",
+        "name": "ebs-instance-selection-optimization-info"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"instance selection by EBS maximum bandwidth could fail or select incorrectly when EbsOptimizedInfo was absent\"",
+        "after": "\"instance selection by EBS maximum bandwidth properly checks for EbsOptimizedInfo existence\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that select instances by EBS maximum bandwidth will no longer encounter failures caused by missing EbsOptimizedInfo.",
+        "remediation": "No action required; upgrade to v1.0.0 to receive the bug fix.",
+        "severity": "medium"
+      },
+      "statement": "Karpenter now ensures EbsOptimizedInfo exists when selecting instances by EBS maximum bandwidth, fixing a bug that could occur when this information was missing."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: exposure depends on whether the environment selects instances using EBS maximum bandwidth constraints at runtime, which is not statically visible in configuration",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-4b121944161e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fd9995ba9e23afaf8f276882d26982e53284fd757f7ecf0dedc4e10897628a39",
+      "inputEvidence": [
+        "ev-4b121944161e"
+      ],
+      "generatedAt": "2026-10-02T06:07:28Z",
+      "callId": "fd8c42d1-beed-4bea-81c6-a7617c4949a7"
+    }
+  }
+}

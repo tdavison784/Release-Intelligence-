@@ -1,0 +1,98 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-454cc01a08e9",
+  "promptDigest": "sha256:d7e790ae5b0394c3547e9b8022b7ecf611d0966fc46fc57f15fd06d29f0d3e86",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7c2df4cb-7493-41a2-aaea-25f2656b1ccd",
+  "startedAt": "2026-10-03T12:51:09.659Z",
+  "decidedAt": "2026-10-03T12:51:33.638Z",
+  "durationMs": 23350,
+  "costUSD": 0.148752,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-4685c9dd4dac] says the option was removed from the Consul provider only. It shows it set as providers.consul.tls.caOptional in YAML, as [providers.consul.tls] caOptional in TOML, and as --providers.consul.tls.caOptional on the CLI, and it says to remove it from the Consul provider static configuration. The proposed ConfigMap leaves match any caOptional line in traefik.yml/.yaml/.toml, whichever provider or section it sits under, so they would flag environments that are not exposed. The corrected leaves also require a Consul provider line in the same file. The CLI-flag and env-var leaves are kept.",
+    "citations": [
+      "ev-4685c9dd4dac"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments that set the Consul provider tls.caOptional option, via the --providers.consul.tls.caOptional CLI flag, the TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL env var, or a static config file in a ConfigMap (traefik.yml/.yaml/.toml) with a caOptional line and a Consul provider section in the same file.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "pattern": "^\\s*consul\\s*:",
+                  "state": "exists"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "pattern": "^\\s*caOptional\\s*:",
+                  "state": "exists"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "pattern": "^\\s*consul\\s*:",
+                  "state": "exists"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "pattern": "^\\s*caOptional\\s*:",
+                  "state": "exists"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "pattern": "^\\s*\\[providers\\.consul(\\.tls)?\\]",
+                  "state": "exists"
+                },
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "pattern": "caOptional\\s*=",
+                  "state": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

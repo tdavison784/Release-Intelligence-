@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-74e96f784d1d",
+    "candidateId": "sc-bc81049402c9",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"b9131c180246272ad7edf441bb80736e683187ab: feat(cmp): pass empty env vars to plugins\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "AppProject"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data",
+                  "state": "exists",
+                  "pattern": ".*cmpServer.*"
+                }
+              ],
+              "group": "v1",
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "statement": "Config Management Plugins now receive empty environment variables that were previously not passed."
+    },
+    "proposals": [
+      "sp-607dce1aa52b",
+      "sp-f8fef5da303b"
+    ],
+    "validations": [
+      "val-959c04d9eea0",
+      "val-a742f0be1c96",
+      "val-f89b3c457a0a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T06:06:03Z"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d223efe9991f",
+    "candidateId": "sc-292ab9525adb",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On upgrade to cert-manager 1.18, stale CertificateRequest revisions beyond the new default limit of 1 are automatically garbage collected for Certificates that do not explicitly set spec.revisionHistoryLimit; Certificates that explicitly set revisionHistoryLimit are unaffected.",
+        "remediation": "If you rely on keeping more CertificateRequest revision history, explicitly set spec.revisionHistoryLimit to a higher value on your Certificate resources before upgrading to cert-manager 1.18.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager 1.18 changes the default of the Certificate field spec.revisionHistoryLimit from nil (no limit) to 1, so old CertificateRequest revisions are automatically garbage collected on upgrade unless the Certificate explicitly sets revisionHistoryLimit."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bbe29a5fdc19",
+      "ev-04b3e69b5e24"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d5264fd359f4720622f0a724f8a7f2285705fabc6150485b690d73ee8dcffe75",
+      "inputEvidence": [
+        "ev-bbe29a5fdc19",
+        "ev-04b3e69b5e24"
+      ],
+      "generatedAt": "2026-10-02T11:24:46Z",
+      "callId": "0d83c2ce-0f52-4fcc-bf32-59eed92f8e87"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-55fa46b4a531",
+    "candidateId": "sc-2c2a2363a947",
+    "proposalId": "sp-cf7eb9d51335",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "crossplane",
+        "group": "protection.crossplane.io",
+        "version": "v1beta1",
+        "kind": "ClusterUsage"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "protection.crossplane.io",
+                  "version": "v1beta1",
+                  "kind": "ClusterUsage"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether CRDs are managed separately from the release or installed automatically"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If CRDs are managed separately from the release, the new ClusterUsage CRD must be installed before upgrading.",
+        "severity": "high"
+      },
+      "statement": "A new CRD ClusterUsage in the protection.crossplane.io API group, v1beta1 version, is added and must be installed before upgrading if CRDs are managed separately."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

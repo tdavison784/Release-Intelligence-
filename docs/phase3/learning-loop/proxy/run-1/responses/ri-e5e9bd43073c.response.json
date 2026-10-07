@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e5e9bd43073c",
+  "promptDigest": "sha256:0ebcfd2385b4048c0e2f72fa0c6dd338a6c831fe29ef4717f1df9cb682352ded",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8e68a982-e67c-4dd4-ae3e-230c1a21aa3d",
+  "startedAt": "2026-10-02T16:01:54.537Z",
+  "decidedAt": "2026-10-02T16:02:04.621Z",
+  "durationMs": 9117,
+  "costUSD": 0.073136,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f432b7205700] says that from Kafka 4.0.0 the JMXReporter is enabled only if metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added to `metric.reporters`. That is a changed enablement default. The evidence does not say that anything fails, is rejected or must be migrated, so behavior-change (review) is the right kind. However, the proposed statement adds \"previously it may have been enabled differently or by default\", which is speculation the evidence does not support, so I corrected the statement and kept the kind and severity.",
+    "citations": [
+      "ev-f432b7205700"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "From Kafka 4.0.0, the JMXReporter is enabled only when metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added to `metric.reporters`; an environment that does neither does not get the JMXReporter.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "On Kafka 4.0.0 or later, if the operator does nothing, the JMXReporter is not enabled unless metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added to `metric.reporters`.",
+        "remediation": "If JMX metrics are needed, enable metrics in `.spec.kafka.metrics` or explicitly add JMXReporter to `metric.reporters`.",
+        "severity": "medium"
+      }
+    }
+  }
+}

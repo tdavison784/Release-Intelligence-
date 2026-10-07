@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c1748aa17f9f",
+    "candidateId": "sc-545ceb6ab35c",
+    "proposalId": "sp-b8aac24a3dd3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "tls-client-subject-logging"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--accesslog",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "accessLog",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs may now include TLS client subject information when TLS connections are present, providing additional detail in log output.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 adds the ability to log TLS client subject information in access logs middleware."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/added",
+        "detail": "protocol-behavior added is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/added",
+        "detail": "protocol-behavior added is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

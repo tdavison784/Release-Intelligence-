@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-68ab907ad5a8",
+    "candidateId": "sc-95ddd86cb4d2",
+    "product": "karpenter",
+    "questionType": "classification",
+    "question": "Is fact vf-b9970c0c7230 (Storage version of `nodeclaims.karpenter.sh` changes v1beta1 → v1) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodeClaim"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects remain stored as v1beta1 until rewritten; a storage version migration and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all NodeClaim objects and update status.storedVersions on the nodeclaims.karpenter.sh CRD before a release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "Storage version of `nodeclaims.karpenter.sh` changes v1beta1 → v1"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T06:59:27.498702-05:00"
+  }
+}

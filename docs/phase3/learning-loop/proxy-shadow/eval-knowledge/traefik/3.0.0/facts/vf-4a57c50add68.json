@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4a57c50add68",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-0541aa4cde57"
+        ],
+        "statementKeys": [
+          "sk-a8efeed90645"
+        ],
+        "changeIds": [
+          "chg-eab7354da043"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-7e18372778d2"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "traefik",
+        "name": "http-wasm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"v0.6.0\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment loads Traefik WASM plugins built on http-wasm, and which http-wasm guest version they use; the evidence names no configuration key, flag or resource kind for this"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Nothing an operator relies on changes. The upgraded http-wasm host adds support for v0.4.0 guests, including source address retrieval, and the evidence does not say that existing plugins stop working, are rejected or behave differently.",
+        "severity": "low"
+      },
+      "statement": "[plugins] Upgrade http-wasm host to v0.6.0 to support clients using v0.4.0 (#10475 by jcchavezs)"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-2fd91c1ae3fd"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-2fd91c1ae3fd"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-6c405421f1d8"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-d48873e63527"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-bfb9c0ed4d28",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md",
+        "locator": "L32-L32 (v3.0.0 (2024-04-29) › Enhancements:)",
+        "excerpt": "- **[plugins]** Upgrade http-wasm host to v0.6.0 to support clients using v0.4.0 ([#10475](https://github.com/traefik/traefik/pull/10475) by [jcchavezs](https://github.com/jcchavezs))",
+        "contentDigest": "sha256:c5f1e64ee3d0de9e47f43aef6be0c48db04f3d40c93cb38908c8c3f93418d5fe",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:46:13.691Z"
+  }
+}

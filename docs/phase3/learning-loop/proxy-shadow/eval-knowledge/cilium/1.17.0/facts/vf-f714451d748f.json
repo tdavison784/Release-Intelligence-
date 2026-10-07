@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-f714451d748f",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-2898f841b6c8"
+        ],
+        "statementKeys": [
+          "sk-af1f0c4e1ee9"
+        ],
+        "changeIds": [
+          "chg-6b0827ac0d74"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-dfcb35d1329d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-update-duration-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_update_duration\"",
+        "after": "\"envoy_cilium_npds_update_duration\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-update-duration-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether monitoring dashboards, alerts or queries consume the envoy_cilium_policymap_<node-ip>_<node-id>_update_duration metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is now exported as envoy_cilium_npds_update_duration, so queries that use the old envoy_cilium_policymap_<node-ip>_<node-id>_update_duration name no longer match it.",
+        "remediation": "Change dashboards, alerts and recording rules to use envoy_cilium_npds_update_duration.",
+        "severity": "low"
+      },
+      "statement": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` -> `envoy_cilium_npds_update_duration`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-d8f8bc72961c"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-d8f8bc72961c"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-984e5771bcc4"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-153d61f16d1b"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3fa40f2e19e8",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L449-L449 (1.17 Upgrade Notes › Changed Metrics)",
+        "excerpt": "* `envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` -> `envoy_cilium_npds_update_duration`",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:30:19.272Z"
+  }
+}

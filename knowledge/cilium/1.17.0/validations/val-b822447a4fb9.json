@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b822447a4fb9",
+    "candidateId": "sc-30c676d7c5e6",
+    "proposalId": "sp-dd3c483f5693",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble-cli"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"shows all flows emitted from a node in the provided cluster\"",
+        "after": "\"shows flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which hubble CLI invocations use the --cluster flag and rely on its previous filtering semantics"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble CLI queries using --cluster still run but return a different set of flows than before (now including flows emitted from nodes outside the cluster that come from or go to it); the previous filtering remains available via --node-name <cluster>/.",
+        "remediation": "Where the previous filtering is desired, replace --cluster foo with --node-name foo/ (shows all flows emitted from a node in cluster foo).",
+        "severity": "low"
+      },
+      "statement": "The Hubble CLI --cluster flag now shows flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster) instead of only flows emitted from nodes in that cluster, bringing consistency with --namespace and removing the incompatibility with --node-name; the previous behavior of --cluster foo can be reproduced with --node-name foo/."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -324,3 +324,56 @@ provenance:
     eras are research. The mc image proposal was rejected (separate product,
     minio/mc, its own calendar train). Version encoding: year.major-month-day
     with the time-of-day gap recorded in docs/onboarding/records/minio.yaml.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: server-env-vars
+  channel: env-vars
+  component: minio server
+  summary: Every server config subsystem has MINIO_* environment-variable equivalents (shown with mc admin config
+    set ... --env), and root credentials can only be set via MINIO_ROOT_USER / MINIO_ROOT_PASSWORD; otherwise config
+    is stored erasure-coded in the deployment and changed with mc admin config.
+  references:
+  - url: https://raw.githubusercontent.com/minio/minio/master/docs/config/README.md
+    quote: On MinIO admin credentials or root credentials are only allowed to be changed using ENVs namely `MINIO_ROOT_USER`
+      and `MINIO_ROOT_PASSWORD`.
+  - url: https://raw.githubusercontent.com/minio/minio/master/docs/config/README.md
+    quote: To get ENV equivalent for each config args use `--env` flag
+  - url: https://raw.githubusercontent.com/minio/minio/master/docs/config/README.md
+    quote: MinIO stores all its config as part of the server deployment, config is erasure coded on MinIO.
+- id: helm-values
+  channel: helm-values
+  component: minio (in-repo Helm chart helm/minio)
+  summary: The chart sets root credentials (rootUser/rootPassword or existingSecret), server environment variables
+    under environment, and extra minio binary arguments under extraArgs, all at the values root.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/minio/minio/master/helm/minio/values.yaml
+    quote: '## Use this field to add environment variables relevant to MinIO server. These fields will be passed
+      on to MinIO container(s)'
+  - url: https://raw.githubusercontent.com/minio/minio/master/helm/minio/values.yaml
+    quote: '## Additional arguments to pass to minio binary'
+- id: config-env-file
+  channel: config-file
+  component: minio server
+  summary: A KEY=VALUE environment file named by MINIO_CONFIG_ENV_FILE; the chart mounts the extraSecret Secret's
+    config.env key and points MINIO_CONFIG_ENV_FILE at it.
+  file: config.env
+  format: text
+  references:
+  - url: https://raw.githubusercontent.com/minio/minio/master/helm/minio/values.yaml
+    quote: '## The key in the secret must be ''config.env'''
+  - url: https://raw.githubusercontent.com/minio/minio/master/helm/minio/templates/statefulset.yaml
+    quote: 'value: "/tmp/minio-config-env/config.env"'
+- id: server-cli-flags
+  channel: cli-flags
+  component: minio server
+  summary: Command-line options of minio server, e.g. --console-address for the console listener and --certs-dir
+    for the TLS certificate directory.
+  references:
+  - url: https://raw.githubusercontent.com/minio/minio/master/README.md
+    quote: use `--console-address` to pick a specific interface and port.
+  - url: https://raw.githubusercontent.com/minio/minio/master/docs/config/README.md
+    quote: You can provide a custom certs directory using `--certs-dir` command line option.

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f71fa1b84ec0",
+    "candidateId": "sc-5211de5a6cde",
+    "proposalId": "sp-1ee60a05eb90",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-used-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_used_total\"",
+        "after": "\"lbipam_ips_used\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-used"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether monitoring queries, dashboards or alerts scrape or reference the metric lbipam_ips_used_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric lbipam_ips_used_total is now exposed as lbipam_ips_used, so anything that references the old metric name needs review.",
+        "remediation": "Update monitoring queries, dashboards and alerts to use lbipam_ips_used.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric lbipam_ips_used_total has been renamed to lbipam_ips_used."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/renamed",
+        "detail": "protocol-behavior renamed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

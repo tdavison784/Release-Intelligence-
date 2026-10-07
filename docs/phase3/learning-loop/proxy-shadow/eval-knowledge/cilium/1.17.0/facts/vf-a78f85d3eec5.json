@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-a78f85d3eec5",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-79cb0519c959"
+        ],
+        "statementKeys": [
+          "sk-f07bab9938e7"
+        ],
+        "changeIds": [
+          "chg-d49b29660255"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-1115e82f20f4"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"the lowest MTU of all external interfaces\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether nodes have more than one external interface where a non-primary interface (excluding ENI secondary interfaces in ENI mode) has a lower MTU than the primary interface, and whether the CNI configuration sets the mtu option"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using auto-detection will now select the lowest MTU across all external interfaces instead of only the primary interface, which may result in lower MTU values being applied.",
+        "remediation": "If the change in MTU value is not desired, configure MTU manually via the MTU helm option, --mtu agent flag, or mtu option in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "MTU auto-detection will now use the lowest MTU of all external interfaces"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-07e183247d6b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-07e183247d6b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b94e21e0ee12"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2249ba6ff4db"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b37407b60520",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L316-L319 (1.17 Upgrade Notes)",
+        "excerpt": "* MTU auto-detection will now use the lowest MTU of all external interfaces. Before, only the primary\n  interface was considered. One exception to this is in ENI mode where the secondary interfaces are not\n  considered for MTU auto-detection. MTU can still be configured manually via the `MTU` helm option,\n  `--mtu` agent flag or `mtu` option in CNI configuration.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:55:02.324Z"
+  }
+}

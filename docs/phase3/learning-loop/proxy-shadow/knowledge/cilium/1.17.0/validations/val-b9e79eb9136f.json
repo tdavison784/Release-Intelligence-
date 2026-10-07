@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b9e79eb9136f",
+    "candidateId": "sc-2536de269bdc",
+    "proposalId": "sp-3af908baec83",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-node-ip-node-id-control-plane-pending-requests"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_control_plane_pending_requests\"",
+        "after": "\"envoy_cilium_npds_control_plane_pending_requests\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-control-plane-pending-requests"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerts, scrapers or queries reference the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The pending-requests metric is emitted only under the new name envoy_cilium_npds_control_plane_pending_requests, so monitoring that references the old per-node name will no longer receive data for it.",
+        "remediation": "Update dashboards, alerts and queries that reference envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests to use envoy_cilium_npds_control_plane_pending_requests.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests is renamed to envoy_cilium_npds_control_plane_pending_requests, so it is no longer exposed under the old per-node name."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-03T07:03:21Z"
+  }
+}

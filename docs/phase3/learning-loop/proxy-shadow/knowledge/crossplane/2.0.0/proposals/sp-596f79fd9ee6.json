@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-596f79fd9ee6",
+    "candidateId": "sc-14c188e11f35",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "upgrade-providers"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "provider.packages",
+              "state": "set"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "pkg.crossplane.io",
+              "kind": "Provider"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Upgrading to Crossplane v2.0 requires operators to run the \"Upgrade providers\" step (step 4 of the upgrade approach); the excerpt does not state what breaks if the step is skipped.",
+        "remediation": "Follow step 4 \"Upgrade providers\" in the Crossplane v2.0 upgrade guide (guides/upgrade-to-crossplane-v2)."
+      },
+      "statement": "Upgrading to Crossplane v2.0 includes a mandatory operator step, step 4 of the upgrade approach, to upgrade providers."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f44aa981165a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:724a4596cd56f51657c665cef514876d5549c26c0d6b5e18c96db28cb905fa2f",
+      "inputEvidence": [
+        "ev-f44aa981165a"
+      ],
+      "generatedAt": "2026-10-03T08:06:53Z",
+      "callId": "1571aa25-4a94-47e3-a314-c1837562f852"
+    }
+  }
+}

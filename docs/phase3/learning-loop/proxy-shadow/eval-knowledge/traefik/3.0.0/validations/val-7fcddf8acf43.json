@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7fcddf8acf43",
+    "candidateId": "sc-4cda841ab3a0",
+    "proposalId": "sp-f4cefb4fc968",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "traefik",
+        "name": "OTEL_PROPAGATORS",
+        "component": "tracing"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "OTEL_PROPAGATORS",
+              "component": "tracing",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether tracing is enabled and configured to use OTEL propagation standards"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new OTEL_PROPAGATORS environment variable provides an additional standard way to configure tracing propagation without affecting existing tracing configurations."
+      },
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure OpenTelemetry tracing propagation."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:traefik|name=OTEL_PROPAGATORS|component=tracing: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/added",
+        "detail": "env-var:traefik|name=OTEL_PROPAGATORS|component=tracing: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

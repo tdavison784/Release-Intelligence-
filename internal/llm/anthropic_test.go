@@ -50,7 +50,7 @@ func TestAnthropicRequestShape(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.Text != `{"answer":42}` || resp.Model != "claude-sonnet-5-5" {
+	if resp.Text != `{"answer":42}` || resp.Model != "claude-sonnet-5-5" || resp.CallID != "msg_1" {
 		t.Fatalf("unexpected response %+v", resp)
 	}
 	if hdr.Get("x-api-key") != "test-key" || hdr.Get("anthropic-version") != AnthropicVersion {

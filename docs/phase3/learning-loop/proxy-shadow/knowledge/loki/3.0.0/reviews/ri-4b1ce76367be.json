@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-4b1ce76367be",
+    "candidateId": "sc-80712a7649c4",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"loki Generate tsdb_shipper storage_config even if using_boltdb_shipper is false 11195\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "storage.using_boltdb_shipper",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Loki now generates tsdb_shipper storage configuration even when using_boltdb_shipper is set to false."
+    },
+    "proposals": [
+      "sp-a1b2b3edd7d8",
+      "sp-d2bc490439da"
+    ],
+    "validations": [
+      "val-15833a39f7e2",
+      "val-7e296a82530b",
+      "val-f53824e60401"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T20:59:03Z"
+  }
+}

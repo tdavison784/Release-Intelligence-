@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b3ae33cc4b4e",
+    "candidateId": "sc-91780e939ebc",
+    "proposalId": "sp-d23940b2747d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--all-namespaces",
+        "component": "events"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux events --all-namespaces` from the CLI (this is a client-side invocation that cluster manifests do not show)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`flux events --all-namespaces` now honours the flag, so its output may differ from what earlier CLI versions printed.",
+        "remediation": "Check any scripts that parse `flux events --all-namespaces` output.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, the `flux events` CLI command now respects the `--all-namespaces` flag. This is a bugfix."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

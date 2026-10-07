@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3cdb70d03c89",
+    "candidateId": "sc-bff803aa3413",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux uninstall` on a cluster where `ArtifactGenerators` exist"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When an operator runs `flux uninstall`, `ArtifactGenerators` are now removed as part of the uninstall, which the command did not do before.",
+        "remediation": "No action required; be aware that running `flux uninstall` will now delete `ArtifactGenerators`.",
+        "severity": "low"
+      },
+      "statement": "The Flux CLI's `uninstall` command now removes `ArtifactGenerators` during uninstall (fluxcd/flux2#5531)."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence names only the token `ArtifactGenerators` and the uninstall behavior; it states no API group/version, Helm key, flag or other family identity, and no subject family covers the `flux uninstall` command's own behavior.",
+    "citations": [
+      "ev-ca5d9cebd770"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:a70c3c152351c68c6826e17b49298352b92c6e6a44b7e60fdc5cfc83b4723fa7",
+      "inputEvidence": [
+        "ev-ca5d9cebd770"
+      ],
+      "generatedAt": "2026-10-02T16:28:33Z",
+      "callId": "e285afe3-8f71-4313-94cb-6505566422ef"
+    }
+  }
+}

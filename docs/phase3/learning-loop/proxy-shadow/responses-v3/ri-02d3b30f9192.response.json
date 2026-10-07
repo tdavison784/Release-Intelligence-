@@ -1,0 +1,42 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-02d3b30f9192",
+  "promptDigest": "sha256:df2d61e6969f0dc5f29d533a9aa1cfece0775791b0c18911c6bb86e9b1085984",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "193252d1-75ce-4138-bb2d-3a40ccdc5287",
+  "startedAt": "2026-10-03T12:42:22.926Z",
+  "decidedAt": "2026-10-03T12:42:35.142Z",
+  "durationMs": 11279,
+  "costUSD": 0.14876,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-887b12a31841] and [ev-8fea3a0e7308] say `experimental.ruler.enable-api` is removed and that `ruler.enable-api` should be used instead. The name uses Loki's dotted, hyphenated CLI-flag style, the same style as the other upgrade-guide items that are explicitly called CLI flags [ev-dc20110f4f4b][ev-03b4fbe630df]. It is not a Helm values key, so a values-key predicate on that path would never match a real environment. Exposure should be the old flag being set on Loki's containers. Confidence is low because the evidence never literally calls it a CLI flag.",
+    "citations": [
+      "ev-887b12a31841",
+      "ev-8fea3a0e7308",
+      "ev-dc20110f4f4b",
+      "ev-03b4fbe630df"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the `-experimental.ruler.enable-api` flag in favour of `-ruler.enable-api`. Exposed environments are those whose Loki workloads still pass `-experimental.ruler.enable-api`.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-experimental.ruler.enable-api",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-ruler.enable-api",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

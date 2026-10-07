@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9ba5d43761f8",
+    "candidateId": "sc-159bff8514d4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "external-secrets",
+          "group": "external-secrets.io",
+          "version": "v1",
+          "kind": "SecretStore"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stay stored as v1beta1 until rewritten; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before the later release that removes v1beta1 — doing nothing leaves objects still stored in v1beta1 going into that removal.",
+        "remediation": "Run a storage version migration (re-write all SecretStore objects) and update status.storedVersions to drop v1beta1 before upgrading to the later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the secretstores.external-secrets.io CRD changes from v1beta1 to v1 (spec.versions[name=v1beta1].storage: true → false between 0.15.0 and 0.16.0), so existing SecretStore objects stay stored as v1beta1 until rewritten, and a storage version migration plus a status.storedVersions update must be completed before a later release removes v1beta1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f07fad593227"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:c6d4cfe4aabbaacdc2a5bb855db07f53fbd3bc7367396b561a2841aa600a549e",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T16:25:51Z",
+      "callId": "ccd86fe8-bf68-4a7f-bce7-2c00d4f779f8"
+    }
+  }
+}

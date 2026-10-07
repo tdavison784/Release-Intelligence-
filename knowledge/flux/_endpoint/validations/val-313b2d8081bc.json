@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-313b2d8081bc",
+    "candidateId": "sc-6df6a9e8120e",
+    "proposalId": "sp-12cfad1fce4c",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "ExternalArtifact"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ExternalArtifact"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CRDs must be installed or updated before upgrading if managed separately from the release.",
+        "remediation": "Install or update the new ExternalArtifact CRD before upgrading to this release if you manage CRDs separately.",
+        "severity": "high"
+      },
+      "statement": "A new CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) has been added and requires installation if CRDs are managed separately from the release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:gvk",
+        "detail": "source.toolkit.fluxcd.io/v1 ExternalArtifact is an API version in the target release only"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:version",
+        "detail": "source.toolkit.fluxcd.io/v1 ExternalArtifact is new in the target release"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

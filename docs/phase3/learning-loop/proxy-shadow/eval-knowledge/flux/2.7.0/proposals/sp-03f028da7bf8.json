@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-03f028da7bf8",
+    "candidateId": "sc-6c62cef5daa7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "flux",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "where the flux binary is run (e.g. operator machines or CPU-limited CI containers) and whether GOMAXPROCS is set explicitly there, since the dynamically set GOMAXPROCS depends on the process's runtime environment and not on anything in the cluster manifests"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The affected Flux binary keeps working, but its effective GOMAXPROCS is now set dynamically by the Go runtime, which can change the CPU parallelism behaviour compared to previous releases; the release notes describe no failure and no required operator step.",
+        "remediation": "No action is required; verify CPU utilisation of the affected binary after upgrading and set GOMAXPROCS explicitly if a specific value must be enforced.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 now allows the Go runtime to dynamically set GOMAXPROCS (listed in the release notes' CLI changelog), so the way the effective GOMAXPROCS value of the affected Flux binary is determined changes; the note describes no failure or required action."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0a0493889871"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:073dcf58c08de26b791d766d96f659fbb5bf23f03eb3b41aeacbde3166e468ef",
+      "inputEvidence": [
+        "ev-0a0493889871"
+      ],
+      "generatedAt": "2026-10-02T16:47:02Z",
+      "callId": "6a6aea42-df98-4ea9-bc40-df24934886c6"
+    }
+  }
+}

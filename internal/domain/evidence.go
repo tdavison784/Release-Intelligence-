@@ -23,6 +23,23 @@ const (
 	EvidenceRepoFile     EvidenceKind = "repo-file"     // a file inside a source repository (discovery)
 	EvidenceLocalFile    EvidenceKind = "local-file"    // a file of the user's environment (values, manifests)
 	EvidenceInput        EvidenceKind = "input"         // a value supplied directly (a CLI flag)
+	// EvidenceRenderedDiff: one semantic difference between two renders
+	// (Evidence.Render says how, at which scope). CONTRACT-CHANGE(render):
+	// RENDER-MISSION R5 names this evidence kind.
+	EvidenceRenderedDiff EvidenceKind = "rendered-diff"
+	// EvidenceRendered: a document a render of the customer's configuration
+	// produced (not a difference): an installed CRD extracted from the FROM
+	// render of their install. Distinct from every observed kind — a render
+	// is what a fresh install of the chart with their gates would create,
+	// never observed cluster state. CONTRACT-CHANGE(renderfirst): PO-7a
+	// addendum item 6.
+	EvidenceRendered EvidenceKind = "rendered"
+	// EvidenceLinkedPR: what GitHub states about a pull request or issue that
+	// a release note references (title, description, changed files);
+	// EvidenceLinkedCommit: the same for a referenced commit. Fetched
+	// context for a reviewer, never a conclusion (internal/linkedev).
+	EvidenceLinkedPR     EvidenceKind = "linked-pr"
+	EvidenceLinkedCommit EvidenceKind = "linked-commit"
 )
 
 // Evidence is a verifiable pointer to source material that supports a fact or
@@ -42,7 +59,11 @@ type Evidence struct {
 	// came from (source-tree, published-chart-tgz, ...); see Representation.
 	// Empty on evidence whose origin the pipeline does not classify.
 	Representation Representation `json:"representation,omitempty"`
-	RetrievedAt    time.Time      `json:"retrievedAt,omitzero"`
+	// Render is set on evidence that cites a field of a rendered manifest
+	// (the template file is the URI/locator): how the render was produced.
+	// Environment-scoped renders never enter knowledge/ (semantic.go).
+	Render      *RenderProvenance `json:"render,omitempty"`
+	RetrievedAt time.Time         `json:"retrievedAt,omitzero"`
 }
 
 // MaxExcerpt bounds stored excerpts.

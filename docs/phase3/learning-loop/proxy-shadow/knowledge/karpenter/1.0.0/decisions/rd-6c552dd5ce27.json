@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6c552dd5ce27",
+    "reviewItemId": "ri-9e0515d08310",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "The NodePool ConsolidationPolicy field `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "NodePool's spec.disruption.consolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`; exposed are environments with a karpenter.sh NodePool whose spec.disruption.consolidationPolicy equals WhenUnderutilized."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2e5a5ea2d467e558f6ec2f9dd1090c115067a6f16c7136a0938b10fa8461889b",
+      "inputEvidence": [
+        "ev-80331c11381f",
+        "ev-bfb089d90d84",
+        "ev-5aa24b618332",
+        "ev-f91dbd14d0cc",
+        "ev-1253ff5bd0a5",
+        "ev-873cf7661375",
+        "ev-f83dc72c2c99",
+        "ev-13278d059ceb",
+        "ev-4bcafa8a355e",
+        "ev-09bbe26d2f4a",
+        "ev-451bd6a12e72",
+        "ev-760ae3491f13",
+        "ev-881d131e594e",
+        "ev-8998581760b8",
+        "ev-fef279f378b5"
+      ],
+      "generatedAt": "2026-10-03T16:56:03.387Z",
+      "callId": "fe1da28f-cb0c-4811-bef8-1c21f4b584d6",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-80331c11381f] says the NodePool ConsolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`, so the exposed NodePools are those that still set the old value. The proposed condition reads the wrong field path, `spec.consolidationPolicy`. The CRD validator confirmed that this field lives at `spec.disruption.consolidationPolicy` in both releases [ev-09bbe26d2f4a, ev-760ae3491f13]. A check on that path would never match, so it would miss every exposed NodePool. The condition shape is otherwise right: a NodePool whose policy equals the old value. Stored v1beta1 manifests are the ones that carry it [ev-bfb089d90d84].",
+    "startedAt": "2026-10-03T16:55:52.447Z",
+    "decidedAt": "2026-10-03T16:56:03.387Z"
+  }
+}

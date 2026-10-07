@@ -1,0 +1,48 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-36e258765d87",
+  "promptDigest": "sha256:5b941ee16e1655567a42aa0b1f6745ee6b3aa4e9a59aa75d5d048fc6e5d680da",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6da4d479-3b48-4aee-a14c-433d8627f29b",
+  "startedAt": "2026-10-03T12:49:19.873Z",
+  "decidedAt": "2026-10-03T12:49:31.808Z",
+  "durationMs": 10923,
+  "costUSD": 0.054131399999999996,
+  "output": {
+    "action": "correct",
+    "reason": "The computed schema diff between [ev-782bc47d120d] and [ev-c2c6c790d6b2] makes status.artifact.digest newly required in the v1beta2 HelmChart schema. In a CRD schema, a nested required field is only checked when its parent object is present. A HelmChart that has no status.artifact at all, such as a freshly applied manifest with no status, is not rejected. The proposed exposure (digest unset) therefore flags environments that aren't exposed, so the condition has to also require status.artifact to be set, as P2 has it. Confidence is low because the evidence excerpts only show the install bundles, not the schema text itself.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmChart schema, status.artifact.digest is now required. Environments are exposed when a v1beta2 HelmChart has status.artifact set but no status.artifact.digest; such objects are rejected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmChart",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

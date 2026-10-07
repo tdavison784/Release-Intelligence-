@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-3dcc79cc0550",
+    "product": "prometheus-operator",
+    "release": "0.86.0",
+    "members": [
+      {
+        "changeId": "chg-e1fc91fff5cc",
+        "anchor": {
+          "release": "0.86.0",
+          "evidenceKeys": [
+            "ek-bf8c4ff357ae"
+          ],
+          "statementKeys": [
+            "sk-60a95c843b4d"
+          ],
+          "changeIds": [
+            "chg-e1fc91fff5cc"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Kubernetes: Due to the use of apiextensions.k8s.io/v1 CustomResourceDefinitions, prometheus-operator requires Kubernetes >= v1.16.0",
+    "text": "Kubernetes: Due to the use of apiextensions.k8s.io/v1 CustomResourceDefinitions, prometheus-operator requires Kubernetes >= v1.16.0. The Prometheus Operator uses the official Go client for Kubernetes to communicate with the Kubernetes API. The compatibility matrix for client-go and Kubernetes clusters can be found here. All additional compatibility is only best effort, or happens to be still/already supported. The current version of the Prometheus operator uses the following Go client version:",
+    "evidence": [
+      {
+        "id": "ev-eacfddf95197",
+        "kind": "document",
+        "sourceId": "compatibility",
+        "uri": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/Documentation/getting-started/compatibility.md",
+        "locator": "L16-L26 (Kubernetes)",
+        "excerpt": "## Kubernetes\n\nDue to the use of apiextensions.k8s.io/v1 CustomResourceDefinitions, prometheus-operator requires Kubernetes >= v1.16.0.\n\nThe Prometheus Operator uses the official [Go client](https://github.com/kubernetes/client-go) for Kubernetes to communicate with the Kubernetes API. The compatibility matrix for client-go and Kubernetes clusters can be found [here](https://github.com/kubernetes/client-go#compatibility-matrix). All additional compatibility is only best effort, or happens to be still/already supported.\n\nThe current version of the Prometheus operator uses the following Go clien…",
+        "contentDigest": "sha256:17201876b2ffc0716b48d1183f9be7ca730c75c0a25d8f27d68060e8b3f1079a",
+        "retrievedAt": "2026-10-02T03:56:03Z"
+      },
+      {
+        "id": "ev-f240b6ac3b67",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/alertmanager/alertmanager.yaml · monitoring.coreos.com/v1/Alertmanager/prometheus-operator/prometheus-operator-kube-p-alertmanager spec.version",
+        "excerpt": "0.85.0 → 0.86.2: field-changed Alertmanager/prometheus-operator-kube-p-alertmanager (ns prometheus-operator) spec.version: \"v0.28.1\" → \"v0.29.0\"",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "monitoring.coreos.com/v1/Alertmanager/prometheus-operator/prometheus-operator-kube-p-alertmanager",
+          "path": "spec.version",
+          "change": "field-changed",
+          "before": "\"v0.28.1\"",
+          "after": "\"v0.29.0\""
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-83fc26f44be6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus/prometheus.yaml · monitoring.coreos.com/v1/Prometheus/prometheus-operator/prometheus-operator-kube-p-prometheus spec.version",
+        "excerpt": "0.85.0 → 0.86.2: field-changed Prometheus/prometheus-operator-kube-p-prometheus (ns prometheus-operator) spec.version: \"v3.6.0\" → \"v3.8.0\"",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "monitoring.coreos.com/v1/Prometheus/prometheus-operator/prometheus-operator-kube-p-prometheus",
+          "path": "spec.version",
+          "change": "field-changed",
+          "before": "\"v3.6.0\"",
+          "after": "\"v3.8.0\""
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      }
+    ],
+    "hints": [
+      "apiVersion:apiextensions.k8s.io/v1",
+      "constraint:>=v1.16.0",
+      "version:v1.16.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:31Z"
+  }
+}

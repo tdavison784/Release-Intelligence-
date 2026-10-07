@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-687877a45401",
+    "candidateId": "sc-01dac2541bc1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository objects validated against the source.toolkit.fluxcd.io/v1beta2 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Verify HelmRepository objects applied against the source.toolkit.fluxcd.io/v1beta2 schema include status.artifact.digest; objects written with a status.artifact must carry the digest field.",
+        "severity": "medium"
+      },
+      "statement": "The computed artifact diff between the flux v2.6.4 and v2.7.0 install bundles shows that status.artifact.digest became a required field in the source.toolkit.fluxcd.io/v1beta2 schema of helmrepositories.source.toolkit.fluxcd.io, and objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bab591daff37d2bc4a6e65e6d0661cf3de47b4725c76c20d0ccbbd76843d5e6f",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T08:05:07Z",
+      "callId": "5f12039e-e49a-4d47-9b56-a51876429f63"
+    }
+  }
+}

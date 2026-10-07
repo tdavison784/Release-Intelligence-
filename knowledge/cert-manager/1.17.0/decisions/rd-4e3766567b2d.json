@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4e3766567b2d",
+    "reviewItemId": "ri-049469e86f07",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an issuer's linked Secret is updated at runtime, since that update event is what triggers the affected retry/back-off path"
+        }
+      },
+      "statement": "In cert-manager 1.17.0 the issuer now retries more quickly when its linked Secret is updated, fixing an issue that previously caused a high back-off timeout."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:36727c5002cf23b320d7c30a7eaf030e6d9e85341b4adf36dd3c4cf6086f7da7",
+      "inputEvidence": [
+        "ev-10c8b1c28d66"
+      ],
+      "generatedAt": "2026-10-02T12:45:27.2Z",
+      "callId": "b45ed2f3-9ba0-4156-884d-ff18e2fbc92b"
+    },
+    "reason": "[ev-10c8b1c28d66] only says the issuer now retries more quickly when its linked Secret is updated, which fixes a high back-off timeout. It names no field, Helm value, flag or issuer type, so no static setting determines exposure. Exposure depends on the runtime event of a linked Secret being updated. That makes undecidable with reason runtime-behavior-gap the right condition. P2's gvk-in-use Issuer would be too broad, and it would also miss ClusterIssuer.",
+    "startedAt": "2026-10-02T12:45:21.015Z",
+    "decidedAt": "2026-10-02T12:45:27.2Z"
+  }
+}

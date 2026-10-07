@@ -17,13 +17,24 @@ expected:
     kind: compatibility
     importance: critical
     actionRequired: true        # the upgrade path itself is version-gated
-    classification: action-required   # a 1.15.x-older cluster must step to 1.15.6 first
+    classification: not-affected      # corrected 2026-10-01 (eval/CHANGELOG.md): this case's edge starts at v1.15.6, which already meets the precondition
     match:
+      # narrowed 2026-10-02 (eval/CHANGELOG.md (h)): the bare '(?i)toFQDNs'
+      # alternative over-selected three unrelated toFQDNs-adjacent changes
+      # (dnsProxy default, cilium_fqdn_selectors metric); the item's subject
+      # is the version precondition its own quote states verbatim.
       - text: '(?i)toFQDNs.*1\.15\.6|1\.15\.6 or newer'
-      - text: '(?i)toFQDNs'
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "To avoid drops during upgrades in clusters with ``toFQDNs`` policies, it is required to run Cilium v1.15.6 or newer before upgrading to Cilium v1.16."
+    semantics:
+      subject: {family: migration, product: cilium, name: run-v1.15.6-or-newer-before-v1.16, component: toFQDNs}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: clusters with toFQDNs policies that upgrade to v1.16 from a release older than v1.15.6 drop traffic matched by those policies during the upgrade.
+        remediation: upgrade to v1.15.6 or newer first
   # Change type covered: CRD field removal announced for this minor.
   - id: E2
     title: CiliumLoadBalancerIPPool spec.cidrs removed in v1.16 (deprecated in v1.15) — migrate to spec.blocks; allowFirstLastIPs default changed to "yes"
@@ -38,6 +49,22 @@ expected:
         quote: "The ``CiliumLoadBalancerIPPool.spec.cidrs`` field has been deprecated in v1.15 favor of ``CiliumLoadBalancerIPPool.spec.blocks``. … The ``cidrs`` field will be removed in v1.16. Please update your IP pool configurations to use ``blocks`` instead of ``cidrs`` before upgrading."
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "The default value of of ``CiliumLoadBalancerIPPool.spec.allowFirstLastIPs`` has been changed to ``yes``."
+    semantics:
+      - subject: {family: crd-field, product: cilium, group: cilium.io, kind: CiliumLoadBalancerIPPool, path: spec.cidrs}
+        change:
+          type: removed
+          replacedBy: {family: crd-field, product: cilium, group: cilium.io, kind: CiliumLoadBalancerIPPool, path: spec.blocks}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: IP pools that still use spec.cidrs are not valid against the v1.16 CRD, so their addresses are no longer allocated to LoadBalancer services.
+          remediation: move the pools to spec.blocks before upgrading
+      - subject: {family: crd-field, product: cilium, group: cilium.io, kind: CiliumLoadBalancerIPPool, path: spec.allowFirstLastIPs}
+        change: {type: default-changed, before: '"No"', after: '"Yes"'}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: pools that do not set allowFirstLastIPs start handing out the first and last address of each block.
   # Change type covered: API version migration of a shipped CRD.
   - id: E3
     title: Gateway API GRPCRoute moved from v1alpha2 to v1 — install the new CRD and migrate resources
@@ -50,6 +77,15 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "Gateway API GRPCRoute which is moved from ``v1alpha2`` to ``v1``. Please install new GRPCRoute CRD and migrate your resources from ``v1alpha2`` to ``v1`` version."
+    semantics:
+      subject: {family: gvk, product: cilium, group: gateway.networking.k8s.io, version: v1alpha2, kind: GRPCRoute}
+      change:
+        type: removed
+        replacedBy: {family: gvk, product: cilium, group: gateway.networking.k8s.io, version: v1, kind: GRPCRoute}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: GRPCRoutes stored as v1alpha2 are no longer reconciled by Cilium's Gateway API support until the v1 CRD is installed and the resources migrated, so their gRPC routes stop being programmed.
   # Change type covered: Helm default change with upgradeCompatibility escape hatch.
   - id: E4
     title: Cilium Envoy DaemonSet now enabled by default for new installs; existing clusters keep old behavior via upgradeCompatibility
@@ -62,6 +98,13 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "Cilium Envoy DaemonSet is now enabled by default for new installation if the helm attribute ``envoy.enabled`` is not specified … This change adds one additional Pod per Node, therefore Nodes at maximum Pod capacity will face an eviction of a single non-system critical Pod after upgrading."
+    semantics:
+      subject: {family: helm-value, product: cilium, path: envoy.enabled}
+      change: {type: default-changed, before: 'false', after: 'true'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: a separate cilium-envoy DaemonSet is deployed (one more Pod per node) when envoy.enabled is unset and upgradeCompatibility is not set to an older release; nodes at their Pod limit evict one non-critical Pod.
   # Change type covered: Helm key deprecation (1.16) that 1.17 then removes.
   - id: E5
     title: enableRuntimeDeviceDetection deprecated (native device detection is now the default); bpf.enableTCX default on kernels ≥ 6.6
@@ -77,6 +120,13 @@ expected:
         quote: "The related Helm option ``enableRuntimeDeviceDetection`` has been deprecated and will be removed in future release."
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "For Linux kernels of version 6.6 or newer, Cilium by default switches to tcx BPF links … this option should be disabled via Helm through ``bpf.enableTCX=false``"
+    semantics:
+      - subject: {family: helm-value, product: cilium, path: enableRuntimeDeviceDetection}
+        change: {type: deprecated}
+        consequence: {kind: deprecation, exposedClass: review-required, statement: native device detection is now always on; the option will be removed in a future release}
+      - subject: {family: helm-value, product: cilium, path: bpf.enableTCX}
+        change: {type: default-changed, before: 'false', after: 'true'}
+        consequence: {kind: behavior-change, exposedClass: review-required, statement: on kernels >= 6.6 Cilium attaches its BPF programs with tcx links instead of tc}
   # --- hop 2: v1.16 → v1.17 (cited from the 1.17 Upgrade Notes) ---
   # Change type covered: integration removal.
   - id: E6
@@ -91,6 +141,20 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Support for ``metallb-bgp``, deprecated since 1.14, has been removed."
+    semantics:
+      - subject: {family: helm-value, product: cilium, path: bgp.enabled}
+        change: {type: removed}
+        consequence: &cilE6
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: the metallb-bgp integration is gone, so LoadBalancer IPs (and pod CIDRs) are no longer announced over BGP and the services become unreachable from outside the cluster.
+          remediation: move the announcements to the BGP control plane (bgpControlPlane) before upgrading
+      - subject: {family: helm-value, product: cilium, path: bgp.announce.loadbalancerIP}
+        change: {type: removed}
+        consequence: *cilE6
+      - subject: {family: helm-value, product: cilium, path: bgp.announce.podCIDR}
+        change: {type: removed}
+        consequence: *cilE6
   # Change type covered: annotation/behaviour removal.
   - id: E7
     title: L7 proxy-visibility Pod annotation removed (deprecated since v1.15)
@@ -103,13 +167,21 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Support for L7 protocol visibility using Pod annotations (``policy.cilium.io/proxy-visibility``), deprecated since v1.15, has been removed."
+    semantics:
+      subject: {family: config-key, product: cilium, path: policy.cilium.io/proxy-visibility, component: pod-annotation}
+      change: {type: removed}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: Pods annotated with policy.cilium.io/proxy-visibility lose their L7 visibility (no L7 flows in Hubble).
+        remediation: use L7 policies instead of the annotation
   # Change type covered: Helm key replaced.
   - id: E8
     title: Helm value tls.secretsBackend deprecated, replaced by tls.readSecretsOnlyFromSecretsNamespace (+ tls.secretSync)
     kind: helm-values
     importance: important
     actionRequired: true
-    classification: action-required
+    classification: review-required   # corrected 2026-10-01 from action-required (eval/CHANGELOG.md): the v1.17.0 chart still honours the key
     match:
       - text: '(?i)secretsBackend'
       - text: '(?i)readSecretsOnlyFromSecretsNamespace'
@@ -117,9 +189,27 @@ expected:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The Helm value ``tls.secretsBackend`` … has been deprecated and replaced with ``tls.readSecretsOnlyFromSecretsNamespace``"
       - url: https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
-        quote: "tls: secretsBackend: local"
+        quote: 'secretsBackend: local'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); the key sits under tls: (values.yaml line 2360 at 1.16.0)
       - url: https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
         quote: "secretsBackend: ~"
+    semantics:
+      - subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
+        change:
+          type: deprecated
+          replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
+        consequence:
+          kind: deprecation
+          exposedClass: review-required
+          statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
+          remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
+      - subject: {family: helm-value, product: cilium, path: tls.secretSync.enabled}
+        change: {type: added, after: 'true'}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: clusters that set neither tls.secretSync.enabled nor upgradeCompatibility (<= 1.16) get the new-cluster default — the operator copies every Secret referenced by a TLS-intercepting CiliumNetworkPolicy into the cilium-secrets namespace and Envoy receives it via SDS (new Namespace, Roles and RoleBindings), and the agent reads policy secrets only from that namespace.
+          remediation: verify TLS interception after the upgrade, or keep the old mode with upgradeCompatibility 1.16 / tls.secretSync.enabled false
+        note: added 2026-10-02, motivated by pipeline output (render-4); same upstream bullet as the deprecation (upgrade.rst v1.17.0, tls-visibility.rst v1.17.0)
   # Change type covered: removal across the hop boundary (deprecated in hop 1, removed in hop 2).
   - id: E9
     title: WireGuard userspace-mode fallback (wireguard.userspaceFallback) removed in v1.17 after v1.16 deprecation; kernel WireGuard required
@@ -134,6 +224,14 @@ expected:
         quote: "The built-in WireGuard userspace-mode fallback (Helm ``wireguard.userspaceFallback``) has been deprecated and will be removed in a future version of Cilium."
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The previously deprecated built-in WireGuard userspace-mode fallback (Helm ``wireguard.userspaceFallback``) has been removed."
+    semantics:
+      subject: {family: helm-value, product: cilium, path: encryption.wireguard.userspaceFallback}
+      change: {type: removed}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: nodes without kernel WireGuard support can no longer run WireGuard transparent encryption, so encrypted pod traffic on them fails.
+        remediation: ensure every node runs a kernel with WireGuard support before upgrading
 notExpected:
   - title: metrics renames and new metrics are not operator upgrade blockers
     match: [{text: '(?i)policy_regeneration_total|endpoint_regenerations_total|Added Metrics'}]
@@ -149,14 +247,32 @@ environment:
   kubernetes: "1.29"
   expectedImpact:
     - expected: E1
-      relevance: action-required
-      why: the environment pins Cilium v1.15.6 images, exactly the minimum the toFQDNs migration requires — the upgrade must not start from anything older
+      relevance: not-affected  # corrected 2026-10-01 from action-required (eval/CHANGELOG.md)
+      why: the environment runs Cilium v1.15.6 (the edge's from-version, also pinned in images.txt), which already satisfies "run v1.15.6 or newer before upgrading to v1.16" — the precondition is met, nothing to do
+      exposure:
+        op: all
+        of:
+          - {op: edge-from-version, state: out-of-range, range: '>=1.15.6'}
+          - op: any
+            of:
+              - {op: resource, group: cilium.io, kind: CiliumNetworkPolicy, of: [{op: field, path: 'spec.egress[].toFQDNs', state: set}]}
+              - {op: resource, group: cilium.io, kind: CiliumClusterwideNetworkPolicy, of: [{op: field, path: 'spec.egress[].toFQDNs', state: set}]}
+      environmentEvidence: [from, images.txt#L2-L3]
     - expected: E6
       relevance: action-required
       why: the values file enables bgp.enabled/bgp.announce, which v1.17.0 removes; announcements must move to bgpControlPlane
+      exposure: {op: values-key, path: bgp.enabled, state: equals, values: ['true']}
+      environmentEvidence: values.yaml#L5-L8
     - expected: E8
-      relevance: action-required
-      why: 'the values file sets tls.secretsBackend: k8s, a key the v1.17.0 chart deprecates/empties'
+      relevance: review        # corrected 2026-10-01 from action-required (eval/CHANGELOG.md)
+      why: 'the values file sets tls.secretsBackend: k8s; the v1.17.0 chart deprecates it but still maps k8s to readSecretsOnlyFromSecretsNamespace=false while the new key is unset (templates/_helpers.tpl), so it keeps working — migrate to the replacement key'
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: tls.secretsBackend, state: set}
+          - {op: values-key, path: tls.readSecretsOnlyFromSecretsNamespace, state: unset}
+      overlap: {op: values-key, path: tls.readSecretsOnlyFromSecretsNamespace, state: set}
+      environmentEvidence: values.yaml#L9-L10
   expectedFindings:
     - id: F1
       match:

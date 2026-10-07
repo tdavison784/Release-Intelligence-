@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-a4e098e26189",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-fd13f13ad2b4",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-2018a367d84c"
+          ],
+          "statementKeys": [
+            "sk-e91ad47498bc"
+          ],
+          "changeIds": [
+            "chg-fd13f13ad2b4"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Updated `securityContext.privileged` to false for istio-cni in favor of feature-specific permissions",
+    "text": "Updated `securityContext.privileged` to false for istio-cni in favor of feature-specific permissions. istio-cni remains a [privileged container as per the Kubernetes Pod Security Standards] (https://kubernetes.io/docs/concepts/security/pod-security-standards/#privileged), since even without this flag it has privileged capabilities, namely CAP_SYS_ADMIN.",
+    "evidence": [
+      {
+        "id": "ev-61280517f4ea",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52558.yaml",
+        "locator": "52558.yaml L7-L11",
+        "excerpt": "- |\n  **Updated** `securityContext.privileged` to false for istio-cni in favor of feature-specific permissions.\n  istio-cni remains a [privileged container as per the Kubernetes Pod Security Standards]\n  (https://kubernetes.io/docs/concepts/security/pod-security-standards/#privileged), since even without this\n  flag it has privileged capabilities, namely CAP_SYS_ADMIN.",
+        "contentDigest": "sha256:172407b349035e55f3e08fa345ed9eb89da3acd13aad74b5f582038cdf56d000",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-ae7236c8ab01",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52558",
+        "locator": "title and description",
+        "excerpt": "issue: Allow running istio-cni as unprivileged [closed; labels kind/enhancement, area/networking]\n**Describe the feature request**\nToday, the main istio-cni container runs as a Daemonset with `privileged: true`. This isn't great to have a privileged container running on every node; instead, we should do whatever privileged actions are necessary in a separate initcontainer (this is the approach kube-proxy takes: https://www.kubernetes.dev/blog/2024/01/05/kube-proxy-non-privileged/). Note that the repair controller currently requires `privileged: true` because it reads procfs; we should allow tu…",
+        "contentDigest": "sha256:4547a275b7bb0fe201fe6e44302a1d05906a6da0f79ed4fee3732649d98ee84f",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-92d9efcd10df",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52558",
+        "locator": "description (part 2)",
+        "excerpt": "we don't already. Users may have other options (e.g. a cloud provider process) for handling the race-conditions, so istio-cni should be able to turn off that functionality\n\n**Describe alternatives you've considered**\n\n**Affected product area (please put an X in all that apply)**\n\n[ ] Ambient\n[ ] Docs\n[ ] Dual Stack\n[ ] Installation\n[X] Networking\n[ ] Performance and Scalability\n[ ] Extensions and Telemetry\n[ ] Security\n[ ] Test and Release\n[ ] User Experience\n[ ] Developer Infrastructure\n\n**Affected features …",
+        "contentDigest": "sha256:4547a275b7bb0fe201fe6e44302a1d05906a6da0f79ed4fee3732649d98ee84f",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:securityContext.privileged",
+      "path:securityContext.privileged",
+      "env:CAP_SYS_ADMIN"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

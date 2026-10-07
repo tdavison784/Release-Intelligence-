@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e9fe8fa4e550",
+    "candidateId": "sc-c17c3673cf1d",
+    "proposalId": "sp-b9b29278c2ac",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--use-full-tls-context"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"L7 network policy with terminatingTLS loaded ca.crt key from secrets\"",
+        "after": "\"L7 network policy with terminatingTLS does not load ca.crt key from secrets by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "component": "cilium",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether environment uses L7 network policies with terminatingTLS that rely on ca.crt loading"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "L7 network policies with terminatingTLS will no longer load ca.crt from secrets by default, preventing Envoy from incorrectly requiring client certificates; environments relying on the old behavior must set --use-full-tls-context=true.",
+        "remediation": "If the old behavior is required for compatibility, set --use-full-tls-context=true when running cilium",
+        "severity": "medium"
+      },
+      "statement": "L7 network policy with terminatingTLS no longer loads the ca.crt key from secrets by default; set --use-full-tls-context=true to restore the old behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

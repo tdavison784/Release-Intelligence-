@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-aa1bd719e9a2",
+    "reviewItemId": "ri-ff62a53ed282",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.skipRedirectFromBackend",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            }
+          ]
+        }
+      },
+      "statement": "Local Redirect Policy with socket-based load-balancing now redirects traffic from node-local backends destined to the policy's frontend back to the node-local backends by default; set skipRedirectFromBackend to true to override this."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.skipRedirectFromBackend",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether socket-based load-balancing is enabled together with Local Redirect Policy (the evidence does not name the configuration key)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumLocalRedirectPolicy"
+        }
+      },
+      "statement": "Environments are exposed when they have a cilium.io/v2 CiliumLocalRedirectPolicy without spec.skipRedirectFromBackend set and socket-based load-balancing is enabled. In that case, traffic from the policy-selected node-local backends to the policy's frontend is now redirected back to the node-local backends by default. Policies that set skipRedirectFromBackend to true are shielded."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:20c4dc6594342cde1162cc5011455370887b2fc86aa19fee8d16a7c2a7f8bf98",
+      "inputEvidence": [
+        "ev-fbe2aedc4ddc",
+        "ev-02197aa0e1a5",
+        "ev-055553900472",
+        "ev-061ee9721e03",
+        "ev-0b16ef08fe62",
+        "ev-0f7b2c78b11f",
+        "ev-2606abd0934c",
+        "ev-27da5c1705fe",
+        "ev-2be643334952",
+        "ev-313ddc646740",
+        "ev-468df8629233",
+        "ev-49e6933f7699",
+        "ev-4f529acc5dda",
+        "ev-55089770d1c6",
+        "ev-551d392adfb9",
+        "ev-606ccd003ffc",
+        "ev-60fe44edb215",
+        "ev-6778a6774ee1",
+        "ev-68e3d2e58aac",
+        "ev-71badab458ad",
+        "ev-76eef3b2f7db",
+        "ev-7845de1a8b23",
+        "ev-7b86c27eeeb3",
+        "ev-7bf9a7a3f51a",
+        "ev-7d3ccb45bb37",
+        "ev-8a88bff80696",
+        "ev-8b2814d8d416",
+        "ev-922926af92ee",
+        "ev-9ba655ea5c72",
+        "ev-9c589747ef03",
+        "ev-aac45b76e688",
+        "ev-b059d552dcc2",
+        "ev-b70d3bfc7054",
+        "ev-bf58f30628a5",
+        "ev-c4d8808f9d36",
+        "ev-cc319dfb45e1",
+        "ev-d0f55e868923",
+        "ev-d137630c8090",
+        "ev-d67c28424e3f",
+        "ev-de54ab6e5e29",
+        "ev-ebcbebc36dfc",
+        "ev-ed9507b379e9",
+        "ev-f15184612560",
+        "ev-f958ebb9b848",
+        "ev-ff2b96a700d5"
+      ],
+      "generatedAt": "2026-10-02T16:05:52.379Z",
+      "callId": "ad721413-1eb3-4329-837b-56daa455b556"
+    },
+    "reason": "[ev-fbe2aedc4ddc] says the redirect-back-to-backend behaviour only happens when Local Redirect Policy is enabled with socket-based load-balancing, and that setting `skipRedirectFromBackend: true` overrides it. The proposed exposure checks only that a CiliumLocalRedirectPolicy exists without the field. It ignores the socket-based load-balancing condition, so it also flags clusters that do not use socket-based load-balancing and are not exposed. The evidence does not name the configuration key that enables socket-based load-balancing, so that part has to be an undecidable operand. The new field is confirmed in the 1.16 CRD schema [ev-313ddc646740, ev-b059d552dcc2]. Policies that set `skipRedirectFromBackend: true` are shielded, so they belong in the overlap.",
+    "startedAt": "2026-10-02T16:05:37.773Z",
+    "decidedAt": "2026-10-02T16:05:52.379Z",
+    "resultingFact": "vf-f85e9aa3feef"
+  }
+}

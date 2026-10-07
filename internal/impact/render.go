@@ -150,11 +150,24 @@ func (r *renderer) environmentSection() {
 	if env.Images > 0 {
 		parts = append(parts, fmt.Sprintf("images: %d", env.Images))
 	}
+	if len(env.Products) > 0 {
+		parts = append(parts, fmt.Sprintf("products: %d inventory entries (%s)", len(env.Products), env.ProductsHealth))
+	}
 	if len(parts) == 0 {
 		r.line("  (no environment facts)")
 	}
 	for _, p := range parts {
 		r.line("  %s", p)
+	}
+	for _, p := range env.Products {
+		line := fmt.Sprintf("    %s %s [%s]", p.Product, productVersionText(p), p.Source)
+		if p.VersionOf == "chart" {
+			line += " (chart version)"
+		}
+		if p.Conflict != "" {
+			line += r.paint(ansiYellow, " CONFLICT with "+p.Conflict)
+		}
+		r.line("%s", line)
 	}
 	for _, f := range env.Files {
 		r.line("  %s  %s", f.Path, r.paint(ansiDim, f.Digest))
@@ -254,6 +267,9 @@ func unknownGroups(fs []domain.ImpactFinding) []unknownGroup {
 	byLabel := map[string]*unknownGroup{}
 	for _, f := range fs {
 		label, hint := unknownFamily(f)
+		if f.UnknownReason != "" {
+			label += " (" + string(f.UnknownReason) + ")"
+		}
 		g := byLabel[label]
 		if g == nil {
 			g = &unknownGroup{label: label, hint: hint}
@@ -278,6 +294,9 @@ func unknownGroups(fs []domain.ImpactFinding) []unknownGroup {
 // unknownFamily maps one unknown finding to its missing-evidence family.
 func unknownFamily(f domain.ImpactFinding) (label, hint string) {
 	needed := strings.Join(f.NeededToDetermine, "; ")
+	if f.Knowledge != nil {
+		return "verified knowledge could not decide", needed
+	}
 	switch f.Rule {
 	case RuleInsufficientVisibility:
 		if strings.Contains(needed, "machine-readable") {
@@ -351,6 +370,10 @@ func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
 	r.evidenceInline(f)
 	r.line("     missing: %s", strings.Join(f.NeededToDetermine, "; "))
+	if f.UnknownReason != "" {
+		r.line("     reason: %s", f.UnknownReason)
+	}
+	r.knowledgeLine(f)
 	if f.SuggestedClassification != "" {
 		r.line("     %s", r.paint(ansiMagenta, fmt.Sprintf("AI suggests %s (a suggestion with provenance — see AI enrichments; verify before acting)", f.SuggestedClassification)))
 	}
@@ -358,9 +381,29 @@ func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
 	r.upstreamChain(f)
 }
 
+// knowledgeLine names the verified fact a knowledge finding was evaluated
+// from and how it was verified; an ACTION REQUIRED resting on model
+// consensus (PO-2) says so in so many words.
+func (r *renderer) knowledgeLine(f domain.ImpactFinding) {
+	k := f.Knowledge
+	if k == nil {
+		return
+	}
+	s := fmt.Sprintf("knowledge: %s (%s-verified", k.Fact, k.Verification)
+	if k.Consensus != "" {
+		s += ", " + string(k.Consensus)
+	}
+	s += ")"
+	if f.Classification == domain.ImpactActionRequired {
+		s += " — ACTION REQUIRED · " + k.ActionLabel()
+	}
+	r.line("     %s", r.paint(ansiDim, s))
+}
+
 func (r *renderer) finding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
 	r.evidenceInline(f)
+	r.knowledgeLine(f)
 	r.changeAndDetail(f)
 	// chain 2: what in the environment matched, where
 	for _, m := range f.Matches {
@@ -627,4 +670,14 @@ func (r *renderer) evidenceLegend() {
 		e := r.upEv[id]
 		r.line("  %s  %s  %s  %s", id, e.Kind, e.URI, e.Locator)
 	}
+}
+
+func productVersionText(p domain.ImpactProduct) string {
+	switch {
+	case p.Version != "":
+		return p.Version
+	case p.RawVersion != "":
+		return p.RawVersion + " (unparsable)"
+	}
+	return "(version not stated)"
 }

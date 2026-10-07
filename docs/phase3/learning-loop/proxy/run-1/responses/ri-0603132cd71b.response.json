@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0603132cd71b",
+  "promptDigest": "sha256:4d62f2946f3653191ed963a4f82634e8483dbb022a2f809ce066322d41b2b4bc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f804e54e-03ac-47df-925b-d11d8a1ab152",
+  "startedAt": "2026-10-02T12:45:35.359Z",
+  "decidedAt": "2026-10-02T12:45:47.313Z",
+  "durationMs": 10990,
+  "costUSD": 0.0501142,
+  "output": {
+    "action": "correct",
+    "reason": "The validators compared the v1.17.0 CRDs [ev-60054fcf0986] with the v1.18.0 CRDs [ev-9b6164ce0df7] and confirmed that spec.signatureAlgorithm is new in the cert-manager.io Certificate schema. So \"added\" is the right change type. The subject is wrong only because it sets version=v1. The family rule allows a version only when the change is specific to one API version. Nothing in the evidence shows another served version that lacks this field, so \"v1\" is just where the diff was computed, not part of the field's identity, and the version should be dropped.",
+    "citations": [
+      "ev-60054fcf0986",
+      "ev-9b6164ce0df7"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject"
+    ],
+    "correction": {
+      "statement": "The cert-manager.io Certificate CRD schema adds a new field, spec.signatureAlgorithm.",
+      "subject": {
+        "family": "crd-field",
+        "determination": "asserted",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.signatureAlgorithm"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "added"
+      }
+    }
+  }
+}

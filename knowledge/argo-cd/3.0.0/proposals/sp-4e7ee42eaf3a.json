@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4e7ee42eaf3a",
+    "candidateId": "sc-67c82540420a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "dex-rbac-subject-claim"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"sub claim\"",
+        "after": "\"federated_claims.user_id claim\""
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies that use the Dex sub claim as the subject no longer match the user, so those users lose the access the policies granted.",
+        "remediation": "Update the RBAC policies to use the user_id value (decode the current sub claims to find it), and use the new CLI version to obtain tokens with the appropriate claims.",
+        "severity": "high"
+      },
+      "statement": "With Dex SSO, Argo CD 3.0 bases the RBAC subject on the federated_claims.user_id claim (requesting the federated:id scope) instead of the sub claim, so RBAC policies that reference the Dex sub claim must be updated to keep the same access."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure is policies that use Dex sub values as RBAC subjects; this lives in the argocd-rbac-cm policy text and the use of Dex SSO, and neither is visible as a determinable predicate from the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0b6150153730"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e12ca9934d5b1fb24f994d1de57ee33e9df6b307fe1cd6b8b5be9b573c4b9aa2",
+      "inputEvidence": [
+        "ev-0b6150153730"
+      ],
+      "generatedAt": "2026-10-02T06:02:36Z",
+      "callId": "9686d7f9-8353-45ae-ade4-25ed13894564"
+    }
+  }
+}

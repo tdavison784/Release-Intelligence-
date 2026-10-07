@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-707c8fc04fee",
+    "candidateId": "sc-ea68fa62a919",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.rancher"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the static configuration still contains the Rancher provider configuration.",
+        "remediation": "Remove all Rancher provider configuration from the static configuration; Rancher 2.x users should use the Kubernetes CRD provider directly.",
+        "severity": "high"
+      },
+      "statement": "The Rancher v1 provider (providers.rancher) was removed in Traefik v3; leaving its configuration in place prevents Traefik from starting, and Rancher 2.x users should use the Kubernetes CRD provider."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-96141bfb2be5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:cf45e48ffc81aab7fbdaf96e356b073b09a4778c8d3cc62ab46c2ea87c1ef773",
+      "inputEvidence": [
+        "ev-96141bfb2be5"
+      ],
+      "generatedAt": "2026-10-02T20:57:07Z",
+      "callId": "90a16f76-bc3b-484a-9725-f4c8ddaf0d61"
+    }
+  }
+}

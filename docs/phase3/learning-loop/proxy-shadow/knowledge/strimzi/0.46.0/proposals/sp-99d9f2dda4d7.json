@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-99d9f2dda4d7",
+    "candidateId": "sc-b5bd8ce23049",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Kafka cluster has custom logging configuration (the evidence does not name the CR field or ConfigMap that carries it)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka 4.0 and newer logs via Log4j2 instead of Reload4j/Log4j1, so an environment upgrading to Kafka 4.0 with custom logging configuration might need to update that configuration during the upgrade (the evidence only says it \"might\" be needed, not that something fails).",
+        "remediation": "Review custom logging configuration and update it for Log4j2 when upgrading to Kafka 4.0, as the changelog advises.",
+        "severity": "low"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, so environments with custom logging configuration might need to update it during the upgrade to Kafka 4.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-526028ea7180"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2e6ac17e24e370f617dcb0b617ae561bc31af76e1333079fd3879d077a761839",
+      "inputEvidence": [
+        "ev-526028ea7180"
+      ],
+      "generatedAt": "2026-10-02T11:33:56Z",
+      "callId": "1ed49785-9d0d-4b9a-a38e-6ef981650adc"
+    }
+  }
+}

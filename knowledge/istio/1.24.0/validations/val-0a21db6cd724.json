@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0a21db6cd724",
+    "candidateId": "sc-d676f61f0b1c",
+    "proposalId": "sp-57a2f426c778",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istio-clean-iptables",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ISTIO_OUTPUT iptables chain not removed\"",
+        "after": "\"ISTIO_OUTPUT iptables chain removed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "istio-clean-iptables",
+          "component": "pilot-agent",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain instead of leaving it in place.",
+        "severity": "low"
+      },
+      "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain, fixing a previous issue where it was not being removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b77276cd4d36",
+    "candidateId": "sc-4441d51bbce9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cilium",
+        "name": "cilium-cli"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=0.15.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": "<0.15.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v1",
+              "kind": "CiliumInstallation"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Cilium v1.16 cannot be installed or managed with Cilium CLI versions prior to v0.15.0. Classic installation mode is not supported with Cilium v1.16. Existing classic mode installations must be uninstalled using classic mode Cilium CLI and reinstalled using Helm mode Cilium CLI v0.15.0 or later.",
+        "remediation": "Upgrade Cilium CLI to v0.15.0 or later and use Helm installation mode. For existing classic mode installations, uninstall using the old CLI version, then reinstall using Helm mode with the upgraded CLI.",
+        "severity": "critical"
+      },
+      "statement": "Cilium CLI must be upgraded to v0.15.0 or later and switched to Helm installation mode to install and manage Cilium v1.16; classic installation mode is no longer supported, and migrating from classic to Helm mode requires uninstalling with classic mode CLI and reinstalling with Helm mode CLI."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f2e613944dc4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:81f657f25cc2f4c21b02294e823b97d92d1f99ccb21b740b328f859781eed082",
+      "inputEvidence": [
+        "ev-f2e613944dc4"
+      ],
+      "generatedAt": "2026-10-02T06:04:26Z",
+      "callId": "55c3f157-2663-4f31-9305-d2667248a326"
+    }
+  }
+}

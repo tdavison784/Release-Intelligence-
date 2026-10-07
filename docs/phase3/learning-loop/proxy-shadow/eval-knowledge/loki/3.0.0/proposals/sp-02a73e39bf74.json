@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-02a73e39bf74",
+    "candidateId": "sc-ef36c5f13d2b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "automatic_stream_sharding.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Write load across ingesters will be automatically balanced using stream sharding by default, potentially redistributing traffic patterns across ingester instances.",
+        "severity": "medium"
+      },
+      "statement": "Automatic stream sharding is enabled by default in Loki 3.0.0 to balance write load across ingesters and avoid hot-spotting."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ed0515bb7146"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:91331764e96ba73aff35271c7bed301829c2e21f43f714a474c417b28cb86571",
+      "inputEvidence": [
+        "ev-ed0515bb7146"
+      ],
+      "generatedAt": "2026-10-02T16:13:26Z",
+      "callId": "750c60bb-aa2e-4500-9897-507f993d81f0"
+    }
+  }
+}

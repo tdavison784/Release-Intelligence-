@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-dc32e6db89c2",
+    "reviewItemId": "ri-153432580331",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "cleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustercleanuppolicies.kyverno.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "policyexceptions.kyverno.io"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 drops deprecated API versions (e.g. v2alpha1) of its managed CRDs; Helm hook migrates automatically, otherwise stored resources must be migrated with kube-storage-version-migrator."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:80c3478d9b476e16f892a3b5ed1df59d0a2cae0c7f09bb26d5ca4982f2699aa2",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T12:45:04.09Z",
+      "callId": "c5c9ecaa-010a-44cd-a2c6-a55ce47ce924",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-816adf94e987] says 1.13 drops deprecated API versions of its managed CRDs, so existing resources must be migrated. The chart diffs show that only v2alpha1 is removed, from cleanuppolicies [ev-d4e66123c4de], clustercleanuppolicies [ev-9fdd5d1096ef] and policyexceptions [ev-b8120a2bb840]. The v2beta1/v1beta1 versions are only marked deprecated [ev-0cc54c6e1585, ev-238274d981e4, ev-08e1559e3c95, ev-c2e6033ce1d5]. An any-of storedVersions check for v2alpha1 on those three CRDs is the canonical exposure shape for a stored-version migration and matches these removals. Confidence is low because the guide's list of affected CRDs is cut off in the excerpt.",
+    "startedAt": "2026-10-03T12:44:52.317Z",
+    "decidedAt": "2026-10-03T12:45:04.09Z"
+  }
+}

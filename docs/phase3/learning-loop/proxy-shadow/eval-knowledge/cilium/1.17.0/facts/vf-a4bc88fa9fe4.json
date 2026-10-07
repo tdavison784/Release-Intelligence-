@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-a4bc88fa9fe4",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-ed9bad03fd5e"
+        ],
+        "statementKeys": [
+          "sk-79aa619f2e3c"
+        ],
+        "changeIds": [
+          "chg-36bfaf375766"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f0660a838657"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cilium-node-connectivity-status"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-node-health-connectivity-status"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alerting rules or other metric consumers reference the metric cilium_node_connectivity_status"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The metric still works but is deprecated; use cilium_node_health_connectivity_status instead.",
+        "severity": "low"
+      },
+      "statement": "`cilium_node_connectivity_status` is now deprecated"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-62227b9bb457"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-62227b9bb457"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-3060014e187b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-1bebf5957577"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-82ab63ec4bf8",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L468-L468 (1.17 Upgrade Notes › Deprecated Metrics)",
+        "excerpt": "* `cilium_node_connectivity_status` is now deprecated. Please use `cilium_node_health_connectivity_status` instead.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:32:30.974Z"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-621f3cee8aba",
+  "promptDigest": "sha256:9e84a66d461d7ec81a9c3d092b4aba5bd4f2b1a0875d3ef3696ae30c8a7222e9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "129aa7d6-8ade-44e2-8deb-4da00aeff3fd",
+  "startedAt": "2026-10-02T12:57:08.819Z",
+  "decidedAt": "2026-10-02T12:57:20.224Z",
+  "durationMs": 10443,
+  "costUSD": 0.09482,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dc295e9fc56b] limits the fix to the ApplicationSet GitLab SCM provider's HasPath search and how it handles 404 responses. Flagging every environment that uses the ApplicationSet kind is too broad, because ApplicationSets with other generators or SCM providers are not affected. The evidence does not name a field path for the GitLab SCM generator or its path checks, so I kept ApplicationSet use as a required condition and added an undecidable operand for the GitLab path-check part instead of guessing a field path.",
+    "citations": [
+      "ev-dc295e9fc56b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "ApplicationSet GitLab SCM provider HasPath search was reverted, and GitLab 404 responses are now treated as 'file not found'. Only environments whose ApplicationSets use the GitLab SCM provider generator with path-existence checks are exposed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether any ApplicationSet uses the GitLab SCM provider generator with path-existence (HasPath) checks; the evidence gives no field path for this"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

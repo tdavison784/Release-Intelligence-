@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-6d3d7e544a8a",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-06bf20c806b1"
+        ],
+        "statementKeys": [
+          "sk-f7b48a1f56ef"
+        ],
+        "changeIds": [
+          "chg-ab7d931b66b4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-21bf63323d13"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.subsets[].trafficPolicy.portLevelSettings",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the hosts targeted by DestinationRules with portLevelSettings are served through an ambient waypoint"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "portLevelSettings configurations in DestinationRules for waypoints will now be applied, whereas they were previously ignored; environments relying on workarounds or expecting this field to be ineffective should verify that the now-honored settings produce the desired traffic behavior.",
+        "severity": "medium"
+      },
+      "statement": "Fixed an issue causing any `portLevelSettings` to be ignored in DestinationRules for waypoints"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-deaeea0861f9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-deaeea0861f9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f11efde9c1c0"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2580475e2c2d"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a3e90b78f6fa",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/ambient-waypoint-portlevel.yaml",
+        "locator": "ambient-waypoint-portlevel.yaml L6-L7",
+        "excerpt": "- |\n    **Fixed** an issue causing any `portLevelSettings` to be ignored in DestinationRules for waypoints.",
+        "contentDigest": "sha256:1979a7c5c6fecf6297ed4d56c0dc4b0f33d52e4cf9eb827c6f1cd9e05b65c8a9",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:04:25.879Z"
+  }
+}

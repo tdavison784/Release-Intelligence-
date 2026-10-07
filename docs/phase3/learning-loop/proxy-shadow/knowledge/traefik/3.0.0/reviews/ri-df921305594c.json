@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-df921305594c",
+    "candidateId": "sc-9819c3b5051d",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"TLS.CAOptional: Consul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer has the Consul provider option `tls.caOptional`, so a configured `caOptional` value is not honoured.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration (file, CLI or environment).",
+        "severity": "low"
+      },
+      "statement": "Traefik v3 removes the Consul provider's static option `tls.caOptional` (providers.consul.tls.caOptional), because TLS client authentication is a server-side option, so remove it from the Consul provider's static configuration."
+    },
+    "proposals": [
+      "sp-6ffd7291cbc5",
+      "sp-85bc3f524ac8",
+      "sp-9e79e36600eb",
+      "sp-bce6699c87dd",
+      "sp-c8c331c89cba"
+    ],
+    "validations": [
+      "val-2773e4af3c8a",
+      "val-310f4b8ce609",
+      "val-43ded068dbe0",
+      "val-6193b8c09b08",
+      "val-87faad0f2f26",
+      "val-8b8f70074044",
+      "val-8eee2f7ef67f",
+      "val-94bd17e0d639",
+      "val-ee533dedceff"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T08:35:06Z"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-98504dba0d47",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-10f782dfe490",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-158286003c57"
+          ],
+          "statementKeys": [
+            "sk-9d104ed2b12a"
+          ],
+          "changeIds": [
+            "chg-10f782dfe490"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "37a7231bd3fe5c28470e1fbb46f34b3bdef98632: fix(appset): update gitlab SCM provider to search on parent folder",
+    "text": "37a7231bd3fe5c28470e1fbb46f34b3bdef98632: fix(appset): update gitlab SCM provider to search on parent folder (#16253) (#21491) (@prune998)",
+    "evidence": [
+      {
+        "id": "ev-dc0dc0557b81",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L84-L84 (Changelog › Bug fixes)",
+        "excerpt": "* 37a7231bd3fe5c28470e1fbb46f34b3bdef98632: fix(appset): update gitlab SCM provider to search on parent folder (#16253) (#21491) (@prune998)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-d0ef263f1295",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/16253",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #16253): ApplicationSet with Gitlab generator fails when pathsExists is used [closed; labels bug, component:application-sets, version:2.12]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nWe have an application set that uses the SCCM provider with gitlab. We filter based on branch, topic, and that a certain path exists in the repository. Since October 26th 2023 around 10:00am eastern this has started …",
+        "contentDigest": "sha256:6579160b8c7052e016100de2f1a9693cb64bb309d85f5a7f40b8233b6e991482",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-6b51fe823e04",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/16253",
+        "locator": "description (part 2)",
+        "excerpt": "When the path doesn't exist, we get the following error and the synchronization stops.\n\n```\ntime=\"2023-11-06T18:31:23Z\" level=error msg=\"error generating application from params\" error=\"error listing repos: GET https://gitlab.com/api/v4/projects/***/repository/tree: 404 {message: 404 invalid revision or path Not Found}\" generator=\"{nil nil nil …",
+        "contentDigest": "sha256:6579160b8c7052e016100de2f1a9693cb64bb309d85f5a7f40b8233b6e991482",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-b4f58b170b5e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21491",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21491): fix(appset): update gitlab SCM provider to search on parent folder (#16253) [closed]\nFixes [#16253]\n\nThis PR solves the ISsue with Gitlab 17.7 (probably others) where using the `ListTree` API request and specifying a path to a file returns a 404.\nThis is a change in the API and prevent usage of files in the Gitlab SCM `PathExist`.\n\nThis PR changes the way we do the search, by looking for all individual entries in the parent folder, whatever we're looking for a file or a folder.\n\n## Pros\n- we only query the API once\n- we solve the 404 bug\n\n## Cons\n- in case th…",
+        "contentDigest": "sha256:5e1d621577a48f35aad289d2e4f3dc64cb46af4ee969c2de1981931fbafa8bd0",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-712e0ac0fa22",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21491",
+        "locator": "description (part 2)",
+        "excerpt": "files) in the parent folder and we only care for a folder, we have to iterate over all the entities until we find the right one. This is already the case when looking for a file, so it's not a real behaviour change.\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The title of the PR states what changed and the related …",
+        "contentDigest": "sha256:5e1d621577a48f35aad289d2e4f3dc64cb46af4ee969c2de1981931fbafa8bd0",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-158dad7eef6f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21491",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): applicationset/services/scm_provider/gitlab.go, applicationset/services/scm_provider/gitlab_test.go",
+        "contentDigest": "sha256:5e1d621577a48f35aad289d2e4f3dc64cb46af4ee969c2de1981931fbafa8bd0",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

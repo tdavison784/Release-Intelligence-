@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-17de5b714a61",
+  "promptDigest": "sha256:0945777cab234e18effa452214bc495435bc04f34b04296efe42446a941bfd4e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a0f95c72-e997-41dd-a821-3c43ef1c86fd",
+  "startedAt": "2026-10-03T12:19:51.851Z",
+  "decidedAt": "2026-10-03T12:20:04.912Z",
+  "durationMs": 11698,
+  "costUSD": 0.130452,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-23b2de76a2d8] is a one-line changelog entry about delete handling in WatchOperation. [ev-edf630e684ee] in the same release's changelog shows WatchOperation itself was first implemented in this release, and the CRD validator confirms ops.crossplane.io/v1alpha1 WatchOperation exists only in the target release [ev-d8a9fd80558b]. So no environment upgrading to 2.0.0 could rely on the earlier delete behavior. This is an in-release fix to a new feature with no operational consequence, not a behavior change that needs review.",
+    "citations": [
+      "ev-23b2de76a2d8",
+      "ev-edf630e684ee",
+      "ev-d8a9fd80558b"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "WatchOperation (ops.crossplane.io/v1alpha1), which is new in 2.0.0, now handles deletes. Because the API first ships in this release, no environment that upgrades can have relied on the earlier delete behavior, so there is no operational consequence.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "severity": "low",
+        "statement": "No operational consequence: delete handling was added to WatchOperation within the same release that introduces WatchOperation, so no environment upgrading from an earlier release relied on the previous behavior."
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ]
+  }
+}

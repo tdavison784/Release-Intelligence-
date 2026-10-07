@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e5327be8b0ca",
+    "candidateId": "sc-3014cea247c8",
+    "proposalId": "sp-37ecee15716a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "http-error-response-body-newlines"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"newlines added to HTTP error response bodies\"",
+        "after": "\"no newlines added to HTTP error response bodies\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which client integrations consume Loki HTTP error response bodies and are sensitive to trailing newlines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "HTTP error response bodies returned by Loki no longer carry the regression's appended newlines; client integrations that parse those bodies see the restored format and should be verified against it.",
+        "remediation": "Verify that client integrations reading Loki error responses tolerate error bodies without the appended newlines.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 fixes a regression that added newlines to HTTP error response bodies, so error response bodies no longer include the appended newlines that may have broken client integrations."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

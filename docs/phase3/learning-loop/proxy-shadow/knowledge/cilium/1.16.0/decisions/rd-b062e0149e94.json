@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b062e0149e94",
+    "reviewItemId": "ri-42a3a2a75778",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The etcd.managed Helm configuration value will no longer be honored in Cilium 1.16.0; environments using this setting must migrate to an alternative etcd deployment method.",
+        "remediation": "Remove the etcd.managed configuration and any related etcd Helm values from your values.yaml. Deploy etcd independently or use an existing etcd cluster without relying on Cilium's managed etcd functionality.",
+        "severity": "high"
+      },
+      "statement": "The Helm option for deploying a managed etcd instance via etcd.managed and other related Helm configurations have been removed."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Setting etcd.managed or the related managed-etcd Helm values has no effect from 1.16.0: the option for deploying a managed etcd instance through the chart has been removed.",
+        "remediation": "Remove etcd.managed and related managed-etcd values from your Helm values. If you relied on the chart-managed etcd instance, provide etcd by other means before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16.0 the Helm option etcd.managed and related Helm configurations were removed. Values that still set them are no longer honoured, and the chart no longer offers a managed etcd instance through them."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:aa2d796dd65715caf5576e773af53c267556c03d025030ab4cc73399d65bbec4",
+      "inputEvidence": [
+        "ev-d6d613eadc25",
+        "ev-5d3c6d3080f0",
+        "ev-69b054a33ac2",
+        "ev-3fb29eea728d",
+        "ev-f050ccf90d86",
+        "ev-40ebe1cf329c",
+        "ev-da6e6a1ea917",
+        "ev-5e90ba383ca7",
+        "ev-99f86df45975",
+        "ev-34bab3cf1916",
+        "ev-79276bab0c0a",
+        "ev-4e1e10256713"
+      ],
+      "generatedAt": "2026-10-03T12:50:59.077Z",
+      "callId": "4ebee210-1d13-4079-a687-9ffcd548e526",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d6d613eadc25] says the Helm option for deploying a managed etcd instance via `etcd.managed`, and related Helm configurations, have been removed. A removed Helm key is no longer honoured, so setting-ignored fits. The proposed statement goes too far, though: it says environments \"must migrate to an alternative etcd deployment method\", and the evidence never states a required migration or what breaks beyond the option no longer working. I narrowed the statement and remediation to what the text supports and lowered severity, since the impact is not stated.",
+    "startedAt": "2026-10-03T12:50:46.479Z",
+    "decidedAt": "2026-10-03T12:50:59.077Z"
+  }
+}

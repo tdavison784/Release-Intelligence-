@@ -1,0 +1,50 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e2ff524c227c",
+  "promptDigest": "sha256:79059187962ce7ec6ca905537d66ecab37a92fb4f8b385f9c80de6d935821d31",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "91e59fa3-8f21-4bdb-b947-236b29c1daea",
+  "startedAt": "2026-10-03T02:04:20.234Z",
+  "decidedAt": "2026-10-03T02:04:32.722Z",
+  "durationMs": 11507,
+  "costUSD": 0.09811600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-0f35637a9823] says the bypass is added and can be reverted by setting BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false. That means environments that do not set it to false are exposed, and those that do are shielded. The proposed condition compares against the literal \"\\\"false\\\"\", which includes quote characters. An env var value of false would never match it. Every environment that reverted would still be flagged as exposed, and the overlap would never match. The fix is to compare against the plain value false.",
+    "citations": [
+      "ev-0f35637a9823"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 bypasses the overload manager for static listeners by default. This affects environments that do not set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false. Environments that set it to false keep the previous behavior.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      }
+    }
+  }
+}

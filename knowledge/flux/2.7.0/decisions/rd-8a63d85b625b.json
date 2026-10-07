@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8a63d85b625b",
+    "reviewItemId": "ri-1f59f8b0fb56",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an operator runs `flux debug helmrelease` or `flux debug kustomization` with the new `--show-history` flag (CLI usage at runtime is not carried in manifests or Helm values)"
+        }
+      },
+      "statement": "flux 2.7.0 adds a new `--show-history` flag to the `debug helmrelease` and `debug kustomization` CLI commands."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:750b6912c8ff0b2ac66bf9ec3fc4cb910b6d45c4ce8baa361bed5f174bfafac9",
+      "inputEvidence": [
+        "ev-e33b9db532e6",
+        "ev-63a2c708aad5"
+      ],
+      "generatedAt": "2026-10-02T23:07:51.914Z",
+      "callId": "021cd1ad-47b6-44f3-a205-986dc7265fff"
+    },
+    "reason": "[ev-e33b9db532e6] and [ev-63a2c708aad5] only say a new optional `--show-history` flag was added to two client-side `flux debug` subcommands, in two separate PRs (5505 and 5541). Nothing existing changes, so no environment is exposed to any consequence. The proposed `undecidable` exposure treats whether an operator chooses to use the flag as if it were exposure, which would mark every environment as possibly exposed. None of the available condition ops can express this correctly (for example, `cli-flag` describes workload container arguments, not the user's local CLI), and the cluster also bundles two separate changes, so no corrected applicability follows from the evidence.",
+    "startedAt": "2026-10-02T23:07:42.005Z",
+    "decidedAt": "2026-10-02T23:07:51.914Z"
+  }
+}

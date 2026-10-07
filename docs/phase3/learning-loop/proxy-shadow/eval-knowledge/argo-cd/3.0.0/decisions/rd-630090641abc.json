@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-630090641abc",
+    "reviewItemId": "ri-01d26318deca",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin.env",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "statement": "Empty environment variables are now passed to config management plugins in Argo CD 3.0, whereas previously they were not passed."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.source.plugin.env[].value",
+              "state": "equals",
+              "values": [
+                "\"\""
+              ]
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "Application"
+        }
+      },
+      "statement": "In Argo CD 3.0, config management plugin env entries with empty values (e.g. value: '') are now passed to the plugin as empty environment variables (ARGOCD_ENV_<NAME>=\"\"). Exposed: Applications whose spec.source.plugin.env contains an entry with an empty value."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:07bc82eb749511c22e4dad75a6acc0cb62c61fd9dfc8e885119a32e54bf119d7",
+      "inputEvidence": [
+        "ev-a41a36159297"
+      ],
+      "generatedAt": "2026-10-02T12:45:02.604Z",
+      "callId": "74567bd7-b8f2-4f5a-aa76-355577a8c710"
+    },
+    "reason": "[ev-a41a36159297] says the change affects plugin env entries whose value is empty: \"even though this is empty, it will be passed to the plugin as ARGOCD_ENV_DATA=\\\"\\\"\". The proposed exposure flags every Application that has spec.source.plugin.env set, even when none of its entries is empty. That makes it broader than the environments actually exposed. The exposure should require a plugin env entry whose value is the empty string.",
+    "startedAt": "2026-10-02T12:44:51.852Z",
+    "decidedAt": "2026-10-02T12:45:02.604Z"
+  }
+}

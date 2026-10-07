@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5862166869ef",
+    "candidateId": "sc-7c8c3e5eb5f6",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_update_success` -> `envoy_cilium_npds_update_success`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The update-success metric is now exported as `envoy_cilium_npds_update_success` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_success`, so queries using the old name need to be reviewed.",
+        "remediation": "Update any dashboards, alerts or recording rules that use `envoy_cilium_policymap_<node-ip>_<node-id>_update_success` to use `envoy_cilium_npds_update_success`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_success` is renamed to `envoy_cilium_npds_update_success`."
+    },
+    "proposals": [
+      "sp-03df48fe89d1",
+      "sp-984922b6d3fd",
+      "sp-e6ab09b0168c"
+    ],
+    "validations": [
+      "val-08a0edd45ad6"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T08:43:49Z"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a9d866706cc1",
+    "candidateId": "sc-fa168da2703d",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "classification",
+    "question": "Is fact vf-7f11701832ba (The Helm option `endpointStatus` has been removed) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "endpointStatus"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "endpointStatus",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus no longer take effect; the additional endpoint statuses in the CiliumEndpoints CRD are no longer provided.",
+        "remediation": "Remove endpointStatus keys and monitor endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or `cilium-dbg endpoint get`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm option `endpointStatus` has been removed"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:59:27.571912-05:00"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-47ba982c4a84",
+    "candidateId": "sc-193bebd104fa",
+    "proposalId": "sp-0d33330fc167",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if InfluxDB v1 metrics configuration (metrics.influxDB) is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The InfluxDB v1 metrics provider configuration has been removed in Traefik v3.0.0 and will prevent Traefik from starting if present."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "metrics.influxDB is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "metrics.influxDB is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3bdc943d6be1",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:d5ea1c15d2a7625c9fe4ed0c44ad8a8a71bbdc6b3ba897e0d8ae94939d398f43",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      },
+      {
+        "id": "ev-bb4a9dd096f3",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:f617f8230a0cb52320157b6b3f9968fbad6884686016f205ab35b8192287694c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:10Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

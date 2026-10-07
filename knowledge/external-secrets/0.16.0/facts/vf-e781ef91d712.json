@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e781ef91d712",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "anchors": [
+      {
+        "release": "0.16.0",
+        "evidenceKeys": [
+          "ek-7d54c8c6ead6"
+        ],
+        "statementKeys": [
+          "sk-ac3ce10f705d"
+        ],
+        "changeIds": [
+          "chg-ac3e5881b170"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-bf284ab1ddb4"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "kind": "SecretStore",
+        "path": "spec.provider.aws.prefix"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.aws.service",
+                  "state": "equals",
+                  "values": [
+                    "\"SecretsManager\""
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.aws.prefix",
+                  "state": "set"
+                }
+              ],
+              "group": "external-secrets.io",
+              "kind": "SecretStore"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.aws.service",
+                  "state": "equals",
+                  "values": [
+                    "\"SecretsManager\""
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.aws.prefix",
+                  "state": "set"
+                }
+              ],
+              "group": "external-secrets.io",
+              "kind": "ClusterSecretStore"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new optional AWS provider prefix field is added; the evidence states no operational consequence for existing configurations."
+      },
+      "statement": "feat: Add AWSProvider.prefix to aws secrets manager by @justinwalz in https://github.com/external-secrets/external-secrets/pull/4612"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-1da991b2df8c",
+          "val-8b871e7e1a39",
+          "val-e62930394af9",
+          "val-f4b99cae93bf"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-67f773cea8ff"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7bbbf4fd45c0"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-82665bb7afa4"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-61893aebc612",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0",
+        "locator": "L88-L88 (BREAKING CHANGES › What's Changed)",
+        "excerpt": "* feat: Add AWSProvider.prefix to aws secrets manager by @justinwalz in https://github.com/external-secrets/external-secrets/pull/4612",
+        "contentDigest": "sha256:ad35031444c5561cdf137b1210832a8fdcc7d563b71fdbbecb737053b94163b8",
+        "retrievedAt": "2026-10-02T10:52:59Z"
+      },
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:53:51.669Z"
+  }
+}

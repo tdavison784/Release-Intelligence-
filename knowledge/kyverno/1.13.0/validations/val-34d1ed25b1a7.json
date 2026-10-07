@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-34d1ed25b1a7",
+    "candidateId": "sc-194c2ca12ce9",
+    "proposalId": "sp-0f777c2c4070",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "kyverno",
+        "name": "policy-exceptions-namespaces"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"policy exceptions allowed in all namespaces\"",
+        "after": "\"policy exceptions disabled by default; allowed only in a specified namespace\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The defaults now disable policy exceptions and only allow them in a specified namespace; backward compatibility requires following the upgrade guidance.",
+        "remediation": "Follow the upgrade guidance to keep the previous behavior if exceptions are needed in other namespaces.",
+        "severity": "medium"
+      },
+      "statement": "Policy exceptions, previously allowed in all namespaces, are now disabled by default and can only be created in a specified namespace (CVE-2024-48921 hardening)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

@@ -138,8 +138,12 @@ sources:
 
 artifacts:
   # --- Helm charts (version == appVersion == release version) ---------------
-  # Chart defaults are nested under "_internal_defaults_do_not_set" (users
-  # set the keys at top level), hence stripPrefix. Values are read from the
+  # Chart defaults are nested under a wrapper key (users set the keys at top
+  # level), hence stripPrefix. The wrapper is `defaults` up to 1.23 and
+  # `_internal_defaults_do_not_set` from 1.24.0 on (verified at 1.22.0, 1.23.0,
+  # 1.23.4 and 1.24.0): one content per era, selected by availability. A single
+  # prefix would leave every 1.23 key under `defaults.` and make the 1.23 -> 1.24
+  # values diff report each key as removed and added. Values are read from the
   # source tree at the tag, where image hub/tag are development placeholders
   # (e.g. gcr.io/istio-testing:latest) rewritten by release-builder, hence
   # ignoreKeys. Reading values from the published chart archive would remove
@@ -156,6 +160,12 @@ artifacts:
         chart: base
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -171,6 +181,12 @@ artifacts:
         chart: istiod
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -186,6 +202,12 @@ artifacts:
         chart: gateway
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -201,6 +223,12 @@ artifacts:
         chart: cni
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -216,6 +244,12 @@ artifacts:
         chart: ztunnel
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -314,3 +348,74 @@ provenance:
     Authored from docs/research/istio.md. blob.istio.io (current Helm repo)
     and registry.istio.io were unreachable; the GCS chart index is frozen at
     1.30.x, so the OCI charts on ghcr.io are the primary chart channel.
+    Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):
+    blob.istio.io, registry.istio.io (token flow) and the GitHub API are
+    reachable.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: istiod-helm-values
+  channel: helm-values
+  component: istiod
+  summary: The istiod (istio-discovery) chart, plus base, gateway, cni and ztunnel charts; values are set directly
+    at the chart root (meshConfig, pilot settings, global, env, ...).
+  valuesPath: .
+  references:
+  - url: https://istio.io/latest/docs/setup/install/helm/
+    quote: Default configuration values can be changed using one or more --set <parameter>=<value> arguments.
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/values.yaml
+    quote: '# For instance, instead of `--set _internal_defaults_do_not_set.foo=bar``, just set `--set foo=bar`.'
+- id: mesh-config
+  channel: configmap-file
+  component: istiod
+  summary: Mesh-wide MeshConfig YAML in the mesh key of the istio ConfigMap (istio-<revision> for revisioned installs),
+    read by pilot-discovery --meshConfig; rendered from the chart's meshConfig value.
+  file: mesh
+  format: yaml
+  configMap: istio
+  valuesPath: meshConfig
+  references:
+  - url: https://istio.io/latest/docs/reference/config/istio.mesh.v1alpha1/
+    quote: MeshConfig defines mesh-wide settings for the Istio service mesh.
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/values.yaml
+    quote: '# meshConfig defines runtime configuration of components, including Istiod and istio-agent behavior'
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/templates/configmap.yaml
+    quote: 'name: istio{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}'
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: --meshConfig <string>File name for Istio mesh configuration. If not specified, a default mesh will be
+      used.
+- id: istiod-env
+  channel: env-vars
+  component: istiod
+  summary: pilot-discovery reads a documented set of environment variables (PILOT_*, ENABLE_*, ISTIO_* ...) that
+    toggle istiod behaviour; set on the istiod container, e.g. through the chart's env value.
+  references:
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: These environment variables affect the behavior of the pilot-discovery command.
+- id: istio-operator
+  channel: custom-resource
+  component: istioctl
+  summary: IstioOperator YAML passed as a file to istioctl install / istioctl manifest generate (not applied to
+    the cluster); meshConfig and values fields map onto MeshConfig and chart values.
+  resource:
+    group: install.istio.io
+    kind: IstioOperator
+  references:
+  - url: https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/
+    quote: Configuration affecting Istio control plane installation version and shape. This resource is passed as
+      a file input
+  - url: https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/
+    quote: Overrides for default values.yaml. This is a validated pass-through to Helm templates.
+- id: pilot-discovery-flags
+  channel: cli-flags
+  component: istiod
+  summary: pilot-discovery discovery command-line flags (mesh config file path, addresses, logging, ...).
+  references:
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: Istio Pilot provides mesh-wide traffic management, security and policy capabilities in the Istio Service
+      Mesh.
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: --meshConfig <string>File name for Istio mesh configuration. If not specified, a default mesh will be
+      used.

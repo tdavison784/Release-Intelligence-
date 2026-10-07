@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-380ace21b3a0",
+    "candidateId": "sc-9a0c088f99f9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "querier.query_timeout"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.query_timeout"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A query_timeout configured under the querier section is no longer honoured; it must be set in limits_config instead.",
+        "remediation": "Move query_timeout from the querier section to limits_config.",
+        "severity": "medium"
+      },
+      "statement": "The `query_timeout` option is removed from the querier YAML section and must now be configured under limits_config."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The text does not say where the Loki configuration file or Helm values carry querier.query_timeout, so exposure cannot be stated as a checkable predicate.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a0b618cd90db"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5995e6b440a43a62bb820447bfa9ce5e129749af11ba71d221baa4208b46e0e1",
+      "inputEvidence": [
+        "ev-a0b618cd90db"
+      ],
+      "generatedAt": "2026-10-02T16:18:23Z",
+      "callId": "c84ab123-3bf7-4fd8-a5d8-9f871ad43ed0"
+    }
+  }
+}

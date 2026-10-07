@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b96301c7e644",
+    "candidateId": "sc-03aa929e64d5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"null object in values.yaml warned 'cannot overwrite table with non table' and the resulting K8s object was not overridden\"",
+        "after": "\"warning still shown but the resulting K8s object is overridden with the invalid null value\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Rendered Kubernetes objects are overridden with the invalid null value from values.yaml null objects, which may require changing subchart values.yaml files.",
+        "remediation": "Identify values.yaml files with null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value (previously it was not overridden)."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether subchart values.yaml files contain null objects; no static predicate over the environment is stated.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b8041528e3f8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e7f8a26bdb35b37eee6fa4c4e1cbf0299a778ffbecd3da7e3ce06578b1e6d99d",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-02T05:56:04Z",
+      "callId": "bdd41561-51de-4e9e-9c63-23718d67db95"
+    }
+  }
+}

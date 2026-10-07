@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9bed344ea17e",
+    "reviewItemId": "ri-91143535d273",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "StatefulSet"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "DaemonSet"
+            }
+          ]
+        }
+      },
+      "statement": "The app.kubernetes.io/part-of: flux label is added to Flux controller pods."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.7.0"
+        }
+      },
+      "statement": "Flux 2.7.0 manifests add the label app.kubernetes.io/part-of: flux to the controller pods. Every environment upgrading from a Flux version earlier than 2.7.0 receives the label on its controller pods."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:38ca7947328b9f48578119fb824aac0d340e1b25c3a88af20312d8ba8ed0c52b",
+      "inputEvidence": [
+        "ev-cd6e13ea0600"
+      ],
+      "generatedAt": "2026-10-03T01:53:44.409Z",
+      "callId": "acb65cc1-6489-4165-83ce-580d8bef7a95"
+    },
+    "reason": "[ev-cd6e13ea0600] says only that the Flux 2.7.0 manifests add the `app.kubernetes.io/part-of: flux` label to the controller pods. Every environment that upgrades from an earlier version gets this label. The proposed condition, any Deployment, StatefulSet or DaemonSet in use, is too broad. It is not tied to the Flux controllers and would flag any cluster that runs any workload. The evidence does not name the controller workload kind, so the corrected condition uses the upgrade from-version (<2.7.0) instead of a rendered-change on an assumed kind.",
+    "startedAt": "2026-10-03T01:53:34.051Z",
+    "decidedAt": "2026-10-03T01:53:44.409Z"
+  }
+}

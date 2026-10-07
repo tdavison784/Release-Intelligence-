@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-bff5a11913ed",
+    "candidateId": "sc-76ca511eb130",
+    "product": "crossplane",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Line added to cmd/crossplane/core/core.go: return errors.New(\\\"the --registry flag is no longer supported since support for a default registry value has been…\", what happens, and is that review or action? proposed: workload-failure",
+    "proposed": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core pod is still started with --registry, the core command returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\" and does not run.",
+        "remediation": "Remove --registry from the Crossplane args and make sure every package, and each of its dependencies, uses a fully qualified name that states its registry.",
+        "severity": "high"
+      },
+      "statement": "In v2.0.0 the Crossplane core command no longer supports the --registry flag: setting it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed\", and all packages and their dependencies must use fully qualified names that state their registry."
+    },
+    "proposals": [
+      "sp-5c1242a7f1b7",
+      "sp-a7a93d5dd113",
+      "sp-c96d20e831b0"
+    ],
+    "validations": [
+      "val-01569195e243",
+      "val-1c7fc0c6993c",
+      "val-7fd5f4acb45d",
+      "val-981db6c4184d",
+      "val-b550b0f46745",
+      "val-ecb1bebac916"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:48:17Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bb46daac0002",
+  "promptDigest": "sha256:b67916caa31811cc75775b62329a2b49dca238181f87f768179b63689984dcc8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d42e63ff-8baa-493b-8a42-b9cbda818224",
+  "startedAt": "2026-10-03T01:58:42.174Z",
+  "decidedAt": "2026-10-03T01:58:53.604Z",
+  "durationMs": 10541,
+  "costUSD": 0.094288,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a884587f873c] only says that the `fluxcd/flux2/action` GitHub Action now finds the latest version without calling the GitHub API. That is CI tooling, not a Kubernetes API. The proposed gvk-in-use condition on a made-up `github.com/v1 Workflow` kind is not something the evidence supports, and it wouldn't match real environments. No static cluster input shows whether someone's CI workflows use this action, so exposure has to be marked undecidable (environment-visibility-gap).",
+    "citations": [
+      "ev-a884587f873c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Flux 2.7.0 the fluxcd/flux2/action GitHub Action finds the latest Flux version without calling the GitHub API. Exposure depends on whether CI workflows use this action, which cluster configuration does not show.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator's CI workflows (e.g. .github/workflows files) use the fluxcd/flux2/action GitHub Action to resolve the latest Flux version"
+        }
+      }
+    }
+  }
+}

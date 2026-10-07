@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-57223ead0bd4",
+    "candidateId": "sc-8f899185ace7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"results caching was not enabled by default\"",
+        "after": "\"results caching for stats, volume, label, and series queries is enabled by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "loki.query_range.results_cache",
+              "state": "unset"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1",
+              "kind": "LokiStack"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Query results for stats, volume, label, and series requests will now be cached by default to the in-memory results_cache, changing query performance characteristics and memory usage patterns.",
+        "severity": "medium"
+      },
+      "statement": "Results caching for 'stats', 'volume', 'label', and 'series' queries in the TSDB index type is now enabled by default, caching to the results_cache configured in the query_range config section using an in-memory cache by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-959df790f1d4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:680539a5b4f0e5e41feb0642c61f34d97de43106c017d441842a23224669d3c5",
+      "inputEvidence": [
+        "ev-959df790f1d4"
+      ],
+      "generatedAt": "2026-10-02T16:14:40Z",
+      "callId": "eedd24a5-c3aa-4439-a70a-c3694424a45f"
+    }
+  }
+}

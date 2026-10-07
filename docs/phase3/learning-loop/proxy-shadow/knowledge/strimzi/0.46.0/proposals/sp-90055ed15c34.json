@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-90055ed15c34",
+    "candidateId": "sc-a64aedeb967c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "statefulset-pod-name-label"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "strimzi",
+          "name": "strimzi-pod-name-label"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Custom setups leveraging the removed `statefulset.kubernetes.io/pod-name` label stop working once the label is gone from pods and external listener Services and must be changed to use `strimzi.io/pod-name` instead.",
+        "remediation": "Update any custom setup that leverages the statefulset.kubernetes.io/pod-name label to use the strimzi.io/pod-name label instead.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the `statefulset.kubernetes.io/pod-name` label from the pods it manages and from external listeners' Kubernetes Services; any custom setup leveraging that label must be changed to use the `strimzi.io/pod-name` label instead."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence defines exposure only as \"any custom setup leveraging such label\" without naming any resource kind, field or selector where the label would appear (e.g. Service selectors or other custom objects), and no available predicate generically detects usage of a label across arbitrary custom resources.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:072596aa0118f0d9a078d08ca1b6d76ed7c796831894567bfca0df0c61ca3ca9",
+      "inputEvidence": [
+        "ev-4fdefdd841ec"
+      ],
+      "generatedAt": "2026-10-03T08:46:21Z",
+      "callId": "99c802c0-a08a-4262-ac97-a0eda4dda8de"
+    }
+  }
+}

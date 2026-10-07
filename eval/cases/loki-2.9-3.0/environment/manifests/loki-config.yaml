@@ -1,0 +1,92 @@
+# Loki single-binary configuration, mounted at /etc/loki/loki.yaml by the
+# loki StatefulSet. Written for Loki 2.9.x; S3 access is via the pod's IAM
+# role (IRSA), so the file carries no credentials.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki
+  namespace: logging
+data:
+  loki.yaml: |
+    auth_enabled: false
+
+    server:
+      http_listen_port: 3100
+      grpc_listen_port: 9095
+      log_level: info
+
+    common:
+      path_prefix: /var/loki
+      replication_factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+      storage:
+        s3:
+          bucketnames: acme-loki-chunks
+          region: eu-west-1
+          s3forcepathstyle: false
+
+    ingester:
+      chunk_idle_period: 30m
+      chunk_target_size: 1572864
+      wal:
+        enabled: true
+        dir: /var/loki/wal
+        flush_on_shutdown: true
+
+    schema_config:
+      configs:
+        - from: "2021-06-01"
+          store: boltdb-shipper
+          object_store: s3
+          schema: v11
+          index:
+            prefix: index_
+            period: 24h
+        - from: "2023-07-01"
+          store: tsdb
+          object_store: s3
+          schema: v12
+          index:
+            prefix: index_
+            period: 24h
+
+    storage_config:
+      boltdb_shipper:
+        active_index_directory: /var/loki/boltdb-shipper-active
+        cache_location: /var/loki/boltdb-shipper-cache
+        shared_store: s3
+      tsdb_shipper:
+        active_index_directory: /var/loki/tsdb-index
+        cache_location: /var/loki/tsdb-cache
+        shared_store: s3
+
+    chunk_store_config:
+      max_look_back_period: 0s
+
+    compactor:
+      working_directory: /var/loki/compactor
+      shared_store: s3
+      compaction_interval: 10m
+      retention_enabled: true
+      retention_delete_delay: 2h
+
+    limits_config:
+      enforce_metric_name: false
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      retention_period: 744h
+      max_query_lookback: 744h
+      max_line_size: 512KB
+      max_line_size_truncate: true
+      ingestion_rate_mb: 16
+      ingestion_burst_size_mb: 32
+      split_queries_by_interval: 30m
+
+    query_range:
+      align_queries_with_step: true
+      cache_results: true
+
+    analytics:
+      reporting_enabled: false

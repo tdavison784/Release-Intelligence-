@@ -1,0 +1,53 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b2fa65b868f9",
+  "promptDigest": "sha256:cf41b25dc22fbefa3b4699d9d3a991db49bfdd0eb55c020ea482584d154edcec",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f01bd660-dcbb-4c51-ab00-92718c5932c1",
+  "startedAt": "2026-10-02T15:54:50.311Z",
+  "decidedAt": "2026-10-02T15:55:02.580Z",
+  "durationMs": 11213,
+  "costUSD": 0.095788,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-93c0d3a62602] only says that `hostNetwork` pods were ignored in ambient mode and that this is fixed. That supports a Pod with spec.hostNetwork=true as part of the exposure condition. It does not support a feature gate named \"ambient\": the evidence never says how ambient mode is turned on or how pods join it. That leaf is invented, so I replace it with an undecidable operand that states what is missing.",
+    "citations": [
+      "ev-93c0d3a62602"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed environments run Pods with spec.hostNetwork=true under Istio ambient mode. Those pods were previously ignored and are now handled. The release note does not say how ambient mode or pod enrollment is configured, so that part cannot be expressed as a configuration predicate from this evidence.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "Pod",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.hostNetwork",
+                  "state": "equals",
+                  "values": [
+                    true
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment runs Istio in ambient mode with the hostNetwork pods in scope of ambient; the release note does not say what configuration enables ambient mode or enrolls pods"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

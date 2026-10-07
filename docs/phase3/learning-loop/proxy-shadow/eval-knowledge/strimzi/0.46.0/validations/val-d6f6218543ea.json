@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d6f6218543ea",
+    "candidateId": "sc-5851fd4cdacf",
+    "proposalId": "sp-4413f7415c94",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On Kafka 4.0.0 and later, the JMXReporter is not enabled unless metrics are enabled in `.spec.kafka.metrics` or JMXReporter is explicitly added to `metric.reporters`.",
+        "remediation": "If you rely on the JMXReporter, enable metrics in `.spec.kafka.metrics` or add JMXReporter to `metric.reporters` in the Kafka configuration.",
+        "severity": "low"
+      },
+      "statement": "From Kafka 4.0.0, the JMXReporter is only enabled when metrics are enabled in `.spec.kafka.metrics` or when JMXReporter is explicitly added to `metric.reporters`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

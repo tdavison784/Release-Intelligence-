@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bbda5fd2fd1c",
+  "promptDigest": "sha256:5fabdaf963026b1cac1d9ac95aa5fdee7f9b6f7317d7b060a85b155e3f6d4abc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cf880a9d-8e89-47c2-be92-dae9a00b6a08",
+  "startedAt": "2026-10-03T16:59:55.682Z",
+  "decidedAt": "2026-10-03T17:00:16.206Z",
+  "durationMs": 19860,
+  "costUSD": 0.119856,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-adf2ed32df1c] says the failure applies only when `cluster.inClusterEnabled: \"false\"` is explicitly configured, so testing for the literal \"false\" is right. Where the setting lives is the problem. The evidence is the Argo CD operator manual, and the subject context puts the key in the argocd-cm ConfigMap (component argocd-cm), not in Helm values. So the condition should read that ConfigMap's data key, not a Helm values-key. I keep the condition at the configuration level because the evidence does not say how an Application's destination identifies the in-cluster cluster.",
+    "citations": [
+      "ev-adf2ed32df1c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments whose argocd-cm ConfigMap explicitly sets cluster.inClusterEnabled to \"false\" are exposed. There, Applications that target the in-cluster cluster become Unknown and cannot sync, new in-cluster Applications cannot be created, and deleting an Application does not delete the resources it previously managed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cm",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"cluster.inClusterEnabled\"]",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

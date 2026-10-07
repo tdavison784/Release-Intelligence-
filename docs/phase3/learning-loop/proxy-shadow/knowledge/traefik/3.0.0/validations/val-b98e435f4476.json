@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b98e435f4476",
+    "candidateId": "sc-ea68fa62a919",
+    "proposalId": "sp-8d2bfaaecb9c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.rancher"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "providers.kubernetes.crd"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_RANCHER",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if Rancher v1 provider configuration (providers.rancher) is present in the static configuration.",
+        "remediation": "Remove all Rancher v1 provider configuration from static configuration and migrate to the Kubernetes CRD provider for Rancher 2.x deployments.",
+        "severity": "critical"
+      },
+      "statement": "The Rancher v1 provider has been removed in Traefik v3; configurations using it will prevent Traefik from starting."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

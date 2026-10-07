@@ -1,5 +1,7 @@
 # Falco release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** download.falco.org, falco.org and api.github.com (8 advisories) answer; `docs.falco.org` still fails DNS resolution. The falco-9.0.0.tgz re-publish is reproduced live: downloaded sha256 `0224559b…` vs the index's `093cb7f5…`. The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could
 not be checked here. `RAW` = `https://raw.githubusercontent.com/falcosecurity/falco`. Product: Falco,
 the CNCF runtime-security **engine** (`github.com/falcosecurity/falco`): the userspace daemon

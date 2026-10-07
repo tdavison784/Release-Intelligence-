@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8d1139382feb",
+    "candidateId": "sc-21bf63323d13",
+    "proposalId": "sp-eacd2800895f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.trafficPolicy.portLevelSettings",
+              "state": "set"
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRule portLevelSettings that were previously ignored for waypoints are now applied, so waypoint traffic behavior may change.",
+        "remediation": "Verify that port-level settings in DestinationRules used with waypoints behave as intended.",
+        "severity": "low"
+      },
+      "statement": "Fixed: portLevelSettings in DestinationRules were ignored for waypoints; they are now honoured."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

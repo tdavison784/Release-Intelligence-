@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-13018b7c4e45",
+    "candidateId": "sc-910a3c437d8b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "kind": "Kafka",
+        "path": "spec.kafka.storage[].overrides"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.storage[].overrides",
+              "state": "set"
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments using per-broker storage class overrides in the Kafka storage configuration are no longer supported in 0.46.0: the configured overrides stop being honoured, and the operator must instead use multiple KafkaNodePool resources with a different storage class each.",
+        "remediation": "Migrate from storage overrides to multiple KafkaNodePool resources with a different storage class each, following the Strimzi migration documentation.",
+        "severity": "high"
+      },
+      "statement": "In Strimzi 0.46.0, the storage overrides for configuring per-broker storage class are not supported anymore; environments using them must instead use multiple KafkaNodePool resources with a different storage class each."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a6197708b375"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:23ec715ee3bbb188c1f1251b504bba5b7029b0e4b9454aa2598c1e198b816af3",
+      "inputEvidence": [
+        "ev-a6197708b375"
+      ],
+      "generatedAt": "2026-10-02T06:32:49Z",
+      "callId": "fe9a9a07-cbfa-4343-8fb6-c7d4b66380ca"
+    }
+  }
+}

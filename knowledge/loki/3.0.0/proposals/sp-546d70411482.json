@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-546d70411482",
+    "candidateId": "sc-23b472cbf6b3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--querier.worker-parallelism",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "querier.worker-parallelism",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments configured with querier.worker-parallelism via CLI flag or YAML will have this setting ignored in Loki 3.0.0; the configuration key no longer exists to control worker parallelism.",
+        "remediation": "Replace querier.worker-parallelism configuration with querier.max-concurrent to control the maximum concurrent requests processed by queriers.",
+        "severity": "high"
+      },
+      "statement": "The querier.worker-parallelism CLI flag and YAML configuration setting are removed in Loki 3.0.0."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the change bundles two distinct subject families (cli-flag and config-key) with the same name; evidence treats them as a unit but they require separate identities",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9f4292160fa2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f74902a679ea3ffa92b43e4f2a702e5a275b8820f77bacdbd17f8b5f0a0e1574",
+      "inputEvidence": [
+        "ev-9f4292160fa2"
+      ],
+      "generatedAt": "2026-10-02T16:17:33Z",
+      "callId": "2c439a87-9ffc-4d8b-bf56-7fdb4b2bc3c1"
+    }
+  }
+}

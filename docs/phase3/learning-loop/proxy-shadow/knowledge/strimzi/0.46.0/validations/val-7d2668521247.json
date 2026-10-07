@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7d2668521247",
+    "candidateId": "sc-3e8896f66ab7",
+    "proposalId": "sp-82476eb594f4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "cluster-ca-secret-missing-no-tls",
+        "component": "user-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment runs the standalone User Operator without TLS while the Cluster CA cert Secret is absent"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 0.46.0, the standalone User Operator handles the Cluster CA cert Secret being missing when TLS is not needed, so its behavior in that situation differs from earlier releases; environments running the standalone User Operator in that state should verify its behavior.",
+        "remediation": "No operator action is required; if the standalone User Operator is run without TLS and without the Cluster CA cert Secret, verify that it reconciles as expected after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 updates the standalone User Operator so that it handles the Cluster CA cert Secret being missing when TLS is not needed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

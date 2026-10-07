@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-65e3364a131f",
+    "reviewItemId": "ri-e7594eaca159",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Loki will not start during the upgrade if the environment does not have tsdb and v13 schema configured, as structured metadata is now enabled by default.",
+        "severity": "critical"
+      },
+      "statement": "Structured metadata is enabled by default in Loki 3.0.0 and requires tsdb storage backend and v13 schema configuration; Loki will not start without these."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5e48e906555f88553019624a1b89d6bf42bc4b0dfb7c08379dac2ad23aab632f",
+      "inputEvidence": [
+        "ev-5dacaee98643",
+        "ev-1d0876135bde",
+        "ev-af3121d71703",
+        "ev-cbd1809faa20",
+        "ev-8c0cecc71daf",
+        "ev-bceb257f17b9",
+        "ev-ebd92acd21f4",
+        "ev-45ef39303832",
+        "ev-6650fd33304c",
+        "ev-8b7267b73a1c",
+        "ev-7791a108cc39",
+        "ev-649f409b4be1",
+        "ev-b07a4021f30c",
+        "ev-92063a2a5bac",
+        "ev-2690c7915f58",
+        "ev-61d6d2b50a95",
+        "ev-c8bbef5b1d06",
+        "ev-d0c9247a44d4",
+        "ev-33c9df8cd833",
+        "ev-ba4422942cd3",
+        "ev-6c97458131e0",
+        "ev-73d501ad9fa3",
+        "ev-7e86af7082a3",
+        "ev-ea984d665a12",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-15a875cd9a39",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a",
+        "ev-c569cd56f9ef",
+        "ev-ca57f615b9c9",
+        "ev-cf8ca5687050",
+        "ev-e598abf2a6cd",
+        "ev-576bad2a0aa0"
+      ],
+      "generatedAt": "2026-10-03T17:05:37.336Z",
+      "callId": "dccbbb18-668b-4981-8233-37cf2301b390",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5dacaee98643] and [ev-8b7267b73a1c] say structured metadata is now on by default and needs the active schema to use both the `tsdb` index type and the `v13` schema, or Loki won't start. That is an unmet precondition that stops the upgraded Loki from starting, so it fits upgrade-blocked, and critical severity matches a service that does not start. [ev-7791a108cc39] and [ev-649f409b4be1] give the steps to take before upgrading: move to tsdb/v13 first, or set `allow_structured_metadata: false`. Either way the operator has to act, so this is mandatory work, not just review.",
+    "startedAt": "2026-10-03T17:05:28.376Z",
+    "decidedAt": "2026-10-03T17:05:37.336Z",
+    "resultingFact": "vf-82f555f5f007"
+  }
+}

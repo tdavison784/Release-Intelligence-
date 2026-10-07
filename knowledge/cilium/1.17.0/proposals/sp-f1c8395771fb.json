@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f1c8395771fb",
+    "candidateId": "sc-f2b93d9f65be",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--k8s-mode",
+        "component": "bugtool"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or scripts run bugtool with --k8s-mode (or --cilium-agent-container-name, --k8s-namespace, --k8s-label); bugtool is run by hand and is not set in workload configuration"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The bugtool --k8s-mode flag and its related flags still work in 1.17 but will be removed in Cilium 1.18.",
+        "remediation": "Use the Cilium CLI to gather sysdumps from Kubernetes clusters instead of bugtool's k8s-mode.",
+        "severity": "low"
+      },
+      "statement": "The bugtool flag --k8s-mode (and the related flags cilium-agent-container-name, k8s-namespace and k8s-label) is deprecated in 1.17 and will be removed in Cilium 1.18; use the Cilium CLI to gather a sysdump from a K8s cluster instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a7d9e5f931b3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:962f9a752762fc6546dd99877fbf579864ade6dc795f45ea95c0bca590479d3c",
+      "inputEvidence": [
+        "ev-a7d9e5f931b3"
+      ],
+      "generatedAt": "2026-10-03T07:06:56Z",
+      "callId": "69a9f4ae-72af-4fd0-881d-9619a189c622"
+    }
+  }
+}

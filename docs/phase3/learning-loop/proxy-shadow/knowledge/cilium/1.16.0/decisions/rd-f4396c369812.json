@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f4396c369812",
+    "reviewItemId": "ri-7364422252ef",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableRuntimeDeviceDetection"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "nodePort.addresses"
+        }
+      },
+      "statement": "Runtime device detection and reconfiguration is now enabled by default in Cilium 1.16.0; the Helm option enableRuntimeDeviceDetection is deprecated."
+    },
+    "corrected": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableRuntimeDeviceDetection"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "statement": "The Helm option enableRuntimeDeviceDetection is deprecated and will be removed in a future release, because detection and reconfiguration on changes to native network devices and their addresses is now the default."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:6263471342fb62436064d3c69fc8f439982a4292170ee35b6f537bc7714a1e67",
+      "inputEvidence": [
+        "ev-540db624a6ea",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T12:59:42.481Z",
+      "callId": "5b38d3ad-648f-4b05-b90b-aca7c23994ea"
+    },
+    "reason": "[ev-540db624a6ea] says the Helm option `enableRuntimeDeviceDetection` \"has been deprecated and will be removed in future release\", so the subject and the deprecated change type are right. The evidence does not say `nodePort.addresses` replaces it. That option chooses which addresses NodePort uses, while the deprecated option is redundant because runtime detection is now the default. replacedBy should therefore be dropped.",
+    "startedAt": "2026-10-02T12:59:36.103Z",
+    "decidedAt": "2026-10-02T12:59:42.481Z"
+  }
+}

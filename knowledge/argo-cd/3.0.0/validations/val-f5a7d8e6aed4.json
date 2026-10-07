@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f5a7d8e6aed4",
+    "candidateId": "sc-dc1b8ad7b73a",
+    "proposalId": "sp-91e340c083ce",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-scm-haspath",
+        "component": "appset"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSets relying on GitLab SCM path checks will behave differently after the upgrade: the HasPath search implementation is reverted to the earlier one, and GitLab 404 responses are now considered as file not found.",
+        "remediation": "After upgrading to Argo CD 3.0.0, verify that ApplicationSets relying on GitLab SCM path matching still select the expected files/repositories.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes the ApplicationSet GitLab SCM path-existence (HasPath) behavior: the search-based implementation is reverted and GitLab 404 errors are now considered as file not found."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3671035c2865",
+    "candidateId": "sc-c8fa57d3d99f",
+    "proposalId": "sp-cab0bc2dc944",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "experimental.http3"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_EXPERIMENTAL_HTTP3",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik 3.0.0 moves HTTP/3 out of the experimental section of the configuration, so the http3 option no longer exists under experimental (the changelog does not state the impact on configurations that still set it)."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

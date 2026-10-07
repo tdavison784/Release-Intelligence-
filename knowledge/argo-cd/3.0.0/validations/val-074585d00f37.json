@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-074585d00f37",
+    "candidateId": "sc-03aa929e64d5",
+    "proposalId": "sp-f11a48e59aed",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"3.17.1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the Helm charts that Argo CD renders have subchart values.yaml files containing a null object, which lives in the application source repositories"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With the bundled Helm upgraded to 3.17.1, a null object in a subchart values.yaml still gives the 'cannot overwrite table with non table' warning during helm template. The difference is that the rendered Kubernetes object is now overridden with the invalid null value instead of keeping its original value.",
+        "remediation": "Find values.yaml files that have null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 upgrades its bundled Helm to 3.17.1, so a null object in a subchart values.yaml now overrides the rendered Kubernetes object with the invalid null value instead of leaving it unchanged."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

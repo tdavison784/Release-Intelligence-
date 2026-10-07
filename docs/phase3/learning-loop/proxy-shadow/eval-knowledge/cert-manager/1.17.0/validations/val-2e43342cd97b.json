@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2e43342cd97b",
+    "candidateId": "sc-f5cebb7e0498",
+    "proposalId": "sp-13cd1f26773b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "issuer-secret-retry-backoff"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "kind": "Issuer"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Issuers will now retry more quickly when their linked Secret is updated, reducing back-off timeout delays.",
+        "severity": "low"
+      },
+      "statement": "Cert-manager issuers will now retry more quickly when their linked Secret is updated, fixing an issue that caused high back-off timeout delays."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cb087f06e6c8",
+    "candidateId": "sc-363015276a94",
+    "proposalId": "sp-748a199d553a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "external-secrets",
+        "name": "mkdocs-material"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"9.6.10\"",
+        "after": "\"9.6.11\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator builds the API documentation from the repository's /hack/api-docs tooling using mkdocs-material"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The evidence describes only a chore dependency bump of the mkdocs-material documentation tooling pinned under /hack/api-docs; it does not touch the deployed external-secrets operator, its charts, CRDs or workloads, so there is no operational consequence for an operator."
+      },
+      "statement": "external-secrets 0.16.0 bumps the pinned mkdocs-material dependency used by the /hack/api-docs documentation tooling from 9.6.10 to 9.6.11, with no effect on the deployed operator."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/value-changed",
+        "detail": "no canonical exposure condition for product-relationship value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

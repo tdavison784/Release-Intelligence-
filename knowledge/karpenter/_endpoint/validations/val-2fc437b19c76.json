@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2fc437b19c76",
+    "candidateId": "sc-25ca3183ac3f",
+    "proposalId": "sp-51e5c123106a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.k8s.aws",
+        "version": "v1beta1",
+        "kind": "EC2NodeClass",
+        "path": "spec.metadataOptions"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"{\\\"httpEndpoint\\\":\\\"enabled\\\",\\\"httpProtocolIPv6\\\":\\\"disabled\\\",\\\"httpPutResponseHopLimit\\\":2,\\\"httpTokens\\\":\\\"required\\\"}\"",
+        "after": "\"{\\\"httpEndpoint\\\":\\\"enabled\\\",\\\"httpProtocolIPv6\\\":\\\"disabled\\\",\\\"httpPutResponseHopLimit\\\":1,\\\"httpTokens\\\":\\\"required\\\"}\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.metadataOptions",
+              "state": "unset"
+            }
+          ],
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.metadataOptions",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Newly created EC2NodeClass objects that leave spec.metadataOptions unset will now receive a default with httpPutResponseHopLimit 1 instead of 2 (httpEndpoint \"enabled\", httpProtocolIPv6 \"disabled\" and httpTokens \"required\" are unchanged)",
+        "remediation": "If the previous default is required, set spec.metadataOptions (or its httpPutResponseHopLimit) explicitly on the EC2NodeClass."
+      },
+      "statement": "In the karpenter.k8s.aws/v1beta1 schema of EC2NodeClass, the default value of spec.metadataOptions changed from httpPutResponseHopLimit 2 to httpPutResponseHopLimit 1 (the other default entries httpEndpoint=enabled, httpProtocolIPv6=disabled, httpTokens=required are unchanged)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

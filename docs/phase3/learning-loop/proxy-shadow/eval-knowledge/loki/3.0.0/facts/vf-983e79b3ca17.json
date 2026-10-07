@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-983e79b3ca17",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-8ad85f7133c0"
+        ],
+        "statementKeys": [
+          "sk-21aac4ba703a"
+        ],
+        "changeIds": [
+          "chg-99ddf2b146aa"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3fcd67ae459f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "s3.sse-encryption",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The `s3.sse-encryption` option is removed. AWS now defaults encryption of all buckets to SSE-S3, so the upstream default replaces the option's role; operators should check that this default covers their encryption needs.",
+        "remediation": "If an SSE type other than the AWS default SSE-S3 is needed, set it with `sse.type`, and remove `s3.sse-encryption` from the configuration.",
+        "severity": "low"
+      },
+      "statement": "`s3.sse-encryption` is removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-538faec35d65"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-538faec35d65"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0ed51cfd3186"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-28614a0d311c"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c8a8a9c16d41",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L590-L590 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `s3.sse-encryption` is removed. AWS now defaults encryption of all buckets to SSE-S3. Use `sse.type` to set SSE type.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:07:03.392Z"
+  }
+}

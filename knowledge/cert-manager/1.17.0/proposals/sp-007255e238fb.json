@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-007255e238fb",
+    "candidateId": "sc-0bc10e7d0eed",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "ValidateCAA"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "ValidateCAA",
+          "path": "featureGates",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The ValidateCAA feature gate still functions in cert-manager v1.17 but is deprecated and will be removed entirely in cert-manager v1.18.0, so environments relying on it for CAA DNS record validation during ACME issuance will lose that behaviour when they upgrade to v1.18.0.",
+        "remediation": "Remove ValidateCAA from feature-gate configuration (--feature-gates / chart featureGates) and stop relying on CAA record validation during ACME issuance before upgrading to cert-manager v1.18.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager v1.17 deprecates the ValidateCAA feature gate, which validates the CAA DNS record during ACME issuance; it still works in v1.17 but will be removed entirely in cert-manager v1.18.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0d3b308e9192"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:90aa00dab52b108827e459db16b58414d071176957d4a5014b66f8c611f1ae0d",
+      "inputEvidence": [
+        "ev-0d3b308e9192"
+      ],
+      "generatedAt": "2026-10-03T08:51:01Z",
+      "callId": "4b93904f-c156-44eb-9ac4-4d0484d080d4"
+    }
+  }
+}

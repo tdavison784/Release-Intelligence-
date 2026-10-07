@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c9791a48c4ac",
+  "promptDigest": "sha256:a4b9bef4977cbca7d9971d36caee62b5fc7671c92b8f68a40942e4935a028318",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b1013773-32ff-4f7a-a0b3-4bdc7b133b3e",
+  "startedAt": "2026-10-06T01:55:21.686Z",
+  "decidedAt": "2026-10-06T01:55:37.691Z",
+  "durationMs": 15330,
+  "costUSD": 0.114536,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-330835051e96] says the change removes the `GOMAXPROCS` env var from all controllers so that the Go 1.25 runtime can set it from cgroup CPU limits. The changed files [ev-99806000122d] are the six controller manifest patches. So the subject is right (env-var GOMAXPROCS), but this is the env var being removed from the shipped controller deployments, not a change in what the same setting means. The change type should therefore be removed, not behavior-changed. The evidence gives no previous value, so before is left unset.",
+    "citations": [
+      "ev-330835051e96",
+      "ev-99806000122d",
+      "ev-0a0493889871"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Flux 2.7.0 removes the GOMAXPROCS environment variable from all controller manifests (helm, image-automation, image-reflector, kustomize, notification, source), so the Go 1.25 runtime now sets GOMAXPROCS dynamically from the cgroup CPU limits.",
+      "subject": {
+        "determination": "asserted",
+        "family": "env-var",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed"
+      }
+    },
+    "labels": [
+      "wrong-change-type"
+    ]
+  }
+}

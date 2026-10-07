@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-6ef60ee9f904",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-2779a9dc68b5",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-e5b2276df6af"
+          ],
+          "statementKeys": [
+            "sk-25a4824c2b3d"
+          ],
+          "changeIds": [
+            "chg-2779a9dc68b5"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "loki Config: Adds `frontend.max-query-capacity` to tune per-tenant query capacity",
+    "text": "loki Config: Adds `frontend.max-query-capacity` to tune per-tenant query capacity. 11284",
+    "evidence": [
+      {
+        "id": "ev-498b1297fb7f",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L61-L61 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki** Config: Adds `frontend.max-query-capacity` to tune per-tenant query capacity. [11284](https://github.com/grafana/loki/pull/11284)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-014c91a4649c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11284",
+        "locator": "title and description",
+        "excerpt": "PR: config: adds `frontend.max-query-capacity` to tune per-tenant query capacity [closed; labels size/XL, type/docs]\n**What this PR does / why we need it**:\nAdds a new config `frontend.max-query-capacity` that allows users to configure what portion of the the available querier replicas can be used by a tenant. `max_query_capacity` is the corresponding YAML option that can be configured in limits or runtime overrides.\n\nFor example, setting this to 0.5 would allow a tenant to use half of the available queriers.\n\nThis complements the existing `frontend.max-queriers-per-tenant`. When both are conf…",
+        "contentDigest": "sha256:6dc751d5e6ddb5f2745a2900673ccdddce169d1c410e015ddab6c393287f1db4",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-d3fd37439893",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11284",
+        "locator": "description (part 2)",
+        "excerpt": "resulting querier replica count is considered:\n```\nmin(frontend.max-queriers-per-tenant, ceil(querier_replicas * frontend.max-query-capacity))\n```\n*All* queriers will handle requests for a tenant if neither limits are applied.\n\n**Which issue(s) this PR fixes**:\nFixes #<issue number>\n\n**Special notes for your reviewer**:\nnoticed that we don't pass down the shuffle sharding limits for frontend (only using it with schedulers) …",
+        "contentDigest": "sha256:6dc751d5e6ddb5f2745a2900673ccdddce169d1c410e015ddab6c393287f1db4",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-62f4a84101a8",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11284",
+        "locator": "changed files",
+        "excerpt": "18 changed file(s): CHANGELOG.md, docs/sources/configure/_index.md, pkg/bloomgateway/bloomgateway.go, pkg/loki/modules.go, pkg/lokifrontend/frontend/v1/frontend.go, pkg/lokifrontend/frontend/v1/frontend_test.go, pkg/lokifrontend/frontend/v1/queue_test.go, pkg/queue/dequeue_qos_test.go, pkg/queue/queue.go, pkg/queue/queue_test.go, pkg/queue/tenant_queues.go, pkg/queue/tenant_queues_test.go, pkg/scheduler/limits/definitions.go, pkg/scheduler/limits/definitions_test.go (added), pkg/scheduler/scheduler.go, pkg/storage/stores/shipper/bloomshipper/block_downloader.go… +2 more",
+        "contentDigest": "sha256:6dc751d5e6ddb5f2745a2900673ccdddce169d1c410e015ddab6c393287f1db4",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      }
+    ],
+    "hints": [
+      "code:frontend.max-query-capacity",
+      "path:frontend.max-query-capacity"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-229863c50de9",
+    "candidateId": "sc-65bd09b548fc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "ruler.wal-cleaer.period",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.wal-cleaner.period",
+          "component": "ruler"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "ruler.wal-cleaer.period",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration key `ruler.wal-cleaer.period` is no longer honoured in Loki 3.0.0; the misspelled key must be replaced with `ruler.wal-cleaner.period` to apply the ruler WAL cleaner period setting.",
+        "remediation": "Replace any use of `ruler.wal-cleaer.period` with the correct spelling `ruler.wal-cleaner.period` in your Loki configuration before or during upgrade to 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "The deprecated configuration key `ruler.wal-cleaer.period` is removed; the correct spelling `ruler.wal-cleaner.period` must be used instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-03b4fbe630df",
+      "ev-ccb914e21d73"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fc02ecd17aab402c6980b0e9543c1f63cda50e32bf43e0aae30df67ca1d3416f",
+      "inputEvidence": [
+        "ev-03b4fbe630df",
+        "ev-ccb914e21d73"
+      ],
+      "generatedAt": "2026-10-02T20:53:15Z",
+      "callId": "dc7f2e82-d830-41c5-ba1e-5adca39dd0fe"
+    }
+  }
+}

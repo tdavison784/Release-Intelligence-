@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ff55193d4b16",
+    "candidateId": "sc-e1a977f0036f",
+    "proposalId": "sp-f3dfa4f6ec75",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether reports or mutate/generate policies target custom resources the default view role does not cover"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers can no longer view all resources (including custom resources), which may impact reports and mutate/generate policies on custom resources; admission control policies are not impacted.",
+        "remediation": "Grant the controllers view access to the needed custom resources; see the Role Based Access Controls documentation."
+      },
+      "statement": "In 1.13 the wildcard view permission of Kyverno controllers was removed and a role binding to the default `view` role was added, so controllers may no longer view custom resources, which may affect reports and mutate/generate policies on custom resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

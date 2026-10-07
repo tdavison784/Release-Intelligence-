@@ -25,10 +25,14 @@ verdict). Nothing in the design is tied to one ecosystem.
 
 A second question builds on it: **which of those changes matter to YOUR
 environment?** `ri impact` joins the edge with local Helm values, manifests,
-installed CRDs, an image list and a cluster version. It is deterministic, and
+installed CRDs, an image list, a cluster version and a product inventory
+(`--inventory`: which other products run, at which versions). It is deterministic, and
 every finding cites two provenance chains — the upstream evidence of the
 change and the environment evidence (file, line, excerpt) that matched
-([docs/IMPACT.md](docs/IMPACT.md)).
+([docs/IMPACT.md](docs/IMPACT.md)). With `--knowledge <dir>` it also
+evaluates verified release-level facts of the learning loop against the
+environment (`--min-verification`, default `human`), and every UNKNOWN says
+why it is unknown.
 
 ```
 $ ri upgrade cert-manager v1.17.0 v1.18.0
@@ -67,6 +71,12 @@ Evidence (112 records):
 in the release's install manifest, at a specific line. `[expected]` means
 nothing could confirm the artifact, so it is never presented as verified.
 Full examples are in [`internal/app/testdata/e2e/golden/`](internal/app/testdata/e2e/golden).
+
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the
+> `✗ github-releases … HTTP 403`, `✗ controller-image … unavailable: quay.io` and
+> `[expected]`/`[referenced]` lines above are the output of a network-restricted
+> sandbox run. With network access GitHub, quay.io and the Helm repositories
+> answer, those lines are `✓`, and artifacts shown as `[referenced]` or `[expected]` here verify directly at their registries. HTTP 429 is shown as `throttled`.
 
 ## Core ideas
 
@@ -119,6 +129,17 @@ ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-e
 ri upgrade istio 1.29.2 1.30.1 -verbose         # include features, bug fixes, dependency updates
 ri upgrade cert-manager v1.17.0 v1.18.0 -enrich # + AI clusters/explanations with provenance (docs/ENRICHMENT.md)
 ri discover github.com/cert-manager/cert-manager -out proposed.yaml -report report.md
+ri semantic candidates cert-manager v1.17.0 v1.18.0  # learning loop: deterministic restatement clusters (docs/SEMANTIC.md)
+ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5 -llm-exchange /tmp/x -out /tmp/out
+ri evidence link cert-manager v1.17.0 v1.18.0  # learning loop: attach the referenced PR/commit text to stored candidates (docs/LINKED_EVIDENCE.md)
+ri knowledge route                              # learning loop: route candidates into review items / auto-verified facts (docs/KNOWLEDGE.md)
+ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
+ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
+ri knowledge export -o feedback.jsonl           # the human-feedback dataset
+ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
+ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
+ri impact cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31 --render # impact report + what actually changes in your rendered deployment
+ri impact cert-manager v1.17.0 v1.17.2 --repo ./customer-repo --kubernetes 1.31 --render --tier-policy default # + tiered verdict: auto-pass | review | block (docs/POLICY.md)
 ```
 
 Global flags go before the command:

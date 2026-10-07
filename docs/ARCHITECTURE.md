@@ -82,6 +82,12 @@ internal/llm           LLM port + Anthropic implementation, response cache (by p
 internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →
                        validator → Enrichments with full provenance (docs/ENRICHMENT.md)
 internal/store         local JSON store for ingested releases and edges
+internal/knowledge     learning-loop ports (api.go): knowledge store, review queue, model
+                       proposer and validator interfaces; entity types in
+                       internal/domain/semantic.go (docs/phase3/learning-loop/DESIGN.md)
+internal/reviewui      engineering review UI (`ri review serve`): inbox, collapsible items,
+                       accept/reject/correct/…, bulk review; stdlib net/http + html/template
+                       (docs/REVIEW_UI.md)
 internal/eval          validation dataset: loads eval/cases ground truth, runs the
                        real pipeline per entry (via an injected Pipeline port) and
                        scores recall (per importance), the five-class confusion
@@ -100,7 +106,7 @@ eval/                  validation dataset (cases with hand-curated ground truth 
                        adjudications/ and the adversarial/ join-fooling pack —
                        consumed by `ri eval` and `go test ./internal/eval`
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
-                       release and impact-report (generated from internal/domain, run
+                       release, impact-report and knowledge-record (generated from internal/domain, run
                        `go run ./internal/domain/schemagen`; a test fails when they are stale)
 ```
 
@@ -145,7 +151,10 @@ edges of the stored run. Adapters never import `ingest` or `upgrade`.
 5. `ingest.Advisories` lists advisories from the `security` sources.
 6. `upgrade.Build` aggregates the path's NoteItems into Changes and diffs the
    From/To snapshots: values keys added or removed and defaults changed, CRD
-   versions or schema fields removed, images added or removed. It also
+   versions or schema fields removed, and per-path CRD schema attributes
+   (`default`, `enum`, `required`, `type`: `crd:default-changed`,
+   `crd:enum-changed`, `crd:field-required`, `crd:field-type-changed`, one
+   aggregated change per rule and CRD version), images added or removed. It also
    compares compatibility constraints, matches advisories (fixed by the
    upgrade, or still affecting To) and validates the edge.
    - Every note-derived Change also gets the deterministic routine-maintenance
@@ -280,6 +289,8 @@ upstream channel needed it.
 |---|---|---|
 | `extract: markdown-section` + `heading` | Pick one release's section from a cumulative document | cert-manager per-minor notes with one section per patch |
 | `extract: markdown-table` / `yaml-records` | Pick a row from a support matrix | cert-manager README tables; Istio `supportStatus.yml` |
+| `extract.collect` + `where` (yaml-records) | Merge every record that passes `where` (field → regex) into one row whose cells are the distinct field values joined with ", ": the SET of supported operand versions instead of one record | Strimzi `kafka-versions.yaml` (one record per Kafka version with `supported: true/false`); a single-record selector could only diff one version and rendered half-true "drops 4.2" statements |
+| `columns[].reduce` (`major`/`minor`) | Coarsen every version of a joined cell to its line (3.9.1 → 3.9) and de-duplicate, so patch-level lists compare as supported lines | Strimzi: Kafka 3.8 dropped / 4.0 added at minor granularity |
 | `columns[].separator/part` | Split a combined cell | "1.33 → 1.36 / 4.20 → 4.22" (Kubernetes / OpenShift) |
 | `columns[].kind: maximum` | A support-matrix column that bounds the platform from above | Karpenter's `maxK8sVersion` (compatibility.yaml: `minK8sVersion`/`maxK8sVersion` per app version) |
 | `locator.baseRef` (repo-dir) | Only the files added since another ref | Istio's accumulating `releasenotes/notes/*.yaml` |
@@ -293,9 +304,12 @@ upstream channel needed it.
 | `optional` | Absence is a fact, not a broken relationship | about half of Argo CD releases ship in no chart |
 | `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |
-| `contents.stripPrefix` / `ignoreKeys` | Normalise Helm values to user-facing keys | Istio's `_internal_defaults_do_not_set`; source-tree hub/tag placeholders |
+| `contents.stripPrefix` / `ignoreKeys` | Normalise Helm values to user-facing keys | Istio's `_internal_defaults_do_not_set`; source-tree hub/tag placeholders; the wrapper key itself changes across eras (`defaults` up to 1.23, `_internal_defaults_do_not_set` from 1.24.0), so one `helm-values` content per era with `contents.availability` — a single prefix left every 1.23 key under `defaults.` and made the 1.23→1.24 diff read each key as removed and added |
 | packaged-chart contents (locator kind `helm-repo`/`oci`/`chart-tgz`) | Read `contents` from the published package — the artifact users install — with the representation recorded on evidence and facts (`source-tree` vs `published-chart-tgz`/`published-oci-chart`/`release-asset`/`registry-manifest`); index/layer digests verified (docs/ARTIFACTS.md) | kube-prometheus-stack's CRDs live in a packaged subchart; its and ingress-nginx's `.tgz` release assets had no channel kind |
+| `contents: lines` + `pattern` (+ `label`) | A snapshot of the lines of a document that match an RE2 pattern (the first capture group when it has one); the edge reports the lines one release has and the other lacks (`lines:added` / `lines:removed`, one change per line, bounded), so a statement that stays put is no change. For what an artifact says about itself without structure: removal and deprecation notices in CRD descriptions or source files, annotated comments, version lists. Use `(?:…)` for grouping you do not want captured. One lines content per artifact | Crossplane's retired startup flags (error/log messages in `cmd/crossplane/core/core.go`); Flux's "`Updated` template field has been removed" CRD description; Prometheus Operator's default operand versions in `pkg/operator/defaults.go` |
 | `contents.compareWith` | Declare a second representation of the same content; a `representation.divergence` fact records what differs, so preferring one representation is never silent | Istio's packaged values (rewritten hub/tag) vs the source tree |
 | `classify` rules | Product-specific classification, evaluated first | cert-manager "⚠️ Breaking change" callouts; Argo CD noise filters |
+| `extract.listItems` on a changelog whose section opens with a callout | (existing construct) a GitHub `> [!NOTE]` / `> [!IMPORTANT]` callout before the bullets makes the markdown-section reader fold the whole section into one item; `listItems` reads every bullet as an item | Prometheus Operator's CHANGELOG 0.86.0 (the `managed-by` label bullet was folded away); Karpenter's upgrade guide |
 | `extract.labelParagraphs` | Treat standalone label paragraphs (`SECURITY:`, `BUG FIXES:`) as headings one level below the last real heading | Vault CHANGELOG.md (HashiCorp-style changelogs: Terraform and its providers, Consul, Nomad) |
 | `extract.format: docbook/rst/adoc` | Render non-markdown sources as line-preserving markdown (headings, bullets, tables) before extraction; converted structural markup is read in list-item mode | PostgreSQL SGML release notes (docbook); Cilium rst upgrade notes and compatibility grid tables (rst); Elasticsearch AsciiDoc migration guides and the AsciiDoc definition lists inside its markdown breaking-changes file (adoc) |
+| `configSources[]` (`channel`: configmap-file / config-file / helm-values / cli-flags / env-vars / feature-gates / custom-resource; `file`, `format`, `configMap`, `valuesPath`, `flag`, `resource`, required upstream `references` with verbatim quotes) | Where a product reads its configuration, as upstream documents it. Not used by ingestion: the learning loop shows it to proposers (prompt `semantic-<task>/v2`), so an applicability condition reads the right channel with a decidable predicate (`text-line` on the ConfigMap key, `values-key`, `cli-flag`, `env-var`, `feature-gate` with `path`, `field` on a custom resource) instead of `undecidable`. Catalog validation enforces the per-channel fields, https references with quotes, and that no reference cites evaluation data | LOOP-DIAGNOSIS-2 L1: 157 `undecidable` leaves in the knowledge store, most of them naming a configuration object the model did not know a predicate could read (e.g. a config file embedded in a ConfigMap; `text-line` was used by 13 leaves) |

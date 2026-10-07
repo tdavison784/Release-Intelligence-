@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b1739e7399e8",
+    "candidateId": "sc-cd46ebca5f3e",
+    "proposalId": "sp-11575bc2fee7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "argo-cd",
+        "name": "applications/update, applications/delete (sub-resource inheritance)"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"policies granting update or delete to an application applied to its sub-resources\"",
+        "after": "\"update or delete actions only apply to the application itself; sub-resources require separate update/* or delete/* policies\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "kind": "Application"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "rules[].verbs",
+                      "state": "exists",
+                      "pattern": "(^|,)\\s*(update|delete)(\\s|,|$)"
+                    }
+                  ],
+                  "kind": "ClusterRole"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "text-line",
+                      "path": "rules[].verbs",
+                      "state": "exists",
+                      "pattern": "(^|,)\\s*(update|delete)(\\s|,|$)"
+                    }
+                  ],
+                  "kind": "Role"
+                }
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies granting update or delete permissions on Applications no longer automatically grant those permissions on managed sub-resources; operators must define separate policies with update/* or delete/* verbs to maintain access to application-managed resources.",
+        "remediation": "Define new RBAC policies with update/* and delete/* verbs for managed resources, or set server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm to preserve v2 behavior.",
+        "severity": "high"
+      },
+      "statement": "Fine-grained RBAC policies granting update or delete to an Application no longer apply to its sub-resources by default; new policies granting update/* or delete/* are required for managed resources, with v2 behavior restorable via server.rbac.disableApplicationFineGrainedRBACInheritance=false in argocd-cm."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/behavior-changed",
+        "detail": "rbac-permission behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/behavior-changed",
+        "detail": "rbac-permission behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

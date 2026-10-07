@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-df702e4f7c6e",
+    "candidateId": "sc-e51e65327713",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or scrapers query the old metric names"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics are exposed under new names; anything referencing the old metric names (dashboards, alerts) must be updated to the new names.",
+        "severity": "low"
+      },
+      "statement": "Prometheus metric name prefixes were renamed: crossplane_composition_controllers_* to engine_controllers_*, crossplane_composition_watches_* to engine_watches_*, and crossplane_composition_run_function_* to function_run_function_*."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c3df0dece271"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9543d1adc09b437c61071e859280abdfb26fbd590ad94ca71049e50110d37eef",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-02T16:12:57Z",
+      "callId": "33f5fc43-5f27-435c-b0b8-4fec9b80b841"
+    }
+  }
+}

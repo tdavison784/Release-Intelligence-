@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-b038ac70b042",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-e43c89ffa28f",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-a5244367ec88"
+          ],
+          "statementKeys": [
+            "sk-f0229d5487c0"
+          ],
+          "changeIds": [
+            "chg-e43c89ffa28f"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Added support for by passing overload manager for static listeners",
+    "text": "Added support for by passing overload manager for static listeners. This can be reverted by setting BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in agent Deployment.",
+    "evidence": [
+      {
+        "id": "ev-0f35637a9823",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52663.yaml",
+        "locator": "52663.yaml L9-L11",
+        "excerpt": "- |\n    **Added** support for by passing overload manager for static listeners. This can be reverted by setting\n    BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in agent Deployment.",
+        "contentDigest": "sha256:f83f37547e6a1ed43ecc29a00fa6184cfc64b5c1d0ef5dd9a46b834544448c88",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-30196a641c82",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/41859",
+        "locator": "title and description",
+        "excerpt": "issue: Probes are not excluded from overload manager actions [closed; labels kind/enhancement, area/networking]\n**Describe the feature request**\nWe are recently testing overload manager with istio using custom bootstrap. Our scenario is to overload the ingressgateway heap_size configured via sending requests from large number of concurrent connections, then we see stop_accepting_connections/requests actions triggered and new requests will fail.\nBut we found stop_accepting_connections(also stop_accepting_requests) stops the internal probes like readiness probe, which leads to ingressgateway pod…",
+        "contentDigest": "sha256:37b9ade1f777663faca05e7b5c6ec5798192de755c3cf45fcb94d3f6fb9575e1",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-58b578f2cd3e",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/41859",
+        "locator": "description (part 2)",
+        "excerpt": "which will causes issue for us.\n\n**Describe alternatives you've considered**\nWe think it might not be an approperiate way to use /healthz/ready for readiness probe under overload manager condition, we expect if istio can exclude the probes from stop_accepting_* actions so that overload actions stop accepting requests (or connections) should not make the probes fail. Is there anything/idea istio can do to improve the probes?\n\nrelated issue also raised https://github.com/envoyproxy/envoy/issues/23843\n\n**Affected …",
+        "contentDigest": "sha256:37b9ade1f777663faca05e7b5c6ec5798192de755c3cf45fcb94d3f6fb9575e1",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-935f59fe2782",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52663",
+        "locator": "title and description",
+        "excerpt": "issue: Allow to disable overload manager for health checks and metrics [closed; labels kind/enhancement, area/environments]\n**Describe the feature request**\n\nIn [Envoy 1.31](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.31/v1.31.0), a new feature was added to the listener called `bypass_overload_manager`:\n\n> listener: Added [bypass_overload_manager](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/listener/v3/listener.proto#envoy-v3-api-field-config-listener-v3-listener-bypass-overload-manager) to bypass the overload manager for a listener. When set to true, the liste…",
+        "contentDigest": "sha256:0f40e97675294c1d017917add128338067a42f32811613e82e5faa0cda66413e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-782a4246017b",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52663",
+        "locator": "description (part 2)",
+        "excerpt": "protection.\n\nThis feature is useful to be enabled for health check and metrics listeners, so that they can bypass the overload manager.\n\nFor example, the overload manager might be configured to drop any new connections or HTTP requests when the memory reaches 95%.\n\nHowever, this affects both health checks and metrics, leading to a problem that the metrics will not be exported, or the proxy might be killed, because it won't respond to the health check.\n\nAs for now, the health checks and metrics listeners are …",
+        "contentDigest": "sha256:0f40e97675294c1d017917add128338067a42f32811613e82e5faa0cda66413e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "env:BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7348b73db8e9",
+  "promptDigest": "sha256:d1c5eb4db0da9af72a43e1c3622862889daa5705d5b75e8e249263c9aa542884",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8d30b270-2512-48e5-9381-eb03098ebdb4",
+  "startedAt": "2026-10-03T12:57:01.255Z",
+  "decidedAt": "2026-10-03T12:57:17.631Z",
+  "durationMs": 15722,
+  "costUSD": 0.16237200000000002,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-00ae0ffe7ffa] says Compositions using `spec.mode: Resources` (native patch and transform) must be migrated to composition functions before upgrading, so a Composition with spec.mode equal to Resources is exposed. The validator's computed diff of the Composition CRDs [ev-b12db1ba30d3] [ev-a3bca45d2477] says the default of spec.mode changed between releases. The only values are Resources and Pipeline, and v2 keeps only Pipeline, so a Composition that leaves spec.mode unset probably ran in Resources mode by default on v1.20. The proposed equals-only condition is therefore too narrow. Confidence is low because the old default literal is not shown directly in any excerpt.",
+    "citations": [
+      "ev-00ae0ffe7ffa",
+      "ev-b12db1ba30d3",
+      "ev-a3bca45d2477"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Native patch and transform composition (Composition spec.mode: Resources) is removed in Crossplane 2.0. Compositions that set spec.mode to Resources, or leave it unset and so default to Resources on v1.x, must be migrated to composition functions before upgrading.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.mode",
+                  "state": "equals",
+                  "values": [
+                    "Resources"
+                  ]
+                },
+                {
+                  "op": "field",
+                  "path": "spec.mode",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

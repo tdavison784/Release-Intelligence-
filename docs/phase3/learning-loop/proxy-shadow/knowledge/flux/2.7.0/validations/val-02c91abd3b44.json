@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-02c91abd3b44",
+    "candidateId": "sc-55aa41cb3e29",
+    "proposalId": "sp-d66644a169e7",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment runs `flux push artifact --provider azure` on Azure DevOps runners (CI pipeline invocation of the flux CLI is not visible in chart, manifest, or cluster inputs)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On Azure DevOps runners, `flux push artifact --provider azure` now performs Azure CLI calls that the command previously did not allow; operators who push OCI artifacts from DevOps runners should verify the command authenticates via the Azure CLI as expected.",
+        "remediation": "No action required; if pushing artifacts with `flux push artifact --provider azure` from Azure DevOps runners, verify the command authenticates via the Azure CLI as intended.",
+        "severity": "low"
+      },
+      "statement": "flux 2.7.0 fixes `flux push artifact --provider azure` to allow Azure CLI calls on Azure DevOps runners, which the command previously did not permit."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

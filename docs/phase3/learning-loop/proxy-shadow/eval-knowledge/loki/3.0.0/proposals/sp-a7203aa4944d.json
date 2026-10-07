@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a7203aa4944d",
+    "candidateId": "sc-00c8dd09dcde",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metric-prefix"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment uses Loki's embedded cache and whether its dashboards, alert rules or PromQL queries reference metrics under the old querier_cache_ prefix"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps working, but embedded-cache metrics are now published under the loki_embeddedcache_ prefix, so dashboards, alerts or queries still referencing the old querier_cache_ metric names will no longer see those series, and the duplicate metrics no longer exist.",
+        "remediation": "Update any dashboards, alert rules or queries that reference the old querier_cache_ metric prefix to use loki_embeddedcache_.",
+        "severity": "low"
+      },
+      "statement": "Loki's embedded cache metrics are now exposed under the loki_embeddedcache_ prefix instead of querier_cache_, and duplicate metrics are removed (PR 10693)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e4b24ba811ff"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5f4735185227a9704a8fa431551734c84289fee9a1878f5bcb718c3dd3ffdb11",
+      "inputEvidence": [
+        "ev-e4b24ba811ff"
+      ],
+      "generatedAt": "2026-10-03T07:24:36Z",
+      "callId": "022ba207-311a-4dbd-82c8-40b1460a5f7b"
+    }
+  }
+}

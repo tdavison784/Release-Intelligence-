@@ -1,0 +1,43 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-646b523e98df",
+  "promptDigest": "sha256:351450e46347a0cb2534f927ee3ef57d5e0a9cc3a8409c16491c2a9b98cf3683",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "68a9b17b-28eb-4a89-b8f9-b4a302523dfa",
+  "startedAt": "2026-10-03T12:25:30.759Z",
+  "decidedAt": "2026-10-03T12:25:51.254Z",
+  "durationMs": 19763,
+  "costUSD": 0.156244,
+  "output": {
+    "action": "correct",
+    "reason": "The release note [ev-51e7bc07959c] only announces kubelet configuration on the v1 EC2NodeClass. The upgrade guide says what this means for existing environments: \"Kubelet was moved to the EC2NodeClass from the NodePool\" [ev-1253ff5bd0a5], as part of the v1 migration to which conversion webhooks apply [ev-bfb089d90d84]. So the exposed environments are those that set kubelet on a NodePool, not every environment that uses the v1 EC2NodeClass. The proposed gvk-in-use condition is too broad and misses the affected group. The NodePool field path spec.template.spec.kubelet is not spelled out in the excerpts, so confidence is low.",
+    "citations": [
+      "ev-1253ff5bd0a5",
+      "ev-bfb089d90d84",
+      "ev-51e7bc07959c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Karpenter 1.0.0 adds kubelet configuration to the v1 EC2NodeClass API because kubelet moved there from the NodePool. Exposed environments are those whose NodePools set kubelet configuration.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.spec.kubelet",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

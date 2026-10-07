@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f08157cf8501",
+    "candidateId": "sc-4eec988b66b4",
+    "proposalId": "sp-8352862662e7",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.targetRefs",
+              "state": "set"
+            }
+          ],
+          "group": "security.istio.io",
+          "kind": "AuthorizationPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new status condition is written on AuthorizationPolicy; its format is experimental and will change, with no operational failure stated."
+      },
+      "statement": "Istio now writes a (experimental-format) status condition on AuthorizationPolicy indicating binding to a waypoint proxy; policies with multiple targetRefs get a single condition."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:snapshot",
+        "detail": "no CRD snapshot on both sides"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:snapshot",
+        "detail": "no CRD snapshot on both sides"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

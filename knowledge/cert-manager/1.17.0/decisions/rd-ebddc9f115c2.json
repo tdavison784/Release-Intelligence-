@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ebddc9f115c2",
+    "reviewItemId": "ri-05d913d37688",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "serviceAccount.annotations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "ServiceAccount annotations now support templating via the built-in Helm tpl function on both keys and values to facilitate workload identity configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:7099df31b57c5033fb680344f3d1d7b7145ae6f7400837e6f75896daa392738f",
+      "inputEvidence": [
+        "ev-e7cf2f463686",
+        "ev-5bb8949656b2",
+        "ev-8c1cb1cebce9",
+        "ev-08d4852e612a",
+        "ev-2536ba0a3f4a",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-fe0fca386a7a",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-06T01:36:18.788Z",
+      "callId": "31155085-5510-47fc-be73-352277b44a31",
+      "provider": "anthropic"
+    },
+    "reason": "The linked PR's example puts the templated annotation under `serviceAccount: annotations:` [ev-8c1cb1cebce9]. That matches the values key path serviceAccount.annotations. The PR changes only the controller's templates/serviceaccount.yaml together with values.yaml [ev-08d4852e612a], so the subject is that one key and not other ServiceAccounts' keys. The release note says the existing annotation keys and values are now run through Helm `tpl` [ev-e7cf2f463686]. The configuration is unchanged but rendered differently, so behavior-changed is the right change type.",
+    "startedAt": "2026-10-06T01:36:11.996Z",
+    "decidedAt": "2026-10-06T01:36:18.788Z"
+  }
+}

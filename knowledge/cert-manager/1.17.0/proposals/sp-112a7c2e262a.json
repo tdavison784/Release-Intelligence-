@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-112a7c2e262a",
+    "candidateId": "sc-5c66197e4890",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that set spec.renewBeforePercentage will be renewed according to the field's specification instead of the previous incorrect behavior, so renewal timing may change; nothing fails and no resource is rejected.",
+        "remediation": "Review renewal timing for Certificate resources that set spec.renewBeforePercentage to confirm the corrected behavior is acceptable.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes the behavior of the Certificate field spec.renewBeforePercentage so that it complies with its specification."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-cae85181502c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:459999366acdee5634d4c4081a85a16e0eb0de0bf263f65edb4925b0c44eb5e8",
+      "inputEvidence": [
+        "ev-cae85181502c"
+      ],
+      "generatedAt": "2026-10-02T11:31:44Z",
+      "callId": "6b1ada0b-0d8f-4c29-9d22-6d2f8d5ed87a"
+    }
+  }
+}

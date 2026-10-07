@@ -38,3 +38,11 @@ Intelligence pipeline was not run before the expectations were written.
   (action-required) are expected to MISS until the join grows a rule for
   operator-flag-shaped configuration. Recorded here as the honest
   expectation; a miss is a measurement of the join, not of the dataset.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- E1 is now an undecided link: cert-manager PR 7368 states the hash "is decided by the **signer**", i.e. the CA issuer's key for this fixture's leaf, and the CA key (Secret `internal-ca-key`) is not in the fixture. The exposure label spells out both paths (SelfSigned with a >=3072-bit RSA key; CA issuer with an `undecidable` CA-key leaf).
+- E2 corrected to review (deprecation): features.go at v1.17.0 keeps ValidateCAA functional; at v1.18.0 it is a logged no-op.
+- E3: the two gates are labelled `default-changed` false→true with consequence `none` (informational), exposure "gate not set in the featureGates values string".

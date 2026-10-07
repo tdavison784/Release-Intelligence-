@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-09ce08bd0ed1",
+    "candidateId": "sc-b4d0f27d94a8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether ImageRepository (image.toolkit.fluxcd.io) objects exist in the cluster stored as v1beta2, i.e. whether the CRD's status.storedVersions still lists v1beta2"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageRepository objects stay stored as v1beta2 until they are rewritten. A storage version migration and an update to status.storedVersions must be done before a later release removes v1beta2.",
+        "remediation": "Rewrite all ImageRepository objects so they are stored as v1. Then remove v1beta2 from status.storedVersions on the imagerepositories.image.toolkit.fluxcd.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imagerepositories.image.toolkit.fluxcd.io CRD changes from v1beta2 to v1. Existing ImageRepository objects stay stored as v1beta2 until they are rewritten, so a storage version migration and an update to status.storedVersions are needed before a later release removes v1beta2."
+    },
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:58cee3bbaa0d9958655bbfc271c75bc514f483f81b85b567b29ab5b7c565d01c",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:57:30Z",
+      "callId": "bb6d1c2e-e7d4-4376-b68a-f88fdd9c8dd7"
+    }
+  }
+}

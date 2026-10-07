@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1f008e336998",
+    "candidateId": "sc-57c2cabef60b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "loki",
+        "name": "lambda-waf-s3-logs",
+        "component": "promtail"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config.file",
+              "component": "promtail",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Lambda-Promtail deployments can now ingest AWS WAF logs from S3 buckets; this is an additive feature with no impact on existing configurations."
+      },
+      "statement": "Loki 3.0.0 adds support for AWS WAF logs stored in S3 to Lambda-Promtail."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-c63a71bf0be5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:61b519d004106d1f52106c9cf5379492643517034f0fa756d252af4e26898ff1",
+      "inputEvidence": [
+        "ev-c63a71bf0be5"
+      ],
+      "generatedAt": "2026-10-02T16:11:48Z",
+      "callId": "bc1063ab-b8c1-4663-9cd0-7a5017959c80"
+    }
+  }
+}

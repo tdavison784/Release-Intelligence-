@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1d07eee045cf",
+    "reviewItemId": "ri-3c366ec48eaa",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The upgrade notes list this under 'Changed Metrics': the metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state now appears as envoy_cilium_npds_control_plane_connected_state.",
+        "remediation": "Update any dashboards, recording rules or alerts that reference the old metric name to use envoy_cilium_npds_control_plane_connected_state.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state is exposed under the new name envoy_cilium_npds_control_plane_connected_state, so anything that queries the old name needs review."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5edae12003c0864d836432e895fc6e8211a7afef8db236722e8405c3a5c1d134",
+      "inputEvidence": [
+        "ev-4024cb69f8ce",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:22:47.091Z",
+      "callId": "d451159d-6037-4694-a2e6-ff5f0227c07f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-4024cb69f8ce] and [ev-77f05428497a] only say that the Envoy NPDS metric prefix was renamed from envoy_cilium_policymap_<node-ip>_<node-id>_ to envoy_cilium_npds_, so the connected-state metric is now reported under the new name. They do not say that anything fails, is rejected or must be migrated. Dashboards or alerts that use the old name would need updating, but the evidence never states that something breaks, so a failure kind would over-claim. behavior-change with low severity (review class) and the proposed statement and remediation match the evidence.",
+    "startedAt": "2026-10-03T12:22:38.61Z",
+    "decidedAt": "2026-10-03T12:22:47.091Z"
+  }
+}

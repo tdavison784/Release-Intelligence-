@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d7d43cb0057a",
+    "candidateId": "sc-40aecbe6e0b2",
+    "proposalId": "sp-0853079bf53a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"cortex_*\"",
+        "after": "\"loki_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "metrics_namespace",
+                  "state": "equals",
+                  "values": [
+                    "\"cortex\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki metrics that previously had the `cortex_` prefix will now have the `loki_` prefix by default, requiring updates to metric scrape configurations, dashboards, and alerting rules that reference these metrics by name.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 changes metrics namespace prefix from `cortex_` to `loki_`; the `metrics_namespace` config key can be set to `cortex` to retain the old prefix, but this setting is deprecated and will be removed in the next minor release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/value-changed",
+        "detail": "no canonical exposure condition for config-key value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

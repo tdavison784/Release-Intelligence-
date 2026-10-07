@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e1b006b9dd2f",
+    "reviewItemId": "ri-d736e0934cb0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate objects will no longer create CertificateRequest or Secret objects during deletion, preventing spurious resource creation in the finalizer cleanup phase.",
+        "severity": "low"
+      },
+      "statement": "The Certificate object's behavior during deletion changes: it will no longer create CertificateRequest or Secret objects while being deleted."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "While a Certificate is being deleted, cert-manager no longer creates CertificateRequest or Secret objects for it. Before this release it could create them during deletion.",
+        "severity": "low"
+      },
+      "statement": "From cert-manager 1.17.0, a Certificate that is being deleted no longer creates CertificateRequest or Secret objects (bug fix). Nothing fails; the controller behaves differently during deletion."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:cb0c2ce7eafc9e4e4b45625a231cb5409da3d3f973c19a34ed41a949c925fabd",
+      "inputEvidence": [
+        "ev-ab4bd1639399",
+        "ev-60054fcf0986",
+        "ev-84061d76ea1b"
+      ],
+      "generatedAt": "2026-10-03T02:02:59.051Z",
+      "callId": "e940b267-3c4f-42b8-abd5-ea479764ea40",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-ab4bd1639399] lists this under Bug or Regression. It says only that a Certificate being deleted will no longer create CertificateRequest or Secret objects. It does not say anything fails, is rejected or needs migrating, so a low-severity behavior-change (review) is the right kind. However, the proposed statement adds \"spurious resource creation in the finalizer cleanup phase\", which the evidence does not support, so I limited the statement to what the release note says.",
+    "startedAt": "2026-10-03T02:02:50.172Z",
+    "decidedAt": "2026-10-03T02:02:59.051Z",
+    "resultingFact": "vf-c949fc1d6fb1"
+  }
+}

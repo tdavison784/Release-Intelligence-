@@ -372,3 +372,65 @@ provenance:
     charts the resolver proposed as independent artifacts are other products,
     and the sub-component pins needed a new generic construct
     (version.strategy: field). Verified with `ri check -n 6`.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: chart-values
+  channel: helm-values
+  summary: The product is the Helm chart; every component (prometheusOperator, prometheus, alertmanager, grafana,
+    kube-state-metrics, node exporter, default rules) is configured through its values, with sub-chart options under
+    the dependency keys.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/README.md
+    quote: 'To see all configurable options with detailed comments:'
+- id: prometheus-spec
+  channel: helm-values
+  component: prometheus
+  summary: Settings of the Prometheus instance are given under prometheus.prometheusSpec, which the chart renders
+    into the Prometheus custom resource reconciled by the operator.
+  valuesPath: prometheus.prometheusSpec
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Settings affecting prometheusSpec'
+- id: alertmanager-config
+  channel: helm-values
+  component: alertmanager
+  summary: The Alertmanager configuration file (routes, receivers, inhibit rules) is written as a map under alertmanager.config
+    (or as a string via alertmanager.stringConfig with tplConfig); Alertmanager workload settings live under alertmanager.alertmanagerSpec.
+  valuesPath: alertmanager.config
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Alertmanager configuration directives'
+- id: prometheus-feature-flags
+  channel: feature-gates
+  component: prometheus
+  summary: Disabled-by-default Prometheus features are enabled with Prometheus' --enable-feature flag, set in the
+    chart through prometheus.prometheusSpec.enableFeatures (alertmanager.enableFeatures for Alertmanager).
+  flag: --enable-feature
+  valuesPath: prometheus.prometheusSpec.enableFeatures
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '# EnableFeatures API enables access to Prometheus disabled features.'
+  - url: https://prometheus.io/docs/prometheus/latest/feature_flags/
+    quote: You can enable them using the --enable-feature flag with a comma separated list of features.
+- id: operator-feature-gates
+  channel: feature-gates
+  component: prometheus-operator
+  summary: Prometheus Operator feature gates are a map under prometheusOperator.featureGates, rendered as the operator's
+    --feature-gates argument.
+  flag: --feature-gates
+  valuesPath: prometheusOperator.featureGates
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Feature gates to enable/disable operator features, rendered as --feature-gates=<key>=<value>.'
+- id: operator-flags
+  channel: cli-flags
+  component: prometheus-operator
+  summary: Additional command-line arguments for the prometheus-operator binary are passed as a list in prometheusOperator.extraArgs.
+  valuesPath: prometheusOperator.extraArgs
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Extra arguments to pass to prometheusOperator'

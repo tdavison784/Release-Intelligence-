@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9dffcb8286aa",
+    "candidateId": "sc-3e520936a5c1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "traefik",
+        "name": "--consulCatalog.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "traefik",
+          "name": "--consulCatalog.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_CONSULCATALOG_NAMESPACE",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "The option is unsupported in v3 and would prevent Traefik from starting if it is still configured.",
+        "remediation": "Use the `namespaces` option instead of `namespace`.",
+        "severity": "high"
+      },
+      "statement": "The ConsulCatalog provider `namespace` option is removed in Traefik v3; configuring it prevents Traefik from starting, and `namespaces` must be used instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-3faa5287ea4e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6506a2666014b1d6ac4a185555747fd7c33870863e912c39713dac9e509fa36b",
+      "inputEvidence": [
+        "ev-3faa5287ea4e"
+      ],
+      "generatedAt": "2026-10-03T07:06:01Z",
+      "callId": "b28cefc9-e64a-4f47-9edb-3ea9c7c5277e"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-35ab92fcc572",
+    "candidateId": "sc-967b47c048f1",
+    "proposalId": "sp-d24e9e2823dc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The API server rejects v1beta1 SecretStore objects that use the fake provider when a data[] entry leaves out `value`.",
+        "remediation": "Before applying the SecretStore, set `value` on every `spec.provider.fake.data[]` entry.",
+        "severity": "low"
+      },
+      "statement": "In external-secrets 0.16.0, the external-secrets.io/v1beta1 SecretStore schema makes `spec.provider.fake.data[].value` required (the required list goes from [\"key\"] to [\"key\",\"value\"]), so the API server rejects fake-provider data entries that leave out `value`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

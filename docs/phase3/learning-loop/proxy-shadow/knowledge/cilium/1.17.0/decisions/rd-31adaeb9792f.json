@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-31adaeb9792f",
+    "reviewItemId": "ri-1850133de90a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "statement": "Running Cilium with --datapath-mode=lb-only in plain Docker mode now requires adding --enable-k8s=false, otherwise Kubernetes is assumed to be present."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b133464c184e2d49e6f1ad0d2e68252cfa9686bdcf976adbcb2e1ea088536c38",
+      "inputEvidence": [
+        "ev-09d5e26554e5",
+        "ev-fa8f791f1c11",
+        "ev-ddf5fd344d03",
+        "ev-2a9b9b849526",
+        "ev-01a5226ddc9a",
+        "ev-b37407b60520",
+        "ev-7424e74176c0",
+        "ev-3c259372f6bf",
+        "ev-c05c58b487cc",
+        "ev-a152c8cea30c",
+        "ev-5f4aedc964f4",
+        "ev-e6b268264713",
+        "ev-1a27180320cd",
+        "ev-23473218087f",
+        "ev-ed86f8eb85bf",
+        "ev-98d8079a3380",
+        "ev-ffd2c3200e89",
+        "ev-32984cccce52",
+        "ev-21e07cf98d97",
+        "ev-bcdbfe5ecd01",
+        "ev-b5054e15ad6c",
+        "ev-c082dfefeb1b",
+        "ev-b7f3339817fc",
+        "ev-9113ff586fec",
+        "ev-672c6336b39c",
+        "ev-0debb0d83ac2",
+        "ev-4ce2886cea1f",
+        "ev-42d13e5eb7d7",
+        "ev-f13e15b06a08",
+        "ev-f941fa338b6a",
+        "ev-a7d9e5f931b3",
+        "ev-b598b51801ea",
+        "ev-34619549fb8a",
+        "ev-b182e7794768",
+        "ev-b66b29e5567d",
+        "ev-8a664283f86e",
+        "ev-1a97b17bde3d",
+        "ev-1b1b9343e346",
+        "ev-f3d0a6f12b97",
+        "ev-72ecae3c2fc1",
+        "ev-070e2e78535d",
+        "ev-fd031f140d8c",
+        "ev-77f05428497a"
+      ],
+      "generatedAt": "2026-10-03T12:45:16.959Z",
+      "callId": "7972f1d3-3c09-4dbe-bae5-cf6609483e29",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-09d5e26554e5] says that running in `--datapath-mode=lb-only` for plain Docker mode \"now requires\" adding `--enable-k8s=false`, and that without it Kubernetes is assumed to be present. That makes the subject the `--enable-k8s` cli-flag. The change fits now-required: a flag that was previously optional must now be set to `false`, so after=\"false\" is copied literally from the text. The requirement only applies in lb-only plain-Docker setups, which is a matter for the applicability aspect. That aspect is not under review here.",
+    "startedAt": "2026-10-03T12:45:09.482Z",
+    "decidedAt": "2026-10-03T12:45:16.959Z"
+  }
+}

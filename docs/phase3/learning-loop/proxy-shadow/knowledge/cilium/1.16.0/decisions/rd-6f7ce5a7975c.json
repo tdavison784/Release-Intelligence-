@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f7ce5a7975c",
+    "reviewItemId": "ri-1b7dcd2176ad",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The ces-write-qps-limit flag value is ignored; the operator uses dynamic rate limiting instead.",
+        "severity": "high"
+      },
+      "statement": "The Cilium Operator's six CiliumEndpointSlice rate limit flags (ces-write-qps-limit, ces-write-qps-burst, ces-enable-dynamic-rate-limit, ces-dynamic-rate-limit-nodes, ces-dynamic-rate-limit-qps-limit, ces-dynamic-rate-limit-qps-burst) are deprecated and their usage is now ignored; the ces-rate-limits flag or ciliumEndpointSlice.rateLimits Helm value replaces them."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:eba3daf23bd0d01460ac1286dd494a1c0ef595ba2bedacfb9091d087d446d00c",
+      "inputEvidence": [
+        "ev-7994b2163342",
+        "ev-e24450bf8fed",
+        "ev-736cdc5fc0d2",
+        "ev-5ba316aaead4",
+        "ev-25984c3785d4",
+        "ev-dc0997efed20",
+        "ev-b5190a359c10",
+        "ev-2c2bce4c1f26",
+        "ev-fbe2aedc4ddc",
+        "ev-540db624a6ea",
+        "ev-89034c5d2c74",
+        "ev-4dff543b3882",
+        "ev-6e35b4906b1d",
+        "ev-abfbf30753a5",
+        "ev-2bdafc717eab",
+        "ev-793f1f2f3e70",
+        "ev-12660f87be40",
+        "ev-b62da9c1ceb5",
+        "ev-ee4d25413bf4",
+        "ev-8aa9ac2ddd3a",
+        "ev-a6c56e62cf47",
+        "ev-e6932b8a5ba9",
+        "ev-e477115a445b",
+        "ev-f64f7c540c6d",
+        "ev-0b06499d6851",
+        "ev-b8b62ef806f0",
+        "ev-91fac6720d6f",
+        "ev-07d6be356398"
+      ],
+      "generatedAt": "2026-10-03T12:45:45.69Z",
+      "callId": "f9922bb9-103a-4d35-9ca9-4de64e5428ca",
+      "provider": "anthropic"
+    },
+    "reason": "The 1.16 upgrade notes say `ces-write-qps-limit` is one of the flags that \"have been deprecated and their usage will be ignored\" [ev-7994b2163342]. The same note says the operator now uses dynamic rate limiting based on cluster size. A configured value that stops being honoured is setting-ignored, so this is action work, and the proposed statement matches the evidence. The evidence does not say how severe the effect is. The way to restore a custom setting is the `ces-rate-limits` flag or the Helm value `ciliumEndpointSlice.rateLimits` [ev-7994b2163342].",
+    "startedAt": "2026-10-03T12:45:37.042Z",
+    "decidedAt": "2026-10-03T12:45:45.69Z"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ae91a8769c99",
+    "candidateId": "sc-a4114b258331",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The `cilium_api_limiter_processed_requests_total` has now label `return_code` to specify the http code of the request\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring systems scraping the `cilium_api_limiter_processed_requests_total` metric will receive an additional `return_code` label on each metric series, which may require updating metric queries and dashboards.",
+        "severity": "medium"
+      },
+      "statement": "The `cilium_api_limiter_processed_requests_total` metric now includes a `return_code` label to specify the HTTP code of the request."
+    },
+    "proposals": [
+      "sp-730c8a28fea9",
+      "sp-cbd823bb6879"
+    ],
+    "validations": [
+      "val-095cc71e146a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:05:56Z"
+  }
+}

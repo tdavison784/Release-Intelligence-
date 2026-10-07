@@ -32,10 +32,14 @@ import (
 )
 
 type storedEdgeFixture struct {
-	CaseID   string            `json:"caseId"`
-	Recorded string            `json:"recordedFrom"`
-	Changes  []domain.Change   `json:"changes"`
-	Evidence []domain.Evidence `json:"evidence"`
+	CaseID   string `json:"caseId"`
+	Recorded string `json:"recordedFrom"`
+	// MissedAtRecording lists expected items no recorded change matched (recall
+	// misses of the recorded run). The routine gate is vacuous for them; the
+	// list is checked both ways so it cannot go stale silently.
+	MissedAtRecording []string          `json:"missedAtRecording,omitempty"`
+	Changes           []domain.Change   `json:"changes"`
+	Evidence          []domain.Evidence `json:"evidence"`
 }
 
 func loadRoutineFixture(t *testing.T, caseID string) (*storedEdgeFixture, EvidenceIndex) {
@@ -80,6 +84,15 @@ func TestRoutineNeverCoversExpectedItems(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", e.Name(), err)
 		}
+		if c.TransferOf != "" {
+			continue // shares the base case's expected items and edge (gated there)
+		}
+		if _, err := os.Stat(filepath.Join("testdata", "stored-edges", c.ID+".json")); os.IsNotExist(err) {
+			// Cases added after the stored run (2026-10-01, 17 entries) have no
+			// recorded edge yet; recording one is a separate, reviewed step.
+			t.Logf("%s: no stored-edge fixture; not gated", c.ID)
+			continue
+		}
 		fx, ev := loadRoutineFixture(t, c.ID)
 		routine := routineIDs(fx)
 		gated++
@@ -95,6 +108,18 @@ func TestRoutineNeverCoversExpectedItems(t *testing.T) {
 						routineHits++
 					}
 				}
+			}
+			knownMiss := false
+			for _, id := range fx.MissedAtRecording {
+				knownMiss = knownMiss || id == exp.ID
+			}
+			if knownMiss {
+				if hits > 0 {
+					t.Errorf("%s %s: listed in missedAtRecording but %d stored changes match — update the fixture", c.ID, exp.ID, hits)
+				} else {
+					t.Logf("%s %s: recall miss at recording; routine gate vacuous for it", c.ID, exp.ID)
+				}
+				continue
 			}
 			if hits == 0 {
 				// The gate is only meaningful while the stored edges still
@@ -118,8 +143,8 @@ func TestRoutineNeverCoversExpectedItems(t *testing.T) {
 	if gated == 0 {
 		t.Fatal("no dataset entries found")
 	}
-	if gated != 17 {
-		t.Errorf("expected to gate 17 dataset entries, got %d", gated)
+	if gated < 17 {
+		t.Errorf("expected to gate at least the 17 recorded dataset entries, got %d", gated)
 	}
 }
 

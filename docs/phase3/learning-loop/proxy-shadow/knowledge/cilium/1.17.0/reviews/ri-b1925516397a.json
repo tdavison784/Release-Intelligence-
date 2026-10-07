@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b1925516397a",
+    "candidateId": "sc-0181fcac4ae4",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_update_failure` -> `envoy_cilium_npds_update_failure`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 1.17 the metric formerly exposed as envoy_cilium_policymap_<node-ip>_<node-id>_update_failure is emitted as envoy_cilium_npds_update_failure, so dashboards, alerts, or other monitoring that select the old name will no longer match data for it.",
+        "remediation": "Update dashboards, alerts, and other monitoring that reference envoy_cilium_policymap_<node-ip>_<node-id>_update_failure to use envoy_cilium_npds_update_failure.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17 renames the metric envoy_cilium_policymap_<node-ip>_<node-id>_update_failure to envoy_cilium_npds_update_failure, so monitoring that references the old name no longer matches it."
+    },
+    "proposals": [
+      "sp-3b8b8c7b6c2f",
+      "sp-4656e44b97d5",
+      "sp-a8e6e1b2b4f2"
+    ],
+    "validations": [
+      "val-bb815e5459a7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T08:06:46Z"
+  }
+}

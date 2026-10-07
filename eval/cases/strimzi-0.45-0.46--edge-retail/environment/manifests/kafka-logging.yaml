@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-kafka-logging
+data:
+  log4j.properties: |
+    # Custom broker logging carried over from the original 0.2x-era deployment
+    log4j.rootLogger=INFO, kafkaAppender
+    log4j.appender.kafkaAppender=org.apache.log4j.RollingFileAppender
+    log4j.appender.kafkaAppender.File=${kafka.logs.dir}/server.log
+    log4j.appender.kafkaAppender.MaxFileSize=50MB
+    log4j.appender.kafkaAppender.layout=org.apache.log4j.PatternLayout
+    log4j.appender.kafkaAppender.layout.ConversionPattern=[%d] %p %m (%c)%n

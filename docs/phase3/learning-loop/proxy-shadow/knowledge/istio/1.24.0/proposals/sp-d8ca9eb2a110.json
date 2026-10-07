@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d8ca9eb2a110",
+    "candidateId": "sc-478fa231ae3d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "sidecar.istio.io/native-side"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[\"sidecar.istio.io/native-side\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new opt-in annotation for controlling native sidecar injection per pod. Pods without it keep following the global ENABLE_NATIVE_SIDECARS setting.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds a pod annotation, sidecar.istio.io/native-side. Setting it to true or false turns native sidecar injection on or off for that pod, and it overrides the global ENABLE_NATIVE_SIDECARS environment variable."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-528ec6ff2f80"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bdd84641e687538ea3d06155b9da3c0fab8c6eb9624a2a73408f6ea5cb5b343e",
+      "inputEvidence": [
+        "ev-528ec6ff2f80"
+      ],
+      "generatedAt": "2026-10-03T07:15:20Z",
+      "callId": "0abc4433-c5b8-4535-904a-fa85897d31d1"
+    }
+  }
+}

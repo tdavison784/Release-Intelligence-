@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d48873e63527",
+    "reviewItemId": "ri-6d403b15ee43",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Traefik plugin support improves to maintain compatibility with http-wasm clients using v0.4.0 while running on the v0.6.0 host.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 upgrades the http-wasm host to v0.6.0 to support clients using v0.4.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Nothing an operator relies on changes. The upgraded http-wasm host adds support for v0.4.0 guests, including source address retrieval, and the evidence does not say that existing plugins stop working, are rejected or behave differently.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 upgrades its http-wasm host to v0.6.0 so that plugins built on http-wasm v0.4.0 can retrieve the source address. This is an additive enhancement, and the evidence states no operational consequence for existing environments."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:089149388968118d6636f9411b4f78df1a60c24a852c4464349303c92cb0986d",
+      "inputEvidence": [
+        "ev-bfb9c0ed4d28",
+        "ev-0ae1747a3ab4",
+        "ev-a0eef0afee7f",
+        "ev-351b6ab48cff",
+        "ev-a63eb025d087",
+        "ev-9e92c97ef99e",
+        "ev-557f1044ff4e",
+        "ev-a4518986637f",
+        "ev-177a6106bc02",
+        "ev-3f297f766443",
+        "ev-636c346e8c61",
+        "ev-4aa7e3fe937e",
+        "ev-dd15d8ccb61e",
+        "ev-8a2c7ab7a3a5",
+        "ev-33c3af75761f",
+        "ev-dcba186fd8d7",
+        "ev-00bf6ae74af0",
+        "ev-7328189b4db1",
+        "ev-e7ee234202c6",
+        "ev-f7d3abb12e99",
+        "ev-9ddb01602beb",
+        "ev-5ce528be35f7",
+        "ev-ee73106833c6",
+        "ev-83cbbcabe1b7",
+        "ev-ae9158566d1b",
+        "ev-a714bf0cb614",
+        "ev-7b4ea0fc44f3",
+        "ev-983fcb0d825d",
+        "ev-9b56ac76a332",
+        "ev-4ea791764206",
+        "ev-fac54af24634",
+        "ev-f387a976e3cf",
+        "ev-2f28e1ec1c46",
+        "ev-e60b03c8ec6d",
+        "ev-7d645bb4f295",
+        "ev-6c51e98dbb14",
+        "ev-9f33f28bdfe0",
+        "ev-53aef8a0056b",
+        "ev-38adf39801bd"
+      ],
+      "generatedAt": "2026-10-06T01:46:13.691Z",
+      "callId": "f8c1f3c9-fb7a-4dd2-b02e-5b78bd4ad67d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-bfb9c0ed4d28] lists this under Enhancements, and the PR [ev-0ae1747a3ab4] says the http-wasm host was upgraded to v0.6.0 to add support for source address retrieval by v0.4.0 guests. Only go.mod and go.sum changed [ev-a0eef0afee7f]. Nothing in the evidence says that existing plugins or configurations behave differently, fail or need any operator step. That makes this an additive capability with no operational consequence ('none'), not a behavior-change that needs review. The proposed statement also claims a compatibility effect that the evidence does not state.",
+    "startedAt": "2026-10-06T01:46:01.508Z",
+    "decidedAt": "2026-10-06T01:46:13.691Z",
+    "resultingFact": "vf-4a57c50add68"
+  }
+}

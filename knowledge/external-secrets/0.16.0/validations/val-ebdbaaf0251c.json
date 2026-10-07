@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ebdbaaf0251c",
+    "candidateId": "sc-4e61d79ea50a",
+    "proposalId": "sp-71cb7196899d",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "kind": "ExternalSecret",
+        "path": "spec.refreshPolicy"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.refreshPolicy",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new field is added; existing ExternalSecrets that do not set it are not stated to change."
+      },
+      "statement": "A new optional spec.refreshPolicy field is added to the ExternalSecret CRD (v1beta1) to control how the secret is synchronized (CreatedOnce, Periodic, OnChange)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-5b75eb8f573c names crd-field:external-secrets|group=external-secrets.io|kind=ExternalSecret|path=spec.refreshPolicy"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-5b75eb8f573c states the same added: \"ExternalSecret v1beta1 schema: 1 field added: `spec.refreshPolicy`\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

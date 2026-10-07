@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-32b35e5123fa",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-9b7bbbe3df8a",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-92db594edbc3"
+          ],
+          "statementKeys": [
+            "sk-1f8c5b99f34c"
+          ],
+          "changeIds": [
+            "chg-9b7bbbe3df8a"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Updated the redirection method used in Ambient from `TPROXY` to `REDIRECT`. For most users, this should have no impact, but fixes a few compatibility issues…",
+    "text": "Updated the redirection method used in Ambient from `TPROXY` to `REDIRECT`. For most users, this should have no impact, but fixes a few compatibility issues with `TPROXY`.",
+    "evidence": [
+      {
+        "id": "ev-c46155ca9794",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/ambient-redirect.yaml",
+        "locator": "ambient-redirect.yaml L6-L7",
+        "excerpt": "- |\n    **Updated** the redirection method used in Ambient from `TPROXY` to `REDIRECT`. For most users, this should have no impact, but fixes a few compatibility issues with `TPROXY`.",
+        "contentDigest": "sha256:167080b7eb3456edfd289100060fa5e796b6c73981cc0524c94a672e775c7b31",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-8cb35b3fa987",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52260",
+        "locator": "title and description",
+        "excerpt": "issue: Ambient: Error: listen EADDRINUSE: address already in use [closed; labels area/networking, area/ambient]\n### Is this the right place to submit this?\n\n- [X] This is not a security vulnerability or a crashing bug\n- [X] This is not a question about how to use Istio\n\n### Bug Description\n\nWhen I deploy our application to a test environment, where Ambient mesh is enabled, some pods will get into CrashLoop state, where they state, that the port they try to bind is already in use. If I delete the pod and it gets re-scheduled, the error mostly disappears.\n\nWhen I remove the dataplane-mode: ambie…",
+        "contentDigest": "sha256:fd819d8739142e268fe6a97583cc5a4f1ca96247cc40583f1593eac303bf423b",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-7f0224ea6b12",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52260",
+        "locator": "description (part 2)",
+        "excerpt": "re-deploy the application, everything works as expected, I don't think that this is an application issues, we run this in production stable. We have never seen this issue before anywhere else.\n\nFor each pod, we have the following setup:\n- the pod exposes port 8080 (api) and 8081 (monitoring)\n- each pod has two k8s serivce, one for api access , one for monitoring\n- api: k8s service listens on port 80 -> pod exposes port 8080\n- monitoring: k8s service listens on port 8081 -> pod exposes port 8081\n\nThings I tried:\n- …",
+        "contentDigest": "sha256:fd819d8739142e268fe6a97583cc5a4f1ca96247cc40583f1593eac303bf423b",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-58231792e5f9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52576",
+        "locator": "title and description",
+        "excerpt": "issue: Ambient (and sidecar TPROXY mode) does not work with GKE intranode visibility [closed; labels area/networking/cni]\nContext https://istio.slack.com/archives/C041EQL1XMY/p1723039587363189\nhttps://github.com/GoogleCloudPlatform/netd/blob/a2d69d0b4bb3e52b1c7e61e9408aa0bc60a31609/pkg/options/options.go#L42\nhttps://github.com/GoogleCloudPlatform/netd/pull/177#issue-1441380837\n\nThey set src_valid_mark=1 which breaks TPROXY. Proposed solution is to unset this in the pod network namespace.\n\ncc @bleggett",
+        "contentDigest": "sha256:92b1a6ad4172a9d63e0d59d2005f059c845a326e8ae32580fcdc9b672e0abefa",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:TPROXY",
+      "code:REDIRECT"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

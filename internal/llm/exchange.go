@@ -51,6 +51,9 @@ type ExchangeResponse struct {
 	// GeneratedAt is when the answer was produced (default: the response
 	// file's modification time).
 	GeneratedAt time.Time `json:"generatedAt,omitzero"`
+	// CallID is the id of the call that produced the answer, from the
+	// provider/CLI envelope (e.g. the `claude -p` session_id). Optional.
+	CallID string `json:"callId,omitempty"`
 	// Exactly one of Text (the raw answer) or Output (the structured answer
 	// as a JSON value) is set.
 	Text   string          `json:"text,omitempty"`
@@ -80,7 +83,7 @@ func (x *Exchange) ResponsePath(req Request) string {
 const exchangeInstructions = "Answer `request` with any model: `request.system` is the system prompt, `request.messages` the conversation, " +
 	"and the answer must be a JSON document conforming to `request.jsonSchema`. Write the file named by `responseFile` next to this one: " +
 	`{"format":"` + ExchangeResponseFormat + `","promptDigest":"<copy promptDigest>","model":"<model id that answered>",` +
-	`"modelVersion":"<exact model version>","generatedAt":"<RFC 3339>","output":<the JSON answer>}` +
+	`"modelVersion":"<exact model version>","generatedAt":"<RFC 3339>","callId":"<call/session id from the provider envelope>","output":<the JSON answer>}` +
 	" (or \"text\":\"<the answer as a string>\" instead of output). Never edit this request file: its digest identifies the prompt."
 
 // Complete implements Client.
@@ -155,5 +158,5 @@ func (x *Exchange) decode(req Request, digest, path string, b []byte) (*Response
 			gen = fi.ModTime()
 		}
 	}
-	return &Response{Text: text, Model: r.Model, ModelVersion: r.ModelVersion, GeneratedAt: gen.UTC().Truncate(time.Second), Origin: OriginExchange}, nil
+	return &Response{Text: text, Model: r.Model, ModelVersion: r.ModelVersion, GeneratedAt: gen.UTC().Truncate(time.Second), Origin: OriginExchange, CallID: r.CallID}, nil
 }

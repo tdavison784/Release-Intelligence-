@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-30263864defd",
+    "candidateId": "sc-05b7e96dd774",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Without --enable-k8s=false, Cilium in lb-only datapath mode under plain Docker assumes Kubernetes is present.",
+        "remediation": "Add --enable-k8s=false to the command line."
+      },
+      "statement": "Running Cilium with --datapath-mode=lb-only in plain Docker mode now requires adding --enable-k8s=false, otherwise Kubernetes is assumed to be present."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-09d5e26554e5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:838c8b155e296c9912c173898e060c2658dd0bc55eb751391ad0b3f1378af277",
+      "inputEvidence": [
+        "ev-09d5e26554e5"
+      ],
+      "generatedAt": "2026-10-02T05:57:11Z",
+      "callId": "5c7766ff-acc5-4331-bff4-92a1e915c3c7"
+    }
+  }
+}

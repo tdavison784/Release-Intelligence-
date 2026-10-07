@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b103ceed037d",
+    "candidateId": "sc-377c29502c2a",
+    "proposalId": "sp-fe50961d36e2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "defaultRuleSyntax"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"v2\"",
+        "after": "\"v3\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "version": "v1alpha1",
+              "kind": "IngressRoute"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "version": "v1alpha1",
+              "kind": "IngressRouteTCP"
+            },
+            {
+              "op": "values-key",
+              "path": "core.defaultRuleSyntax",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "core.defaultRuleSyntax",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Router rules default to the new v3 syntax; existing rules using v2 syntax continue to work but environments should migrate to v3 syntax as v2 is deprecated and will be removed in the next major version.",
+        "severity": "medium"
+      },
+      "statement": "The default rule matchers syntax for HTTP and TCP routers changes from v2 to v3 in Traefik 3.0.0; v2 syntax is deprecated but remains functional through backward compatibility configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

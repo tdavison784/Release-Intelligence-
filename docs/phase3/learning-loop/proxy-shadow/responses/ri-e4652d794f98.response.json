@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e4652d794f98",
+  "promptDigest": "sha256:3bd7b7f3318544868f5a69945b9f1ccd1e6330a945843ac055b776464acd6826",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ccc3da12-0404-442e-9375-c85d5ee67813",
+  "startedAt": "2026-10-03T02:33:15.412Z",
+  "decidedAt": "2026-10-03T02:33:29.329Z",
+  "durationMs": 12943,
+  "costUSD": 0.07200400000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d6005e84dee9] says, under the upgrade notes' \"Changed Metrics\" heading, only that the metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total`. A metric is something Cilium emits, not a value an operator configures, so setting-ignored does not fit. The evidence does not say that anything fails, so a mandatory-work kind would over-claim. The metric is still emitted under its new name, so the observable effect is a behavior-change: anything that queries the old name should be reviewed.",
+    "citations": [
+      "ev-d6005e84dee9"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the metric `doublewrite_identity_kvstore_total_count` is renamed to `doublewrite_identity_kvstore_total`. The metric is still emitted under the new name, so consumers of the old name should review their usage.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "Cilium exposes this metric as `doublewrite_identity_kvstore_total` instead of `doublewrite_identity_kvstore_total_count`. Dashboards, alerts or queries that use the old name will not match the renamed metric.",
+        "remediation": "Update dashboards, recording or alerting rules and queries to use `doublewrite_identity_kvstore_total` instead of `doublewrite_identity_kvstore_total_count`.",
+        "severity": "low"
+      }
+    }
+  }
+}

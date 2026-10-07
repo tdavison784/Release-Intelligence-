@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4e02ea4e9661",
+    "candidateId": "sc-1115e82f20f4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces is used\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Auto-detected MTU may now be lower than before, as the lowest MTU across all external interfaces is used rather than the primary interface's MTU.",
+        "remediation": "Verify the detected MTU, or set it manually via the MTU helm option, --mtu agent flag or mtu in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (ENI secondary interfaces excluded); manual MTU configuration still works."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b37407b60520"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2bffb0f026fa64a308307b242f999d4d5f3a419cbbd77105669ca7bbdb224011",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-02T06:06:56Z",
+      "callId": "d29a03ec-64d5-468d-806f-35fc30be9352"
+    }
+  }
+}

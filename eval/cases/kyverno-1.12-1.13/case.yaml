@@ -1,0 +1,595 @@
+id: kyverno-1.12-1.13
+product: kyverno
+from: v1.12.6
+to: v1.13.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md
+  - https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+  - https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/customization.md
+  - https://github.com/kyverno/website/blob/release-1-13-0/content/en/docs/installation/_index.md
+  - https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+  - https://github.com/kyverno/kyverno/releases/tag/v1.12.6
+  - https://github.com/kyverno/kyverno/releases/tag/v1.12.7
+  - https://github.com/kyverno/kyverno/blob/v1.12.6/charts/kyverno/values.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/values.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.12.6/charts/kyverno/Chart.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/Chart.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/templates/hooks/post-upgrade-migrate-resources.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/templates/NOTES.txt
+  - https://github.com/kyverno/kyverno/tree/v1.12.6/config/crds/kyverno
+  - https://github.com/kyverno/kyverno/tree/v1.13.0/config/crds/kyverno
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clusterpolicies.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_policyexceptions.yaml
+  - https://github.com/kyverno/kyverno/blob/v1.12.6/cmd/internal/engine.go
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/cmd/internal/engine.go
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/cmd/internal/flag.go
+  - https://github.com/kyverno/kyverno/pull/10785
+  - https://github.com/kyverno/kyverno/pull/10459
+  - https://github.com/kyverno/kyverno/pull/10760
+  - https://github.com/kyverno/kyverno/pull/11242
+  - https://github.com/kyverno/kyverno/pull/10496
+  - https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/templates/hooks/post-upgrade-clean-reports.yaml
+  - https://github.com/kyverno/kyverno/security/advisories/GHSA-qjvc-p88j-j9rm
+  - https://github.com/kubernetes/website/blob/main/content/en/docs/reference/access-authn-authz/rbac.md
+expected:
+  - id: E1
+    title: Wildcard get/list/watch removed from the admission, background and reports controller ClusterRoles (replaced by a RoleBinding to the built-in view role); background controller also loses its Secret write grant
+    kind: breaking
+    importance: critical
+    actionRequired: true       # generate/mutate/report/API-call on custom or security-related resources (Secrets) need explicit grants
+    classification: action-required
+    match:
+      - text: '(?i)wildcard (view )?permissions?'
+      - text: '(?i)role ?binding to the (default |system |built-in )?`?view`? role'
+      - text: '(?i)(admission|background|reports)Controller\.rbac\.(coreClusterRole|clusterRole)\.extraResources|createViewRoleBinding|viewRoleName'
+    evidence:
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+        quote: "In 1.13 the wildcard view permission was removed and a role binding to the default `view` role was added."
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+        quote: "This change will not impact policies during admission controls but may impact reports, and may impact users with mutate and generate policies on custom resources as the controller may no longer be able to view these custom resources."
+      - url: https://github.com/kyverno/kyverno/pull/10785
+        quote: "For custom resources, or for security related resources, users will now need to [customize roles](http://localhost:1313/docs/installation/customization/#role-based-access-controls)."
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/customization.md
+        quote: "Kyverno's default permissions are designed to cover commonly used and security non-critical resources. Hence, Kyverno will need to be configured with additional permissions for CRDs, or to allow access to security critical resources."
+      - url: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/access-authn-authz/rbac.md
+        quote: "This role does not allow viewing Secrets"
+    references:
+      - https://github.com/kyverno/kyverno/pull/10785
+    semantics:
+      - subject: {family: rbac-permission, product: kyverno, name: '*', group: '*', component: admission-controller}
+        change: {type: removed}
+        consequence: &e1-consequence
+          kind: permission-lost
+          exposedClass: action-required
+          statement: >-
+            The controller can no longer get/list/watch resources outside the built-in view role
+            (custom resources, Secrets): generate rules that clone or sync them, mutate-existing
+            rules on them, API calls / global context entries reading them and background
+            reports for them fail with RBAC errors.
+          remediation: >-
+            Grant the needed verbs with a ClusterRole labelled rbac.kyverno.io/aggregate-to-<controller>-controller,
+            or restore wildcard view through <controller>.rbac.coreClusterRole/clusterRole.extraResources.
+          severity: high
+      - subject: {family: rbac-permission, product: kyverno, name: '*', group: '*', component: background-controller}
+        change: {type: removed}
+        consequence: *e1-consequence
+      - subject: {family: rbac-permission, product: kyverno, name: '*', group: '*', component: reports-controller}
+        change: {type: removed}
+        consequence: *e1-consequence
+      - subject: {family: rbac-permission, product: kyverno, name: secrets, component: background-controller}
+        change: {type: removed}
+        consequence:
+          kind: permission-lost
+          exposedClass: action-required
+          statement: >-
+            The background controller's core ClusterRole no longer grants create/update/patch/delete
+            on core Secrets (chart values default), and the view role never covered reading them:
+            generate rules that clone or generate Secrets stop producing them.
+          remediation: Add a ClusterRole aggregated to the background controller granting get/list/watch/create/update/patch/delete on secrets.
+          severity: high
+        note: the Secret write grant is only visible in the chart values diff (backgroundController.rbac.coreClusterRole.extraResources at v1.12.6 vs v1.13.0)
+  - id: E2
+    title: Policy exceptions disabled by default and restricted to one namespace (CVE-2024-48921); an empty features.policyExceptions.namespace no longer means all namespaces
+    kind: security
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)policyExceptions\.(enabled|namespace)'
+      - subject: features.policyExceptions.enabled
+      - text: 'CVE-2024-48921|GHSA-qjvc-p88j-j9rm'
+      - text: '(?i)default exception settings'
+      - text: '(?i)(disable|disabled) the policy exceptions|exceptions are disabled by default'
+    evidence:
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+        quote: "the Helm chart values of the prior versions enabled exceptions by default for all namespaces. This creates a potential security issue."
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+        quote: "To upgrade to 1.13 and continue to allow configuring exceptions in all namespaces, set the Helm value `features.policyExceptions.namespace` to `*`:"
+      - url: https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md
+        quote: "This release changes the defaults to disable the policy exceptions and only allows exceptions to be created in a specified namespace."
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/cmd/internal/engine.go
+        quote: "the flag --exceptionNamespace cannot be empty"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/cmd/internal/flag.go
+        quote: "flag.StringVar(&exceptionNamespace, \"exceptionNamespace\", \"\", \"Configure the namespace to accept PolicyExceptions. If it is set to '*', exceptions are allowed in all namespaces.\")"
+    references:
+      - https://github.com/kyverno/kyverno/security/advisories/GHSA-qjvc-p88j-j9rm
+    semantics:
+      - subject: {family: helm-value, product: kyverno, path: features.policyExceptions.enabled, name: kyverno}
+        change: {type: default-changed, before: 'true', after: 'false'}
+        consequence: &e2-consequence
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: >-
+            Existing PolicyException resources stop being honoured (exceptions disabled, or enabled
+            without a namespace, or living outside the one configured namespace): the resources they
+            exempted are evaluated again and denied by Enforce policies on their next admission.
+          remediation: Set features.policyExceptions.enabled=true and features.policyExceptions.namespace to the exceptions namespace (or "*" to keep the old, insecure behaviour).
+          severity: high
+      - subject: {family: cli-flag, product: kyverno, name: --enablePolicyException}
+        change: {type: default-changed, before: 'true', after: 'false'}
+        consequence: *e2-consequence
+      - subject: {family: helm-value, product: kyverno, path: features.policyExceptions.namespace, name: kyverno}
+        change: {type: behavior-changed, before: '""'}
+        consequence: *e2-consequence
+        note: 'v1.12.6 read an empty --exceptionNamespace as all namespaces; v1.13.0 logs an error and installs no exception selector; "*" is the new spelling of all namespaces'
+  - id: E3
+    title: spec.validationFailureAction and spec.validationFailureActionOverrides deprecated in favour of per-rule validate.failureAction / failureActionOverrides
+    kind: deprecation
+    importance: important
+    actionRequired: true       # migrate before the announced future removal
+    classification: review-required
+    match:
+      - text: '(?i)validationFailureAction(Overrides)?'
+      - text: '(?i)validate\.failureAction'
+    evidence:
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "(API) Migrated `spec.validationFailureAction` to `spec.rules.validate.failureAction`, `spec.validationFailureActionOverrides` to `spec.rules.validate.failureActionOverrides` (#10667, #10528, #10893, #10941, #11011)"
+      - url: https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md
+        quote: "Note that the deprecated fields will be removed in a future release, so migration to the new settings is recommended."
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clusterpolicies.yaml
+        quote: "Deprecated, use validationFailureAction under the validate rule instead."
+    semantics:
+      - subject: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: spec.validationFailureAction}
+        change:
+          type: deprecated
+          replacedBy: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: 'spec.rules[].validate.failureAction'}
+        consequence: &e3-consequence
+          kind: deprecation
+          exposedClass: review-required
+          statement: Policies keep working on 1.13 but use a policy-level field announced for removal in a future release.
+          remediation: Move the action into each validate rule (failureAction, values Audit|Enforce — the per-rule enum is case-sensitive) and the overrides into failureActionOverrides.
+          severity: low
+      - subject: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: spec.validationFailureActionOverrides}
+        change:
+          type: deprecated
+          replacedBy: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: 'spec.rules[].validate.failureActionOverrides'}
+        consequence: *e3-consequence
+  - id: E4
+    title: spec.generateExisting and spec.mutateExistingOnPolicyUpdate deprecated in favour of rule-level generate.generateExisting / mutate.mutateExistingOnPolicyUpdate
+    kind: deprecation
+    importance: minor
+    actionRequired: false
+    classification: not-affected   # this environment's class (link E4); generic reading: review-required (deprecation)
+    match:
+      - text: '(?i)mutateExistingOnPolicyUpdate'
+      - text: '(?i)generateExisting'
+    evidence:
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "(API) Migrated `generateExisting` field for the generate rule (#10441)"
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "(API) Migrated `mutateExistingOnPolicyUpdate` field for the mutate rule (#10461)"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clusterpolicies.yaml
+        quote: "Deprecated, use generateExisting under the generate rule instead"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clusterpolicies.yaml
+        quote: "Deprecated, use mutateExistingOnPolicyUpdate under the mutate rule instead"
+    semantics:
+      - subject: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: spec.generateExisting}
+        change:
+          type: deprecated
+          replacedBy: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: 'spec.rules[].generate.generateExisting'}
+        consequence: &e4-consequence
+          kind: deprecation
+          exposedClass: review-required
+          statement: The policy-level switch keeps working on 1.13 but is announced for removal in a future release.
+          severity: low
+      - subject: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: spec.mutateExistingOnPolicyUpdate}
+        change:
+          type: deprecated
+          replacedBy: {family: crd-field, product: kyverno, group: kyverno.io, kind: ClusterPolicy, path: 'spec.rules[].mutate.mutateExistingOnPolicyUpdate'}
+        consequence: *e4-consequence
+  - id: E5
+    title: Chart hook image bitnami/kubectl bumped from 1.28.5 to 1.30.2 (policyReportsCleanup post-upgrade hook, webhooksCleanup pre-delete hook)
+    kind: artifact
+    importance: important
+    actionRequired: true       # private mirrors must carry the new tag before the upgrade
+    classification: action-required
+    match:
+      - text: '(?i)bitnami/kubectl'
+      - text: '(?i)kubectl.{0,20}1\.30\.2'
+      - text: '(?i)(policyReportsCleanup|webhooksCleanup)\.image\.tag'
+      - subject: policyReportsCleanup.image.tag
+      - subject: webhooksCleanup.image.tag
+    evidence:
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "chore: bump bitnami/kubectl to 1.30.2 (#10496)"
+      - url: https://github.com/kyverno/kyverno/blob/v1.12.6/charts/kyverno/values.yaml
+        quote: "    repository: bitnami/kubectl\n    # -- Image tag\n    # Defaults to `latest` if omitted\n    tag: '1.28.5'"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/values.yaml
+        quote: "    repository: bitnami/kubectl\n    # -- Image tag\n    # Defaults to `latest` if omitted\n    tag: '1.30.2'"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/templates/hooks/post-upgrade-clean-reports.yaml
+        quote: "helm.sh/hook: post-upgrade"
+    references:
+      - https://github.com/kyverno/kyverno/pull/10496
+    semantics:
+      subject: {family: image, product: kyverno, name: bitnami/kubectl}
+      change: {type: value-changed, before: '"1.28.5"', after: '"1.30.2"'}
+      consequence:
+        kind: upgrade-blocked
+        exposedClass: action-required
+        statement: >-
+          The v1.13.0 chart's post-upgrade hook Job (policyReportsCleanup, enabled by default) pulls
+          bitnami/kubectl:1.30.2; where only the old tag is mirrored the hook pod stays in
+          ImagePullBackOff and `helm upgrade` fails on the hook (timeout), leaving the release failed.
+        remediation: "Mirror bitnami/kubectl:1.30.2 before upgrading, or pin policyReportsCleanup.image.tag / webhooksCleanup.image.tag to a mirrored tag."
+        severity: high
+      note: 'only a "chore: bump" line upstream (a pattern release-note classifiers skip); the values diff at the two tags is the authoritative source'
+  - id: E6
+    title: PolicyException and (Cluster)CleanupPolicy graduate to kyverno.io/v2; v2beta1 is deprecated and no longer the storage version
+    kind: api
+    importance: important
+    actionRequired: true       # rewrite stored manifests to v2 before v2beta1 is dropped
+    classification: review-required
+    match:
+      - text: '(?i)graduated to a stable version \(v2\)'
+      - text: '(?i)(PolicyException|CleanupPolic).{0,60}v2beta1|v2beta1.{0,60}(PolicyException|CleanupPolic)'
+    evidence:
+      - url: https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md
+        quote: "Both Policy Exceptions and Cleanup Policies have graduated to a stable version (v2)."
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_policyexceptions.yaml
+        quote: "- deprecated: true\n    name: v2beta1"
+    semantics:
+      - subject: {family: gvk, product: kyverno, group: kyverno.io, version: v2beta1, kind: PolicyException}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: kyverno, group: kyverno.io, version: v2, kind: PolicyException}
+        consequence: &e6-consequence
+          kind: deprecation
+          exposedClass: review-required
+          statement: Manifests written as kyverno.io/v2beta1 still apply on 1.13 (served, with a deprecation warning) but the version is deprecated and v2 is now the storage version.
+          remediation: Rewrite the manifests to kyverno.io/v2.
+          severity: low
+      - subject: {family: gvk, product: kyverno, group: kyverno.io, version: v2beta1, kind: CleanupPolicy}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: kyverno, group: kyverno.io, version: v2, kind: CleanupPolicy}
+        consequence: *e6-consequence
+      - subject: {family: gvk, product: kyverno, group: kyverno.io, version: v2beta1, kind: ClusterCleanupPolicy}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: kyverno, group: kyverno.io, version: v2, kind: ClusterCleanupPolicy}
+        consequence: *e6-consequence
+  - id: E7
+    title: Dropped deprecated CRD API versions; stored objects must be migrated (automatic via the Helm post-upgrade hook, manual with kube-storage-version-migrator otherwise)
+    kind: migration-step
+    importance: important
+    actionRequired: true       # only for installs where the hook does not run
+    classification: informational   # this environment's class (link E7; corrected 2026-10-02 from not-affected, render-4 — eval/CHANGELOG.md); generic reading: action-required (migration-required)
+    match:
+      - text: '(?i)drops? deprecated API versions'
+      - text: '(?i)kube-storage-version-migrator'
+      - text: '(?i)crds\.migration'
+    evidence:
+      - url: https://github.com/kyverno/website/blob/main/src/content/docs/docs/installation/upgrading.md
+        quote: "Kyverno 1.13 drops deprecated API versions for its managed CustomResourceDefinitions. The migration is handled automatically through Helm hook."
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/values.yaml
+        quote: "# -- Enable CRDs migration using helm post upgrade hook"
+    semantics:
+      subject: {family: migration, product: kyverno, name: crd-storage-version-migration}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: >-
+          Without the post-upgrade migrate-resources hook (non-Helm install, crds.migration.enabled=false
+          or templating.enabled=true) objects stay stored under the old versions (PolicyException,
+          CleanupPolicy and ClusterCleanupPolicy v2beta1, UpdateRequest v1beta1), which blocks dropping
+          those versions from the CRDs later.
+        remediation: Run kube-storage-version-migrator (or re-write every object) for the listed kyverno.io CRDs.
+        severity: medium
+  - id: E8
+    title: Chart metrics defaults now drop label dimensions (resource_namespace, policy_namespace, …) from kyverno_policy_results_total and other metrics
+    kind: helm-values
+    importance: important
+    actionRequired: true       # dashboards/alerts grouping by the dropped labels silently lose them
+    classification: review-required
+    match:
+      - text: '(?i)default metrics in the Helm chart'
+      - text: '(?i)metricsExposure'
+      - subject: metricsConfig.metricsExposure
+      - text: '(?i)disabledLabelDimensions'
+    evidence:
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "Updated default metrics in the Helm chart (#10459)"
+      - url: https://github.com/kyverno/kyverno/pull/10459
+        quote: "In this PR I have changed the charts to show limited metrics by default, users can change the values to disable or enable more metrics."
+      - url: https://github.com/kyverno/kyverno/blob/v1.12.6/charts/kyverno/values.yaml
+        quote: "# -- (map) Configures the exposure of individual metrics, by default all metrics and all labels are exported, changing this configuration requires restart of the kyverno admission controller"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/values.yaml
+        quote: "    kyverno_policy_results_total:\n      disabledLabelDimensions: [\"resource_namespace\", \"policy_namespace\"]"
+    references:
+      - https://github.com/kyverno/kyverno/issues/10027
+    semantics:
+      subject: {family: helm-value, product: kyverno, path: metricsConfig.metricsExposure, name: kyverno}
+      change: {type: default-changed, before: 'null', after: '{"kyverno_policy_results_total":{"disabledLabelDimensions":["resource_namespace","policy_namespace"]}}'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Metrics are still exported but without the dropped label dimensions; queries, dashboards and alerts that group or filter by them return a single unlabelled series or nothing.
+        remediation: Set metricsConfig.metricsExposure explicitly (e.g. re-enable resource_namespace on kyverno_policy_results_total) or rewrite the queries.
+        severity: medium
+      note: after abbreviated to the kyverno_policy_results_total entry; the v1.13.0 default disables label dimensions on six metrics
+  - id: E9
+    title: cleanupJobs (report and UpdateRequest cleanup CronJobs) and features.reports.chunkSize removed from the chart
+    kind: helm-values
+    importance: minor
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)cleanupJobs'
+      - text: '(?i)cleanup cronjobs?'
+      - text: '(?i)reports\.chunkSize|reports chunking'
+    evidence:
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "Removed cleanupJobs keys from Helm chart (#11242)"
+      - url: https://github.com/kyverno/kyverno/releases/tag/v1.13.0
+        quote: "Removed cleanup cronjobs for `updaterequests` and `ephemeralreports` (#10249, #10325, #10760)"
+      - url: https://github.com/kyverno/kyverno/pull/10760
+        quote: "1.12.5 adds circuit breakers for updaterequests and ephemeralreports, we can remove these cleanup cronjobs in 1.13.0."
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/Chart.yaml
+        quote: "description: Deprecated configuration `features.reports.chunkSize` was removed"
+    semantics:
+      - subject: {family: helm-value, product: kyverno, path: cleanupJobs, name: kyverno}
+        change: {type: removed}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: >-
+            The chart stops rendering the cleanup CronJobs and silently ignores the cleanupJobs values;
+            bounding ephemeral reports and UpdateRequests is left to the controllers' circuit breakers
+            (since 1.12.5), not to the configured schedules/thresholds.
+          remediation: Drop the cleanupJobs block and, if needed, tune the circuit-breaker thresholds instead.
+          severity: low
+        note: removed key whose function upstream replaced (circuit breakers), so behavior-change (REVIEW) rather than setting-ignored (ACTION)
+      - subject: {family: helm-value, product: kyverno, path: features.reports.chunkSize, name: kyverno}
+        change: {type: removed}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: Report chunking is gone (#10597); a configured chunk size is ignored.
+          severity: low
+  - id: E10
+    title: Tested Kubernetes range moves to 1.28–1.31 (1.12.x was 1.26–1.29); chart kubeVersion stays >=1.25.0-0
+    kind: compatibility
+    importance: minor
+    actionRequired: false
+    classification: informational  # this environment's class (link E10, in range); generic reading: review-required for clusters outside 1.28-1.31
+    match:
+      - text: '(?i)Kubernetes.{0,40}1\.28.{0,40}1\.31'
+      - text: '(?i)compatibility matrix'
+    evidence:
+      - url: https://github.com/kyverno/website/blob/release-1-13-0/content/en/docs/installation/_index.md
+        quote: "| 1.13.x                         | 1.28           | 1.31           |"
+      - url: https://github.com/kyverno/website/blob/release-1-13-0/content/en/docs/installation/_index.md
+        quote: "| 1.12.x                         | 1.26           | 1.29           |"
+      - url: https://github.com/kyverno/kyverno/blob/v1.13.0/charts/kyverno/Chart.yaml
+        quote: 'kubeVersion: ">=1.25.0-0"'
+    semantics:
+      subject: {family: compatibility-boundary, product: kyverno, name: kubernetes}
+      change: {type: requirement-changed, before: '>=1.26.0, <1.30.0', after: '>=1.28.0, <1.32.0'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Outside 1.28–1.31 the combination is untested ("no guarantees are made as to their full compatibility"); the chart still installs (kubeVersion >=1.25.0-0).
+        remediation: Upgrade the cluster into the tested range, or validate Kyverno on the cluster version before rollout.
+        severity: low
+      note: tested range, not a hard gate, so behavior-change (verify) rather than upgrade-blocked
+notExpected:
+  - title: dependency bumps listed in the GitHub release body
+    match: [{text: '(?i)chore\(deps\): bump .+ from .+ to '}]
+    classification: action-required
+  - title: project housekeeping (adopters, maintainers, governance, issue templates)
+    match: [{text: '(?i)new adopter|maintainers? moved|updated governance|issue templates'}]
+    classification: action-required
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.29 running Kyverno v1.12.6 installed with the kyverno
+    Helm chart 3.2.7 via `helm upgrade --install` (Helm hooks run; crds.migration and templating
+    are left at chart defaults). The values file (environment/values.yaml) sets replicas and
+    ServiceMonitors, explicitly sets features.policyExceptions.enabled=true WITHOUT a
+    features.policyExceptions.namespace, keeps tuned cleanupJobs schedules/thresholds, does not
+    set metricsConfig.metricsExposure and sets no *.rbac.* key. manifests/ holds every Kyverno
+    policy, exception and Kyverno-related RBAC object in the cluster: four ClusterPolicies (two
+    validate policies with spec-level validationFailureAction: Enforce, one of them with
+    validationFailureActionOverrides and one with spec.failurePolicy/webhookTimeoutSeconds; two
+    generate policies, one cloning and syncing the Secret regcred from platform-secrets into
+    every new namespace, one generating a default-deny NetworkPolicy; no generateExisting or
+    mutateExistingOnPolicyUpdate anywhere), two kyverno.io/v2beta1 PolicyExceptions in the
+    monitoring and ingress-nginx namespaces, and no ClusterRole aggregating extra permissions to
+    any Kyverno controller. The Prometheus Operator from kube-prometheus-stack evaluates a
+    PrometheusRule that groups kyverno_policy_results_total by resource_namespace. All chart
+    images are pulled from the private mirror registry.corp.example (global.image.registry), whose
+    mirror list (environment/images.txt) holds exactly the v1.12.6 images and bitnami/kubectl:1.28.5;
+    policyReportsCleanup and webhooksCleanup are left at chart defaults.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: >-
+        sync-registry-credentials clones and syncs a Secret; on 1.13 the background controller loses
+        both the wildcard read (the view role excludes Secrets) and the chart's default Secret write
+        grant, the values set no rbac extraResources, and no ClusterRole aggregates secrets to the
+        background controller — regcred stops being created in new namespaces.
+      exposure:
+        op: all
+        of:
+          - op: resource
+            group: kyverno.io
+            kind: ClusterPolicy
+            of:
+              - {op: field, path: 'spec.rules[].generate.kind', state: equals, values: ['"Secret"']}
+          - {op: values-key, path: backgroundController.rbac.coreClusterRole.extraResources, state: unset}
+          - {op: values-key, path: backgroundController.rbac.clusterRole.extraResources, state: unset}
+          - op: not
+            of:
+              - op: resource
+                group: rbac.authorization.k8s.io
+                kind: ClusterRole
+                of:
+                  - {op: field, path: 'metadata.labels["rbac.kyverno.io/aggregate-to-background-controller"]', state: equals, values: ['"true"']}
+                  - {op: field, path: 'rules[].resources', state: equals, values: ['"secrets"', '"*"']}
+      environmentEvidence:
+        - manifests/clusterpolicies.yaml#L61-L83
+        - values.yaml#L21-L24
+    - expected: E2
+      relevance: action-required
+      why: >-
+        The values pin features.policyExceptions.enabled=true (so the default flip alone looks
+        harmless) but leave the namespace empty; v1.13.0 then logs "the flag --exceptionNamespace
+        cannot be empty" and installs no exception selector, so both v2beta1 PolicyExceptions stop
+        applying and the exempted ebpf-exporter DaemonSet and ingress-nginx-controller Deployment
+        are denied by the Enforce policies.
+      exposure:
+        op: all
+        of:
+          - {op: gvk-in-use, group: kyverno.io, kind: PolicyException}
+          - op: any
+            of:
+              - {op: values-key, path: features.policyExceptions.enabled, state: unset}
+              - {op: values-key, path: features.policyExceptions.enabled, state: equals, values: ['false']}
+              - {op: values-key, path: features.policyExceptions.namespace, state: unset}
+              - {op: values-key, path: features.policyExceptions.namespace, state: equals, values: ['""']}
+      environmentEvidence:
+        - values.yaml#L39-L42
+        - manifests/policyexceptions.yaml#L4-L44
+    - expected: E3
+      relevance: review
+      why: require-team-label and disallow-privileged-containers set spec.validationFailureAction (and require-team-label the overrides); they keep working on 1.13 but use the deprecated policy-level fields.
+      exposure:
+        op: resource
+        group: kyverno.io
+        kind: ClusterPolicy
+        of:
+          - op: any
+            of:
+              - {op: field, path: spec.validationFailureAction, state: set}
+              - {op: field, path: spec.validationFailureActionOverrides, state: set}
+      environmentEvidence:
+        - manifests/clusterpolicies.yaml#L10-L16
+        - manifests/clusterpolicies.yaml#L38-L39
+    - expected: E4
+      relevance: not-affected
+      why: >-
+        The cluster has generate policies (the deprecated switch's natural home) but none sets
+        spec.generateExisting, spec.generateExistingOnPolicyUpdate or spec.mutateExistingOnPolicyUpdate,
+        and there are no mutate-existing policies; the manifests are the complete policy set.
+      exposure:
+        op: resource
+        group: kyverno.io
+        kind: ClusterPolicy
+        of:
+          - op: any
+            of:
+              - {op: field, path: spec.generateExisting, state: set}
+              - {op: field, path: spec.generateExistingOnPolicyUpdate, state: set}
+              - {op: field, path: spec.mutateExistingOnPolicyUpdate, state: set}
+      environmentEvidence:
+        - manifests/clusterpolicies.yaml#L1-L109
+    - expected: E5
+      relevance: action-required
+      why: >-
+        Every chart image is pulled from registry.corp.example (global.image.registry) and the mirror
+        list only carries bitnami/kubectl:1.28.5; policyReportsCleanup is left at its default (enabled),
+        so the v1.13.0 post-upgrade hook pulls registry.corp.example/bitnami/kubectl:1.30.2, which does
+        not exist, and the Helm upgrade fails on the hook.
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: global.image.registry, state: set}
+          - {op: values-key, path: policyReportsCleanup.enabled, state: unset}
+          - {op: image-in-use, name: registry.corp.example/bitnami/kubectl, state: out-of-range, range: '>=1.30.2'}
+      environmentEvidence:
+        - values.yaml#L66-L70
+        - images.txt#L7
+    - expected: E6
+      relevance: review
+      why: both PolicyExceptions are applied as kyverno.io/v2beta1, deprecated in 1.13 (still served); the GitOps manifests should move to kyverno.io/v2.
+      exposure: {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: PolicyException}
+      environmentEvidence:
+        - manifests/policyexceptions.yaml#L4-L5
+        - manifests/policyexceptions.yaml#L26-L27
+    - expected: E7
+      relevance: informational   # corrected 2026-10-02 from not-affected, motivated by pipeline output (render-4; eval/CHANGELOG.md)
+      why: >-
+        the cluster stores two PolicyExceptions as kyverno.io/v2beta1 (a version 1.13 drops), so the migration
+        does touch it; it is shielded because Kyverno is upgraded with Helm and crds.migration.enabled /
+        templating.enabled stay at their defaults, so the post-upgrade migrate-resources hook (whose resource
+        list at v1.13.0 includes policyexceptions.kyverno.io) rewrites them — "The migration is handled
+        automatically through Helm hook." Applies, appears safe; the hook only starts once E5's kubectl
+        image is mirrored.
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: crds.migration.enabled, state: equals, values: ['false']}
+          - {op: values-key, path: templating.enabled, state: equals, values: ['true']}
+      overlap:
+        op: any
+        of:
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: PolicyException}
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: CleanupPolicy}
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: ClusterCleanupPolicy}
+          - {op: gvk-in-use, group: kyverno.io, version: v1beta1, kind: UpdateRequest}
+      environmentEvidence: [values.yaml#L1-L5, manifests/policyexceptions.yaml#L4-L5, manifests/policyexceptions.yaml#L26-L27]
+    - expected: E8
+      relevance: review
+      why: >-
+        metricsConfig.metricsExposure is not set, so the new chart default disables resource_namespace
+        on kyverno_policy_results_total, and the KyvernoPolicyFailuresByNamespace alert groups by
+        exactly that label — it collapses into a single series without the namespace.
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: metricsConfig.metricsExposure, state: unset}
+          - op: resource
+            group: monitoring.coreos.com
+            kind: PrometheusRule
+            of:
+              - {op: field, path: 'spec.groups[].rules[].expr', state: matches, pattern: 'kyverno_[a-z_]+.*(resource_namespace|policy_namespace)|(resource_namespace|policy_namespace).*kyverno_[a-z_]+'}
+      environmentEvidence:
+        - values.yaml#L1-L5
+        - manifests/prometheusrule.yaml#L15-L16
+    - expected: E9
+      relevance: review
+      why: the values tune cleanupJobs.ephemeralReports / clusterEphemeralReports / updateRequests; the v1.13.0 chart no longer has those keys or CronJobs, so the tuning is silently dropped and the circuit breakers govern instead.
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: cleanupJobs.ephemeralReports.threshold, state: set}
+          - {op: values-key, path: cleanupJobs.clusterEphemeralReports.threshold, state: set}
+          - {op: values-key, path: cleanupJobs.updateRequests.enabled, state: set}
+          - {op: values-key, path: features.reports.chunkSize, state: set}
+      environmentEvidence: values.yaml#L44-L54
+    - expected: E10
+      relevance: informational
+      why: Kubernetes 1.29 is inside both the 1.12.x (1.26–1.29) and the 1.13.x (1.28–1.31) tested ranges; confirm, do not flag.
+      exposure: {op: cluster-version, name: kubernetes, state: out-of-range, range: '>=1.28.0, <1.32.0'}
+      overlap: {op: cluster-version, name: kubernetes, state: in-range, range: '>=1.28.0, <1.32.0'}
+      environmentEvidence: environment.kubernetes
+  expectedFindings:
+    - id: F1
+      match:
+        subject: features.policyExceptions.enabled
+      why: >-
+        the values file sets this key, whose chart default flips from true (v1.12.6) to false (v1.13.0);
+        the pin keeps it enabled, so a finding on the key is expected (its class is carried by the E2 link,
+        which is action-required through the empty namespace)

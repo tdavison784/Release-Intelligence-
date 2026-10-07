@@ -1,0 +1,39 @@
+# Attack: a fact about Certificate whose exposure condition could be
+# satisfied by a same-group, different-kind resource carrying the identical
+# field path (a CertificateRequest with spec.privateKey.rotationPolicy unset).
+# A bare-path join calls the customer exposed; the condition is kind-scoped.
+id: knowledge-wrong-kind
+attacks: fact whose condition is satisfied only by a same-group different-kind resource with an identical path
+expectation: >-
+  the CertificateRequest never satisfies a Certificate condition (fields are
+  scoped to the change's API identity); with healthy manifests and no
+  Certificates the fact clears the change with checks (impact:knowledge-clear,
+  the zero-resources convention) — never impact:knowledge-exposed
+knowledge:
+  facts:
+    - level: human
+      subject: {family: crd-field, group: cert-manager.io, kind: Certificate, path: spec.privateKey.rotationPolicy}
+      change: {type: default-changed, before: '"Never"', after: '"Always"'}
+      exposure:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of:
+          - {op: field, path: spec.privateKey.rotationPolicy, state: unset}
+      consequence: {kind: behavior-change, statement: "Private keys of Certificates without an explicit rotationPolicy rotate on every renewal."}
+      statement: "The default Certificate spec.privateKey.rotationPolicy changed from Never to Always."
+      anchors: ["The default value of the Certificate rotationPolicy field changed from Never to Always"]
+edge:
+  changes:
+    - rule: note
+      title: "The default value of the Certificate rotationPolicy field changed from Never to Always"
+      subjects: [spec.privateKey.rotationPolicy]
+      category: configuration
+environment:
+  files: [manifests/certificate-request.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-clear
+      classification: not-affected
+  absent:
+    - rule: impact:knowledge-exposed

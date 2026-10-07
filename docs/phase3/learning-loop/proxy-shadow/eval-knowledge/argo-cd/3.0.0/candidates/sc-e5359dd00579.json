@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-e5359dd00579",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-59fe7aadf2f6",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-e5bcdc0f4b91"
+          ],
+          "statementKeys": [
+            "sk-471bb8ea8d44"
+          ],
+          "changeIds": [
+            "chg-59fe7aadf2f6"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "f075c5acd3ea3fc642536b70c00a049186086908: fix: Only port-forward to ready pods (#10610) (cherry-pick #22794) (#22825) (@gcp-cherry-pick-bot[bot])",
+    "evidence": [
+      {
+        "id": "ev-c17a311dcffd",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L143-L143 (Changelog › Bug fixes)",
+        "excerpt": "* f075c5acd3ea3fc642536b70c00a049186086908: fix: Only port-forward to ready pods (#10610) (cherry-pick #22794) (#22825) (@gcp-cherry-pick-bot[bot])",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-859eee04d430",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/10610",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #10610): argocd app repo sync seems to pick up first argocd-server pod from list (with direct access auth) [closed; labels bug]\nSeems that `argocd app repo sync` tries to send requests to first pod from the list:\n\n```\nk get pod -l app.kubernetes.io/name=argocd-repo-server\nNAME READY STATUS RESTARTS AGE\nargocd-repo-server-6bdf887f59-j4ch4 0/1 Init:ContainerStatusUnknown 1 135m\nargocd-repo-server-6bdf887f59-p9nh5 0/1 Running 0 67s\nargocd-repo-server-6bdf887f59-qt2sr 1/1 Running 0 20h\nargocd-repo-server-6bdf887f59-swv7h 0/1 Init:ContainerStatusUnknown 1 2m2s\n\nargocd a…",
+        "contentDigest": "sha256:64868e468e705d083706c1935e72edeb86d3f4d28746a7352b664d25be51ebfa",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-8ce0ad2f5de9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/10610",
+        "locator": "description (part 2)",
+        "excerpt": "getting repo server client: error upgrading connection: unable to upgrade connection: pod not found (\"argocd-repo-server-6bdf887f59-j4ch4_argocd\")\n```\n\nIn my case, these pods where evicted due to node condition. Once ghost pod gets removed, it works again:\n\n```\nk delete pod argocd-repo-server-6bdf887f59-j4ch4\npod \"argocd-repo-server-6bdf887f59-j4ch4\" deleted\n\nk get pod -l app.kubernetes.io/name=argocd-repo-server\nNAME READY STATUS RESTARTS AGE\nargocd-repo-server-6bdf887f59-p9nh5 0/1 Running 0 67s …",
+        "contentDigest": "sha256:64868e468e705d083706c1935e72edeb86d3f4d28746a7352b664d25be51ebfa",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-033cda2ed80c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22794",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22794): fix: Only port-forward to ready pods (#10610) [closed]\nThis will ensure it doesn't attempt to port-forward to pods that have Failed or are otherwise unready.\n\nFixes #10610\n\nChecklist:\n\n* [x] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The title of the PR states what changed and the related issues number (used for the release note).\n* [x] The title of the PR conforms to the [Toolcha…",
+        "contentDigest": "sha256:513293758c9597520ab563ee6d4ccfed36c12505d340a744674b5003832a9730",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-be5f80f29729",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22794",
+        "locator": "description (part 2)",
+        "excerpt": "Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [x] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [x] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR with them. N/A\n* [x] Does this PR require documentation updates? No\n* [x] I've updated documentation as required by this PR. N/A\n* [x] I have signed off all my commits as required by …",
+        "contentDigest": "sha256:513293758c9597520ab563ee6d4ccfed36c12505d340a744674b5003832a9730",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-859a23cd07ab",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22794",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): util/kube/portforwarder.go, util/kube/portforwarder_test.go (added)",
+        "contentDigest": "sha256:513293758c9597520ab563ee6d4ccfed36c12505d340a744674b5003832a9730",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-d281c22888a4",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22825",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22825): fix: Only port-forward to ready pods (#10610) (cherry-pick #22794) [closed; labels ready-for-review]\nCherry-picked fix: Only port-forward to ready pods (#10610) (#22794)\n\nSigned-off-by: Mike Bryant <mike.bryant@mettle.co.uk>",
+        "contentDigest": "sha256:83973f13696592191e9d885220df4ea1ef8927c9d5335a6294654aceb285f0ab",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-730f43c1dcd3",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22825",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): util/kube/portforwarder.go, util/kube/portforwarder_test.go (added)",
+        "contentDigest": "sha256:83973f13696592191e9d885220df4ea1ef8927c9d5335a6294654aceb285f0ab",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

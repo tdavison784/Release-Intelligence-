@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-690e3eb25865",
+    "candidateId": "sc-ebead63e427a",
+    "proposalId": "sp-0b24e9c22e3b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "use_boltdb_shipper_as_backup"
+      },
+      "change": {
+        "type": "removed",
+        "before": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.use-boltdb-shipper-as-backup",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "LOKI_TSDB_SHIPPER_USE_BOLTDB_SHIPPER_AS_BACKUP",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration setting `use_boltdb_shipper_as_backup` is no longer recognized; any explicit configuration will be ignored and the previous default value `false` will be applied.",
+        "remediation": "Remove the `use_boltdb_shipper_as_backup` setting (and `-tsdb.shipper.use-boltdb-shipper-as-backup` CLI flag) from your Loki configuration, as the TSDB index is now the stable and recommended type.",
+        "severity": "low"
+      },
+      "statement": "The configuration setting `use_boltdb_shipper_as_backup` (CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`) has been removed; environments that explicitly set it will have that setting ignored and the previous default value `false` applied."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5146b6aa003e",
+    "candidateId": "sc-c17c3673cf1d",
+    "proposalId": "sp-cd1d13cf6133",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminating-tls-ca-crt"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether any L7 network policy uses terminatingTLS with a secret that contains the key ca.crt (the evidence does not give the policy field path)"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data.use-full-tls-context",
+                      "state": "equals",
+                      "values": [
+                        "\"true\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "cilium-config"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--use-full-tls-context",
+                  "state": "equals",
+                  "values": [
+                    "\"true\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.use-full-tls-context",
+                  "state": "equals",
+                  "values": [
+                    "\"true\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For L7 policies that use terminatingTLS, the `ca.crt` in the secret is no longer loaded, so Envoy no longer requires client certificates from pods during TLS termination. To keep the old behaviour, set `--use-full-tls-context=true`.",
+        "remediation": "If you depend on the old behaviour, where client certificates were required because `ca.crt` was loaded, set `--use-full-tls-context=true`.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16.0, L7 network policies that use terminatingTLS no longer load the `ca.crt` key from the secret, even when the secret contains it, so Envoy stops requiring client certificates from pods; setting `--use-full-tls-context=true` keeps the old behaviour."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

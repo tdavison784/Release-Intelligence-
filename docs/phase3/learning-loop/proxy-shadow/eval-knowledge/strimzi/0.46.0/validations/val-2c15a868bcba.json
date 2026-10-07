@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2c15a868bcba",
+    "candidateId": "sc-5fc2da42c29c",
+    "proposalId": "sp-862eb1868c1a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pod restart events no longer have the Pod as regardingObject, so field-selectors listing events by the Pod's regardingObject will no longer match them; the selector must specify the Kafka resource instead.",
+        "remediation": "Update event field-selectors to use the Kafka resource as regardingObject.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject; field-selectors on regardingObject must now target the Kafka resource."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

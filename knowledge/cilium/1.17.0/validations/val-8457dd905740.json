@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8457dd905740",
+    "candidateId": "sc-e17ffc343ebe",
+    "proposalId": "sp-c5254832a940",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "metallb-bgp"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "cilium-bgp-control-plane"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--bgp-config-path",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bgp-announce-lb-ip",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bgp-announce-pod-cidr",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "extraConfig.bgp-config-path",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "extraConfig.bgp-announce-lb-ip",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "extraConfig.bgp-announce-pod-cidr",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-config-path",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-announce-lb-ip",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-announce-pod-cidr",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to Cilium 1.17, an environment still setting any of the removed metallb-bgp flags bgp-config-path, bgp-announce-lb-ip or bgp-announce-pod-cidr will no longer have those settings honoured; the upgrade notes state that users are now required to use the Cilium BGP control plane for BGP advertisements.",
+        "remediation": "Reconfigure BGP advertisements using the Cilium BGP control plane and remove the deprecated metallb-bgp flags (bgp-config-path, bgp-announce-lb-ip, bgp-announce-pod-cidr) from CLI arguments, the cilium-config ConfigMap, or Helm extraConfig before upgrading to 1.17.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.17 removes the previously deprecated metallb-bgp flags bgp-config-path, bgp-announce-lb-ip and bgp-announce-pod-cidr; users are now required to use the Cilium BGP control plane for BGP advertisements."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

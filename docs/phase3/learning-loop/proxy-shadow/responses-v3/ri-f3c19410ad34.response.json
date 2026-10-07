@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f3c19410ad34",
+  "promptDigest": "sha256:36d7e651230dd9761cac470d3e5db57715e75f9ae6ef720a1becb54525664036",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3c5ed006-34c1-4850-bb2b-e32b8a4bfe92",
+  "startedAt": "2026-10-03T17:06:46.932Z",
+  "decidedAt": "2026-10-03T17:07:03.392Z",
+  "durationMs": 15801,
+  "costUSD": 0.118044,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c8a8a9c16d41] names `s3.sse-encryption`, a dotted Loki option name. In the same section, names in this style are explicitly CLI flags ([ev-3cb906d8d02b], [ev-f5a61f629314], [ev-f15092605ae3]). Nothing in the evidence presents it as a Helm chart values path, so values-key{s3.sse-encryption} reads the wrong configuration source. The exposure is a workload that still sets this flag. The evidence does not name the matching YAML key, so the condition cannot cover it.",
+    "citations": [
+      "ev-c8a8a9c16d41",
+      "ev-3cb906d8d02b",
+      "ev-f5a61f629314",
+      "ev-f15092605ae3"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the `s3.sse-encryption` option is removed. Environments whose Loki workloads still pass the `s3.sse-encryption` flag are exposed and should use `sse.type` to set the SSE type.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "cli-flag",
+          "name": "s3.sse-encryption",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d1989ffe2e6a",
+    "candidateId": "sc-c8fa57d3d99f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "http3"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether HTTP/3 is configured or used in running deployments"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "HTTP/3 is no longer experimental and is now a stable, supported feature; existing deployments using HTTP/3 continue to function, and new deployments can confidently adopt HTTP/3 without experimental feature risk."
+      },
+      "statement": "HTTP/3 protocol support is moved from experimental to stable status and is no longer under an experimental designation."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-177a6106bc02"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2bd520e371b2c7b12cc91fffdf9111f24bd1ad9e31194a7998a2858835399ba7",
+      "inputEvidence": [
+        "ev-177a6106bc02"
+      ],
+      "generatedAt": "2026-10-02T20:55:36Z",
+      "callId": "4a382422-6091-4ded-80ad-2be6e0f76e7d"
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f15c14b4c0d7",
+    "candidateId": "sc-967b47c048f1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data[].value",
+                  "state": "unset"
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "SecretStore"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data[].value",
+                  "state": "unset"
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "ClusterSecretStore"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "external-secrets.io/v1beta1 SecretStore objects (and, per the same rendered diff, ClusterSecretStore objects) whose spec.provider.fake.data[] entries omit value are rejected by the tightened CRD schema validation.",
+        "remediation": "Add a value to every spec.provider.fake.data[] entry in external-secrets.io/v1beta1 SecretStore (and ClusterSecretStore) objects before applying them against the release carrying the tightened schema.",
+        "severity": "medium"
+      },
+      "statement": "Between external-secrets 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items in the external-secrets.io/v1beta1 SecretStore schema changed from [key] to [key,value] (the same diff shows the identical change for ClusterSecretStore), so objects that omit spec.provider.fake.data[].value are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-210dbd3942ad",
+      "ev-9fd85560a485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:ccbf67aa9ec2cf86392aa105701fb70206bdeb0e9041f825572ee9d07519c596",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T16:17:56Z",
+      "callId": "12a89034-18a7-487d-8f1a-1a4b469d773a"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e47700e8a520",
+    "candidateId": "sc-d77458bd36e0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "appset-generated-app-error-requeue",
+        "component": "applicationset-controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1beta1",
+              "kind": "ApplicationSet"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Error handling for ApplicationSet-generated applications will use the default requeue behavior, which may affect retry timing and frequency for failed application generation."
+      },
+      "statement": "Error handling for ApplicationSet-generated applications now uses the default requeue behavior instead of a previous non-default requeue strategy."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a0994163965b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:43e5b1c4edfe0649025ec65d21d6670d3f954e7a7e4d96729e8ae4dcf0bfc1a3",
+      "inputEvidence": [
+        "ev-a0994163965b"
+      ],
+      "generatedAt": "2026-10-02T06:07:34Z",
+      "callId": "b6554694-cad5-4b17-a348-be10aacd8993"
+    }
+  }
+}

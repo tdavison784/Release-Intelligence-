@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-41c964dac8b9",
+    "candidateId": "sc-08185c9e1f20",
+    "proposalId": "sp-e65a14528d75",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "cluster.name"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "cluster.name",
+              "state": "set"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "cluster.name",
+                  "state": "matches",
+                  "pattern": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+                }
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "upgradeCompatibility",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "cluster.name",
+              "state": "set"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "cluster.name",
+                  "state": "matches",
+                  "pattern": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+                }
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "upgradeCompatibility",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "A cluster name that does not meet the new rule (at most 32 lower case alphanumeric characters and '-', starting and ending with an alphanumeric character) fails the validation introduced in Cilium 1.16 unless upgradeCompatibility is configured to v1.15 or earlier, and the bypass is removed from Cilium v1.17 where the validation is strictly enforced.",
+        "remediation": "Rename the cluster to a name of at most 32 lower case alphanumeric characters and '-' that starts and ends with an alphanumeric character, or temporarily set the Helm value upgradeCompatibility to v1.15 or earlier; note that the upgradeCompatibility bypass disappears when Cilium v1.17 strictly enforces the validation.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.16 now validates the cluster name to consist of at most 32 lower case alphanumeric characters and '-' and to start and end with an alphanumeric character; the validation can be bypassed in 1.16 by configuring upgradeCompatibility to v1.15 or earlier, but will be strictly enforced starting from Cilium v1.17."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bbda5fd2fd1c",
+  "promptDigest": "sha256:cf875e2e400a0de6f9c19d67a9c278847fb71d0eecbae034714a1069021a4678",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "fd9e8dc7-0756-4cea-b7b2-74b4cb0adc8b",
+  "startedAt": "2026-10-03T02:29:30.715Z",
+  "decidedAt": "2026-10-03T02:29:50.596Z",
+  "durationMs": 19233,
+  "costUSD": 0.117124,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-adf2ed32df1c] says the consequence only hits Applications \"currently configured to sync on the in-cluster cluster\" when `cluster.inClusterEnabled: \"false\"` is set. The proposed condition only checks the setting, so it also flags installs that have no in-cluster Applications, which makes it too broad. Its literal also wrongly includes the YAML quote marks: the configured value is the string false. Nothing in the evidence shows this is a Helm values path, so the corrected condition checks the config key in the ConfigMap data. The evidence names the \"in-cluster\" cluster but not how else an Application might target it, so that part is left undecidable.",
+    "citations": [
+      "ev-adf2ed32df1c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments where cluster.inClusterEnabled is explicitly \"false\" AND some Application targets the in-cluster cluster. These Applications go to an Unknown state, cannot sync, and deleting them does not remove the resources they managed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"cluster.inClusterEnabled\"]",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "argoproj.io",
+                  "kind": "Application",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.destination.name",
+                      "state": "equals",
+                      "values": [
+                        "in-cluster"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "evidence-gap",
+                  "needed": "which other Application destination settings (e.g. server URL) resolve to the in-cluster cluster"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

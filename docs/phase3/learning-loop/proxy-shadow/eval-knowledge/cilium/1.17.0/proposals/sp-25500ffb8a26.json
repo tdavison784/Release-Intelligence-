@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-25500ffb8a26",
+    "candidateId": "sc-d8211760345d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--bpf-lb-proto-diff",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data.bpf-lb-proto-diff",
+                      "state": "equals",
+                      "values": [
+                        "\"false\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "cilium-config"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, services protocol differentiation is on by default, but existing services without a protocol set are kept as they are to avoid connection disruptions. The agent only takes their protocol into account once they are deleted and recreated. Downgrading to a version without protocol differentiation makes the agent delete and recreate services that have a protocol set, which disrupts their connections.",
+        "remediation": "To have the agent apply protocol differentiation to existing services, delete and recreate them after the upgrade. Before any downgrade, expect connection disruptions for services that have a protocol set. Use --bpf-lb-proto-diff to control the feature.",
+        "severity": "medium"
+      },
+      "statement": "Cilium 1.17 adds services protocol differentiation, on by default and controlled by --bpf-lb-proto-diff. Existing services without a protocol set are kept as they are and must be deleted and recreated before the agent takes their protocol into account. A downgrade disrupts connections for services that have a protocol set."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2a9b9b849526"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8d121d9abae4a9788f3da973009103afd99401acc07baeb220cb886f11890b55",
+      "inputEvidence": [
+        "ev-2a9b9b849526"
+      ],
+      "generatedAt": "2026-10-03T07:14:54Z",
+      "callId": "fbe73601-5405-45d2-a251-e8fa2454038b"
+    }
+  }
+}

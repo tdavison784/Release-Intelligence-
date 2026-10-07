@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ae4820983bc0",
+    "candidateId": "sc-4e61d79ea50a",
+    "proposalId": "sp-fb35af93ca2a",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.refreshPolicy"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "ExternalSecret"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "ClusterExternalSecret"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new refreshPolicy field is optional and does not affect existing ExternalSecret resources that do not specify it; backward compatibility is maintained."
+      },
+      "statement": "A new optional refreshPolicy field has been added to ExternalSecret and ClusterExternalSecret v1beta1 specs to control synchronization behavior (CreatedOnce, Periodic, or OnChange)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "external-secrets.io ExternalSecret spec.refreshPolicy is in the schema of the target release only"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field-added",
+        "detail": "external-secrets.io ExternalSecret spec.refreshPolicy is new in the v1beta1 schema"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

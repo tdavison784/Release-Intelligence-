@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e8140df51f23",
+    "reviewItemId": "ri-3e15e3c277d8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether external log tooling (alerts, parsers, searches) matches literal strings in cert-manager log lines"
+        }
+      },
+      "statement": "In cert-manager 1.17.0, log messages now carry better contextual structured data, so anything that matches literal strings in log lines may break."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:1c7379af009dc2f2ef71c6cf83cf5821c145de3b53e8dff1e4a320e74d36d65b",
+      "inputEvidence": [
+        "ev-775b7a64f057"
+      ],
+      "generatedAt": "2026-10-02T12:52:48.862Z",
+      "callId": "77ffddad-42f7-464d-968c-97f0adcc7725"
+    },
+    "reason": "[ev-775b7a64f057] says log messages now carry more structured context, and that this may only break setups that match on literal strings in log lines. Whether anything does that depends on external log tooling, such as alerts, parsers and searches. No Helm value, manifest, flag or version records that tooling. So the right exposure is an undecidable leaf for an environment-visibility gap that names this missing input, which is exactly what the proposal gives.",
+    "startedAt": "2026-10-02T12:52:43.088Z",
+    "decidedAt": "2026-10-02T12:52:48.862Z"
+  }
+}

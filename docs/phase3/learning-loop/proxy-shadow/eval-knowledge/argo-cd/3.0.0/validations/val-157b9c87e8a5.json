@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-157b9c87e8a5",
+    "candidateId": "sc-28b034145d91",
+    "proposalId": "sp-4cc98ed3041b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-system-hook-webhooks-applicationsets"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether GitLab is configured to send 'System Hook' webhooks to the Argo CD webhook endpoint (the sender's hook configuration and the incoming webhook traffic are external runtime state, not carried by any Argo CD configuration input)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GitLab \"System Hook\" webhook events, previously unsupported for ApplicationSets, are now honored, so exposed environments see ApplicationSets respond to those events without any configuration change.",
+        "remediation": "After upgrading, verify any GitLab System Hook integrations trigger the expected ApplicationSet refreshes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 adds support for GitLab \"System Hook\" webhooks for ApplicationSets, so such webhook events now trigger ApplicationSet handling where they previously did not."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

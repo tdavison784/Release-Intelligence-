@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-56de1d059c26",
+    "candidateId": "sc-f933c1ca02f0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "path": "metadata.labels",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The istio-base chart now templates the Istio CRDs, so `helm upgrade istio-base` upgrades them, and the CRD labels change to be consistent with other Helm-installed resources. Existing `kubectl apply` installs and upgrades can continue.",
+        "remediation": "Check whether you want to manage the Istio CRDs with `helm upgrade istio-base` from now on. If you do, review the CRD label change. If not, keep using `kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml`.",
+        "severity": "low"
+      },
+      "statement": "In 1.24.0 the istio-base Helm chart templates the Istio CRDs by default, so `helm upgrade istio-base` now upgrades them and their labels change to match other Helm-installed resources; installing or upgrading them with `kubectl apply` still works."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The change is about how the istio-base chart templates and labels the CRDs. The evidence names no values key, field or other identity that fits a subject family, and the change is not a mandatory migration.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-85eccdc718e3",
+      "ev-2941a875a468"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:cb3f8740098421ceede77d6f759143a48186e270a4b0d2d1c82ad76d6fd53847",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468"
+      ],
+      "generatedAt": "2026-10-03T07:12:59Z",
+      "callId": "fcb82c15-455f-4d3d-b27b-588e0de8131e"
+    }
+  }
+}

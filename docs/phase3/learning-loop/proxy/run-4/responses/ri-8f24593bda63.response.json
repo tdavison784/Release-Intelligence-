@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8f24593bda63",
+  "promptDigest": "sha256:1af6d525ec25f0434e7c5dc048bb200183109ec5cf8acb1c7b72727fada64a22",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "79290151-eb5e-491d-8e99-aeed852db639",
+  "startedAt": "2026-10-06T01:49:21.546Z",
+  "decidedAt": "2026-10-06T01:49:32.599Z",
+  "durationMs": 10183,
+  "costUSD": 0.091028,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The linked PR explains what the one-line changelog note [ev-b9e3037ef8b7] leaves out. Prometheus changed its WAL watcher so that, unless writes notify it, the next read only happens on the next readTicker; this PR makes the Loki ruler's WAL call Notify() so the remote-storage watcher is woken on each append instead of polling [ev-b270867f3540][ev-b5e4a42ccdec]. The PR links the polling behaviour to issue 10859, where rule-evaluation integration tests failed more often [ev-b5e4a42ccdec]. The changed files are only ruler storage code (instance.go, wal.go) and the changelog, with no configuration or docs files [ev-bf6a346ce20f]. That supports typing this as an internal behaviour change to the ruler's WAL-to-remote-write path, with nothing for the operator to do; the exact exposure condition and whether any toggle exists are inferred rather than stated, because the PR text is cut off.",
+    "citations": [
+      "ev-b270867f3540",
+      "ev-b5e4a42ccdec",
+      "ev-bf6a346ce20f",
+      "ev-b9e3037ef8b7"
+    ],
+    "confidence": "low"
+  }
+}

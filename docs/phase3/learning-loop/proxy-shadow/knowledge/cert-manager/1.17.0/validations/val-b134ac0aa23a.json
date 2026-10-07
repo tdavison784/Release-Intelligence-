@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b134ac0aa23a",
+    "candidateId": "sc-78b10a313e23",
+    "proposalId": "sp-6c47c008a0cc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-certificate-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072",
+                    "4096"
+                  ]
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072",
+                    "4096"
+                  ]
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "CertificateRequest"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA certificates with 3072-bit or 4096-bit keys will use stronger SHA-384 or SHA-512 hash algorithms. The evidence states these are widely supported and no issues are expected, but errors may occur during key rotation if consuming systems do not support these hash algorithms.",
+        "remediation": "Verify that systems consuming these certificates support SHA-384 and SHA-512 hash algorithms. Monitor certificate rotation events for any compatibility issues.",
+        "severity": "medium"
+      },
+      "statement": "RSA certificates with 3072-bit or 4096-bit keys will now use SHA-384 or SHA-512 respectively as hash algorithms instead of previous algorithms."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

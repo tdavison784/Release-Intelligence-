@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-619dac7ee233",
+    "reviewItemId": "ri-68213b754f1c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.exclusions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"list of excluded resource kinds (Endpoints, EndpointSlice, Lease, SelfSubjectReview, TokenReview, LocalSubjectAccessReview, SelfSubjectAccessReview, SelfSubjectRulesReview, SubjectAccessReview, CertificateSigningRequest, PolicyReport, ClusterPolicyReport, CertificateRequest, EphemeralReport, ClusterEphemeralReport, AdmissionReport, ClusterAdmissionReport, BackgroundScanReport, ClusterBackgroundScanReport, UpdateRequest, CiliumIdentity, CiliumEndpoint, CiliumEndpointSlice)\""
+      },
+      "statement": "Argo CD 3.0.0 manifest adds a default configuration for `resource.exclusions` in the `argocd-cm` ConfigMap that excludes high-churn resources from various categories (Kubernetes core, Cert Manager, Kyverno, Cilium) for performance reasons."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:241a8b68a5265432552ac1600b79c62bd341f1864f930371a6b0e8363460e327",
+      "inputEvidence": [
+        "ev-3437aa882db2"
+      ],
+      "generatedAt": "2026-10-03T12:26:03.634Z",
+      "callId": "09bc8acf-f185-4236-9600-62fe09d2c203",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3437aa882db2] says the Argo CD manifest \"now contains a default configuration for `resource.exclusions` in the `argocd-cm`\", so the subject is the config key resource.exclusions with component argocd-cm. The guide also says the default can be \"overridden or removed... to preserve the v2 behavior\", which implies v2 had no default (before null). The proposed after value lists exactly the 23 excluded kinds the evidence names. So default-changed from null to that exclusion list is what the evidence supports.",
+    "startedAt": "2026-10-03T12:25:52.983Z",
+    "decidedAt": "2026-10-03T12:26:03.634Z",
+    "resultingFact": "vf-9f11ac3d3945"
+  }
+}

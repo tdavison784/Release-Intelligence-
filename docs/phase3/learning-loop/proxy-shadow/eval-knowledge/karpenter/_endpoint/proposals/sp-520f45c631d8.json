@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-520f45c631d8",
+    "candidateId": "sc-74b7134bdb51",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool",
+        "path": "spec.disruption"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"{\\\"consolidateAfter\\\":\\\"0s\\\"}\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "unset"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "The karpenter.sh/v1 NodePool schema default for spec.disruption changed from {\"consolidateAfter\":\"0s\"} to no default."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The diff shows only the removed schema default; the evidence does not say what behaviour results when spec.disruption is unset.",
+    "citations": [
+      "ev-09bbe26d2f4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:eace21f3fc45af753534cd6415cb986efb2c604605216eaf0d206f1ca945f4f6",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T05:57:41Z",
+      "callId": "dc7d1714-9c95-401e-89b4-625e18ce3bbb"
+    }
+  }
+}

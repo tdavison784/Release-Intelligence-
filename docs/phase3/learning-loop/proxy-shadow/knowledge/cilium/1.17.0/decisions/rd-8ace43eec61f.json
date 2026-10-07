@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8ace43eec61f",
+    "reviewItemId": "ri-c449b71dd854",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-config-path",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-announce-lb-ip",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bgp-announce-pod-cidr",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bgp-config-path",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bgp-announce-lb-ip",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--bgp-announce-pod-cidr",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Cilium 1.17.0 removes the deprecated metallb-bgp flags bgp-config-path, bgp-announce-lb-ip and bgp-announce-pod-cidr; BGP advertisements must now use the Cilium BGP control plane."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b5333302e40576b3867b59da22e0e04a15c97f8e1aaf7ecc79c7f56d07b47946",
+      "inputEvidence": [
+        "ev-32984cccce52",
+        "ev-98d8079a3380",
+        "ev-ffd2c3200e89"
+      ],
+      "generatedAt": "2026-10-03T17:01:11.494Z",
+      "callId": "86b79710-cbf3-4454-8c1e-2debebf7e430",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-32984cccce52] says the three metallb-bgp flags `bgp-config-path`, `bgp-announce-lb-ip` and `bgp-announce-pod-cidr` were removed. So the exposed environments are the ones that still set any of them. The proposed condition matches any environment that sets one of these flags, either as a container argument or as a key in the cilium-config ConfigMap. That fits the canonical shape for a removed flag (`cli-flag{name, set}`). Listing three flags in one entry does not stop us from writing a precise condition, because an `any` over the three flags covers exactly the exposed environments.",
+    "startedAt": "2026-10-03T17:01:01.098Z",
+    "decidedAt": "2026-10-03T17:01:11.494Z"
+  }
+}

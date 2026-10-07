@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ff815f61496f",
+    "candidateId": "sc-2122e380f43d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "kubevirt-rule-cleanup",
+        "component": "istio-clean-iptables"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"kube-virt-related rules not removed\"",
+        "after": "\"kube-virt-related rules removed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "kube-virt",
+          "state": "in-range",
+          "range": ">=0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "In environments using kube-virt, the istio-clean-iptables tool now removes kube-virt-related iptables rules that it previously left in place, so cleanup behavior differs and should be verified.",
+        "remediation": "No mandatory action; when istio-clean-iptables runs in a kube-virt environment, verify the kube-virt-related rules are removed as intended.",
+        "severity": "low"
+      },
+      "statement": "The istio-clean-iptables tool now removes kube-virt-related iptables rules, which it previously failed to remove."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-18ac53d77b4b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:cf9b8d9ea3b62ced18e81a96a365264041d0678822eafdbe3fedfceebf47f125",
+      "inputEvidence": [
+        "ev-18ac53d77b4b"
+      ],
+      "generatedAt": "2026-10-03T07:46:54Z",
+      "callId": "25f92ab7-58e0-4ea1-b6bf-bed211e306b8"
+    }
+  }
+}

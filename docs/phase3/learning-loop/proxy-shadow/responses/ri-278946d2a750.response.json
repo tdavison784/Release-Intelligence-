@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-278946d2a750",
+  "promptDigest": "sha256:a89bebdbf32880443e8db666f82e2cd51f69c81324f2bfa132206d2599a9c5fe",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ecf1a2fe-181a-4e38-a363-7d49cb7e7e12",
+  "startedAt": "2026-10-03T02:13:55.125Z",
+  "decidedAt": "2026-10-03T02:14:04.395Z",
+  "durationMs": 8315,
+  "costUSD": 0.046388799999999994,
+  "output": {
+    "action": "correct",
+    "reason": "The validators confirm that ExternalArtifact v1 is new in the target bundle [ev-c2c6c790d6b2] and not in the source bundle [ev-782bc47d120d]. That means no environment can use this kind before the upgrade, so gvk-in-use flags the wrong environments. The only exposure the change text names is operators who manage CRDs separately from the release and must install the new CRD. No static input shows how CRDs are managed, so the exposure has to be undecidable.",
+    "citations": [
+      "ev-c2c6c790d6b2",
+      "ev-782bc47d120d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The new CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) is added in the target release. Only environments that manage CRDs separately from the release are exposed, because they must install the new CRD. No static input shows whether CRDs are managed separately.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment installs and manages Flux CRDs separately from the release bundle"
+        }
+      }
+    }
+  }
+}

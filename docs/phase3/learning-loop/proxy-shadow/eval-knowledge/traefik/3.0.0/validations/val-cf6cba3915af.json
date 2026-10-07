@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cf6cba3915af",
+    "candidateId": "sc-7c4f05ec2671",
+    "proposalId": "sp-2929e976187d",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "apiextensions.k8s.io",
+        "version": "v1beta1",
+        "kind": "CustomResourceDefinition"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "traefik",
+          "group": "apiextensions.k8s.io",
+          "version": "v1",
+          "kind": "CustomResourceDefinition"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "apiextensions.k8s.io",
+          "version": "v1beta1",
+          "kind": "CustomResourceDefinition"
+        }
+      },
+      "statement": "Support for the Traefik CRD definition using apiextensions.k8s.io/v1beta1 is removed in v3; use apiextensions.k8s.io/v1 instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:gvk",
+        "detail": "apiextensions.k8s.io/v1beta1 CustomResourceDefinition is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:removed",
+        "detail": "the API version is not in the snapshots"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

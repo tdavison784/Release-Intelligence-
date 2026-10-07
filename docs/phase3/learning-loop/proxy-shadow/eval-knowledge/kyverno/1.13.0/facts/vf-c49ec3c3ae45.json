@@ -1,0 +1,959 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c49ec3c3ae45",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "anchors": [
+      {
+        "release": "1.13.0",
+        "evidenceKeys": [
+          "ek-1354209a7d21"
+        ],
+        "statementKeys": [
+          "sk-60c24f8206b1"
+        ],
+        "changeIds": [
+          "chg-399a46f5b2f9"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-b4c5db49b8f5"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "kyverno",
+        "name": "--enableReporting"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"validate,mutate,mutateExisting,imageVerify,generate\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enableReporting",
+              "state": "has-token",
+              "values": [
+                "mutate",
+                "mutateExisting",
+                "generate"
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, policy reports also record results for mutate, mutateExisting and generate rules, because the chart default enables reporting for validate, mutate, mutateExisting, imageVerify and generate. If the reports controller has not been granted the permissions it needs, a warning message is returned when a policy is admitted. The evidence does not say that anything fails.",
+        "remediation": "Grant the reports controller the RBAC permissions it needs for the new report types, or set --enableReporting to only the rule types you want reported.",
+        "severity": "low"
+      },
+      "statement": "Reports for Mutate and Generate rules: In addition to validate and verifyImages rules, Kyverno 1.13 supports reporting for generate and mutate, including…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-9687dca869e6",
+          "val-dbbb8ed3a602"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-9687dca869e6",
+          "val-dbbb8ed3a602"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-a137445ebd02"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-05f201bfb1c8"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2835c7c71165",
+        "kind": "document",
+        "sourceId": "release-notes-blog",
+        "uri": "https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md",
+        "locator": "L405-L432 (Other Features and Enhancements › Policy Report Enhancements › Reports for Mutate and Generate rules)",
+        "excerpt": "#### Reports for Mutate and Generate rules\n\nIn addition to validate and verifyImages rules, Kyverno 1.13 supports reporting for generate and mutate, including mutate existing policies, to record policy results. The container flag `--enableReporting` can be used to enable or disable reports for specific rule types. It allows the comma-separated values, validate, mutate, mutateExisting, generate, and imageVerify. See details [here](https://main.kyverno.io/docs/installation/customization/#container-flags).\n\nA result entry will be audited in the policy report for rule decision:\n\n```yaml\napiVersion…",
+        "contentDigest": "sha256:7003865f075ba01cdc5d733756c6473f3127141fc7a370118d60a3fe94c70652",
+        "retrievedAt": "2026-10-02T10:53:16Z"
+      },
+      {
+        "id": "ev-b2a444d8e5e6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args [--enableReporting]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].args: ∅ → \"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].args",
+          "change": "container-arg-added",
+          "after": "\"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\""
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-bc837634eaa2",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/background-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-background-controller spec.template.spec.containers[name=controller].args [--enableReporting]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-background-controller (ns kyverno) spec.template.spec.containers[name=controller].args: ∅ → \"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-background-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-added",
+          "after": "\"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\""
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-ff42ab09a455",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/reports-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].args [--enableReporting]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-reports-controller (ns kyverno) spec.template.spec.containers[name=controller].args: ∅ → \"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-reports-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-added",
+          "after": "\"--enableReporting=validate,mutate,mutateExisting,imageVerify,generate\""
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-d4375a636f55",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args [--dumpPatches]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].args: ∅ → \"--dumpPatches=false\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].args",
+          "change": "container-arg-added",
+          "after": "\"--dumpPatches=false\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-b39e8c27b4a6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args [--enablePolicyException]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-changed Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].args: \"--enablePolicyException=true\" → \"--enablePolicyException=false\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].args",
+          "change": "container-arg-changed",
+          "before": "\"--enablePolicyException=true\"",
+          "after": "\"--enablePolicyException=false\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-2986b5476a52",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args [--reportsServiceAccountName]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].args: ∅ → \"--reportsServiceAccountName=system:serviceaccount:kyverno:kyverno-reports-controller\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].args",
+          "change": "container-arg-added",
+          "after": "\"--reportsServiceAccountName=system:serviceaccount:kyverno:kyverno-reports-controller\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-7992af33049e",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args [--resyncPeriod]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].args: ∅ → \"--resyncPeriod=15m\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].args",
+          "change": "container-arg-added",
+          "after": "\"--resyncPeriod=15m\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-d45f46947747",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].env[name=KYVERNO_ROLE_NAME] [KYVERNO_ROLE_NAME]",
+        "excerpt": "1.12.6 → 1.13.0: env-var-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].env[name=KYVERNO_ROLE_NAME]: ∅ → \"kyverno:admission-controller\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].env[name=KYVERNO_ROLE_NAME]",
+          "change": "env-var-added",
+          "after": "\"kyverno:admission-controller\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-cdbad5f10029",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].image [ghcr.io/kyverno/kyverno]",
+        "excerpt": "1.12.6 → 1.13.0: image-changed Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.containers[name=kyverno].image: \"ghcr.io/kyverno/kyverno:v1.12.6\" → \"ghcr.io/kyverno/kyverno:v1.13.0\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.containers[name=kyverno].image",
+          "change": "image-changed",
+          "before": "\"ghcr.io/kyverno/kyverno:v1.12.6\"",
+          "after": "\"ghcr.io/kyverno/kyverno:v1.13.0\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-1a780fc7f788",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.initContainers[name=kyverno-pre].env[name=KYVERNO_ROLE_NAME] [KYVERNO_ROLE_NAME]",
+        "excerpt": "1.12.6 → 1.13.0: env-var-added Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.initContainers[name=kyverno-pre].env[name=KYVERNO_ROLE_NAME]: ∅ → \"kyverno:admission-controller\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.initContainers[name=kyverno-pre].env[name=KYVERNO_ROLE_NAME]",
+          "change": "env-var-added",
+          "after": "\"kyverno:admission-controller\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-91ec4fc92ad3",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/admission-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.initContainers[name=kyverno-pre].image [ghcr.io/kyverno/kyvernopre]",
+        "excerpt": "1.12.6 → 1.13.0: image-changed Deployment/kyverno-admission-controller (ns kyverno) spec.template.spec.initContainers[name=kyverno-pre].image: \"ghcr.io/kyverno/kyvernopre:v1.12.6\" → \"ghcr.io/kyverno/kyvernopre:v1.13.0\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "path": "spec.template.spec.initContainers[name=kyverno-pre].image",
+          "change": "image-changed",
+          "before": "\"ghcr.io/kyverno/kyvernopre:v1.12.6\"",
+          "after": "\"ghcr.io/kyverno/kyvernopre:v1.13.0\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-e599ee1bf192",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/background-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-background-controller spec.template.spec.containers[name=controller].args [--enablePolicyException]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-changed Deployment/kyverno-background-controller (ns kyverno) spec.template.spec.containers[name=controller].args: \"--enablePolicyException=true\" → \"--enablePolicyException=false\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-background-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-changed",
+          "before": "\"--enablePolicyException=true\"",
+          "after": "\"--enablePolicyException=false\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-296f51353996",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/background-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-background-controller spec.template.spec.containers[name=controller].args [--resyncPeriod]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-background-controller (ns kyverno) spec.template.spec.containers[name=controller].args: ∅ → \"--resyncPeriod=15m\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-background-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-added",
+          "after": "\"--resyncPeriod=15m\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-55e1be7f7ede",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/background-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-background-controller spec.template.spec.containers[name=controller].image [ghcr.io/kyverno/background-controller]",
+        "excerpt": "1.12.6 → 1.13.0: image-changed Deployment/kyverno-background-controller (ns kyverno) spec.template.spec.containers[name=controller].image: \"ghcr.io/kyverno/background-controller:v1.12.6\" → \"ghcr.io/kyverno/background-controller:v1.13.0\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-background-controller",
+          "path": "spec.template.spec.containers[name=controller].image",
+          "change": "image-changed",
+          "before": "\"ghcr.io/kyverno/background-controller:v1.12.6\"",
+          "after": "\"ghcr.io/kyverno/background-controller:v1.13.0\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-89fe173dc4ac",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/reports-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].args [--enablePolicyException]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-changed Deployment/kyverno-reports-controller (ns kyverno) spec.template.spec.containers[name=controller].args: \"--enablePolicyException=true\" → \"--enablePolicyException=false\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-reports-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-changed",
+          "before": "\"--enablePolicyException=true\"",
+          "after": "\"--enablePolicyException=false\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-0982f2d9b2c6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/reports-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].args [--reportsChunkSize]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-removed Deployment/kyverno-reports-controller (ns kyverno) spec.template.spec.containers[name=controller].args: \"--reportsChunkSize=0\" → ∅",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-reports-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-removed",
+          "before": "\"--reportsChunkSize=0\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-2bba844b2e5c",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/reports-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].args [--resyncPeriod]",
+        "excerpt": "1.12.6 → 1.13.0: container-arg-added Deployment/kyverno-reports-controller (ns kyverno) spec.template.spec.containers[name=controller].args: ∅ → \"--resyncPeriod=15m\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-reports-controller",
+          "path": "spec.template.spec.containers[name=controller].args",
+          "change": "container-arg-added",
+          "after": "\"--resyncPeriod=15m\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-a2edfd9b1fee",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/templates/reports-controller/deployment.yaml · apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].image [ghcr.io/kyverno/reports-controller]",
+        "excerpt": "1.12.6 → 1.13.0: image-changed Deployment/kyverno-reports-controller (ns kyverno) spec.template.spec.containers[name=controller].image: \"ghcr.io/kyverno/reports-controller:v1.12.6\" → \"ghcr.io/kyverno/reports-controller:v1.13.0\"",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apps/v1/Deployment/kyverno/kyverno-reports-controller",
+          "path": "spec.template.spec.containers[name=controller].image",
+          "change": "image-changed",
+          "before": "\"ghcr.io/kyverno/reports-controller:v1.12.6\"",
+          "after": "\"ghcr.io/kyverno/reports-controller:v1.13.0\""
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-d18fb0498594",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.2.8.tgz",
+        "locator": "state cli-flag:kyverno|name=--enableReporting",
+        "excerpt": "release render of kyverno 1.12.6: cli-flag:kyverno|name=--enableReporting absent",
+        "contentDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      },
+      {
+        "id": "ev-206280e3108c",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "state cli-flag:kyverno|name=--enableReporting",
+        "excerpt": "release render of kyverno 1.13.0: cli-flag:kyverno|name=--enableReporting at apps/v1/Deployment/kyverno/kyverno-admission-controller spec.template.spec.containers[name=kyverno].args = validate,mutate,mutateExisting,imageVerify,generate; apps/v1/Deployment/kyverno/kyverno-background-controller spec.template.spec.containers[name=controller].args = validate,mutate,mutateExisting,imageVerify,generate; apps/v1/Deployment/kyverno/kyverno-reports-controller spec.template.spec.containers[name=controller].args = validate,mutate,mutateExisting,imageVerify,generate",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "object": "apps/v1/Deployment/kyverno/kyverno-admission-controller",
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:52Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T01:54:37.261Z"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-46863a48d53b",
+    "candidateId": "sc-21bf63323d13",
+    "proposalId": "sp-bb537300d8b2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.subsets[].trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.subsets[].trafficPolicy.portLevelSettings[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment routes traffic through waypoints (the evidence names waypoints but does not state how waypoint usage is identified in configuration)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRule portLevelSettings that were previously ignored are now applied for waypoints, so configured per-port traffic policy takes effect for traffic routed through waypoints where it previously had no effect.",
+        "remediation": "Review any portLevelSettings configured in DestinationRules for waypoint-routed services to confirm the intended per-port traffic policy, since these settings will now be applied rather than ignored.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes an issue that caused any portLevelSettings in DestinationRules to be ignored for waypoints, so these per-port traffic policy settings are now honored for waypoint traffic."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

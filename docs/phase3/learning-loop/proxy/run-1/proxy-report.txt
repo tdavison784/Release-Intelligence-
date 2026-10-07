@@ -1,0 +1,52 @@
+Proxy review report (proxy models: claude-opus-5-5)
+
+Decisions recorded: 940
+By action: accept 400, correct 121, defer 54, need-more-evidence 323, reject 42
+By label: accepted 400, corrected 121, duplicate 1, insufficient-evidence 323, rejected 41, wrong-applicability 74, wrong-change-type 32, wrong-classification 9, wrong-consequence 17, wrong-subject 57
+
+By question type:
+  applicability          n=185: accept 68 (37%), correct 57 (31%), reject 17 (9%), need-more-evidence 43 (23%)
+  classification         n=4: accept 3 (75%), need-more-evidence 1 (25%)
+  consequence            n=264: accept 209 (79%), correct 17 (6%), reject 1 (0%), need-more-evidence 37 (14%)
+  evidence-sufficiency   n=268: need-more-evidence 216 (81%), defer 52 (19%)
+  semantic-mapping       n=219: accept 120 (55%), correct 47 (21%), reject 24 (11%), need-more-evidence 26 (12%), defer 2 (1%)
+Evidence-sufficiency verdicts: evidence-sufficient 52, need-more-evidence 216
+
+By author of the proposed assertion (relative to the proxy):
+  includes self-model                n=38: accept 34 (89%), correct 1 (3%), need-more-evidence 3 (8%)
+  mixed (self + other family)        n=75: accept 69 (92%), correct 2 (3%), need-more-evidence 4 (5%)
+  none                               n=9: accept 4 (44%), correct 1 (11%), reject 2 (22%), need-more-evidence 2 (22%)
+  other-family only                  n=51: accept 22 (43%), correct 2 (4%), reject 2 (4%), need-more-evidence 25 (49%)
+  self-family only (not self-model)  n=499: accept 271 (54%), correct 115 (23%), reject 38 (8%), need-more-evidence 73 (15%), defer 2 (0%)
+
+Per proposing model (knowledge.ComputeMetrics over the proxy decisions only; proposals/abstain count the whole store):
+  model                relation      proposals     as-is corrected  rejected   insuff.   abstain accept rate (as-is+corr / judged)
+  claude-haiku-4-5     self-family         460       213        89       147         0       241 0.67 (as-is 0.47)
+  claude-opus-5-5      self-model          147        95         1        48         0       104 0.67 (as-is 0.66)
+  claude-sonnet-5-5    self-family         515       252        32       112         0       423 0.72 (as-is 0.64)
+  glm-5.3              other-family        138        96         4        58         0        71 0.63 (as-is 0.61)
+
+Active facts by level: consensus 9, proxy 96
+Facts minted at proxy level: 96 · by exposed class: action-required 3, informational 34, review-required 59 · by family: cli-flag 14, config-key 4, crd-field 17, env-var 4, feature-gate 2, gvk 2, helm-value 17, product-relationship 1, protocol-behavior 35
+
+Ledger: 959 entries, 0 skipped (no longer pending, not called), failures by stage: call 7, verdict 12
+Cost: $60.10 (CLI-reported) · median call 6.6s · p90 11.4s · wall clock 3h21m11s
+  failed ri-08a9d9868420 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-4ec91e1269ad [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-6138c4b449d3 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-7fe2d8243177 [applicability] verdict: correction refused: statement longer than 400 characters
+  failed ri-85c0ba146fbc [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-91e9be136655 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-9d26a5172084 [applicability] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9d3186f0c4a1 [evidence-sufficiency] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9d9a4b381ea9 [evidence-sufficiency] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9db6717f04c3 [semantic-mapping] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9dcba9a78522 [evidence-sufficiency] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9de6919aa258 [applicability] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-9de6d9e4778f [evidence-sufficiency] call: {"is_error":true,"subtype":"success","result":"You've hit your session limit · resets 10:50am (America/Chicago)"}
+  failed ri-cc106f4cc8ef [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-d736e0934cb0 [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-e15d55d1b93e [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-e2ff524c227c [applicability] verdict: correction refused: the correction changes no aspect
+  failed ri-e5e9bd43073c [consequence] verdict: correction refused: the correction changes no aspect
+  failed ri-e65b244d5670 [consequence] verdict: correction refused: the correction changes no aspect

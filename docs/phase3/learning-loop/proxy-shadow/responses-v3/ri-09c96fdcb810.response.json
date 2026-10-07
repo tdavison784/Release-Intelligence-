@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-09c96fdcb810",
+  "promptDigest": "sha256:6ba396c89c182f41a5866a5df627a4642ea09b3253bf1d077098c48adac55788",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2aa581aa-062f-4a54-94e6-fb2c5506a6e0",
+  "startedAt": "2026-10-03T12:43:15.358Z",
+  "decidedAt": "2026-10-03T12:43:28.063Z",
+  "durationMs": 11796,
+  "costUSD": 0.11226799999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c0bb5c52ce78] says both the `ruler.evaluation-delay-duration` CLI flag and its YAML setting are removed. An exposure that checks only the CLI flag misses environments that set the value in the YAML config file. The evidence does not name the YAML key or where it sits in the config. P2's values-key path just reuses the flag name, which the evidence does not support. So the YAML branch can only be an evidence-gap leaf, combined with the CLI flag check.",
+    "citations": [
+      "ev-c0bb5c52ce78"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the `ruler.evaluation-delay-duration` CLI flag and its YAML setting. Exposed: environments that set the `--ruler.evaluation-delay-duration` flag or the matching YAML setting. The evidence does not name the YAML key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ruler.evaluation-delay-duration",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the name and config-file location of the YAML setting corresponding to ruler.evaluation-delay-duration, which the upgrade guide does not state"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

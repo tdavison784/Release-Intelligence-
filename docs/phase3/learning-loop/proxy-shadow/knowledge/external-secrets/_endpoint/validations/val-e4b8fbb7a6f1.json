@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e4b8fbb7a6f1",
+    "candidateId": "sc-79f4401150ed",
+    "proposalId": "sp-d803cea66fac",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterExternalSecret objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and an update of status.storedVersions must be run before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration: re-write all ClusterExternalSecret objects so they are stored as v1, then update status.storedVersions to drop v1beta1, before upgrading to a later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of clusterexternalsecrets.external-secrets.io changes from v1beta1 to v1 (in chart 0.16.0 the CRD no longer marks v1beta1 as storage, true → false), so existing ClusterExternalSecret objects stay stored as v1beta1 until a storage version migration (re-write all objects) is run and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:gvk/behavior-changed",
+        "detail": "no canonical exposure condition for gvk behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

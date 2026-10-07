@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-26b1c220c475",
+    "candidateId": "sc-160a016c092c",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"`cortex_query_scheduler_queue_duration_seconds_sum`\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alert rules, or PromQL/queries reference the metric name cortex_query_scheduler_queue_duration_seconds_sum; monitoring definitions live outside the Loki release and no release input carries them"
+        }
+      },
+      "statement": "The Loki 3.0.0 upgrade guide lists the metric `cortex_query_scheduler_queue_duration_seconds_sum` under its 'Metrics namespace' section, but the evidence does not state what changed for it, and exposure depends on whether external dashboards, alerts, or queries reference that metric name, which no release input carries."
+    },
+    "proposals": [
+      "sp-30991399077d",
+      "sp-6bde3172ce9c",
+      "sp-a82eb9d2360f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:29:22Z"
+  }
+}

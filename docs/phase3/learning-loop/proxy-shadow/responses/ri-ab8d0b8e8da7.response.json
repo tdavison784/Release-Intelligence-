@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ab8d0b8e8da7",
+  "promptDigest": "sha256:d585d9026666de41179f9b4ad9860c5110883c067d85e42daaf6ffd45b92ec9b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1968ffa9-5523-451c-b8bc-ed7230e249f4",
+  "startedAt": "2026-10-03T02:27:53.919Z",
+  "decidedAt": "2026-10-03T02:28:06.270Z",
+  "durationMs": 11490,
+  "costUSD": 0.107088,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-4c2676e4665a] says support for ZooKeeper-based clusters and for ZooKeeper-to-KRaft migration is removed, and that all clusters must use KRaft before upgrading. So the exposed environments are those still running a ZooKeeper-based cluster. The excerpt names no field, annotation or setting that marks a cluster as ZooKeeper-based, so undecidable is the right shape. P4's gvk-in-use Kafka is too broad because it would also flag KRaft clusters. However, the gap is in the evidence, not in what the environment can show: the proposal's own 'needed' text says 'the evidence names no field'. The reason should therefore be evidence-gap, not environment-visibility-gap.",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments where any Strimzi-managed Kafka cluster still uses ZooKeeper rather than KRaft. The release evidence does not say which configuration identifies such a cluster, so exposure cannot be decided from the evidence.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether any Kafka cluster managed by Strimzi is still ZooKeeper-based rather than KRaft; the evidence does not name the field or setting that identifies a ZooKeeper-based cluster"
+        }
+      }
+    }
+  }
+}

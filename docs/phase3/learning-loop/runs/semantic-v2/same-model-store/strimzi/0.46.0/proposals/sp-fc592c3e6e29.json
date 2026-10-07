@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fc592c3e6e29",
+    "candidateId": "sc-f71e5a991048",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any workload, integration, or operator automation in the environment consumes the Kafka node certificate Secrets directly (by name or as a mounted Secret), since the previous Secret layout and its name are not stated in the evidence"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka node certificates are now stored in separate Secrets, one Secret per pod; environments that consume these certificate Secrets should verify they still reference the right Secret after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 stores Kafka node certificates in separate Kubernetes Secrets, one Secret per pod, changing how the operator manages node certificate storage."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The changelog line describes an internal change to how the operator stores Kafka node certificates but names no identity-bearing artifact (CRD field, Helm value, feature gate, image, config key, API, or flag) that maps to a subject family.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-acec48f57273"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:74a9e95463a5aa1b0f150aff19dc6b636f0c8b96fbe19293391ba3dc834c2b91",
+      "inputEvidence": [
+        "ev-acec48f57273"
+      ],
+      "generatedAt": "2026-10-02T06:28:55Z",
+      "callId": "ec334ecd-6748-4de9-a42d-910b00143888"
+    }
+  }
+}

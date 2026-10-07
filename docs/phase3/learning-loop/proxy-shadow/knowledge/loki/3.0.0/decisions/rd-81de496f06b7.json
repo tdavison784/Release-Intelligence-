@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-81de496f06b7",
+    "reviewItemId": "ri-c3cf14b562d4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "HTTP requests to the `/ingester/flush_shutdown` endpoint will fail because the endpoint no longer exists; callers must migrate to `/ingester/shutdown?flush=true` instead.",
+        "remediation": "Update all ingester shutdown automation or monitoring scripts that call `/ingester/flush_shutdown` to use `/ingester/shutdown?flush=true` instead.",
+        "severity": "high"
+      },
+      "statement": "The deprecated `/ingester/flush_shutdown` API endpoint is removed in Loki 3.0.0 and replaced with `/ingester/shutdown?flush=true`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:73fd0d2341943175da592ab94b691abe13e58a90500a21b5bbe5635a8a1435fa",
+      "inputEvidence": [
+        "ev-707b74e58c3e"
+      ],
+      "generatedAt": "2026-10-03T17:01:12.484Z",
+      "callId": "ce89ab14-221e-4557-9492-7b763051beb8",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-707b74e58c3e] says the `/ingester/flush_shutdown` handler \"is removed\" and points to `/ingester/shutdown?flush=true` as the replacement. Once a handler is removed, any automation or integration that still calls the old path loses an endpoint it depends on, so workload-failure (mandatory work) fits. The fix of switching to the replacement path matches what the guide names. Confidence is low because the evidence doesn't spell out what callers see and doesn't support a particular severity.",
+    "startedAt": "2026-10-03T17:00:59.919Z",
+    "decidedAt": "2026-10-03T17:01:12.484Z"
+  }
+}

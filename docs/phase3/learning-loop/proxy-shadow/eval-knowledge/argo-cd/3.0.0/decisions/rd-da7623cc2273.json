@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-da7623cc2273",
+    "reviewItemId": "ri-8ff941aad86e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "portforward-pod-exec-protocol"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SPDY\"",
+        "after": "\"WebSocket\""
+      },
+      "statement": "Argo CD 3.0.0 replaces SPDY with WebSocket as the protocol for portforward and pod exec operations."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "portforward-pod-exec"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"spdy\"",
+        "after": "\"websocket\""
+      },
+      "statement": "Argo CD 3.0.0 uses websocket instead of spdy for portforward and pod exec."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b641fd3c7fcc1764b5bb0b412eee8607a64e1814b17fd65f9398fec3e6ba8b63",
+      "inputEvidence": [
+        "ev-44a03a4444c2"
+      ],
+      "generatedAt": "2026-10-02T13:03:51.045Z",
+      "callId": "75a95f6b-efd6-4824-9332-5d15d0dcc4da"
+    },
+    "reason": "[ev-44a03a4444c2] says Argo CD \"replace[s] spdy with websocket for portforward and pod exec\", so the subject is a protocol behaviour and the change type is behavior-changed. Two parts need fixing. The proposed name adds \"protocol\", which is not in the evidence; the free-form name should use only the evidence's own words, so it becomes \"portforward-pod-exec\". The before/after literals should match the text exactly as \"spdy\" and \"websocket\", not the recapitalised \"SPDY\"/\"WebSocket\".",
+    "startedAt": "2026-10-02T13:03:40.617Z",
+    "decidedAt": "2026-10-02T13:03:51.045Z"
+  }
+}

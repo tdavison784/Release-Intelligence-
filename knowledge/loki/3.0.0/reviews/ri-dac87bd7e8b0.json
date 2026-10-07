@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dac87bd7e8b0",
+    "candidateId": "sc-3014cea247c8",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"loki Fixed regression adding newlines to HTTP error response bodies which may break client integrations\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki",
+              "state": "out-of-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 fixes a regression that was adding newlines to HTTP error response bodies, which broke client integrations."
+    },
+    "proposals": [
+      "sp-663f4adcea18",
+      "sp-774963b38d06"
+    ],
+    "validations": [
+      "val-7fd6ad367897",
+      "val-894e82e07044",
+      "val-c1eb64d97e58"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:02:51Z"
+  }
+}

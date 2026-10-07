@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0801e2285b3c",
+    "candidateId": "sc-2314fa6c1596",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "seLinuxOptions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "A new value `seLinuxOptions` was added to the istio-cni chart; on platforms like OpenShift, setting `seLinuxOptions.type` to `spc_t` may be needed or istio-cni-node pods may fail to start."
+    },
+    "undetermined": [
+      "applicability",
+      "consequence"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on platform SELinux constraints (e.g. OpenShift) which the release text does not tie to a static configuration predicate.; consequence: Text says pods 'may fail to start' only on some platforms without the setting; this is conditional and a new optional value, so no definite consequence for an operator doing nothing.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-117557f906cd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:44219f515d2ae853bc69eb50a4cdca306d0709dc85a0493fc0e775b82940f432",
+      "inputEvidence": [
+        "ev-117557f906cd"
+      ],
+      "generatedAt": "2026-10-02T06:07:52Z",
+      "callId": "f9061e18-0c0b-4660-96ac-2ab2383296b0"
+    }
+  }
+}

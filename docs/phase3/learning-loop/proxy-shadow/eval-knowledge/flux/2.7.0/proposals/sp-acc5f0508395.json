@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-acc5f0508395",
+    "candidateId": "sc-55aa41cb3e29",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators invoke `flux push artifact --provider azure` on Azure DevOps runners (usage of the CLI in CI, not carried by any chart/manifest configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, `flux push artifact --provider azure` on DevOps runners performs Azure CLI calls that it previously did not allow, changing the command's credential behaviour in that environment.",
+        "remediation": "If you run `flux push artifact --provider azure` on Azure DevOps runners, upgrade the flux CLI and verify the push authenticates as expected.",
+        "severity": "low"
+      },
+      "statement": "The flux CLI release v2.7.0 now allows Azure CLI calls in `flux push artifact --provider azure` on DevOps runners, changing that command's authentication behaviour in that environment."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b4b297bb4480"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1a06cec505cb8895f1bac8c4e76db1a52ef6255fe3e6fa38eead285c13fe6ce0",
+      "inputEvidence": [
+        "ev-b4b297bb4480"
+      ],
+      "generatedAt": "2026-10-03T08:02:03Z",
+      "callId": "a7fc026f-5c70-411c-89d9-e58f4449cd15"
+    }
+  }
+}

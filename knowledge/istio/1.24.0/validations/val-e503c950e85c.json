@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e503c950e85c",
+    "candidateId": "sc-66ecfc1d4aaf",
+    "proposalId": "sp-1cb893cc7fd3",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "CNI_NET_DIR",
+        "component": "istio-cni"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.CNI_NET_DIR",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "istio-cni"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The CNI_NET_DIR key in the istio-cni configmap is no longer read or used, as it now does nothing.",
+        "severity": "low"
+      },
+      "statement": "The CNI_NET_DIR configuration key has been removed from the istio-cni configmap."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

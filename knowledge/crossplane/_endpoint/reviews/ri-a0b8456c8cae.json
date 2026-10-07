@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a0b8456c8cae",
+    "candidateId": "sc-76ca511eb130",
+    "product": "crossplane",
+    "questionType": "classification",
+    "question": "Is fact vf-d36855dd939d (Line added to cmd/crossplane/core/core.go: return errors.New(\"the --registry flag is no longer supported since support for a default registry value has been…) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the Crossplane core command is started with --registry after upgrading to v2.0.0, it returns the error \"the --registry flag is no longer supported since support for a default registry value has been removed...\" and fails, so the core pod cannot run until the flag is removed and all packages (and their dependencies) use fully qualified image names that explicitly state their registry.",
+        "remediation": "Remove --registry from the Crossplane core pod arguments and ensure every package (and each of its dependencies) has a fully qualified name that explicitly states its registry.",
+        "severity": "high"
+      },
+      "statement": "Line added to cmd/crossplane/core/core.go: return errors.New(\"the --registry flag is no longer supported since support for a default registry value has been…"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "auto-approved",
+        "consensus-action",
+        "consensus-cross-model",
+        "consensus-same-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:14:47.668048-05:00"
+  }
+}

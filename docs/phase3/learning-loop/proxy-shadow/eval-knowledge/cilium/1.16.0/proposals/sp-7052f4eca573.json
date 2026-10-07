@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7052f4eca573",
+    "candidateId": "sc-fa168da2703d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "endpointStatus"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "endpointStatus.enabled",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "endpointStatus.status",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus no longer take effect; the additional endpoint statuses in the CiliumEndpoints CRD are no longer provided.",
+        "remediation": "Remove endpointStatus keys and monitor endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or `cilium-dbg endpoint get`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm option `endpointStatus` was removed in Cilium 1.16; use Cilium metrics (e.g. cilium_policy, cilium_endpoint_state) or `cilium-dbg endpoint get` instead of additional CiliumEndpoints CRD statuses."
+    },
+    "citations": [
+      "ev-f050ccf90d86"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:da7af8d10c2496041c7134adcdb20b31b77d28d9508d4f694df3b751e8e0f722",
+      "inputEvidence": [
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-f050ccf90d86"
+      ],
+      "generatedAt": "2026-10-02T05:58:28Z",
+      "callId": "124155a7-c53a-4e58-83b8-f858812b060e"
+    }
+  }
+}

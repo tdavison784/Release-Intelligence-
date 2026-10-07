@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-46e158dee303",
+    "candidateId": "sc-d3c98f01eaa1",
+    "proposalId": "sp-d8f616ef1af9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagepolicy-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImagePolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImagePolicy objects remain stored as v1beta2 until rewritten; a storage version migration (re-write all objects) and update of status.storedVersions must be done before a later release removes v1beta2.",
+        "remediation": "Re-write all ImagePolicy objects and update status.storedVersions on the CRD to drop v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ImagePolicy CRD (image.toolkit.fluxcd.io) changes from v1beta2 to v1; existing objects stay stored as v1beta2 until rewritten, so a storage version migration is needed before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

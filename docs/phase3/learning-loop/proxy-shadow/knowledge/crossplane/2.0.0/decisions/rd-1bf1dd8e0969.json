@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1bf1dd8e0969",
+    "reviewItemId": "ri-37fac602b8d2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Composite resources no longer have native connection details support; operators relying on it must recreate the feature by composing their own connection details Secret.",
+        "remediation": "Compose your own connection details Secret as described in the connection details composition guide."
+      },
+      "statement": "Native connection details support for composite resources (XRs) is removed; managed resources keep writeConnectionSecretToRef, and XR users must compose their own connection details Secret."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:27dfb69db83811fa518f310cc4291ffb430c473b65bc1c25eb1a5f14c9db5a88",
+      "inputEvidence": [
+        "ev-e2dcb3e0ebe6"
+      ],
+      "generatedAt": "2026-10-03T12:49:42.707Z",
+      "callId": "47b69390-df01-45c0-98cd-23d1c275c030",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-e2dcb3e0ebe6] is in the v2 upgrade guide's \"Removed features\" section. It says composite resources (XRs) \"no longer have native connection details support\", that managed resources are not affected, and that users can recreate the feature by composing their own connection details Secret. So a removed capability stops working for XRs, and the guide names the replacement step operators must take. That makes migration-required (mandatory work) fit better than behavior-change or deprecation, and the proposed remediation matches the guide. Confidence is low because the guide says \"can recreate\" rather than \"must\", and it does not say exactly what breaks for XRs that relied on the feature.",
+    "startedAt": "2026-10-03T12:49:28.705Z",
+    "decidedAt": "2026-10-03T12:49:42.707Z"
+  }
+}

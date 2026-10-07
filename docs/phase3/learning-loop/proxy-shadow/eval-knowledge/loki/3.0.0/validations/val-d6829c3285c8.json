@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d6829c3285c8",
+    "candidateId": "sc-ef36c5f13d2b",
+    "proposalId": "sp-02a73e39bf74",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "automatic_stream_sharding.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Write load across ingesters will be automatically balanced using stream sharding by default, potentially redistributing traffic patterns across ingester instances.",
+        "severity": "medium"
+      },
+      "statement": "Automatic stream sharding is enabled by default in Loki 3.0.0 to balance write load across ingesters and avoid hot-spotting."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

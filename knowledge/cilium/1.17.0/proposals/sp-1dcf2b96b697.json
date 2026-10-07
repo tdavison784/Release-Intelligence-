@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1dcf2b96b697",
+    "candidateId": "sc-e57ca6092b51",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--probe",
+        "component": "cilium-health"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"runs a synchronous probe\"",
+        "after": "\"returns the results of the most recent cached probe\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--probe",
+          "component": "cilium-health",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The --probe flag behavior changes to return cached probe results instead of running synchronous probes; the flag is hidden and scheduled for removal in a future release.",
+        "remediation": "Update monitoring or health check scripts that depend on synchronous probe execution via cilium-health status --probe; verify whether cached results are acceptable for your use case.",
+        "severity": "medium"
+      },
+      "statement": "The cilium-health status --probe flag no longer runs synchronous probes; it now returns cached results and is hidden, scheduled for removal in a future release."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5f4aedc964f4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:74f832906485a0022b29357c05a0dc165af1d67d83ab510ced8c3b0f2f58c201",
+      "inputEvidence": [
+        "ev-5f4aedc964f4"
+      ],
+      "generatedAt": "2026-10-02T05:56:15Z",
+      "callId": "2adb6302-93b1-499b-b0a2-ba78581bcb7a"
+    }
+  }
+}

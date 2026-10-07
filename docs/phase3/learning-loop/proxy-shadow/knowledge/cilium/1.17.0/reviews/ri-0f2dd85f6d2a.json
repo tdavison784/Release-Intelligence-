@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-0f2dd85f6d2a",
+    "candidateId": "sc-0183f4d8b953",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` -> `envoy_cilium_npds_update_rejected`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The rejected-update metric is now published as `envoy_cilium_npds_update_rejected` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected`.",
+        "remediation": "Change any monitoring queries, dashboards or alerts that use the old metric name to use `envoy_cilium_npds_update_rejected`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` was renamed to `envoy_cilium_npds_update_rejected`."
+    },
+    "proposals": [
+      "sp-58641fad7a41",
+      "sp-9c5792ff5244",
+      "sp-e0fe412ff0db"
+    ],
+    "validations": [
+      "val-1a72493020b3",
+      "val-1b1cbd3a9ec1",
+      "val-de0c9a2df8c5"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:22:14Z"
+  }
+}

@@ -106,19 +106,24 @@ func plausibleVersion(s string) bool {
 func identityFromSchemaChange(c domain.Change) (id crdIdentity, ok bool) {
 	// Detail: "Fields no longer in the <group>/<version> schema of <name>
 	// are pruned from stored objects and rejected or dropped in manifests. …"
+	// — and the schema-attribute rules' "… changed in the <gv> schema of
+	// <name> (old → new; …", "…; a removed value …", ":\n…": the name is the
+	// token after " schema of ", ended by a space, ';', ':', '(' or newline.
 	if i := strings.Index(c.Detail, " in the "); i >= 0 {
 		rest := c.Detail[i+len(" in the "):]
-		if j := strings.Index(rest, " schema of "); j >= 0 {
+		if j := strings.Index(rest, " schema of "); j >= 0 && !strings.ContainsAny(rest[:j], "\n") {
 			gv := strings.TrimSpace(rest[:j])
 			tail := rest[j+len(" schema of "):]
-			if k := strings.Index(tail, " are pruned"); k >= 0 {
-				if name := strings.TrimSpace(tail[:k]); name != "" && !strings.ContainsAny(name, " \t/") {
-					group, version, hasGroup := strings.Cut(gv, "/")
-					if !hasGroup {
-						version, group = gv, "" // bare-version form; the name decides the group below
-					}
-					id.Name, id.Group, id.Version = name, group, version
+			end := strings.IndexAny(tail, " ;:(\n\t")
+			if end < 0 {
+				end = len(tail)
+			}
+			if name := strings.TrimRight(tail[:end], "."); name != "" && !strings.ContainsAny(gv, " \t") && !strings.Contains(name, "/") {
+				group, version, hasGroup := strings.Cut(gv, "/")
+				if !hasGroup {
+					version, group = gv, "" // bare-version form; the name decides the group below
 				}
+				id.Name, id.Group, id.Version = name, group, version
 			}
 		}
 	}
@@ -318,6 +323,199 @@ func (g gvkLines) lines(uses []env.GVKUsage) []string {
 	return out
 }
 
+// resourceField is one full-depth field fact with the resource that sets it.
+type resourceField struct {
+	res  *env.Resource
+	fact env.FieldFact
+}
+
+// removedPathsInResources looks for the removed schema paths in the
+// full-depth resource facts (sequences descended, "[]" syntax — the syntax of
+// the CRD schema paths, so no marker stripping is needed) of the matched GVK
+// usages. ok is false — undecidable, the caller keeps its review — unless the
+// manifests parsed completely and every document of the usages is covered by
+// a resource with field facts (a CRD definition document of the GVK stages
+// the usage entry too, but a schema is not a resource of the kind and can
+// never set the field); absence in a partial inventory is not knowledge.
+// setters lists the facts at or below a removed path.
+func (b *builder) removedPathsInResources(uses []env.GVKUsage, subjects []string) ([]resourceField, bool) {
+	if len(uses) == 0 || b.env.Health(string(domain.DimensionManifests)) != env.HealthOK {
+		return nil, false
+	}
+	ix := envEvidenceIndex(b.env)
+	var setters []resourceField
+	for _, u := range uses {
+		covered := map[env.DocumentRef]bool{}
+		for i := range b.env.Resources {
+			r := &b.env.Resources[i]
+			if r.Group != u.Group || r.Version != u.Version || r.Kind != u.Kind {
+				continue
+			}
+			if len(r.Fields) == 0 {
+				return nil, false
+			}
+			covered[r.Doc] = true
+			for _, f := range r.Fields {
+				if f.Withheld == "oversize" {
+					return nil, false // a truncated subtree could hide the path
+				}
+				for _, s := range subjects {
+					if rel := relate(s, f.Path); rel == relExact || rel == relSubjectAncestor {
+						setters = append(setters, resourceField{res: r, fact: f})
+						break
+					}
+				}
+			}
+		}
+		defDocs := crdDefinitionDocs(b.env, ix, u.Group, u.Kind)
+		for _, d := range u.Documents {
+			if !covered[d] && !defDocs[d] {
+				return nil, false
+			}
+		}
+	}
+	return setters, true
+}
+
+// crdDefinitionDocs returns the documents that define installed CRDs of the
+// group/kind: a CRD document stages the GVK usage entry of every version it
+// serves, yet it is the schema definition, not a resource of the kind — it
+// cannot set a field of the kind it defines, so it must not block a coverage
+// decision. Any CRD of the group/kind qualifies: one document is one
+// resource, and a CustomResourceDefinition is never a resource of its own kind.
+func crdDefinitionDocs(e *env.Environment, ix evIndex, group, kind string) map[env.DocumentRef]bool {
+	out := map[env.DocumentRef]bool{}
+	for i := range e.CRDs {
+		c := &e.CRDs[i]
+		if c.Group != group || c.Kind != kind {
+			continue
+		}
+		for _, id := range c.Evidence {
+			ev, ok := ix[id]
+			if !ok || ev.Kind != domain.EvidenceLocalFile {
+				continue
+			}
+			line := 0
+			fmt.Sscanf(ev.Locator, "L%d", &line)
+			out[env.DocumentRef{File: ev.URI, StartLine: line}] = true
+		}
+	}
+	return out
+}
+
+// usageOfResources narrows a GVK usage entry to the documents of the given
+// setters (the why-block names the exposed resources only).
+func usageOfResources(u env.GVKUsage, setters []resourceField) env.GVKUsage {
+	docs := map[env.DocumentRef]bool{}
+	names := map[env.ResourceName]bool{}
+	for _, st := range setters {
+		docs[st.res.Doc] = true
+		names[env.ResourceName{Name: st.res.Name, Namespace: st.res.Namespace}] = true
+	}
+	out := u
+	out.Names, out.Documents = nil, nil
+	for _, n := range u.Names {
+		if names[n] {
+			out.Names = append(out.Names, n)
+		}
+	}
+	for _, d := range u.Documents {
+		if docs[d] {
+			out.Documents = append(out.Documents, d)
+		}
+	}
+	if len(out.Documents) == 0 {
+		return u
+	}
+	return out
+}
+
+func capList(xs []string, n int) []string {
+	if len(xs) <= n {
+		return xs
+	}
+	return append(append([]string{}, xs[:n]...), fmt.Sprintf("+%d more", len(xs)-n))
+}
+
+// appendUniqueField appends f unless the same field fact (path, line,
+// evidence) is already listed: several removed sub-paths can relate to one set
+// field (a set list leaf `spec.resources` relates to every removed
+// `spec.resources[].…` path), and the why-block must list it once.
+func appendUniqueField(fs []env.ManifestField, f env.ManifestField) []env.ManifestField {
+	for _, x := range fs {
+		if x.Path == f.Path && x.Line == f.Line && sameEvidence(x.Evidence, f.Evidence) {
+			return fs
+		}
+	}
+	return append(fs, f)
+}
+
+func sameEvidence(a, b []domain.EvidenceID) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// usageSettingFields narrows a GVK usage entry to the documents that contain
+// the given field facts, so a why-block names the resources that actually set
+// the matched fields, not every resource of the GVK. A field belongs to the
+// resource document of its file with the greatest start line at or before the
+// field's line. When no field can be placed (no line or file evidence), the
+// entry is returned unchanged.
+func usageSettingFields(e *env.Environment, ix evIndex, u env.GVKUsage, fs []env.ManifestField) env.GVKUsage {
+	docs := map[env.DocumentRef]bool{}
+	names := map[env.ResourceName]bool{}
+	for _, f := range fs {
+		file := ""
+		for _, id := range f.Evidence {
+			if ev, ok := ix[id]; ok && ev.Kind == domain.EvidenceLocalFile {
+				file = ev.URI
+				break
+			}
+		}
+		if file == "" || f.Line <= 0 {
+			return u
+		}
+		var owner *env.Resource
+		for i := range e.Resources {
+			r := &e.Resources[i]
+			if r.Doc.File != file || r.Doc.StartLine > f.Line {
+				continue
+			}
+			if owner == nil || r.Doc.StartLine > owner.Doc.StartLine {
+				owner = r
+			}
+		}
+		if owner == nil {
+			return u
+		}
+		docs[owner.Doc] = true
+		names[env.ResourceName{Name: owner.Name, Namespace: owner.Namespace}] = true
+	}
+	out := u
+	out.Names, out.Documents = nil, nil
+	for _, n := range u.Names {
+		if names[n] {
+			out.Names = append(out.Names, n)
+		}
+	}
+	for _, d := range u.Documents {
+		if docs[d] {
+			out.Documents = append(out.Documents, d)
+		}
+	}
+	if len(out.Documents) == 0 {
+		return u
+	}
+	return out
+}
+
 // fieldSetsPhrase renders the matched field paths of one GVK with their lines
 // ("spec.secretName (L7), spec.dnsNames (L9)"), capped like the titles.
 func fieldSetsPhrase(fs []env.ManifestField) string {
@@ -386,6 +584,103 @@ func pluralIs(subjects []string) string {
 	return "are"
 }
 
+// crdGroupUseWithoutCRDs decides a crd:removed / crd:version-* change when
+// the installed CRDs were not supplied but manifests were: a manifest that
+// declares a resource of the changed CRD's API group (and version, for the
+// version rules) is positive evidence of usage, so the ladder's group-only
+// rung applies exactly as it does when the CRDs are supplied but do not
+// include the changed one: review-required at medium confidence, "kind
+// unconfirmed" (another CRD of the group could serve the kind). When the
+// differ's title names the kind, only manifests of that kind count. It never
+// yields action (only an installed CRD pins the kind) and never not-affected
+// (absence needs the installed CRDs). Subjects whose group no manifest uses
+// stay unknown. It reports whether it decided the change.
+func (b *builder) crdGroupUseWithoutCRDs(c domain.Change, toTag string, versioned bool, rule string, sev domain.ImpactSeverity, what string) bool {
+	if !b.env.Supplied.Manifests {
+		return false
+	}
+	var rest []string
+	decided := false
+	for _, s := range c.Subjects {
+		var group, version, name string
+		if versioned {
+			id, ok := parseCRDNameVersion(s)
+			if !ok {
+				rest = append(rest, s)
+				continue
+			}
+			group, version, name = id.Group, id.Version, id.Name
+		} else {
+			n, g, ok := parseCRDName(s)
+			if !ok {
+				rest = append(rest, s)
+				continue
+			}
+			group, name = g, n
+		}
+		kind := kindFromCRDTitle(c.Title)
+		uses := b.gvkUses(func(u env.GVKUsage) bool {
+			return u.Group == group && (version == "" || u.Version == version) && (kind == "" || u.Kind == kind)
+		})
+		if len(uses) == 0 {
+			rest = append(rest, s)
+			continue
+		}
+		decided = true
+		scope := group
+		if version != "" {
+			scope += "/" + version
+		}
+		g := newGVKLines(b, name, nil)
+		detail := fmt.Sprintf("%s %s %s, and your manifests use its API group %s — but the installed CustomResourceDefinitions were not supplied, so the kind cannot be pinned: another CRD of the same group could serve it. Supply the installed CRDs (--crds) to decide whether %s is the one in use.\n%s",
+			toTag, what, code(s), code(scope), code(name), strings.Join(g.lines(uses), "\n"))
+		b.add(rule, domain.ImpactReviewRequired, sev, domain.ConfidenceMedium,
+			fmt.Sprintf("Manifests use the API group of %s (%s %s it) — kind unconfirmed, installed CRDs not supplied", code(s), toTag, what),
+			detail, c, gvkMatches(uses), c.Evidence...)
+	}
+	if !decided {
+		return false
+	}
+	if len(rest) > 0 {
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID+":rest",
+			fmt.Sprintf("Cannot tell whether %s affect(s) you: installed CRDs were not supplied", codeList(rest, 3)),
+			"No supplied manifest uses the API group of these subjects; whether the cluster runs them is decided against the installed CRDs, which were not supplied.",
+			c, c.Evidence, nil, "installed CustomResourceDefinitions (--crds) not supplied")
+	}
+	return true
+}
+
+// kindFromCRDTitle returns the kind the differ's own crd:removed /
+// crd:version-* title states ("CRD `name` (Kind) removed", "API version
+// `g/v` of Kind deprecated"); "" when the title carries the CRD name instead
+// (the snapshot knew no kind) or has another shape.
+func kindFromCRDTitle(title string) string {
+	var label string
+	switch {
+	case strings.HasPrefix(title, "CRD "):
+		i, j := strings.Index(title, " ("), strings.LastIndex(title, ")")
+		if i < 0 || j <= i {
+			return ""
+		}
+		label = title[i+2 : j]
+	case strings.Contains(title, "API version "):
+		i := strings.Index(title, "` of ")
+		if i < 0 {
+			return ""
+		}
+		rest := title[i+len("` of "):]
+		if sp := strings.IndexByte(rest, ' '); sp > 0 {
+			label = rest[:sp]
+		} else {
+			label = rest
+		}
+	}
+	if label == "" || strings.ContainsAny(label, ". `,") {
+		return "" // a CRD name, not a kind
+	}
+	return label
+}
+
 // crdRemoved joins a crd:removed change. Ladder: installed CRD + manifest
 // usage of its kind → action (high); group-only usage (kind not pinned) →
 // review at most (medium, demoted); installed but no manifest of the kind →
@@ -396,8 +691,14 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 	// deciding dimension: installed CRDs (authoritative for what the cluster
 	// runs). Manifests refine the verdict; both are recorded.
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
+		if b.crdGroupUseWithoutCRDs(c, toTag, false, RuleCRDRemoved, domain.SeverityCritical, "removes") {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability of a CRD removal is decided against the CustomResourceDefinitions your cluster actually has installed; without them the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -418,7 +719,7 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 			}
 		}
 		if installed == nil && !ok {
-			b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":"+s,
+			b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":"+s,
 				fmt.Sprintf("Cannot tell whether the removed CRD affects you: %q does not name a CustomResourceDefinition", s),
 				"The subject carries no CRD name with an API group, so the join can neither check the installed CRDs nor scope manifest usage to a group/version/kind.",
 				c, c.Evidence, nil,
@@ -503,8 +804,18 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 // silently skipped).
 func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
+		gone := "removes"
+		if c.Provenance.Rule == upgrade.RuleCRDVersionUnserved {
+			gone = "stops serving"
+		}
+		if b.crdGroupUseWithoutCRDs(c, toTag, true, RuleCRDVersionRemoved, domain.SeverityCritical, gone) {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed API version affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability is decided against the versions your installed CRDs declare and the apiVersions your manifests use; without the CRDs the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -579,7 +890,7 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 		}
 	}
 	if len(unparsed) > 0 {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":unparsed",
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":unparsed",
 			fmt.Sprintf("Cannot tell whether the removed API version affects you: %s does not name name/version", codeList(unparsed, 3)),
 			"A version change is joined through its CRD name and API version; a subject without that shape cannot be scoped to a group/version/kind.",
 			c, c.Evidence, nil,
@@ -606,8 +917,14 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 // manifests supplied is not-affected.
 func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		if b.renderedCRDResolution(c, toTag) { // PO-7a addendum 6: rendered identity raises
+			return
+		}
+		if b.crdGroupUseWithoutCRDs(c, toTag, true, RuleCRDVersionDeprecated, domain.SeverityMedium, "deprecates") {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the deprecated API version affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability is decided against the versions your installed CRDs declare and the apiVersions your manifests use; without the CRDs the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -661,7 +978,7 @@ func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 		}
 	}
 	if len(unparsed) > 0 {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":unparsed",
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":unparsed",
 			fmt.Sprintf("Cannot tell whether the deprecated API version affects you: %s does not name name/version", codeList(unparsed, 3)),
 			"A version change is joined through its CRD name and API version; a subject without that shape cannot be scoped to a group/version/kind.",
 			c, c.Evidence, nil,
@@ -692,7 +1009,7 @@ func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 	// deciding dimension: manifests (field paths are manifest facts).
 	if !b.env.Supplied.Manifests {
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD field affects you: manifests were not supplied (%s)", c.Title),
 			"Applicability of a schema field removal is decided against the field paths your manifests actually set; without them the join cannot look.",
 			c, c.Evidence, nil, "Kubernetes manifests (--manifests) not supplied")
@@ -710,7 +1027,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 		ok = true
 	}
 	if !ok {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD fields affect you: the change does not identify the CRD (%s)", c.Title),
 			"The removed schema paths carry no group/version/kind, so matching them by path alone would flag every resource that sets a same-named path — a Deployment setting spec.foo is not a CRD impact. Check the paths against your manifests manually.",
 			c, c.Evidence, nil,
@@ -754,7 +1071,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 				if rel == relNone {
 					continue
 				}
-				hit = append(hit, f)
+				hit = appendUniqueField(hit, f)
 				matches = appendUniqueMatches(matches, domain.ImpactMatch{
 					Kind: domain.MatchManifestField, Subject: f.Path, Evidence: f.Evidence,
 				})
@@ -772,7 +1089,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 			matches = appendUniqueMatches(matches, domain.ImpactMatch{
 				Kind: domain.MatchAPIVersion, Subject: groupVersionOf(u) + " " + u.Kind, Evidence: u.Evidence,
 			})
-			lines = append(lines, g.line(u, fieldSetsPhrase(hit)))
+			lines = append(lines, g.line(usageSettingFields(b.env, g.ix, u, hit), fieldSetsPhrase(hit)))
 		}
 	}
 	if len(matches) == 0 {
@@ -805,9 +1122,140 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 			detail, c, matches, c.Evidence...)
 		return
 	}
+	// Only sections above the removed paths are set. The flattened manifest
+	// paths stop at sequences, but the resource facts descend into them: when
+	// they cover every document of the matched GVKs, they decide whether any
+	// element sets a removed path (action, exactly like an exact match) or
+	// none does (checked, clear) instead of leaving it to review.
+	if setters, ok := b.removedPathsInResources(uses, c.Subjects); ok {
+		if len(setters) == 0 {
+			title := fmt.Sprintf("No resource of %s sets the removed field(s) %s", strings.Join(apiVersionStrings(uses), ", "), codeList(c.Subjects, 3))
+			detail := fmt.Sprintf("Pruned schema fields only affect resources that set them. Your manifests set the section(s) above them (%s); every element of those sections was inspected and none sets the removed path or below it.", strings.Join(over, ", "))
+			b.verdict(RuleCRDFieldUnset, domain.ImpactNotAffected, c.ID, title, detail, c, c.Evidence,
+				[]domain.ImpactCheck{b.manifestsCheck(c.Subjects)})
+			return
+		}
+		var paths []string
+		var deepMatches []domain.ImpactMatch
+		var deepLines []string
+		for _, st := range setters {
+			paths = appendUnique(paths, st.fact.Path)
+			deepMatches = appendUniqueMatches(deepMatches, domain.ImpactMatch{
+				Kind: domain.MatchManifestField, Subject: st.fact.Path, Evidence: st.fact.Evidence,
+			})
+		}
+		for _, u := range uses {
+			var setBy []string
+			for _, st := range setters {
+				if st.res.Group == u.Group && st.res.Version == u.Version && st.res.Kind == u.Kind {
+					setBy = appendUnique(setBy, fmt.Sprintf("%s (L%d)", st.fact.Path, st.fact.Line))
+				}
+			}
+			if len(setBy) == 0 {
+				continue
+			}
+			deepMatches = appendUniqueMatches(deepMatches, domain.ImpactMatch{
+				Kind: domain.MatchAPIVersion, Subject: groupVersionOf(u) + " " + u.Kind, Evidence: u.Evidence,
+			})
+			deepLines = append(deepLines, g.line(usageOfResources(u, setters), strings.Join(capList(setBy, 3), ", ")))
+		}
+		conf := domain.ConfidenceHigh
+		if uncertain {
+			conf = domain.ConfidenceMedium
+		}
+		b.add(RuleCRDFieldRemoved, domain.ImpactActionRequired, domain.SeverityHigh, conf,
+			fmt.Sprintf("Your manifests set %s, pruned from the CRD schema in %s", codeList(paths, 3), toTag),
+			fmt.Sprintf("Fields no longer in the schema are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.\nYou set: %s.\n%s",
+				strings.Join(paths, ", "), strings.Join(deepLines, "\n")),
+			c, deepMatches, c.Evidence...)
+		return
+	}
 	title := fmt.Sprintf("You set a section above the removed path(s) %s, pruned from the CRD schema in %s", codeList(c.Subjects, 3), toTag)
 	detail := fmt.Sprintf("The removed path is below keys you set (%s); whether your resources are affected depends on which sub-fields they use. Compare your manifests with the new schema.\n%s",
 		strings.Join(over, ", "), strings.Join(lines, "\n"))
 	b.add(RuleCRDFieldRemoved, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceMedium,
 		title, detail, c, matches, c.Evidence...)
+}
+
+// renderedCRDResolution (PO-7a addendum 6): rendered CRDs — extracted from
+// the FROM render of the customer's install, their CRD gates exactly as set —
+// resolve a CRD change's identity question when no observed CRDs input
+// exists. They only ever RAISE: a render shows what the customer's gates
+// install, not what the cluster observes, so it never clears a change (a
+// separately installed CRD path is invisible to the render — absence is not
+// knowledge) and never reaches action-required (the trust ladder caps a
+// render alone below ACTION). All-or-nothing per change: every subject must
+// name a rendered CRD (for a version rule, one that declares the version),
+// else today's unknown stands. Decided changes report review-required at
+// medium confidence, citing the rendered CRD's evidence on chain 2.
+func (b *builder) renderedCRDResolution(c domain.Change, toTag string) bool {
+	if !b.env.RenderedCRDsPresent() {
+		return false
+	}
+	var (
+		rule  string
+		verb  string
+		sev   domain.ImpactSeverity
+		title func(name, gv string) string
+	)
+	versionRule := true
+	switch c.Provenance.Rule {
+	case upgrade.RuleCRDRemoved:
+		versionRule, rule, verb, sev = false, RuleCRDRemoved, "removes", domain.SeverityCritical
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render ships the %s CRD that %s removes", code(name), toTag)
+		}
+	case upgrade.RuleCRDVersionRemoved, upgrade.RuleCRDVersionUnserved:
+		rule, verb, sev = RuleCRDVersionRemoved, "removed", domain.SeverityCritical
+		if c.Provenance.Rule == upgrade.RuleCRDVersionUnserved {
+			verb = "no longer served"
+		}
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render declares API version %s, which %s makes %s", code(gv), toTag, verb)
+		}
+	case upgrade.RuleCRDVersionDeprecated:
+		rule, verb, sev = RuleCRDVersionDeprecated, "deprecates", domain.SeverityMedium
+		title = func(name, gv string) string {
+			return fmt.Sprintf("Your install's render declares API version %s, which %s deprecates", code(gv), toTag)
+		}
+	default:
+		return false
+	}
+	resolved := 0
+	for _, s := range c.Subjects {
+		var installed *env.InstalledCRD
+		gv := ""
+		if versionRule {
+			id, ok := parseCRDNameVersion(s)
+			if !ok {
+				return false
+			}
+			gv = id.Group + "/" + id.Version
+			installed = crdByName(b.env, id.Name)
+			if installed != nil && !installedDeclares(installed, id.Version) {
+				installed = nil // the rendered CRD does not declare the version: nothing to pin
+			}
+		} else {
+			installed = crdByName(b.env, s)
+		}
+		if installed == nil || !installed.Rendered {
+			return false
+		}
+		resolved++
+		match := domain.ImpactMatch{Kind: domain.MatchCRD, Subject: installed.Name, Evidence: installed.Evidence}
+		if versionRule {
+			match = domain.ImpactMatch{Kind: domain.MatchCRDVersion, Subject: s, Evidence: installed.Evidence}
+		}
+		from := b.edge.From.String()
+		detail := fmt.Sprintf("The render of your install at %s — with your values, your CRD gates — ships %s", from, installed.Name)
+		if versionRule {
+			detail = fmt.Sprintf("The render of your install at %s — with your values, your CRD gates — ships %s, which declares %s; %s %s it", from, installed.Name, code(gv), toTag, verb)
+		} else {
+			detail += fmt.Sprintf("; %s removes the CustomResourceDefinition, and resources of its kind stop being reconciled", toTag)
+		}
+		detail += ". The render shows what your gates install, not observed cluster state: whether resources of the kind exist was not checked. Supply your installed CRDs (--crds) or manifests to decide."
+		b.add(rule, domain.ImpactReviewRequired, sev, domain.ConfidenceMedium,
+			title(installed.Name, gv), detail, c, []domain.ImpactMatch{match}, c.Evidence...)
+	}
+	return resolved > 0 && resolved == len(c.Subjects)
 }

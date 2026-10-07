@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1a6abfcf4fa9",
+    "candidateId": "sc-3d73e8a6dea6",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"Service connections that use `Direct-Server-Return` and were established prior to Cilium v1.13.3 will be disrupted, and need to be re-established\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.3"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has active service connections using Direct-Server-Return that were established before the upgrade"
+            }
+          ]
+        }
+      },
+      "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted during the upgrade to v1.16.0 and must be re-established."
+    },
+    "proposals": [
+      "sp-844935ab5a43",
+      "sp-8c8974b2cb0b"
+    ],
+    "validations": [
+      "val-4a3d1cedd00a",
+      "val-758db58283ea",
+      "val-e5c737441fa9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:59:35Z"
+  }
+}

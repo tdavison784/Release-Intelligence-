@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-13882022dde1",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-d9bd7eb23931"
+        ],
+        "statementKeys": [
+          "sk-9b8d2c104889"
+        ],
+        "changeIds": [
+          "chg-ca8fb6d12bd3"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-74e353f1150c"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "tracking-annotation-malformed-resources",
+        "component": "controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any Application's repo-server-generated manifests contain a resource of a cluster-scoped kind (per the target cluster's API discovery) that has metadata.namespace set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The controller now tracks malformed resources with the correct annotation instead of an incorrect one.",
+        "severity": "medium"
+      },
+      "statement": "d54ae98b20a7700bb143804d6029a41c057bc0c2: fix(controller): wrong tracking annotation for malformed resources"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-0cf0076fe8c3"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-0cf0076fe8c3"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-9313c86bc754"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-bc6c6c4853b2"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9fdf3ef2828b",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L101-L101 (Changelog › Bug fixes)",
+        "excerpt": "* d54ae98b20a7700bb143804d6029a41c057bc0c2: fix(controller): wrong tracking annotation for malformed resources (#22325) (@crenshaw-dev)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-06T01:57:11.912Z"
+  }
+}

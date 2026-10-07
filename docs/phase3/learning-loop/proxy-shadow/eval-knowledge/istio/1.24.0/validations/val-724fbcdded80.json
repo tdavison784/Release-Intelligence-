@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-724fbcdded80",
+    "candidateId": "sc-87e07dd001ae",
+    "proposalId": "sp-b16e73f81c02",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "istio-csr"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If istio-csr (v0.12.0, without the fix) is used as the CA, Istio's gRPC connection fails with 'transport: authentication handshake failed: credentials: cannot check peer: missing selected ALPN property'.",
+        "remediation": "Install Istio with the workaround settings given in the upgrade notes, or use an istio-csr version containing the upstream fix.",
+        "severity": "high"
+      },
+      "statement": "Istio 1.24 adds stricter validation (ALPN) in its internal gRPC communication to the control plane, which breaks third-party CA istio-csr (v0.12.0 has no fix) with a handshake error unless a workaround setting is applied."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

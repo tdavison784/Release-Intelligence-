@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e3381efcd905",
+    "candidateId": "sc-b210c27f94c7",
+    "proposalId": "sp-8c7da97f888d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "validation-webhook-unknown-versions",
+        "component": "istiod"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the cluster has CRDs newer than the installed Istio release, so that resources exist at API versions istiod does not know about"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The validation webhook now accepts resources at CRD versions it does not know about instead of not accepting them, so an older Istio can validate resources created by newer CRDs.",
+        "remediation": "No operator action required; if running an older Istio against newer CRDs, verify resources at unknown versions are admitted as expected.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24 changes Istiod's validation webhook to accept CRD versions it does not know about, so that an older Istio can validate resources created by newer CRDs."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

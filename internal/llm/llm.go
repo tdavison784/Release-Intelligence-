@@ -45,6 +45,11 @@ type Response struct {
 	// Origin says where the answer came from: OriginAPI, OriginCache,
 	// OriginExchange or OriginFake.
 	Origin string `json:"origin,omitempty"`
+	// CallID identifies the single model call that produced the answer, as
+	// the provider reports it (the Messages API message id, the CLI session
+	// id recorded in an exchange response). Never invented; a cache replay
+	// returns the original call's id. Empty when the source reports none.
+	CallID string `json:"callId,omitempty"`
 }
 
 // Response origins.

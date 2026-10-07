@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4a6bbe917a2d",
+    "candidateId": "sc-cd46ebca5f3e",
+    "proposalId": "sp-8d12f3fffdd2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"update/delete policies also apply to sub-resources\"",
+        "after": "\"update/delete policies apply only to the application itself\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Users whose policies grant `update` or `delete` on an application lose that access to the application's sub-resources (managed resources) unless new `update/*` or `delete/*` policies are defined.",
+        "remediation": "Define policies allowing `update/*` or `delete/*` on the Application's managed resources, or set server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "Starting in Argo CD 3.0, application `update` and `delete` RBAC policies no longer apply to sub-resources; the v2 behavior can be kept by setting server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

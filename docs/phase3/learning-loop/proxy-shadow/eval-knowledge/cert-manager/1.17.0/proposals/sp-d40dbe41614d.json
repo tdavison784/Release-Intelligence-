@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d40dbe41614d",
+    "candidateId": "sc-9cd4a1953216",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: the new tenantID option is optional, existing AzureDNS solver configuration keeps working unchanged, and operators in multi-tenant environments may set it to specify the tenant ID when using managed identities.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a new optional configuration option `tenantID` on the AzureDNS DNS-01 solver's managed identity configuration (spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID on Issuer/ClusterIssuer), letting users specify the tenant ID when using managed identities with service principals in multi-tenant environments."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-cd466139dded"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9d93b89cc51125546e00951191826ea701a16d140e0b84a824636acc96026019",
+      "inputEvidence": [
+        "ev-cd466139dded"
+      ],
+      "generatedAt": "2026-10-02T11:24:02Z",
+      "callId": "11ad4a60-ac36-47ff-9f69-37d98611e4a6"
+    }
+  }
+}

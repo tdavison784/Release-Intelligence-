@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3228a9607654",
+    "candidateId": "sc-55dd0ceaa83f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-chart-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the cluster was installed with the istiod-remote Helm chart for a remote/external control plane"
+        }
+      },
+      "statement": "The istiod-remote Helm chart is merged into the istio-discovery chart; remote/external control plane clusters must now install istio/istiod with --set profile=remote (and istio-base)."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Evidence says the install method changes but does not state what fails if the operator does nothing.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:dbab071aa0c98cee0990f422da59a204e9a7c7b9c0d840b93d1d6ea9cb5d84c4",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-02T06:04:45Z",
+      "callId": "5a8989a1-18fc-4851-a2b0-75055bfb8708"
+    }
+  }
+}

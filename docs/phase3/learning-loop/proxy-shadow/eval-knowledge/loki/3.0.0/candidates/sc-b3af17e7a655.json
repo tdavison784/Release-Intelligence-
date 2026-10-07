@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-b3af17e7a655",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-d1a8c8afc1d5",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-195ee209e4de"
+          ],
+          "statementKeys": [
+            "sk-bac6c8656b53"
+          ],
+          "changeIds": [
+            "chg-d1a8c8afc1d5"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "loki Add `loki_distributor_ingester_append_timeouts_total` metric, remove `loki_distributor_ingester_append_failures_total` metric 10456",
+    "evidence": [
+      {
+        "id": "ev-a89f1bd8e5de",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L46-L46 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki** Add `loki_distributor_ingester_append_timeouts_total` metric, remove `loki_distributor_ingester_append_failures_total` metric [10456](https://github.com/grafana/loki/pull/10456)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-eea620052086",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10456",
+        "locator": "title and description",
+        "excerpt": "PR: Distributor: add ingester append timeouts error [closed; labels size/S, type/docs]\n**What this PR does / why we need it**:\nFailing to send samples to ingesters because the request exceeded its timeout is a very clear signal that ingesters are unable to keep up with demand. In an incident today we saw that ingesters' push latencies were increased sharply by an expensive regex query which was starving other goroutines of time on CPU.\n\nThis new alert `loki_distributor_ingester_append_timeouts_total` will give us a high-signal metric which we can use for alerting.\n\n**Which issue(s) this PR fix…",
+        "contentDigest": "sha256:a11ff8743f5841ec57f4f6a0b7dc9725fe30688be6291ef9bdbab12fc346eb09",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-4b7c7263e435",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10456",
+        "locator": "description (part 2)",
+        "excerpt": "N/A\n\n**Special notes for your reviewer**:\nReplacing the `loki_distributor_ingester_append_failures_total` metric; this was never very high signal since it included samples which could not append due to user-related errors like stream limit / too old.\n\n**Checklist**\n- [x] Reviewed the [`CONTRIBUTING.md`](https://github.com/grafana/loki/blob/main/CONTRIBUTING.md) guide (**required**)\n- [ ] Documentation added\n- [ ] Tests updated\n- [x] `CHANGELOG.md` updated\n- [ ] If the change is worth mentioning in the release …",
+        "contentDigest": "sha256:a11ff8743f5841ec57f4f6a0b7dc9725fe30688be6291ef9bdbab12fc346eb09",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-ec17ed7e9c88",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10456",
+        "locator": "changed files",
+        "excerpt": "3 changed file(s): CHANGELOG.md, docs/sources/setup/upgrade/_index.md, pkg/distributor/distributor.go",
+        "contentDigest": "sha256:a11ff8743f5841ec57f4f6a0b7dc9725fe30688be6291ef9bdbab12fc346eb09",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      }
+    ],
+    "hints": [
+      "code:loki_distributor_ingester_append_timeouts_total",
+      "code:loki_distributor_ingester_append_failures_total"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

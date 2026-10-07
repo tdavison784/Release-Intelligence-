@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d13ba23e5ff8",
+    "candidateId": "sc-2c2d1685326f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "etcd.managed"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "etcd.managed",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The etcd.managed Helm configuration value will no longer be honored in Cilium 1.16.0; environments using this setting must migrate to an alternative etcd deployment method.",
+        "remediation": "Remove the etcd.managed configuration and any related etcd Helm values from your values.yaml. Deploy etcd independently or use an existing etcd cluster without relying on Cilium's managed etcd functionality.",
+        "severity": "high"
+      },
+      "statement": "The Helm option for deploying a managed etcd instance via etcd.managed and other related Helm configurations have been removed."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-d6d613eadc25"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d633a2a3afd66e0fc43ec288d434db87d2386ee840c0d5382a1206d1288fe07a",
+      "inputEvidence": [
+        "ev-d6d613eadc25"
+      ],
+      "generatedAt": "2026-10-02T05:55:41Z",
+      "callId": "d16aa370-3eed-4a48-b536-0afa39dea34f"
+    }
+  }
+}

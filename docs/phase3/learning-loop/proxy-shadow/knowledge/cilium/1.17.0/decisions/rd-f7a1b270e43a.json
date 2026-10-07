@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f7a1b270e43a",
+    "reviewItemId": "ri-4d8dc99b105e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query the metric doublewrite_identity_kvstore_only_count"
+        }
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_kvstore_only_count was renamed to doublewrite_identity_kvstore_only_total, so monitoring that queries the old name should be reviewed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:12febe864d13e1fed126815b32b16335cd9c54d21091917f08cbd7e63ad19c86",
+      "inputEvidence": [
+        "ev-a2a020af7830",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:24:08.755Z",
+      "callId": "a40ff48c-51cd-42f2-b8b5-15fa3d04d217",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-a2a020af7830] only says the Prometheus metric doublewrite_identity_kvstore_only_count was renamed. It names no Helm value, flag, field or ConfigMap key that controls exposure. Exposure depends on whether outside monitoring (dashboards, alerts, recording rules) queries the old name, and no Cilium configuration predicate can read that. So the undecidable leaf is the right shape, and it is about as close to the actual exposure as the evidence allows. One caveat for the fixed change aspect: [ev-57fea1f2c18e] in the same section gives a different new name (doublewrite_kvstore_only_identities), but every entry agrees the old name is gone, so the exposure condition is the same either way.",
+    "startedAt": "2026-10-03T12:23:55.777Z",
+    "decidedAt": "2026-10-03T12:24:08.755Z"
+  }
+}

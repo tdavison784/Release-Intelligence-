@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-1b5f1e9b1deb",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-2dd090ac5612",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-c2aae7954cf2"
+          ],
+          "statementKeys": [
+            "sk-139cee4f2632"
+          ],
+          "changeIds": [
+            "chg-2dd090ac5612"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "43e594104212bae8ec15bacf7f31c504061842ee: fix: Race condition occurs during initial sharding",
+    "text": "43e594104212bae8ec15bacf7f31c504061842ee: fix: Race condition occurs during initial sharding (#22264) (@kahou82)",
+    "evidence": [
+      {
+        "id": "ev-8102a79a3745",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L145-L145 (Changelog › Bug fixes)",
+        "excerpt": "* 43e594104212bae8ec15bacf7f31c504061842ee: fix: Race condition occurs during initial sharding (#22264) (@kahou82)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-e8aa9d340122",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22264",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #22264): fix: Race condition occurs during initial sharding [closed; labels ready-for-review, for-release-blog-3-0]\nWhen an app informer runs, appcontroller has not start initialize the shard yet. This causes all the application was mistakenly assigned to the app controler that owns shard 0 (in k8s deployment, it will be application-controller-0) in the very beginning.\n\nOnce all the shard-cluster allocations are built up, application-controller-0 will be confused as some of the application it initially owned are no longer belonged to itself.\n\nThis race condition cause…",
+        "contentDigest": "sha256:50085d27b621fae33e59298ac3cb1d83539b74a2951e4b529f3b01bfbe48d271",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-491b23d3fbe4",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22264",
+        "locator": "description (part 2)",
+        "excerpt": "warning and application-controller-0 stop syncing any application.\n\nThis PR is to move the shard initialization before the appInformer go routing starts to avoid such race condition occurs.\n\nChecklist:\n\n* [ ] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [x] The title of the PR states what changed and the related issues number (used for the …",
+        "contentDigest": "sha256:50085d27b621fae33e59298ac3cb1d83539b74a2951e4b529f3b01bfbe48d271",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-4f42a7623279",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22264",
+        "locator": "changed files",
+        "excerpt": "1 changed file(s): controller/appcontroller.go",
+        "contentDigest": "sha256:50085d27b621fae33e59298ac3cb1d83539b74a2951e4b529f3b01bfbe48d271",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

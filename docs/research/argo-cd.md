@@ -1,5 +1,7 @@
 # Argo CD release-channel map (research date 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** api.github.com (52 published advisories), github.com HTML, `releases.atom`/`tags.atom`, quay.io/argoproj/argocd (manifest 200), argoproj.github.io/argo-helm/index.yaml and artifacthub.io all answer. **Correction:** `v3.4.0` exists only as a git tag (plus rc1..rc7); it was never published as a GitHub release (`releases/tags/v3.4.0` → 404, the release list jumps from `v3.4.0-rc7` to `v3.4.1`, which has 11 assets). The "v3.4.0 2026-05-05" row date is the tag, and "release has no assets" should read "has no release object". The original text below is kept as the record of 2026-10-01.
+
 Scope: upstream `github.com/argoproj/argo-cd` (UP) and community chart repo `github.com/argoproj/argo-helm` (HELM).
 All evidence was gathered through `git ls-remote`, shallow clones at tags, `raw.githubusercontent.com`, GitHub release asset
 downloads, `ghcr.io` token API and Docker Hub. "RAW" below means `https://raw.githubusercontent.com/argoproj/argo-cd/<ref>/<path>`

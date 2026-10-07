@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-44cd770f6749",
+    "candidateId": "sc-8fd875d322fd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-clusterissuer-resource-namespace"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme",
+                  "state": "set"
+                }
+              ],
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, ACME ClusterIssuers look for resources needed for issuance (e.g. credential Secrets) in the correct namespace again, which fixes the v1.16.0 regression.",
+        "remediation": "No action is required. Check that ACME ClusterIssuer issuance works after upgrading from v1.16.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes a regression introduced in v1.16.0 (also fixed in v1.16.1) where the ACME ClusterIssuer looked in the wrong namespace for resources it needs for issuance, such as credential Secrets."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-aa02449851f9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:77b2f8eb3adf9a76d290773811a42f759939c19bf9e3e63f93a6ca484d840e4a",
+      "inputEvidence": [
+        "ev-aa02449851f9"
+      ],
+      "generatedAt": "2026-10-02T06:13:00Z",
+      "callId": "a3cf0983-1265-4d3c-832e-a49defa3c904"
+    }
+  }
+}

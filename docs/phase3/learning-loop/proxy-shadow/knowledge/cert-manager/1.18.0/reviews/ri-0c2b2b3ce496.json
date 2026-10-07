@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-0c2b2b3ce496",
+    "candidateId": "sc-87d161c59ee8",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…\", what happens, and is that review or action? proposed: workload-failure",
+    "proposed": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "ACME HTTP01 challenges will fail with admission webhook validation errors when using ingress-nginx >= 1.12.0 with the default strict-validate-path-type configuration, or ingress-nginx >= 1.8.0 with strict-validate-path-type explicitly enabled, because the ingress controller rejects the `/.well-known/acme-challenge/<TOKEN>` path containing dots.",
+        "remediation": "Upgrade ingress-nginx to a version that fixes the strict-validate-path-type validation bug, or disable the strict-validate-path-type configuration option in ingress-nginx. Alternatively, use a standards-compliant Ingress controller such as Cilium that properly handles the `Exact` PathType.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 changes ACME HTTP01 Ingress challenge routes to use PathType `Exact` instead of `ImplementationSpecific`, which is incompatible with ingress-nginx versions that have the buggy `strict-validate-path-type` validation enabled by default (>= 1.12.0)."
+    },
+    "proposals": [
+      "sp-578971557350",
+      "sp-57d8f67ccb99",
+      "sp-5e570fe0f57b",
+      "sp-e530fdf8c9a1"
+    ],
+    "validations": [
+      "val-3b4a8a5b442b",
+      "val-6419fac92a0e",
+      "val-7402ad4b097e",
+      "val-79044921fa00",
+      "val-83258b818e8e",
+      "val-89423fb7eb0d",
+      "val-adb9c097a79b",
+      "val-c9c4dbca296a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:37:44Z"
+  }
+}

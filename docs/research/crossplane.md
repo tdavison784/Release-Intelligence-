@@ -1,5 +1,7 @@
 # Crossplane release channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** api.github.com (5 advisories; the v2.4.2 release body is the hand-written "Highlights" shape this file marked UNVERIFIED), github.com HTML, charts/releases/cli/docs.crossplane.io and the S3 origins, artifacthub.io answer. `xpkg.crossplane.io` and `xpkg.upbound.io` answer **401** (anonymous pulls denied), which is not the egress 403 recorded here: reachable, but not anonymously. The original text below is kept as the record of 2026-10-01.
+
 Scope: product `crossplane` (github.com/crossplane/crossplane, "core"), docs (github.com/crossplane/docs), release process (github.com/crossplane/release), CLI (github.com/crossplane/cli, since v2.3). Out of scope: providers, functions, configurations and `crossplane-runtime` (library, versioned in lockstep with core but not shipped to operators); they are released by their own repositories (`docs` guides/extensions-release-process.md).
 Method: `git ls-remote` / partial clones at tags, raw.githubusercontent.com, S3 bucket listings and HEAD requests, Docker Hub and ghcr.io manifest API, Docker Hub tag API.
 Snapshots read: core tags v2.4.2 (2026-09-22) / v2.3.0 / v2.0.0 / v1.20.13 / v1.14.0 / v1.10.0 / v1.2.0; docs `master` plus the `v2.0-archive` and `v2.1-archive` tags; release repo `main`; cli repo `main`.

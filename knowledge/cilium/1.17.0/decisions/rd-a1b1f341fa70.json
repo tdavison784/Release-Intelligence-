@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a1b1f341fa70",
+    "reviewItemId": "ri-a1e0bc348428",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:043085c4d1a8fc5afa46cc64d66a8e555e8840d7684d010be44ee238ea50d710",
+      "inputEvidence": [
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-02T15:53:00.126Z",
+      "callId": "18e1f2e5-5677-4b77-ba2e-59dacbaa6f60"
+    },
+    "reason": "[ev-57fea1f2c18e] only states that the metric `doublewrite_identity_kvstore_only_count` was renamed to `doublewrite_kvstore_only_identities` under \"Changed Metrics\"; it does not say whether the old name is still emitted or what happens to dashboards/alerts querying it. The proposed consequence is internally inconsistent: kind behavior-change (\"still works, but differently\") paired with a statement that consumers \"will no longer receive data\" and \"must be updated\", which is a failure claim the excerpt does not state. Correcting to a failure kind would over-claim mandatory work. Evidence stating the effect on consumers of the old metric name (removed outright vs. dual-emitted, queries return no data) is needed to fix the kind.",
+    "startedAt": "2026-10-02T15:52:42.048Z",
+    "decidedAt": "2026-10-02T15:53:00.126Z"
+  }
+}

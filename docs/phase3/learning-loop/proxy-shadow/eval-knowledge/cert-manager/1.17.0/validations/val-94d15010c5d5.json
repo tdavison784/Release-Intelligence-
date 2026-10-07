@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-94d15010c5d5",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "proposalId": "sp-46a95c489845",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signature-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SHA-256 always used when signing with RSA\"",
+        "after": "\"3072-bit keys use SHA-384, 4096-bit keys use SHA-512\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Signing with RSA 3072-bit or 4096-bit keys now uses SHA-384 or SHA-512 rather than SHA-256; the notes expect minimal impact but advise users of larger RSA keys to be aware.",
+        "severity": "low"
+      },
+      "statement": "From v1.17.0 cert-manager picks the RSA signing hash by key length (3072-bit uses SHA-384, 4096-bit uses SHA-512) instead of always using SHA-256."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

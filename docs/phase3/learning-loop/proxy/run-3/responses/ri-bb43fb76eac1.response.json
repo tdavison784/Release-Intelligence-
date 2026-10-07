@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-bb43fb76eac1",
+  "promptDigest": "sha256:3e837e895d3111e5a45b0918ef382848603f498bf15fd26fbe0aa590752e22ac",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "06491e7f-d722-4aa4-bb31-4e5e188bfa3b",
+  "startedAt": "2026-10-03T12:33:12.745Z",
+  "decidedAt": "2026-10-03T12:33:33.297Z",
+  "durationMs": 19678,
+  "costUSD": 0.118812,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c05c58b487cc] says only one deployment mode was removed: Cilium managing the Etcd instances itself in the pod network. The same note points to k8s_install_etcd for \"alternatives for running Cilium with Etcd\", so Cilium still works with etcd. Marking product-relationship:etcd as \"removed\" would claim the whole etcd relationship was dropped, as was done for Consul in [ev-ddf5fd344d03]. That overstates the change. The relationship stays and only how Cilium interacts with etcd changed, so behavior-changed is the closer change type. Confidence is low because no change type fits a removed deployment mode exactly.",
+    "citations": [
+      "ev-c05c58b487cc",
+      "ev-ddf5fd344d03"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "Cilium no longer supports running the Etcd instances that distribute its state in the pod network managed by Cilium itself (previously deprecated). Cilium can still be run with Etcd using the alternatives in k8s_install_etcd.",
+      "subject": {
+        "determination": "asserted",
+        "family": "product-relationship",
+        "name": "etcd"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed"
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0d358d85fb49",
+    "candidateId": "sc-34fb0eae6e1d",
+    "proposalId": "sp-48fd54292797",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-http01-solver-ipv6"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's ACME HTTP-01 challenges are solved against IPv6 endpoints (the IP family of the HTTP-01 solver endpoints)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments whose ACME HTTP-01 challenges are solved against IPv6 endpoints, the upgrade changes the solver's behavior: the IPv6 handling that previously did not work correctly is fixed, so HTTP-01 solving against IPv6 endpoints now behaves differently (it works) with no configuration change.",
+        "remediation": "No action required; re-verify ACME HTTP-01 challenges against IPv6 endpoints after upgrading and retire any workarounds kept for this bug.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes the ACME HTTP-01 solver for IPv6 endpoints, where it previously did not work correctly."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

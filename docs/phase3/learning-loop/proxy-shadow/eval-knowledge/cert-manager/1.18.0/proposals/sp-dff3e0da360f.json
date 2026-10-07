@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dff3e0da360f",
+    "candidateId": "sc-95b8b6a5377b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the cert-manager-managed Kubernetes Ingress path whose pathType changed (e.g. during ingress-based ACME challenge solving) is exercised at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now sets the Kubernetes Ingress pathType to Exact instead of ImplementationSpecific, so ingress controllers match the affected path exactly rather than in an implementation-specific way — described by the release as improving reliable handling of ingress controllers and security; no failure is stated.",
+        "remediation": "No action is stated by the release; verify that the ingress controller in use still routes the affected Ingress path as expected with pathType: Exact.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 changes the Kubernetes Ingress `pathType` it sets from `ImplementationSpecific` to `Exact`, for more reliable handling of ingress controllers and enhanced security."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4faa7ca81b54"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:12a729cc4cebc87b6210cc82f6f35b7df36a50111266485024f31a9af6e0e7dd",
+      "inputEvidence": [
+        "ev-4faa7ca81b54"
+      ],
+      "generatedAt": "2026-10-02T11:50:22Z",
+      "callId": "79d5a58f-6304-4173-b51e-750814943e10"
+    }
+  }
+}

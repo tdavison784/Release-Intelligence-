@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e641e5644490",
+    "candidateId": "sc-4f946bed8665",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"loki BREAKING CHANGE: refactor how we do defaults for runtime overrides 12448\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "loki.runtimeConfig",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"runtime-config.yaml\"]",
+                  "state": "exists",
+                  "pattern": ".*"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--runtime-config.file",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 refactors how defaults are determined for runtime overrides (the per-tenant limit overrides carried in the runtime config file / loki.runtimeConfig), a change the changelog labels BREAKING without further detail."
+    },
+    "proposals": [
+      "sp-11f3517a7a10",
+      "sp-55bada5cd979",
+      "sp-5bd2a0010539",
+      "sp-70407c6b59f3",
+      "sp-72c1c9d6e4ca"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-03T08:06:22Z"
+  }
+}

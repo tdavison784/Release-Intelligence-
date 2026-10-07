@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e4d00f0d51f5",
+    "reviewItemId": "ri-d3e61d94187d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Istio CRDs not templated by default; Upgrade: kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml or similar\"",
+        "after": "\"Istio CRDs are templated by default in istio-base; Upgrade: helm upgrade istio-base; out-of-band kubectl install/upgrade of CRDs is no longer required\""
+      },
+      "statement": "In Istio 1.24.0 the Istio CRDs are templated by default in the istio-base Helm chart, so CRDs can be installed and upgraded with `helm upgrade istio-base` (CRD labels change to match other Helm-installed resources), while CRDs previously installed or upgraded with `kubectl apply` can continue to be managed that way and are also safely upgradable via Helm from this release onward."
+    },
+    "corrected": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "statement": "In Istio 1.24.0 the istio-base Helm chart templates the Istio CRDs by default, so CRDs can be upgraded with `helm upgrade istio-base` instead of an out-of-band `kubectl apply`; CRD labels change to match other Helm-installed resources, and kubectl apply management continues to work."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:51515624c7a528e9b6c632e08487a6fe3f36db0cc2e6fdd6500e43dda29d35cd",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-117557f906cd",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T17:02:48.388Z",
+      "callId": "b8759ce6-3a47-46f7-8f93-67242e959f68",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-85eccdc718e3][ev-2941a875a468] describe a changed interaction with Helm: the istio-base chart now templates the Istio CRDs, so `helm upgrade istio-base` upgrades them instead of an out-of-band `kubectl apply`. Existing kubectl workflows keep working, so behavior-changed with subject product-relationship:helm fits. The proposed before/after values are composite paraphrases, not literals the text states. They are optional for behavior-changed, so they are dropped (null). [ev-fa194382072a] names `Values.base.enableCRDTemplates` as now defaulting to true, but it does not state the earlier default literally, so I did not switch to that subject.",
+    "startedAt": "2026-10-03T17:02:24.709Z",
+    "decidedAt": "2026-10-03T17:02:48.388Z",
+    "resultingFact": "vf-d1035333f0e0"
+  }
+}

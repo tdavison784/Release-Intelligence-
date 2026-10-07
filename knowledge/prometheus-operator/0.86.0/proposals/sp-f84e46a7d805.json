@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f84e46a7d805",
+    "candidateId": "sc-71cf6ab4b713",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "prometheus-operator",
+        "name": "metadata-wal-records"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "prometheus",
+          "state": "in-range",
+          "range": ">=3.4.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Prometheus workloads running Prometheus >= 3.4 that relied on prometheus-operator's automatic addition will no longer run with the `metadata-wal-records` feature flag enabled; the evidence does not state a failure mode.",
+        "remediation": "If the feature is needed, enable the `metadata-wal-records` feature flag explicitly on the Prometheus workload."
+      },
+      "statement": "prometheus-operator 0.86.0 no longer automatically adds the `metadata-wal-records` feature flag to Prometheus resources running Prometheus versions >= 3.4."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-384dcd4e47a4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:bff5877500c7957d3e7154198c3d2e654c91033b4f713ca19a64223ed75dc6a3",
+      "inputEvidence": [
+        "ev-384dcd4e47a4",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456",
+        "ev-f240b6ac3b67",
+        "ev-83fc26f44be6"
+      ],
+      "generatedAt": "2026-10-02T16:49:00Z",
+      "callId": "cd9ae9e5-63a1-4c26-85dc-b3495714b65d"
+    }
+  }
+}

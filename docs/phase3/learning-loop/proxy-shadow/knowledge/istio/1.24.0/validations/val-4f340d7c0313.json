@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4f340d7c0313",
+    "candidateId": "sc-21bf63323d13",
+    "proposalId": "sp-b787ae792257",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.trafficPolicy.portLevelSettings[]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.subsets[].trafficPolicy.portLevelSettings[]",
+                  "state": "set"
+                }
+              ]
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Waypoints used to ignore `portLevelSettings` in DestinationRules. After the upgrade they apply them, so traffic through waypoints may behave differently.",
+        "remediation": "Check that the `portLevelSettings` in DestinationRules for waypoint traffic are what you want, since waypoints now apply them.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes a bug that caused waypoints to ignore any `portLevelSettings` in DestinationRules, so these settings now take effect for waypoints."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

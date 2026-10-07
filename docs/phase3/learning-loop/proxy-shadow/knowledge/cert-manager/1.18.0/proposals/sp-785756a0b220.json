@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-785756a0b220",
+    "candidateId": "sc-063685a549da",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "AdditionalCertificateOutputFormats"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "AdditionalCertificateOutputFormats",
+              "state": "unset"
+            },
+            {
+              "op": "feature-gate",
+              "name": "AdditionalCertificateOutputFormats",
+              "state": "disabled"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "feature-gate",
+          "name": "AdditionalCertificateOutputFormats",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that had not enabled the AdditionalCertificateOutputFormats feature gate will find additional certificate output formats enabled after upgrading to cert-manager 1.18.0; environments that had already enabled the gate see no change.",
+        "remediation": "No operator action required; verify that additional certificate output formats are produced and consumed as expected after upgrading.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 promotes the `AdditionalCertificateOutputFormats` feature to GA, making additional certificate output formats always enabled regardless of the previous feature gate setting."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bc29bf53aa1b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:aa922783b5e2c3ae3dd5c3f6b3cd874b190053dade769427a8c78b0df216dfcb",
+      "inputEvidence": [
+        "ev-bc29bf53aa1b"
+      ],
+      "generatedAt": "2026-10-02T11:43:12Z",
+      "callId": "006aba3c-b088-4042-94e6-918ca4b2d7fd"
+    }
+  }
+}

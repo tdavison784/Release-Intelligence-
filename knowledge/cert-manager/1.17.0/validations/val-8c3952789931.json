@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8c3952789931",
+    "candidateId": "sc-431b73602cf8",
+    "proposalId": "sp-b88d61c67b9b",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.keystores.jks.password"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.jks.passwordSecretRef",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.pkcs12.passwordSecretRef",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for an operator who does nothing: the new password field is an optional alternative to passwordSecretRef, and the evidence's only caution is that the two fields are mutually exclusive, so only one may be set on a keystore section.",
+        "remediation": "None required; optionally simplify existing Certificate resources by replacing passwordSecretRef with the new literal password field, setting only one of the two.",
+        "severity": "low"
+      },
+      "statement": "cert-manager v1.17 adds an optional literal-string `password` field to the Certificate resource's keystore sections (spec.keystores.jks.password and spec.keystores.pkcs12.password) as an easier alternative to storing the keystore password in a Kubernetes secret via passwordSecretRef, and the new field is mutually exclusive with passwordSecretRef so only one of the two may be set."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "cert-manager.io Certificate spec.keystores.jks.password is in the schema of the target release only"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field-added",
+        "detail": "cert-manager.io Certificate spec.keystores.jks.password is new in the v1 schema"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-84061d76ea1b",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

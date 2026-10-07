@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7fea95ff1d44",
+    "reviewItemId": "ri-4d70053a1b47",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--k8s-mode"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "statement": "The bugtool flag --k8s-mode (and related --cilium-agent-container-name, --k8s-namespace, --k8s-label) is deprecated and will be removed in Cilium 1.18; use the Cilium CLI to gather a sysdump from a K8s cluster."
+    },
+    "corrected": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--k8s-mode",
+        "component": "bugtool"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "statement": "The bugtool flag --k8s-mode (with related flags cilium-agent-container-name, k8s-namespace and k8s-label) is deprecated in Cilium 1.17 and will be removed in Cilium 1.18; the Cilium CLI should be used to gather a sysdump from a K8s cluster."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:255a0eca3e357e13eeb72e299855b456f41c10c90a1a7b9a33f91b4802b686d1",
+      "inputEvidence": [
+        "ev-a7d9e5f931b3"
+      ],
+      "generatedAt": "2026-10-02T12:54:41.731Z",
+      "callId": "b0c52370-1597-46ba-a467-04ee7f33a622"
+    },
+    "reason": "[ev-a7d9e5f931b3] says the flag `k8s-mode` has been deprecated and will be removed in Cilium 1.18, so `deprecated` is the right change type. The excerpt is under the \"Bugtool Options\" heading of the 1.17 upgrade notes, so the flag belongs to bugtool. The subject should therefore name that component, so it isn't confused with a same-named flag on another Cilium binary.",
+    "startedAt": "2026-10-02T12:54:28.16Z",
+    "decidedAt": "2026-10-02T12:54:41.731Z"
+  }
+}

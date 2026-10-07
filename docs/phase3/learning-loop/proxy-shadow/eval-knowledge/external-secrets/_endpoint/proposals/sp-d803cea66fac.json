@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d803cea66fac",
+    "candidateId": "sc-79f4401150ed",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterExternalSecret objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and an update of status.storedVersions must be run before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration: re-write all ClusterExternalSecret objects so they are stored as v1, then update status.storedVersions to drop v1beta1, before upgrading to a later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of clusterexternalsecrets.external-secrets.io changes from v1beta1 to v1 (in chart 0.16.0 the CRD no longer marks v1beta1 as storage, true → false), so existing ClusterExternalSecret objects stay stored as v1beta1 until a storage version migration (re-write all objects) is run and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a93bb3b1d26d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:63f79551f2ea591465d4241285a213ba2087f23cb7f2b0ad9c9d5d4e5c7c6c66",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T16:30:06Z",
+      "callId": "e45c18c5-fb1b-4563-b88b-53de1234c2d8"
+    }
+  }
+}

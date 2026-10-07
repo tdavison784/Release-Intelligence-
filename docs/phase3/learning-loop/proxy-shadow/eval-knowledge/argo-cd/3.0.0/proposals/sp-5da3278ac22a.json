@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5da3278ac22a",
+    "candidateId": "sc-9c0a93e3b5b5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "webhook-repo-url-matching"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether webhook payloads arrive for repositories whose configured URL includes an ssh or altssh subdomain"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Webhook payloads now match repo URLs that use ssh or altssh subdomains; environments receiving webhooks for such repositories see those payloads match (enabling webhook-triggered handling) where they previously did not.",
+        "remediation": "No operator action required; verify that webhook events for repositories whose URLs use ssh/altssh subdomains now trigger the expected refreshes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes webhook matching so that repo URLs containing ssh or altssh subdomains are now allowed to match the webhook payload, where previously such URLs did not match."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-27aaf3747c01"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:e0660d496961fb6f31c538b349c563f64012741c1d5d8394e76dee2ff55147dc",
+      "inputEvidence": [
+        "ev-27aaf3747c01"
+      ],
+      "generatedAt": "2026-10-03T08:44:42Z",
+      "callId": "7bd79618-39a5-4a9a-9ece-b8404e7a216c"
+    }
+  }
+}

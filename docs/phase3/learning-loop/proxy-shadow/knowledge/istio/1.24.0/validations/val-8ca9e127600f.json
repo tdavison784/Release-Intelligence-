@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8ca9e127600f",
+    "candidateId": "sc-915466c133be",
+    "proposalId": "sp-d6d851e371ab",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "istio",
+        "name": "kubernetes-recommended-labels"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Istio resources now include standardized Kubernetes recommended labels; label selectors, filters, and monitoring rules that depend on these labels being absent or different may be affected.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds the Kubernetes recommended labels app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/version, app.kubernetes.io/managed-by, and helm.sh/chart to almost all resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:compatibility-boundary/added",
+        "detail": "compatibility-boundary added is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:compatibility-boundary/added",
+        "detail": "compatibility-boundary added is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

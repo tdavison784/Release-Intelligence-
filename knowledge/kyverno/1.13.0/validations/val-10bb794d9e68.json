@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-10bb794d9e68",
+    "candidateId": "sc-1aa728cc3c80",
+    "proposalId": "sp-1f917056a229",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "cli.kyverno.io",
+        "version": "v1alpha1",
+        "kind": "Value",
+        "path": "globalValues"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cli.kyverno.io",
+          "version": "v1alpha1",
+          "kind": "Value"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for existing setups: nothing is removed, rejected or changed; operators only gain the optional ability to simulate scenarios in CLI policy evaluation by defining global values (e.g. request.operation) and rule-specific values in the Values file instead of modifying GlobalContextEntry resources in the cluster.",
+        "severity": "low"
+      },
+      "statement": "Kyverno CLI 1.13.0 adds the ability to inject global context entries during policy evaluation by defining global values (e.g. request.operation) and rule-specific values in a cli.kyverno.io/v1alpha1 Values file (new globalValues field), without modifying GlobalContextEntry resources in the cluster."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/added",
+        "detail": "no canonical exposure condition for crd-field added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-216a0a24c46c",
+    "candidateId": "sc-fafb14837d69",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "mirror-policies-with-waypoints"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.http[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.tcp[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Mirror policies now work correctly with waypoints, whereas they previously had an issue.",
+        "severity": "medium"
+      },
+      "statement": "Mirror policies with waypoints, which previously had an issue, are now fixed in this release."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-9413f4b657a9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5f16da9f69018ef2e5b9637310c60f98efed53dcd72c3f92d9edcfea8425765f",
+      "inputEvidence": [
+        "ev-9413f4b657a9"
+      ],
+      "generatedAt": "2026-10-02T06:06:39Z",
+      "callId": "ba72e600-c244-4c7b-b664-d2fff84180b3"
+    }
+  }
+}

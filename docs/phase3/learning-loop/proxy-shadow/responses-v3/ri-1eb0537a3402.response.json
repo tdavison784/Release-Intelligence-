@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1eb0537a3402",
+  "promptDigest": "sha256:04036b627a2a149750d96dfeec3d2140cb89f7551eba2c6d77656faaef669c57",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2bbe234b-73d3-4c2f-adab-ca2290abcb55",
+  "startedAt": "2026-10-03T12:46:07.882Z",
+  "decidedAt": "2026-10-03T12:46:18.140Z",
+  "durationMs": 9423,
+  "costUSD": 0.09751019999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-56c06982a6c5] and [ev-b01406e79da0] show the storage version of clustercleanuppolicies.kyverno.io moving from v2beta1 to v2 between 1.12.6 and 1.13.0. The change text says objects already stored as v2beta1 stay that way until they are rewritten, and that status.storedVersions must be updated. So exposure depends on the CRD's stored versions, not on which API version the manifests use. A gvk-in-use v2beta1 check is both too broad and too narrow: manifests that still say v2beta1 get stored as v2 after the upgrade, and objects created earlier from v2 manifests were still stored as v2beta1 under 1.12.6.",
+    "citations": [
+      "ev-56c06982a6c5",
+      "ev-b01406e79da0"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The storage version of the clustercleanuppolicies.kyverno.io CRD changes from v2beta1 to v2. Exposed: clusters where the CRD's status.storedVersions still lists v2beta1. These clusters need a storage version migration and a storedVersions update before a later release removes v2beta1.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "clustercleanuppolicies.kyverno.io",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "v2beta1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

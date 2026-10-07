@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-0be2719dff3c",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-c8173f9f6390",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-30d9a4565aad"
+          ],
+          "statementKeys": [
+            "sk-4a2e308a2870"
+          ],
+          "changeIds": [
+            "chg-c8173f9f6390"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "loki Ruler: Fixed a panic that can be caused by concurrent read-write access of tenant configs when there are a large amount of rules",
+    "text": "loki Ruler: Fixed a panic that can be caused by concurrent read-write access of tenant configs when there are a large amount of rules. 11601",
+    "evidence": [
+      {
+        "id": "ev-22d171f57c1e",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L114-L114 (3.0.0 (2024-04-08) › Bug Fixes)",
+        "excerpt": "* **loki** Ruler: Fixed a panic that can be caused by concurrent read-write access of tenant configs when there are a large amount of rules. [11601](https://github.com/grafana/loki/pull/11601)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-c798f821cf42",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11601",
+        "locator": "title and description",
+        "excerpt": "PR: Ruler: protect overrides map with mutex when accessing tenant configs [closed; labels size/M, type/bug, backport release-2.8.x, backport release-2.9.x]\n**What this PR does / why we need it**:\nA ruler handling many hundreds of rules can provoke a situation where the WAL appender reads & modifies tenant configs concurrently in an unsafe way; this PR protects that with a mutex.\n\n**Which issue(s) this PR fixes**:\nFixes #11569\n\n**Special notes for your reviewer**:\nThis doesn't need to be locked in a fine-grained way because this isn't on the hot path.\n\n**Checklist**\n- [ ] Reviewed the [`CONTRIB…",
+        "contentDigest": "sha256:db61c9243b5210a8f3063c83090ddf967354c306daff5f22a8430fb5d8ea99ab",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-dee199fe1029",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11601",
+        "locator": "description (part 2)",
+        "excerpt": "(**required**)\n- [ ] Documentation added\n- [x] Tests updated\n- [ ] `CHANGELOG.md` updated\n- [ ] If the change is worth mentioning in the release notes, add `add-to-release-notes` label\n- [ ] Changes that require user attention or interaction to upgrade are documented in `docs/sources/setup/upgrade/_index.md`\n- [ ] For Helm chart changes bump the Helm chart version in `production/helm/loki/Chart.yaml` and update `production/helm/loki/CHANGELOG.md` and `production/helm/loki/README.md`. [Example …",
+        "contentDigest": "sha256:db61c9243b5210a8f3063c83090ddf967354c306daff5f22a8430fb5d8ea99ab",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-4d8addbe8978",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/11601",
+        "locator": "changed files",
+        "excerpt": "3 changed file(s): CHANGELOG.md, pkg/ruler/registry.go, pkg/ruler/registry_test.go",
+        "contentDigest": "sha256:db61c9243b5210a8f3063c83090ddf967354c306daff5f22a8430fb5d8ea99ab",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

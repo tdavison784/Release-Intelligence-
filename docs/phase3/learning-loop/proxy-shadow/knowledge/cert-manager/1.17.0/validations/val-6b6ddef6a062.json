@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6b6ddef6a062",
+    "candidateId": "sc-985a8fcba32d",
+    "proposalId": "sp-bedd92d7283c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ca-selfsigned-rsa-signing-hash"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether CA or SelfSigned issuers use RSA keys of 3072 bits or larger, and whether consuming systems support SHA-384/SHA-512"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Issuance still works, but certificates signed by CA/SelfSigned issuers with RSA keys of 3072 bits or larger now use SHA-384 or SHA-512; systems that do not support these hash algorithms may be affected.",
+        "remediation": "Check that systems consuming these certificates support the new hash algorithms."
+      },
+      "statement": "CA and SelfSigned issuers now sign with SHA-512 for RSA keys of 4096 bits and above and SHA-384 for RSA keys of 3072 bits and above, so systems must support these hash algorithms."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

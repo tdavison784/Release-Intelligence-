@@ -1,0 +1,24 @@
+# GPU node configuration: AL2023 family, NVIDIA AMIs pinned by name glob,
+# rotated weekly via the NodePool's expireAfter.
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: gpu-al2023
+spec:
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - name: amazon-eks-node-al2023-x86_64-nvidia-*
+      owner: amazon
+  role: KarpenterNodeRole-ci-buildfarm
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: ci-buildfarm
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: ci-buildfarm
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 200Gi
+        volumeType: gp3
+        encrypted: true

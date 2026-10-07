@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e63a38a65cb1",
+    "candidateId": "sc-00f02ba8dd12",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "bpf.enableTCX",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether nodes run Linux kernel 6.6 or newer and host third-party old-style tc BPF users"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On kernels 6.6 or newer, Cilium switches from old-style tc BPF attachment to tcx BPF links by default, which may affect setups that have third-party old-style tc BPF users.",
+        "remediation": "If third-party old-style tc BPF users are present, set bpf.enableTCX=false via Helm to keep the old-style tc BPF attachment mode.",
+        "severity": "medium"
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium 1.16 by default attaches its core-datapath tc BPF programs with tcx BPF links; setups with third-party old-style tc BPF users should set the Helm value bpf.enableTCX=false to keep the old tc attachment mode."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-736cdc5fc0d2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3a994aaa172b84a0ee4308aa87a8de4eb011f26289a68b3657b1a468ff09761e",
+      "inputEvidence": [
+        "ev-736cdc5fc0d2"
+      ],
+      "generatedAt": "2026-10-03T07:08:22Z",
+      "callId": "6ee1fd1a-7708-4b3b-b954-20d361038a2b"
+    }
+  }
+}

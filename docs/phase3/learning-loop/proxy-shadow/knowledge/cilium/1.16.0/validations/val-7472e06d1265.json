@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7472e06d1265",
+    "candidateId": "sc-18e3c0f40ba7",
+    "proposalId": "sp-2b54ad490174",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--verbose",
+        "component": "cilium-dbg"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--verbose",
+          "component": "cilium-dbg",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The cilium-dbg status --verbose command output structure has changed. Health data from non-leaf components now appears under a reporter leaf, and branches are sorted by fully qualified health status identifier. Scripts or monitoring tools that parse this output may need updates to handle the new format.",
+        "severity": "medium"
+      },
+      "statement": "The cilium-dbg status --verbose command output format changed: health data from non-leaf components now appears under a reporter leaf, and health data tree branches are now sorted by fully qualified health status identifier."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

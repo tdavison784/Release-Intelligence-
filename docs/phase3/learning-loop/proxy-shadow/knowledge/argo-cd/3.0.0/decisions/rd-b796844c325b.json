@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b796844c325b",
+    "reviewItemId": "ri-1df5202a0a19",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Tools and CLI commands that parse `.status.resources[].health` directly will not find persisted health status; they must use the Argo CD CLI or API instead to retrieve health information.",
+        "remediation": "Update any custom tooling or scripts parsing `.status.resources[].health` to use the Argo CD CLI or API for health status queries. Alternatively, set `controller.resource.health.persist: true` in the `argocd-cmd-params-cm.yaml` ConfigMap to restore the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "The health status is no longer persisted in the Application CR's `/status` by default in 3.0.0; it is stored externally instead, and can be reverted by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm.yaml` ConfigMap."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:8415eda5347bae34668b24b1d74fac8a677d116e9ae18dce07e5b0b9805bb882",
+      "inputEvidence": [
+        "ev-5616a3c7f69a",
+        "ev-04f25237d9d5",
+        "ev-66224e7edcd9",
+        "ev-84752609c1b3",
+        "ev-be3337c2717d",
+        "ev-d9606f97c234",
+        "ev-f69c10f943ee"
+      ],
+      "generatedAt": "2026-10-02T12:49:18.975Z",
+      "callId": "00c35aa2-c504-43c7-96dc-5e9fe7a00084"
+    },
+    "reason": "[ev-5616a3c7f69a] says per-object health is no longer persisted under `/status` in the Application CR by default but stored externally, and `controller.resource.health.persist: true` in argocd-cmd-params-cm restores it. Argo CD keeps working; the release text only says external tools parsing `.status.resources[].health` must switch to the argocd CLI/API. That makes this a changed default that still works, so behavior-change (review) fits and a mandatory kind would over-claim. The proposed statement, remediation and medium severity match the evidence.",
+    "startedAt": "2026-10-02T12:49:06.843Z",
+    "decidedAt": "2026-10-02T12:49:18.975Z"
+  }
+}

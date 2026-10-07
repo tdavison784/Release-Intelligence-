@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4ee11ddbdc77",
+    "candidateId": "sc-e89444a9db9a",
+    "proposalId": "sp-daf7d3ba027a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.marathon"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.marathon",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.marathon",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Marathon provider configuration is unsupported in v3 and would prevent Traefik from starting.",
+        "remediation": "Remove all Marathon provider related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "The Marathon provider is removed in Traefik v3; any remaining Marathon provider configuration in the static configuration prevents Traefik from starting."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8b7f99a5702a",
+    "candidateId": "sc-159bff8514d4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "secretstore-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects remain stored as v1beta1 until rewritten; a storage version migration and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all SecretStore objects (storage version migration) and update status.storedVersions on the CRD before v1beta1 is removed.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the secretstores.external-secrets.io CRD moves from v1beta1 to v1, so existing SecretStore objects stay stored as v1beta1 until they are rewritten, and a storage version migration is needed before a later release removes v1beta1."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f07fad593227"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:76e85d20280fd98a8975a03f87ea09be66074a944af2cc2a00589d4daf37675a",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T16:13:49Z",
+      "callId": "42f1e47a-39be-4241-80c9-a264c5cc144e"
+    }
+  }
+}

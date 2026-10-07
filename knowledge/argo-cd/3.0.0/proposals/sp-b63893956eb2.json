@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b63893956eb2",
+    "candidateId": "sc-9f8a80378b1b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "ignoreDifferencesOnResourceUpdates:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreDifferencesOnResourceUpdates:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resource updates to fields covered by system-level ignoreDifferences no longer trigger a diff for the application; the v2 behavior is preserved only by setting ignoreDifferencesOnResourceUpdates to false.",
+        "remediation": "Set ignoreDifferencesOnResourceUpdates: false in resource.compareoptions of argocd-cm to keep v2 behavior."
+      },
+      "statement": "In Argo CD 3.0 the system-level ignoreDifferences customizations also ignore resource updates by default; set ignoreDifferencesOnResourceUpdates to false in argocd-cm resource.compareoptions to keep the v2 behavior."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-63314a5fae82"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:17ee40b41f7b96519b6ddf7bede1d7b265b3f1298938ac5426b4c5bd023ac7a8",
+      "inputEvidence": [
+        "ev-63314a5fae82"
+      ],
+      "generatedAt": "2026-10-03T07:04:06Z",
+      "callId": "9c6d7560-e4d1-4cb5-91ab-0d487502e8ec"
+    }
+  }
+}

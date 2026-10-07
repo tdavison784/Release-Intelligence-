@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-2314fa6c1596",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-643812b9a9d5",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-6fcdbc11ed94"
+          ],
+          "statementKeys": [
+            "sk-a7186eb6096f"
+          ],
+          "changeIds": [
+            "chg-643812b9a9d5"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Added value `seLinuxOptions` to istio-cni chart",
+    "text": "Added value `seLinuxOptions` to istio-cni chart. On some platforms (e.g. OpenShift) it is necessary to set `seLinuxOptions.type` to `spc_t` in order to work around some SELinux constraints related to hostPath volumes. Without this setting, the istio-cni-nodes pods may fail to start.",
+    "evidence": [
+      {
+        "id": "ev-117557f906cd",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/53566.yaml",
+        "locator": "53566.yaml L10-L13",
+        "excerpt": "- |\n  **Added** value `seLinuxOptions` to istio-cni chart. On some platforms (e.g. OpenShift) it is necessary to set \n  `seLinuxOptions.type` to `spc_t` in order to work around some SELinux constraints related to hostPath volumes. \n  Without this setting, the istio-cni-nodes pods may fail to start.",
+        "contentDigest": "sha256:bb19227bdb0e248ea4e05ce746da8c0245e0f7f27d55a847fa613518d175c534",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-d6d14ef910f7",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/53558",
+        "locator": "title and description",
+        "excerpt": "issue: Failed to start up UDS Log Server on 1.24 [closed; labels area/ambient]\n### Is this the right place to submit this?\n\n- [X] This is not a security vulnerability or a crashing bug\n- [X] This is not a question about how to use Istio\n\n### Bug Description\n\nSince bumping to [Istio 1.24.0-alpha.0](https://github.com/istio/istio/releases/tag/1.24.0-alpha.0) to try and fix the host network ip clash issue, a new issue is occurring that is stopping `istio-cni` from starting.\n\nI hadn't experienced this with 1.23.\n\nIt is a k3s cluster deployed via ArgoCD and Helm.\n\n```\n2024-10-17T09:26:36.559464Z",
+        "contentDigest": "sha256:b5a4605f1a13375316bf7a870dab421347eb4ac3063e14a6f1b87a79b8d166e3",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-4a0b7d1ea56f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/53558",
+        "locator": "description (part 2)",
+        "excerpt": "info cni-agent CNI logging level: info\n2024-10-17T09:26:36.559841Z info cni-agent CNI install configuration:\nMountedCNINetDir: /host/etc/cni/net.d\nCNIConfName:\nChainedCNIPlugin: true\nCNIAgentRunDir: /var/run/istio-cni\nPluginLogLevel: info\nKubeconfigMode: 0600\nKubeCAFile:\nSkipTLSVerify: false\nExcludeNamespaces:\nK8sServiceProtocol:\nK8sServiceHost: 10.43.0.1\nK8sServicePort: 443\nK8sNodeName: control-plane-nbg1-adx\nCNIBinSourceDir: /opt/cni/bin\nCNIBinTargetDirs: /host/opt/cni/bin\nMonitoringPort: 15014\nZtunnelUDSAddress: …",
+        "contentDigest": "sha256:b5a4605f1a13375316bf7a870dab421347eb4ac3063e14a6f1b87a79b8d166e3",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:seLinuxOptions",
+      "code:seLinuxOptions.type",
+      "code:spc_t",
+      "path:seLinuxOptions.type"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

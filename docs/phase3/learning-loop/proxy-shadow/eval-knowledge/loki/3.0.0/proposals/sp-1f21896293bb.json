@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1f21896293bb",
+    "candidateId": "sc-895e84ff5606",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.allow_structured_metadata"
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Loki won't start if structured metadata is enabled (the new default) and the schema is not tsdb with v13.",
+        "remediation": "Use tsdb index and v13 schema, or see the referenced Structured Metadata, Schemas and Indexes section.",
+        "severity": "high"
+      },
+      "statement": "Structured metadata is now enabled by default and requires tsdb index and v13 schema, otherwise Loki won't start."
+    },
+    "undetermined": [
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "change: text says enabled by default but does not name the config key or before/after values; applicability: schema_config contents and structured-metadata setting are not specified in evidence in a way that yields a precise predicate",
+    "citations": [
+      "ev-5dacaee98643"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6bb01a08bc889876c890f4c1b31faf5a96a67f2d17a8417c6115561817557499",
+      "inputEvidence": [
+        "ev-5dacaee98643"
+      ],
+      "generatedAt": "2026-10-03T07:04:28Z",
+      "callId": "c7332cfc-6b89-4941-8d34-9aba7a194acf"
+    }
+  }
+}

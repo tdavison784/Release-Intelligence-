@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-13c0e7bbb7d5",
+    "candidateId": "sc-73bed00eb372",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "helm.toolkit.fluxcd.io",
+        "version": "v2",
+        "kind": "HelmRelease",
+        "path": "spec.chartRef.kind"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "\"ExternalArtifact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An exposed environment whose operator does nothing is unaffected: the removed-values list is empty, so no previously accepted spec.chartRef.kind value is rejected; the previously invalid value ExternalArtifact simply becomes accepted.",
+        "severity": "low"
+      },
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the enum of spec.chartRef.kind gained the allowed value ExternalArtifact (computed artifact diff between the v2.6.4 and v2.7.0 install bundles), with no values removed."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f07d182631873cc973d80615c4cd7ff451b7345d1ae238f892148b434aa5c29b",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:12:12Z",
+      "callId": "93586f10-694a-4c3f-b8b3-9fbb6faf7eeb"
+    }
+  }
+}

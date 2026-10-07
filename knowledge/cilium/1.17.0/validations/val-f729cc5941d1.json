@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f729cc5941d1",
+    "candidateId": "sc-d8211760345d",
+    "proposalId": "sp-8db3c52b148b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has existing services without protocol set that require recreation to enable protocol differentiation"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "After upgrade to 1.17.0, existing services without a protocol set will be preserved but require deletion and recreation for protocol differentiation to take effect. On downgrade from 1.17.0 to earlier versions, services with protocol set will be deleted and recreated without the protocol, causing connection disruptions.",
+        "remediation": "After upgrading to 1.17.0, identify and recreate services without protocol set to enable protocol differentiation. Before downgrading, plan for service recreation with potential connection disruptions.",
+        "severity": "medium"
+      },
+      "statement": "The --bpf-lb-proto-diff flag enables services protocol differentiation by default in Cilium 1.17.0, allowing distinction of services on the same port with different protocols; existing services without a protocol set are preserved but require deletion and recreation to enable protocol differentiation, and downgrades cause protocol-aware services to lose protocol information and be recreated."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-65449d22c402",
+    "candidateId": "sc-cf7c7afd323f",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"loki Remove legacy ingester shutdown handler `/ingester/flush_shutdown`. 10655\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Requests to the `/ingester/flush_shutdown` endpoint will no longer be processed; this endpoint no longer exists.",
+        "remediation": "Update any scripts or monitoring that call `/ingester/flush_shutdown` to use alternative shutdown mechanisms or rely on the default ingester shutdown behavior configured via `--ingester.flush-on-shutdown`.",
+        "severity": "medium"
+      },
+      "statement": "The legacy ingester shutdown handler endpoint `/ingester/flush_shutdown` has been removed."
+    },
+    "proposals": [
+      "sp-561b23c0fe2f",
+      "sp-9248b978bbbe"
+    ],
+    "validations": [
+      "val-bc03c65e00ef",
+      "val-c162df19d627",
+      "val-cf932855df3a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:59:23Z"
+  }
+}

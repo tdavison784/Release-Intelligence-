@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-435ae8b34cd9",
+    "candidateId": "sc-f629a0b64048",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_identity_kvstore_only_total`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium 1.17.0 exposes the metric under the new name doublewrite_identity_kvstore_only_total instead of doublewrite_identity_kvstore_only_count, so queries, dashboards, and alerts that reference the old name no longer match it.",
+        "remediation": "Update dashboards, alerts, and queries that reference doublewrite_identity_kvstore_only_count to use the new name doublewrite_identity_kvstore_only_total.",
+        "severity": "low"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_identity_kvstore_only_total` in Cilium 1.17.0, so it is exposed under the new name."
+    },
+    "proposals": [
+      "sp-4dad87c0c5c5",
+      "sp-4ed3475ebea0",
+      "sp-bb2101df3bfb",
+      "sp-fa23be9c7c94"
+    ],
+    "validations": [
+      "val-29bb204b8e32",
+      "val-89aba49235ba",
+      "val-93d8f48d48a6"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:14:45Z"
+  }
+}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/fetch"
 	"github.com/tdavison784/release-intelligence/internal/normalize"
 	"github.com/tdavison784/release-intelligence/internal/sources"
 )
@@ -455,7 +456,11 @@ func (i *Ingester) probeChannels(ctx context.Context, r *run, ar *artifactRun, b
 		if st.State == domain.SourceNotFound {
 			absent = append(absent, coord)
 		} else {
-			unreachable = append(unreachable, fmt.Sprintf("%s (%s: %s)", coord, st.Kind, st.State))
+			why := string(st.State)
+			if r := fetch.Reason(st.Detail); r != "" && st.State != domain.SourceThrottled {
+				why += ", " + r // 401 vs 403 vs DNS: not all "unavailable" are alike
+			}
+			unreachable = append(unreachable, fmt.Sprintf("%s (%s: %s)", coord, st.Kind, why))
 		}
 	}
 	for _, ch := range a.Channels {

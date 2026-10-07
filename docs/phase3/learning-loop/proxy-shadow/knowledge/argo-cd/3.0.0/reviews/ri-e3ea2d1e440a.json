@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e3ea2d1e440a",
+    "candidateId": "sc-df479e04bf5f",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Ignoring ApplicationSet `applyNestedSelectors` field: Setting the `spec.applyNestedSelectors` field in an ApplicationSet resolves counter-intuitive behavior…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSets with applyNestedSelectors unset or set to false will have nested selectors always applied starting in Argo CD 3.0, changing behavior from previous versions where the field value was honored.",
+        "remediation": "Review ApplicationSets with nested selectors where applyNestedSelectors is unset or false. If the new behavior (nested selectors always applied) is not desired, remove the nested selectors before upgrading to Argo CD 3.0.",
+        "severity": "medium"
+      },
+      "statement": "The spec.applyNestedSelectors field in ApplicationSet is now ignored in Argo CD 3.0; nested selectors are always applied regardless of the field's value."
+    },
+    "proposals": [
+      "sp-285ce16cab0c",
+      "sp-e6dc89c934ec"
+    ],
+    "validations": [
+      "val-3ccd96f1262c",
+      "val-689c65201f52",
+      "val-8350fb8c676f",
+      "val-85e12981c03f",
+      "val-aef001e25eeb",
+      "val-cbc91536795b",
+      "val-d5d74dcda80c",
+      "val-f87c00acad42"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:42Z"
+  }
+}

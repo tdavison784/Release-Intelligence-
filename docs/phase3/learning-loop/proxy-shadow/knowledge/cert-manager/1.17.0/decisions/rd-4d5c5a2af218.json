@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4d5c5a2af218",
+    "reviewItemId": "ri-7d2834401e10",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "logging-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Unstructured log messages in cert-manager have been replaced with structured logs, which breaks log string matching patterns."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "structured-logs"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In cert-manager 1.17.0, log messages that were not structured have been replaced with structured logs. Setups that match on specific log strings could break."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6d757a4387cd2e71e8732f1ebe019dbac1756ed5bf0f21e0d2d3b5ee2db6aae8",
+      "inputEvidence": [
+        "ev-df7847de6bcb",
+        "ev-6db6001fefb2",
+        "ev-969cbf095c23",
+        "ev-7ed93148a767"
+      ],
+      "generatedAt": "2026-10-03T12:58:38.458Z",
+      "callId": "0566f6c6-857e-417f-b766-76b0f5914d67",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-df7847de6bcb] says log messages that were not structured are now structured logs, and that this could break setups that match on specific log strings. Behavior-changed is the right change type: the same component now emits differently formatted output. The subject name \"logging-format\" is wrong, though, because neither \"logging\" nor \"format\" appears in the evidence. A free-form protocol-behavior name must be built from the evidence's own key words, so I renamed it to \"structured-logs\".",
+    "startedAt": "2026-10-03T12:58:28.636Z",
+    "decidedAt": "2026-10-03T12:58:38.458Z",
+    "resultingFact": "vf-d1c9302ffec2"
+  }
+}

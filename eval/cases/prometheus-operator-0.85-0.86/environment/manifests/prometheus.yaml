@@ -1,0 +1,56 @@
+# The Prometheus and Alertmanager workloads managed by the operator.
+# Neither pins spec.version nor spec.image: both run the operator's default
+# operand versions (at v0.85.0: Prometheus v3.5.0, Alertmanager v0.28.1).
+# Remote write uses the default protocol (no messageVersion, i.e. V1.0).
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: k8s
+  namespace: monitoring
+spec:
+  replicas: 2
+  serviceAccountName: prometheus
+  retention: 15d
+  serviceMonitorSelector:
+    matchLabels:
+      team: platform
+  podMonitorSelector:
+    matchLabels:
+      team: platform
+  scrapeConfigSelector:
+    matchLabels:
+      team: platform
+  ruleSelector:
+    matchLabels:
+      team: platform
+  alerting:
+    alertmanagers:
+      - namespace: monitoring
+        name: alertmanager-operated
+        port: web
+  remoteWrite:
+    - url: https://metrics-gateway.example.internal/api/v1/push
+      queueConfig:
+        maxSamplesPerSend: 2000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: gp3
+        resources:
+          requests:
+            storage: 100Gi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: main
+  namespace: monitoring
+spec:
+  replicas: 3
+  alertmanagerConfigSelector:
+    matchLabels:
+      team: platform

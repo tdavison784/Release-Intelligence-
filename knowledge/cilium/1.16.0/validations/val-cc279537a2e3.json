@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cc279537a2e3",
+    "candidateId": "sc-3d73e8a6dea6",
+    "proposalId": "sp-54a81700b363",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "direct-server-return"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether live service connections using Direct-Server-Return were established before Cilium v1.13.3 and are still open at upgrade time"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections that use Direct-Server-Return and were established before Cilium v1.13.3 will be disrupted on upgrade to 1.16.",
+        "remediation": "Re-establish the affected service connections.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16, service connections that use Direct-Server-Return and were established before v1.13.3 will be disrupted and need to be re-established."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

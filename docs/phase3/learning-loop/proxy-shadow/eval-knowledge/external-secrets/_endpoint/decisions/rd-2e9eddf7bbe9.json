@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2e9eddf7bbe9",
+    "reviewItemId": "ri-ec9c4bf343ae",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "statement": "The external-secrets.io/v1 API version for SecretStore is now served in addition to v1beta1."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      },
+      "statement": "SecretStore CRD now also serves API version external-secrets.io/v1; any environment using SecretStore (external-secrets.io) can use the new version, with no stated impact on existing resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:725fbdcab7f61ac1d39826c2d5dcb58a6436e0ea45c99ce31ee7935ef1a3fd45",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-e051da5c4635",
+        "ev-728cc9a57b79",
+        "ev-f9a790bae7ab",
+        "ev-04b0055709ca",
+        "ev-644ba46b1d7b",
+        "ev-a7ac6349cebc",
+        "ev-06168058bf73",
+        "ev-e08a83af4691",
+        "ev-08f1f0d7ce32",
+        "ev-bba234cfda9e",
+        "ev-a9496b9a002a",
+        "ev-04de47456dbb",
+        "ev-322b8fe70558",
+        "ev-e689b7bd24ae",
+        "ev-210dbd3942ad",
+        "ev-f0f468ff58d0",
+        "ev-593d5defa742",
+        "ev-628506907167",
+        "ev-d98b7e27e53d",
+        "ev-f07fad593227",
+        "ev-e653376afb3a",
+        "ev-c92a1c2a1dd9"
+      ],
+      "generatedAt": "2026-10-03T12:37:56.099Z",
+      "callId": "9d0a2b8c-152a-4ab9-8eb3-391ee5b8d4a5",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f9a790bae7ab] and [ev-c92a1c2a1dd9] show only that external-secrets.io/v1 SecretStore is newly served (absent in 0.15.0 per [ev-e653376afb3a]); the addition makes v1 available to every SecretStore user and breaks nothing, so restricting exposure to v1beta1 users is not supported by this change. The v1beta1-specific effects (storage true→false [ev-f07fad593227], conversion removed [ev-728cc9a57b79]) are separate changes and should not shape this assertion's applicability.",
+    "startedAt": "2026-10-03T12:37:35.088Z",
+    "decidedAt": "2026-10-03T12:37:56.099Z",
+    "resultingFact": "vf-e9cc7996bc4f"
+  }
+}

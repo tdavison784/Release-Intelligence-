@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c968607e776d",
+    "candidateId": "sc-387f5d4316ab",
+    "proposalId": "sp-281f02b89e32",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "helm-upgrade-crds"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "installCRDs",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "installCRDs",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Nothing beyond the standard `helm repo update` followed by `helm upgrade <your_app_name> external-secrets/external-secrets --version 0.16.1` is required; the guide states this 'should just work', so no manual CRD handling or extra operator action is needed.",
+        "severity": "low"
+      },
+      "statement": "The 0.16 upgrade guide states that installations where the helm chart installs the CRDs (`installCRDs=true`, the chart default) — including argocd or flux managing the CRDs directly with helm — need only `helm repo update` and `helm upgrade <your_app_name> external-secrets/external-secrets --version 0.16.1`, and that this \"should just work\" with no further steps."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

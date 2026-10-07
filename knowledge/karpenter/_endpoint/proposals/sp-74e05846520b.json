@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-74e05846520b",
+    "candidateId": "sc-42373ba011a8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "karpenter.sh",
+              "version": "v1beta1",
+              "kind": "NodePool"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects stored as v1beta1 must be rewritten and status.storedVersions must be updated before a later release removes v1beta1 support."
+      },
+      "statement": "The storage version of nodepools.karpenter.sh changes from v1beta1 to v1, requiring a storage version migration to rewrite existing objects."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-09bbe26d2f4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:075c41c878e20187f666656f02fdef8ee7fc6d56226879ee2b25b4e01d004c4a",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T06:04:04Z",
+      "callId": "cec0d3fc-3ccf-47ae-b595-3b523f603aed"
+    }
+  }
+}

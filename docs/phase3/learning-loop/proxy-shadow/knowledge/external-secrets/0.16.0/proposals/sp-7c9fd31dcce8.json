@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7c9fd31dcce8",
+    "candidateId": "sc-301a765d4d6e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "apiextensions.k8s.io",
+        "kind": "CustomResourceDefinition",
+        "path": "spec.conversion"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"{\\\"strategy\\\":\\\"Webhook\\\",\\\"webhook\\\":{\\\"clientConfig\\\":{\\\"service\\\":{\\\"name\\\":\\\"external-secrets-webhook\\\",\\\"namespace\\\":\\\"external-secrets\\\",\\\"path\\\":\\\"/convert\\\"}},\\\"conversionReviewVersions\\\":[\\\"v1\\\"]}}\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=0.15.0 <0.16.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.conversion.strategy",
+                  "state": "equals",
+                  "values": [
+                    "\"Webhook\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Promoting an existing installation to 0.16.0 fails when the CRD update is rejected with 'spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook'; the release notes say to use 0.16.1 as opposed to 0.16.0 on the installation path.",
+        "remediation": "Upgrade with the 0.16.1 chart instead of 0.16.0.",
+        "severity": "high"
+      },
+      "statement": "The 0.16.0 chart removes spec.conversion (strategy Webhook pointing at the external-secrets-webhook /convert service) from the external-secrets CRDs, so promoting an existing installation to 0.16.0 can have the CRD update rejected with 'spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook'; the release notes say to use 0.16.1 instead of 0.16.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0eb3d16492e3",
+      "ev-558ba9e85f76",
+      "ev-1265a0fa1fc4",
+      "ev-5e86077f4adc",
+      "ev-5e94a01f7dbe",
+      "ev-7a082965d61c",
+      "ev-728cc9a57b79",
+      "ev-34ba994b9e84"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:85e14dac6bb17a9c7adc49426eb62c8ddf6695a5bbb122e2dbf1fded12b2195a",
+      "inputEvidence": [
+        "ev-0eb3d16492e3",
+        "ev-558ba9e85f76",
+        "ev-1265a0fa1fc4",
+        "ev-678654f153b4",
+        "ev-5e86077f4adc",
+        "ev-4cac666b69f8",
+        "ev-07e78d40dd67",
+        "ev-7a082965d61c",
+        "ev-07eab10f591f",
+        "ev-f97dcf83b9d2",
+        "ev-c86883e648c4",
+        "ev-cf5b0dbb9f73",
+        "ev-a31efa6e7bb0",
+        "ev-5e94a01f7dbe",
+        "ev-34ba994b9e84",
+        "ev-11604edd4eac",
+        "ev-728cc9a57b79",
+        "ev-accae151c859",
+        "ev-0afe39b45a54",
+        "ev-1e54120ce3cb",
+        "ev-f9b6cb924705"
+      ],
+      "generatedAt": "2026-10-03T08:41:10Z",
+      "callId": "59e0774a-3235-4d6a-b801-1ca899ebd8d7"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d6981d8929a4",
+    "reviewItemId": "ri-0aa6f87e458f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to Istio 1.24.0, any script or automation that invokes `istioctl manifest diff` or `istioctl manifest profile diff` fails because the commands no longer exist; users looking to compare manifests must use generic YAML comparison tools.",
+        "remediation": "Replace invocations of `istioctl manifest diff` / `istioctl manifest profile diff` in scripts and CI with a generic YAML comparison tool.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 removed the `istioctl manifest diff` and `istioctl manifest profile diff` commands; users looking to compare manifests are directed to generic YAML comparison tools."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6e97e7f0a19b35c1b9a57351b85f87cf3e174b6c4b9bad603b2024f33fedcc68",
+      "inputEvidence": [
+        "ev-0307de1909a6",
+        "ev-a2198475a8e4",
+        "ev-a660cba27ffe",
+        "ev-6696145232da",
+        "ev-cb004eb264ca",
+        "ev-a486e34929cd",
+        "ev-eb9884e0aaab",
+        "ev-f0e757e54820"
+      ],
+      "generatedAt": "2026-10-03T12:43:36.329Z",
+      "callId": "071e4df1-eaf8-47ae-af3c-799f0209f051",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0307de1909a6] says plainly that `istioctl manifest diff` and `istioctl manifest profile diff` are removed and points users to generic YAML comparison tools. Any script or CI job that calls them breaks after the upgrade, so a failure kind fits. workload-failure, where an integration breaks, is the closest kind for a removed CLI command. Removing a command is a hard break, not a deprecation, and generic YAML tools are not an upstream replacement mechanism, so the superseded-upstream proposal does not fit. The proposed medium severity and remediation match the evidence. Confidence is low because the evidence states the removal but not, in so many words, what happens to callers.",
+    "startedAt": "2026-10-03T12:43:25.253Z",
+    "decidedAt": "2026-10-03T12:43:36.329Z"
+  }
+}

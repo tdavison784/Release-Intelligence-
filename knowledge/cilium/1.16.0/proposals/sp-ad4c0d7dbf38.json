@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ad4c0d7dbf38",
+    "candidateId": "sc-2730a25f1b54",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableCiliumEndpointSlice"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "ciliumEndpointSlice.enabled"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "enableCiliumEndpointSlice",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ciliumEndpointSlice.enabled",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "ciliumEndpointSlice.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The option still works but is scheduled for removal in a future release.",
+        "remediation": "Set `ciliumEndpointSlice.enabled` instead of `enableCiliumEndpointSlice`.",
+        "severity": "low"
+      },
+      "statement": "Helm option `enableCiliumEndpointSlice` is deprecated and will be removed in a future release; use `ciliumEndpointSlice.enabled` instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-79276bab0c0a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c08165546e90937a5827da8f62f214424b9659fc468fa4b7ede71154c918dae0",
+      "inputEvidence": [
+        "ev-79276bab0c0a"
+      ],
+      "generatedAt": "2026-10-02T05:56:43Z",
+      "callId": "516f3fad-0e4d-478e-be9a-957ed4e65dad"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e8198500a27c",
+    "reviewItemId": "ri-8abe1d243558",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9d5f3f9551864252c595779d90ce5c6002ac673234f7fe16e20e872fe17e52cc",
+      "inputEvidence": [
+        "ev-0739bc6582ad",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:28:56.462Z",
+      "callId": "06eef8cb-cee4-46b8-b3ac-43d4d9e6e796",
+      "provider": "anthropic"
+    },
+    "reason": "The evidence clearly shows a rename. [ev-0739bc6582ad] lists `envoy_cilium_policymap_<node-ip>_<node-id>_update_success` -> `envoy_cilium_npds_update_success`, and [ev-77f05428497a] says the prefix of all Envoy NPDS metrics changed from `envoy_cilium_policymap_<node-ip>_<node-id>_` to `envoy_cilium_npds_`. The problem is the subject: it is a Prometheus metric name, and no subject family covers metrics. protocol-behavior is for wire and protocol behaviour such as TLS, ALPN or path matching, and its names must be lowercase kebab-case. The proposed name keeps the literal metric spelling, so it breaks that rule. Turning it into kebab-case would lose the exact metric identity, so I cannot accept or correct this without a taxonomy decision on how to represent metrics.",
+    "startedAt": "2026-10-03T12:28:45.158Z",
+    "decidedAt": "2026-10-03T12:28:56.462Z"
+  }
+}

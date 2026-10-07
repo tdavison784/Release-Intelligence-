@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d5c8b0aea7b8",
+    "candidateId": "sc-3e520936a5c1",
+    "proposalId": "sp-917757267f5f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consulCatalog.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consulCatalog.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--consulCatalog.namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Setting the removed ConsulCatalog provider `namespace` option is unsupported in v3 and stops Traefik from starting.",
+        "remediation": "Use the ConsulCatalog `namespaces` option instead of `namespace`.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 removes the ConsulCatalog provider `namespace` option, which was deprecated in v2. If it is still set, Traefik won't start, so use `namespaces` instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

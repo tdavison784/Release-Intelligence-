@@ -1,0 +1,54 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-df52d37a6269",
+  "promptDigest": "sha256:76b1cecb79a99d45be93b97f22c0281c29e8fbec3a1f2043e708018ea964652e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6bf054b4-e256-4417-bb17-615bf999a749",
+  "startedAt": "2026-10-03T17:04:07.361Z",
+  "decidedAt": "2026-10-03T17:04:26.930Z",
+  "durationMs": 18903,
+  "costUSD": 0.125552,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-43cc6d389282] says the CLI flags \"and the corresponding YAML settings\" (`shared_store_key_prefix`) were removed, and [ev-76a46c52508c] and [ev-8ceba924ad20] count an environment as configured if it set the flag \"or its YAML setting\". An exposure that only checks the container argument misses environments that set the key in the Loki config file, so it is too narrow. I added a text-line leaf for the YAML key. Two caveats: the config data key name `config.yaml` is my assumption, not something the evidence states, and a line pattern cannot tell the boltdb_shipper block from the tsdb_shipper block.",
+    "citations": [
+      "ev-528edacf0d9e",
+      "ev-43cc6d389282",
+      "ev-76a46c52508c",
+      "ev-8ceba924ad20"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removed the CLI flag -boltdb.shipper.shared-store.key-prefix and its YAML setting (boltdb_shipper shared_store_key_prefix). An environment is exposed if it sets either the flag or the YAML key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "pattern": "^\\s*shared_store_key_prefix\\s*:",
+                  "state": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

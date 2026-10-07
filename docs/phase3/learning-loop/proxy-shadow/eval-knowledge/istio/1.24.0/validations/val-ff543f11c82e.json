@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ff543f11c82e",
+    "candidateId": "sc-80222d5899d0",
+    "proposalId": "sp-854cefb4f9be",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ist0145-wildcard-host-subdomain",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which analyzed resources (resource kind and host fields) combine a wildcard host with a specific subdomain and previously triggered IST0145; the evidence does not name the resource kind or fields involved"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "istioctl analyze output changes for configurations combining a wildcard host with a specific subdomain: the IST0145 error previously reported there is no longer emitted.",
+        "remediation": "No operator action required; rerun istioctl analyze — the previously reported IST0145 for a wildcard host combined with a specific subdomain no longer appears.",
+        "severity": "low"
+      },
+      "statement": "istioctl analyze no longer reports the IST0145 error when a wildcard host is used together with a specific subdomain, fixing a false-positive analyzer report."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-086cec11271a",
+    "candidateId": "sc-5fc2da42c29c",
+    "proposalId": "sp-09c929d399b2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any client or tooling lists Strimzi Pod-restart events using a regardingObject field-selector that names the Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event listings that use a `regardingObject` field selector naming the Pod will no longer match Pod-restart events. The selector must be updated to name the Kafka resource instead.",
+        "remediation": "Update any `regardingObject` field selectors used to list Pod-restart events so they name the Kafka resource instead of the Pod.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, Kubernetes events for Pod restarts no longer use the Pod as their `regardingObject`, so anyone who filters events with a `regardingObject` field selector must change it to point at the Kafka resource."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

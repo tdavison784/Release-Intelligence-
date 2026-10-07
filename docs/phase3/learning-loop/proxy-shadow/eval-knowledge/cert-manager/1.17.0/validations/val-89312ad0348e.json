@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-89312ad0348e",
+    "candidateId": "sc-66c07691e032",
+    "proposalId": "sp-68c7dc705862",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-line-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator filters or parses cert-manager logs using grep or similar tools, which is not visible in any static configuration"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators who filter cert-manager logs using grep or similar tools may find their filters no longer match, because some log lines have changed format after more structured logging information was added.",
+        "remediation": "Review and update any grep-based or text-based log filtering and parsing to account for the new structured log line format.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds more structured logging information to certain log lines, so some log lines have changed format, which may affect operators who filter logs with grep or similar tools."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

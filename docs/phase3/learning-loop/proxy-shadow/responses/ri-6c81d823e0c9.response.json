@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6c81d823e0c9",
+  "promptDigest": "sha256:34f0cc0c8293a1abb47783f1f299e945d76785e314a0c6ee17be8f1327fe01c4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9d21a13f-19fb-45d6-b111-3275f585d54b",
+  "startedAt": "2026-10-03T02:21:08.400Z",
+  "decidedAt": "2026-10-03T02:21:23.333Z",
+  "durationMs": 13935,
+  "costUSD": 0.0556712,
+  "output": {
+    "action": "correct",
+    "reason": "The evidence excerpts [ev-782bc47d120d] and [ev-c2c6c790d6b2] contain only \"apiVersion: v1\", so all we have is the computed diff. That diff says existing ImageRepository objects \"stay stored as v1beta2 until rewritten\" and must be migrated \"before a later release removes v1beta2\". Nothing fails, is rejected or stops being honoured in this release, so migration-required claims mandatory work the evidence does not support. Objects work today and only a future removal of v1beta2 would break them, which makes this deprecation (review), not action.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "The storage version of imagerepositories.image.toolkit.fluxcd.io changes from v1beta2 to v1. Existing ImageRepository objects stay stored as v1beta2 and keep working. They need a storage version migration and a status.storedVersions update before a later release removes v1beta2.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "statement": "If the operator does nothing, existing ImageRepository objects stay stored as v1beta2 and keep working in this release. They are only at risk once a later release removes v1beta2 while v1beta2 is still listed in status.storedVersions.",
+        "remediation": "Before upgrading to a release that removes v1beta2, rewrite all ImageRepository objects so they are stored as v1. Then update status.storedVersions on the imagerepositories.image.toolkit.fluxcd.io CRD to drop v1beta2.",
+        "severity": "low"
+      }
+    }
+  }
+}

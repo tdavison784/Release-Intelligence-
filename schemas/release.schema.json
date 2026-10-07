@@ -63,6 +63,18 @@
         "documentation"
       ]
     },
+    "CRDFieldSchema": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string"},
+        "type": {"type": "string"},
+        "default": {"type": "string"},
+        "enum": {"type": "array", "items": {"type": "string"}},
+        "required": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
     "CRDSnapshot": {
       "type": "object",
       "required": ["crds"],
@@ -96,7 +108,8 @@
           "type": "array",
           "items": {"type": "string"},
           "description": "Dotted property paths of the openAPIV3Schema (e.g. \"spec.secretTemplate.labels\"); used to detect removed or added fields."
-        }
+        },
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/CRDFieldSchema"}}
       },
       "additionalProperties": false
     },
@@ -194,6 +207,7 @@
           "$ref": "#/$defs/Representation",
           "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
         },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
         "retrievedAt": {
           "type": "string",
           "format": "date-time",
@@ -217,7 +231,11 @@
         "advisory",
         "repo-file",
         "local-file",
-        "input"
+        "input",
+        "rendered-diff",
+        "rendered",
+        "linked-pr",
+        "linked-commit"
       ]
     },
     "Fact": {
@@ -274,6 +292,16 @@
       "required": ["images"],
       "properties": {
         "images": {"type": "array", "items": {"$ref": "#/$defs/ImageRef"}}
+      },
+      "additionalProperties": false
+    },
+    "LinesSnapshot": {
+      "type": "object",
+      "required": ["source", "pattern", "lines"],
+      "properties": {
+        "source": {"type": "string"},
+        "pattern": {"type": "string"},
+        "lines": {"type": "array", "items": {"type": "string"}}
       },
       "additionalProperties": false
     },
@@ -355,7 +383,9 @@
           "type": "string",
           "format": "date-time",
           "description": "AI only: when the output was generated."
-        }
+        },
+        "callId": {"type": "string"},
+        "provider": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -424,6 +454,38 @@
       },
       "additionalProperties": false
     },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
     "Representation": {
       "type": "string",
       "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
@@ -446,10 +508,16 @@
         "values": {"$ref": "#/$defs/ValuesSnapshot"},
         "crds": {"$ref": "#/$defs/CRDSnapshot"},
         "images": {"$ref": "#/$defs/ImageRefsSnapshot"},
+        "lines": {"$ref": "#/$defs/LinesSnapshot"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false,
-      "oneOf": [{"required": ["values"]}, {"required": ["crds"]}, {"required": ["images"]}],
+      "oneOf": [
+        {"required": ["values"]},
+        {"required": ["crds"]},
+        {"required": ["images"]},
+        {"required": ["lines"]}
+      ],
       "allOf": [
         {
           "if": {"properties": {"kind": {"const": "helm-values"}}, "required": ["kind"]},
@@ -462,17 +530,21 @@
         {
           "if": {"properties": {"kind": {"const": "image-refs"}}, "required": ["kind"]},
           "then": {"required": ["images"]}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "lines"}}, "required": ["kind"]},
+          "then": {"required": ["lines"]}
         }
       ]
     },
-    "SnapshotKind": {"type": "string", "enum": ["helm-values", "crds", "image-refs"]},
+    "SnapshotKind": {"type": "string", "enum": ["helm-values", "crds", "image-refs", "lines"]},
     "SourceRole": {
       "type": "string",
       "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
     },
     "SourceState": {
       "type": "string",
-      "enum": ["ok", "partial", "not-found", "unavailable", "skipped", "error"]
+      "enum": ["ok", "partial", "not-found", "unavailable", "throttled", "skipped", "error"]
     },
     "SourceStatus": {
       "type": "object",
@@ -491,7 +563,7 @@
         },
         "state": {
           "$ref": "#/$defs/SourceState",
-          "description": "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); skipped (not applicable or disabled); error."
+          "description": "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); throttled (reachable but rate limited; retrying later is expected to work); skipped (not applicable or disabled); error."
         },
         "detail": {"type": "string"},
         "uri": {"type": "string"}

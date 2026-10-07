@@ -1,0 +1,23 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-67110380683a",
+  "promptDigest": "sha256:daff55d6d5bb1917103c86aa20957c8378714a74bb049987cbe8243fc77bf3f9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6cef6981-ba91-42a6-a378-378d64a65f85",
+  "startedAt": "2026-10-06T01:45:06.395Z",
+  "decidedAt": "2026-10-06T01:45:16.807Z",
+  "durationMs": 9529,
+  "costUSD": 0.07197200000000001,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release note alone is vague [ev-87995aee2ded], but the linked PR fills the gap. It says cert-manager used to pick the signature algorithm from a hard-coded mapping based on key algorithm and size, and now lets users choose one through a new `signatureAlgorithm` field, e.g. `SHA256WithRSA` [ev-7967909f7436][ev-b097e50b8371]. It also says the field is opt-in, and omitting it keeps the existing default mapping [ev-b097e50b8371]. The changed files (deploy/crds/crd-certificates.yaml, pkg/apis/certmanager/v1/types_certificate.go, pkg/util/pki/csr.go) show it is a new field on the Certificate CRD [ev-aa9242d349fc]. That supports subject = Certificate CRD field signatureAlgorithm, change = added, and applicability limited to Certificates that set it; confidence is low only because the truncated YAML example does not show the field's full nesting path.",
+    "citations": [
+      "ev-7967909f7436",
+      "ev-b097e50b8371",
+      "ev-aa9242d349fc",
+      "ev-87995aee2ded"
+    ],
+    "confidence": "low"
+  }
+}

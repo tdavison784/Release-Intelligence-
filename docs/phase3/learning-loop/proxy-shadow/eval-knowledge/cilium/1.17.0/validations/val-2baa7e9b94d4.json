@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2baa7e9b94d4",
+    "candidateId": "sc-30c676d7c5e6",
+    "proposalId": "sp-fb9f39bec0f9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether users or scripts run the Hubble CLI with the --cluster flag and rely on it only showing flows emitted from nodes in that cluster"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble CLI `--cluster foo` now also shows flows emitted from nodes outside cluster `foo` (flows coming from or going to the target cluster), not only flows emitted from nodes in cluster `foo`.",
+        "remediation": "To reproduce the previous behavior of `--cluster foo`, use `--node-name foo/` (shows all flows emitted from a node in cluster `foo`).",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Hubble CLI `--cluster` flag also shows flows emitted from nodes outside the named cluster when they come from or go to that cluster; to get the old behavior, use `--node-name foo/`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

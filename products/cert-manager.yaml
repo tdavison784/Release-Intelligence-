@@ -306,3 +306,63 @@ provenance:
     git tags, raw repository content and release assets). quay.io,
     charts.jetstack.io and the GitHub API were unreachable during research;
     image relationships were validated through the install manifest.
+    Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):
+    charts.jetstack.io, quay.io and the GitHub API are reachable; chart and
+    all images validate directly (0 unverifiable).
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: helm-values
+  channel: helm-values
+  summary: 'The official cert-manager chart: controller settings at the chart root (config, featureGates, extraArgs,
+    ...), other components under webhook.*, cainjector.*, acmesolver.*.'
+  valuesPath: .
+  references:
+  - url: https://cert-manager.io/docs/installation/configuring-components/
+    quote: When using the Helm chart, the CLI flags can be specified in the extraArgs, webhook.extraArgs, cainjector.extraArgs
+      and acmesolver.extraArgs values.
+  - url: https://raw.githubusercontent.com/cert-manager/cert-manager/master/deploy/charts/cert-manager/values.yaml
+    quote: '# Additional command line flags to pass to cert-manager controller binary.'
+- id: controller-config
+  channel: configmap-file
+  component: controller
+  summary: 'A ControllerConfiguration (controller.config.cert-manager.io/v1alpha1) YAML file read via --config;
+    the chart renders the config value into the config.yaml key of a ConfigMap (webhook: WebhookConfiguration via
+    webhook.config). CLI flags take precedence.'
+  file: config.yaml
+  format: yaml
+  valuesPath: config
+  references:
+  - url: https://cert-manager.io/docs/installation/configuring-components/
+    quote: The configuration file can be specified using the --config CLI flag. When using the Helm chart, the
+  - url: https://cert-manager.io/docs/installation/configuring-components/
+    quote: The CLI flags take precedence over the configuration file.
+  - url: https://raw.githubusercontent.com/cert-manager/cert-manager/master/deploy/charts/cert-manager/templates/controller-config.yaml
+    quote: 'config.yaml: |'
+  - url: https://raw.githubusercontent.com/cert-manager/cert-manager/master/deploy/charts/cert-manager/values.yaml
+    quote: '# This allows setting options that would usually be provided using flags.'
+- id: feature-gates
+  channel: feature-gates
+  component: controller
+  summary: Per-component feature gates via --feature-gates or featureGates in the config file; chart keys featureGates
+    (controller) and webhook.featureGates (webhook; since v1.13 the root key no longer reaches the webhook).
+  flag: --feature-gates
+  valuesPath: featureGates
+  references:
+  - url: https://cert-manager.io/docs/installation/configuring-components/
+    quote: They can be enabled/ disabled using the --feature-gates flag or the featureGates value in the config
+      file.
+  - url: https://raw.githubusercontent.com/cert-manager/cert-manager/master/deploy/charts/cert-manager/values.yaml
+    quote: '# A comma-separated list of feature gates that should be enabled on the'
+- id: controller-flags
+  channel: cli-flags
+  component: controller
+  summary: cert-manager-controller command-line flags (also webhook, cainjector, acmesolver); passed via the chart's
+    extraArgs / <component>.extraArgs.
+  references:
+  - url: https://cert-manager.io/docs/cli/controller/
+    quote: --config string Path to a file containing a ControllerConfiguration object used to configure the controller
+  - url: https://cert-manager.io/docs/installation/configuring-components/
+    quote: To configure the cert-manager components, you can use CLI flags or a configuration file.

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-beb51a931be3",
+    "candidateId": "sc-ebead63e427a",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Configuration `use_boltdb_shipper_as_backup` is removed: The setting `use_boltdb_shipper_as_backup` (`-tsdb.shipper.use-boltdb-shipper-as-backup`) was a…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration setting `use_boltdb_shipper_as_backup` is no longer recognized; any explicit configuration will be ignored and the previous default value `false` will be applied.",
+        "remediation": "Remove the `use_boltdb_shipper_as_backup` setting (and `-tsdb.shipper.use-boltdb-shipper-as-backup` CLI flag) from your Loki configuration, as the TSDB index is now the stable and recommended type.",
+        "severity": "low"
+      },
+      "statement": "The configuration setting `use_boltdb_shipper_as_backup` (CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`) has been removed; environments that explicitly set it will have that setting ignored and the previous default value `false` applied."
+    },
+    "proposals": [
+      "sp-02318eae96e1",
+      "sp-0b24e9c22e3b"
+    ],
+    "validations": [
+      "val-2a8b4e4f1862",
+      "val-3eeb5b4ee02a",
+      "val-690e3eb25865",
+      "val-c4d4deb467c9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T16:14:33Z"
+  }
+}

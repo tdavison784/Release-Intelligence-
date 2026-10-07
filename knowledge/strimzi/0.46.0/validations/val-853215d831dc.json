@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-853215d831dc",
+    "candidateId": "sc-f6734cfa890c",
+    "proposalId": "sp-72ba306cb442",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regarding-object"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether a Pod of a Kafka resource restarts at runtime and the Kubernetes events emitted during that restart are consumed by operators or tooling"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events emitted during a Pod restart now carry the Kafka resource as the regardingObject and the Pod in the related field, so consumers of these events see the changed object references; nothing in the evidence indicates a failure.",
+        "remediation": "No action is required; verify that any tooling or dashboards consuming these Kubernetes events expects the Kafka resource in regardingObject and the Pod in related.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events emitted during a Pod restart in Strimzi 0.46.0 now have the Kafka resource as the regardingObject and the Pod in the related field."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

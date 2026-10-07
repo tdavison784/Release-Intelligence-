@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a19a3b44d55f",
+    "reviewItemId": "ri-b5c0c815218d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "tls.secretsBackend",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tls.readSecretsOnlyFromSecretsNamespace",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace",
+          "state": "set"
+        }
+      },
+      "statement": "The Helm value tls.secretsBackend (local or k8s) is deprecated and replaced by tls.readSecretsOnlyFromSecretsNamespace as part of TLS Visibility moving to SDS."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:d39e92af7931173b0d534b22e5e3a78da3914ce427c97ade6c23d8d095d34425",
+      "inputEvidence": [
+        "ev-ed86f8eb85bf",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T15:55:11.63Z",
+      "callId": "afd92279-1311-4a4b-a303-8178acc909b0"
+    },
+    "reason": "[ev-ed86f8eb85bf] says the Helm value `tls.secretsBackend` has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace`. The environments exposed are those that still set the deprecated key and have not set its replacement. Environments that already set `tls.readSecretsOnlyFromSecretsNamespace` explicitly are covered by the replacement, so they belong in the overlap. This matches the standard shape for a deprecated Helm value that has a replacement, and both validators confirm that `tls.secretsBackend` exists in both releases [ev-28e0ccb5774a] [ev-39a22d88e2f5].",
+    "startedAt": "2026-10-02T15:55:05.432Z",
+    "decidedAt": "2026-10-02T15:55:11.63Z"
+  }
+}

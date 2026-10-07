@@ -1,0 +1,85 @@
+# Discovery report: vault
+
+- Repository: `github.com/hashicorp/vault` at `v2.1.1` (commit `d78bbbe2d2f3…`)
+- Generated: 2026-10-02T12:38:35Z
+- LLM: not used (deterministic resolver only)
+- Tags: 486 tags: prefix "v", 244 stable, 47 prereleases (betaN×13, rcN×34), 195 junk; latest stable v2.1.1; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$` (junk sample: api/auth/approle/v0.1.0, api/auth/approle/v0.1.1, api/auth/approle/v0.10.0, api/auth/approle/v0.11.0, api/auth/approle/v0.12.0, api/auth/approle/v0.2.0)
+- Scanned `github.com/hashicorp/vault@v2.1.1` (source profile): 9083 files listed, 2987 read
+- Scanned `github.com/hashicorp/web-unified-docs@main` (docs profile): 105052 files listed, 2500 read
+- Validation: done against v1.21.0, v1.21.4, v2.0.0, v2.0.4, v2.1.0, v2.1.1
+- Error: default branch of github.com/hashicorp/Enos-Docs: git ls-remote --symref https://github.com/hashicorp/Enos-Docs HEAD: exit status 128: fatal: could not read Username for 'https://github.com': terminal prompts disabled
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 1 | git-tags github.com/hashicorp/vault |
+| release-notes | found | 152 | repo-file github.com/hashicorp/web-unified-docs content/consul/v{{.Major}}.{{.Minor}}.x/content/docs/release-notes/consul-api-gateway/v0_1_x.mdx @main |
+| changelog | candidates-only | 1 |  |
+| helm-charts | candidates-only | 2 |  |
+| registries | candidates-only | 41 |  |
+| images | candidates-only | 7 |  |
+| upgrade-docs | candidates-only | 72 |  |
+| compatibility | candidates-only | 38 |  |
+| security | found | 0 | github-advisories hashicorp/vault |
+| version-relations | not-found | 0 |  |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:compatibility | unverified | compat.markdown-table | https://github.com/hashicorp/web-unified-docs/blob/be0173f5be7e895dbdfe68df600d295c4beb5e21/content/consul/global/partials/tables/compatibility/k8s/ve… |
+| source:release-notes-docs | unverified | notes.per-release-file | https://github.com/hashicorp/web-unified-docs/blob/be0173f5be7e895dbdfe68df600d295c4beb5e21/content/terraform-enterprise/releases/2.0.3.md# |
+| source:release-notes-line | exception | notes.per-line-file | https://github.com/hashicorp/web-unified-docs/blob/be0173f5be7e895dbdfe68df600d295c4beb5e21/content/consul/v2.0.x/content/docs/release-notes/consul-ap… |
+| source:tags | discovered | versions.git-tags | https://github.com/hashicorp/vault/releases/tag/v2.1.1#refs/tags/v2.1.1 |
+| source:upgrade-guide | unverified | upgrade.versioned-doc | https://github.com/hashicorp/web-unified-docs/blob/be0173f5be7e895dbdfe68df600d295c4beb5e21/content/nomad/v2.0.x/content/docs/upgrade/index.mdx# |
+| versioning | discovered | tags.scheme | https://github.com/hashicorp/vault/releases/tag/v2.1.1#refs/tags/v2.1.1 |
+
+Statuses: 3 discovered, 3 unverified, 1 exception.
+
+## Open questions for the reviewer
+
+- CHANGELOG.md stops at 1.21.4; confirm it is abandoned (release notes come from other sources).
+- source:release-notes-line failed validation for one release and was kept: Holds for 2 releases but failed for one (1.21.4 not-applicable (not applicable to 1.21.4: release kinds minor,major (this is a patch release)); 2.0.4 not-applicable (not applicable to 2.0.4: release kinds minor,major (this is a patch release)); 2.1.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/consul/v2.1.x/content/docs/release-notes/consul-api-gateway/v0_1_x.mdx: not found (HTTP 404)); 2.1.1 not-applicable (not applicable to 2.1.1: release kinds minor,major (this is a patch release))); kept with a comment for review.
+- Ambiguity (registry-roles): 41 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no upgrade-guide source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | v1.21.0 | v1.21.4 | v2.0.0 | v2.0.4 | v2.1.0 | v2.1.1 |
+|---|---|---|---|---|---|---|---|
+| source:compatibility | failing |  |  |  |  |  |  |
+| source:release-notes-docs | failing |  |  |  |  |  |  |
+| source:release-notes-line | failing |  |  |  |  |  |  |
+| source:upgrade-guide | failing |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `source:release-notes-docs` (deterministic): failed validation: 1.21.0 covered (covered by release-notes-line (fallback group release-notes): fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/terraform-enterprise/releases/1.21.0.md: not found (HTTP 404)); 1.21.4 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/terraform-enterprise/releases/1.21.4.md: not found (HTTP 404)); 2.0.4 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/terraform-enterprise/releases/2.0.4.md: not found (HTTP 404)); 2.1.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/terraform-enterprise/releases/2.1.0.md: not found (HTTP 404)); …
+- `source:upgrade-guide` (deterministic): failed validation: 1.21.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/nomad/v1.21.x/content/docs/upgrade/index.mdx: not found (HTTP 404)); 1.21.4 not-applicable (not applicable to 1.21.4: release kinds minor,major (this is a patch release)); 2.0.4 not-applicable (not applicable to 2.0.4: release kinds minor,major (this is a patch release)); 2.1.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/nomad/v2.1.x/content/docs/upgrade/index.mdx: not found (HTTP 404)); …
+- `source:compatibility` (deterministic): failed validation: 2.0.0 fail (no row whose Consul version matches "^v?2\\.0\\b" in https://github.com/hashicorp/web-unified-docs/blob/main/content/consul/global/partials/tables/compatibility/k8s/version.mdx); 2.0.4 fail (no row whose Consul version matches "^v?2\\.0\\b" in https://github.com/hashicorp/web-unified-docs/blob/main/content/consul/global/partials/tables/compatibility/k8s/version.mdx); 2.1.0 fail (no row whose Consul version matches "^v?2\\.1\\b" in https://github.com/hashicorp/web-unified-docs/blob/main/content/consul/global/partials/tables/compatibility/k8s/version.mdx); 2.1.1 fail (no row whose Consul version matches "^v?2\\.1\\b" in https://github.com/hashicorp/web-unified-docs/blob/main/content/consul/global/partials/tables/compatibility/k8s/version.mdx)
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 486 tags: prefix "v", 244 stable, 47 prereleases (betaN×13, rcN×34), 195 junk; latest stable v2.1.1; lineage minor; strict tagPattern excludes junk tags such as api/auth/approle/v0.1.0, api/auth/approle/v0.1.1, api/aut… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (486 tags: prefix "v", 244 stable, 47 prereleases (betaN×13, rcN×34), 195 junk; latest stable v2.1.1; lineage minor). |
+| source:release-notes-docs | include | notes.per-release-file | heuristic | One notes document per release (14 instances, newest content/terraform-enterprise/releases/2.0.3.md). |
+| source:release-notes-line | include | notes.per-line-file | heuristic | One notes document per release line (13 instances, newest content/consul/v2.0.x/content/docs/release-notes/consul-api-gateway/v0_1_x.mdx), used for X.Y.0 releases. |
+| source:upgrade-guide | include | upgrade.versioned-doc | heuristic | One upgrade document per release line (15 instances, newest content/nomad/v2.0.x/content/docs/upgrade/index.mdx). |
+| source:compatibility | include | compat.markdown-table | heuristic | Support matrix keyed by release line (5 rows; key column Consul version; Kubernetes columns Compatible Kubernetes versions,Compatible `consul-k8s` versions). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| source:release-notes-docs | drop | validate.failed | computed | Relationship check failed: 1.21.0 covered (covered by release-notes-line (fallback group release-notes): fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/terraform-enterprise/releases/1.21.… |
+| source:release-notes-line | annotate | validate.single-failure-kept | computed | Holds for 2 releases but failed for one (1.21.4 not-applicable (not applicable to 1.21.4: release kinds minor,major (this is a patch release)); 2.0.4 not-applicable (not applicable to 2.0.4: release kinds minor,major (th… |
+| source:upgrade-guide | drop | validate.failed | computed | Relationship check failed: 1.21.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/nomad/v1.21.x/content/docs/upgrade/index.mdx: not found (HTTP 404)); 1.21.4 not-applicable (not appl… |
+| source:compatibility | drop | validate.failed | computed | Relationship check failed: 2.0.0 fail (no row whose Consul version matches "^v?2\\.0\\b" in https://github.com/hashicorp/web-unified-docs/blob/main/content/consul/global/partials/tables/compatibility/k8s/version.mdx); 2.… |
+
+316 candidates were found; 267 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/vault.report.md
+proposed definition written to docs/rerun/discovery/vault.proposed.yaml

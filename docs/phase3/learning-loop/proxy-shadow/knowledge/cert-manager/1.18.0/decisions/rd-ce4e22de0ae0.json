@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ce4e22de0ae0",
+    "reviewItemId": "ri-18da9d5a99c7",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager now adds the `app.kubernetes.io/managed-by: cert-manager` label to Let's Encrypt account key Secret resources it creates."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d6693081a61a247323589b5aa79d35f7309f94de2c908414e1f213c04c9e3667",
+      "inputEvidence": [
+        "ev-1d4a9d664d8c",
+        "ev-30d2c387f95f",
+        "ev-e8facc7cba98",
+        "ev-dde3ce032096",
+        "ev-38243747b200",
+        "ev-41698084a48b",
+        "ev-861cb2d69752",
+        "ev-87995aee2ded",
+        "ev-d4918828336e",
+        "ev-4fcf47388827",
+        "ev-7be235e771a3",
+        "ev-8f6e397ae33c",
+        "ev-0bb0d885678d",
+        "ev-cf14b14073be",
+        "ev-330bb03a882f"
+      ],
+      "generatedAt": "2026-10-03T12:20:22.192Z",
+      "callId": "79b61289-2878-4012-8935-3a32d615a867",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-1d4a9d664d8c] says only that cert-manager adds the `app.kubernetes.io/managed-by: cert-manager` label to the Let's Encrypt account keys it creates. The proposed exposure (any v1 Issuer or ClusterIssuer in use) is broader than that, because it flags environments whose issuers are not ACME/Let's Encrypt and so create no account keys. Neither the note nor the surrounding Feature section ([ev-7be235e771a3], [ev-861cb2d69752]) names the issuer setting that leads to account-key creation, or says whether existing keys are relabelled. So no correctly scoped predicate can be grounded in the evidence.",
+    "startedAt": "2026-10-03T12:20:04.353Z",
+    "decidedAt": "2026-10-03T12:20:22.192Z"
+  }
+}

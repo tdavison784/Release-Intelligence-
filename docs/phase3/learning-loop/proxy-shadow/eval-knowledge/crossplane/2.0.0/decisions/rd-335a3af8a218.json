@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-335a3af8a218",
+    "reviewItemId": "ri-f50f8c22fc6e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "provider.packages",
+              "state": "set"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "pkg.crossplane.io",
+              "kind": "Provider"
+            }
+          ]
+        }
+      },
+      "statement": "Upgrading to Crossplane v2.0 includes a mandatory operator step, step 4 of the upgrade approach, to upgrade providers."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "pkg.crossplane.io",
+          "kind": "Provider"
+        }
+      },
+      "statement": "Step 4 of the Crossplane v2.0 upgrade guide, \"Upgrade providers\", applies to environments that install providers through Provider manifests (pkg.crossplane.io Provider), which the guide says to update to provider v2 versions."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d898670ae5c1a7ab87cf354247c02283d6439bdd12ebf0fcbd9fb620c08572ed",
+      "inputEvidence": [
+        "ev-f44aa981165a",
+        "ev-ea9f9415727f",
+        "ev-18e2ad34cf67",
+        "ev-188e63ccea10",
+        "ev-d217f6ac2a1d",
+        "ev-de978b4c1ed8",
+        "ev-c28095f20093",
+        "ev-06a16cdbc869",
+        "ev-dd988a5ed5c3",
+        "ev-914f3976650c",
+        "ev-238c84f9b428",
+        "ev-4ac01f128e04",
+        "ev-c3c10f1d0eea"
+      ],
+      "generatedAt": "2026-10-03T17:07:16.796Z",
+      "callId": "ecf9e4f5-5417-40da-a2b3-fa315a54999d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-dd988a5ed5c3] tells operators to \"update your provider manifests to use v2 versions\", so the exposed environments are those that install providers through Provider manifests. Nothing in the evidence mentions a Helm values key `provider.packages`, so that branch is unsupported and makes the condition broader than the evidence allows. [ev-f44aa981165a] is only the table-of-contents entry for this step. The same section also says existing cluster-scoped MRs \"continue working unchanged\", which matters when judging the consequence, not the exposure.",
+    "startedAt": "2026-10-03T17:07:00.406Z",
+    "decidedAt": "2026-10-03T17:07:16.796Z"
+  }
+}

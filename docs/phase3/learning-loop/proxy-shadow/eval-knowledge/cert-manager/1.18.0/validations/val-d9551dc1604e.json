@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d9551dc1604e",
+    "candidateId": "sc-c094933998fc",
+    "proposalId": "sp-fef1b94d5a95",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "route53-not-found-error-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment uses AWS Route53 for DNS-01 record deletion and Route53 returns not-found errors during those deletions at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using AWS Route53, deletion of DNS records now correctly detects not-found errors, so the record-deletion/cleanup path behaves differently than in the previous release when Route53 reports a not-found error during deletion.",
+        "remediation": "No operator action stated; verify Route53 DNS-01 challenge cleanup completes normally after upgrading.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 fixes detection of AWS Route53 not-found errors during deletion of DNS records, changing the runtime behavior of DNS record cleanup for environments using Route53."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

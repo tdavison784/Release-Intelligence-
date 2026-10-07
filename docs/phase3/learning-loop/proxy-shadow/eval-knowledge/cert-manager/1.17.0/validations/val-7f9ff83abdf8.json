@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7f9ff83abdf8",
+    "candidateId": "sc-c770479afc97",
+    "proposalId": "sp-afcf91611cd1",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Certificate"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Certificate objects create CertificateRequest or Secret objects while being deleted\"",
+        "after": "\"Certificate objects no longer create CertificateRequest or Secret objects while being deleted\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate objects will no longer create CertificateRequest or Secret objects during deletion, preventing spurious resource creation in the finalizer cleanup phase.",
+        "severity": "low"
+      },
+      "statement": "The Certificate object's behavior during deletion changes: it will no longer create CertificateRequest or Secret objects while being deleted."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

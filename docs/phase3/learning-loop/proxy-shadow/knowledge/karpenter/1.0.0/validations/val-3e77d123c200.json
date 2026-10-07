@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3e77d123c200",
+    "candidateId": "sc-eedb90bededa",
+    "proposalId": "sp-c82dca3f35d9",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "NodePool expireAfter has moved from spec.disruption to spec.template.spec and is now a drift-able field."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

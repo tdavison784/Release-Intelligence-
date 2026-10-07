@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-db76bfe77bb2",
+    "candidateId": "sc-26c0f5e20104",
+    "proposalId": "sp-8d630b1b10d7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "hubble.tls.auto.certValidityDuration"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "1095",
+        "after": "365"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble TLS certificates will have a shorter validity duration (365 days instead of 1095 days), preventing validation failures on recent macOS versions that reject certificates with expirations longer than 825 days.",
+        "severity": "medium"
+      },
+      "statement": "The default value of Helm value hubble.tls.auto.certValidityDuration has been lowered from 1095 days to 365 days to prevent certificate validation failures on recent versions of macOS."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

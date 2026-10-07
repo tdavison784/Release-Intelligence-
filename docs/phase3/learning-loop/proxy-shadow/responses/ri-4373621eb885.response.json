@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4373621eb885",
+  "promptDigest": "sha256:daa65385607b7196f84504dc6517a0207b190bcdf81e67ff8cb10af2722aad50",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "37cd86f1-7078-4579-8a39-eed510ddfa74",
+  "startedAt": "2026-10-03T02:17:00.952Z",
+  "decidedAt": "2026-10-03T02:17:18.678Z",
+  "durationMs": 17033,
+  "costUSD": 0.1238532,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-583967e3eaf6] says three things were removed: the `-querier.engine.timeout` CLI flag, its corresponding YAML setting, and the `querier.query_timeout` YAML setting. The proposed exposure only checks the CLI flag, so it misses environments that set either removed setting in the Loki YAML config. The evidence does not say which Helm values path or ConfigMap path holds those YAML keys, so the YAML part is written as undecidable rather than as a guessed predicate.",
+    "citations": [
+      "ev-583967e3eaf6"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the deprecated -querier.engine.timeout CLI flag, its corresponding YAML setting and the querier.query_timeout YAML setting. Exposed: environments that pass the CLI flag, or whose Loki config sets either removed YAML setting.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--querier.engine.timeout",
+              "component": "querier",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment's Loki YAML configuration sets the YAML form of -querier.engine.timeout or querier.query_timeout; the evidence does not name the Helm values or ConfigMap path that carries them"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

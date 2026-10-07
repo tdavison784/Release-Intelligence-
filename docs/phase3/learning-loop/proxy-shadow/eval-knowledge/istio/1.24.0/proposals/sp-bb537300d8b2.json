@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bb537300d8b2",
+    "candidateId": "sc-21bf63323d13",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.subsets[].trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.subsets[].trafficPolicy.portLevelSettings[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment routes traffic through waypoints (the evidence names waypoints but does not state how waypoint usage is identified in configuration)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRule portLevelSettings that were previously ignored are now applied for waypoints, so configured per-port traffic policy takes effect for traffic routed through waypoints where it previously had no effect.",
+        "remediation": "Review any portLevelSettings configured in DestinationRules for waypoint-routed services to confirm the intended per-port traffic policy, since these settings will now be applied rather than ignored.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes an issue that caused any portLevelSettings in DestinationRules to be ignored for waypoints, so these per-port traffic policy settings are now honored for waypoint traffic."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a3e90b78f6fa"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7190db2d8e72254dcc0f022875ccb7c22d54021a1fea7c63e980b98f1fc28231",
+      "inputEvidence": [
+        "ev-a3e90b78f6fa"
+      ],
+      "generatedAt": "2026-10-03T08:11:59Z",
+      "callId": "c77c9af7-bf4a-484e-bfad-3b8f15de7949"
+    }
+  }
+}

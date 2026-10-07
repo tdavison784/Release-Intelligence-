@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3bf8464bf456",
+    "candidateId": "sc-af36bd24681f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code that imports crossplane or crossplane-runtime must update the module path in go.mod and every import statement to the /v2 module paths when updating to v2+.",
+        "remediation": "Change go.mod dependencies and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2. Commit d6c489c7c080a315051301a9d0e4167e1773657e shows an example.",
+        "severity": "medium"
+      },
+      "statement": "In Crossplane v2 the Go module paths are now github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2, so Go code that imports crossplane or crossplane-runtime must update its go.mod module paths and every import statement when moving to v2+."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether Go source code or go.mod files import crossplane or crossplane-runtime. None of the available predicates (Helm values, manifests, flags, images) can read that.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d241daaf3863"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:291ca6255fe5d38735ec3ba000b0fc1a2fece848cebeb12c52046b6d42ee8340",
+      "inputEvidence": [
+        "ev-d241daaf3863"
+      ],
+      "generatedAt": "2026-10-03T07:06:07Z",
+      "callId": "95ee413d-a197-4da9-a73b-4d7218bc7c8e"
+    }
+  }
+}

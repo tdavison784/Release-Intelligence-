@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-12a4b1208a16",
+    "reviewItemId": "ri-03bb1dde744e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "PodMonitor",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "PodMonitor"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for operators: the new status field is a read-only status subresource that is updated only when the \"StatusForConfigurationResources\" feature gate is enabled and is under active development; existing PodMonitor resources and configurations are unaffected.",
+        "severity": "low"
+      },
+      "statement": "PodMonitor v1 schema: 1 field added: `status`"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:936988e4bdccba2813331514c192ba5118d499b75bedc2afa2e286fcb4ade44c",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456"
+      ],
+      "generatedAt": "2026-10-02T23:04:41.865Z",
+      "callId": "32a14d16-b972-4328-bb71-8eefc85e097b"
+    },
+    "reason": "[ev-5415b8753dfa] shows that from 0.85.0 to 0.86.2 the PodMonitor v1 schema gained an optional `status` property. It describes the field as a read-only status subresource that is under active development and is updated only when the \"StatusForConfigurationResources\" feature gate is enabled. None of the evidence says that anything fails, is rejected or stops being honoured, or that operators must take any step. So the existing fact's consequence (kind \"none\", informational, severity low) still holds.",
+    "startedAt": "2026-10-02T23:04:34.69Z",
+    "decidedAt": "2026-10-02T23:04:41.865Z",
+    "resultingFact": "vf-27c6379f9739"
+  }
+}

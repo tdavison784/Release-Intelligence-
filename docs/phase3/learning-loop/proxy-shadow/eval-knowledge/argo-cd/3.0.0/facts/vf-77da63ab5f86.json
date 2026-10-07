@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-77da63ab5f86",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-f75813f08339"
+        ],
+        "statementKeys": [
+          "sk-2b6b4ef3edef"
+        ],
+        "changeIds": [
+          "chg-fee6c11b3a63"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-13bd4e122a89"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "legacy-controller-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "argo-cd",
+          "name": "argocd-app-info"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ARGOCD_LEGACY_CONTROLLER_METRICS",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the legacy metrics are in use (ARGOCD_LEGACY_CONTROLLER_METRICS=true), monitoring dashboards and alerts must be updated to use argocd_app_info labels before upgrading, since the old metrics are removed.",
+        "remediation": "Update dashboards and alerts to use the labels on argocd_app_info before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "Removal of `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time` Metrics: The `argocd_app_sync_status`, `argocd_app_health_status`…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-5d86d8897e6b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-5d86d8897e6b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0a42373c05d7"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-673f4bb9ef44"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-06e920b4a3dd",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L77-L91 (v2.14 to 3.0 › Breaking Changes › Removal of `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time` Metrics)",
+        "excerpt": "### Removal of `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time` Metrics\n\nThe `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time`, deprecated and disabled by\ndefault since 1.5.0, have been removed. The information previously provided by these metrics is now available as labels\non the `argocd_app_info` metric.\n\n#### Detection\n\nStarting with 1.5.0, these metrics are only available if `ARGOCD_LEGACY_CONTROLLER_METRICS` is explicitly set to `true`.\nIf it is not set to true, you can safely upgrade with no changes.\n\n#### Migration\n\nIf y…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:55:16.145Z"
+  }
+}

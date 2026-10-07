@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-57e0a806965f",
+    "reviewItemId": "ri-923b85c82634",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "envoy-connection-failure-logs",
+        "component": "ambient"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In ambient mode, Envoy logs emitted on connection failures now include more error details (an improvement to log output)."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-envoy-connection-failure-logs"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In ambient mode, Envoy logs written when a connection fails now show more error details."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:c22ee28112518b1b56a3afa44cf8af312423ccc1b12b68b357fbdc26a01c8bf2",
+      "inputEvidence": [
+        "ev-a5a74f4cd759"
+      ],
+      "generatedAt": "2026-10-02T13:04:14.997Z",
+      "callId": "5962ddfb-1379-4c25-b89c-9956466b57e2"
+    },
+    "reason": "The only change [ev-a5a74f4cd759] describes is that Envoy logs now show more error details when connections fail in ambient mode. Calling that behavior-changed is right. The subject is wrong, though. \"Ambient\" is a data-plane mode, not a component, binary or chart of the product, so it should not go in the component field. \"Ambient\" belongs in the kebab-case name, built from the evidence's own key words, with no component set.",
+    "startedAt": "2026-10-02T13:03:59.159Z",
+    "decidedAt": "2026-10-02T13:04:14.997Z"
+  }
+}

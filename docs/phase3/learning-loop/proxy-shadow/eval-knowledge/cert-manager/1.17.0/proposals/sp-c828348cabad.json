@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c828348cabad",
+    "candidateId": "sc-5c66197e4890",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates configured with renewBeforePercentage will now behave according to the specification, which may result in different renewal timing compared to the previous buggy behavior.",
+        "severity": "medium"
+      },
+      "statement": "The behavior of the renewBeforePercentage field in cert-manager Certificate resources was corrected to comply with its specification."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-cae85181502c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:997845bd92e7b537d7706dbe4b84c04cbfe181def799614ad680933f8e33adb6",
+      "inputEvidence": [
+        "ev-cae85181502c"
+      ],
+      "generatedAt": "2026-10-02T05:55:07Z",
+      "callId": "78a003f5-f56e-408f-a354-6723264a6737"
+    }
+  }
+}

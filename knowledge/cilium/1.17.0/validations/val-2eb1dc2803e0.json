@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2eb1dc2803e0",
+    "candidateId": "sc-4ad98c3722c5",
+    "proposalId": "sp-b0902bf6586b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_total_count",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_identity_kvstore_total",
+          "component": "cilium-agent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--prometheus-serve-addr",
+              "component": "cilium-agent",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "CILIUM_PROMETHEUS_SERVE_ADDR",
+              "component": "cilium-agent",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Prometheus scrape configurations or monitoring queries that reference the metric `doublewrite_identity_kvstore_total_count` will no longer find that metric; the metric is only available under its new name `doublewrite_identity_kvstore_total`.",
+        "remediation": "Update Prometheus scrape configurations, dashboards, and alerting rules to reference the new metric name `doublewrite_identity_kvstore_total` instead of the old name `doublewrite_identity_kvstore_total_count`.",
+        "severity": "medium"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/renamed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/renamed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

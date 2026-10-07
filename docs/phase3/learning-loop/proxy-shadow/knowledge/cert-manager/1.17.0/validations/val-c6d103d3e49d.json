@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c6d103d3e49d",
+    "candidateId": "sc-dd8787384dc3",
+    "proposalId": "sp-4f372b4d9c23",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "CAInjectorMerging",
+        "component": "ca-injector"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "CAInjectorMerging",
+          "component": "ca-injector",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With CAInjectorMerging enabled, the ca-injector merges new CA certificates into the existing CA data instead of replacing it outright.",
+        "remediation": "If you enable this gate, check that the merged CA bundles injected into your resources are what you expect.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a `CAInjectorMerging` feature gate to the ca-injector. When it is enabled, the ca-injector merges new CA certificates into the existing ones instead of replacing them outright."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

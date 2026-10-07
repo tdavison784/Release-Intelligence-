@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4450c14fb0dc",
+    "candidateId": "sc-572d465486e9",
+    "proposalId": "sp-a7cc238b0c4f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "--selector",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "image-in-use",
+              "name": "istio/istiod"
+            },
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new label selector filtering capability is an optional enhancement to the `istioctl x envoy-stats` command that does not affect existing deployments or workloads."
+      },
+      "statement": "Istio 1.24.0 adds support for filtering Pods by label selector in the `istioctl x envoy-stats` command."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

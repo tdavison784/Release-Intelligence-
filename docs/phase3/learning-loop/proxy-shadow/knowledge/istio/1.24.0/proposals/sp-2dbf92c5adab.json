@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2dbf92c5adab",
+    "candidateId": "sc-b038ac70b042",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Static listeners now bypass the overload manager by default; it still works, but differently.",
+        "remediation": "Set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment to revert."
+      },
+      "statement": "Istio now bypasses the overload manager for static listeners; setting env var BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment reverts this."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0f35637a9823"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b40b6b948e19389f7dd949922ea2ff93bd8d6a73956048a89fe77b4f7c61646a",
+      "inputEvidence": [
+        "ev-0f35637a9823"
+      ],
+      "generatedAt": "2026-10-02T06:03:15Z",
+      "callId": "260a86b7-f4d8-4af3-87e3-7fdac80e4340"
+    }
+  }
+}

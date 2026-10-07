@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-d7519146ad13",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "members": [
+      {
+        "changeId": "chg-5b67bfa9ffbd",
+        "anchor": {
+          "release": "2.0.0",
+          "evidenceKeys": [
+            "ek-9c2dbe1607ac"
+          ],
+          "statementKeys": [
+            "sk-27d86ff6ccdb"
+          ],
+          "changeIds": [
+            "chg-5b67bfa9ffbd"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Block namespaced XRs from composing cluster scoped resources by @lsviben in https://github.com/crossplane/crossplane/pull/6588",
+    "evidence": [
+      {
+        "id": "ev-eb6e8ebc20ee",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L149-L149 (🏅 Release MVP › What's Changed)",
+        "excerpt": "* Block namespaced XRs from composing cluster scoped resources by @lsviben in https://github.com/crossplane/crossplane/pull/6588",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      },
+      {
+        "id": "ev-560f3cbdb259",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6588",
+        "locator": "title and description",
+        "excerpt": "PR: Block namespaced XRs from composing cluster scoped resources [closed]\n### Description of your changes\n\nAs stated in #6361, the v2 namespace scoped XRs should not be allowed to compose cluster scoped resources. This is because Kubernetes doesn't allow a cluster scoped resource to be owned by (i.e. have owner references to) a namespaced resource. We recommend using cluster scoped XRs to compose cluster scoped (and/or namespaced) resources.\n\nThis PR adds a check for this situation. The check is after the composed resources are rendered and before they are applied.\n\nThe check is skipped",
+        "contentDigest": "sha256:dc1313bfc829924633dcc0108c27d1aee56ff6cfd339580543f6f0798f126f16",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      },
+      {
+        "id": "ev-a1a7b86561c9",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6588",
+        "locator": "description (part 2)",
+        "excerpt": "if the XR is not namespaced, or if the resource in question has a namespace set. If all goes good, the resource should be checked only once if it is namespaced, as in future reconciliations it will have the namespace set from the observation in the reconcile loop.\n\nIf a namespaced XR tries to compose a cluster scoped resource the XR will get into a `ReconcileError` condition with the corresponding message.\n\n```yaml\nStatus:\nConditions:\nLast Transition Time: 2025-07-04T18:26:01Z\nMessage: cannot compose resources: …",
+        "contentDigest": "sha256:dc1313bfc829924633dcc0108c27d1aee56ff6cfd339580543f6f0798f126f16",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      },
+      {
+        "id": "ev-5c55174e71ee",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/crossplane/crossplane/pull/6588",
+        "locator": "changed files",
+        "excerpt": "7 changed file(s): internal/controller/apiextensions/composite/composition_functions.go, internal/controller/apiextensions/composite/composition_functions_test.go, test/e2e/apiextensions_compositions_test.go, test/e2e/manifests/apiextensions/composition/namespaced-xr-no-cluster-scoped-resource/setup/composition.yaml (added), test/e2e/manifests/apiextensions/composition/namespaced-xr-no-cluster-scoped-resource/setup/definition.yaml (added), test/e2e/manifests/apiextensions/composition/namespaced-xr-no-cluster-scoped-resource/setup/functions.yaml (added)… +1 more",
+        "contentDigest": "sha256:dc1313bfc829924633dcc0108c27d1aee56ff6cfd339580543f6f0798f126f16",
+        "retrievedAt": "2026-10-06T01:24:58Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:22Z"
+  }
+}

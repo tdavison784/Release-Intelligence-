@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4acb8b440d51",
+    "candidateId": "sc-5b91ebdd24f9",
+    "proposalId": "sp-ca9b21bccc87",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--ip-allocation-timeout"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ip-allocation-timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `--ip-allocation-timeout` flag is no longer honoured; configurations setting this flag will be ignored and CIDR identity allocation will proceed asynchronously regardless.",
+        "severity": "medium"
+      },
+      "statement": "The `ip-allocation-timeout` CLI flag has been removed; CIDR identity allocation is now always asynchronous."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

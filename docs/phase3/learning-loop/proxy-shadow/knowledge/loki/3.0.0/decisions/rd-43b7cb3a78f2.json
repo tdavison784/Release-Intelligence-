@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-43b7cb3a78f2",
+    "reviewItemId": "ri-4b1ce76367be",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e77ccda639ccd06fb14cbf75e29f425b506301f2c99aa11fb5856b0c7a1d5b7c",
+      "inputEvidence": [
+        "ev-cc5436d99c53"
+      ],
+      "generatedAt": "2026-10-02T23:12:44.673Z",
+      "callId": "b240110e-a14f-41da-807d-5f463a20d40f"
+    },
+    "reason": "The only evidence, [ev-cc5436d99c53], is a one-line changelog entry. It says tsdb_shipper storage_config is now generated even if using_boltdb_shipper is false. It does not say where using_boltdb_shipper lives: a Helm values key such as the proposed \"storage.using_boltdb_shipper\", a Loki config field, or an internal templating variable. It also does not say which deployments lacked the tsdb_shipper config before, or what failed for them. Deciding the exposure condition requires the PR #11195 diff, which would show the exact key path, where it is set, and the affected configuration.",
+    "startedAt": "2026-10-02T23:12:37.056Z",
+    "decidedAt": "2026-10-02T23:12:44.673Z"
+  }
+}

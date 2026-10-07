@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-73b9e0538e32",
+    "candidateId": "sc-cacb159a2363",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_DEFERRED_STATS_CREATION",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ENABLE_DEFERRED_STATS_CREATION",
+          "component": "agent",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Envoy statistics are now created lazily by default, which saves memory and CPU cycles when stats are not referenced; the previous behavior of creating all statistics upfront can be restored by setting ENABLE_DEFERRED_STATS_CREATION to false.",
+        "severity": "low"
+      },
+      "statement": "An experimental environment variable ENABLE_DEFERRED_STATS_CREATION was added to the agent Deployment to control lazy creation of Envoy statistics; the feature is enabled by default and can be disabled by setting it to false."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-62f858bc5c83"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bab4df98be48c9b2fc901fcd8508873c3794b5d27a4ae390cdf10f9c78d89e8a",
+      "inputEvidence": [
+        "ev-62f858bc5c83"
+      ],
+      "generatedAt": "2026-10-02T05:58:02Z",
+      "callId": "2dd01238-492d-4bc8-99d6-7a9877e9a890"
+    }
+  }
+}

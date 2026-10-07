@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ac64e16d9594",
+    "reviewItemId": "ri-08a9d9868420",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with different ExportTo attributes will no longer be merged by default, which changes the routing behavior for such configurations unless the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable is explicitly set to false.",
+        "severity": "medium"
+      },
+      "statement": "DestinationRule merging behavior for rules on the same host with different ExportTo attributes changed; merging is now disabled by default, but can be re-enabled by setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host whose exportTo attributes are totally different are no longer merged, so the effective traffic policy for such configurations may differ from before. This lasts unless ENABLE_ENHANCED_DESTINATIONRULE_MERGE is set to false in the pilot deployment.",
+        "remediation": "Check DestinationRules that share a host but have totally different exportTo values. To keep the previous merging, set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment.",
+        "severity": "medium"
+      },
+      "statement": "In Istio 1.24.0, pilot no longer merges DestinationRules on the same host when their exportTo attributes are totally different. Effective policy for such configurations may change; setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in pilot turns this off."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:92c03ebe1b1f5e13f0ac4ab17c75c7581e046a846f77e952e7ed6dac29df6292",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-02T23:05:12.251Z",
+      "callId": "6794de24-49f2-48a7-9d0f-046fc7f916e0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-a25845551580] calls this a fix: pilot stops merging DestinationRules on the same host when their exportTo attributes are \"totally different\", and setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment turns the new behavior off. Nothing is described as failing, being rejected or being ignored, so behavior-change (review) is the right kind. However, the proposed statement says rules with any \"different\" exportTo stop merging. The evidence limits this to exportTo values that are totally different, so the statement is corrected to match.",
+    "startedAt": "2026-10-02T23:04:59.629Z",
+    "decidedAt": "2026-10-02T23:05:12.251Z",
+    "resultingFact": "vf-debe51dfddaa"
+  }
+}

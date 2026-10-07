@@ -110,6 +110,28 @@ type Input struct {
 	Edge *domain.UpgradeEdge
 	Env  *env.Environment
 	Now  time.Time
+	// Facts is verified, release-level knowledge to evaluate against the
+	// environment (knowledge.go). Without facts Build is byte-identical to
+	// the knowledge-free join. Never model proposals: only facts.
+	Facts []domain.VerifiedFact
+	// MinVerification keeps only facts at or above this level
+	// (VerificationLevel.AtLeast); "" means human (deterministic ∪ human).
+	MinVerification domain.VerificationLevel
+	// Render evaluates rendered-change conditions (nil: render unavailable,
+	// such leaves are unknown).
+	Render RenderedChangeEvaluator
+	// Unset decides values default-changed / added changes whose keys the
+	// customer leaves unset by rendering (PO-3; nil: today's values-unset
+	// verdict). CONTRACT-CHANGE(render).
+	Unset UnsetValuesEvaluator
+	// Set decides values-removed changes whose keys the customer sets by
+	// rendering (PO-7a; nil: today's values-removed verdict).
+	// CONTRACT-CHANGE(renderfirst).
+	Set SetValuesEvaluator
+	// Image decides image changes against the customer's rendered upgrade
+	// delta (PO-7a; nil: today's image-changed verdict).
+	// CONTRACT-CHANGE(renderfirst).
+	Image ImageRenderEvaluator
 }
 
 // Build assembles the ImpactReport. The result must pass

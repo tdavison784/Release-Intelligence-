@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d2344ed41d92",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "proposalId": "sp-dce63a5af5ef",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "logs.access.addInternals"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Observability data (access logs, metrics, and tracing) for internal routers and services will no longer be collected and exposed unless the addInternals option is explicitly configured for each observability component."
+      },
+      "statement": "Observability for internal routers or services (e.g., ping@internal) is disabled by default in v3; users must explicitly set the addInternals option for AccessLogs, Metrics, or Tracing to re-enable it."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

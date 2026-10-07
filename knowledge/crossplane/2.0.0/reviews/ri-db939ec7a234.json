@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-db939ec7a234",
+    "candidateId": "sc-3be44400117a",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`login`/`logout` removed from Crossplane CLI: The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI\", what happens, and is that review or action? proposed: workload-failure",
+    "proposed": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "CI pipelines or local scripts that call `crossplane xpkg login` or `crossplane xpkg logout` will fail because the commands no longer exist in the Crossplane CLI.",
+        "remediation": "Replace `crossplane xpkg login`/`crossplane xpkg logout` in workflows and scripts with `docker login` locally or the `docker/login-action` from CI before pushing a package, as done for example in the function-auto-ready CI workflow.",
+        "severity": "medium"
+      },
+      "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands have been removed from the Crossplane CLI; the release notes recommend using `docker login` locally or the `docker/login-action` from CI to authenticate to a registry before pushing a package."
+    },
+    "proposals": [
+      "sp-2b9aaf6bf209",
+      "sp-33715d3fb956",
+      "sp-3662b122eb99",
+      "sp-69a7879a28af",
+      "sp-e6ae0e0530d9"
+    ],
+    "validations": [
+      "val-20af1070e09c",
+      "val-9f8f3f7512f8",
+      "val-a0dfd4830f90",
+      "val-c15dd0bcc4c0"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T11:55:35Z"
+  }
+}

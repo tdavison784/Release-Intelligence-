@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a7a93d5dd113",
+    "candidateId": "sc-76ca511eb130",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If --registry is still passed, Crossplane core returns an error saying the flag is no longer supported, since default registry support was removed; packages and their dependencies must have fully qualified names stating their registry.",
+        "remediation": "Remove the --registry flag and use fully qualified package names (including dependencies)."
+      },
+      "statement": "The --registry flag of the Crossplane core is no longer supported in v2.0.0; startup returns an error telling users to use fully qualified package names."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-59d22c21eec4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:b15882066c2b46460dc59ab87436504b65daf8ffc3fef15ec933d239d1f7b050",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T07:09:45Z",
+      "callId": "c9ee4d19-8b21-413f-b919-2bf4a396f8ae"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e619fceb8684",
+    "candidateId": "sc-9f8a80378b1b",
+    "proposalId": "sp-2b93bf27ebc8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "System-level ignoreDifferences customizations are now applied to resource updates by default, which may reduce the number of diffs generated for applications. Fields configured to be ignored will no longer trigger diffs when changed.",
+        "severity": "medium"
+      },
+      "statement": "By default, system-level ignoreDifferences customizations are now applied to ignore resource updates; set ignoreDifferencesOnResourceUpdates to false to preserve the v2 default behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

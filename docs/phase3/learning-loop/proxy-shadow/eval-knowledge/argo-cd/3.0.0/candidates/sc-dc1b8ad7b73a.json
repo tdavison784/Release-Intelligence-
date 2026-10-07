@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-dc1b8ad7b73a",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-7cc99e47d4c2",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-de356338b90c"
+          ],
+          "statementKeys": [
+            "sk-c41039fa7503"
+          ],
+          "changeIds": [
+            "chg-7cc99e47d4c2"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "55aab6efb6e8dd510050e23b876ff25792e39e54: fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found",
+    "text": "55aab6efb6e8dd510050e23b876ff25792e39e54: fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found (#16253) (#21597) (@prune998)",
+    "evidence": [
+      {
+        "id": "ev-dc295e9fc56b",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L83-L83 (Changelog › Bug fixes)",
+        "excerpt": "* 55aab6efb6e8dd510050e23b876ff25792e39e54: fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found (#16253) (#21597) (@prune998)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-d0ef263f1295",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/16253",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #16253): ApplicationSet with Gitlab generator fails when pathsExists is used [closed; labels bug, component:application-sets, version:2.12]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [x] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\nWe have an application set that uses the SCCM provider with gitlab. We filter based on branch, topic, and that a certain path exists in the repository. Since October 26th 2023 around 10:00am eastern this has started …",
+        "contentDigest": "sha256:6579160b8c7052e016100de2f1a9693cb64bb309d85f5a7f40b8233b6e991482",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-6b51fe823e04",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/16253",
+        "locator": "description (part 2)",
+        "excerpt": "When the path doesn't exist, we get the following error and the synchronization stops.\n\n```\ntime=\"2023-11-06T18:31:23Z\" level=error msg=\"error generating application from params\" error=\"error listing repos: GET https://gitlab.com/api/v4/projects/***/repository/tree: 404 {message: 404 invalid revision or path Not Found}\" generator=\"{nil nil nil …",
+        "contentDigest": "sha256:6579160b8c7052e016100de2f1a9693cb64bb309d85f5a7f40b8233b6e991482",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-9d4d81250392",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21597",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21597): fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found (#16253) [closed]\nFixes [https://github.com/argoproj/argo-cd/issues/16253]\n\nPrevious patch in https://github.com/argoproj/argo-cd/pull/21491 was not covering the case where both the file and nested subfolder were non-existent.\n\nThis patch uses two Gitlab API to:\n\n- search for the path as a file (`RepositoryFiles.GetFile`)\n- if not found, search the path as a directory (`Repositories.ListTree`)\n- else return false\n\nMore tests are added to cover all possible cases.\n\nThis p…",
+        "contentDigest": "sha256:f2c9483c6fb87d1b6b05b2f18cdb12257172c6095f30eff73414f35815c7c367",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-80ce7871552d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21597",
+        "locator": "description (part 2)",
+        "excerpt": "Gitlab behaviour and confirmed it solved the issue.\n\n## Other possibilities\n\n- go back to old version and consider 404 as a `false` (=\"file not found\") instead of an error\n\n- search in the root (`.`) and set `recursive=true` to grab the list of all the items in the repo. Then we manually search for each component of the path.\nThis will cover all use-cases, BUT will have a massive impact on really large mono-repos with a lot of files.\n\nRight now I think we should stick with the Gitlab behaviour: the `listTree` API …",
+        "contentDigest": "sha256:f2c9483c6fb87d1b6b05b2f18cdb12257172c6095f30eff73414f35815c7c367",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-2dc81fe8c7fa",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21597",
+        "locator": "changed files",
+        "excerpt": "2 changed file(s): applicationset/services/scm_provider/gitlab.go, applicationset/services/scm_provider/gitlab_test.go",
+        "contentDigest": "sha256:f2c9483c6fb87d1b6b05b2f18cdb12257172c6095f30eff73414f35815c7c367",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

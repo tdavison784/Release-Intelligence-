@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-03aa929e64d5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-7ff5467cb48e",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-e7c0f830fdba"
+          ],
+          "statementKeys": [
+            "sk-10bbad9968b5"
+          ],
+          "changeIds": [
+            "chg-7ff5467cb48e"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "dependency",
+    "title": "Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1",
+    "text": "Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1. This may require changing your `values.yaml` files for subcharts, if the `values.yaml` contain a section with a `null` object. See related issue in Helm GitHub repository See Helm 3.17.1 release notes Example of such a problem and resolution Explanation: - Prior to Helm 3.17.1, `null` object in `values.yaml` resulted in a warning: `cannot overwrite table with non table` upon performing `helm template`, and the resulting K8s object was not overridden with the invalid `null` value. - In Helm 3.17.1, this behavior changed and `null` object in `values.yaml` still results in this warning upon performing `helm template`, but the resulting K8s object will be overridden with the invalid `null` value. - To resolve the issue, identify `values.yaml` with `null` object values, and remove those `null` values.",
+    "evidence": [
+      {
+        "id": "ev-b8041528e3f8",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L221-L232 (v2.14 to 3.0 › Breaking Changes › Upgraded Helm version with breaking changes)",
+        "excerpt": "### Upgraded Helm version with breaking changes\n\nHelm was upgraded to 3.17.1.\nThis may require changing your `values.yaml` files for subcharts, if the `values.yaml` contain a section with a `null` object.\nSee related issue in [Helm GitHub repository](https://github.com/helm/helm/issues/12469)\nSee Helm 3.17.1 [release notes](https://github.com/helm/helm/releases/tag/v3.17.1)\nExample of such a [problem and resolution](https://github.com/argoproj/argo-cd/pull/22035/files)\nExplanation:\n\n- Prior to Helm 3.17.1, `null` object in `values.yaml` resulted in a warning: `cannot overwrite table with non t…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-e0530e05647d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22035",
+        "locator": "title and description",
+        "excerpt": "PR: fix: removed null security context from values.yaml to placate helm 3.17.1 [closed]\nCloses #22034\nHelm 3.17.1 is allowing invalid null `securityContext` in `values.yaml` for Redis, and causing an undesired diff in `upstream.yaml` which fails the CI.\n\nThanks @jsolana for helping find the root cause!\n\nChecklist:\n\n* [ ] Either (a) I've created an [enhancement proposal](https://github.com/argoproj/argo-cd/issues/new/choose) and discussed it with the community, (b) this is a bug fix, or (c) this does not need to be in the release notes.\n* [ ] The title of the PR states what changed and the rela…",
+        "contentDigest": "sha256:a47f477e094b2587ada1359c591470aa97262a2a3141af8cacaf5d8934bc0b7f",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-17a09ef9c028",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22035",
+        "locator": "description (part 2)",
+        "excerpt": "issues number (used for the release note).\n* [ ] The title of the PR conforms to the [Toolchain Guide](https://argo-cd.readthedocs.io/en/latest/developer-guide/toolchain-guide/#title-of-the-pr)\n* [ ] I've included \"Closes [ISSUE #]\" or \"Fixes [ISSUE #]\" in the description to automatically close the associated issue.\n* [ ] I've updated both the CLI and UI to expose my feature, or I plan to submit a second PR with them.\n* [ ] Does this PR require documentation updates?\n* [ ] I've updated documentation as required by …",
+        "contentDigest": "sha256:a47f477e094b2587ada1359c591470aa97262a2a3141af8cacaf5d8934bc0b7f",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-e547b535705c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/22035",
+        "locator": "changed files",
+        "excerpt": "1 changed file(s): manifests/ha/base/redis-ha/chart/values.yaml",
+        "contentDigest": "sha256:a47f477e094b2587ada1359c591470aa97262a2a3141af8cacaf5d8934bc0b7f",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-e0925e863eed",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/helm/helm/issues/12469",
+        "locator": "title and description",
+        "excerpt": "issue: subchart override with --set not taken into account [closed; labels bug, Stale]\nOutput of `helm version`:\n```\nversion.BuildInfo{Version:\"v3.13.0\", GitCommit:\"825e86f6a7a38cef1112bfa606e4127a706749b1\", GitTreeState:\"clean\", GoVersion:\"go1.20.8\"}\n```\n\nOutput of `kubectl version`:\n```\nClient Version: v1.24.13\nKustomize Version: v4.5.4\nServer Version: v1.24.13\n```\n\nCloud Provider/Platform (AKS, GKE, Minikube etc.): GKE / On Premise\n\n###########################################\n###########################################\ncan't override subchart values with \"--set\"\nIt seems it only works with …",
+        "contentDigest": "sha256:4c63f5760287691056e12953d7bfafd98ef1438cb314299829d4d5988ec77aaa",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-1d69f3700cd4",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/helm/helm/issues/12469",
+        "locator": "description (part 2)",
+        "excerpt": "override from file directly\n\nlet say I have a chart called subchart with these values\n\n```\nstrategy:\nrollingUpdate:\nmaxSurge: 25%\nmaxUnavailable: 10%\ntype: RollingUpdate\n```\nIn one of my other chart, I want to use this subchart as a dependency, but I want to have a Recreate strategy instead of the RollingUpdate one:\n\nso I'm doing this:\n```\nsubchart:\nstrategy:\nrollingUpdate: null\ntype: Recreate\n```\n\n```\nhelm template --release-name demo path/to/chart --output-dir .\n```\n\nMy Deployment has\n```\nspec:\nstrategy:\ntype: …",
+        "contentDigest": "sha256:4c63f5760287691056e12953d7bfafd98ef1438cb314299829d4d5988ec77aaa",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "hints": [
+      "code:values.yaml",
+      "code:null",
+      "code:cannot overwrite table with non table",
+      "code:helm template",
+      "version:3.17.1"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

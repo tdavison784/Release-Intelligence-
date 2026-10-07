@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4ac9e0dfd55f",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-26f69c626e25"
+        ],
+        "statementKeys": [
+          "sk-dabe61547906"
+        ],
+        "changeIds": [
+          "chg-719dc2322343"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-c9e607a2cdf4"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-message-structured-data"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether external log tooling (alerts, parsers, searches) matches literal strings in cert-manager log lines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log lines now include more structured contextual data; anything matching on literal log strings may stop matching.",
+        "severity": "low"
+      },
+      "statement": "Log messages across cert-manager have been augmented with better contextual structured data"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-84aa0395de26"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-84aa0395de26"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e8140df51f23"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-4ad80640a7c3"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-775b7a64f057",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md",
+        "locator": "L10-L10",
+        "excerpt": "2. Log messages across cert-manager have been augmented with better contextual structured data. If you were matching on literal strings in log lines, it's possible that may break.",
+        "contentDigest": "sha256:a4a4540952ac6f84f8cc6fc7bdcd1b1453f6e202fc2ff5a09440242545d159bd",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:01:13.873Z"
+  }
+}

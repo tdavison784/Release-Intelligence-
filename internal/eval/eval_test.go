@@ -482,3 +482,37 @@ func TestRenderTextSmoke(t *testing.T) {
 type nopWriter struct{}
 
 func (nopWriter) Write(p []byte) (int, error) { return len(p), nil }
+
+// schemaChange mirrors the differ's wording for a schema-path diff.
+func schemaChange(id, rule, kind, group, plural, what string, paths ...string) domain.Change {
+	return domain.Change{
+		ID: id, Category: domain.CategoryCRDSchema, Subjects: paths,
+		Title:      kind + " v2 schema: 1 field " + what + ": `" + paths[0] + "`",
+		Detail:     "Fields newly required in the " + group + "/v2 schema of " + plural + "." + group + "; objects that omit them are rejected:\n" + paths[0],
+		Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: "upgrade@v1", Rule: rule, Confidence: domain.ConfidenceHigh},
+	}
+}
+
+func TestDuplicateDetectionKeysCRDDiffsOnIdentity(t *testing.T) {
+	// the same path on two different CRDs is two changes, not a duplicate
+	a := schemaChange("chg-1", "crd:field-required", "CiliumEnvoyConfig", "cilium.io", "ciliumenvoyconfigs", "now required", "spec.resources[]")
+	b := schemaChange("chg-2", "crd:field-required", "CiliumClusterwideEnvoyConfig", "cilium.io", "ciliumclusterwideenvoyconfigs", "now required", "spec.resources[]")
+	if _, n := findDuplicates([]domain.Change{a, b}); n != 0 {
+		t.Errorf("same path on different CRDs: %d duplicate groups, want 0", n)
+	}
+	// the same CRD's change stated twice still is a duplicate
+	a2 := a
+	a2.ID, a2.Title = "chg-3", "CiliumEnvoyConfig v2 schema: resources must now be listed" // only the subject group applies
+	if _, n := findDuplicates([]domain.Change{a, a2}); n != 1 {
+		t.Errorf("same CRD, same path: %d duplicate groups, want 1", n)
+	}
+	// non-CRD changes are keyed exactly as before
+	v1 := ch("chg-4", "Helm value a.b removed", "", "", []string{"a.b"}, domain.CategoryHelmValues, true)
+	v2 := ch("chg-5", "Value a.b is gone", "", "", []string{"a.b"}, domain.CategoryHelmValues, true)
+	if _, n := findDuplicates([]domain.Change{v1, v2}); n != 1 {
+		t.Errorf("non-CRD subject duplicates: %d groups, want 1", n)
+	}
+	if got := crdIdentity(a); got != "cilium.io/CiliumEnvoyConfig" {
+		t.Errorf("identity = %q", got)
+	}
+}

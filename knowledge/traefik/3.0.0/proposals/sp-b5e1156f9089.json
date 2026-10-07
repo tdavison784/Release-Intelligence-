@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b5e1156f9089",
+    "candidateId": "sc-4b9080e9db9b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_DOCKER_TLS_CAOPTIONAL",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "additionalArguments",
+              "state": "has-token",
+              "values": [
+                "--providers.docker.tls.caOptional=true"
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed tls.caOptional option for the Docker provider is no longer honoured; the guide says it should be removed from the static configuration.",
+        "remediation": "Remove tls.caOptional from the Docker provider static configuration.",
+        "severity": "medium"
+      },
+      "statement": "The Docker provider static option tls.caOptional (providers.docker.tls.caOptional) is removed in v3 and must be removed from configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dac3a3c51ce8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:e695db7d13f0fe1d6f217817f7b22891f99c85fd53c671901446ecea1b913a40",
+      "inputEvidence": [
+        "ev-dac3a3c51ce8"
+      ],
+      "generatedAt": "2026-10-03T07:06:07Z",
+      "callId": "4aee205f-e824-40c1-97f0-697b81a65c6a"
+    }
+  }
+}

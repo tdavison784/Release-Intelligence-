@@ -176,6 +176,14 @@ artifacts:
     name: controller-chroot
     availability: ">= 1.2.0"
     version: {strategy: template, template: "v{{.Version}}"}
+    exceptions:
+      - versions: [1.10.0]
+        reason: >-
+          controller-chroot:v1.10.0 was never published: registry.k8s.io redirects
+          to us-east5-docker.pkg.dev/k8s-artifacts-prod/images/ingress-nginx/
+          controller-chroot/manifests/v1.10.0 which answers 404, while v1.9.6,
+          v1.10.1, v1.10.6 and v1.11.0 answer 200 (the tag list jumps to v1.10.1).
+          Found by the live re-run of 2026-10-02 (docs/rerun/REPORT.md D1).
     channels:
       - kind: oci
         repository: registry.k8s.io/ingress-nginx/controller-chroot
@@ -340,3 +348,63 @@ provenance:
     kubernetes.github.io and the GitHub API were unreachable; the chart is
     verified through gh-pages/index.yaml and the controller image through the
     install manifests (or stays unverifiable).
+    Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):
+    registry.k8s.io, kubernetes.github.io and the GitHub API answer;
+    controller-chroot:v1.10.0 genuinely does not exist (exception added).
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: controller-configmap
+  channel: configmap-file
+  component: controller
+  summary: Global NGINX/controller settings are key-value pairs in the data section of the ConfigMap named by the
+    controller's --configmap flag (one data key per setting, no file); the Helm chart fills it from controller.config.
+  configMap: ingress-nginx-controller
+  valuesPath: controller.config
+  references:
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/docs/user-guide/nginx-configuration/configmap.md
+    quote: The ConfigMap API resource stores configuration data as key-value pairs.
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+    quote: '- --configmap=$(POD_NAMESPACE)/ingress-nginx-controller'
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/values.yaml
+    quote: '# -- Global configuration passed to the ConfigMap consumed by the controller. Values may contain Helm
+      templates.'
+- id: chart-values
+  channel: helm-values
+  component: controller
+  summary: The official ingress-nginx Helm chart configures the controller deployment under the controller.* values
+    (ConfigMap content in controller.config, extra flags in controller.extraArgs, extra env in controller.extraEnvs).
+  valuesPath: controller
+  references:
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/README.md
+    quote: 'To see all configurable options with detailed comments, visit the chart''s [values.yaml](./values.yaml),
+      or run these configuration commands:'
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/docs/user-guide/nginx-configuration/index.md
+    quote: using a Configmap to set global configurations in NGINX.
+- id: controller-flags
+  channel: cli-flags
+  component: controller
+  summary: Command-line arguments of the controller executable (e.g. --configmap, --watch-ingress-without-class,
+    --enable-annotation-validation); the chart passes additional ones via controller.extraArgs.
+  valuesPath: controller.extraArgs
+  references:
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/docs/user-guide/cli-arguments.md
+    quote: The following command line arguments are accepted by the Ingress controller executable.
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/values.yaml
+    quote: '# -- Additional command line arguments to pass to Ingress-Nginx Controller'
+- id: custom-template
+  channel: configmap-file
+  component: controller
+  summary: A custom NGINX Go template replaces /etc/nginx/template/nginx.tmpl, mounted from a ConfigMap key (the
+    docs example uses ConfigMap nginx-template, key nginx.tmpl); the chart selects it via controller.customTemplate.configMapName/configMapKey.
+  file: nginx.tmpl
+  format: text
+  configMap: nginx-template
+  valuesPath: controller.customTemplate
+  references:
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/docs/user-guide/nginx-configuration/custom-template.md
+    quote: The NGINX template is located in the file `/etc/nginx/template/nginx.tmpl`.
+  - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/values.yaml
+    quote: '## Override NGINX template'

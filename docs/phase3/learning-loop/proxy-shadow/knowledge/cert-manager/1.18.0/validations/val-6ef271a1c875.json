@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6ef271a1c875",
+    "candidateId": "sc-8a2c665fc582",
+    "proposalId": "sp-67d1cd5db74d",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that do not set spec.revisionHistoryLimit now get a default of 1, so only one CertificateRequest revision is kept.",
+        "remediation": "If you need to keep more CertificateRequest revisions, set spec.revisionHistoryLimit explicitly on those Certificates.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Certificate spec.revisionHistoryLimit now defaults to 1, so Certificates that leave it unset keep only one CertificateRequest revision."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

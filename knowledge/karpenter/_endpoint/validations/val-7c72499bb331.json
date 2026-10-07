@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7c72499bb331",
+    "candidateId": "sc-95ddd86cb4d2",
+    "proposalId": "sp-88e840fe0edb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "nodeclaims-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects remain stored as v1beta1 until rewritten; a storage version migration and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all NodeClaim objects and update status.storedVersions on the nodeclaims.karpenter.sh CRD before a release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the nodeclaims.karpenter.sh CRD changes from v1beta1 to v1, so existing NodeClaim objects stay stored as v1beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

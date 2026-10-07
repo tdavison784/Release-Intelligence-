@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ad71c98eedf6",
+    "candidateId": "sc-1ba13d17afbf",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "experimental injector list",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"prints webhooks not related to istio\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an operator runs `istioctl experimental injector list` (CLI usage is not carried by any static configuration input)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The command keeps working but its listing changes: `istioctl experimental injector list` no longer prints webhooks not related to Istio, so any workflow that read the previously unfiltered output will see fewer entries.",
+        "remediation": "No operator action required; if any tooling consumes this command's output, verify it expects only Istio-related webhooks.",
+        "severity": "low"
+      },
+      "statement": "The istioctl subcommand `experimental injector list` no longer prints webhooks not related to Istio (it previously listed non-Istio webhooks as well); this is an output-correctness fix, nothing fails."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a486e34929cd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:541078302a1c90e0d32eae457634f556e40323fc844e82936d4bfd5f7bd11781",
+      "inputEvidence": [
+        "ev-a486e34929cd"
+      ],
+      "generatedAt": "2026-10-03T07:31:36Z",
+      "callId": "e1596e51-e164-4961-a7a9-b57b90e218c3"
+    }
+  }
+}

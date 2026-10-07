@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2430971728a0",
+    "reviewItemId": "ri-d1c0e7117786",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "encryption.keyFile",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "encryption.mountPath",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "encryption.secretName",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "encryption.interface",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Deprecated Helm options encryption.{keyFile,mountPath,secretName,interface} are removed in Cilium 1.16.0 and replaced by encryption.ipsec.* options."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:3ffd36e306b07ce5e539d826a4834d0a0d0301dd831c30d3c8b47554f8942bcd",
+      "inputEvidence": [
+        "ev-5d3c6d3080f0",
+        "ev-69b054a33ac2",
+        "ev-3fb29eea728d",
+        "ev-f050ccf90d86",
+        "ev-40ebe1cf329c",
+        "ev-da6e6a1ea917",
+        "ev-5e90ba383ca7",
+        "ev-99f86df45975",
+        "ev-34bab3cf1916",
+        "ev-79276bab0c0a",
+        "ev-d6d613eadc25",
+        "ev-4e1e10256713",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T17:02:23.318Z",
+      "callId": "a122a5d3-ea20-4aad-bd68-2452daf76dc9",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-5d3c6d3080f0] says all four deprecated Helm options, encryption.{keyFile,mountPath,secretName,interface}, are removed in favour of encryption.ipsec.*. So any environment that still sets one of them is exposed. The proposed any-of of values-key{path, set} over the four keys follows the canonical shape for a removed helm-value and applies it to each named key. It is neither broader nor narrower than the upstream change. The canonical validator came back inconclusive only because the condition covers four keys rather than the single subject key, encryption.keyFile.",
+    "startedAt": "2026-10-03T17:02:14.825Z",
+    "decidedAt": "2026-10-03T17:02:23.318Z",
+    "resultingFact": "vf-23a2e1966e73"
+  }
+}

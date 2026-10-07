@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e3c62db8b403",
+    "candidateId": "sc-2c2d1685326f",
+    "proposalId": "sp-d13ba23e5ff8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "etcd.managed"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "etcd.managed",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The etcd.managed Helm configuration value will no longer be honored in Cilium 1.16.0; environments using this setting must migrate to an alternative etcd deployment method.",
+        "remediation": "Remove the etcd.managed configuration and any related etcd Helm values from your values.yaml. Deploy etcd independently or use an existing etcd cluster without relying on Cilium's managed etcd functionality.",
+        "severity": "high"
+      },
+      "statement": "The Helm option for deploying a managed etcd instance via etcd.managed and other related Helm configurations have been removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

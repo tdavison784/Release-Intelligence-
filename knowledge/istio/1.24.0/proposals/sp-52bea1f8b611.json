@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-52bea1f8b611",
+    "candidateId": "sc-a4e95a096f92",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "SECRET_GRACE_PERIOD_RATIO_JITTER"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"0.01\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "SECRET_GRACE_PERIOD_RATIO_JITTER",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate renewal timing now has a randomized offset of approximately +/- 15 minutes around the 12-hour renewal by default, instead of all proxies renewing simultaneously."
+      },
+      "statement": "Istio adds the env var SECRET_GRACE_PERIOD_RATIO_JITTER (default 0.01), which randomizes certificate renewal timing by about +/- 15 minutes around the 12-hour renewal."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d0223398edc4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3082f30546db7c0957829742c0d0b44967a09031a1c3bb5545acd4b749f21ec0",
+      "inputEvidence": [
+        "ev-d0223398edc4"
+      ],
+      "generatedAt": "2026-10-02T05:53:37Z",
+      "callId": "b33ae97c-8c33-4d33-8e86-36df24dab7ba"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7a9f942840a6",
+    "reviewItemId": "ri-bbda5fd2fd1c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"cluster.inClusterEnabled\"]",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "Environments whose argocd-cm ConfigMap explicitly sets cluster.inClusterEnabled to \"false\" are exposed. There, Applications that target the in-cluster cluster become Unknown and cannot sync, new in-cluster Applications cannot be created, and deleting an Application does not delete the resources it previously managed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:5fabdaf963026b1cac1d9ac95aa5fdee7f9b6f7317d7b060a85b155e3f6d4abc",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-03T17:00:16.206Z",
+      "callId": "cf880a9d-8e89-47c2-be92-dae9a00b6a08",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-adf2ed32df1c] says the failure applies only when `cluster.inClusterEnabled: \"false\"` is explicitly configured, so testing for the literal \"false\" is right. Where the setting lives is the problem. The evidence is the Argo CD operator manual, and the subject context puts the key in the argocd-cm ConfigMap (component argocd-cm), not in Helm values. So the condition should read that ConfigMap's data key, not a Helm values-key. I keep the condition at the configuration level because the evidence does not say how an Application's destination identifies the in-cluster cluster.",
+    "startedAt": "2026-10-03T16:59:55.682Z",
+    "decidedAt": "2026-10-03T17:00:16.206Z",
+    "resultingFact": "vf-62c939534acb"
+  }
+}

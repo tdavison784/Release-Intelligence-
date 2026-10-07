@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1e8610e93a86",
+  "promptDigest": "sha256:7c88e9e3e00722325cbf408326f62ca4ea981d40bf5dfab945372fbe02e18320",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cac78c26-715c-4f9d-a826-d0d739b937a0",
+  "startedAt": "2026-10-03T12:46:01.799Z",
+  "decidedAt": "2026-10-03T12:46:17.796Z",
+  "durationMs": 15351,
+  "costUSD": 0.104384,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade-guide section [ev-43cc6d389282] says the `-boltdb.shipper.shared-store` and `-tsdb.shipper.shared-store` settings are removed. The index store now comes from `object_store` in `period_config`. So setting-ignored with high severity is the right kind. [ev-7d2769e8c602] and [ev-af5a4b32c120] say what this means: if the old value matches `object_store`, you only need to remove the deleted option. If it does not match, you lose access to the index for those periods until you move or copy the index tables to the `object_store` bucket. The proposed statement leaves out that consequence, so I corrected it.",
+    "citations": [
+      "ev-1d0876135bde",
+      "ev-43cc6d389282",
+      "ev-7d2769e8c602",
+      "ev-af5a4b32c120",
+      "ev-0483f04624d3"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the shipper `shared_store` setting (`-boltdb.shipper.shared-store`, `-tsdb.shipper.shared-store`). The index store is now taken from `object_store` in `period_config`. If the removed setting pointed to a different store, the index for those periods can no longer be read.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "high",
+        "statement": "The `shared_store` value is no longer honoured, and `object_store` in `period_config` decides where the index is stored. If the old value matched `object_store` for every period, only the deleted option needs removing. If it did not match, you lose access to the index for those periods, so they cannot be queried.",
+        "remediation": "Remove the deleted `shared_store` option from your configuration. For any period where it did not match `object_store`, move or copy the index tables to the store set in `object_store` so the index can be queried again."
+      }
+    }
+  }
+}

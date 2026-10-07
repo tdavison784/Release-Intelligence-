@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9acb8dcf8952",
+    "reviewItemId": "ri-1a5ed2bbd1e6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--extra-certificate-annotations",
+          "component": "controller",
+          "state": "set"
+        }
+      },
+      "statement": "cert-manager 1.18.0 adds a new controller option, --extra-certificate-annotations. It lets you list annotation keys to copy from an Ingress or Gateway resource to the Certificate created from it."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:94c451db42a3a3d30e84b9ff1ef871f139396c29975fc9e49dcf460834daa635",
+      "inputEvidence": [
+        "ev-da53ded48367"
+      ],
+      "generatedAt": "2026-10-02T12:48:53.269Z",
+      "callId": "13a391b1-1687-4b98-802d-13bdc9536048"
+    },
+    "reason": "[ev-da53ded48367] describes `--extra-certificate-annotations` as a new configuration option on the cert-manager controller. Annotations are copied from an Ingress or Gateway to the Certificate only when an operator sets the flag to list annotation keys. So the exposure condition \"controller cli-flag --extra-certificate-annotations is set\" covers exactly the environments where the new behaviour happens. P3's 'unset' condition would flag every environment that does not use the feature, which is broader than the evidence supports. No validator gives a canonical shape for an added flag, so this rests on reading the text.",
+    "startedAt": "2026-10-02T12:48:45.39Z",
+    "decidedAt": "2026-10-02T12:48:53.269Z"
+  }
+}

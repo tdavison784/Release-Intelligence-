@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a15ca683000e",
+    "candidateId": "sc-f6734cfa890c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "kubernetes-pod-restart-events"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"prior regardingObject/related population\"",
+        "after": "\"Kafka resource as regardingObject, Pod in related\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Consumers of Kubernetes events emitted during a Pod restart will see the Kafka resource referenced as the regardingObject and the Pod in the related field, instead of the previous field population; tooling that relied on the old layout should be reviewed.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, the Kubernetes events emitted during a Pod restart were updated so that the Kafka resource is set as the regardingObject and the Pod appears in the related field."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The change affects the content of events emitted at runtime during a Pod restart; no static environment input shows whether these events occur or are consumed, so exposure cannot be expressed as a configuration predicate.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4308bfa38162"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3fce3ea92f1423f1daf1eef608fd1cffcad7c32a8d51ecc0b3cececcf41e0053",
+      "inputEvidence": [
+        "ev-4308bfa38162"
+      ],
+      "generatedAt": "2026-10-02T06:31:59Z",
+      "callId": "0f255b41-c840-4c74-91d3-aabaef13ee55"
+    }
+  }
+}

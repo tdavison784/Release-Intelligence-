@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dacbb9fc0ee4",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "zookeeper-to-kraft-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Strimzi 0.46.0 no longer supports ZooKeeper-based clusters or ZooKeeper-to-KRaft migration, so any cluster still on ZooKeeper must be moved to KRaft before upgrading to 0.46.0 or newer.",
+        "remediation": "Migrate every cluster to KRaft while still on a Strimzi release older than 0.46.0, then upgrade.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based Kafka clusters and for migrating them to KRaft, so every cluster must already use KRaft before the upgrade to 0.46.0."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence says ZooKeeper-based clusters are affected but does not name the resource, field or annotation that tells a ZooKeeper-based cluster from a KRaft one, so a predicate would rely on invented identifiers.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:fe0b26744850f5b4bce837ccfe2ec259a0e8db9fd8d4767cff6529907d24634c",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-03T07:08:24Z",
+      "callId": "a4703d31-8aad-4609-9090-bd5ef5d0c672"
+    }
+  }
+}

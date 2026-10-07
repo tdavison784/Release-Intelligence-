@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-58b394e611c6",
+    "candidateId": "sc-c230c4031817",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "envoy.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "envoy.enabled",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "envoy.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Cilium Envoy DaemonSet is enabled by default, adding one Pod per Node; Nodes at maximum Pod capacity will see one non-system-critical Pod evicted after upgrading.",
+        "remediation": "Set upgradeCompatibility to 1.15 or earlier to keep the previous behavior, or set envoy.enabled explicitly."
+      },
+      "statement": "The Helm value envoy.enabled now defaults to enabled when unspecified for new installs (previously false); existing clusters should set upgradeCompatibility to 1.15 or earlier to keep the old behavior, otherwise one extra Pod per Node is added."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e24450bf8fed"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:abe5716b22f5b2f472cfedbd247807ceed32611dd296466ab1907d1f29d8ae5a",
+      "inputEvidence": [
+        "ev-e24450bf8fed",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:04:50Z",
+      "callId": "ecd97edf-883f-4e88-9fcd-f9de7c8e8960"
+    }
+  }
+}

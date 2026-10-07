@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b34cf8b066f8",
+    "candidateId": "sc-f0397237fdc5",
+    "proposalId": "sp-7ca9ce6bbd90",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.emitWarning"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.emitWarning",
+                  "state": "equals",
+                  "values": [
+                    "true"
+                  ]
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.emitWarning",
+                  "state": "equals",
+                  "values": [
+                    "true"
+                  ]
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new opt-in field that defaults to false, so existing policies behave as before. Turning it on adds admission warnings and, according to the schema description, makes admission requests take longer to process.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional boolean field, spec.emitWarning (default false), to ClusterPolicy and Policy; when enabled, warnings are returned with admission responses for mutations and for violations of Audit-mode validate rules."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

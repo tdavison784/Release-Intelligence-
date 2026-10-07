@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9adffdec125e",
+    "candidateId": "sc-fafb14837d69",
+    "proposalId": "sp-216a0a24c46c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "mirror-policies-with-waypoints"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.http[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.tcp[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Mirror policies now work correctly with waypoints, whereas they previously had an issue.",
+        "severity": "medium"
+      },
+      "statement": "Mirror policies with waypoints, which previously had an issue, are now fixed in this release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

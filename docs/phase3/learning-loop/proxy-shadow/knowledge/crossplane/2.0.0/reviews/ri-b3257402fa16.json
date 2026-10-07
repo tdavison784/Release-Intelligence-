@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b3257402fa16",
+    "candidateId": "sc-050133dc7ea5",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Use DeepCopy when assigning from the runtime config Deployment template's spec by @ulucinar in https://github.com/crossplane/crossplane/pull/6538\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The runtime Deployment created from a DeploymentRuntimeConfig now receives a deep copy of the deployment template's spec rather than a direct reference to it, so the generated spec no longer shares underlying objects with the template.",
+        "remediation": "No operator action required; after upgrading, verify that runtime Deployments generated from DeploymentRuntimeConfigs behave as expected.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 now uses DeepCopy when assigning from the runtime config Deployment template's spec, so the spec assigned out of a DeploymentRuntimeConfig's deployment template is deep-copied instead of assigned directly."
+    },
+    "proposals": [
+      "sp-361ee18290d7",
+      "sp-5ab9ad4876d0",
+      "sp-cdc032a83dbe",
+      "sp-e1f3f17be5f1",
+      "sp-eb26a13ee6d6"
+    ],
+    "validations": [
+      "val-2652bae69899",
+      "val-94af6b3b0aab",
+      "val-a8ec4005c798",
+      "val-eee57b3fe778"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model",
+        "validation-confirmed"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-03T07:44:26Z"
+  }
+}

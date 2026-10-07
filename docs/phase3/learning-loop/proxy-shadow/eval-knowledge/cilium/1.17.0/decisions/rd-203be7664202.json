@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-203be7664202",
+    "reviewItemId": "ri-5f91b60714c6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerts, scrapers or queries reference the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests"
+        }
+      },
+      "statement": "In Cilium 1.17 the metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests is renamed to envoy_cilium_npds_control_plane_pending_requests, so it is no longer exposed under the old per-node name."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:05d41244f0217d97bbcc7a162b9ab3a15e9c29b2d3dca2558ef39f12e5eecf69",
+      "inputEvidence": [
+        "ev-b142822738f9",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:25:20.184Z",
+      "callId": "b4180cf6-3b68-4cff-b9e6-45a285982ef1",
+      "provider": "anthropic"
+    },
+    "reason": "The upgrade notes only say that this metric was renamed, along with the whole NPDS metrics prefix [ev-b142822738f9][ev-77f05428497a]. They do not name any Helm value, flag, feature gate or resource that controls whether an environment emits or uses the metric. Exposure depends on which dashboards, alerts or queries use the old name. The evidence does not state that condition, so an undecidable leaf with reason evidence-gap fits better than inventing a configuration predicate.",
+    "startedAt": "2026-10-03T12:25:11.599Z",
+    "decidedAt": "2026-10-03T12:25:20.184Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0c0dbd280285",
+    "candidateId": "sc-06671e62c675",
+    "proposalId": "sp-fc87aa362c92",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.swarmMode"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.swarmMode",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "A configuration using the Docker provider with swarmMode is unsupported in v3 and prevents Traefik from starting.",
+        "remediation": "Do not use swarmMode with the Docker provider; use the Swarm provider instead.",
+        "severity": "high"
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

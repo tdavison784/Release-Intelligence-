@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-75b609704f0f",
+    "candidateId": "sc-78b10a313e23",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072",
+                    "4096"
+                  ]
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether systems that consume or validate these certificates fail to handle SHA-384/SHA-512 signatures"
+            }
+          ]
+        }
+      },
+      "statement": "From cert-manager 1.17.0, RSA certificates with 3072-bit keys use SHA-384 and those with 4096-bit keys use SHA-512 as the hash algorithm. Operators should check for errors as these larger RSA keys rotate."
+    },
+    "proposals": [
+      "sp-1b2b32a294f3",
+      "sp-2815f874af2b",
+      "sp-6c47c008a0cc",
+      "sp-fbcfaaf7c587"
+    ],
+    "validations": [
+      "val-7646f3a19f9f",
+      "val-ab22abdacac6",
+      "val-b134ac0aa23a",
+      "val-c2c09f7fd3d5",
+      "val-c7d7e32db13c",
+      "val-cbbc689f1b0c",
+      "val-ceeff70f3642"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:23:20Z"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8c3d2b48994a",
+    "candidateId": "sc-00f02ba8dd12",
+    "proposalId": "sp-4a39f5e72012",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"old-style tc BPF attachment mode\"",
+        "after": "\"tcx BPF links\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux-kernel",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "bpf.enableTCX",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On nodes with Linux kernel 6.6 or newer, Cilium attaches its tc BPF programs in the core datapath using tcx BPF links instead of old-style tc BPF attachment; setups with third-party old-style tc BPF users should disable this via the Helm value bpf.enableTCX=false in order to continue in old-style tc BPF attachment mode as before.",
+        "remediation": "Set the Helm value bpf.enableTCX=false to continue in old-style tc BPF attachment mode when third-party old-style tc BPF users are present.",
+        "severity": "medium"
+      },
+      "statement": "For Linux kernels 6.6 or newer, Cilium 1.16 by default attaches its tc BPF programs in the core datapath using tcx BPF links instead of old-style tc BPF attachment, controlled by the Helm value bpf.enableTCX, which should be set to false when third-party old-style tc BPF users are present."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

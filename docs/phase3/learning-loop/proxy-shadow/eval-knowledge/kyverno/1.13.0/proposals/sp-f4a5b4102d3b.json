@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f4a5b4102d3b",
+    "candidateId": "sc-194c2ca12ce9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "PolicyException",
+        "path": "spec"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"allowed in all namespaces\"",
+        "after": "\"disabled by default, allowed only in specified namespace\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1beta1",
+              "kind": "PolicyException"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy exceptions that were previously created in namespaces outside a specified exceptions namespace will no longer function as configured; operators must follow upgrade guidance to reconfigure exception namespace settings to maintain the same behavior.",
+        "remediation": "Review the upgrade guidance provided in the release notes to reconfigure policy exception namespace settings. Audit existing PolicyException resources and migrate them to the allowed exceptions namespace as needed.",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13.0 changes the default behavior for policy exceptions: they are now disabled by default and can only be created in a specified namespace, whereas previously they were allowed in all namespaces."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2bd1a74f9c4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:21dc968058b53b3c6661a84b46e661fa92a697b9e79f99e75d52b5d3eef64dd2",
+      "inputEvidence": [
+        "ev-2bd1a74f9c4a",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T21:00:01Z",
+      "callId": "2972b9d9-f62a-4327-8fd7-61ddf733b61a"
+    }
+  }
+}

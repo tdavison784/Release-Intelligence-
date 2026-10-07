@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b6d3c148a0e4",
+    "candidateId": "sc-a975e3461f85",
+    "product": "external-secrets",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `clustersecretstores.external-secrets.io` changes v1beta1 → v1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "clustersecretstores.external-secrets.io"
+        }
+      },
+      "statement": "The storage version of the clustersecretstores.external-secrets.io CRD moves from v1beta1 to v1 (0.15.0 → 0.16.0). Existing ClusterSecretStore objects stay stored as v1beta1 until they are rewritten, so a storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-02ab1f590203",
+      "sp-0fd44c23dbda",
+      "sp-22bcad81f73e",
+      "sp-e222cfa50f67",
+      "sp-ef07f781e1f1"
+    ],
+    "validations": [
+      "val-0ab64b0957c9",
+      "val-14874b728fcd",
+      "val-2d49fa24e667",
+      "val-357421acbc78",
+      "val-48b8b1259350",
+      "val-534e13046b00",
+      "val-aaa718ce93bc",
+      "val-c2bfd655a458",
+      "val-d4f5ae096480",
+      "val-e56352b52310"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:10:35Z"
+  }
+}

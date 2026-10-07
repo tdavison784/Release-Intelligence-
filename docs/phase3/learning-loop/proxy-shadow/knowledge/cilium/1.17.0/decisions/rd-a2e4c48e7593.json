@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a2e4c48e7593",
+    "reviewItemId": "ri-df0816fde2a6",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "lbipam_services_unsatisfied_total"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "lbipam_services_unsatisfied"
+        }
+      },
+      "statement": "The metric `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:192de0bb21738313ecfaf596f5b0f2ed6184f547a7faf45218b31b2a9e138c67",
+      "inputEvidence": [
+        "ev-9a62461ebaa9"
+      ],
+      "generatedAt": "2026-10-02T16:00:53.148Z",
+      "callId": "a4cffe0a-1a2e-4970-a22a-16434e794d37"
+    },
+    "reason": "[ev-9a62461ebaa9] lists this rename under \"1.17 Upgrade Notes › Changed Metrics\", so `lbipam_services_unsatisfied_total` is a metric name and not a key of a configuration file or ConfigMap. That makes the config-key subject (and the config-key replacedBy) wrong. The rename itself is real, but no subject family in the vocabulary represents a metric, so I can't express a faithful correction. Mapping it to another family would mislabel it a different way.",
+    "startedAt": "2026-10-02T16:00:39.423Z",
+    "decidedAt": "2026-10-02T16:00:53.148Z"
+  }
+}

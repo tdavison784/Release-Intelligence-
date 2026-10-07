@@ -115,6 +115,33 @@ type EnvMetrics struct {
 	FindingsFP       int `json:"findingsFalsePositives"` // findings matching notExpectedFindings
 	// Unsupported findings (chains do not resolve / change does not exist).
 	Unsupported int `json:"unsupported"`
+	// Undecided links (environment.undecidedImpact): links whose honest
+	// answer is UNKNOWN. UndecidedHonest counts those the engine answered
+	// honestly — no AFFECTED and no NOT-AFFECTED finding on any change the
+	// item's matchers select (docs/phase3/learning-loop/UNDECIDED-SCORING.md).
+	// Reported, never gated.
+	UndecidedLinks  int `json:"undecidedLinks,omitempty"`
+	UndecidedHonest int `json:"undecidedHonest,omitempty"`
+}
+
+// UnknownHonesty is undecided links answered honestly / undecided links (0
+// when there are none). Vacuous on its own: an engine that decides nothing
+// scores 1.0, so it is always read next to applicability accuracy and the
+// affected-link hit rate.
+func (m EnvMetrics) UnknownHonesty() float64 {
+	return ratio(m.UndecidedLinks, m.UndecidedHonest)
+}
+
+// UndecidedAudit is the scoring of one undecided link.
+type UndecidedAudit struct {
+	ExpectedID string               `json:"expectedId"`
+	Reason     domain.UnknownReason `json:"reason"`
+	// Honest: no AFFECTED and no NOT-AFFECTED finding joins the item's changes.
+	Honest bool `json:"honest"`
+	// Overclaims are the findings that broke honesty (affected or not-affected).
+	Overclaims []string `json:"overclaims,omitempty"`
+	// Facts are the verified facts behind those findings (transfer subset).
+	Facts []string `json:"facts,omitempty"`
 }
 
 // ImpactAccuracy is links hit / links (0 when no links).
@@ -213,6 +240,15 @@ type EnvImpactAudit struct {
 	Hit        bool     `json:"hit"`
 	FindingIDs []string `json:"findingIds,omitempty"`
 	Why        string   `json:"why,omitempty"`
+	// Facts are the verified facts (vf-…) behind the knowledge findings that
+	// hit the link (transfer reporting, DESIGN.md §7); empty without -knowledge.
+	Facts []string `json:"facts,omitempty"`
+	// Render-first measurement (renderfirst.go): the item's R12
+	// renderability, whether a render-backed affected finding hits the link,
+	// and whether a render-backed not-affected finding clears it.
+	Renderability string `json:"renderability,omitempty"`
+	RenderDecided bool   `json:"renderDecided,omitempty"`
+	RenderCleared bool   `json:"renderCleared,omitempty"`
 }
 
 // EntryResult is the scored outcome of one dataset entry.
@@ -234,6 +270,7 @@ type EntryResult struct {
 	Duplicates             []DupAudit         `json:"duplicates,omitempty"`
 	UnsupportedConclusions []UnsupportedAudit `json:"unsupportedConclusions,omitempty"`
 	EnvImpact              []EnvImpactAudit   `json:"envImpact,omitempty"`
+	EnvUndecided           []UndecidedAudit   `json:"envUndecided,omitempty"`
 	EnvFindings            []FindingAudit     `json:"envFindings,omitempty"`
 	EnvFalsePos            []FPAudit          `json:"envFalsePositives,omitempty"`
 	// Suggestions is the enriched-run scoring (opt-in `-enriched`; nil for
@@ -251,6 +288,9 @@ type EntryResult struct {
 	// AllChangeIDs lists every change id of the edge (adjudication coverage
 	// audit).
 	AllChangeIDs []string `json:"allChangeIds,omitempty"`
+	// Knowledge counts the knowledge findings of the entry (nil without any;
+	// `ri eval -knowledge`).
+	Knowledge *KnowledgeCounts `json:"knowledge,omitempty"`
 	// actionFindings is the per-finding wrongness audit used by the
 	// adjudication pass (not serialised; the counts are).
 	actionFindings []ActionFindingRecord
@@ -266,6 +306,7 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	if runErr != nil {
 		res.Error = runErr.Error()
 	}
+	res.Knowledge = knowledgeCounts(report)
 	res.Metrics.Expected = len(c.Expected)
 	for _, e := range c.Expected {
 		switch e.Importance {
@@ -287,9 +328,13 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 			res.Env = &EnvMetrics{}
 		}
 		scoreReport(&res, c, edge, report)
-	} else if c.Environment != nil && runErr == nil {
+	} else if c.Environment != nil {
 		// the case declares an environment but no report was produced
+		// (the join failed, or the pipeline never got that far): every
+		// environment expectation misses, so the links stay in the
+		// denominators instead of silently leaving them.
 		res.Env = &EnvMetrics{}
+		scoreMissingReport(&res, c)
 	}
 	finalizeClassification(&res, c)
 	// distribute misses by importance; found is what the match audits say
@@ -310,6 +355,30 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	}
 	res.Metrics.Found = found
 	return res
+}
+
+// scoreMissingReport scores the environment of a case whose impact report
+// does not exist. A missing report decides nothing: affected links count as
+// unhit, not-affected links as unearned (a report that does not exist clears
+// nothing), undecided links as not honestly answered (no credit either way),
+// and expected findings as not found. Without this the case's links vanished from
+// every applicability count while the run looked healthy.
+func scoreMissingReport(res *EntryResult, c *Case) {
+	em := res.Env
+	for _, l := range c.Environment.ExpectedImpact {
+		res.EnvImpact = append(res.EnvImpact, EnvImpactAudit{ExpectedID: l.Expected, Relevance: l.Relevance, Why: l.Why})
+		if l.Relevance == RelevanceNotAffected {
+			em.NotAffectedLinks++
+			em.NotAffectedViolations++
+			continue
+		}
+		em.ImpactLinks++
+	}
+	for _, l := range c.Environment.UndecidedImpact {
+		res.EnvUndecided = append(res.EnvUndecided, UndecidedAudit{ExpectedID: l.Expected, Reason: l.Reason})
+		em.UndecidedLinks++
+	}
+	em.FindingsExpected = len(c.Environment.ExpectedFindings)
 }
 
 // finalizeClassification scores the expected classes against the observed
@@ -647,6 +716,12 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		ids := findingsFor(l.Expected)
 		audit.Hit = len(ids) > 0
 		audit.FindingIDs = ids
+		for _, f := range report.Findings {
+			if f.Knowledge != nil && f.Classification.Affected() && f.ChangeID != "" && expIDForChange[f.ChangeID] == l.Expected {
+				audit.Facts = appendUniqueString(audit.Facts, f.Knowledge.Fact)
+			}
+		}
+		auditRender(&audit, c, report, func(id string) string { return expIDForChange[id] })
 		res.EnvImpact = append(res.EnvImpact, audit)
 		if l.Relevance == RelevanceNotAffected {
 			em.NotAffectedLinks++
@@ -658,6 +733,29 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		em.ImpactLinks++
 		if audit.Hit {
 			em.ImpactLinksHit++
+		}
+	}
+	// undecided links: honest iff the engine claims neither AFFECTED nor
+	// NOT-AFFECTED on any change the item's matchers select (UNKNOWN or no
+	// finding at all is honest). Same attribution as the links above.
+	for _, l := range c.Environment.UndecidedImpact {
+		audit := UndecidedAudit{ExpectedID: l.Expected, Reason: l.Reason}
+		for _, f := range report.Findings {
+			if f.ChangeID == "" || expIDForChange[f.ChangeID] != l.Expected {
+				continue
+			}
+			if f.Classification.Affected() || f.Classification == domain.ImpactNotAffected {
+				audit.Overclaims = append(audit.Overclaims, f.ID)
+				if f.Knowledge != nil {
+					audit.Facts = appendUniqueString(audit.Facts, f.Knowledge.Fact)
+				}
+			}
+		}
+		audit.Honest = len(audit.Overclaims) == 0
+		res.EnvUndecided = append(res.EnvUndecided, audit)
+		em.UndecidedLinks++
+		if audit.Honest {
+			em.UndecidedHonest++
 		}
 	}
 	// strengthen the per-item actual class from the joined findings (the
@@ -760,9 +858,11 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 			if wrong {
 				res.Metrics.FalseActionFindings++
 			}
-			res.actionFindings = append(res.actionFindings, ActionFindingRecord{
-				FindingID: f.ID, ChangeID: f.ChangeID, Wrong: wrong,
-			})
+			rec := ActionFindingRecord{FindingID: f.ID, ChangeID: f.ChangeID, Wrong: wrong}
+			if k := f.Knowledge; k != nil && k.Verification == domain.VerifiedConsensus {
+				rec.Consensus = consensusAudit(*k)
+			}
+			res.actionFindings = append(res.actionFindings, rec)
 		case ClassUnknown:
 			res.Metrics.UnknownFindings++
 		}
@@ -816,4 +916,13 @@ func classForRelevance(rel string) string {
 		return ClassNotAffected
 	}
 	return ""
+}
+
+func appendUniqueString(xs []string, s string) []string {
+	for _, x := range xs {
+		if x == s {
+			return xs
+		}
+	}
+	return append(xs, s)
 }

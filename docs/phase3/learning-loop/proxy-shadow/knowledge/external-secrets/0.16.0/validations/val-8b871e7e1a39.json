@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8b871e7e1a39",
+    "candidateId": "sc-bf284ab1ddb4",
+    "proposalId": "sp-9ccee3076656",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "kind": "SecretStore",
+        "path": "spec.provider.aws.prefix"
+      },
+      "change": {
+        "type": "added"
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new optional prefix field is available for the AWS Secrets Manager provider. The evidence names no required action and nothing that fails.",
+        "severity": "low"
+      },
+      "statement": "Release 0.16.0 adds a new prefix field to the AWS Secrets Manager provider (AWSProvider.prefix, spec.provider.aws.prefix on SecretStore)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "external-secrets.io SecretStore spec.provider.aws.prefix is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:field-added",
+        "detail": "external-secrets.io SecretStore spec.provider.aws.prefix appears with the new API version v1, not as a new field of an existing version"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

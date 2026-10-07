@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-df2831db91bf",
+    "reviewItemId": "ri-d85b6999e4c9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "statement": "The `--registry` flag for the default package registry is removed, so all packages must use fully qualified names that include the registry host."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--registry",
+              "component": "crossplane",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Provider"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Configuration"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^./:]*/|[^/]*$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Function"
+            }
+          ]
+        }
+      },
+      "statement": "Crossplane 2.0.0 removes the `--registry` flag and the default package registry. Environments that set `--registry`, or that have any package (Provider, Configuration, Function) whose spec.package has no registry host name, are exposed and must use fully qualified package names before upgrading."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:88716658c38da29e6fe187ea9bfe77f19774e390105b2b2b4f042d2ef60822c7",
+      "inputEvidence": [
+        "ev-430fc91e4c1d"
+      ],
+      "generatedAt": "2026-10-03T17:03:24.183Z",
+      "callId": "574e3d6d-307e-4738-9a1c-7a8851aac929",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-430fc91e4c1d] says the default package registry itself is gone, not only the flag. It says all packages must now use fully qualified names, and that any package without a registry host name (e.g. `crossplane-contrib/provider-aws-s3:v1.23.0`) must be updated before upgrading. Checking only `cli-flag --registry set` therefore misses environments that relied on the implicit default with no flag set. The exposure has to include package resources whose spec.package has no registry host.",
+    "startedAt": "2026-10-03T17:03:06.709Z",
+    "decidedAt": "2026-10-03T17:03:24.183Z"
+  }
+}

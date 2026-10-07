@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9000a2463176",
+    "candidateId": "sc-3aa4cb777553",
+    "proposalId": "sp-708985edc218",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-ipv4-preference"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--jmx",
+          "component": "kafka",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "JMX configuration will now use JVM defaults for IP version preference instead of implicitly preferring IPv4, which enables correct cluster boot in IPv6-only environments.",
+        "severity": "medium"
+      },
+      "statement": "Implicit IPv4 preference when enabling JMX has been removed and will now use JVM defaults."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/removed",
+        "detail": "no canonical exposure condition for protocol-behavior removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

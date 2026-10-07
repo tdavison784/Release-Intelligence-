@@ -1,0 +1,39 @@
+# Private PKI for tenant workloads, following the cert-manager
+# "bootstrapping CA issuers" pattern: a self-signed root certificate
+# whose own private key signs it through the SelfSigned issuer.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+# Root CA: 4096-bit RSA per platform PKI policy, re-issued by cert-manager
+# itself on renewal.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: platform-root-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: eu-platform root CA
+  secretName: platform-root-ca
+  duration: 87600h
+  renewBefore: 4320h
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+---
+# Single-tier issuing CA: tenant Certificates are signed directly with the
+# root key held in the platform-root-ca Secret.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: tenant-ca
+spec:
+  ca:
+    secretName: platform-root-ca

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-af590e55e06b",
+    "candidateId": "sc-9d5516da8bb9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "server.rbac.log.enforce.enable",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "unset"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Logs RBAC is enforced by default; the logs tab on pod view is not visible to users/groups/roles without explicit `logs, get` permission.",
+        "remediation": "Grant explicit `logs, get` permissions to the users/groups/roles that need log access; remove server.rbac.log.enforce.enable from argocd-cm after upgrade.",
+        "severity": "medium"
+      },
+      "statement": "Starting in 3.0 the argocd-cm flag server.rbac.log.enforce.enable is removed and logs RBAC is always enforced, so the logs tab on pod view is hidden unless users have explicit `logs, get` permission."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-19231a7aa629"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4c201efede3937f1f4eba0b93cc283bc58419cd6f82af4296df8a5f6aa49b7cb",
+      "inputEvidence": [
+        "ev-19231a7aa629"
+      ],
+      "generatedAt": "2026-10-02T05:59:36Z",
+      "callId": "94eacbfe-e9cf-4f6a-9c48-02df41426a28"
+    }
+  }
+}

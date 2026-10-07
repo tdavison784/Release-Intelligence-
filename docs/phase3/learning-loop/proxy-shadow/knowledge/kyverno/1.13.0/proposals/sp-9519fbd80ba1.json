@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9519fbd80ba1",
+    "candidateId": "sc-958344188889",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].reportProperties"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].reportProperties",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].reportProperties",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "New optional rule field; rules that set reportProperties add these custom entries to policy report results.properties. Nothing changes for rules that do not set it.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional rule field, spec.rules[].reportProperties, to ClusterPolicy and Policy; the custom entries it defines are added to policy report results.properties."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-8eb1c59d91de",
+      "ev-1519b599b779",
+      "ev-8777c5537c47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:29b6a807608399508c4ebb2aba919eba3fb299c7af2cb27ab4a93abd510ecc04",
+      "inputEvidence": [
+        "ev-8eb1c59d91de",
+        "ev-1519b599b779",
+        "ev-a5eba5775d07",
+        "ev-c6d885323959",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-a6fb385dfd2d",
+        "ev-54749e1a631c",
+        "ev-8777c5537c47",
+        "ev-8dbdd0d2ff64",
+        "ev-be657eb9dee9",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-0dcce94d4e67",
+        "ev-72f16d281831"
+      ],
+      "generatedAt": "2026-10-02T20:55:19Z",
+      "callId": "02ead1b1-d5ec-41e6-a7cf-d4a1288d5b57"
+    }
+  }
+}

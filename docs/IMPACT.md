@@ -9,7 +9,8 @@ ri impact <product> <from> <to> \
   --values values.yaml \
   --manifests ./manifests \
   --crds ./crds \
-  --images images.txt
+  --images images.txt \
+  --inventory inventory.yaml
 ```
 
 or, pointing at a whole customer repository instead of individual files:
@@ -27,6 +28,112 @@ The whole path is deterministic: local file parsing plus a pure join, no
 cluster access, no network beyond what `ri upgrade` already needs, no LLM.
 Enrichment (`ri upgrade -enrich`) is a separate optional layer and is never
 part of it.
+
+## Why an UNKNOWN is unknown (`unknownReason`)
+
+Every UNKNOWN finding states a reason (MISSION G18; required by
+`ImpactReport.Validate()` and the schema), so it can be routed:
+
+| Reason | Assigned when | Routes to |
+|---|---|---|
+| `release-knowledge-gap` | a note-derived change (no machine-comparable subject), a computed diff rule without a join rule (`crd:fields-added`, `crd:added`, …), a subject-less computed change; an untrusted (consensus/proxy) fact whose exposure is false — it may not clear | candidate generation / review |
+| `environment-visibility-gap` | the deciding dimension was not supplied or is partial, a compared value is withheld, a reference does not resolve in incomplete manifests | the user (`--values`, `--manifests`, …) |
+| `cross-product-context-gap` | the verdict depends on another product's presence or version and the inventory cannot decide it (not supplied, product not listed in a non-complete inventory, chart version only, conflicting entries) | the user (`--inventory`) |
+| `runtime-behavior-gap` | only runtime state decides (objects converted between served versions, an explicit `undecidable` leaf) | stays UNKNOWN, documented |
+| `evidence-gap` | the upstream constraint or change is not machine-readable | upstream research |
+| `semantic-ambiguity` | the CRD identity cannot be parsed, a reference matches several resources | review |
+
+The text output groups the collapsed UNKNOWN view by family and names the
+reason (`· 40 × note-derived changes … (release-knowledge-gap)`).
+`impact:knowledge-undecided` carries the reason of the deciding unknown leaf
+(precedence: cross-product → environment-visibility → runtime-behavior →
+evidence → semantic-ambiguity).
+
+## Verified knowledge in the join (`--knowledge`)
+
+`ri impact … --knowledge knowledge/` evaluates the verified, release-level
+facts of the learning loop (docs/phase3/learning-loop/DESIGN.md) against the
+environment: a fact attaches to the changes that restate it, and its
+exposure/overlap conditions decide the verdict (`impact:knowledge-exposed`,
+`-overlap`, `-clear` or `-undecided`), always under the trust ladder of
+[ACTION_CLASSIFICATION.md](ACTION_CLASSIFICATION.md) §8. `--min-verification
+deterministic|human|consensus|proxy` (default `human`) keeps facts at or above
+the level; facts whose verification their own records do not prove are refused
+with a warning, never evaluated. Without `--knowledge` the report is
+byte-identical to the knowledge-free join.
+
+How a fact's applicability condition is evaluated — three-valued, each leaf
+bound to the environment model (`field`/`text-line`/`ref` to the resource
+facts, `values-key`, `gvk-in-use`, `image-in-use`, `cli-flag`/`env-var`/
+`feature-gate` to workload container args and env, `product-version` to the
+inventory, `cluster-version`, `edge-from-version`, `rendered-change` through
+the render lane's evaluator, unknown without renders) — is specified in
+DESIGN.md §1.3 and implemented in `internal/impact/condition.go`. Rules it
+keeps: a leaf is false only against a supplied, healthy dimension; a withheld
+value decides nothing (a credential-named ConfigMap key's text lines are
+treated as withheld even when line-level redaction let them through);
+`not(false)` is true only when the operand examined at least one record.
+Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
+`absence` (an examined record proving something is not stated) besides the
+join's own. A product missing from the inventory is "not installed" only when
+the inventory file declares it:
+
+```yaml
+complete: true        # every product running here is listed
+products:
+  - {product: ingress-nginx, version: v1.12.1}
+```
+
+The same rule holds for workloads. A `cli-flag` / `env-var` / `feature-gate`
+condition that names a component (a container name, e.g. `component:
+controller`) and finds **no container of that name** in the supplied manifests
+is **unknown** (`environment-visibility-gap`, needed: that workload's
+manifests) — not false. A missing workload is "not shown", not "not running":
+a Helm-installed controller's Deployment is rarely among the manifests a
+customer commits, so a trusted fact scoped to that component would otherwise
+clear the change from silence. Only `ri impact --manifests-complete` (the
+supplied manifests are every workload this environment runs, recorded as input
+evidence) together with healthy manifests makes the absence genuine: then the
+leaf is false, with a check citing the declaration. A feature gate stated in
+the values key at the condition's `path` still decides, workload or not; a
+present container that does not pass the flag is false as before.
+
+Cross-resource references follow the same rule. A `ref` leaf whose reference
+(`Certificate.spec.issuerRef` → a ClusterIssuer, `parentRefs[]` → a Gateway, …)
+does not resolve in the supplied manifests is **unknown**
+(`environment-visibility-gap`, needed: the referenced object's manifest) — the
+target may be installed by a chart or kept in a file the customer did not
+supply. Only declared-complete, healthy manifests make it false ("the target
+does not exist"), and that false cites the declaration; the same holds for
+`not(ref …)`, which therefore never turns an unresolved reference into
+evidence.
+
+*Decision reversed (2026-10-02, applicability-4).* `RefResolution.ManifestsComplete`
+used to mean "the manifests dimension parsed healthily", so on cleanly parsed
+manifests an unresolved reference decided false and a trusted fact could clear
+a change through a ClusterIssuer the customer never committed. Fixture:
+`eval/adversarial/knowledge-unresolved-reference` (the old evaluator clears it).
+
+*Decision reversed (2026-10-02).* The earlier rule read a named component
+absent from fully parsed manifests as false, "like an absent resource kind".
+That treated *parsed completely* as *complete*, and the two differ exactly for
+operator workloads installed by a chart. LOOP-DIAGNOSIS.md §7.8 flagged it as
+residual risk, and the adversarial fixture
+`eval/adversarial/knowledge-named-component-absent` pins the new behaviour (the
+old evaluator clears that change). Zero resources of a *kind* inside a
+`resource` scope keep the documented zero-resources convention.
+
+`ri eval --knowledge knowledge/` runs the dataset once per verification level
+(`none`, `deterministic`, `human`, `consensus`, `proxy`) and reports each
+separately: applicability accuracy overall and on the **transfer subset**
+(links whose deciding facts were never reviewed with that case's environment
+as context), classification accuracy, unknown rate, and the ACTION REQUIRED
+quality per level with model-consensus ACTION findings counted separately. The
+pre-registered gates keep applying to the level named by `--min-verification`
+(default `human`); the consensus and proxy levels are reported and labelled,
+never gated on. The stored-snapshot comparison always uses the knowledge-free
+`none` run, so knowledge never masks a regression of the deterministic
+pipeline.
 
 ## The action-classification contract
 
@@ -104,6 +211,7 @@ Parsed from local files only, deterministically, with per-fact evidence:
 | `--manifests` (files or directories) | one fact per document (`apiVersion`/`kind`, with the document's line); flattened field paths of each resource (`spec.secretTemplate.labels`, …); every `image:` scalar |
 | `--crds` (files or directories) | installed CustomResourceDefinitions: name, group, kind, versions with served/storage/deprecated/deprecationWarning, `spec.preserveUnknownFields`; their group/version pairs also feed the apiVersion inventory |
 | `--images` (list, or a file with one reference per line, `#` comments) | explicit image references (mirror lists) |
+| `--inventory` (YAML list) | the declared product inventory: which other products run here and at which versions (see below) |
 | `--repo` (directory) | all of the below, discovered by convention (see the repo-mode section) |
 
 Multi-document YAML streams are decoded with a real stream decoder
@@ -164,6 +272,109 @@ cross-cutting inventories:
   `.spec.values`) are flattened into the values inventory with the same path
   syntax as parsed values files — they ARE the customer's values, and the
   values rules join on them like any other file.
+
+### Product inventory (`Environment.Products`, `--inventory`)
+
+"Which products, at which versions, run here" is a first-class dimension
+(`products`), so release knowledge can state cross-product conditions
+("requires ingress-nginx >= 1.12.6", "Argo CD manages cert-manager
+resources") and the deterministic engine can evaluate them. Entries
+(`env.ProductInstance`) carry the product id (the `products/<id>.yaml` id when
+the name maps to the catalog, else the lower-cased name), the version
+(normalized — `v1.12.1` → `1.12.1`; a bare release line such as `1.16` stays
+a line and is never padded into a patch-level claim — with the raw text always
+kept), the source and per-entry evidence (file, locator, excerpt, digest):
+
+| Source | Grounded by |
+|---|---|
+| `declared` | `--kubernetes` (product `kubernetes`) and the inventory file |
+| `detected-helm` / `-argo` / `-flux` / `-helmfile` | the existing installed-product detection (`Environment.Installed`, unchanged); the version is a **chart** version (`versionOf: chart`), which may differ from the app version |
+| `detected-label` | `app.kubernetes.io/{name,version}` labels (app version) |
+| `detected-image` | an image whose repository is an OCI channel of a catalog product's `container-image` artifact (generic, driven by `products/*.yaml`; a mirror that keeps the path but changes the registry host matches by path and says so in `note`), at its tag |
+
+The inventory file is a YAML list of `{product, version, note?}`, given with
+`--inventory`, or picked up as `inventory.yaml` in `--repo` mode and in an
+eval environment fixture (`eval/cases/<id>/environment/inventory.yaml`).
+
+Sources are **never merged away**. When entries of one product state different
+versions (declared 1.12.6 vs an image at v1.12.1), all are kept, each names the
+others in `conflict`, the report renders `CONFLICT with …`, and the dimension is
+`partial` with a warning. A version that does not parse (`latest`, `1.*`, a
+branch) is kept as stated, warns and can never satisfy or violate a range.
+
+The products dimension is `absent` unless an inventory file was given or
+something was detected (`--kubernetes` alone does not make it supplied):
+absent means "no inventory supplied", **not** "no other products run here".
+Likewise, with a supplied inventory a product that is not listed is "not
+listed", not "not installed" — the engine decides what that licenses.
+
+Accessors for the engine: `Environment.Product(id)` (declared entry wins),
+`ProductInstances(id)` (all entries) and `ProductInRange(id, constraint)`,
+which evaluates "product present with version in range" through the repo's
+range representation (`domain.CompatibilityConstraint`, i.e.
+`upgrade.EvaluatePlatformConstraint`), at full semver precision when the
+entry has a full version and the constraint patch-level bounds. Its result
+separates `Present`, `Computable` (false for an unparsable/unstated version, an
+unevaluable constraint, or conflicting entries that disagree on the verdict)
+and `InRange`.
+
+The report carries the inventory additively (`environment.products`,
+`environment.productsHealth`, omitted when the dimension is absent; evidence
+ids resolve in `environmentEvidence`) and the text output lists it in the
+environment block. `Statuses()` deliberately does not list the dimension (it
+feeds the enrichment prompts and their committed answer caches); read it with
+`Health(env.DimProducts)` / `ProductsStatus()`.
+
+### Resource facts and the query API (`Environment.Resources`)
+
+Beyond the path inventories above, every manifest document is also kept as a
+`Resource` (group, version, kind, name, namespace, document ref, document
+evidence) with three kinds of fact for the deterministic applicability engine.
+They live in their own store: `ManifestFields`, `GVKUsage`, the report counts and
+the enrichment prompts are unchanged, so these facts add no finding and move no
+prompt digest.
+
+- **Field facts** (`FieldFact`): the scalar **value** of each leaf, JSON-encoded
+  exactly like `ValuesKey.Value` (`"Always"`, `true`, `null`), plus container
+  facts for mappings and sequences so "is this subtree set" is answerable.
+  Sequences are descended with `[]` markers — the syntax of CRD `SchemaPaths`
+  (`spec.acme.solvers[].http01.ingress.class`) — and each fact also records the
+  indexed `Element` path (`spec.acme.solvers[0]…`), which the evidence locator
+  carries with the file line and an excerpt.
+- **Text blocks** (`TextBlock`): multi-line string scalars and every ConfigMap
+  `data` value, line by line. Each `TextLine` has line-level evidence; for
+  literal block scalars `FileLine` is the true file line (scalar start +
+  offset; `Exact`), for folded/quoted multi-line scalars it is the line the
+  scalar starts on. A `---` inside a block scalar never splits the document.
+- **References** (`Ref`): any mapping under a key ending in `Ref` (or elements
+  under a key ending in `Refs`) that carries a `name` (+ optional
+  `kind`/`group`/`namespace`) — `issuerRef`, `parentRefs[]`, … — recorded
+  generically and resolved by `ResolveRef` against the supplied manifests.
+  Group/kind constrain the match only when stated; no namespace means the
+  referrer's namespace (or a resource declaring none). Outcomes are
+  `resolved`, `ambiguous` or `unresolved`; unresolved is **not** "does not
+  exist": `ManifestsComplete` is true only when the manifests are **declared**
+  complete (`--manifests-complete`) and parsed healthily.
+
+Query API (all deterministic, load-ordered):
+
+| Call | Answers |
+|---|---|
+| `ResourcesOfKind(group, kind)` / `Select(GVKSelector)` | the resources of an API identity (`Group ""` = core only, `"*"` = any; `Version ""` = any) |
+| `FieldValues(sel, path)` | per matching resource: `Set` (false = the resource does not state it) and the `FieldFact`s; `path` with `[]` covers all elements, `[0]` one |
+| `TextBlocks(sel, pathPrefix)` + `TextBlock.Match(re)` | per resource, the text blocks under a path and the lines matching a regex (`Withheld` counts lines a "no line matches" predicate cannot see) |
+| `References(sel, path)` / `ResolveRef(from, ref)` | the references at a path, each with its resolution |
+
+**Secrets.** Values are withheld (`Withheld: "sensitive"`, no `Value`, no value
+in the evidence excerpt) for `Secret` resources, for keys naming a credential
+(`password`, `token`, `apiKey`, `clientSecret`, `privateKey`, …) and for
+anything containing a private key; text lines assigning such a key, or inside
+a private-key block, are withheld the same way (and never match). Oversize
+leaves (> 4 KiB) are withheld as `oversize`. Resource values never reach an
+LLM prompt (the prompt carries paths only; pinned by
+`TestPromptNeverSendsManifestValues`). Caps (100 000 field facts, 50 000 text
+lines, 5 000 per block) are warnings that make the manifests dimension
+`partial`.
 
 ## Repository mode (`--repo`)
 
@@ -231,7 +442,10 @@ For each upstream values change (`values:removed`, `values:section-removed`,
 | default changed, exact key set | the user's pin keeps winning | `impact:values-pinned` · informational · low |
 | default changed, ancestor/descendant overlap | Helm merge semantics need a look | `impact:values-adjacent` · review-required · medium |
 | new key, already set (or adjacent) | a previously ignored key becomes live | `impact:values-new-key` · review-required · medium |
-| no overlap, values supplied | checked and clear | `impact:values-unset` · not-affected (evaluation record) |
+| no overlap with a removed key, values supplied | checked and clear | `impact:values-unset` · not-affected (evaluation record) |
+| changed default / new key, **left unset**, render attributes a change to it (PO-3) | the new default reaches you | `impact:values-default-applies` · review-required (rendered-change match) |
+| changed default / new key, left unset, both renders succeed, nothing attributable changes | checked by rendering and clear | `impact:values-default-no-effect` · not-affected (render check) |
+| changed default / new key, left unset, no render possible | product-owner choice: not affected, visibly unrendered | `impact:values-default-unrendered` · not-affected (render check `unavailable` + reason) |
 | no values supplied | nothing to compare | `impact:insufficient-visibility` · unknown (`--values` missing) |
 
 The upstream side lists subjects as flattened leaves (a removed section lists
@@ -284,8 +498,30 @@ CRD's `names.kind`).
 | `crd:version-removed` / `crd:version-unserved` | exact GVK in manifest use (kind pinned via the installed CRD); group/version with unpinnable kind → review; installed CRD declares the version but no manifest uses the GVK → not-affected (with manifests) / review (without) | `impact:crd-version-removed` · action-required · critical |
 | `crd:version-deprecated` | same matching; every affected verdict is review (a deprecation breaks nothing today) | `impact:crd-version-deprecated` · review-required · medium |
 | `crd:fields-removed` | the removed path (array markers stripped) set at/below it **within the change's GVK**; a same-named path under another GVK never matches | `impact:crd-field-removed` · action-required · high (exact GVK) / review (kind or version unpinned, or a set section above the path) |
+| `crd:default-changed` | a resource of the GVK leaves the field unset (or sets only its parent): the new schema default applies to it; every resource that reaches the field pins it | `impact:crd-default-applies` · review-required · medium / `impact:crd-default-pinned` · informational · low |
+| `crd:enum-changed` | a resource of the GVK uses an enum value the target removes | `impact:crd-enum-value-removed` · action-required · high (rejected) |
+| `crd:field-required` | a resource of the GVK omits the field the target makes required | `impact:crd-field-now-required` · action-required · high (rejected) |
+| `crd:field-type-changed` | a resource sets the field: action when its value no longer fits the new type, review when it fits | `impact:crd-field-type-changed` · action-required · high / review-required · medium |
+| `crd:storage-changed` | the CRD whose storage version moves is installed, or manifests use its kind (stored objects stay at the old version until migrated); installed CRDs supplied (healthy) without it and the kind unused → clear; installed CRDs not supplied → unknown (`environment-visibility-gap`: stored objects are only visible through them) | `impact:crd-storage-migration` · review-required · medium / `impact:crd-unused` · not-affected |
+| attribute rules, no resource of the GVK touched by the change (manifests healthy) | — | `impact:crd-attribute-clear` · not-affected (evaluation record) |
+| `crd:fields-added` | a new optional field decides nothing today | `impact:not-joined` · unknown (`release-knowledge-gap`) |
 | unparseable upstream identity | — | `impact:not-joined` · unknown |
 | no overlap, deciding dimension supplied (`--crds` for the CRD/version rules, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
+
+The attribute rules (`crd:default-changed`, `crd:enum-changed`,
+`crd:field-required`, `crd:field-type-changed`) resolve their GVK like
+`crd:fields-removed` (identity from the change's deterministic output, an
+installed CRD of the same name completing kind/group) and are evaluated per
+resource of that GVK against the resource facts, never by bare paths. A kind
+or version the change does not pin makes the finding medium confidence, so
+action is demoted to review (another CRD of the group could serve the kind);
+negative verdicts need healthy manifests (absence is not knowledge). Nothing
+matched is **unknown** instead of clear when a compared value is withheld
+(`environment-visibility-gap`), when the change does not state its values
+machine-readably (`evidence-gap`), when manifests were only partially parsed
+(`environment-visibility-gap`), or when resources of the same kind exist at
+another API version — the API server converts them to the changed version, so
+the attribute may still reach them (`runtime-behavior-gap`).
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
@@ -313,6 +549,23 @@ exactly like Helm's semver check, so line 1.25 is admitted.
 
 Constraints of platforms with no environment input (OpenShift today) are
 always UNKNOWN — never assumed fine.
+
+A compatibility constraint on a platform that is an **operand or peer
+product** (Kafka for an operator: "Kafka support narrowed: 3.8–3.9 → 3.9,
+4.0") is decided against the **product inventory** (`--inventory`) with the
+product-version semantics of the knowledge condition language: only
+application versions decide (a chart version is never read as the product's
+version), conflicting entries decide nothing, and a platform missing from
+the inventory is "not running" only when the inventory declares itself
+complete.
+
+| Outcome (platform = the constraint's platform) | Finding |
+|---|---|
+| inventory runs the platform outside the target's supported set | `impact:platform-out-of-range` · action-required · high |
+| inventory runs the platform inside the supported set | `impact:platform-in-range` · informational · low |
+| inventory, declared complete, does not run the platform | `impact:platform-absent` · not-affected |
+| platform not listed, inventory not complete / conflicting versions / chart-version-only | `impact:insufficient-visibility` · unknown (`cross-product-context-gap`) |
+| no inventory supplied | `impact:insufficient-visibility` · unknown |
 
 ### 4. Images (`--manifests`, `--values`, `--images`)
 

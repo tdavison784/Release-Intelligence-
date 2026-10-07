@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d1ffff6011db",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "proposalId": "sp-d7a3be6c2173",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required",
+        "before": "\"[\\\"key\\\"]\"",
+        "after": "\"[\\\"key\\\",\\\"value\\\"]\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore v1beta1 objects with fake provider data entries that omit value are rejected by the schema.",
+        "remediation": "Set value on every spec.provider.fake.data[] entry.",
+        "severity": "medium"
+      },
+      "statement": "In the ClusterSecretStore external-secrets.io/v1beta1 schema, spec.provider.fake.data[].value becomes required, so objects omitting it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

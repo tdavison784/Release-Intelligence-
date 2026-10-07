@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -911,5 +912,113 @@ func TestFactsAreLinkedAndResolvable(t *testing.T) {
 	}
 	if linked == 0 {
 		t.Error("expected facts linked to changes")
+	}
+}
+
+func TestCRDSchemaAttributeDiff(t *testing.T) {
+	mk := func(fields ...domain.CRDFieldSchema) domain.CRDSummary {
+		v := crdVer("v1", true, true)
+		for _, f := range fields {
+			v.SchemaPaths = append(v.SchemaPaths, f.Path)
+		}
+		v.Fields = fields
+		return crd("knobs.example.io", "example.io", "Knob", v)
+	}
+	f := func(path, typ, def string, req bool, enum ...string) domain.CRDFieldSchema {
+		return domain.CRDFieldSchema{Path: path, Type: typ, Default: def, Required: req, Enum: enum}
+	}
+	from := bare("v1.0.0").crds("crds", "https://x/v1.0.0/crds.yaml", mk(
+		f("spec.a", "string", `"Never"`, false),
+		f("spec.b", "string", "", false, `"x"`, `"y"`),
+		f("spec.c", "string", "", false),
+		f("spec.d", "string", "", false),
+		f("spec.same", "string", `"k"`, true, `"k"`),
+	))
+	to := bare("v1.1.0").crds("crds", "https://x/v1.1.0/crds.yaml", mk(
+		f("spec.a", "string", `"Always"`, false),
+		f("spec.b", "string", "", false, `"x"`, `"z"`),
+		f("spec.c", "string", "", true),
+		f("spec.d", "integer", "", false),
+		f("spec.same", "string", `"k"`, true, `"k"`),
+		f("spec.new", "string", `"n"`, true),
+	))
+	e := mustBuild(t, simpleInput(from, to))
+	for rule, subj := range map[string]string{
+		RuleCRDDefaultChanged:  "spec.a",
+		RuleCRDEnumChanged:     "spec.b",
+		RuleCRDFieldRequired:   "spec.c",
+		RuleCRDFieldTypeChange: "spec.d",
+	} {
+		cs := findChanges(e, rule)
+		if len(cs) != 1 || !reflect.DeepEqual(cs[0].Subjects, []string{subj}) {
+			t.Errorf("%s: %+v", rule, cs)
+			continue
+		}
+		c := cs[0]
+		if c.Category != domain.CategoryCRDSchema || c.ActionRequired || len(c.Evidence) != 2 || c.Provenance.Method != domain.MethodComputed {
+			t.Errorf("%s: %+v", rule, c)
+		}
+	}
+	if c := findChanges(e, RuleCRDDefaultChanged)[0]; !strings.Contains(c.Detail, `"Never" → "Always"`) || c.Breaking {
+		t.Errorf("default change: %+v", c)
+	}
+	if c := findChanges(e, RuleCRDEnumChanged)[0]; !strings.Contains(c.Detail, `removed ["y"], added ["z"]`) || !c.Breaking {
+		t.Errorf("enum change: %+v", c)
+	}
+	// a snapshot captured before Fields existed must not produce diffs
+	old := bare("v1.0.0").crds("crds", "https://x/v1.0.0/crds.yaml", crd("knobs.example.io", "example.io", "Knob", crdVer("v1", true, true, "spec.a")))
+	e = mustBuild(t, simpleInput(old, to))
+	if n := len(findChanges(e, RuleCRDDefaultChanged)); n != 0 {
+		t.Errorf("one-sided fields produced %d default changes", n)
+	}
+}
+
+// ---------------------------------------------------------------- lines
+
+func linesSnap(r *rel, artifact string, lines ...string) *rel {
+	return r.snapshot(domain.Snapshot{ArtifactID: artifact, Kind: domain.SnapshotLines,
+		Lines: &domain.LinesSnapshot{Source: "core.go", Pattern: "removed", Lines: lines}}, "https://x/"+r.r.Version.Tag+"/"+artifact)
+}
+
+func TestLinesDiffReportsOnlyWhatOneReleaseHas(t *testing.T) {
+	from := linesSnap(bare("v1.0.0"), "src", "flag --a will be removed", "kept statement")
+	to := linesSnap(bare("v2.0.0"), "src", "flag --b was removed", "kept statement")
+	e := mustBuild(t, simpleInput(from, to))
+	added, removed := findChanges(e, RuleLinesAdded), findChanges(e, RuleLinesRemoved)
+	if len(added) != 1 || len(removed) != 1 {
+		t.Fatalf("added %d removed %d: %+v", len(added), len(removed), e.Changes)
+	}
+	a := added[0]
+	if a.Category != domain.CategoryOther || a.Provenance.Method != domain.MethodComputed || !reflect.DeepEqual(a.Subjects, []string{"flag --b was removed"}) || len(a.Evidence) != 2 {
+		t.Errorf("%+v", a)
+	}
+	if !strings.Contains(a.Title, "Line added to core.go: flag --b was removed") || !strings.Contains(removed[0].Title, "Line removed from core.go: flag --a will be removed") {
+		t.Errorf("titles: %q / %q", a.Title, removed[0].Title)
+	}
+	// identical statements are no change
+	same := mustBuild(t, simpleInput(linesSnap(bare("v1.0.0"), "src", "x"), linesSnap(bare("v2.0.0"), "src", "x")))
+	if len(findChanges(same, RuleLinesAdded))+len(findChanges(same, RuleLinesRemoved)) != 0 {
+		t.Errorf("unchanged lines produced changes: %+v", same.Changes)
+	}
+}
+
+func TestLinesDiffBoundsTheNumberOfChanges(t *testing.T) {
+	var many []string
+	for i := 0; i < maxLineChanges+7; i++ {
+		many = append(many, fmt.Sprintf("statement %02d", i))
+	}
+	e := mustBuild(t, simpleInput(linesSnap(bare("v1.0.0"), "src"), linesSnap(bare("v2.0.0"), "src", many...)))
+	added := findChanges(e, RuleLinesAdded)
+	if len(added) != maxLineChanges+1 {
+		t.Fatalf("%d changes, want %d + one summary", len(added), maxLineChanges)
+	}
+	var summary *domain.Change
+	for i := range added {
+		if strings.Contains(added[i].Title, "more lines added") {
+			summary = &added[i]
+		}
+	}
+	if summary == nil || !strings.Contains(summary.Title, "7 more lines added") || len(summary.Subjects) != 7 {
+		t.Errorf("summary: %+v", summary)
 	}
 }

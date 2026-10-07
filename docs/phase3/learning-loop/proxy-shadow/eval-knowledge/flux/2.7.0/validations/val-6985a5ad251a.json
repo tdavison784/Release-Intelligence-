@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6985a5ad251a",
+    "candidateId": "sc-6c62cef5daa7",
+    "proposalId": "sp-f3636fb1d169",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "flux",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "GOMAXPROCS",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "GOMAXPROCS",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Where GOMAXPROCS is not explicitly set, the Go runtime now sets it dynamically for the controller pods, so controller CPU concurrency is no longer fixed; the release notes state no failure.",
+        "remediation": "No operator action required; if the previous fixed GOMAXPROCS behavior is needed, set the GOMAXPROCS environment variable explicitly on the controller containers.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 lets the Go runtime dynamically set GOMAXPROCS for the Flux controllers, changing how controller CPU concurrency is determined."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1dc9a77443c1",
+    "candidateId": "sc-ea58236c92a6",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"HTTP3: In v3, HTTP/3 is no longer an experimental feature\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "The `experimental.http3` static configuration option is removed in Traefik v3.0.0; its presence prevents startup."
+    },
+    "proposals": [
+      "sp-3360cfd92a89",
+      "sp-fbc4ad6e462d"
+    ],
+    "validations": [
+      "val-00b147e9d69b",
+      "val-40159ca05952",
+      "val-85784ae8279b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:13:52Z"
+  }
+}

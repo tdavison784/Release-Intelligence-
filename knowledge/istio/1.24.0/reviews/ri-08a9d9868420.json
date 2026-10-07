@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-08a9d9868420",
+    "candidateId": "sc-4330cdde4865",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Fixed DestinationRules on same host but with different ExportTo can behave inconsistently, so stop merging the destinationRules when the exportTo attributes…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with different ExportTo attributes will no longer be merged by default, which changes the routing behavior for such configurations unless the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable is explicitly set to false.",
+        "severity": "medium"
+      },
+      "statement": "DestinationRule merging behavior for rules on the same host with different ExportTo attributes changed; merging is now disabled by default, but can be re-enabled by setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment."
+    },
+    "proposals": [
+      "sp-46e7c663777e",
+      "sp-8bd5f3672b57"
+    ],
+    "validations": [
+      "val-37a71009a8cf",
+      "val-b518ba879122",
+      "val-cf6b220d4ff0",
+      "val-ddcafe10d1d4"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:59:59Z"
+  }
+}

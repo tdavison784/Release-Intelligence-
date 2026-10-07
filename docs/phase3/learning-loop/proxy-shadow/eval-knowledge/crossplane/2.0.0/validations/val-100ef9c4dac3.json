@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-100ef9c4dac3",
+    "candidateId": "sc-d679813607b1",
+    "proposalId": "sp-221e22202ce4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "crd-to-mrd-conversion"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which installed packages (Provider/Function/Configuration package images) declare the SafeStart capability"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Packages that have the SafeStart capability will now have their CRDs converted to MRDs; the release notes state no failure, only this new conversion behavior.",
+        "remediation": "No action is stated; verify that CRD to MRD conversion is expected for any packages using the SafeStart capability.",
+        "severity": "low"
+      },
+      "statement": "Crossplane 2.0.0 adds CRD to MRD conversion to packages that have the SafeStart capability."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

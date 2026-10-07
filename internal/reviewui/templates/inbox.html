@@ -1,0 +1,104 @@
+{{template "top" "Inbox"}}
+<header class="bar sticky" id="topbar">
+  <div class="bar-row">
+    <a class="brand" href="/">Release Intelligence <span>review</span></a>
+    <div class="spacer"></div>
+    <label class="reviewer">Reviewer
+      <input type="text" id="reviewer" name="reviewer_display" value="{{.Reviewer}}" placeholder="your name (required)" autocomplete="name">
+    </label>
+    <button class="btn ghost" type="button" id="theme" aria-label="Toggle light/dark theme">◐</button>
+    <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
+  </div>
+  <nav class="tiles" aria-label="Inbox counts">
+    {{range .Tiles}}<a class="tile {{.Tone}}" href="{{.Href}}" title="{{.Hint}}"><b>{{.Count}}</b><span>{{.Label}}</span></a>{{end}}
+  </nav>
+</header>
+
+<main class="page">
+  {{template "flashes" .Flashes}}
+  <details class="filterbox" id="filterbox" {{if .Filter.Active}}open{{end}}>
+    <summary>Filters{{if .Filter.Active}} <span class="badge accent">active</span>{{end}}</summary>
+  <form class="filters" method="get" action="/" id="filters">
+    <label>Status
+      <select name="status">
+        <option value="pending" {{if .Filter.HasStatus "pending"}}selected{{end}}>pending</option>
+        <option value="needs-evidence" {{if .Filter.HasStatus "needs-evidence"}}selected{{end}}>needs evidence</option>
+        <option value="deferred" {{if .Filter.HasStatus "deferred"}}selected{{end}}>deferred</option>
+        <option value="decided" {{if .Filter.HasStatus "decided"}}selected{{end}}>decided</option>
+        <option value="all" {{if .Filter.HasStatus "all"}}selected{{end}}>all</option>
+      </select></label>
+    <label>Product <input name="product" value="{{.Filter.Product}}" placeholder="cert-manager"></label>
+    <label>Release <input name="release" value="{{.Filter.Release}}" placeholder="v1.18.0" size="8"></label>
+    <label>Subject type
+      <select name="subject"><option value="">any</option>{{range .Enums.SubjectFamilies}}<option value="{{.}}" {{if selected . $.Filter.Subject}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Question
+      <select name="question"><option value="">any</option>{{range .Enums.QuestionTypes}}<option value="{{.}}" {{if selected . $.Filter.Question}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Severity
+      <select name="severity"><option value="">any</option>{{range .Enums.Severities}}<option value="{{.}}" {{if selected . $.Filter.Severity}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Confidence
+      <select name="confidence"><option value="">any</option>{{range .Enums.Confidences}}<option value="{{.}}" {{if selected . $.Filter.Confidence}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Priority
+      <select name="priority"><option value="">any</option>{{range .Enums.Priorities}}<option value="{{.}}" {{if selected . $.Filter.Priority}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Model <input name="model" value="{{.Filter.Model}}" placeholder="claude-opus" size="10"></label>
+    <label>Models
+      <select name="disagreement"><option value="">any</option><option value="yes" {{if eq .Filter.Disagreement "yes"}}selected{{end}}>disagree</option><option value="no" {{if eq .Filter.Disagreement "no"}}selected{{end}}>agree / single</option></select></label>
+    <label>Evidence source <input name="source" value="{{.Filter.Source}}" placeholder="github.com/…" size="12"></label>
+    <label>Reviewer <input name="reviewer" value="{{.Filter.Reviewer}}" size="8"></label>
+    <button class="btn" type="submit">Filter</button>
+    {{if .Filter.Active}}<a class="btn ghost" href="/">Reset</a>{{end}}
+  </form>
+  </details>
+  <div class="toolbar">
+    <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}}{{if gt .Matches .Total}} shown{{else}} in this filter{{end}}</label>
+    <div class="spacer"></div>
+    <button class="btn ghost" type="button" id="expandall">Expand all</button>
+    <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
+  </div>
+  {{if gt .Matches .Total}}<div class="truncated" role="note">Showing the first {{.Total}} of {{.Matches}} matching items, highest priority first — narrow the filters to reach the rest. Bulk actions cover the items shown above.</div>{{end}}
+
+  {{if not .Rows}}<div class="empty"><h2>Nothing here</h2><p>No review items match this filter.</p></div>{{end}}
+  <ol class="cards" id="cards">
+  {{range .Rows}}
+    <li class="card prio-{{.Row.Item.Routing.Priority}}" data-id="{{.Row.Item.ID}}" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="{{.Row.Item.ID}}" form="bulkform" aria-label="Select {{.Row.Item.ID}}" {{if not (eq .Row.Item.Status "pending" "needs-evidence" "deferred")}}disabled{{end}}>
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-{{.Row.Item.ID}}" data-detail="/items/{{.Row.Item.ID}}/detail?return={{$.Return | urlquery}}">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">{{.Question}}</span>
+            <span class="qtext">{{.Row.Title}}</span>
+            <span class="why {{.WhyTone}}">{{.Why}}</span>
+            <span class="sug"><b>Suggested:</b> {{.Suggested}}</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge accent">{{.Row.Item.Product}}{{if .Row.Item.Release}} {{.Row.Item.Release}}{{end}}</span>
+          {{if .HasClass}}<span class="badge {{.ClassTone}}">{{.ClassLabel}}</span>{{end}}
+          <span class="badge agree-{{.Agreement}}" title="{{join ", " .Row.Models}} · {{.Row.Calls}} separate call(s)">{{.AgreeText}}</span>
+          <span class="badge prio-{{.Row.Item.Routing.Priority}}">{{.Row.Item.Routing.Priority}} priority</span>
+          <span class="badge st-{{statusTone .Row.Item.Status}}">{{label .Row.Item.Status}}</span>
+          <a class="open" href="{{.Href}}" title="Open as a page (deep link)">open ↗</a>
+        </div>
+      </div>
+      <div class="detail" id="d-{{.Row.Item.ID}}" role="region"><div class="detail-inner"></div></div>
+    </li>
+  {{end}}
+  </ol>
+</main>
+
+<form id="bulkform" class="bulkbar" method="post" action="/bulk" hidden>
+  <input type="hidden" name="started" value="{{.Started}}">
+  <input type="hidden" name="return" value="{{.Return}}">
+  <input type="hidden" name="reviewer" value="{{.Reviewer}}" id="bulk-reviewer">
+  <div class="bulk-count"><b id="bulkcount">0</b> selected</div>
+  <input type="text" name="reason" placeholder="Shared reason (required for reject / need more evidence)" class="grow">
+  <details class="labels"><summary>Labels</summary>
+    <div class="labelbox">{{range .Enums.WrongLabels}}<label class="check"><input type="checkbox" name="label" value="{{.}}"> {{.}}</label>{{end}}</div>
+  </details>
+  <button class="btn ok" name="action" value="accept" type="submit">Accept</button>
+  <button class="btn danger" name="action" value="reject" type="submit">Reject</button>
+  <button class="btn" name="action" value="need-more-evidence" type="submit">Need evidence</button>
+  <button class="btn" name="action" value="defer" type="submit">Defer</button>
+  <span class="muted small">Correct is per item only. You will confirm before anything is recorded.</span>
+</form>
+{{template "bottom"}}

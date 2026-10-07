@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-77fd1b5aca3d",
+    "reviewItemId": "ri-827e6dcac9d8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "ambient",
+          "state": "enabled"
+        }
+      },
+      "statement": "Waypoints no longer require DNSProxy to be enabled to consume auto-allocated IPs."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which configuration shows that an environment uses waypoints, relies on auto-allocated IPs, and has DNSProxy disabled (the release note names no key, flag or env var for any of these)"
+        }
+      },
+      "statement": "Waypoints no longer require DNSProxy to be enabled in order to consume auto-allocated IPs. Exposed environments are those that use waypoints with auto-allocated IPs while DNSProxy is not enabled. The evidence names no configuration key for any of these, so exposure cannot be decided statically."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:4f9ed597d7048377ad473a7248bccbaec1801da15cb61fbbcbac9b7207998802",
+      "inputEvidence": [
+        "ev-3cf1259609e1"
+      ],
+      "generatedAt": "2026-10-02T13:02:00.079Z",
+      "callId": "caceed0a-95aa-4db9-9ca3-4cbaf4a04230"
+    },
+    "reason": "[ev-3cf1259609e1] says only that waypoints needed DNSProxy enabled in order to consume auto-allocated IPs. So the affected environments are those that use waypoints with auto-allocated IPs and do not have DNSProxy enabled. The proposed feature-gate \"ambient\" condition is not mentioned anywhere in the evidence and is too broad: it would flag every ambient environment, including ones that use no waypoints, no auto-allocation, or that already enable DNSProxy. The evidence names no configuration key, flag or env var for waypoints, auto-allocation or DNSProxy, so the exposure can only be stated as undecidable until that is known.",
+    "startedAt": "2026-10-02T13:01:47.991Z",
+    "decidedAt": "2026-10-02T13:02:00.079Z",
+    "resultingFact": "vf-05b1bdaa86f1"
+  }
+}

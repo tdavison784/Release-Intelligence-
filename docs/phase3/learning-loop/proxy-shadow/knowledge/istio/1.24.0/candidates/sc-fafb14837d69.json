@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-fafb14837d69",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-f378aa1353ac",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-9a4dacdd517b"
+          ],
+          "statementKeys": [
+            "sk-6c819ca3729f"
+          ],
+          "changeIds": [
+            "chg-f378aa1353ac"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "Fixed an issue when using mirror policies with waypoints",
+    "evidence": [
+      {
+        "id": "ev-9413f4b657a9",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/waypoint-mirror.yaml",
+        "locator": "waypoint-mirror.yaml L6-L7",
+        "excerpt": "- |\n    **Fixed** an issue when using mirror policies with waypoints.",
+        "contentDigest": "sha256:bf822736e3972a187811c0e146a039c9435f7bdcfec9843ff214da3acd804a2d",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-9aa6075f3dd7",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52713",
+        "locator": "title and description",
+        "excerpt": "issue: Waypoints do not mirror traffic [closed; labels area/networking, area/ambient]\n### Is this the right place to submit this?\n\n- [X] This is not a security vulnerability or a crashing bug\n- [X] This is not a question about how to use Istio\n\n### Bug Description\n\nConfiguring request mirroring is working on the side of a workload with the sidecar proxy, however, when you apply the same to a waypoint traffic is NOT mirrored. Below are sample configuration that I used. FYI, mirroring doesn't work with Istio API either (VirtualServices).\n\n```\napiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRo…",
+        "contentDigest": "sha256:b2f9a2233b8abb48b42b05b4e434cacbf5ad737d990507469da9da4293e75462",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-f1ecb696fc19",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52713",
+        "locator": "description (part 2)",
+        "excerpt": "metadata:\nname: reviews\nnamespace: httpbin\nspec:\nparentRefs:\n- group: \"\"\nkind: Service\nname: reviews\nnamespace: bookinfo-backends\nport: 9080\nrules:\n- backendRefs:\n- group: \"\"\nkind: Service\nname: reviews-v1\nnamespace: bookinfo-backends\nport: 9080\nweight: 80\n- group: \"\"\nkind: Service\nname: reviews-v2\nnamespace: bookinfo-backends\nport: 9080\nweight: 20\nfilters:\n- type: RequestMirror\nrequestMirror:\nbackendRef:\nname: echo-service\nport: 80\nnamespace: bookinfo-backends\n---\napiVersion: gateway.networking.k8s.io/v1\nkind: …",
+        "contentDigest": "sha256:b2f9a2233b8abb48b42b05b4e434cacbf5ad737d990507469da9da4293e75462",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

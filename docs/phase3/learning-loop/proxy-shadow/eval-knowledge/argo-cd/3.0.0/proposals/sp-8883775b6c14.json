@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8883775b6c14",
+    "candidateId": "sc-7f1597f2f593",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "cluster-error-message"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"full cluster object\"",
+        "after": "\"cluster URL\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which cluster operations fail at runtime and surface the changed error message"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When a cluster-related error occurs, the error message now returns only the cluster URL rather than the full cluster object, so anything reading those messages no longer sees the full cluster object.",
+        "remediation": "No operator action is required; only the content of cluster-related error messages changes.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes cluster-related error messages to return the cluster URL instead of the full cluster object."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-cfdd6703f154"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:979d59fe0a4c33e12b1665f64524accc7d5d848b0978db329b67f83bb49f2609",
+      "inputEvidence": [
+        "ev-cfdd6703f154"
+      ],
+      "generatedAt": "2026-10-03T07:28:26Z",
+      "callId": "2a3bdd0a-beaf-4eb1-ab22-79b781040a36"
+    }
+  }
+}

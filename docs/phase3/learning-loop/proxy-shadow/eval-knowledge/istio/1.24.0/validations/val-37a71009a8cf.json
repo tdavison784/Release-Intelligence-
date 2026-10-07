@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-37a71009a8cf",
+    "candidateId": "sc-4330cdde4865",
+    "proposalId": "sp-46e7c663777e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.exportTo",
+              "state": "set"
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with totally different exportTo values are no longer merged, so effective traffic policy may differ from before.",
+        "remediation": "Set ENABLE_ENHANCED_DESTINATIONRULE_MERGE to false in the pilot deployment to restore the previous merging.",
+        "severity": "low"
+      },
+      "statement": "Istio pilot no longer merges DestinationRules for the same host when their exportTo attributes are totally different; setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment restores the old merging."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

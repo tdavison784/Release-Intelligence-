@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-109813501955",
+    "candidateId": "sc-d3c98f01eaa1",
+    "proposalId": "sp-38803d67d920",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "image.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "ImagePolicy"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta2\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "kind": "ImagePolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions",
+                  "state": "has-token",
+                  "values": [
+                    "v1beta2"
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "imagepolicies.image.toolkit.fluxcd.io"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, existing ImagePolicy objects stay stored as v1beta2 and status.storedVersions still lists v1beta2; the storage version migration (re-writing all objects and updating status.storedVersions) must be run before a later release removes v1beta2.",
+        "remediation": "Run the storage version migration: re-write all ImagePolicy objects and update status.storedVersions of the imagepolicies.image.toolkit.fluxcd.io CRD before upgrading to the later release that removes v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of imagepolicies.image.toolkit.fluxcd.io changes from v1beta2 to v1, so existing ImagePolicy objects stay stored as v1beta2 until a storage version migration rewrites them and status.storedVersions is updated, which must happen before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-af1ea862f51b",
+    "reviewItemId": "ri-c0dca4eb70cb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Inbound requests that the service has not seen/processed are automatically retried. The default behavior changes to enable retry policy; this can be reverted by setting ENABLE_INBOUND_RETRY_POLICY to false.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 adds an automatic retry policy for inbound requests that the service has not processed, enabled by default and controllable via the ENABLE_INBOUND_RETRY_POLICY environment variable."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:1abc712a6ae2f103ed23a04688e4076eb700ddc23c35934f0724648ff0c7407a",
+      "inputEvidence": [
+        "ev-e09c6cbd06dc"
+      ],
+      "generatedAt": "2026-10-02T15:56:38.59Z",
+      "callId": "382333fb-0394-4b26-bba6-63fcacbc6cc2"
+    },
+    "reason": "[ev-e09c6cbd06dc] says 1.24.0 adds a retry policy for inbound requests that the service has not seen or processed. It also says this \"can be reverted\" by setting ENABLE_INBOUND_RETRY_POLICY to false, so the policy is on by default. Inbound traffic keeps working, only with automatic retries, and the evidence says nothing fails, is rejected or must be migrated. That makes behavior-change (review) the right consequence, not a mandatory-work kind.",
+    "startedAt": "2026-10-02T15:56:32.352Z",
+    "decidedAt": "2026-10-02T15:56:38.59Z"
+  }
+}

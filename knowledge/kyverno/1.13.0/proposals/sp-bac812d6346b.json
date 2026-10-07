@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bac812d6346b",
+    "candidateId": "sc-370b61e2abdd",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2alpha1",
+        "kind": "GlobalContextEntry",
+        "path": "spec.apiCall.retryLimit"
+      },
+      "change": {
+        "type": "added",
+        "after": "3"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "kyverno.io",
+          "version": "v2alpha1",
+          "kind": "GlobalContextEntry"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "version": "v2alpha1",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry apiCall data fetches that initially fail are now retried up to 3 times by default (configurable via the new optional spec.apiCall.retryLimit field), so external-data retrieval behaves differently on transient failures; existing resources remain valid since the field is optional.",
+        "remediation": "No action required; optionally set spec.apiCall.retryLimit to tune the number of retries.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional spec.apiCall.retryLimit field (integer, minimum 1, default 3) to the v2alpha1 GlobalContextEntry CRD, providing built-in retry logic so that apiCall requests that initially fail are retried 3 times by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a6027c299092",
+      "ev-eb301d25a0b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:52e67e9370dfd822931669c9411ec9371ed3a2c08fac86d99fcbed4f76a29bae",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7"
+      ],
+      "generatedAt": "2026-10-02T16:11:27Z",
+      "callId": "848210ba-5237-42a0-b3eb-f772be0fea6e"
+    }
+  }
+}

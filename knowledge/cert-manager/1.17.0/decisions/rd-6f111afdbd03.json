@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f111afdbd03",
+    "reviewItemId": "ri-031df7704f47",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:55487cdc2b1909574733f26b953a6c403e4f98c68b2328c65a0f7f8109375f17",
+      "inputEvidence": [
+        "ev-fe0fca386a7a",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-02T12:45:13.518Z",
+      "callId": "b7db0d42-9d52-4517-835f-feb2a0ec3abf"
+    },
+    "reason": "[ev-fe0fca386a7a] calls `webhook.extraEnv` a new optional Helm value and does not say anything fails or changes by default. That would fit kind \"none\". But the semvalidate.values check refuted \"added\": it found `webhook.extraEnv` already in the v1.16.0 values file [ev-fdc96eee87bf] as well as in v1.17.0 [ev-717ddb6f40cd]. If the key existed before but the templates did not use it, environments that already set it would now get those environment variables, which would be a behavior-change rather than \"none\". Deciding this needs the actual `webhook.extraEnv` entries and webhook Deployment templates from both releases, because the excerpts shown contain only \"# +docs:section=Global\".",
+    "startedAt": "2026-10-02T12:44:58.631Z",
+    "decidedAt": "2026-10-02T12:45:13.518Z"
+  }
+}

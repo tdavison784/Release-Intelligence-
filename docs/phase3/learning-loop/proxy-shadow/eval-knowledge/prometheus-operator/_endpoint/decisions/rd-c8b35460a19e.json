@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c8b35460a19e",
+    "reviewItemId": "ri-ed4ea051a074",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "statement": "Between 0.85.0 and 0.86.2, the monitoring.coreos.com/v1alpha1 ScrapeConfig CRD gains a read-only status field (status.bindings[] with conditions). The operator only fills it in when the StatusForConfigurationResources feature gate is enabled."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:7ae4b7c900ba1b924c7c14933b1468178bf411450a175aadfc1d2eccc0478fc5",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456"
+      ],
+      "generatedAt": "2026-10-03T12:37:45.772Z",
+      "callId": "1c640697-d2d9-4007-9342-5c6e1ea1c9fe",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f0cfd8ade456] shows the read-only `status` property being added to the v1alpha1 schema of scrapeconfigs.monitoring.coreos.com between 0.85.0 and 0.86.2. The operator fills it in only when the StatusForConfigurationResources feature gate is enabled. Because this is a purely additive field with no stated failure, the only environments that touch the subject are those using monitoring.coreos.com/v1alpha1 ScrapeConfig. That is what the proposed gvk-in-use exposure says, and it matches the consensus-verified fact vf-8c5608352b22.",
+    "startedAt": "2026-10-03T12:37:35.901Z",
+    "decidedAt": "2026-10-03T12:37:45.772Z"
+  }
+}

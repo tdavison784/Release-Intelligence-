@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-57d8f67ccb99",
+    "candidateId": "sc-87d161c59ee8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.12.0"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.8.0"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether the ingress-nginx strict-validate-path-type configuration option is enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "With ingress-nginx strict-validate-path-type enabled (the default in ingress-nginx >= 1.12.0), the validate.nginx.ingress.kubernetes.io admission webhook rejects the HTTP01 challenge Ingress because its path contains a dot. The controller then logs 'Error presenting challenge: admission webhook ... denied the request', and the HTTP01 challenge cannot be solved.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 creates ACME HTTP01 challenge Ingress routes with PathType Exact. ingress-nginx's strict-validate-path-type option (available from 1.8.0 and on by default from 1.12.0) rejects these routes, so presenting the challenge fails with an admission webhook denial."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-110340e9c914"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2fd5c127e0f27435deacbf975f18c39cdefebbba4b4c9458bacb17d0f0746568",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-02T06:11:32Z",
+      "callId": "ea459966-a9bb-4569-a5cf-88ea5fafecbb"
+    }
+  }
+}

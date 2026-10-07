@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-777a90cbd0d6",
+    "candidateId": "sc-46a0844196f4",
+    "proposalId": "sp-80c54890e1c2",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "TCPServersTransport"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Traefik v3 adds TCPServersTransport support, so users of the KubernetesCRD provider must update RBAC and CRD manifests."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:gvk",
+        "detail": "traefik.io/v1alpha1 TCPServersTransport is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:added",
+        "detail": "the API version is not in the snapshots"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

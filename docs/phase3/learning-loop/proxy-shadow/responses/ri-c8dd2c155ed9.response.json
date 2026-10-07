@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c8dd2c155ed9",
+  "promptDigest": "sha256:f88164d533fcf4d13044fa23b565b868129b9cbc515010d12e8a6fef500d2f55",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a9e7112b-b2f6-4417-af3b-3b5e9889b9da",
+  "startedAt": "2026-10-03T02:30:31.366Z",
+  "decidedAt": "2026-10-03T02:30:45.865Z",
+  "durationMs": 13486,
+  "costUSD": 0.0621164,
+  "output": {
+    "action": "correct",
+    "reason": "The validators, working from the v0.15.0 and v0.16.0 CRD bundles [ev-9889c9b8706d] [ev-e08924afdc47], confirm that the v1beta1 ClusterExternalSecret schema dropped \"v1\" from the enum for spec.externalSecretSpec.target.template.engineVersion. That means exposure should be v1beta1 ClusterExternalSecrets whose field equals v1, and the proposed resource/field shape is right. The problem is the value: it is written as \"\\\"v1\\\"\", a string that contains quote characters. A real field holding v1 would never match that, so the condition would miss every exposed environment. The fix is to compare against the plain literal v1.",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The external-secrets.io/v1beta1 ClusterExternalSecret schema no longer allows the enum value v1 for spec.externalSecretSpec.target.template.engineVersion. Environments with a v1beta1 ClusterExternalSecret whose engineVersion equals v1 are exposed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.externalSecretSpec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "v1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

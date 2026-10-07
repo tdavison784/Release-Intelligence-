@@ -38,6 +38,7 @@
       ]
     },
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "ConsensusScope": {"type": "string", "enum": ["cross-model", "same-model"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -178,7 +179,19 @@
       },
       "additionalProperties": false
     },
-    "EnvironmentDimension": {"type": "string", "enum": ["values", "manifests", "crds", "images", "cluster-version"]},
+    "EnvironmentDimension": {
+      "type": "string",
+      "enum": [
+        "values",
+        "manifests",
+        "crds",
+        "images",
+        "cluster-version",
+        "products",
+        "from-version",
+        "render"
+      ]
+    },
     "Evidence": {
       "type": "object",
       "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
@@ -207,6 +220,7 @@
           "$ref": "#/$defs/Representation",
           "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
         },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
         "retrievedAt": {
           "type": "string",
           "format": "date-time",
@@ -230,7 +244,11 @@
         "advisory",
         "repo-file",
         "local-file",
-        "input"
+        "input",
+        "rendered-diff",
+        "rendered",
+        "linked-pr",
+        "linked-commit"
       ]
     },
     "ImpactCheck": {
@@ -260,7 +278,8 @@
           "type": "array",
           "items": {"$ref": "#/$defs/EvidenceID"},
           "description": "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests."
-        }
+        },
+        "render": {"$ref": "#/$defs/RenderCheck"}
       },
       "additionalProperties": false
     },
@@ -284,6 +303,8 @@
         "crds": {"type": "integer"},
         "manifestPaths": {"type": "integer"},
         "images": {"type": "integer"},
+        "products": {"type": "array", "items": {"$ref": "#/$defs/ImpactProduct"}},
+        "productsHealth": {"type": "string"},
         "warnings": {"type": "array", "items": {"type": "string"}}
       },
       "additionalProperties": false
@@ -367,7 +388,13 @@
         "suggestedClassification": {
           "$ref": "#/$defs/ImpactClass",
           "description": "The AI layer's review suggestion for an unknown finding (\"review-required\" only; never action-required). The deterministic classification is not overwritten: the finding stays as the join produced it and the suggestion is carried by a plausibly-applies enrichment with full AI provenance."
-        }
+        },
+        "unknownReason": {
+          "$ref": "#/$defs/UnknownReason",
+          "description": "Why an unknown finding is unknown: release-knowledge-gap, environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap or semantic-ambiguity (docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only."
+        },
+        "knowledge": {"$ref": "#/$defs/KnowledgeRef"},
+        "refinedFrom": {"$ref": "#/$defs/Refinement"}
       },
       "additionalProperties": false,
       "allOf": [
@@ -458,6 +485,182 @@
               "matches": {"maxItems": 0}
             }
           }
+        },
+        {
+          "if": {"required": ["unknownReason"]},
+          "then": {
+            "properties": {
+              "classification": {"enum": ["unknown"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {"enum": ["unknown"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {"required": ["unknownReason"]}
+        },
+        {
+          "if": {
+            "allOf": [
+              {
+                "properties": {
+                  "classification": {"enum": ["not-affected"]}
+                },
+                "required": ["classification"]
+              },
+              {"required": ["knowledge"]}
+            ]
+          },
+          "then": {
+            "properties": {
+              "knowledge": {"properties": {"verification": {"enum": ["deterministic", "human"]}}}
+            }
+          }
+        },
+        {
+          "if": {
+            "allOf": [
+              {
+                "properties": {
+                  "classification": {"enum": ["action-required"]}
+                },
+                "required": ["classification"]
+              },
+              {"required": ["knowledge"]}
+            ]
+          },
+          "then": {
+            "properties": {
+              "knowledge": {
+                "anyOf": [
+                  {"properties": {"verification": {"enum": ["deterministic", "human"]}}},
+                  {
+                    "properties": {
+                      "verification": {"const": "consensus"},
+                      "consensusAction": {"const": true}
+                    },
+                    "required": ["consensusAction"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:values-default-applies"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["review-required"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"enum": ["impact:values-default-no-effect", "impact:values-default-unrendered"]}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:render-target-rejects"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["action-required"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:values-set-no-effect"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:image-render-unchanged"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {"required": ["refinedFrom"]},
+          "then": {
+            "allOf": [
+              {
+                "properties": {
+                  "rule": {"const": "impact:knowledge-refined"}
+                },
+                "required": ["rule"]
+              },
+              {
+                "properties": {
+                  "classification": {"enum": ["action-required", "review-required", "informational"]}
+                },
+                "required": ["classification"]
+              },
+              {
+                "required": ["knowledge"],
+                "properties": {
+                  "knowledge": {"properties": {"verification": {"enum": ["deterministic", "human"]}}}
+                }
+              }
+            ]
+          },
+          "else": {
+            "properties": {
+              "rule": {"not": {"const": "impact:knowledge-refined"}}
+            },
+            "required": ["rule"]
+          }
+        },
+        {
+          "if": {"required": ["knowledge"]},
+          "then": {"properties": {"rule": {"pattern": "^impact:knowledge-"}}, "required": ["rule"]},
+          "else": {
+            "properties": {
+              "rule": {"not": {"pattern": "^impact:knowledge-"}}
+            },
+            "required": ["rule"]
+          }
         }
       ]
     },
@@ -492,8 +695,30 @@
         "crd-version",
         "manifest-field",
         "image",
-        "kubernetes"
+        "kubernetes",
+        "product",
+        "text-line",
+        "reference",
+        "from-version",
+        "absence",
+        "rendered-change"
       ]
+    },
+    "ImpactProduct": {
+      "type": "object",
+      "required": ["product", "source"],
+      "properties": {
+        "product": {"type": "string"},
+        "catalog": {"type": "boolean"},
+        "version": {"type": "string"},
+        "rawVersion": {"type": "string"},
+        "versionOf": {"type": "string"},
+        "source": {"type": "string"},
+        "note": {"type": "string"},
+        "conflict": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "ImpactReport": {
       "type": "object",
@@ -592,6 +817,21 @@
       },
       "additionalProperties": false
     },
+    "KnowledgeRef": {
+      "type": "object",
+      "description": "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Only deterministic/human facts yield not-affected; action-required needs a deterministic/human fact or a consensus fact with consensusAction (PO-2, rendered \"ACTION REQUIRED · model consensus\"); proxy facts yield neither.",
+      "required": ["fact", "verification"],
+      "properties": {
+        "fact": {"type": "string"},
+        "verification": {"$ref": "#/$defs/VerificationLevel"},
+        "consensus": {"$ref": "#/$defs/ConsensusScope"},
+        "consensusAction": {"type": "boolean"},
+        "audited": {"type": "boolean"},
+        "statement": {"type": "string"},
+        "subject": {"$ref": "#/$defs/Subject"}
+      },
+      "additionalProperties": false
+    },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
     "ProductID": {"type": "string"},
     "ProductRef": {
@@ -650,10 +890,66 @@
           "type": "string",
           "format": "date-time",
           "description": "AI only: when the output was generated."
-        }
+        },
+        "callId": {"type": "string"},
+        "provider": {"type": "string"}
       },
       "additionalProperties": false
     },
+    "Refinement": {
+      "type": "object",
+      "required": ["classification", "rule"],
+      "properties": {
+        "classification": {"$ref": "#/$defs/ImpactClass"},
+        "rule": {"type": "string"},
+        "severity": {"$ref": "#/$defs/ImpactSeverity"}
+      },
+      "additionalProperties": false
+    },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderCheck": {
+      "type": "object",
+      "required": ["outcome", "key"],
+      "properties": {
+        "outcome": {"$ref": "#/$defs/RenderOutcome"},
+        "key": {"type": "string"},
+        "counterfactual": {"type": "boolean"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderOutcome": {"type": "string", "enum": ["attributable-change", "no-attributable-change", "unavailable"]},
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
     "Representation": {
       "type": "string",
       "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
@@ -666,6 +962,53 @@
         "registry-manifest"
       ]
     },
+    "Subject": {
+      "type": "object",
+      "required": ["family", "product"],
+      "properties": {
+        "family": {"$ref": "#/$defs/SubjectFamily"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "component": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SubjectFamily": {
+      "type": "string",
+      "enum": [
+        "crd-field",
+        "helm-value",
+        "gvk",
+        "feature-gate",
+        "image",
+        "config-key",
+        "rbac-permission",
+        "cli-flag",
+        "env-var",
+        "compatibility-boundary",
+        "api-endpoint",
+        "protocol-behavior",
+        "terraform-attribute",
+        "product-relationship",
+        "migration"
+      ]
+    },
+    "UnknownReason": {
+      "type": "string",
+      "enum": [
+        "release-knowledge-gap",
+        "environment-visibility-gap",
+        "cross-product-context-gap",
+        "runtime-behavior-gap",
+        "evidence-gap",
+        "semantic-ambiguity"
+      ]
+    },
+    "VerificationLevel": {"type": "string", "enum": ["deterministic", "human", "consensus", "proxy"]},
     "Version": {
       "type": "object",
       "description": "A release version of a product.",

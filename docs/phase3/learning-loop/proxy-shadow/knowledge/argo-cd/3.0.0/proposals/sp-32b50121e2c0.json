@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-32b50121e2c0",
+    "candidateId": "sc-9f8a80378b1b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions.ignoreDifferencesOnResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "ignoreDifferencesOnResourceUpdates"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Changes to fields covered by system-level ignoreDifferences customizations no longer trigger a diff/refresh for the application, unlike the v2 default.",
+        "remediation": "Set ignoreDifferencesOnResourceUpdates to false in argocd-cm resource.compareoptions to preserve v2 behavior.",
+        "severity": "low"
+      },
+      "statement": "In 3.0 the system-level ignoreDifferences customizations also apply to ignoring resource updates by default (ignoreDifferencesOnResourceUpdates now true); set it to false in argocd-cm resource.compareoptions to keep the v2 behavior."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-63314a5fae82"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f6ad021ec0e897077a680be644b9aa0a24a80d761bf99a9e89f611b096a65559",
+      "inputEvidence": [
+        "ev-63314a5fae82"
+      ],
+      "generatedAt": "2026-10-02T06:03:10Z",
+      "callId": "09758f31-cad1-4b10-88a3-eed933fbdb43"
+    }
+  }
+}

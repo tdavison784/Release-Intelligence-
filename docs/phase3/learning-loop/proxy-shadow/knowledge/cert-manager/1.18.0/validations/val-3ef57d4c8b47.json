@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3ef57d4c8b47",
+    "candidateId": "sc-bca80be32605",
+    "proposalId": "sp-da600953f755",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "cert-manager",
+        "name": "GET /metrics",
+        "component": "controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "component": "controller",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "New optional metrics are available for monitoring certificate lifecycles; existing deployments are unaffected."
+      },
+      "statement": "Two new Prometheus metrics for certificate issuance and expiration times are now available: certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:api-endpoint/added",
+        "detail": "no canonical exposure condition for api-endpoint added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-003f2299c9ba",
+  "promptDigest": "sha256:3df3dff1521dddd4cf841adb3c58211c10e8effe4154a3294a3227cda036ef5c",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f5f2f678-6fb1-44d1-8024-d596159386eb",
+  "startedAt": "2026-10-03T12:42:10.329Z",
+  "decidedAt": "2026-10-03T12:42:22.068Z",
+  "durationMs": 10835,
+  "costUSD": 0.077612,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-43cc6d389282] says the flag and its YAML setting are removed, and the index store now comes from `object_store` in `period_config`. So the configured value is no longer honoured, and setting-ignored is the right kind. [ev-7d2769e8c602] says what that means: if the value doesn't match `object_store`, you lose access to the index for those periods until the index tables are moved or copied there. If it matches, you only need to remove the deleted option. None of this evidence says the flag is \"ignored or rejected during startup\", so I replaced the proposed statement with the evidence's own terms.",
+    "citations": [
+      "ev-43cc6d389282",
+      "ev-7d2769e8c602",
+      "ev-3d75e7ce1720"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes `-boltdb.shipper.shared-store` (and its YAML setting), so its value is no longer honoured. `object_store` in `period_config` now sets the index store. Where the old value didn't match `object_store`, the index for those periods can no longer be queried until it is moved or copied.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "severity": "high",
+        "statement": "The removed `-boltdb.shipper.shared-store` setting is no longer honoured, and `object_store` in `period_config` decides where the index is stored. If the old value differed from `object_store` for any boltdb-shipper period, you lose access to the index for those periods.",
+        "remediation": "Remove the deleted option from your configuration. If its value differed from `object_store` for any boltdb-shipper period, move or copy those index tables to the store set in `object_store` so the indexes can be queried again."
+      }
+    }
+  }
+}

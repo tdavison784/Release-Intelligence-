@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-515cc6711c18",
+    "product": "flux",
+    "candidates": [
+      "sc-b4d0f27d94a8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "image.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "ImageRepository"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "flux",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ImageRepository"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta2\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "imagerepositories.image.toolkit.fluxcd.io"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Existing ImageRepository objects stay stored as v1beta2 until rewritten and keep working in this release. They will break when a later release removes v1beta2 unless storage is migrated to v1 first.",
+        "remediation": "Before upgrading to a release that removes v1beta2, run a storage version migration for imagerepositories.image.toolkit.fluxcd.io (re-write all ImageRepository objects) and update status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "Storage version of `imagerepositories.image.toolkit.fluxcd.io` changes v1beta2 → v1"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-5a8237c33923",
+          "val-fed517a33875"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-5a8237c33923",
+          "val-fed517a33875"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-21ba3b75f0b3",
+          "sp-68318e0e42a0",
+          "sp-ea4b5b98408d"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-950ffb257e53"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "status": "active",
+    "supersedes": [
+      "vf-d2375ef40b74"
+    ],
+    "createdAt": "2026-10-03T16:58:31.379Z"
+  }
+}

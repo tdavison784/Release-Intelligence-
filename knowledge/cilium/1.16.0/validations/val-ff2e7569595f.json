@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ff2e7569595f",
+    "candidateId": "sc-08185c9e1f20",
+    "proposalId": "sp-a78020ddec01",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "cluster-name-validation"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the configured Cilium cluster name violates the 32-char lowercase alphanumeric/'-' rule"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "upgradeCompatibility",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "A cluster name not meeting the rules can currently be tolerated by setting upgradeCompatibility to v1.15 or earlier, but validation will be strictly enforced starting from Cilium v1.17.",
+        "remediation": "Rename the cluster to at most 32 lowercase alphanumeric characters or '-', starting and ending with an alphanumeric character.",
+        "severity": "low"
+      },
+      "statement": "Cilium cluster name is now validated (max 32 lowercase alphanumerics or '-', starting and ending alphanumeric); bypass via upgradeCompatibility v1.15 or earlier, strictly enforced from v1.17."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/validation-tightened",
+        "detail": "no canonical exposure condition for protocol-behavior validation-tightened"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

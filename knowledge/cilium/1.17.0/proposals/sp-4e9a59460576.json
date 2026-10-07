@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4e9a59460576",
+    "candidateId": "sc-26c0f5e20104",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "hubble.tls.auto.certValidityDuration"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "1095",
+        "after": "365"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments relying on the default now get Hubble auto-generated certificates valid for 365 days instead of 1095 days.",
+        "severity": "low"
+      },
+      "statement": "The default of Helm value hubble.tls.auto.certValidityDuration was lowered from 1095 to 365 days, so auto-generated Hubble TLS certificates get a shorter validity unless the value is set explicitly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0debb0d83ac2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e2eddcd2ffc4a79323fe7fe2088c18905e60062b4eafece562225ff50768a337",
+      "inputEvidence": [
+        "ev-0debb0d83ac2",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:06:16Z",
+      "callId": "97fd710c-1822-4aed-a4dd-00e1178ae1ad"
+    }
+  }
+}

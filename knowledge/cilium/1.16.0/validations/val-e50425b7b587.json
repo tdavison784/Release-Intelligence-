@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e50425b7b587",
+    "candidateId": "sc-d96cb2efaa3c",
+    "proposalId": "sp-6b0fb34707df",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cilium",
+        "group": "gateway.networking.k8s.io",
+        "version": "v1alpha2",
+        "kind": "GRPCRoute"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "cilium",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1",
+          "kind": "GRPCRoute"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1alpha2",
+          "kind": "GRPCRoute"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing GRPCRoute resources in v1alpha2 must be migrated to v1; the v1alpha2 API version is no longer served.",
+        "remediation": "Install the new GRPCRoute CRD and migrate all v1alpha2 GRPCRoute resources to v1 version before or during the upgrade.",
+        "severity": "high"
+      },
+      "statement": "Gateway API GRPCRoute is moved from v1alpha2 to v1, requiring new CRD installation and migration of existing resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

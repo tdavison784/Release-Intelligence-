@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7f003fd63943",
+  "promptDigest": "sha256:3ab73f7ba52c70bf3cabeb71e4d738265236936c74c22d4e933016e161ea89dc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5d2cb134-f442-4524-a59e-6ce247bf512a",
+  "startedAt": "2026-10-02T13:01:08.552Z",
+  "decidedAt": "2026-10-02T13:01:19.732Z",
+  "durationMs": 10182,
+  "costUSD": 0.061107999999999996,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c3da9e3c81f1] says the timestamp metrics recording a negative number for expired certificates \"was never the actual behavior\" and that only the docs were updated to match what the metrics already did. Upgrading to 1.24.0 therefore changes nothing at runtime, so behavior-change (\"works, but differently\") overstates it. The release note's advice to check the signs of rootCertExpirySeconds and certChainExpirySeconds is a docs-level clarification and applies the same before and after the upgrade, so the consequence is none (informational).",
+    "citations": [
+      "ev-c3da9e3c81f1"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "In Istio 1.24.0, the docs for rootCertExpiryTimestamp and certChainExpiryTimestamp were corrected: these metrics never recorded a negative number for expired certificates or certificate chains, and the docs now say so. Runtime metric behavior does not change. To detect expiry, users should check the signs of rootCertExpirySeconds and certChainExpirySeconds.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "No runtime change: rootCertExpiryTimestamp and certChainExpiryTimestamp never recorded negative values for expired certificates, and only the docs were corrected. Anything relying on negative timestamp values already did not work before the upgrade; to detect expiry, check the signs of rootCertExpirySeconds and certChainExpirySeconds.",
+        "severity": "low",
+        "remediation": "If dashboards or alerts look for negative values in rootCertExpiryTimestamp or certChainExpiryTimestamp, switch them to check the signs of rootCertExpirySeconds and certChainExpirySeconds."
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ]
+  }
+}

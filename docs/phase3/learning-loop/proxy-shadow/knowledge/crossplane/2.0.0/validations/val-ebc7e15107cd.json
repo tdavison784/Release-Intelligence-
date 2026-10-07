@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ebc7e15107cd",
+    "candidateId": "sc-c0a922697192",
+    "proposalId": "sp-1f7863a27b0e",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "crossplane",
+        "group": "core.crossplane.io",
+        "version": "v1alpha1",
+        "kind": "EnvironmentConfig"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "core.crossplane.io",
+          "version": "v1alpha1",
+          "kind": "EnvironmentConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Existing EnvironmentConfig resources using the v1alpha1 API version will be rejected and cannot be used in Crossplane 2.0.0.",
+        "severity": "high"
+      },
+      "statement": "The v1alpha1 EnvironmentConfigs API version is no longer served in Crossplane 2.0.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:gvk",
+        "detail": "core.crossplane.io/v1alpha1 EnvironmentConfig is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:removed",
+        "detail": "the API version is not in the snapshots"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

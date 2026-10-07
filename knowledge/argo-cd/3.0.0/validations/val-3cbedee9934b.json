@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3cbedee9934b",
+    "candidateId": "sc-9f8a80378b1b",
+    "proposalId": "sp-0240a67a7907",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions.ignoreDifferencesOnResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "^\\s*ignoreDifferencesOnResourceUpdates\\s*:"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "^\\s*ignoreDifferencesOnResourceUpdates\\s*:\\s*false"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Unless ignoreDifferencesOnResourceUpdates is set, changes to fields covered by system-level ignoreDifferences customizations no longer cause a diff to be generated for the application.",
+        "remediation": "To keep the v2 behavior, set ignoreDifferencesOnResourceUpdates: false under resource.compareoptions in the argocd-cm ConfigMap.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD 3.0, `ignoreDifferencesOnResourceUpdates` in the `resource.compareoptions` key of argocd-cm now defaults to true, so system-level `ignoreDifferences` customizations also cause resource updates to be ignored; setting it to false restores the v2 default."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/default-changed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/default-changed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

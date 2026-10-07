@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ba9305875d23",
+    "candidateId": "sc-1c657b7315de",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ServiceAccount annotation keys and values are now run through the built-in Helm tpl function, so any {{ ... }} template expressions they contain are rendered by Helm instead of being written as literal text.",
+        "remediation": "Verify that any ServiceAccount annotation keys or values containing {{ ... }} expressions are intended to be rendered as Helm templates rather than emitted literally.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 runs the built-in Helm tpl function on ServiceAccount annotation keys and values, so the Helm chart's ServiceAccount annotations now support Helm templating, to aid with workload identity configuration."
+    },
+    "proposals": [
+      "sp-58f27799f21c",
+      "sp-a8be23a70415",
+      "sp-f4690bced5c3",
+      "sp-fa11be4a5b5d"
+    ],
+    "validations": [
+      "val-0fbfcd099de6",
+      "val-444ebc51c536",
+      "val-59c95ac56878",
+      "val-7c002a8b4b20",
+      "val-9b2ba7db52e0",
+      "val-9da9371e1333",
+      "val-f309210d6bb5",
+      "val-fb7e8fba1828"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:31:59Z"
+  }
+}

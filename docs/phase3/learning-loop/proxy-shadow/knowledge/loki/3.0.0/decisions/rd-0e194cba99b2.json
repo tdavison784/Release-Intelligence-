@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0e194cba99b2",
+    "reviewItemId": "ri-d66838cb2d4d",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2a9621461de1b48e6101bf95e0acd651523bc3b5919b609af7195973e5a3cae6",
+      "inputEvidence": [
+        "ev-15a875cd9a39",
+        "ev-43cc6d389282",
+        "ev-3d75e7ce1720",
+        "ev-0483f04624d3",
+        "ev-7d2769e8c602",
+        "ev-af5a4b32c120",
+        "ev-528edacf0d9e",
+        "ev-19d4f84472e6",
+        "ev-76a46c52508c",
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-03T17:03:05.097Z",
+      "callId": "0456ff6b-3168-42a3-a7a6-7c351ffc865e",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-43cc6d389282] says the CLI flags \"and the corresponding YAML settings\" are removed, and [ev-0483f04624d3] and [ev-af5a4b32c120] say an environment is affected if it has configured `-tsdb.shipper.shared-store` \"or its YAML setting\". The proposed exposure checks only for the CLI flag being set. That is too narrow, because it misses environments that set this value in the Loki YAML config. The evidence never gives the YAML key's full path (which shipper block it sits in) or the config file or ConfigMap data key, so I can't write a correct predicate for it from the evidence alone. A correction needs the YAML setting's path, for example the configuration reference or a rendered config diff.",
+    "startedAt": "2026-10-03T17:02:50.01Z",
+    "decidedAt": "2026-10-03T17:03:05.097Z"
+  }
+}

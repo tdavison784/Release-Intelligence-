@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dead8157960a",
+    "candidateId": "sc-9f5f6eee4754",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "empty-services",
+        "component": "nomad"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Nomad service catalog contains empty services that Traefik's nomad provider watches (the provider's enablement keys and the presence of empty services are not stated by the evidence)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using the Nomad provider with empty services now have those services allowed by the provider, so its behavior differs from the previous release and is worth verifying; the evidence does not state what happened to empty services before.",
+        "remediation": "After upgrading, verify that empty Nomad services are discovered and handled as intended.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0's Nomad provider now allows empty services."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9b56ac76a332"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:32815636bb6e2eafd5e09e614f35c9730cbe98d92e7f449f596f58638798497e",
+      "inputEvidence": [
+        "ev-9b56ac76a332"
+      ],
+      "generatedAt": "2026-10-03T07:44:15Z",
+      "callId": "6f7bdfcc-694b-42da-8972-aff07c4203ab"
+    }
+  }
+}

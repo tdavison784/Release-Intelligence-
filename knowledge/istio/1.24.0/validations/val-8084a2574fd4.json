@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8084a2574fd4",
+    "candidateId": "sc-1548d09a50a2",
+    "proposalId": "sp-172db47d8360",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "default-retry-policy-503"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The default retry policy no longer retries requests on 503 responses; set EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false to restore the old behavior (temporary flag).",
+        "remediation": "Verify workloads relying on default 503 retries; set EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY=false if needed, knowing the flag will be removed.",
+        "severity": "low"
+      },
+      "statement": "Istio's default retry policy no longer retries on 503; setting EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false reverts this, and the flag will be removed in future releases."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

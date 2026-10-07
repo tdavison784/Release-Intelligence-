@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1274403334f5",
+    "candidateId": "sc-8fd875d322fd",
+    "proposalId": "sp-44cd770f6749",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-clusterissuer-resource-namespace"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme",
+                  "state": "set"
+                }
+              ],
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, ACME ClusterIssuers look for resources needed for issuance (e.g. credential Secrets) in the correct namespace again, which fixes the v1.16.0 regression.",
+        "remediation": "No action is required. Check that ACME ClusterIssuer issuance works after upgrading from v1.16.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes a regression introduced in v1.16.0 (also fixed in v1.16.1) where the ACME ClusterIssuer looked in the wrong namespace for resources it needs for issuance, such as credential Secrets."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

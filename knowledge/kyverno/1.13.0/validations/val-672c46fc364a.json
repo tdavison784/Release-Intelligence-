@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-672c46fc364a",
+    "candidateId": "sc-e1a977f0036f",
+    "proposalId": "sp-0e4c60eb8737",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/*"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "rbac-permission",
+          "product": "kyverno",
+          "name": "*/view"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "undecidable",
+                      "reason": "runtime-behavior-gap",
+                      "needed": "whether mutate/generate policies attempt to view custom resources at runtime"
+                    },
+                    {
+                      "op": "undecidable",
+                      "reason": "runtime-behavior-gap",
+                      "needed": "whether policy reports are generated and require resource viewing"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers may fail to view custom resources when executing mutate and generate policies, and policy reports may not be generated if they depend on resource visibility permissions that were previously granted by wildcard permissions.",
+        "remediation": "Review Kyverno RBAC roles and ClusterRoles to ensure the replacement view role binding grants sufficient permissions for your policies and reports, or add custom ClusterRole bindings with the necessary permissions.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes wildcard view RBAC permissions and replaces them with a role binding to the default Kubernetes view role, which may reduce visibility for controllers operating on custom resources and policy reports."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:rbac-permission/removed",
+        "detail": "no canonical exposure condition for rbac-permission removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

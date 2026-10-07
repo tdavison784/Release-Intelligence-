@@ -34,6 +34,17 @@ type Runner struct {
 	// expectations remain the case's; env-conditional expectations may
 	// legitimately miss under the recorded inputs.
 	EnrichedEnv *env.Inputs
+	// Knowledge, when set, evaluates verified facts in the join (pipelines
+	// implementing KnowledgePipeline); nil runs the knowledge-free join, so
+	// results are unchanged without -knowledge.
+	Knowledge *KnowledgeRun
+}
+
+// KnowledgeRun is the knowledge a run evaluates: the facts and the minimum
+// verification level they must reach.
+type KnowledgeRun struct {
+	Facts           []domain.VerifiedFact
+	MinVerification domain.VerificationLevel
 }
 
 // EnrichingPipeline is implemented by pipelines that can attach the AI
@@ -113,7 +124,7 @@ func environmentInputs(c *Case) (env.Inputs, error) {
 }
 
 // DirInputs builds env.Inputs from a directory laid out like a case
-// environment (values.yaml, manifests/, crds/, images.txt).
+// environment (values.yaml, manifests/, crds/, images.txt, inventory.yaml).
 func DirInputs(dir, kubernetes string) (env.Inputs, error) {
 	var in env.Inputs
 	in.KubernetesVersion = kubernetes
@@ -129,6 +140,8 @@ func DirInputs(dir, kubernetes string) (env.Inputs, error) {
 			in.Manifests = append(in.Manifests, p)
 		case "crds":
 			in.CRDs = append(in.CRDs, p)
+		case "inventory.yaml":
+			in.Inventory = p
 		case "images.txt":
 			imgs, err := readImagesFile(p)
 			if err != nil {
@@ -165,7 +178,11 @@ func readImagesFile(path string) ([]string, error) {
 func (r *Runner) Run(ctx context.Context, cases []*Case) []EntryResult {
 	out := make([]EntryResult, 0, len(cases))
 	for _, c := range cases {
-		out = append(out, r.runCase(ctx, c))
+		res := r.runCase(ctx, c)
+		if c.TransferOf != "" {
+			res.environmentOnly() // transfer.go: the base entry scores the edge
+		}
+		out = append(out, res)
 	}
 	return out
 }
@@ -174,7 +191,7 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 	edge, err := r.Pipeline.Upgrade(ctx, c.Product, c.From, c.To)
 	if err != nil {
 		res := ScoreEntry(c, nil, nil, fmt.Errorf("upgrade: %w", err))
-		applyAdjudications(&res, r.Adjudications[c.ID])
+		applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 		return res
 	}
 	var report *domain.ImpactReport
@@ -182,7 +199,7 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 		inputs, ierr := environmentInputs(c)
 		if ierr != nil {
 			res := ScoreEntry(c, edge, nil, nil) // note: env load failures surface as env misses
-			applyAdjudications(&res, r.Adjudications[c.ID])
+			applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 			return res
 		}
 		if r.Enriched {
@@ -194,17 +211,25 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 			} else {
 				err = fmt.Errorf("pipeline does not support -enriched (no EnrichingPipeline)")
 			}
+		} else if r.Knowledge != nil {
+			if kp, ok := r.Pipeline.(KnowledgePipeline); ok {
+				report, err = kp.ImpactWithKnowledge(ctx, c.Product, c.From, c.To, inputs, r.Knowledge.Facts, r.Knowledge.MinVerification)
+			} else {
+				err = fmt.Errorf("pipeline does not support -knowledge (no KnowledgePipeline)")
+			}
 		} else {
 			report, err = r.Pipeline.Impact(ctx, c.Product, c.From, c.To, inputs)
 		}
 		if err != nil {
-			// The edge still counts; the join failure is recorded as a nil
-			// report (all environment expectations miss).
-			report = nil
+			// The edge still counts; the join failure is an execution failure
+			// (pipelineFailures) and every environment expectation misses.
+			res := ScoreEntry(c, edge, nil, fmt.Errorf("impact: %w", err))
+			applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
+			return res
 		}
 	}
 	res := ScoreEntry(c, edge, report, nil)
-	applyAdjudications(&res, r.Adjudications[c.ID])
+	applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 	return res
 }
 
@@ -292,6 +317,12 @@ type Aggregate struct {
 	FindingsExpected      int     `json:"findingsExpected"`
 	FindingsFound         int     `json:"findingsFound"`
 	FindingsFP            int     `json:"findingsFalsePositives"`
+	// UnknownHonesty (reported, never gated): undecided links answered
+	// honestly / undecided links — vacuous if nothing is decided, so it is
+	// always shown next to ApplicabilityAccuracy and ImpactAccuracy.
+	UndecidedLinks  int     `json:"undecidedLinks"`
+	UndecidedHonest int     `json:"undecidedHonest"`
+	UnknownHonesty  float64 `json:"unknownHonesty"`
 }
 
 // Aggregate computes the pooled numbers over the entry results.
@@ -360,6 +391,8 @@ func AggregateResults(rs []EntryResult) Aggregate {
 			a.FindingsExpected += r.Env.FindingsExpected
 			a.FindingsFound += r.Env.FindingsFound
 			a.FindingsFP += r.Env.FindingsFP
+			a.UndecidedLinks += r.Env.UndecidedLinks
+			a.UndecidedHonest += r.Env.UndecidedHonest
 			a.UnknownFindings += r.Metrics.UnknownFindings
 			a.FindingsTotal += r.Env.Findings
 		}
@@ -372,6 +405,7 @@ func AggregateResults(rs []EntryResult) Aggregate {
 	a.Precision = Metrics{MatchedChanges: a.MatchedChanges, FalsePositives: a.FalsePositives}.Precision()
 	a.LabeledPrecision = AdjudicationStats{DatasetTrue: a.AdjudicatedTrue, DatasetFalse: a.AdjudicatedFalse}.LabeledPrecision()
 	a.ImpactAccuracy = EnvMetrics{ImpactLinks: a.ImpactLinks, ImpactLinksHit: a.ImpactLinksHit}.ImpactAccuracy()
+	a.UnknownHonesty = ratio(a.UndecidedLinks, a.UndecidedHonest)
 	a.ApplicabilityAccuracy = applicabilityAccuracy(a.ImpactLinks, a.ImpactLinksHit, a.NotAffectedLinks, a.NotAffectedViolations)
 	a.ClassificationAccuracy = ratio(a.ClassificationScored, classificationMatched)
 	a.FalseActionRate = ratio(a.ActionFindings, a.FalseActionFindings)

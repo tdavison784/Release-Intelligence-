@@ -1,0 +1,437 @@
+package knowledge
+
+// CONTRACT NOTE: the exported API in this file is the contract between the
+// learning-loop lanes (DESIGN.md §9). Change it only through the `contract`
+// owner.
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+)
+
+// --- errors ---------------------------------------------------------------------
+
+var (
+	// ErrNotFound: no record with that id.
+	ErrNotFound = errors.New("knowledge: not found")
+	// ErrConflict: a record with the same id but different content exists and
+	// the kind is immutable (candidates, proposals, validations, decisions), or
+	// a mutable kind changed a field other than its mutable ones.
+	ErrConflict = errors.New("knowledge: conflicting record")
+	// ErrOrphan: a record references a candidate (or item) the store does not
+	// hold; candidates are written first.
+	ErrOrphan = errors.New("knowledge: referenced record missing")
+)
+
+// --- the store ---------------------------------------------------------------------
+
+// Store is the durable knowledge store (default implementation: committed
+// JSON files under knowledge/, DESIGN.md §8). Writes are idempotent by
+// content-derived id. Every record is validated (KnowledgeRecord.Validate,
+// and ValidateFactRecords for facts) before it is written; an invalid record
+// is never stored.
+type Store interface {
+	// Put writes one record. Re-putting an identical record is a no-op.
+	// Review items may change only Status; facts only Status, Anchors and
+	// Candidates; every other kind is immutable (ErrConflict).
+	Put(ctx context.Context, rec domain.KnowledgeRecord) error
+	// Get returns one record by id (ErrNotFound).
+	Get(ctx context.Context, id string) (domain.KnowledgeRecord, error)
+	// Load returns the records matching q, grouped by kind.
+	Load(ctx context.Context, q Query) (*Snapshot, error)
+}
+
+// Query filters a Load. Empty fields match everything.
+type Query struct {
+	Product  domain.ProductID
+	Releases []string
+	// Kinds restricts the record kinds loaded (empty = all).
+	Kinds []domain.RecordKind
+	// FactStatus restricts facts (empty = all statuses).
+	FactStatus []domain.FactStatus
+	// MinVerification keeps only facts at or above the level
+	// (domain.VerificationLevel.AtLeast); "" keeps all.
+	MinVerification domain.VerificationLevel
+}
+
+// Snapshot is an in-memory view of (part of) the store: what consumers read.
+// The applicability lane takes Facts from it and hands them to impact.Build;
+// the dashboard, routing, dataset export and metrics read the rest.
+type Snapshot struct {
+	Candidates  []domain.SemanticCandidate
+	Proposals   []domain.SemanticProposal
+	Validations []domain.ValidationResult
+	ReviewItems []domain.ReviewItem
+	Decisions   []domain.ReviewDecision
+	Facts       []domain.VerifiedFact
+}
+
+// --- proposals (semantic lane) -------------------------------------------------------
+
+// Proposer is ONE model behind ONE provider. It is the only seam between the
+// loop and model providers: Claude, GLM via an Anthropic-compatible gateway,
+// or a typed "System One" model are all Proposers returning the same typed
+// answer. A Proposer never sees eval expectations and never receives Helm
+// values (only key paths).
+type Proposer interface {
+	// Provider names who serves the model ("anthropic", "zai", …).
+	Provider() string
+	// Model is the requested model id; the answering model and version come
+	// back in the proposal's provenance.
+	Model() string
+	// Propose answers one task for one candidate. The result must pass
+	// SemanticProposal.ValidateAgainst(req.Candidate). A transport failure,
+	// an undecodable answer or a schema violation is an error (recorded as a
+	// ProposalFailure by the caller), never an empty proposal; an honest
+	// abstention is a proposal with Undetermined aspects.
+	Propose(ctx context.Context, req ProposalRequest) (*domain.SemanticProposal, error)
+}
+
+// ProposalRequest is one task for one candidate.
+type ProposalRequest struct {
+	Candidate domain.SemanticCandidate
+	Task      domain.ProposalTask
+	// Context is bounded, deterministic artifact context the prompt may show
+	// (key paths and schema paths of the target release, never values or
+	// environment data).
+	Context ProposalContext
+	// KnownFacts are candidate facts for the duplicate task (id + statement).
+	KnownFacts []FactSummary
+}
+
+// ProposalContext is release-level artifact context for a prompt.
+type ProposalContext struct {
+	ValuesKeys  []string // flattened Helm values key paths of the target release
+	SchemaPaths []string // CRD schema paths of the target release ("Certificate: spec.privateKey.rotationPolicy")
+	GVKs        []string // group/version/kind served by the target release
+	Images      []string // image repositories of the target release
+	Truncated   bool     // the lists were capped; the prompt says so
+	// ConfigSources are where the product reads its configuration (the
+	// catalog's upstream-documented configSources), so a proposer can write
+	// a decidable predicate on that channel instead of `undecidable`
+	// (LOOP-DIAGNOSIS-2 L1). Release-level data, never environment data.
+	// CONTRACT-CHANGE(semantic): additive field for L1; the proxy reviewer
+	// may show the same hints.
+	ConfigSources []ConfigSourceHint
+}
+
+// ConfigSourceHint is one configuration channel of a product, as a prompt
+// shows it (catalog.ConfigSource without its citations).
+type ConfigSourceHint struct {
+	Channel    string // configmap-file | config-file | helm-values | cli-flags | env-vars | feature-gates | custom-resource
+	Component  string
+	Summary    string
+	File       string // config file / ConfigMap data key
+	Format     string
+	ConfigMap  string
+	ValuesPath string
+	Flag       string
+	Group      string // custom-resource
+	Kind       string // custom-resource
+}
+
+// FactSummary identifies a known fact for duplicate detection.
+type FactSummary struct {
+	ID        string
+	Subject   string // Subject.Key()
+	Statement string
+}
+
+// ProposalFailure records a proposal attempt that produced no proposal.
+type ProposalFailure struct {
+	CandidateID  string
+	Task         domain.ProposalTask
+	Provider     string
+	Model        string
+	PromptDigest string
+	Reason       string
+	At           time.Time
+}
+
+// --- validation (validate lane) -------------------------------------------------------
+
+// Validator proves aspects of an assertion from ingested artifacts only (no
+// fetches at validation time): helm-values, crd-schema, compatibility, image,
+// rendered-diff, canonical-applicability (DESIGN.md §2.3).
+type Validator interface {
+	// Name is the producer string, component@vN (ValidationResult.Validator).
+	Name() string
+	// Validate returns zero or more results (zero: not applicable to this
+	// assertion's family). Every result must pass ValidationResult.Validate.
+	Validate(ctx context.Context, in ValidationInput) ([]domain.ValidationResult, error)
+}
+
+// ValidationInput is one assertion to check against the release artifacts.
+type ValidationInput struct {
+	Candidate domain.SemanticCandidate
+	// ProposalID names the proposal whose assertion is checked ("" when the
+	// assertion is a reviewer's correction or a canonical construction).
+	ProposalID string
+	Assertion  domain.SemanticAssertion
+	// From and To are the ingested endpoint releases (snapshots: values,
+	// CRDs, images, compatibility); Edge is the edge the candidate came from.
+	From, To *domain.Release
+	Edge     *domain.UpgradeEdge
+	Now      time.Time
+}
+
+// --- routing, the queue, decisions (knowledge lane; dashboard consumes) -----------------
+
+// RouteResult is what routing concluded for a candidate (DESIGN.md §6):
+// either a deterministic fact (every aspect confirmed) or review items for
+// the open aspects (possibly several question types), never both.
+type RouteResult struct {
+	Fact        *domain.VerifiedFact
+	ReviewItems []domain.ReviewItem
+	// Agreement is the per-aspect agreement among distinct models that
+	// routing based its signals on.
+	Agreement []AspectAgreement
+	// Policy names the auto-approval policy that completed Fact ("" when every
+	// aspect was validator-confirmed). Signals records that decision (policy,
+	// auto-approved, consensus scope, consensus-action) for the audit item.
+	// CONTRACT-CHANGE(knowledge): additive.
+	Policy  string
+	Signals []domain.RoutingSignal
+}
+
+// AspectAgreement summarises how the proposals of distinct models compare on
+// one aspect.
+type AspectAgreement struct {
+	Aspect domain.Aspect
+	// Groups maps an aspect digest to the proposal ids asserting it; one
+	// group with ≥2 distinct models = agreement, ≥2 groups = disagreement.
+	Groups       map[string][]string
+	Undetermined []string // proposal ids that abstained on the aspect
+}
+
+// Queue is the review queue: what the dashboard reads and writes.
+type Queue interface {
+	// Inbox lists review items matching f with the G7 counts.
+	Inbox(ctx context.Context, f InboxFilter) (*Inbox, error)
+	// Item returns everything the item page shows (G8).
+	Item(ctx context.Context, id string) (*ReviewContext, error)
+	// Decide records decisions — one per item; several when submitted as one
+	// bulk action (same BatchID) — updates item status, and mints or updates
+	// facts for accept/correct (and adds anchors for duplicate decisions).
+	// All decisions of a call are validated before any is written.
+	Decide(ctx context.Context, ds []domain.ReviewDecision) ([]DecisionOutcome, error)
+}
+
+// InboxFilter holds the G7 filters. Empty fields match everything.
+type InboxFilter struct {
+	Product      domain.ProductID
+	Release      string
+	SubjectType  domain.SubjectFamily
+	QuestionType domain.QuestionType
+	Severity     domain.ImpactSeverity
+	Confidence   domain.Confidence
+	Model        string
+	Disagreement *bool
+	Source       string // upstream evidence URI substring
+	Status       []domain.ReviewStatus
+	Reviewer     string
+	// Priority filters on the item's route priority (high | normal | low).
+	// CONTRACT-CHANGE(dashboard): additive.
+	Priority domain.ReviewPriority
+	Limit    int
+}
+
+// Inbox is the dashboard's landing view.
+type Inbox struct {
+	Counts InboxCounts
+	Items  []InboxRow
+	// Matches is how many items matched the filter before Limit truncated
+	// Items (== len(Items) when nothing was cut). CONTRACT-CHANGE(dashboard):
+	// the review UI shows "first N of M" so a large inbox is never silently
+	// partial, and select-all is honest about covering only what is shown.
+	Matches int
+}
+
+// InboxCounts are the G7 counters.
+type InboxCounts struct {
+	Pending                int
+	ModelDisagreement      int
+	NeedsSemanticMapping   int
+	ApplicabilityQuestions int
+	NeedsMoreEvidence      int
+	Deferred               int
+	// HighPriority counts pending items of route priority high
+	// (CONTRACT-CHANGE(dashboard): additive). Like the other counters it is
+	// independent of the status and priority filters.
+	HighPriority int
+}
+
+// InboxRow is one line of the inbox.
+type InboxRow struct {
+	Item         domain.ReviewItem
+	Title        string // candidate title
+	Disagreement bool
+	Models       []string
+	// Calls is the number of separate model calls (distinct provenance call
+	// ids) behind the item's proposals (PO-1: consensus = separate calls).
+	// CONTRACT-CHANGE(dashboard): additive; the review UI labels agreement by it.
+	Calls int
+}
+
+// ReviewContext is everything one review decision needs (G8).
+type ReviewContext struct {
+	Item        domain.ReviewItem
+	Candidate   domain.SemanticCandidate // product/release, upstream statement(s), upstream evidence
+	Proposals   []domain.SemanticProposal
+	Validations []domain.ValidationResult
+	Agreement   []AspectAgreement
+	// Related are earlier decisions and facts about the same subject key or
+	// the same candidate members.
+	RelatedDecisions []domain.ReviewDecision
+	RelatedFacts     []domain.VerifiedFact
+	// SuggestedExposedClass pre-fills the consequence form
+	// (ConsequenceKind.ExposedClass of the proposed kind).
+	SuggestedExposedClass domain.ImpactClass
+	// Environment is the optional illustration recorded on the item.
+	Environment *domain.EnvironmentContext
+	// Render is the render evidence of the item's candidate (RENDER-MISSION
+	// R18): what the release-level (chart-default) renders show for the
+	// asserted change, from the rendered-diff validations. Nil when no render
+	// validated the candidate. CONTRACT-CHANGE(render).
+	Render *RenderEvidence
+}
+
+// RenderEvidence is the rendered delta shown next to a review item.
+// CONTRACT-CHANGE(render).
+type RenderEvidence struct {
+	// Validation is the rendered-diff validation the evidence comes from
+	// (the most decisive one: contradicted > confirmed > not visible > not
+	// applicable).
+	Validation string
+	Relation   domain.RenderRelation
+	// Explanation is the validation's check detail (what each render shows).
+	Explanation string
+	// Evidence are the rendered-diff records (release scope only: chart
+	// defaults; Evidence.Render carries object, path, before/after).
+	Evidence []domain.Evidence
+}
+
+// DecisionOutcome reports what one decision produced.
+type DecisionOutcome struct {
+	Decision domain.ReviewDecision
+	// Fact is the minted or updated fact (accept/correct/duplicate), nil
+	// when the decision verified only some aspects and others remain open.
+	Fact *domain.VerifiedFact
+	// OpenAspects lists aspects that still need verification for the
+	// candidate's fact.
+	OpenAspects []domain.Aspect
+	// FollowUps are review items created because aspects remain open.
+	FollowUps []domain.ReviewItem
+	// Conflict, when set, says the candidate's verified aspects cannot compose
+	// into a valid fact (a conflict between trusted aspects). The decision is
+	// recorded and no fact is built. CONTRACT-CHANGE(knowledge): additive.
+	Conflict string
+}
+
+// --- metrics (knowledge lane; DESIGN.md §7) ---------------------------------------------
+
+// LoopMetrics are the loop's measured outcomes (G4, G15, G24).
+type LoopMetrics struct {
+	Agreement   []AgreementMetric
+	Models      []ModelMetric
+	Review      ReviewMetrics
+	Facts       FactMetrics
+	GeneratedAt time.Time
+}
+
+// AgreementMetric is agreement per aspect and task across distinct models.
+type AgreementMetric struct {
+	Aspect     domain.Aspect
+	Task       domain.ProposalTask
+	Candidates int     // candidates with ≥2 models answering the aspect
+	Agreement  float64 // share of those where all asserting models agree
+	// Pairwise maps "modelA|modelB" to their agreement rate.
+	Pairwise map[string]float64
+}
+
+// ModelMetric is model-to-human accuracy for one model (G15).
+type ModelMetric struct {
+	Provider, Model      string
+	Proposals            int
+	AcceptedAsIs         int
+	AcceptedCorrected    int
+	Rejected             int
+	InsufficientEvidence int
+	Abstentions          int
+	// FalsePositive/FalseNegative per aspect vs final facts.
+	FalsePositive map[domain.Aspect]int
+	FalseNegative map[domain.Aspect]int
+	// GroundedCitations is the share of citations the accepted fact also uses.
+	GroundedCitations float64
+	// ByTask splits the counters above by proposal task (the same fields,
+	// per task). CONTRACT-CHANGE(knowledge): DESIGN §7 asks for metrics per
+	// model and per task.
+	ByTask map[domain.ProposalTask]ModelTaskMetric
+	// ProseEdits counts prose-only (improved-statement) corrections of this
+	// model's accepted value: for typed accuracy they are accepted as is.
+	// CONTRACT-CHANGE(knowledge): DESIGN §7 (contract-5) reports them separately.
+	ProseEdits int
+}
+
+// ModelTaskMetric is one model's counters for one task.
+type ModelTaskMetric struct {
+	Proposals            int
+	AcceptedAsIs         int
+	AcceptedCorrected    int
+	Rejected             int
+	InsufficientEvidence int
+	Abstentions          int
+}
+
+// ReviewMetrics is review cost (G24). Batch (bulk) and individual decisions
+// are reported separately.
+type ReviewMetrics struct {
+	Items              int
+	ItemsPerRelease    map[string]int
+	ItemsPerProduct    map[string]int
+	ItemsPerQuestion   map[domain.QuestionType]int
+	Individual         DecisionStats
+	Batch              DecisionStats
+	RepeatPatternRate  float64
+	AutoValidationRate float64
+}
+
+// DecisionStats are the decision rates and timing of one decision mode.
+type DecisionStats struct {
+	Decisions                   int
+	Accept, Correct, Reject     int
+	NeedMoreEvidence, Defer     int
+	MedianDuration, P90Duration time.Duration
+	Batches                     int // batch mode only: distinct BatchIDs
+	// ProseEdits are prose-only (improved-statement) corrections. They are NOT
+	// counted in Correct: the typed assertion was right. CONTRACT-CHANGE(knowledge).
+	ProseEdits int
+}
+
+// FactMetrics count the knowledge itself.
+type FactMetrics struct {
+	Active         int
+	ByLevel        map[domain.VerificationLevel]int
+	ByFamily       map[domain.SubjectFamily]int
+	Retracted      int
+	AnchorsPerFact float64 // restatements remembered per fact
+	// Auto-approval audit (RENDER-MISSION R19): facts minted with no human or
+	// proxy decision, how many were sampled into human review, and how often
+	// the human verdict agreed with them — overall and per subject family.
+	AutoApproved            int
+	AutoApprovedAudited     int
+	AutoApprovalAgreement   float64
+	AutoApprovalAgreementBy map[domain.SubjectFamily]float64
+	// Consensus reliability (PO-1): human-audit agreement of consensus-verified
+	// aspects by scope — is same-model agreement (correlated errors) as
+	// reliable as cross-model agreement?
+	ConsensusAgreementByScope map[domain.ConsensusScope]float64
+	// Consensus ACTION (PO-2): facts allowed to produce ACTION REQUIRED by
+	// model consensus; every one is sampled into human review.
+	ConsensusAction          int
+	ConsensusActionAudited   int
+	ConsensusActionAgreement float64
+}

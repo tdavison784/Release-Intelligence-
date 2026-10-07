@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-af46b2470745",
+    "candidateId": "sc-3bc79c41ad32",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v2",
+        "kind": "CompositeResourceDefinition",
+        "path": "spec.scope"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"Namespaced\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Composite resources become namespaced by default in v2; existing v1 XRDs continue to work in LegacyCluster mode but v2 XRDs do not support claims.",
+        "severity": "high"
+      },
+      "statement": "Crossplane v2 makes composite resources (XRs) namespaced by default, with a new `scope` field on CompositeResourceDefinition (XRD) that defaults to `Namespaced` in v2 API and XR machinery moved under `spec.crossplane`; v1-style XRDs in `LegacyCluster` mode remain backward compatible without claims support in v2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4b260bcbe57b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4a487924c831576b84aafa83e4d9996409d250e7965b83d5520cc2e19fcb3928",
+      "inputEvidence": [
+        "ev-4b260bcbe57b"
+      ],
+      "generatedAt": "2026-10-02T20:58:01Z",
+      "callId": "313bb763-1010-4734-be2d-6d4803a327d2"
+    }
+  }
+}

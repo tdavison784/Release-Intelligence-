@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4b400b7458f1",
+    "candidateId": "sc-76bef5a9be45",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "dnsProxy.endpointMaxIpPerHostname"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "50",
+        "after": "1000"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The maximum number of IPs cached per hostname for DNS proxy operations increases from 50 to 1000 by default, enabling improved scaling of toFQDNs policies and better handling of domains returning large numbers of IPs with short TTLs.",
+        "severity": "low"
+      },
+      "statement": "The default value of the Helm value `dnsProxy.endpointMaxIpPerHostname` has been increased from 50 to 1000 in Cilium 1.17.0."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-f13e15b06a08"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:baa73fdf9949563597a6209e8a237b4dee7b26e75f8d88a0ce4b3ee5cf7898f8",
+      "inputEvidence": [
+        "ev-f13e15b06a08",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T05:55:40Z",
+      "callId": "5c0a6dec-f1ba-4173-8f56-f14766f7417b"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b606d49fd3c0",
+  "promptDigest": "sha256:26f3ec8faa384478ef80330fe127d9799bd0f7fd60d2e17636f231a9cd6335a8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "49ce3081-be41-42b1-9db9-3f070519de64",
+  "startedAt": "2026-10-03T02:28:55.154Z",
+  "decidedAt": "2026-10-03T02:29:08.229Z",
+  "durationMs": 12201,
+  "costUSD": 0.067568,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-0307de1909a6] says the `istioctl manifest diff` and `istioctl manifest profile diff` commands are removed and points users to generic YAML comparison tools. Removing a command is not a configured value that stops being honoured, so setting-ignored is the wrong kind. The direct effect is that any script or workflow calling these commands breaks, which fits workload-failure. Severity should be low rather than high because these are optional comparison commands with a stated replacement. The evidence does not quote the exact error, so the statement only says the commands are no longer available.",
+    "citations": [
+      "ev-0307de1909a6"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 removes the `istioctl manifest diff` and `istioctl manifest profile diff` commands. Scripts or workflows that call them break and must switch to generic YAML comparison tools.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "severity": "low",
+        "statement": "After the upgrade, istioctl no longer has the `manifest diff` and `manifest profile diff` commands. Any script, CI job or workflow that calls them breaks.",
+        "remediation": "Replace calls to `istioctl manifest diff` / `istioctl manifest profile diff` with a generic YAML comparison tool, as the release note recommends."
+      }
+    }
+  }
+}

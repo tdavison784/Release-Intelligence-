@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d8ac644814b5",
+  "promptDigest": "sha256:1a24b2cb966da7c2bcba345aa6c447093aaa76fc3f352938fd1234a252a088f4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9f37451f-c530-4395-9f93-1ebea6ad6753",
+  "startedAt": "2026-10-02T15:59:31.618Z",
+  "decidedAt": "2026-10-02T15:59:41.831Z",
+  "durationMs": 9191,
+  "costUSD": 0.08977199999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-cb004eb264ca] says only that `istioctl experimental injector list` gained namespace filtering. That is a new, optional capability of a client-side subcommand, not a container argument of Istio's workloads. The proposed cli-flag leaf (named \"experimental injector list\" and set) treats a subcommand as a workload flag, so it misdescribes the environment state. No manifest, Helm value or workload configuration shows whether operators run this istioctl subcommand, so exposure can only be stated as undecidable.",
+    "citations": [
+      "ev-cb004eb264ca"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 adds optional namespace filtering to the client-side `istioctl experimental injector list` command. No workload configuration shows who is exposed: it depends only on whether operators run this subcommand, which static environment inputs do not carry.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run the client-side `istioctl experimental injector list` command, which no cluster manifest or Helm value records"
+        }
+      }
+    }
+  }
+}

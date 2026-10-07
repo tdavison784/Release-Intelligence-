@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0bba7f8a4e4f",
+    "candidateId": "sc-67c82540420a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "argo-cd",
+        "name": "dex-sso-subject"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"RBAC subject derived from Dex `sub` claim\"",
+        "after": "\"RBAC subject derived from Dex `federated_claims.user_id` claim\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies referencing Dex `sub` claim values will no longer grant access after upgrade to 3.0.0 unless updated to use `federated_claims.user_id` values instead.",
+        "remediation": "Decode current `sub` claims in RBAC policies to obtain the corresponding `user_id` value, and update policy subjects to reference the new `federated_claims.user_id` claim. Upgrade CLI clients to obtain tokens with the new claims.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 changes the Dex SSO RBAC subject from the `sub` claim to `federated_claims.user_id`; existing RBAC policies using the `sub` claim value must be updated to use the new claim value."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Applicability depends on whether RBAC policies in the environment actually reference Dex `sub` claim values, which cannot be determined from static release artifacts; requires inspection of live AppProject/RBAC policy configuration",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0b6150153730"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e21958d6ab6bc0d8a8bd038c986cb52f052e5ceb3316380a72b6abfccc1f00d4",
+      "inputEvidence": [
+        "ev-0b6150153730"
+      ],
+      "generatedAt": "2026-10-02T06:05:19Z",
+      "callId": "f85b5594-aa5e-4250-9b48-69fd6eebd4cd"
+    }
+  }
+}

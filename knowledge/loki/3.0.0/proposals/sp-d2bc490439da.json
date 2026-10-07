@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d2bc490439da",
+    "candidateId": "sc-80712a7649c4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "storage.tsdb_shipper"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "storage.using_boltdb_shipper",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The tsdb_shipper storage configuration is now properly generated in environments with using_boltdb_shipper set to false, correcting previous behavior where it was omitted.",
+        "severity": "medium"
+      },
+      "statement": "Loki now generates tsdb_shipper storage configuration even when using_boltdb_shipper is set to false."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-cc5436d99c53"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:812ff1d67489b4e566edcb58638463ac2b02bc6791b5c4da2270af5bc3a3c8de",
+      "inputEvidence": [
+        "ev-cc5436d99c53"
+      ],
+      "generatedAt": "2026-10-02T20:59:03Z",
+      "callId": "e2f1b3ae-d435-48a1-ac71-9e7ae0153cf7"
+    }
+  }
+}

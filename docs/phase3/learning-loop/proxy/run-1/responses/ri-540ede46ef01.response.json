@@ -1,0 +1,65 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-540ede46ef01",
+  "promptDigest": "sha256:67762c6b61ff980697d1b14a0d3e6d3cadb0961342b90dc28fdd5897640ccbf2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9d61c74b-2b9f-43e8-bff3-41c5f074c3ec",
+  "startedAt": "2026-10-02T12:55:05.016Z",
+  "decidedAt": "2026-10-02T12:55:18.778Z",
+  "durationMs": 12435,
+  "costUSD": 0.11699999999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e24f6e836412] says an ApplicationSet is affected when `applyNestedSelectors` is unset or `false` and it has one or more nested selectors. Its log check (`ignoring nested selector`) and remediation describe the same condition. The proposal gets the meaning right, but it puts an `undecidable` leaf inside a `resource` node. Only field, text-line and ref leaves may sit inside a resource, so I keep the field test under the ApplicationSet resource and move `undecidable` up to an `all` at environment level. The evidence still does not give the field path of nested selectors, so that part stays undecidable.",
+    "citations": [
+      "ev-e24f6e836412"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0 the ApplicationSet `spec.applyNestedSelectors` field is ignored and nested selectors are always applied. Affected environments have an ApplicationSet with `applyNestedSelectors` unset or false that also has one or more nested selectors. Whether nested selectors are present cannot be checked statically, because the evidence does not give their field path.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "group": "argoproj.io",
+              "kind": "ApplicationSet",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "equals",
+                      "values": [
+                        false,
+                        "false"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether that ApplicationSet has one or more nested selectors (the evidence does not give the field path of nested selectors); the 'ignoring nested selector' line in the ApplicationSet controller logs is the upstream detection signal"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

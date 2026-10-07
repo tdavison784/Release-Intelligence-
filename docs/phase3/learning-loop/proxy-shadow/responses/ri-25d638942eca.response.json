@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-25d638942eca",
+  "promptDigest": "sha256:222b9d2218f501d7d7b84197a6aae4ed3a2f85eaca8bddd049372fbabd14c0d3",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "28386b6a-f0f5-4075-b5c4-ca30a391a06e",
+  "startedAt": "2026-10-03T02:13:44.854Z",
+  "decidedAt": "2026-10-03T02:13:54.437Z",
+  "durationMs": 8704,
+  "costUSD": 0.0749108,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e2735e756cbf] shows the CronOperation CRD exists only in the v2.0.0 CRD set, and the validators confirm it is new. The only exposure the change text names is environments that manage CRDs separately from the release. Nothing in the evidence mentions a Kubernetes version, so the proposed condition kubernetes >=1.16.0 has no support. It is also far too broad, because it flags almost every cluster. No static input shows whether CRDs are managed outside the release, so exposure should be undecidable rather than a guessed predicate.",
+    "citations": [
+      "ev-e2735e756cbf"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "A new CRD cronoperations.ops.crossplane.io (CronOperation, ops.crossplane.io/v1alpha1) is added. Only environments that manage CRDs separately from the release are exposed, and this cannot be seen from static inputs.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment installs/manages Crossplane CRDs separately from the release (so the new CronOperation CRD would not be applied automatically)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-c65afa49e865",
+    "candidateId": "sc-c5b9ccdb0bc8",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Ambient upgrade with DNS proxy: For upgrades to Istio 1.24.0 when using Ambient mode, with `cni.ambient.dnsCapture=true` configured, users will need to follow…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "DNS resolution failures occur if the required upgrade steps are not followed in order (Upgrade Istio CNI, restart workloads enrolled in ambient mode, upgrade Ztunnel). Workload restarts can resolve the issue if it occurs, but the ordered procedure must be followed during upgrade.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 with Ambient mode and cni.ambient.dnsCapture=true configured requires following a specific ordered upgrade procedure: upgrade Istio CNI, restart ambient-enrolled workloads, then upgrade Ztunnel; failure to follow this order results in DNS resolution failures."
+    },
+    "proposals": [
+      "sp-11b8edc209bb",
+      "sp-a72571162cfc"
+    ],
+    "validations": [
+      "val-34147f500538",
+      "val-9d25c97515e1",
+      "val-f10ee67d3ca3",
+      "val-fe8204a6f368"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:08:00Z"
+  }
+}

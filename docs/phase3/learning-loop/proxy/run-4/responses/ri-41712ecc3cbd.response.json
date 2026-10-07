@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-41712ecc3cbd",
+  "promptDigest": "sha256:9ef1ea8d8ff40ce8e339edf18702cae023fba399d0e3a835124b52d510c0845c",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c9d243f2-3a9e-42d5-8201-f4992f2d97f8",
+  "startedAt": "2026-10-06T01:42:04.663Z",
+  "decidedAt": "2026-10-06T01:42:13.833Z",
+  "durationMs": 8221,
+  "costUSD": 0.060244,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The release note [ev-6d7e63820de1] and the PR title [ev-339f6e1b7496] cover two separate changes: an eks:eks-cluster-name tag is added and the karpenter.sh/managed-by annotation is removed. The PR description [ev-e34f0f43f7ac] only gives the reasons: the annotation was \"an artifact of a migration path\", and the tag supports pod identity sessions. It does not say which resources get the tag or carried the annotation (EC2 instances, NodeClaims or something else), and it says nothing about what breaks for anything that still relies on the annotation. The changed-file lists [ev-6478613ee0fd][ev-f52b3a9a2cba] point to the instance provider, garbage collection and EC2NodeClass validation, but they don't state behaviour. To write the assertion we still need the diff or docs showing where the tag and annotation live, plus what happens to users or tooling that depend on karpenter.sh/managed-by.",
+    "citations": [
+      "ev-6d7e63820de1",
+      "ev-e34f0f43f7ac",
+      "ev-339f6e1b7496",
+      "ev-6478613ee0fd",
+      "ev-f52b3a9a2cba"
+    ],
+    "confidence": "medium"
+  }
+}

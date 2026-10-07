@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9452a98f9ae9",
+    "candidateId": "sc-f6734cfa890c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-structure",
+        "component": "kafka-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta1",
+              "kind": "Kafka"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event handling and monitoring logic that depends on the specific structure of Kubernetes events emitted during Pod restarts may need to be verified to work with the updated regardingObject and related field assignments.",
+        "severity": "medium"
+      },
+      "statement": "Kubernetes events emitted during Pod restart now have the Kafka resource as the regardingObject and the Pod in the related field, instead of the previous structure."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4308bfa38162"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7b8486c5a0038a7662507e88c1c6465c733539d7912ae1133558551cdef92ba1",
+      "inputEvidence": [
+        "ev-4308bfa38162"
+      ],
+      "generatedAt": "2026-10-02T06:03:31Z",
+      "callId": "0494a83b-ae6b-42cf-8fe9-c29addb8b0ea"
+    }
+  }
+}

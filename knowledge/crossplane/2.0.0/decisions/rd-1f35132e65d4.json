@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1f35132e65d4",
+    "reviewItemId": "ri-365cabbf9d8c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "semantic-ambiguity",
+          "needed": "the config location and exact key name of the PackageRuntime setting (Helm values key, CLI flag, or feature gate), so environments that set it can be detected"
+        }
+      },
+      "statement": "Crossplane 2.0.0 splits the single PackageRuntime setting into separate settings for functions and providers, so the combined setting no longer exists, per a one-line release note that does not name the new settings, say where PackageRuntime is configured, or state what happens to existing configurations."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "PACKAGE_RUNTIME",
+          "state": "equals",
+          "values": [
+            "\"External\""
+          ]
+        }
+      },
+      "statement": "Crossplane 2.0.0 splits the PACKAGE_RUNTIME setting so functions (PACKAGE_FUNCTION_RUNTIME, enabled by PACKAGE_RUNTIME=Independent) and providers can use different runtimes. The old PACKAGE_RUNTIME=External still works, but with the External runtime the Revision Parent no longer sets TLS secrets; their names now come from the Revision status. Exposed: environments setting PACKAGE_RUNTIME=External."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:aefcc394e07a49993a4974732cbcd611a8e9ccdca05d1b253192410219a168f0",
+      "inputEvidence": [
+        "ev-9f3e6474c9d8",
+        "ev-043428f564d1",
+        "ev-93b2baca7cff",
+        "ev-4816439273df",
+        "ev-7b5e605c97ec",
+        "ev-686337dc193e",
+        "ev-9f092216dc42",
+        "ev-006c4e249bd8",
+        "ev-1c6740ca1da5",
+        "ev-69c22ff46d5d",
+        "ev-c598ab6f5fcb",
+        "ev-a34c7e5c3d83",
+        "ev-aa8e5dfab881",
+        "ev-8b7179788e16",
+        "ev-282bd56ca274",
+        "ev-50ca4ae9b84b",
+        "ev-e984e491752e",
+        "ev-b0185d1375a7",
+        "ev-e4380102a652",
+        "ev-2e8e5d370444",
+        "ev-d2e7b4bee40c",
+        "ev-65b76fada2d1",
+        "ev-a54345b354a2",
+        "ev-7ca361d9f17c",
+        "ev-e79758f7b8ae",
+        "ev-f54f4de69c1b",
+        "ev-a7745aa0308c",
+        "ev-62fdd4123561",
+        "ev-4afd848693e3",
+        "ev-a7987ba26c2f",
+        "ev-d3b064742968",
+        "ev-06a561e38d28",
+        "ev-2f2bbc78ed4f",
+        "ev-efa4f6492379",
+        "ev-9f8d8be0fa3d",
+        "ev-6112f6912c4e",
+        "ev-15f4cd7ff925",
+        "ev-eb6e8ebc20ee",
+        "ev-441c431545bb",
+        "ev-8f8896a282cf",
+        "ev-543d623477ee",
+        "ev-f3322dd7e7b5",
+        "ev-b7566ad0ece9",
+        "ev-5a59843aa9b6",
+        "ev-f42cb542e4b7",
+        "ev-d8c59b242874",
+        "ev-47653e3e1ebb",
+        "ev-5c7217e4815a",
+        "ev-b21260610d10",
+        "ev-76073e6d10e8",
+        "ev-1cabcddbde95",
+        "ev-1a2379955c76",
+        "ev-4f1d0d4d568e",
+        "ev-9e750feed676",
+        "ev-ef3766935cd5",
+        "ev-bd974cd20c42",
+        "ev-42c19a5cbeab",
+        "ev-edf630e684ee",
+        "ev-ba65c17e92cf",
+        "ev-d114521aa4c7",
+        "ev-23b2de76a2d8",
+        "ev-dd5406a09d5e",
+        "ev-24d2032f69e5",
+        "ev-6e3cd70d0046",
+        "ev-543a22471270",
+        "ev-1c9c5ba26c97"
+      ],
+      "generatedAt": "2026-10-06T01:41:21.802Z",
+      "callId": "cbedc49b-ec86-42fb-960f-bbfd185992c5",
+      "provider": "anthropic"
+    },
+    "reason": "The setting can be identified, so a semantic-ambiguity undecidable leaf is wrong. The linked PR [ev-043428f564d1] names it as PACKAGE_RUNTIME, shown in env-var form, and says the old form \"PACKAGE_RUNTIME=External\" still works; the new PACKAGE_RUNTIME=Independent plus PACKAGE_FUNCTION_RUNTIME options are added, and providers stay Deployments by default. The other change in the PR applies only when the runtime is External: the TLS Server/Client Secret is no longer set by the Revision Parent, and Crossplane now reads the secret names from the Revision status [ev-93b2baca7cff]. Exposure is therefore environments that set PACKAGE_RUNTIME=External; environments that do not set it keep the default Deployment runtime.",
+    "startedAt": "2026-10-06T01:41:05.149Z",
+    "decidedAt": "2026-10-06T01:41:21.802Z"
+  }
+}

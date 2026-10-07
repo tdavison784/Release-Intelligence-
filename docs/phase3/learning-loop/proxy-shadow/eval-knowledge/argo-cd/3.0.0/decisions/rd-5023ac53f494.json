@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5023ac53f494",
+    "reviewItemId": "ri-e231c7fff542",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "version": "v1alpha1",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"field value was honored (nested selectors applied only if true)\"",
+        "after": "\"field is ignored (nested selectors always applied, behavior as if true)\""
+      },
+      "statement": "The spec.applyNestedSelectors field in ApplicationSet is now ignored in Argo CD 3.0; nested selectors are always applied regardless of the field's value."
+    },
+    "corrected": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "Starting in Argo CD 3.0, the ApplicationSet spec.applyNestedSelectors field is ignored (no longer honoured); nested selectors are always applied, as if the field were set to true."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:40e18b45b5c86ede15627675eec874333a2fd3814b6271dbadc8da3288bf78c9",
+      "inputEvidence": [
+        "ev-e24f6e836412",
+        "ev-04f25237d9d5",
+        "ev-66224e7edcd9",
+        "ev-84752609c1b3",
+        "ev-be3337c2717d",
+        "ev-d9606f97c234",
+        "ev-f69c10f943ee"
+      ],
+      "generatedAt": "2026-10-02T16:01:35.861Z",
+      "callId": "56b6944d-fa5a-4369-8bc7-f5e17daeb09f"
+    },
+    "reason": "[ev-e24f6e836412] says that starting in Argo CD 3.0 \"the field is ignored\" and nested selectors are always applied as if the field were true. A field that is no longer honoured is a `removed` change, and the field is still in the schema of both releases [ev-66224e7edcd9][ev-84752609c1b3]. The proposed before/after values are paraphrases, not literals from the text. The subject should not carry version v1alpha1, because the text does not make the change specific to one API version.",
+    "startedAt": "2026-10-02T16:01:21.881Z",
+    "decidedAt": "2026-10-02T16:01:35.861Z"
+  }
+}

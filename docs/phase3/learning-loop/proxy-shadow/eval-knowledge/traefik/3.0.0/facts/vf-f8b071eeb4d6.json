@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-f8b071eeb4d6",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-36ae72f7de46"
+        ],
+        "statementKeys": [
+          "sk-7860ada64304"
+        ],
+        "changeIds": [
+          "chg-f74f893165ce"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3e520936a5c1"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "namespace",
+        "component": "consulCatalog"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "namespaces",
+          "component": "consulCatalog"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_CONSULCATALOG_NAMESPACE",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*namespace\\s*="
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The option is unsupported in v3 and would prevent Traefik from starting if still configured.",
+        "remediation": "Replace the `namespace` option with the `namespaces` option.",
+        "severity": "high"
+      },
+      "statement": "namespace: The ConsulCatalog provider `namespace` option was deprecated in v2 and is now removed in v3"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-6f71ff38c4d9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-6f71ff38c4d9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f7155bd37a18"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-b0c71cb605f5"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3faa5287ea4e",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L223-L263 (Migration Guide: From v2 to v3 › Static configuration › ConsulCatalog provider › namespace)",
+        "excerpt": "#### namespace\n\nThe ConsulCatalog provider `namespace` option was deprecated in v2 and is now removed in v3.\nIt is now unsupported and would prevent Traefik to start.\n\n??? example \"An example usage of v2 ConsulCatalog `namespace` option\"\n\n    ```yaml tab=\"File (YAML)\"\n    consulCatalog:\n      namespace: foobar\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [consulCatalog]\n        namespace=foobar\n    ```\n\n    ```bash tab=\"CLI\"\n    --consulCatalog.namespace=foobar\n    ```\n\n##### Remediation\n\nIn v3, the `namespaces` option should be used instead of the `namespace` option.\n\n??? example \"An example us…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:06:35.29Z"
+  }
+}

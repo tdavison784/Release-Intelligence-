@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-755fdd451c5a",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "proposalId": "sp-8bb4ede4b936",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "internal-resources-observability"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Internal routers and services (e.g. ping@internal) no longer show up in access logs, metrics or tracing by default in v3.",
+        "remediation": "If you need them, set addInternals for AccessLogs, Metrics and/or Tracing (e.g. Helm values logs.access.addInternals, metrics.addInternals, tracing.addInternals).",
+        "severity": "low"
+      },
+      "statement": "In Traefik v3, access logs, metrics and tracing are disabled by default for internal routers and services such as ping@internal; to turn them back on, set the new addInternals option for each one."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

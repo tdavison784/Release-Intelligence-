@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7bada2a279d9",
+    "candidateId": "sc-89766083a832",
+    "proposalId": "sp-b74f78104e00",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "traefik",
+        "name": "referencegrants",
+        "component": "gateway-api-controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1beta1",
+          "kind": "ReferenceGrant"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "The Traefik Gateway API controller requires the ReferenceGrants RBAC permission to function; if not granted, the controller cannot access ReferenceGrant resources.",
+        "severity": "high"
+      },
+      "statement": "ReferenceGrants RBAC permission is added to the Gateway API Traefik controller in version 3.0.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:traefik|name=referencegrants|component=gateway-api-controller: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:traefik|name=referencegrants|component=gateway-api-controller: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

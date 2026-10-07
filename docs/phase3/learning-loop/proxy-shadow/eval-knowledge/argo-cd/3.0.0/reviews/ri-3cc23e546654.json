@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-3cc23e546654",
+    "candidateId": "sc-67c82540420a",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "semantic-mapping",
+    "question": "Does \"Changes to RBAC with Dex SSO Authentication: When using Dex, the `sub` claim returned in the authentication was used as the subject for RBAC\" mean a change to protocol-behavior:argo-cd|name=dex-rbac-subject-claim (behavior-changed)?",
+    "proposed": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "dex-rbac-subject-claim"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"sub claim\"",
+        "after": "\"federated_claims.user_id claim\""
+      },
+      "statement": "With Dex SSO, Argo CD 3.0 bases the RBAC subject on the federated_claims.user_id claim (requesting the federated:id scope) instead of the sub claim, so RBAC policies that reference the Dex sub claim must be updated to keep the same access."
+    },
+    "proposals": [
+      "sp-0bba7f8a4e4f",
+      "sp-4e7ee42eaf3a"
+    ],
+    "validations": [
+      "val-0837de1a86c1",
+      "val-db61bc498ff0"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:05:19Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a76e9ec0e54c",
+    "reviewItemId": "ri-7f34f49906a5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "acme.cert-manager.io",
+        "version": "v1",
+        "kind": "Challenge",
+        "path": "spec.solver.dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "A new optional field `spec.solver.dns01.azureDNS.managedIdentity.tenantID` has been added to the Challenge resource schema for Azure DNS01 solver configuration."
+    },
+    "corrected": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "acme.cert-manager.io",
+        "kind": "Challenge",
+        "path": "spec.solver.dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "A new field spec.solver.dns01.azureDNS.managedIdentity.tenantID was added to the acme.cert-manager.io Challenge CRD schema."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f142e977b03743a04af8e60d2d9d82540a5fd8dcca9a6bdf6b8ed433e37bfdad",
+      "inputEvidence": [
+        "ev-84061d76ea1b",
+        "ev-60054fcf0986"
+      ],
+      "generatedAt": "2026-10-02T13:01:23.085Z",
+      "callId": "c7402c37-99b4-4bf1-b04a-81953c486dfa"
+    },
+    "reason": "The computed CRD diff between the v1.16.0 [ev-84061d76ea1b] and v1.17.0 [ev-60054fcf0986] artifacts shows that `spec.solver.dns01.azureDNS.managedIdentity.tenantID` is new in the Challenge schema, so the change type \"added\" is right. However, nothing in the evidence shows that this addition applies only to one API version. The diff simply reports the v1 schema, which is how the diff tool reports every schema; it does not say v1 is different from other versions. Under the identity rule a crd-field's version is set only when the change is specific to one API version, so version=v1 should be dropped. My confidence is low because the evidence does not show whether Challenge serves any other version.",
+    "startedAt": "2026-10-02T13:01:10.828Z",
+    "decidedAt": "2026-10-02T13:01:23.085Z"
+  }
+}

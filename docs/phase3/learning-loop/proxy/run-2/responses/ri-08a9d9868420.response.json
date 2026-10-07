@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-08a9d9868420",
+  "promptDigest": "sha256:92c03ebe1b1f5e13f0ac4ab17c75c7581e046a846f77e952e7ed6dac29df6292",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6794de24-49f2-48a7-9d0f-046fc7f916e0",
+  "startedAt": "2026-10-02T23:04:59.629Z",
+  "decidedAt": "2026-10-02T23:05:12.251Z",
+  "durationMs": 11737,
+  "costUSD": 0.06767999999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a25845551580] calls this a fix: pilot stops merging DestinationRules on the same host when their exportTo attributes are \"totally different\", and setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment turns the new behavior off. Nothing is described as failing, being rejected or being ignored, so behavior-change (review) is the right kind. However, the proposed statement says rules with any \"different\" exportTo stop merging. The evidence limits this to exportTo values that are totally different, so the statement is corrected to match.",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0, pilot no longer merges DestinationRules on the same host when their exportTo attributes are totally different. Effective policy for such configurations may change; setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in pilot turns this off.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "DestinationRules on the same host whose exportTo attributes are totally different are no longer merged, so the effective traffic policy for such configurations may differ from before. This lasts unless ENABLE_ENHANCED_DESTINATIONRULE_MERGE is set to false in the pilot deployment.",
+        "remediation": "Check DestinationRules that share a host but have totally different exportTo values. To keep the previous merging, set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment.",
+        "severity": "medium"
+      }
+    }
+  }
+}

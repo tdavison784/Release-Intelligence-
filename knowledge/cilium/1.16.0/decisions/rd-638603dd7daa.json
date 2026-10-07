@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-638603dd7daa",
+    "reviewItemId": "ri-cc30d4cc2cac",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "nodePort.addresses",
+          "state": "unset"
+        }
+      },
+      "statement": "The Helm value `nodePort.addresses` was added to configure which IP addresses expose NodePort services; previously Cilium used only the first suitable IPv4 and IPv6 address per device."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:6a9f42431ed26db31a6fbcef98565c7334498bb17aa348b511ba42f4e74b7fea",
+      "inputEvidence": [
+        "ev-34bab3cf1916",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T15:58:16.301Z",
+      "callId": "585c5f7d-43f4-477d-8601-e2bc7f780e88"
+    },
+    "reason": "[ev-34bab3cf1916] describes `nodePort.addresses` as a new option that \"can now be configured\", and the values diff [ev-28e0ccb5774a, ev-39a22d88e2f5] shows the key is new, with a null default that keeps the old behaviour: the first suitable, preferably private, IPv4 and IPv6 address of each device. So an environment that leaves the key unset behaves exactly as before, and nothing happens to it if the operator does nothing. The proposed condition `values-key nodePort.addresses unset` would flag every existing environment as exposed when none is, which is broader than the real exposure. No correct exposure condition follows from the evidence, because the addition exposes no environment to any consequence.",
+    "startedAt": "2026-10-02T15:58:05.141Z",
+    "decidedAt": "2026-10-02T15:58:16.301Z"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2b9388131754",
+    "candidateId": "sc-c6e8607e8d3a",
+    "proposalId": "sp-ffd471e5170f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret",
+        "path": "spec.externalSecretSpec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.externalSecretSpec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.externalSecretSpec.target.template.engineVersion",
+              "state": "not-equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The API server rejects external-secrets.io/v1beta1 ClusterExternalSecret objects whose spec.externalSecretSpec.target.template.engineVersion is \"v1\".",
+        "remediation": "Change spec.externalSecretSpec.target.template.engineVersion on external-secrets.io/v1beta1 ClusterExternalSecret resources away from \"v1\" to a value still allowed by the schema before applying against the new release.",
+        "severity": "medium"
+      },
+      "statement": "The external-secrets.io/v1beta1 ClusterExternalSecret schema no longer accepts \\\"v1\\\" as a value for spec.externalSecretSpec.target.template.engineVersion, and the API server rejects that value."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

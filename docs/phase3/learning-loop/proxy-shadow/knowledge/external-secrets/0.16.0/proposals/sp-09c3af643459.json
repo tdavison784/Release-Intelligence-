@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-09c3af643459",
+    "candidateId": "sc-8b9acf590523",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "crds-separate-installation-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.1"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether CRDs are installed separately from the external-secrets Helm chart or application manifests"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CRDs must be upgraded to v0.16.1 before the external-secrets application itself is upgraded; upgrading the application first without updating CRDs separately may cause compatibility issues.",
+        "severity": "high"
+      },
+      "statement": "When CRDs are installed separately, operators must first apply the v0.16.1 CRDs bundle before upgrading external-secrets to v0.16.1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4139b0de79e3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6c0e60576f7c4e9c972b8a5d0ece21904fa20ce4a802b9c3c8ee9370bb2e3b83",
+      "inputEvidence": [
+        "ev-4139b0de79e3"
+      ],
+      "generatedAt": "2026-10-02T16:11:40Z",
+      "callId": "20a76690-5674-4840-97e7-2f1a8e836341"
+    }
+  }
+}

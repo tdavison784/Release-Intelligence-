@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-acf755d296af",
+    "reviewItemId": "ri-64a2273e9936",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The --probe flag behavior changes to return cached probe results instead of running synchronous probes; the flag is hidden and scheduled for removal in a future release.",
+        "remediation": "Update monitoring or health check scripts that depend on synchronous probe execution via cilium-health status --probe; verify whether cached results are acceptable for your use case.",
+        "severity": "medium"
+      },
+      "statement": "The cilium-health status --probe flag no longer runs synchronous probes; it now returns cached results and is hidden, scheduled for removal in a future release."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`cilium-health status --probe` still runs but no longer performs a synchronous probe. It returns the results of the most recent cached probe instead. The option is hidden and will be removed in a future release.",
+        "remediation": "Check any scripts or health checks that call `cilium-health status --probe` and expect a fresh synchronous probe. Make sure cached results are acceptable, and plan to stop using the flag before it is removed.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.17, `cilium-health status --probe` no longer runs a synchronous probe. It is now a hidden option that returns the results of the most recent cached probe, and it will be removed in a future release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f2ed2a7f3be1b7ad8ee26ffcbd90562a0506f62acde3f9b5d59a7be443baf7d4",
+      "inputEvidence": [
+        "ev-5f4aedc964f4"
+      ],
+      "generatedAt": "2026-10-02T12:57:36.659Z",
+      "callId": "4ae9caea-081d-4d63-a8ee-4266c19d0518"
+    },
+    "reason": "[ev-5f4aedc964f4] says the synchronous probe via `cilium-health status --probe` is no longer supported in 1.17, and the option is now hidden and returns the most recent cached probe. So the command still works after the upgrade, but differently: it returns cached results instead of running a fresh probe. That makes the main consequence in this release behavior-change, not deprecation, because deprecation means the old behaviour still works today and breaks later. The planned future removal is extra context and does not change the review class.",
+    "startedAt": "2026-10-02T12:57:24.631Z",
+    "decidedAt": "2026-10-02T12:57:36.659Z"
+  }
+}

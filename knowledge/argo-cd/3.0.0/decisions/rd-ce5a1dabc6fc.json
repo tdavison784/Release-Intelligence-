@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ce5a1dabc6fc",
+    "reviewItemId": "ri-bbb9b5f734c9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.health.lastTransitionTime"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The controller now always sets Application status.health.lastTransitionTime (bug fix)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:34ce5e6d215b01a7355606e6d00b947be500cbac3ba5cf0da2c565390b72f791",
+      "inputEvidence": [
+        "ev-5d698f8b4038",
+        "ev-04f25237d9d5",
+        "ev-66224e7edcd9",
+        "ev-84752609c1b3",
+        "ev-be3337c2717d",
+        "ev-d9606f97c234",
+        "ev-f69c10f943ee"
+      ],
+      "generatedAt": "2026-10-02T15:55:48.226Z",
+      "callId": "a10754df-44ff-48be-8ed5-98efc2ca2634"
+    },
+    "reason": "[ev-5d698f8b4038] is a controller bug fix saying the controller now \"always set[s] health.status.lastTransitionTime\". The configuration stays the same and only how the controller fills the field changes, so behavior-changed is the right type. The CRD validator confirms that argoproj.io Application status.health.lastTransitionTime exists in the schema of both releases [ev-be3337c2717d][ev-04f25237d9d5]. The changelog writes the path as \"health.status\", not the schema's \"status.health\", so mapping it to that field is an interpretation, which is why confidence is low.",
+    "startedAt": "2026-10-02T15:55:41.158Z",
+    "decidedAt": "2026-10-02T15:55:48.226Z"
+  }
+}

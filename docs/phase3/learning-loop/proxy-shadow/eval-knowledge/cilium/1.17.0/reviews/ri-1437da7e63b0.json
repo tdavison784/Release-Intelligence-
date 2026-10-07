@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1437da7e63b0",
+    "candidateId": "sc-76bef5a9be45",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "classification",
+    "question": "Is fact vf-e2f08dfd5870 (The default value of `dnsProxy.endpointMaxIpPerHostname` and its corresponding agent option has been increased from 50 to 1000 to reflect improved scaling of…) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "dnsProxy.endpointMaxIpPerHostname"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "50",
+        "after": "1000"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The maximum number of IPs cached per hostname for DNS proxy operations increases from 50 to 1000 by default, enabling improved scaling of toFQDNs policies and better handling of domains returning large numbers of IPs with short TTLs.",
+        "severity": "low"
+      },
+      "statement": "The default value of `dnsProxy.endpointMaxIpPerHostname` and its corresponding agent option has been increased from 50 to 1000 to reflect improved scaling of…"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:59:27.418702-05:00"
+  }
+}

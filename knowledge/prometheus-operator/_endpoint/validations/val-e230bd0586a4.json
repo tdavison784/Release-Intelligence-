@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e230bd0586a4",
+    "candidateId": "sc-a121f4492c54",
+    "proposalId": "sp-26e8f22bf7ee",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "AlertmanagerConfig",
+        "path": "spec.receivers[].opsgenieConfigs[].responders[].type"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "null",
+        "after": "\"[\\\"escalation\\\", \\\"schedule\\\", \\\"team\\\", \\\"teams\\\", \\\"user\\\"]\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.receivers[].opsgenieConfigs[].responders[].type",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.receivers[].opsgenieConfigs[].responders[].type",
+                  "state": "not-equals",
+                  "values": [
+                    "\"escalation\"",
+                    "\"schedule\"",
+                    "\"team\"",
+                    "\"teams\"",
+                    "\"user\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "AlertmanagerConfig"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.receivers[].opsgenieConfigs[].responders[].type",
+              "state": "equals",
+              "values": [
+                "\"escalation\"",
+                "\"schedule\"",
+                "\"team\"",
+                "\"teams\"",
+                "\"user\""
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "AlertmanagerConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Applying (creating or updating) an AlertmanagerConfig whose spec.receivers[].opsgenieConfigs[].responders[].type is not one of escalation, schedule, team, teams, user is rejected by the API server.",
+        "remediation": "Set spec.receivers[].opsgenieConfigs[].responders[].type to one of the allowed values (escalation, schedule, team, teams, user) before applying or updating the resource.",
+        "severity": "medium"
+      },
+      "statement": "The monitoring.coreos.com/v1alpha1 schema of alertmanagerconfigs.monitoring.coreos.com now restricts spec.receivers[].opsgenieConfigs[].responders[].type to the enum values escalation, schedule, team, teams and user (no values were removed from a prior enum, but the field was previously unconstrained), so any other value is rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

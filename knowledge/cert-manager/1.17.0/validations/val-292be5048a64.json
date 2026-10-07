@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-292be5048a64",
+    "candidateId": "sc-8fd875d322fd",
+    "proposalId": "sp-28240e9dd8b9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "ClusterIssuer"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "A v1.16.0 regression made the ACME ClusterIssuer look in the wrong namespace for issuance resources such as credential Secrets; this is fixed in v1.16.1+ and v1.17.0+."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

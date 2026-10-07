@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4d2fde7db545",
+  "promptDigest": "sha256:a5e609133c1f8c6b851457a3920d1f887052dbfc95ea81e584af94b2cdf8e66a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4cde19b5-1293-42fd-8846-6e780df13064",
+  "startedAt": "2026-10-06T01:42:54.124Z",
+  "decidedAt": "2026-10-06T01:43:05.718Z",
+  "durationMs": 10757,
+  "costUSD": 0.107076,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-72ec4a7c1cde] describes a bugfix: the `crank beta trace` CLI command was not following composed resources, and now traces composed resources of claims and namespaced XRs. It changes only CLI files under cmd/crank/beta/trace [ev-bd4959fa0a59], [ev-396276c084c8]. Kind \"none\" (informational) is correct. However, the proposed statement describes this as a tracing capability that environments \"enable\", which misreads the change: it is a client-side CLI output fix, not an opt-in cluster feature.",
+    "citations": [
+      "ev-72ec4a7c1cde",
+      "ev-bd4959fa0a59",
+      "ev-396276c084c8",
+      "ev-33ed09b97087"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Bugfix to the `crank beta trace` CLI command: it now follows and shows composed resources of claims and namespaced XRs. It is a client-side change with no operational consequence for a running Crossplane installation.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "Nothing breaks and no operator action is needed. Only the client-side `crank beta trace` command changes (cmd/crank/beta/trace): it now displays the composed resources of claims and namespaced XRs that it previously did not follow. Cluster-side Crossplane behaviour is unchanged.",
+        "severity": "low"
+      }
+    }
+  }
+}

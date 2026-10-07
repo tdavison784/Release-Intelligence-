@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2bf95bd84c96",
+    "candidateId": "sc-63c2c8cd111b",
+    "proposalId": "sp-27bfa969fba0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager in the environment is installed or updated through OperatorHub (OLM subscription) rather than another distribution method"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "An environment that installs or updates cert-manager through OperatorHub cannot obtain cert-manager 1.17.0 (or any release after v1.16.5) from OperatorHub, because v1.16.5 is the last published release; the upgrade through that channel is unavailable.",
+        "remediation": "Move the cert-manager installation off OperatorHub to another distribution method in order to upgrade beyond v1.16.5.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager no longer publishes OperatorHub packages: v1.16.5 is the last release on OperatorHub (RedHat OpenShift OperatorHub and operatorhub.io), and the cert-manager-olm repository is archived."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

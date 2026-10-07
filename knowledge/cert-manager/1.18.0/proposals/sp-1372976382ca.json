@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1372976382ca",
+    "candidateId": "sc-95b8b6a5377b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingresses that cert-manager creates now use pathType `Exact` instead of `ImplementationSpecific`, so the way ingress controllers match their paths may change; the release notes do not say that anything fails.",
+        "remediation": "Check that your ingress controller routes `Exact` paths on the Ingresses cert-manager creates as expected.",
+        "severity": "low"
+      },
+      "statement": "In 1.18.0, cert-manager sets the `pathType` of the Kubernetes Ingress it uses to `Exact` instead of `ImplementationSpecific`, so ingress controllers handle it reliably and security is improved."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence does not say which Ingresses cert-manager creates with this pathType or what configuration leads to them, so no exposure predicate can be grounded in the text.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4faa7ca81b54"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:b9eb6dc3c847b0ffc8242f978259358dde96f81cb246d0706d3792b6f5b6072d",
+      "inputEvidence": [
+        "ev-4faa7ca81b54"
+      ],
+      "generatedAt": "2026-10-03T07:04:18Z",
+      "callId": "07441c85-5186-43f4-94e7-6ed94037083c"
+    }
+  }
+}

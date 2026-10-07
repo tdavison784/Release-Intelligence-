@@ -1,0 +1,25 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-15eca48596d4",
+  "promptDigest": "sha256:e0c437f7b6b82c962489a2690f17bda9e2109e67b7c7935f5050f8b44910b5d1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ab7c07dc-a43a-4c2f-9db2-e62cfb61ad43",
+  "startedAt": "2026-10-03T17:10:49.541Z",
+  "decidedAt": "2026-10-03T17:10:59.132Z",
+  "durationMs": 8635,
+  "costUSD": 0.23148,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release note is only one line [ev-ab534de2a1e4], but the upgrade-guide section fills in the details [ev-bfb089d90d84]. It says 1.0.0 adds conversion webhooks that automatically serve the v1 version of EC2NodeClasses (and NodePools and NodeClaims) that were applied as v1beta1. It also says Karpenter will stop serving v1beta1 and drop the webhooks at v1.1.0, so stored manifests must be migrated to v1. The renders back this up: the EC2NodeClass storage version moves from v1beta1 to v1 [ev-6216d138f351, ev-b41bd26d4a09], and v1 was already served in 0.37.8 [ev-a7885a53e4bb, ev-4ab589aafe42]. That gives the subject (v1beta1→v1 EC2NodeClass conversion), the change (webhook added; the v1 GVK itself is not new, so P1 and P4 are wrong), the exposure (environments with v1beta1 EC2NodeClasses) and the consequence (converted automatically for now; v1beta1 serving ends at v1.1.0).",
+    "citations": [
+      "ev-ab534de2a1e4",
+      "ev-bfb089d90d84",
+      "ev-6216d138f351",
+      "ev-b41bd26d4a09",
+      "ev-a7885a53e4bb",
+      "ev-4ab589aafe42"
+    ],
+    "confidence": "medium"
+  }
+}

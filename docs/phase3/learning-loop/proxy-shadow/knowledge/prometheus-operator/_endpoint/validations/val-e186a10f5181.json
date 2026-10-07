@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e186a10f5181",
+    "candidateId": "sc-ed9e757d4f2b",
+    "proposalId": "sp-45158296d6ae",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "Prometheus",
+        "path": "spec.otlp.translationStrategy"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.otlp.translationStrategy",
+              "state": "set"
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "Prometheus"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Existing Prometheus resources with spec.otlp.translationStrategy set to removed enum values will be rejected by the API server."
+      },
+      "statement": "The spec.otlp.translationStrategy field in monitoring.coreos.com/v1 Prometheus accepts a changed set of enum values; previously accepted values are now rejected by the API server, with UnderscoreEscapingWithoutSuffixes added."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

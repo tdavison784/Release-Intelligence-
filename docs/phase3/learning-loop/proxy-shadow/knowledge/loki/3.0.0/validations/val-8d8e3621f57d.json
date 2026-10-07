@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8d8e3621f57d",
+    "candidateId": "sc-76bff34e5d7f",
+    "proposalId": "sp-fb60ec3561a0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--boltdb.shipper.compactor.deletion-mode"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--compactor.deletion-mode"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--boltdb.shipper.compactor.deletion-mode",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "boltdb.shipper.compactor.deletion-mode",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `boltdb.shipper.compactor.deletion-mode` CLI flag and YAML setting are no longer honoured; deletion mode configuration must be migrated to `compactor.deletion-mode` (CLI) or `deletion_mode` (YAML) in Limits Config.",
+        "severity": "high"
+      },
+      "statement": "The `boltdb.shipper.compactor.deletion-mode` CLI flag and YAML setting are removed in Loki 3.0.0; users must migrate to `compactor.deletion-mode` CLI flag or `deletion_mode` YAML setting in Limits Config."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

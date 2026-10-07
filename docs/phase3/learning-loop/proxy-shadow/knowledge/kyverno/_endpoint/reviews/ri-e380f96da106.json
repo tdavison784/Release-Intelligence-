@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e380f96da106",
+    "candidateId": "sc-7560741348ad",
+    "product": "kyverno",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `policyexceptions.kyverno.io` changes v2beta1 → v2\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v2beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "policyexceptions.kyverno.io"
+        }
+      },
+      "statement": "The storage version of the policyexceptions.kyverno.io CRD changes from v2beta1 to v2, so existing PolicyException objects stay stored as v2beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "proposals": [
+      "sp-17ff5d80568b",
+      "sp-6c8ce69c2a5c",
+      "sp-c6871b23d7c7",
+      "sp-dcae4aa3180e",
+      "sp-df7500fc302d"
+    ],
+    "validations": [
+      "val-182af2cc1c5a",
+      "val-23615405d83e",
+      "val-4962267eaf1f",
+      "val-528efd79dad1",
+      "val-631af17da036",
+      "val-6e0dcc2b0887",
+      "val-c89175ce9809",
+      "val-d66193ccaba7",
+      "val-e872e36d4302",
+      "val-f0e1eaa0d654",
+      "val-fd571510e228",
+      "val-fecc96b4e968"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:06:35Z"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-2a30deb5baf5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-8cfe2b036c7e",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-25f33899ea74"
+          ],
+          "statementKeys": [
+            "sk-795a02eb5d91"
+          ],
+          "changeIds": [
+            "chg-8cfe2b036c7e"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "dbdc1e737ab81184aa20a12430da69462fe138ff: feat: use log format config for klog",
+    "text": "dbdc1e737ab81184aa20a12430da69462fe138ff: feat: use log format config for klog (#5715) (#21458) (@crenshaw-dev)",
+    "evidence": [
+      {
+        "id": "ev-0a972c483827",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L72-L72 (Changelog › Features)",
+        "excerpt": "* dbdc1e737ab81184aa20a12430da69462fe138ff: feat: use log format config for klog (#5715) (#21458) (@crenshaw-dev)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-162418936955",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/5715",
+        "locator": "title and description",
+        "excerpt": "issue (cited in the notes as #5715): inconsistent log output format [closed; labels bug]\nChecklist:\n\n* [x] I've searched in the docs and FAQ for my answer: https://bit.ly/argocd-faq.\n* [ ] I've included steps to reproduce the bug.\n* [x] I've pasted the output of `argocd version`.\n\n**Describe the bug**\n\n`k8s.io/client-go` outputs logs through `k8s.io/klog{,/v2}` which is a different format (glog style) than `argocd` (logfmt or json), making it annoying to parse, example below\n\nSomething else outputs plaintext\n\n**To Reproduce**\n\nNot sure how to reliably generate errors in client-go\n\n**Expected b…",
+        "contentDigest": "sha256:d46a9fd5c8985ac697df364323e1da2807bf225bb359e94968f431b9a65638d6",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-1834fff30cbf",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/issues/5715",
+        "locator": "description (part 2)",
+        "excerpt": "logs output in consistent structured format\n\n**Version**\n\n```shell\nargocd: v1.8.7+eb3d1fb\nBuildDate: 2021-03-03T07:12:02Z\nGitCommit: eb3d1fb84b9b77cdffd70b14c4f949f1c64a9416\nGitTreeState: clean\nGoVersion: go1.14.12\nCompiler: gc\nPlatform: linux/amd64\n```\n\n**Logs**\n\nFrom `argocd-application-controller`\n```\ntime=\"2021-03-04T09:41:42Z\" level=info msg=\"Ignore status for CustomResourceDefinitions\"\ntime=\"2021-03-04T09:41:42Z\" level=info msg=\"Comparing app state (cluster: https://kubernetes.default.svc, namespace: xxx)\" …",
+        "contentDigest": "sha256:d46a9fd5c8985ac697df364323e1da2807bf225bb359e94968f431b9a65638d6",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-131b8e80f685",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21458",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21458): feat: use log format config for klog (#5715) [closed]\nFixes #5715\n\nModeled on https://github.com/argoproj/argo-rollouts/pull/2701/files\n\nTook the opportunity to upgrade the adapter package.\n\nTest:\n\n```\n> dist/argocd version\nERRO[0000] test error=\"<nil>\"\nargocd: v2.14.0+2d0f48b.dirty\nBuildDate: 2025-01-10T21:56:48Z\nGitCommit: 2d0f48b67638f25f147f9e13ba6239fc047a40e4\nGitTreeState: dirty\nGoVersion: go1.22.5\nCompiler: gc\nPlatform: darwin/arm64\nFATA[0001] oauth2: \"invalid_request\" \"Refresh token is invalid or has already been claimed by another client.\"\n>",
+        "contentDigest": "sha256:8e3583a4d4810b37bcafda346bea9f1bcd8d72d3e184d328da410673bc51696a",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-29ac0e5dfdfa",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21458",
+        "locator": "description (part 2)",
+        "excerpt": "ARGOCD_LOG_FORMAT=json dist/argocd version\n{\"error\":null,\"level\":\"error\",\"msg\":\"test\",\"time\":\"2025-01-10T16:57:20-05:00\"}\nargocd: v2.14.0+2d0f48b.dirty\nBuildDate: 2025-01-10T21:56:48Z\nGitCommit: 2d0f48b67638f25f147f9e13ba6239fc047a40e4\nGitTreeState: dirty\nGoVersion: go1.22.5\nCompiler: gc\nPlatform: darwin/arm64\nFATA[0001] oauth2: \"invalid_request\" \"Refresh token is invalid or has already been claimed by another client.\"\n```",
+        "contentDigest": "sha256:8e3583a4d4810b37bcafda346bea9f1bcd8d72d3e184d328da410673bc51696a",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-a4811186caba",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21458",
+        "locator": "changed files",
+        "excerpt": "4 changed file(s): cmd/main.go, go.mod, go.sum, util/log/logrus.go",
+        "contentDigest": "sha256:8e3583a4d4810b37bcafda346bea9f1bcd8d72d3e184d328da410673bc51696a",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

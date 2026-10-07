@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-57c7f0c93d0d",
+    "candidateId": "sc-4474a977a709",
+    "product": "kyverno",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `clustercleanuppolicies.kyverno.io` changes v2beta1 → v2\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterCleanupPolicy objects stay stored as v2beta1 after the CRD storage version moves to v2. They must be rewritten (storage version migration) and status.storedVersions updated before a later release removes v2beta1.",
+        "remediation": "After upgrading, rewrite all ClusterCleanupPolicy objects so they are stored as v2. Then remove v2beta1 from status.storedVersions on the clustercleanuppolicies.kyverno.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "From 1.12.6 to 1.13.0, the storage version of the clustercleanuppolicies.kyverno.io CRD moves from v2beta1 to v2, so existing ClusterCleanupPolicy objects need a storage version migration and a status.storedVersions update before v2beta1 is removed in a later release."
+    },
+    "proposals": [
+      "sp-38834c0779ae",
+      "sp-a463c5ff3ed0",
+      "sp-ec25efba8d0f"
+    ],
+    "validations": [
+      "val-188ceaaa5ecc",
+      "val-288d1f61e5d0",
+      "val-3fd159b44c9c",
+      "val-4b166c092186",
+      "val-876d2ba38f65",
+      "val-8ba10754d75b",
+      "val-a0844f6fcd5d",
+      "val-c51ad9448d52",
+      "val-f69d16f69ef6"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-refuted"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:58:15Z"
+  }
+}

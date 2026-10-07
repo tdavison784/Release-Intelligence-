@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3626e5ba82c1",
+    "candidateId": "sc-a2b29fc53908",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-certificate-set-parse-limit"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment supplies PEM trust bundles large enough to have exceeded the previous parse limit"
+        }
+      },
+      "statement": "cert-manager 1.17.0 raises the amount of PEM data that pki.DecodeX509CertificateSetBytes can parse, so it can read larger TLS trust bundles."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence describes a feature that allows larger trust bundles. It does not say what operators would see or need to do, and it gives neither the old limit nor the new one.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-db955cc00d69"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:63e26ab7d3ac2c480b226850633739709d2b15858a217221de36e2bdb3bb2f06",
+      "inputEvidence": [
+        "ev-db955cc00d69"
+      ],
+      "generatedAt": "2026-10-02T06:12:06Z",
+      "callId": "c3ee364d-df2e-43b5-aba9-a46902416238"
+    }
+  }
+}

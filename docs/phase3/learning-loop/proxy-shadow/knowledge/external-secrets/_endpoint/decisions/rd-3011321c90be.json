@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3011321c90be",
+    "reviewItemId": "ri-7e74df740d26",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "clustersecretstores-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "From chart 0.15.0 to 0.16.0, the storage version of clustersecretstores.external-secrets.io moves from v1beta1 to v1. Existing ClusterSecretStore objects need a storage version migration and a status.storedVersions update before a later release removes v1beta1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9285030c190046d1cc3658a428394cdc76e06dc351957ecb1a8556da7c7ce1d7",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-03T12:59:08.514Z",
+      "callId": "464cf14f-3526-4502-814e-b3ade02c76be",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d55f4ac0a53f] shows that from 0.15.0 to 0.16.0, the clustersecretstores.external-secrets.io CRD's spec.versions[name=v1beta1].storage flipped from true to false. That is the storage-version change in the title. The upstream change text says existing ClusterSecretStore objects stay stored as v1beta1 until rewritten and that a storage version migration must be run before a later release removes v1beta1. So a migration subject with change type migration-required fits. The name 'clustersecretstores-storage-version-migration' is kebab-case built from the evidence's own words and names the CRD it applies to, so it should not be put in a component field.",
+    "startedAt": "2026-10-03T12:59:00.107Z",
+    "decidedAt": "2026-10-03T12:59:08.514Z"
+  }
+}

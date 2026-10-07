@@ -1,0 +1,32 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5fd68de030ac",
+  "promptDigest": "sha256:90e796d5b4b9703e03aa83817afa76e08ced0686d604891893a4b566349f2525",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9dbc5c14-4388-473b-86c1-14f49ced58c7",
+  "startedAt": "2026-10-03T12:54:21.858Z",
+  "decidedAt": "2026-10-03T12:54:33.826Z",
+  "durationMs": 11023,
+  "costUSD": 0.114068,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c5612ed57e07] says only that a bug fix removed a null security context from the redis-ha values.yaml \"to placate helm 3.17.1\". Nothing in it says a configured value stops being honoured, so setting-ignored is not supported. Because the removed value was null, no operator setting is dropped. The proposed statement also describes the old Helm rejection that this fix removes, and its remediation is just \"upgrade to 3.0.0\", which is circular. Nothing in the evidence or section context says anything fails or must be done, so this is informational (none), not mandatory work.",
+    "citations": [
+      "ev-c5612ed57e07"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 removes a null security context from the bundled redis-ha values.yaml so the chart works with Helm 3.17.1. This bug fix has no stated operational consequence for operators.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "The removed value was null, so no configured setting stops being honoured. This is a compatibility fix with Helm 3.17.1, and the release notes say nothing fails or needs operator action."
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-816c85a6476f",
+    "reviewItemId": "ri-4ec91e1269ad",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD log output format defaults to JSON instead of text; existing log parsing, monitoring, and alerting rules expecting text format logs may need to be updated.",
+        "remediation": "Review and update log parsing and monitoring tools to handle JSON-formatted logs, or explicitly set the logging format to text by configuring the --log-format flag or ARGOCD_LOG_FORMAT environment variable if text format is required.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 switches the default logging output format from text to JSON."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD's default log output becomes JSON. Components keep running, but log parsing, monitoring or alerting that expects the old default format may stop matching.",
+        "remediation": "Check that log collection, parsing and alerting handle JSON logs. If you need a different format, configure the log format explicitly using the setting documented upstream.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 switches its default logging to JSON. Environments that rely on the default log format get JSON logs and keep running; the change needs review, not mandatory action."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c380c44955c9a235e98770d4f89d7a6cc70103069205b39a48395027a5d7eb9d",
+      "inputEvidence": [
+        "ev-bacdc0376810"
+      ],
+      "generatedAt": "2026-10-02T23:13:22.923Z",
+      "callId": "95b0c11e-6bed-46e6-a6d2-ab22a53801b5",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-bacdc0376810] says only that Argo CD switches its default logging to JSON. A default that changes but keeps working is behavior-change, so the class is review. The proposed text says the old default was 'text' and names a --log-format flag and an ARGOCD_LOG_FORMAT env var, none of which appear in the evidence, so the correction removes them.",
+    "startedAt": "2026-10-02T23:13:09.903Z",
+    "decidedAt": "2026-10-02T23:13:22.923Z"
+  }
+}

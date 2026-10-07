@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ef85c4277221",
+    "reviewItemId": "ri-bd000fd0a7a2",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "An environment that installed cert-manager from OperatorHub keeps running v1.16.5, which still works, but no later cert-manager release will ever be published to that channel.",
+        "remediation": "Obtain future cert-manager releases through another installation channel, since OperatorHub packages stop at v1.16.5.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager maintainers no longer publish OperatorHub packages for cert-manager (both RedHat OpenShift OperatorHub and operatorhub.io), because they lack the time and resources to maintain and test them, and v1.16.5 is the last release available on OperatorHub."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "An environment that gets cert-manager from OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io) will not receive any release after v1.16.5 through that channel, because the maintainers no longer publish packages there. The release note does not say that existing installations stop working.",
+        "remediation": "To get cert-manager releases newer than v1.16.5, install and upgrade it through a distribution channel other than OperatorHub. The cert-manager-olm repository is archived.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager no longer publishes OperatorHub packages (RedHat OpenShift OperatorHub, operatorhub.io); v1.16.5 is the last release there. Environments that get cert-manager from OperatorHub will receive nothing newer through that channel. The release note does not say existing installs fail."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9340210fc56f42df78438b5922e91c4c0bec9268ad1451d39129190aca370cd2",
+      "inputEvidence": [
+        "ev-c3d5e62490c3"
+      ],
+      "generatedAt": "2026-10-03T17:00:20.032Z",
+      "callId": "f32235f3-cd5c-4dd4-b45b-ee3a5d9225dd",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c3d5e62490c3] says OperatorHub packages are no longer published and v1.16.5 is the last release there. The publishing has already stopped, and no later break is announced, so this isn't a deprecation. The evidence also doesn't say that existing OperatorHub installs fail, that upgrades fail or that a migration is required, so no failure kind is supported. The effect is that these environments stop getting newer releases through that channel, which fits behavior-change and stays a review item.",
+    "startedAt": "2026-10-03T17:00:03.956Z",
+    "decidedAt": "2026-10-03T17:00:20.032Z"
+  }
+}

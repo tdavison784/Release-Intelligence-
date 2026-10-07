@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-681e5f7e0462",
+    "candidateId": "sc-78b10a313e23",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "As larger RSA keys rotate, certificates with 3072-bit and 4096-bit RSA keys will use SHA-384 and SHA-512. The evidence says these algorithms are widely supported, but errors may appear if a consumer does not support them.",
+        "remediation": "After upgrading, watch for errors as 3072-bit and 4096-bit RSA certificates rotate, and check that the systems using them support SHA-384 and SHA-512.",
+        "severity": "low"
+      },
+      "statement": "Starting in cert-manager 1.17.0, RSA certificates with 3072-bit keys use SHA-384 as the hash algorithm and those with 4096-bit keys use SHA-512; this is expected to work, but errors may appear as larger RSA keys rotate."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence says 'RSA certificates with keys of length 3072 or 4096' but does not name the Certificate field or setting that selects key algorithm and size. A predicate would need a field path the evidence does not state.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-463f236bf567"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6e3d07614029b1d646d7d982800e44424683da8acea1b2371076cb03c7133d63",
+      "inputEvidence": [
+        "ev-463f236bf567"
+      ],
+      "generatedAt": "2026-10-03T07:12:31Z",
+      "callId": "7e5ceeed-f717-4ef3-a9ba-9334c04fccea"
+    }
+  }
+}

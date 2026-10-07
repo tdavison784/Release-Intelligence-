@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f4b2fcbc7b65",
+    "candidateId": "sc-0750ad78d42c",
+    "proposalId": "sp-d9dc32a45daa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-auto-allocated-ip-consumption"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's Waypoints consume auto-allocated IPs (e.g. for services relying on istiod IP auto-allocation) while DNSProxy is disabled; the note names DNSProxy but does not state the setting or configuration location that enables it, and IP consumption depends on the services enrolled to Waypoints"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "In environments where Waypoints consume auto-allocated IPs with DNSProxy disabled, the IPs are now consumed after upgrading to 1.24.0, where previously Waypoints required DNSProxy to be enabled for this to work.",
+        "remediation": "No operator action is required; if DNSProxy was enabled only as a workaround for this issue, verify that Waypoint routing of auto-allocated IPs works after upgrade before disabling it.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes an issue where Waypoints required DNSProxy to be enabled in order to consume auto-allocated IPs, so Waypoints can now consume auto-allocated IPs without DNSProxy being enabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-db5d2bdd754f",
+    "candidateId": "sc-30c676d7c5e6",
+    "proposalId": "sp-19985232ee39",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--cluster",
+          "component": "hubble",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `--cluster` flag now returns a different set of flows, including those from nodes outside the specified cluster name (both incoming and outgoing), whereas previously it only showed flows emitted from nodes within that cluster. Existing queries using this flag will see different results.",
+        "severity": "medium"
+      },
+      "statement": "The `--cluster` flag behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster), rather than only flows within that cluster."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

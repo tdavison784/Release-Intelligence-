@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-3a17ef9d7a64",
+    "candidateId": "sc-2a33dcd96146",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "semantic-mapping",
+    "question": "Does \"The implementation of `toFQDNs` selectors in policies has been overhauled to improve performance when many different IPs are observed for a selector: Instead…\" mean a change to protocol-behavior:cilium|name=tofqdns-policy-implementation (behavior-changed)?",
+    "proposed": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "tofqdns-policy-implementation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"IPs observed for toFQDNs selectors were each assigned separate cidr identities\"",
+        "after": "\"IPs observed in DNS lookups are labeled with the selectors toFQDNs matching them\""
+      },
+      "statement": "The implementation of toFQDNs selectors in policies has been overhauled to label IPs with matching selectors instead of creating separate cidr identities, requiring automatic state migration and potentially causing temporary packet drops during upgrade/downgrade unless upgrading from v1.15.6 or newer."
+    },
+    "proposals": [
+      "sp-47d5a927246c",
+      "sp-f13b8a4410cb"
+    ],
+    "validations": [
+      "val-625000fde4b9",
+      "val-9878ef131259",
+      "val-d09f76bd9871",
+      "val-fc3a6ca663fa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:03:53Z"
+  }
+}

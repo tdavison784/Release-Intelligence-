@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-aca9ee7ab338",
+    "candidateId": "sc-431b73602cf8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.keystores.jks.password"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.keystores",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new convenience feature that simplifies keystore password configuration by allowing literal string values in the Certificate resource; existing configurations using passwordSecretRef continue to work unchanged."
+      },
+      "statement": "A new password field is added to PKCS#12 and JKS keystores in the Certificate resource, allowing passwords to be specified as literal strings, mutually exclusive with the existing passwordSecretRef field."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-4c3d690d4f9d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0a2288f13f10301d5ad80e86c3caf67a4198bba5bf4317df4440cbda6f53677c",
+      "inputEvidence": [
+        "ev-4c3d690d4f9d"
+      ],
+      "generatedAt": "2026-10-02T06:00:47Z",
+      "callId": "c5cc1395-565b-4f94-9b10-cd48114b9dc6"
+    }
+  }
+}

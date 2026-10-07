@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b9dfbefa15ea",
+    "candidateId": "sc-6bd6c60a9f8e",
+    "proposalId": "sp-65c2dd36bc80",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "ServersTransportTCP"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "version": "v1alpha1",
+              "kind": "ServersTransportTCP"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--helm-apply-crds",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new ServersTransportTCP CRD is available for use in the release; environments managing CRDs separately should install or update them before upgrading."
+      },
+      "statement": "A new CRD ServersTransportTCP (v1alpha1) in group traefik.io is introduced, available for defining TCP server transport configuration."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "rendered-diff:gvk/added",
+        "detail": "gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP: source render 1× [served], target render 1× [served] — present unchanged in both"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "rendered-diff:gvk/added",
+        "detail": "gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP: source render 1× [served], target render 1× [served] — present unchanged in both"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-dad4d5933f0f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://traefik.github.io/charts/traefik/traefik-27.0.2.tgz",
+        "locator": "state gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP",
+        "excerpt": "release render of traefik 2.11.2: gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP at apiextensions.k8s.io/v1/CustomResourceDefinition//serverstransporttcps.traefik.io spec.versions[name=v1alpha1] = served",
+        "contentDigest": "sha256:e600638c0076578e41201c9abe46af3f9b272049c8f98f11d383456d86c1ee7e",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:271298d9b089b502eeb93552034ee6767b3529af57c8f9e60665c3a61c15c974",
+          "flags": [
+            "template",
+            "traefik",
+            "chart.tgz",
+            "--namespace",
+            "traefik",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//serverstransporttcps.traefik.io",
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:50Z"
+      },
+      {
+        "id": "ev-afb8a4f8abec",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://traefik.github.io/charts/traefik/traefik-28.1.0.tgz",
+        "locator": "state gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP",
+        "excerpt": "release render of traefik 3.0.0: gvk:traefik|group=traefik.io|version=v1alpha1|kind=ServersTransportTCP at apiextensions.k8s.io/v1/CustomResourceDefinition//serverstransporttcps.traefik.io spec.versions[name=v1alpha1] = served",
+        "contentDigest": "sha256:7718622354de56601518ebe8d08d1d9a26688f5555ae777e8f6587dc36d0e07c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:7f4cde5f7d9fc79d8217df4ff9753daafb744b7480f33971a4b66dc702de36c0",
+          "flags": [
+            "template",
+            "traefik",
+            "chart.tgz",
+            "--namespace",
+            "traefik",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//serverstransporttcps.traefik.io",
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:50Z"
+      }
+    ],
+    "renderRelation": "contradicted-by-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

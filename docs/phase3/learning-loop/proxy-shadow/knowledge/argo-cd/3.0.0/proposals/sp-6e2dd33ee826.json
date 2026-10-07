@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6e2dd33ee826",
+    "candidateId": "sc-2998e289998d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "plugin-env-var-passing"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin.env",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "statement": "Empty environment variables are now passed to config management plugins in Argo CD 3.0, whereas previously they were not passed."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence states that empty environment variables are now passed to plugins, but does not specify whether this change causes a failure, behavioral consequence, or is transparent to plugin implementations. It depends on how plugins handle empty environment variables at runtime.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a41a36159297"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fcb401632d9bad3005684bfe170f27ce5135504e8c3154b85dd545927e49d9e1",
+      "inputEvidence": [
+        "ev-a41a36159297"
+      ],
+      "generatedAt": "2026-10-02T06:02:07Z",
+      "callId": "2ca55e1e-1407-4432-8381-3939cfc9fc3d"
+    }
+  }
+}

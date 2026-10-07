@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cff9b1e6be98",
+    "reviewItemId": "ri-d80c1ebfdb63",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:d0bc5b3676f7f22049e3bc74f28b0e3fe93ff56d05da8eb2bb09c6d6fb1bc792",
+      "inputEvidence": [
+        "ev-fe0fca386a7a",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-e7cf2f463686",
+        "ev-619c0cea3aa4",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-06T01:14:22.723Z",
+      "callId": "360e6603-0cb6-45eb-9659-66768273abbe",
+      "provider": "anthropic"
+    },
+    "reason": "The release note [ev-fe0fca386a7a] clearly names the subject (Helm value `webhook.extraEnv`), says it is new and that it sets custom environment variables in the webhook Pod. But a deterministic artifact check contradicts this: it found `webhook.extraEnv` already in the v1.16.0 chart values [ev-fdc96eee87bf] as well as in v1.17.0 [ev-717ddb6f40cd]. That makes the change type (\"added\") unresolved, and the values excerpts shown don't include the key itself, so I can't check either side. The note also bundles three separate values (webhook, cainjector, startupapicheck), and PR #7317 isn't shown. That PR, or the actual values.yaml diff between v1.16.0 and v1.17.0, is needed to tell whether this release added the key or only changed it (for example, from a placeholder to a working value).",
+    "startedAt": "2026-10-06T01:14:14.018Z",
+    "decidedAt": "2026-10-06T01:14:22.723Z"
+  }
+}

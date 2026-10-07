@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-44e3ac26e17d",
+    "reviewItemId": "ri-a542d2bd523b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        }
+      },
+      "statement": "The IPWhiteList middleware field is renamed to IPAllowList in Traefik v3.0.0 without configuration changes; existing resources using spec.ipWhiteList must be updated to spec.ipAllowList."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e6595c9b054c527c980876eb0ec8ec0a6536b48093b5168ecda6fe409e7def46",
+      "inputEvidence": [
+        "ev-bea0311eb482",
+        "ev-011956bb7059",
+        "ev-0842f8f3bd9d",
+        "ev-100ba7419139",
+        "ev-198744ef4096",
+        "ev-37cc33b409c3",
+        "ev-48d1ecd4b134",
+        "ev-49bacb044ac2",
+        "ev-4fd00a8d9fd6",
+        "ev-501210bb2f62",
+        "ev-54d04bd3a614",
+        "ev-61dcce2c74af",
+        "ev-6662f8dd5e6e",
+        "ev-71fc22d68581",
+        "ev-72be921dc163",
+        "ev-74031352b156",
+        "ev-788272feab62",
+        "ev-7e05fc1e5c59",
+        "ev-84f68d4b0c26",
+        "ev-8a887e659370",
+        "ev-b4a823a5e4dc",
+        "ev-caea0ddc58f9",
+        "ev-cfca42b941d5",
+        "ev-d1fdfd690e23",
+        "ev-d68d5c203df6",
+        "ev-e664bb0d9d26",
+        "ev-e737e9be0d13",
+        "ev-eb26399b5dbb",
+        "ev-ecec44679e9d",
+        "ev-ee88e8f5ea66",
+        "ev-f7d1f0ce407c"
+      ],
+      "generatedAt": "2026-10-03T16:57:19.518Z",
+      "callId": "02ec582e-0b1b-47ad-997a-bf2b02db85d3",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-bea0311eb482] says only that the IPWhiteList middleware is renamed to IPAllowList with no other configuration change. So the exposed environments are those whose Middleware/MiddlewareTCP resources still set spec.ipWhiteList, and those already on spec.ipAllowList are the shielded overlap; this is the usual shape for a rename. The validator confirms spec.ipWhiteList is still in the v3 Middleware schema [ev-0842f8f3bd9d], but that bears on the consequence, which is not under review. Including MiddlewareTCP fits the guide's general wording but is not proven by the empty schema excerpt [ev-e664bb0d9d26].",
+    "startedAt": "2026-10-03T16:56:58.266Z",
+    "decidedAt": "2026-10-03T16:57:19.518Z"
+  }
+}

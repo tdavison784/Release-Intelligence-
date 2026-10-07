@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-935aa75dc232",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-ffaf730fbdf5",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-90aa9c6333d6"
+          ],
+          "statementKeys": [
+            "sk-7992fc1af198"
+          ],
+          "changeIds": [
+            "chg-ffaf730fbdf5"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "Fixed Set `allowPrivilegeEscalation` to `true` in ztunnel - it has always been forced to `true` in reality but K8S does not properly validate this…",
+    "text": "Fixed Set `allowPrivilegeEscalation` to `true` in ztunnel - it has always been forced to `true` in reality but K8S does not properly validate this: https://github.com/kubernetes/kubernetes/issues/119568",
+    "evidence": [
+      {
+        "id": "ev-5918eeb14ddb",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52540.yaml",
+        "locator": "52540.yaml L5-L6",
+        "excerpt": "- |\n  **Fixed** Set `allowPrivilegeEscalation` to `true` in ztunnel - it has always been forced to `true` in reality but K8S does not properly validate this: https://github.com/kubernetes/kubernetes/issues/119568",
+        "contentDigest": "sha256:00289e024a6d4f2fb15c37961a1c91d3ad14deed5fed420dfd966b5d6bec16f7",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-de406f865ae3",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/kubernetes/issues/119568",
+        "locator": "title and description",
+        "excerpt": "issue: Incorrect validation of `allowPrivilegeEscalation` with `SYS_ADMIN` capability [closed; labels kind/bug, sig/node, priority/important-longterm, sig/security, triage/accepted]\n### What happened?\n\nValidation logic to disallow `allowPrivilegeEscalation: false` in combination with `SYS_ADMIN` capability checks for `CAP_SYS_ADMIN` instead of `SYS_ADMIN` (see [security context validation](https://github.com/kubernetes/kubernetes/blob/d17f3ba/pkg/apis/core/validation/validation.go#L6823)).\n\nAdding `CAP_SYS_ADMIN` to the security context does not add the `cap_sys_admin` capability to the contai…",
+        "contentDigest": "sha256:7117ff5aa0ef8886ce3276ab611701268b8a45a29195be05d3e87a81e362d8ac",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-49d6ab67b028",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/kubernetes/kubernetes/issues/119568",
+        "locator": "description (part 2)",
+        "excerpt": "\"correctly\" add the capability when using `CAP_SYS_ADMIN`.\n\n### What did you expect to happen?\n\nA container that has a `securityContext` set, with both `allowPrivilegedEscalation` set to `false` and configuration to receive `cap_sys_admin` privileges, should be rejected.\n\n### How can we reproduce it (as minimally and precisely as possible)?\n\nFollowing pod logs the current capabilities of the container and then exits.\n\nexample pod, that is rejected:\n```yaml\napiVersion: v1\nkind: Pod\nmetadata:\nname: test\nspec: …",
+        "contentDigest": "sha256:7117ff5aa0ef8886ce3276ab611701268b8a45a29195be05d3e87a81e362d8ac",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:allowPrivilegeEscalation",
+      "code:true"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3f603de80ad6",
+    "candidateId": "sc-bca80be32605",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment's monitoring scrapes cert-manager's Prometheus metrics endpoint (consumes certmanager_* metrics)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Certificate issuance and expiration timestamps become observable via the two new Prometheus metrics; the release notes state no effect on existing configuration, APIs or workloads.",
+        "remediation": "No action required; the new metrics can optionally be used in dashboards or alerting rules.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds the Prometheus metrics `certmanager_certificate_not_before_timestamp_seconds` and `certmanager_certificate_not_after_timestamp_seconds` exposing certificate issuance and expiration timestamps."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the change adds Prometheus metric names (certmanager_certificate_not_before_timestamp_seconds, certmanager_certificate_not_after_timestamp_seconds), and no subject family (crd-field, helm-value, config-key, api-endpoint, protocol-behavior, etc.) covers a metric",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-e8facc7cba98"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4e8487f1f1e085dee702d42e2e46dba1b880ff8274273c14ed61ea0e92d947d7",
+      "inputEvidence": [
+        "ev-e8facc7cba98"
+      ],
+      "generatedAt": "2026-10-02T11:27:03Z",
+      "callId": "a9151d8e-c5f3-424d-9b00-5b04cd940b4e"
+    }
+  }
+}

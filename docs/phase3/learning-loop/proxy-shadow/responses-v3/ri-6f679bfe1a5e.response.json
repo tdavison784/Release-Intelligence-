@@ -1,0 +1,41 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6f679bfe1a5e",
+  "promptDigest": "sha256:0354b3e4b9897a1823bcdfeb0212782283d384d9a118ccaf617739368efcd9f5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "17de87cc-fcf4-460b-ac98-0af45c4d718f",
+  "startedAt": "2026-10-03T12:56:43.890Z",
+  "decidedAt": "2026-10-03T12:56:58.848Z",
+  "durationMs": 14055,
+  "costUSD": 0.10889599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dd7907f24ce5] says three specific metrics are removed (querier_cache_added_total, querier_cache_gets_total, querier_cache_misses_total) and replaced by the loki_cache_* metrics, so the change type \"removed\" and the replacement are correct. The subject name \"embedded-cache-metrics\" is too broad. The same section also renames other embedded cache metrics [ev-1f9807113c9e] and removes querier_cache_stale_gets_total as a separate change [ev-53101f583cb5]. I narrowed the name to the three removed metrics. No subject family covers metrics, so protocol-behavior is the closest fit, which is why confidence is low.",
+    "citations": [
+      "ev-dd7907f24ce5",
+      "ev-1f9807113c9e",
+      "ev-53101f583cb5"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total; use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+      "subject": {
+        "determination": "asserted",
+        "family": "protocol-behavior",
+        "name": "querier-cache-added-gets-misses-metrics"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "name": "loki-cache-metrics"
+        }
+      }
+    }
+  }
+}

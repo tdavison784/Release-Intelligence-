@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fbb2a53e8afc",
+    "candidateId": "sc-4b9080e9db9b",
+    "proposalId": "sp-86afd64f0751",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.tls.caOptional",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The Docker provider `tls.caOptional` static option no longer exists in v3, so a configured value is not honoured; the guide says to remove it from the Docker provider static configuration.",
+        "remediation": "Remove `tls.caOptional` (e.g. --providers.docker.tls.caOptional, providers.docker.tls.caOptional in traefik.yml/toml) from the Docker provider static configuration; configure TLS client authentication on the server side instead.",
+        "severity": "low"
+      },
+      "statement": "In Traefik v3 the Docker provider's static-configuration option `tls.caOptional` (providers.docker.tls.caOptional) has been removed, because TLS client authentication is a server-side option; remove it from the Docker provider static configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

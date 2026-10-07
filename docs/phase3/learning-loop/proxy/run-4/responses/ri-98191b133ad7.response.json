@@ -1,0 +1,100 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-98191b133ad7",
+  "promptDigest": "sha256:7e6e67daebbf56102919ad067d5ecc511cb3167798c676a9fd497e6bde9ba16d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6991ebad-2590-49c9-80d5-9f41b90c8e0f",
+  "startedAt": "2026-10-06T01:50:22.552Z",
+  "decidedAt": "2026-10-06T01:50:42.837Z",
+  "durationMs": 19408,
+  "costUSD": 0.197192,
+  "output": {
+    "action": "correct",
+    "reason": "The PR [ev-5dfd16d143dd] fixes two cases: an optional `ssh`/`altssh` subdomain in repo URLs (#19314, [ev-232d1413254c]) and a username in `https?` repo URLs (#15700, Azure DevOps, [ev-636f706e3247]). It changes both util/webhook and applicationset/webhook [ev-f1f886c7e03b]. The proposed condition covers only the ssh/altssh case, so it misses exposed environments that use https://user@host URLs. It is also fully undecidable even though the repo URLs are readable from Application/ApplicationSet repoURL fields. Only the external part, whether the git provider actually sends webhooks to Argo CD, belongs in an undecidable leaf.",
+    "citations": [
+      "ev-5dfd16d143dd",
+      "ev-232d1413254c",
+      "ev-636f706e3247",
+      "ev-f1f886c7e03b",
+      "ev-27aaf3747c01"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 now matches webhook payloads to repo URLs that use an ssh/altssh subdomain or a username in an http(s) URL. This affects Applications and ApplicationSets with such repoURLs that receive git-provider webhooks.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "argoproj.io",
+                  "kind": "Application",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.source.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "argoproj.io",
+                  "kind": "Application",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.sources[].repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "argoproj.io",
+                  "kind": "ApplicationSet",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.generators[].git.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "argoproj.io",
+                  "kind": "ApplicationSet",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.generators[].matrix.generators[].git.repoURL",
+                      "state": "matches",
+                      "pattern": "(?i)^(ssh://)?([^@/]+@)?(ssh|altssh)\\.|^https?://[^@/]+@"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the git provider delivers webhook events to Argo CD (API server or ApplicationSet webhook) for these repositories"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

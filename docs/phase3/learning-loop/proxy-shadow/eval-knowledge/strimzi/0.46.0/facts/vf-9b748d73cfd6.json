@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9b748d73cfd6",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-364698b2aaa3"
+        ],
+        "statementKeys": [
+          "sk-eb8baf0093a4"
+        ],
+        "changeIds": [
+          "chg-412e9dfc860b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-91bdc6129fc9"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-use-strimzi-pod-sets-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.35.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading from Strimzi 0.34 or older, the UseStrimziPodSets feature gate must be enabled and StrimziPodSet resources used for the Kafka operand."
+      },
+      "statement": "When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8f3877f0c00c"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8f3877f0c00c"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-2b5a1c150655"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7a39bd999b9c"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-0fe6816db4bb",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L37-L37 (0.46.0 › Major changes, deprecations and removals)",
+        "excerpt": "* When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources are used before upgrading.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:55:34.077Z"
+  }
+}

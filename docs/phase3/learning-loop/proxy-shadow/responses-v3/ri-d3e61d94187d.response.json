@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d3e61d94187d",
+  "promptDigest": "sha256:51515624c7a528e9b6c632e08487a6fe3f36db0cc2e6fdd6500e43dda29d35cd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b8759ce6-3a47-46f7-8f93-67242e959f68",
+  "startedAt": "2026-10-03T17:02:24.709Z",
+  "decidedAt": "2026-10-03T17:02:48.388Z",
+  "durationMs": 23032,
+  "costUSD": 0.12366540000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-85eccdc718e3][ev-2941a875a468] describe a changed interaction with Helm: the istio-base chart now templates the Istio CRDs, so `helm upgrade istio-base` upgrades them instead of an out-of-band `kubectl apply`. Existing kubectl workflows keep working, so behavior-changed with subject product-relationship:helm fits. The proposed before/after values are composite paraphrases, not literals the text states. They are optional for behavior-changed, so they are dropped (null). [ev-fa194382072a] names `Values.base.enableCRDTemplates` as now defaulting to true, but it does not state the earlier default literally, so I did not switch to that subject.",
+    "citations": [
+      "ev-85eccdc718e3",
+      "ev-2941a875a468",
+      "ev-fa194382072a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0 the istio-base Helm chart templates the Istio CRDs by default, so CRDs can be upgraded with `helm upgrade istio-base` instead of an out-of-band `kubectl apply`; CRD labels change to match other Helm-installed resources, and kubectl apply management continues to work.",
+      "subject": {
+        "determination": "asserted",
+        "family": "product-relationship",
+        "name": "helm"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed",
+        "before": null,
+        "after": null
+      }
+    }
+  }
+}

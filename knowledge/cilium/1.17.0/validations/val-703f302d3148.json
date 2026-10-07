@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-703f302d3148",
+    "candidateId": "sc-e57ca6092b51",
+    "proposalId": "sp-bef98a8a678d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--probe",
+        "component": "cilium-health"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"run a synchronous probe\"",
+        "after": "\"returns the results of the most recent cached probe\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or scripts invoke `cilium-health status --probe` (an interactive CLI call, not a workload container argument) and rely on it running a fresh synchronous probe"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`cilium-health status --probe` no longer runs a synchronous probe. It returns the results of the most recent cached probe instead, and the option will be removed in a future release.",
+        "remediation": "Stop relying on `cilium-health status --probe` for fresh synchronous probe results, and remove it from any scripts before it is dropped in a future release.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17, `cilium-health status --probe` no longer runs a synchronous probe; it is now a hidden option that returns the results of the most recent cached probe, and it will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

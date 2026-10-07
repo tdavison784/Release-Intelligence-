@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3632e5703fb2",
+    "reviewItemId": "ri-18f7bab79a8e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium attaches tc BPF programs via tcx links by default on kernels 6.6+, which may conflict with third-party old-style tc BPF users.",
+        "remediation": "Set bpf.enableTCX=false in Helm to continue with old-style tc BPF attachment."
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium now defaults to tcx BPF links for attaching tc BPF programs (bpf.enableTCX); setups with third-party old-style tc BPF users should set bpf.enableTCX=false to keep old-style attachment."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:ce40fb2b1f9d5f24b886465f455b5b9b5c02d037d6acd6574b02db5b4ff8248a",
+      "inputEvidence": [
+        "ev-736cdc5fc0d2",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T12:48:38.901Z",
+      "callId": "c88b9b4f-e079-47a9-b3b1-0d9a77c10515"
+    },
+    "reason": "[ev-736cdc5fc0d2] says that on kernels 6.6 or newer, Cilium now uses tcx BPF links by default to attach its tc BPF programs. It says setups with third-party old-style tc BPF users \"should\" set bpf.enableTCX=false to keep the old attachment mode. The evidence does not say that anything fails, is rejected or loses access. It only describes a changed default with an opt-out, so behavior-change (review) fits, and the proposed remediation matches the evidence.",
+    "startedAt": "2026-10-02T12:48:32.93Z",
+    "decidedAt": "2026-10-02T12:48:38.901Z"
+  }
+}

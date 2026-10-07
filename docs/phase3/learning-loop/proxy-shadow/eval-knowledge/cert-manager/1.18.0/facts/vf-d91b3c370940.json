@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-d91b3c370940",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-59594ee9c175"
+        ],
+        "statementKeys": [
+          "sk-21f30a593d5a"
+        ],
+        "changeIds": [
+          "chg-0dbf738dde76"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f7925b79e2e4"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "global.rbac.disableHTTPChallengesRole"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The default value (false) maintains existing behavior with HTTP-01 challenges enabled; operators can opt-in to disable HTTP-01 by setting this value to true for improved security posture."
+      },
+      "statement": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-7cbd20b7667b",
+          "val-a005e053d078",
+          "val-a8944a8d7c5d",
+          "val-b5005f680085",
+          "val-b918598e7aef",
+          "val-ba8e8d8ec4ce",
+          "val-e2548328a710",
+          "val-e7ce9785ef3e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-7cbd20b7667b",
+          "val-a005e053d078",
+          "val-a8944a8d7c5d",
+          "val-b5005f680085",
+          "val-b918598e7aef",
+          "val-ba8e8d8ec4ce",
+          "val-e2548328a710",
+          "val-e7ce9785ef3e"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f3a850072c30"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-56ecf62d22cf"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-7a67f12867b2",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      },
+      {
+        "id": "ev-861cb2d69752",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L331-L331 (v1.18.0 › Feature)",
+        "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:00:33.371Z"
+  }
+}

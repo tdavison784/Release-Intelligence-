@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-788186088b0d",
+    "candidateId": "sc-46f2a499bf2f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "grafanaAgent",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "agents",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators can now configure resource requests and limits for GrafanaAgent pods through Helm values; previously this was not configurable.",
+        "severity": "low"
+      },
+      "statement": "The Loki Helm chart now allows defining resource requests and limits for GrafanaAgent pods."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the exact helm-value path for GrafanaAgent resources is not specified in the changelog excerpt",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-ef448e5a23b4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bcc577802ae407dc3a2d646eb424ff0ac1a711e1b7e9be554b9ce4c213ee296b",
+      "inputEvidence": [
+        "ev-ef448e5a23b4"
+      ],
+      "generatedAt": "2026-10-02T16:13:19Z",
+      "callId": "d690420d-5a08-4e89-a5cc-2ca1b6c35e6c"
+    }
+  }
+}

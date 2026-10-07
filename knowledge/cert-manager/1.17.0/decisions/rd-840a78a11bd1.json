@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-840a78a11bd1",
+    "reviewItemId": "ri-5565cdf55747",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-data-parsing-capacity",
+        "component": "pki"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The pki.DecodeX509CertificateSetBytes function increases its capacity to parse PEM data, enabling support for reading larger TLS trust bundles."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-data-parse-amount"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "cert-manager 1.17.0 increases the amount of PEM data pki.DecodeX509CertificateSetBytes is able to parse, so larger TLS trust bundles can be read."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f7c45ef8b7e84de8d270ea95e24dbc8ff306bea7d685c30320ff65bec480a55c",
+      "inputEvidence": [
+        "ev-db955cc00d69"
+      ],
+      "generatedAt": "2026-10-02T12:55:29.916Z",
+      "callId": "5f52a6f5-6417-4ff9-9efc-4874702d4f43"
+    },
+    "reason": "[ev-db955cc00d69] says the amount of PEM data `pki.DecodeX509CertificateSetBytes` can parse was increased so larger TLS trust bundles can be read. That is the same configuration with different parsing behaviour, so behavior-changed is right. The proposed subject has two problems. First, `pki` is a Go package named inside the function identifier, not a component, binary or chart of the product, so it should not go in the component field. Second, \"capacity\" is not one of the evidence's own words. The name should be built from the evidence's words (\"amount\", \"PEM data\", \"parse\").",
+    "startedAt": "2026-10-02T12:55:20.061Z",
+    "decidedAt": "2026-10-02T12:55:29.916Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f1a796353c88",
+    "reviewItemId": "ri-cd672e30bd48",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The `tls.secretsBackend` Helm value is deprecated and scheduled for removal; environments using it should migrate to `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `tls.secretsBackend` has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`, which change how TLS Visibility secrets are passed to Envoy (from inline NPDS to SDS)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:400e767b10a25526d0312b7bd4c12f46a64b673d688b99d45290e5cbf86611c2",
+      "inputEvidence": [
+        "ev-ed86f8eb85bf",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T15:58:34.718Z",
+      "callId": "71dd0cbd-4c77-4f3e-bdc0-8d10107aaf27"
+    },
+    "reason": "[ev-ed86f8eb85bf] says the Helm value `tls.secretsBackend` \"has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace`\" (with the new `tls.secretSync` alongside). It does not say the old value is ignored, rejected or must be migrated before the upgrade. A deprecated value that still works is a deprecation, which falls in the review class, so the proposed kind and class match the evidence. The statement's phrase \"scheduled for removal\" adds a little to what the evidence says, but it is what deprecation means and claims no mandatory work.",
+    "startedAt": "2026-10-02T15:58:18.069Z",
+    "decidedAt": "2026-10-02T15:58:34.718Z"
+  }
+}

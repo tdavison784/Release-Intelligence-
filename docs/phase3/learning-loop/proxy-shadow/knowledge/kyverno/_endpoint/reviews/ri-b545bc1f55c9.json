@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b545bc1f55c9",
+    "candidateId": "sc-9bfef792f31d",
+    "product": "kyverno",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `updaterequests.kyverno.io` changes v1beta1 → v2\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "updaterequests.kyverno.io"
+        }
+      },
+      "statement": "The storage version of the updaterequests.kyverno.io CRD changes from v1beta1 to v2 (v1beta1.storage true→false, v2.storage false→true between 1.12.6 and 1.13.0), so existing UpdateRequest objects stay stored as v1beta1 until a storage version migration re-writes them and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-3eeba9c94c4f",
+      "sp-4c4ab6e41a5b",
+      "sp-7e7c1227d365",
+      "sp-b80e70c2ae5b",
+      "sp-c26ff2403256",
+      "sp-d89b18bdf985",
+      "sp-e63a5b8f3514"
+    ],
+    "validations": [
+      "val-092fcd43dcee",
+      "val-0e6d2d80e7c3",
+      "val-17bff20d2540",
+      "val-4381ec757f29",
+      "val-46545542ef71",
+      "val-4fa871957e94",
+      "val-70991528c211",
+      "val-75028a6b2828",
+      "val-7629c64aa741",
+      "val-80426bec6e38",
+      "val-8717db8976a2",
+      "val-933c9ae48a44",
+      "val-d291bf81d94b",
+      "val-e1febf28a4b1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:15:07Z"
+  }
+}

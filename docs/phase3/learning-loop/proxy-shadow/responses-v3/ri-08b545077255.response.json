@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-08b545077255",
+  "promptDigest": "sha256:1fbfb4f359867115c7b6cfd67d7798dc1aabbbd427e39f25e8bb5699323b008e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "598ddd5d-82f5-4164-8577-1994b658de28",
+  "startedAt": "2026-10-03T12:42:55.897Z",
+  "decidedAt": "2026-10-03T12:43:05.325Z",
+  "durationMs": 8507,
+  "costUSD": 0.0410444,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The only evidence is the computed diff line, which adds `return errors.New(\"...The --enable-composition-webhook-schema-validation flag will be removed in a future release.\")` to cmd/crossplane/core/core.go. Both excerpts [ev-2875a348b5d7] and [ev-59d22c21eec4] show only \"/*\", so the code that triggers this error is not visible. The wording sounds like a deprecation, but the line returns an error. If setting the flag makes the core command fail, the flag no longer works and \"deprecated\" would be the wrong change type. To decide, we need the surrounding v2.0.0 code (what condition returns this error and whether the caller stops startup) or a release note or upgrade-guide statement about the flag.",
+    "citations": [
+      "ev-59d22c21eec4",
+      "ev-2875a348b5d7"
+    ],
+    "confidence": "low"
+  }
+}

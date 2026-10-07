@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c0a77e269739",
+    "candidateId": "sc-6a62499753bb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"256KB\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki now enforces a 256KB maximum line size by default where it did not before. The evidence does not say what happens to lines that exceed it.",
+        "remediation": "If you need longer log lines, disable or raise the max line size limit. See 'Changes to default configuration values in 3.0' in the upgrade guide.",
+        "severity": "medium"
+      },
+      "statement": "Starting with Loki 3.0.0, a maximum log line size of 256KB is enforced by default. Operators can disable this limit or raise it."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The evidence describes a 'max line size' default but does not name the configuration key or path that controls it, and the linked defaults table is not included in the evidence.; applicability: The setting that controls the limit is not named in the evidence, so no predicate can read it. Whether log lines exceed 256KB is runtime data.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-af3121d71703"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8785eba5e1ab0c66ec3b2473b04c8ff84589d0d99ab2096f706f6dcb49f3c06f",
+      "inputEvidence": [
+        "ev-af3121d71703"
+      ],
+      "generatedAt": "2026-10-03T07:13:32Z",
+      "callId": "ba35d8e8-7f71-4940-bff8-1667901c1121"
+    }
+  }
+}

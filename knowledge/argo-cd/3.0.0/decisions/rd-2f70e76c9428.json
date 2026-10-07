@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2f70e76c9428",
+    "reviewItemId": "ri-82538aae9fde",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "policy.open-cluster-management.io",
+          "kind": "Policy"
+        }
+      },
+      "statement": "Argo CD health assessment for Policy (policy.open-cluster-management.io) resources no longer leaves them stuck in Progressing when no clusters match the policy."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "policy.open-cluster-management.io",
+              "kind": "Policy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any managed Policy currently matches no clusters (placement/status at runtime)"
+            }
+          ]
+        }
+      },
+      "statement": "Argo CD's health check no longer leaves Policy (policy.open-cluster-management.io) resources stuck in Progressing when no clusters match the policy. Exposed: environments where Argo CD manages Policy resources and at least one policy matches no clusters at runtime."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:903cf287eeaf9f61516844fe9e075fd764b9abcfe8b354509c44cdca342875b5",
+      "inputEvidence": [
+        "ev-b0ac73f2731e"
+      ],
+      "generatedAt": "2026-10-02T13:01:50.742Z",
+      "callId": "8be6f98c-c36b-4813-8ed7-903fd800058b"
+    },
+    "reason": "[ev-b0ac73f2731e] says the fix only concerns Policy/policy.open-cluster-management.io resources that got stuck in Progressing \"when no clusters match the policy\". The proposed gvk-in-use condition alone is too broad: it would flag every environment that uses Policy, including ones where every policy matches clusters. Whether a policy matches no clusters depends on runtime placement and status, and no static input shows that. So exposure should be Policy in use AND an undecidable runtime condition. The evidence gives no API version, so none is included.",
+    "startedAt": "2026-10-02T13:01:40.611Z",
+    "decidedAt": "2026-10-02T13:01:50.742Z"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e9cbd1dd9182",
+    "candidateId": "sc-b39719683d97",
+    "proposalId": "sp-77d30331804b",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "pilot.enabled"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "pilot.enabled",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `pilot.enabled` configuration value will no longer be honored in the `istiod-remote` and `istio-discovery` charts if it was previously set.",
+        "severity": "medium"
+      },
+      "statement": "The helm-value `pilot.enabled` has been removed from the `istiod-remote` and `istio-discovery` charts."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "pilot.enabled is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "pilot.enabled is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-41d780f6ab39",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:42c5370ac7e870722655a08a30a64e1bde0b2e4b65f2786e97dca0395fdcd3b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-ad95ec08c00b",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:98cdc4bb9ffa308db45d96e8a773624f18069ee56a84d72a57ba2ff32e24e6e0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

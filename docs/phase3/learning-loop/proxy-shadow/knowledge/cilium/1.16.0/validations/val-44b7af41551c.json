@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-44b7af41551c",
+    "candidateId": "sc-3d73e8a6dea6",
+    "proposalId": "sp-fef5cef03dbc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "re-establish-dsr-service-connections"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which live service connections use Direct-Server-Return and were established while the cluster ran a Cilium version prior to v1.13.3"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections that use Direct-Server-Return and were established prior to Cilium v1.13.3 will be disrupted during the upgrade to 1.16.0 and need to be re-established.",
+        "remediation": "Identify service connections using Direct-Server-Return that were established before Cilium v1.13.3 and re-establish them (have the clients reconnect) as part of the upgrade.",
+        "severity": "medium"
+      },
+      "statement": "Service connections that use Direct-Server-Return and were established prior to Cilium v1.13.3 will be disrupted by the upgrade to Cilium 1.16.0 and need to be re-established."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

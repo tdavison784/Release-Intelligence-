@@ -1,0 +1,42 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-13a85856a9a8",
+  "promptDigest": "sha256:ab66ffe1c01714ced8533d2d83a7fc707f4e115e915d7823a05b9693c8313728",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dae7d711-b2a5-438c-a608-d4c3bf74d9fe",
+  "startedAt": "2026-10-03T12:44:39.558Z",
+  "decidedAt": "2026-10-03T12:44:50.358Z",
+  "durationMs": 9850,
+  "costUSD": 0.094376,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-875bb56564b0] says, under \"Changed Metrics\", that the metric `lbipam_ips_available_total` has been renamed to `lbipam_ips_available`, so the change type \"renamed\" and the before/after literals are right. The proposal breaks the rename, though: its replacedBy has the same identity as the subject, so it records nothing. It also puts the product in a field, which the rules forbid. The corrected version names the subject after the old metric name and replacedBy after the new one, both as kebab-case protocol-behavior names, because no family is specific to metrics.",
+    "citations": [
+      "ev-875bb56564b0"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "The LB-IPAM metric lbipam_ips_available_total has been renamed to lbipam_ips_available in Cilium 1.17.0.",
+      "subject": {
+        "family": "protocol-behavior",
+        "name": "lbipam-ips-available-total",
+        "determination": "asserted"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "lbipam_ips_available_total",
+        "after": "lbipam_ips_available",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "name": "lbipam-ips-available"
+        },
+        "determination": "asserted"
+      }
+    }
+  }
+}

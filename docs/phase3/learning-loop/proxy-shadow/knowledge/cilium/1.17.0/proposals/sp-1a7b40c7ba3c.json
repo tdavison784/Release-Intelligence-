@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1a7b40c7ba3c",
+    "candidateId": "sc-30c676d7c5e6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble CLI `--cluster foo` now also shows flows from nodes outside cluster foo that go to or come from it; use `--node-name foo/` for the previous behavior.",
+        "remediation": "Replace `--cluster foo` with `--node-name foo/` where the old behavior is needed.",
+        "severity": "low"
+      },
+      "statement": "The Hubble CLI `--cluster` flag now shows flows from nodes outside the named cluster (to or from the target cluster); the old behavior can be reproduced with `--node-name foo/`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Hubble CLI invocation is a user-run command, not visible in Helm values or manifests; no predicate can express its usage.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-868456a7673f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f044b3ed889f47f109e8e1685cd4678e329541b07d7bcc02216b46352e3d3342",
+      "inputEvidence": [
+        "ev-868456a7673f"
+      ],
+      "generatedAt": "2026-10-03T07:07:04Z",
+      "callId": "efe2e00a-1b85-4bd5-ac08-8e7be7ea6720"
+    }
+  }
+}

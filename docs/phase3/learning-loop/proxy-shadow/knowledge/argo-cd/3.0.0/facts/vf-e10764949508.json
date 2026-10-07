@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e10764949508",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-e7c0f830fdba"
+        ],
+        "statementKeys": [
+          "sk-10bbad9968b5"
+        ],
+        "changeIds": [
+          "chg-7ff5467cb48e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-03aa929e64d5"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Helm chart rendered by Argo CD (Application Helm sources) has values.yaml files for subcharts containing null object values"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Rendered Kubernetes objects are overridden with the invalid null value from values.yaml null objects, which may require changing subchart values.yaml files.",
+        "remediation": "Identify values.yaml files with null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-14dbe4e3f1b1"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-14dbe4e3f1b1"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-70a785217cdc"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-17439a2f1323"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b8041528e3f8",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L221-L232 (v2.14 to 3.0 › Breaking Changes › Upgraded Helm version with breaking changes)",
+        "excerpt": "### Upgraded Helm version with breaking changes\n\nHelm was upgraded to 3.17.1.\nThis may require changing your `values.yaml` files for subcharts, if the `values.yaml` contain a section with a `null` object.\nSee related issue in [Helm GitHub repository](https://github.com/helm/helm/issues/12469)\nSee Helm 3.17.1 [release notes](https://github.com/helm/helm/releases/tag/v3.17.1)\nExample of such a [problem and resolution](https://github.com/argoproj/argo-cd/pull/22035/files)\nExplanation:\n\n- Prior to Helm 3.17.1, `null` object in `values.yaml` resulted in a warning: `cannot overwrite table with non t…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:02:56.979Z"
+  }
+}

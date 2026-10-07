@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e52a433d511f",
+    "reviewItemId": "ri-819774b2b686",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore objects using the external-secrets.io/v1beta1 schema whose spec.provider.fake.data[] entries omit value are rejected, because value is now in the required list of each fake data item.",
+        "remediation": "Set spec.provider.fake.data[].value in every data entry of fake-provider ClusterSecretStore objects (it is now required alongside key).",
+        "severity": "medium"
+      },
+      "statement": "ClusterSecretStore v1beta1 schema: 1 field now required: `spec.provider.fake.data[].value`"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:17d56e4399614a75b3f570d6db5095e74d4af4302dc2c8e2c8c7303165e1d108",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T23:20:34.023Z",
+      "callId": "e72f3452-3ce1-47b5-8213-32c327ca1716"
+    },
+    "reason": "[ev-9fd85560a485] shows that from 0.15.0 to 0.16.0, the v1beta1 ClusterSecretStore schema changed spec.provider.fake.data.items.required from [\"key\"] to [\"key\",\"value\"]. Under the new CRD schema, the API server's validation rejects objects whose fake data entries leave out value, so resource-rejected is the right kind and medium severity fits. The SecretStore change in [ev-210dbd3942ad] is the same change in a separate CRD, so it does not affect this fact.",
+    "startedAt": "2026-10-02T23:20:27.312Z",
+    "decidedAt": "2026-10-02T23:20:34.023Z",
+    "resultingFact": "vf-30c8400eac07"
+  }
+}

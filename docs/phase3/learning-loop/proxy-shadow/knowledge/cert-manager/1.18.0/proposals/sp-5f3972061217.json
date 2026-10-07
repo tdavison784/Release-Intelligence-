@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5f3972061217",
+    "candidateId": "sc-c094933998fc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "route53-not-found-error-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When cert-manager deletes DNS records in AWS Route53, it now correctly detects not-found errors. This is a bug fix and needs no operator action.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 fixes how the AWS Route53 DNS01 solver detects not-found errors when it deletes DNS records."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-23e99dfde8d0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:a0b5bda560962f62c88e5abde429b3bec76583669f8b42cebfabc9e12dd0ffbd",
+      "inputEvidence": [
+        "ev-23e99dfde8d0"
+      ],
+      "generatedAt": "2026-10-02T06:10:28Z",
+      "callId": "18ab5b19-8902-43f1-9aed-9b69adb92969"
+    }
+  }
+}

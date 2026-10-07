@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-173dc4cdce13",
+    "candidateId": "sc-7966c351e471",
+    "proposalId": "sp-a6b652b1b6e8",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `--registry` flag no longer sets a default registry. Packages without a registry host name in their reference (such as `crossplane-contrib/provider-aws-s3:v1.23.0`) are no longer resolved against a default registry.",
+        "remediation": "Run `kubectl get pkg -o wide` and update any package without a registry host name to a fully qualified name, such as `xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v1.23.0`, before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The `--registry` flag for the default package registry is removed, so all packages must use fully qualified names that include the registry host."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

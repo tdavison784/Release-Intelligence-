@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c08d3db48929",
+    "reviewItemId": "ri-89ce2fc733e2",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:43a9cfd92d221d480827d76af098ce289ba7c6b153a1a8c5b79ee9c9d940c17f",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T16:53:26.45Z",
+      "callId": "3a11a06a-d0d5-46a8-a480-eba44f591b8b",
+      "provider": "anthropic"
+    },
+    "reason": "Both evidence excerpts [ev-2875a348b5d7] and [ev-59d22c21eec4] contain only \"/*\", so they don't show the code around the added `return errors.New(...)` line. The only content to judge is the added line itself, as described in the change text. It doesn't show what makes that line run, for example whether setting the flag triggers it, or whether returning the error stops the core from starting or is only logged. The error text says the flag \"will be removed in a future release\", which reads like a deprecation. So the proposed workload-failure (\"the core does not start\") is not supported. To decide, we need the code around the added line in v2.0.0 core.go, or an upgrade note saying what happens when the flag is set.",
+    "startedAt": "2026-10-03T16:53:19.077Z",
+    "decidedAt": "2026-10-03T16:53:26.45Z"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-1f5e69e615a6",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-5a74bf322c67"
+        ],
+        "statementKeys": [
+          "sk-236cc8d7ab54"
+        ],
+        "changeIds": [
+          "chg-c9d30bbce225"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f5cebb7e0498"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "issuer-retry-on-secret-update"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an issuer's linked Secret is updated at runtime, since that update event is what triggers the affected retry/back-off path"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Issuers will now retry more quickly when their linked Secret is updated, reducing back-off timeout delays.",
+        "severity": "low"
+      },
+      "statement": "The issuer will now more quickly retry when its linked Secret is updated to fix an issue that caused a high back-off timeout"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-63f7845fa71f"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-63f7845fa71f"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4e3766567b2d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2daee0698c0d"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-10c8b1c28d66",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L216-L216 (v1.17.0 › Bug or Regression)",
+        "excerpt": "- The issuer will now more quickly retry when its linked Secret is updated to fix an issue that caused a high back-off timeout. ([#7455](https://github.com/cert-manager/cert-manager/pull/7455), [@inteon](https://github.com/inteon))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:54:04.73Z"
+  }
+}

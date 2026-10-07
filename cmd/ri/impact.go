@@ -11,6 +11,8 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/impact"
 	"github.com/tdavison784/release-intelligence/internal/impactenrich"
+	"github.com/tdavison784/release-intelligence/internal/policy"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 // impact runs `ri impact <product> <from> <to>`: the upgrade edge joined with
@@ -31,11 +33,19 @@ func (c *cli) impact(args []string) error {
 	repo := fs.String("repo", "", "directory mode: discover values/manifests/Argo CD/Flux inputs in a repository tree by convention (explicit flags compose with, and are applied after, the discovered files)")
 	values := fs.String("values", "", "comma-separated Helm values files of the environment")
 	manifests := fs.String("manifests", "", "comma-separated manifest files or directories (multi-document YAML)")
+	manifestsComplete := fs.Bool("manifests-complete", false, "declare that the supplied manifests are every object this environment runs (a workload missing from them, or the target of an unresolved reference, is then genuinely absent; without it, missing means not shown)")
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
-	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
+	inventory := fs.String("inventory", "", "declared product inventory: a YAML list of {product, version, note?} (which other products run here, e.g. ingress-nginx 1.12.1); in --repo mode <repo>/inventory.yaml is used when present")
+	pathPolicy := fs.String("policy", "", "path policy override: minor-lineage|all")
+	tierPolicy := fs.String("tier-policy", "", "tiered upgrade policy file (docs/POLICY.md), or \"default\" for the shipped one: classifies each rendered change, upstream change and finding as auto-pass|review|block and prints the upgrade-level verdict (use with --render; without a render the verdict is review)")
+	tierPolicyAll := fs.Bool("tier-policy-all", false, "with --tier-policy: also list the auto-pass items")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
+	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge (the knowledge/ record tree): facts are evaluated against the environment (impact:knowledge-* findings)")
+	minVerification := fs.String("min-verification", "", "with -knowledge: use facts verified at least at this level: deterministic|human|consensus|proxy (default human; consensus and proxy facts never clear a change)")
+	doRender := fs.Bool("render", false, "render the source and target releases with the customer's configuration (--values/--repo, or chart defaults without them) and diff the manifests: what actually changes for this environment, each rendered change correlated with the changelog entries that mention it")
+	rf := addRenderFlags(fs)
 	ef := enrichFlagsFor("impact", fs)
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -48,24 +58,59 @@ func (c *cli) impact(args []string) error {
 	if err := ef.check(); err != nil {
 		return err
 	}
-	in := app.ImpactOptions{Policy: *policy}
+	in := app.ImpactOptions{Policy: *pathPolicy}
 	in.Environment.KubernetesVersion = *kubernetes
 	in.Environment.Repo = *repo
+	in.Environment.Inventory = *inventory
 	in.Environment.ValuesFiles = splitList(*values)
 	in.Environment.Manifests = splitList(*manifests)
+	in.Environment.ManifestsComplete = *manifestsComplete
 	in.Environment.CRDs = splitList(*crds)
 	in.Environment.Images, err = imageList(*images)
 	if err != nil {
 		return err
 	}
+	if *knowledgeDir != "" {
+		lvl, err := app.ParseVerificationLevel(*minVerification)
+		if err != nil {
+			return err
+		}
+		ks, err := app.LoadKnowledge(*knowledgeDir)
+		if err != nil {
+			return err
+		}
+		for _, w := range ks.Warnings {
+			fmt.Fprintf(c.err, "knowledge: %s\n", w)
+		}
+		in.Facts, in.MinVerification = ks.Facts, lvl
+	} else if *minVerification != "" {
+		return fmt.Errorf("%w: -min-verification needs -knowledge", app.ErrUsage)
+	}
+	var tierPol *policy.Policy
+	if *tierPolicy != "" {
+		tp, err := policy.Load(*tierPolicy)
+		if err != nil {
+			return err
+		}
+		tierPol = tp
+	}
+	if *doRender {
+		in.Render = &app.RenderOptions{
+			ValuesFiles: splitList(*values), Repo: *repo, Overlays: splitList(*rf.overlays),
+			ReleaseName: *rf.releaseName, Namespace: *rf.namespace, KubeVersion: *kubernetes,
+			APIVersions: splitList(*rf.apiVersions),
+			Release:     *rf.chartDefaults || (*values == "" && *repo == "" && *rf.overlays == ""),
+		}
+	}
 	a, err := c.newApp()
 	if err != nil {
 		return err
 	}
-	rep, edge, e, err := a.ImpactParts(c.ctx, pos[0], pos[1], pos[2], in)
+	irun, err := a.ImpactRun(c.ctx, pos[0], pos[1], pos[2], in)
 	if err != nil {
 		return err
 	}
+	rep, edge, e, rres := irun.Report, irun.Edge, irun.Env, irun.Render
 	if *ef.candidates {
 		printImpactCandidates(c.err, rep, edge, e, impactenrich.Candidates(rep, edge, impactenrich.CandidateOptions{}))
 	}
@@ -86,10 +131,52 @@ func (c *cli) impact(args []string) error {
 			}
 		}
 	}
-	if *output == "json" {
-		return c.writeJSON(rep)
+	var verdict *policy.Verdict
+	if tierPol != nil {
+		verdict = policy.Evaluate(tierPol, policy.Input{Pairs: renderPairs(rres), Edge: edge, Report: rep})
 	}
-	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown})
+	if *output == "json" {
+		// the impact report unchanged, plus the rendered delta and the policy
+		// verdict beside it
+		out := struct {
+			*domain.ImpactReport
+			Render *renderReport   `json:"render,omitempty"`
+			Policy *policy.Verdict `json:"policy,omitempty"`
+		}{ImpactReport: rep, Policy: verdict}
+		if rres != nil {
+			rr := renderJSON(rres, *rf.showValues)
+			out.Render = &rr
+		}
+		if rres == nil && verdict == nil {
+			return c.writeJSON(rep)
+		}
+		return c.writeJSON(out)
+	}
+	if err := impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown}); err != nil {
+		return err
+	}
+	if rres != nil {
+		fmt.Fprintln(c.out)
+		writeRenderText(c.out, rres, *rf.showValues)
+	}
+	if verdict != nil {
+		fmt.Fprintln(c.out)
+		policy.WriteText(c.out, verdict, policy.TextOptions{ShowAll: *tierPolicyAll})
+	}
+	return nil
+}
+
+// renderPairs lists every render pair of a run (release-level first), nil
+// without a render.
+func renderPairs(r *app.RenderDiffResult) []*render.Pair {
+	if r == nil {
+		return nil
+	}
+	var out []*render.Pair
+	if r.Release != nil {
+		out = append(out, r.Release)
+	}
+	return append(out, r.Pairs...)
 }
 
 // impactEnrich runs the optional AI step over the deterministic report and

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9c5792ff5244",
+    "candidateId": "sc-0183f4d8b953",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_update_rejected\"",
+        "after": "\"envoy_cilium_npds_update_rejected\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy_cilium_npds_update_rejected"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment's dashboards, alert rules or other metric consumers reference the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "In 1.17 the metric is reported under the new name `envoy_cilium_npds_update_rejected`, so dashboards, alerts or other metric consumers selecting the old name `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` no longer match it.",
+        "remediation": "Update dashboards, alert rules and other metric consumers to select envoy_cilium_npds_update_rejected instead of envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected.",
+        "severity": "low"
+      },
+      "statement": "The Cilium 1.17 upgrade notes (Changed Metrics) state that the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` is renamed to `envoy_cilium_npds_update_rejected`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f7021b9d3606"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:194865870cd51044a20719baa1951423ca404fb6ea3be74fa300081d8bd21846",
+      "inputEvidence": [
+        "ev-f7021b9d3606"
+      ],
+      "generatedAt": "2026-10-03T07:22:14Z",
+      "callId": "b45e1adc-6980-4f23-bf8f-eb1de5cadd40"
+    }
+  }
+}

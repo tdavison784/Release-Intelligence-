@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-753d64a5d09f",
+    "candidateId": "sc-d3c98f01eaa1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagepolicy-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "kind": "ImagePolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether existing ImagePolicy objects are still stored as v1beta2 (CRD status.storedVersions includes v1beta2)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImagePolicy objects stay stored as v1beta2 until rewritten; a storage version migration and an update of status.storedVersions must be done before a later release removes v1beta2.",
+        "remediation": "Re-write all ImagePolicy objects so they are stored as v1, then remove v1beta2 from the imagepolicies.image.toolkit.fluxcd.io CRD's status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imagepolicies.image.toolkit.fluxcd.io CRD changes from v1beta2 to v1. Existing ImagePolicy objects stay stored as v1beta2 until rewritten, so they need a storage version migration and a status.storedVersions update before a later release removes v1beta2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:96f3797aebec4192bfd1463d66168e1c847fd461044893f12ecc0525764a9123",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:15:28Z",
+      "callId": "3f01ddb8-2edc-498f-96de-7b98e7e682fe"
+    }
+  }
+}

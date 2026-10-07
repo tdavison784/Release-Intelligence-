@@ -409,6 +409,17 @@ artifacts:
         locator:
           kind: http
           url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+      # What the CRD descriptions say about their own fields: removal and
+      # deprecation notices ("Note: The `Updated` template field has been
+      # removed. Use `Changed` instead.", "Deprecated: ... Will be removed in
+      # v1."). They have no schema structure, so a field dropped from a text
+      # contract (a commit message template) shows up nowhere else.
+      - kind: lines
+        label: install.yaml
+        locator:
+          kind: http
+          url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+        pattern: '(?i)\b(?:has|have) been removed\b|^\s*Deprecated:|\bwill be removed\b'
   # the second OCI artifact of the generated manifests (workflow job added
   # between v2.0.0 and v2.1.0): the flux pull/OCI-install distribution
   - id: flux-manifests-oci
@@ -493,3 +504,39 @@ provenance:
     relation; the generated install bundle is probe-verified through the
     install.yaml release asset because the canonical flux-system OCI
     artifact denies anonymous pulls.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: controller-flags
+  channel: cli-flags
+  component: source-controller, kustomize-controller, helm-controller, notification-controller, image-reflector-controller,
+    image-automation-controller
+  summary: Each Flux controller is tuned through its container command-line flags (e.g. --concurrent), which bootstrap
+    users set with Kustomize patches in flux-system/kustomization.yaml.
+  references:
+  - url: https://fluxcd.io/flux/components/kustomize/options/
+    quote: The number of concurrent kustomize reconciles. (default 4)
+  - url: https://fluxcd.io/flux/installation/configuration/bootstrap-customization/
+    quote: The Flux controller deployments, container command arguments, node affinity, etc can be customized using
+      Kustomize strategic merge patches and JSON patches.
+- id: feature-gates
+  channel: feature-gates
+  component: Flux controllers
+  summary: Experimental controller features (e.g. kustomize-controller CacheSecretsAndConfigMaps, DisableStatusPollerCache)
+    are toggled via each controller's --feature-gates flag of key=value pairs.
+  flag: --feature-gates
+  references:
+  - url: https://fluxcd.io/flux/components/kustomize/options/
+    quote: A comma separated list of key=value pairs defining the state of experimental features.
+- id: community-helm-values
+  channel: helm-values
+  component: flux2 community chart
+  summary: Flux can be installed with the fluxcd-community flux2 Helm chart (values at the chart root), which is
+    maintained on a best-effort basis outside the fluxcd/flux2 repository.
+  valuesPath: .
+  references:
+  - url: https://fluxcd.io/flux/installation/
+    quote: the Helm charts are maintained by the fluxcd-community on a best effort basis with no guarantees around
+      release cadence.

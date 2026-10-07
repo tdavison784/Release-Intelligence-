@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-1b7001b893e8",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-d79a8fa59908"
+        ],
+        "statementKeys": [
+          "sk-86f344884f07"
+        ],
+        "changeIds": [
+          "chg-f88727f221e6"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-130b266366f8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--boltdb.shipper.compactor.*",
+        "component": "compactor"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--compactor.*",
+          "component": "compactor"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "boltdb.shipper.compactor.",
+          "state": "matches",
+          "pattern": "^--?boltdb\\.shipper\\.compactor\\."
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Compactor settings passed with `boltdb.shipper.compactor.`-prefixed CLI flags stop being honoured because those flags are removed in 3.0.0.",
+        "remediation": "Replace every --boltdb.shipper.compactor.* CLI flag with its --compactor.* equivalent before upgrading.",
+        "severity": "high"
+      },
+      "statement": "Compactor CLI flags that use the prefix `boltdb.shipper.compactor.` are removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-c54f4449897d"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-c54f4449897d"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-eafa9b3fb8c6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e279758e04a0"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-f15092605ae3",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L601-L601 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. Compactor CLI flags that use the prefix `boltdb.shipper.compactor.` are removed. You can instead use CLI flags with the `compactor.` prefix.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T17:06:47.321Z"
+  }
+}

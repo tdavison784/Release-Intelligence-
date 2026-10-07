@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-51fa4773873b",
+    "candidateId": "sc-13bd4e122a89",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removal of `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time` Metrics: The `argocd_app_sync_status`, `argocd_app_health_status`…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the legacy metrics are in use (ARGOCD_LEGACY_CONTROLLER_METRICS=true), monitoring dashboards and alerts must be updated to use argocd_app_info labels before upgrading, since the old metrics are removed.",
+        "remediation": "Update dashboards and alerts to use the labels on argocd_app_info before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The legacy metrics argocd_app_sync_status, argocd_app_health_status and argocd_app_created_time are removed in 3.0.0; use labels on argocd_app_info instead, which matters if ARGOCD_LEGACY_CONTROLLER_METRICS is set to true."
+    },
+    "proposals": [
+      "sp-177d9996681f"
+    ],
+    "validations": [
+      "val-48bc3d4b222f",
+      "val-805679c516dd"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:04:32Z"
+  }
+}

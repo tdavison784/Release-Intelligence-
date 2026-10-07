@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b155d94cc7e0",
+    "candidateId": "sc-3014cea247c8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "http-error-response-body-newlines"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any client integration parses the bodies of Loki's HTTP error responses and relies on their exact content, including the newlines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The bodies of Loki's HTTP error responses no longer contain the newlines the regression added. Client integrations that parse these bodies get different content than they did under the regression.",
+        "remediation": "Check that clients parsing Loki HTTP error bodies handle bodies without the extra newlines.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 fixes a regression that added newlines to HTTP error response bodies, which the changelog says could break client integrations."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ac878fc82910"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:76ee7fe52622c3a7ad919baf5227f62a4ccf0b3acb7b8e57fbb7e438dd6a5741",
+      "inputEvidence": [
+        "ev-ac878fc82910"
+      ],
+      "generatedAt": "2026-10-03T07:13:02Z",
+      "callId": "129ee056-0dc0-47fa-b295-d45b0eb11863"
+    }
+  }
+}

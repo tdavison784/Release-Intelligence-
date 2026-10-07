@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1bd4cb2ea5fa",
+    "reviewItemId": "ri-ba81149c8730",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any tooling or alerting reads Strimzi Pod-restart Kubernetes events and selects or filters them by regardingObject or related"
+        }
+      },
+      "statement": "Kubernetes events that Strimzi emits during a Pod restart now have the Kafka resource as the `regardingObject` and the Pod in the `related` field."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:858203072792bf6288217403cd0c2deec40461bb96fe1a2316d0fca046a6663f",
+      "inputEvidence": [
+        "ev-4308bfa38162"
+      ],
+      "generatedAt": "2026-10-02T15:55:35.52Z",
+      "callId": "08ad10b1-196e-4b0a-9ed0-cb0fbf4f6d37"
+    },
+    "reason": "[ev-4308bfa38162] only says that Pod-restart events now use the Kafka resource as `regardingObject` and the Pod as `related`. It does not say that anything fails. The environments affected are those whose event consumers (watchers, alerts, dashboards) select or filter these events by `regardingObject` or `related`. No Helm value, CRD field or manifest shows that, so an undecidable runtime-behavior-gap condition fits. A gvk-in-use Kafka condition (P3) would flag every Strimzi user whether or not they read these events, so it would be too broad.",
+    "startedAt": "2026-10-02T15:55:29.597Z",
+    "decidedAt": "2026-10-02T15:55:35.52Z"
+  }
+}

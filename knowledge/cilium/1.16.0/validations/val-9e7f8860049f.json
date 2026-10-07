@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9e7f8860049f",
+    "candidateId": "sc-aa0aef7cd1ac",
+    "proposalId": "sp-f86da4cd446f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cilium",
+        "name": "netkit"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux-kernel",
+              "state": "in-range",
+              "range": ">=6.8.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "netkit is an optional new datapath mode; veth devices remain the default and existing deployments are unaffected unless explicitly configured to use netkit."
+      },
+      "statement": "Cilium 1.16 adds netkit as a new optional datapath mode for Linux kernels 6.8 or newer, with veth remaining the default."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/added",
+        "detail": "no canonical exposure condition for feature-gate added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

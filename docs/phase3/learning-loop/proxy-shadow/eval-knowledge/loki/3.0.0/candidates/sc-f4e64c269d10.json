@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-f4e64c269d10",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-7b7744d228cc",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-ea2778cffb66"
+          ],
+          "statementKeys": [
+            "sk-577f5dc0f0a8"
+          ],
+          "changeIds": [
+            "chg-7b7744d228cc"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "loki: Support Loki ruler to notify WAL writes to remote storage",
+    "text": "loki: Support Loki ruler to notify WAL writes to remote storage. 10906",
+    "evidence": [
+      {
+        "id": "ev-b9e3037ef8b7",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L35-L35 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki**: Support Loki ruler to notify WAL writes to remote storage. [10906](https://github.com/grafana/loki/pull/10906)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-b270867f3540",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10906",
+        "locator": "title and description",
+        "excerpt": "PR: ruler: Support `writeNotify` on Loki ruler [closed; labels size/S]\n**What this PR does / why we need it**:\nprometheus ruler added a feature of notifying the reader when a sample is appended, instead of waiting in a loop burning the CPU cycles. https://github.com/prometheus/prometheus/pull/11949\n\nThis changes a default behaviour a bit. Now if `notify` is not enabled, next read is done only when next readTicker is triggered.\n\n**Which issue(s) this PR fixes**:\nAlso should fix https://github.com/grafana/loki/issues/10859\n\n**Special notes for your reviewer**:\nAdding few more details",
+        "contentDigest": "sha256:b1fe00ef82986654a2bbf0a7ea809b0dc14581d193f7ff6d01c5068cf869d21c",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-b5e4a42ccdec",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10906",
+        "locator": "description (part 2)",
+        "excerpt": "for the sake of completeness.\n\nWe found this via more frequent failures of rule-evaluation integration tests linked on the issue above. After some investigation, we tracked down to prometheus changes.\n\nPrometheus introduced new type `wlog.WriteNotified` interface with `Notify()` method with a goal to notify any waiting readers, that some write is done.\n\nTwo types implements this type `wlog.Watcher` and `remote.Storage`. `remote.Storage` implements `Notify()` by just calling it's queues `wlog.Watcher`'s `Notify()` …",
+        "contentDigest": "sha256:b1fe00ef82986654a2bbf0a7ea809b0dc14581d193f7ff6d01c5068cf869d21c",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      },
+      {
+        "id": "ev-bf6a346ce20f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/grafana/loki/pull/10906",
+        "locator": "changed files",
+        "excerpt": "4 changed file(s): CHANGELOG.md, pkg/ruler/storage/instance/instance.go, pkg/ruler/storage/instance/instance_test.go, pkg/ruler/storage/wal/wal.go",
+        "contentDigest": "sha256:b1fe00ef82986654a2bbf0a7ea809b0dc14581d193f7ff6d01c5068cf869d21c",
+        "retrievedAt": "2026-10-06T01:28:14Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

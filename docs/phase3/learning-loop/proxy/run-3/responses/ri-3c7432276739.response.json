@@ -1,0 +1,43 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3c7432276739",
+  "promptDigest": "sha256:4293886398cfc23ad98f91a15308ac1bef23beb7a5b6d3734193fd73f4dd24cc",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "82f916f4-5ef3-49c8-a363-41d66f9d690c",
+  "startedAt": "2026-10-03T12:22:40.939Z",
+  "decidedAt": "2026-10-03T12:22:59.045Z",
+  "durationMs": 17445,
+  "costUSD": 0.116944,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5d9f7bca7ba3] lists `envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt` -> `envoy_cilium_npds_update_attempt` under Changed Metrics. [ev-77f05428497a] says the NPDS metrics prefix was renamed. The metric's own identity moved to a new name, so this is a rename with replacedBy, not a value-changed of a fixed value. Free-form protocol-behavior names must also be lowercase kebab-case from the evidence's own words, not the raw metric name. No family covers metrics, so mapping to protocol-behavior is a best fit, which is why confidence is low.",
+    "citations": [
+      "ev-5d9f7bca7ba3",
+      "ev-77f05428497a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the Envoy NPDS metric envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt is renamed to envoy_cilium_npds_update_attempt (NPDS metrics prefix renamed).",
+      "subject": {
+        "determination": "asserted",
+        "family": "protocol-behavior",
+        "name": "envoy-cilium-policymap-update-attempt-metric"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "renamed",
+        "before": "envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt",
+        "after": "envoy_cilium_npds_update_attempt",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "name": "envoy-cilium-npds-update-attempt-metric"
+        }
+      }
+    }
+  }
+}

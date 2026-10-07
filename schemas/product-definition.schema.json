@@ -43,6 +43,45 @@
         }
       }
     },
+    "configSources": {
+      "type": "array",
+      "description": "Where the product reads its configuration (upstream-documented channels), so applicability conditions can use a decidable predicate. Each entry cites upstream documentation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "channel", "summary", "references"],
+        "properties": {
+          "id": {"$ref": "#/$defs/dnsLabel"},
+          "channel": {"enum": ["configmap-file", "config-file", "helm-values", "cli-flags", "env-vars", "feature-gates", "custom-resource"]},
+          "component": {"type": "string"},
+          "summary": {"type": "string", "minLength": 1},
+          "file": {"type": "string", "minLength": 1},
+          "format": {"enum": ["yaml", "json", "toml", "ini", "text", "csv", "hcl", "conf"]},
+          "configMap": {"type": "string"},
+          "valuesPath": {"type": "string", "minLength": 1},
+          "flag": {"type": "string", "pattern": "^(-|[A-Z][A-Z0-9_]*$)"},
+          "resource": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind"],
+            "properties": {"group": {"type": "string"}, "kind": {"type": "string", "minLength": 1}}
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["url", "quote"],
+              "properties": {
+                "url": {"type": "string", "pattern": "^https://"},
+                "quote": {"type": "string", "minLength": 1, "maxLength": 400}
+              }
+            }
+          }
+        }
+      }
+    },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
@@ -108,7 +147,8 @@
         "kind": {"enum": ["supported", "tested", "minimum", "maximum"]},
         "headers": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "separator": {"type": "string"},
-        "part": {"type": "integer", "minimum": 0}
+        "part": {"type": "integer", "minimum": 0},
+        "reduce": {"enum": ["major", "minor"], "description": "coarsen each version of a comma-joined cell to its major/minor line and drop duplicates"}
       }
     },
     "extract": {
@@ -123,11 +163,14 @@
         "keyMatch": {"type": "string"},
         "columns": {"type": "array", "items": {"$ref": "#/$defs/columnSpec"}},
         "tableHeading": {"type": "string"},
-        "labelParagraphs": {"type": "string"}, "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
+        "labelParagraphs": {"type": "string"}, "where": {"type": "object", "additionalProperties": {"type": "string"}, "description": "yaml-records: keep records whose field matches the regex"},
+        "collect": {"type": "boolean", "description": "yaml-records: merge every record passing where into one row (cells = distinct values joined with ', '); no key needed"},
+        "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
       },
       "allOf": [
         {"if": {"properties": {"type": {"const": "markdown-section"}}}, "then": {"required": ["heading"]}},
-        {"if": {"properties": {"type": {"enum": ["markdown-table", "yaml-records"]}}}, "then": {"required": ["keyColumns", "keyMatch", "columns"]}}
+        {"if": {"properties": {"type": {"enum": ["markdown-table", "yaml-records"]}}, "not": {"required": ["collect"]}}, "then": {"required": ["keyColumns", "keyMatch", "columns"]}},
+        {"if": {"required": ["collect"]}, "then": {"required": ["columns"]}}
       ]
     },
     "classifyRule": {
@@ -209,7 +252,7 @@
             "additionalProperties": false,
             "required": ["kind"],
             "properties": {
-              "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
+              "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs", "lines"]},
               "locator": {"$ref": "#/$defs/locator", "description": "Where the content is read from. Kinds helm-repo, oci (a chart repository) and chart-tgz read the packaged chart archive (the published-artifact representation); http, repo-file and repo-dir read documents. When omitted, the artifact's first readable channel is used."},
               "compareWith": {"$ref": "#/$defs/locator", "description": "Alternate representation of the same content (e.g. the published chart archive vs the source tree), read for comparison only; a representation.divergence fact records when they differ so preferring one representation is never silent."},
               "availability": {"$ref": "#/$defs/constraint"},
@@ -218,7 +261,9 @@
                 "type": "array",
                 "items": {"type": "string", "minLength": 1},
                 "description": "helm-values only: dotted values keys (after stripPrefix) excluded from the snapshot, for keys rewritten by release tooling at build time (e.g. image hub/tag placeholders in source-tree values). An entry ending in .* also matches every key below it."
-              }
+              },
+              "pattern": {"type": "string", "description": "lines only: RE2 pattern applied to every line of the document; matching lines (or the first capture group) are kept, trimmed and de-duplicated. The two releases of an edge are compared as sets, so a statement that stays put is no change."},
+              "label": {"type": "string", "description": "lines only: names the document in the changes; default the base name of the document."}
             }
           }
         },

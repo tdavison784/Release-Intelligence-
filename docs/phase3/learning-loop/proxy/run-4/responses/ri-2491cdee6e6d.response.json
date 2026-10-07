@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2491cdee6e6d",
+  "promptDigest": "sha256:3780b2880743a7af8a4676fc2b70c50f4ea103b6adcd15714fe3fc232130f967",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "12a140c1-1898-41b7-ba15-e2d5a41d9287",
+  "startedAt": "2026-10-06T01:39:17.979Z",
+  "decidedAt": "2026-10-06T01:39:32.244Z",
+  "durationMs": 13177,
+  "costUSD": 0.126696,
+  "output": {
+    "action": "correct",
+    "reason": "The fix PR says port-forwarding will no longer be attempted to pods that have Failed or are otherwise unready [ev-033cda2ed80c], and it only touches util/kube/portforwarder.go [ev-859a23cd07ab]. The linked issue shows that picking a non-ready pod previously caused errors such as \"unable to upgrade connection: pod not found\" [ev-859eee04d430][ev-8ce0ad2f5de9]. So these pods were not \"previously reachable\", and the proposed statement wrongly presents a bug fix as lost connectivity. The kind stays behavior-change, but the statement and severity are corrected to match a fix that changes which pod is chosen.",
+    "citations": [
+      "ev-033cda2ed80c",
+      "ev-859eee04d430",
+      "ev-8ce0ad2f5de9",
+      "ev-859a23cd07ab",
+      "ev-c17a311dcffd"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0.0, port-forwarding (util/kube/portforwarder) only selects ready pods. It skips Failed or otherwise unready pods, which previously could be picked first and cause 'pod not found' connection errors (e.g. CLI direct access to argocd-repo-server).",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "Port-forwarding now targets only ready pods and no longer attempts Failed or unready pods. Before, picking such a pod produced errors like 'unable to upgrade connection: pod not found'. Pod selection changes, but nothing that used to work is reported to break."
+      }
+    }
+  }
+}

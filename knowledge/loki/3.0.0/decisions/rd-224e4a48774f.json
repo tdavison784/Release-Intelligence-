@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-224e4a48774f",
+    "reviewItemId": "ri-4b1ce76367be",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "storage.using_boltdb_shipper",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Loki now generates tsdb_shipper storage configuration even when using_boltdb_shipper is set to false."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:577b7ccd7c0dd2db4234951327e28e1ebca721cc962ca588f06bf240906713e1",
+      "inputEvidence": [
+        "ev-cc5436d99c53",
+        "ev-777e46f70ea8",
+        "ev-90dd446bc40d",
+        "ev-e2dc5d4e7caf",
+        "ev-b4198e6a82a9",
+        "ev-db3e17c30868",
+        "ev-bed33aafbda6",
+        "ev-a3695c8dde2d",
+        "ev-74b9a14f5c74",
+        "ev-724bab5739a0",
+        "ev-77fd0b7f92f9",
+        "ev-6d53f47babf2",
+        "ev-f0bc8bd2ac89",
+        "ev-bd8ab8b9628d",
+        "ev-c15ec21c6716",
+        "ev-bbd391240669",
+        "ev-ee8b62e5b362",
+        "ev-7b5d208ed91f",
+        "ev-fff1292f7fe3",
+        "ev-4f0f13cefd09",
+        "ev-5660e882c2ce",
+        "ev-df7e89106890",
+        "ev-68a10264f91d",
+        "ev-22d171f57c1e",
+        "ev-ac878fc82910",
+        "ev-180d9754a48a",
+        "ev-d6a898e57d04",
+        "ev-d6f69b890b45",
+        "ev-baf37887295d"
+      ],
+      "generatedAt": "2026-10-06T01:42:57.555Z",
+      "callId": "123f6de8-bc44-4275-ba85-8b33d6aca806",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-777e46f70ea8] and [ev-e2dc5d4e7caf] show the fix is to the ksonnet library (production/ksonnet/loki/shipper.libsonnet): it failed to generate the tsdb_shipper storage config when TSDB shipper was configured without BoltDB shipper. The proposed exposure reads a Helm values key (storage.using_boltdb_shipper), but this is a jsonnet _config field, not a Helm chart value. It also leaves out the TSDB-shipper-enabled condition, so it would flag Helm environments that are not exposed. No available predicate reads ksonnet _config, so no correct asserted condition follows; applicability should be undetermined.",
+    "startedAt": "2026-10-06T01:42:43.967Z",
+    "decidedAt": "2026-10-06T01:42:57.555Z"
+  }
+}

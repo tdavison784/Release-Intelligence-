@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e55755df3cfe",
+    "reviewItemId": "ri-90dd092b14b3",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Issuer"
+        }
+      },
+      "statement": "cert-manager 1.18.0 adds support for selection of ACME certificate profiles, allowing users to request different categories of certificates from their ACME Certificate Authority, including profiles like tlsserver and shortlived offered by Let's Encrypt."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:77cd171f0617fc36818dbd8e2c5b71088053f902c934aaec467c3ca8d2ffe387",
+      "inputEvidence": [
+        "ev-50f787991f0d"
+      ],
+      "generatedAt": "2026-10-02T13:03:58.628Z",
+      "callId": "80217c34-74b9-4236-883d-9d6ffb59d994"
+    },
+    "reason": "[ev-50f787991f0d] describes only a new, opt-in ability to select ACME certificate profiles. It names no configuration field and says nothing about existing setups failing or behaving differently. The proposed exposure (any use of cert-manager.io/v1 Issuer) is far too broad: it would flag every Issuer user, including non-ACME Issuers, while leaving out ClusterIssuers. Yet the evidence gives no environment state in which any consequence happens, so no correct exposure condition can be written from it.",
+    "startedAt": "2026-10-02T13:03:51.664Z",
+    "decidedAt": "2026-10-02T13:03:58.628Z"
+  }
+}

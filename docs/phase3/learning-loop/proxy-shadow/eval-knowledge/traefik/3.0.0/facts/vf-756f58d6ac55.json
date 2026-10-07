@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-756f58d6ac55",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-bd0ca73767a9"
+        ],
+        "statementKeys": [
+          "sk-7dee8ac20818"
+        ],
+        "changeIds": [
+          "chg-4a076c15e9eb"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-c8fa57d3d99f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "experimental.http3"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "experimental.http3",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "If the static configuration still sets the removed `experimental.http3` option, Traefik v3 does not start: the option is now unsupported and would prevent Traefik from starting.",
+        "remediation": "Remove the `http3` option from the experimental section of the static configuration. HTTP/3 can be enabled on entry points without it.",
+        "severity": "high"
+      },
+      "statement": "[http3] Moves HTTP/3 outside the experimental section (#9570 by sdelicata)"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-710cd6bf3f8b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-710cd6bf3f8b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-d3fd81e36ce1"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-6a0542931a48"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-177a6106bc02",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md",
+        "locator": "L10-L10 (v3.0.0 (2024-04-29) › Enhancements:)",
+        "excerpt": "- **[http3]** Moves HTTP/3 outside the experimental section ([#9570](https://github.com/traefik/traefik/pull/9570) by [sdelicata](https://github.com/sdelicata))",
+        "contentDigest": "sha256:c5f1e64ee3d0de9e47f43aef6be0c48db04f3d40c93cb38908c8c3f93418d5fe",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:26:31.055Z"
+  }
+}

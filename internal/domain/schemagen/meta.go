@@ -48,7 +48,7 @@ var enums = []enumSet{
 	),
 	enumOf(
 		domain.SourceOK, domain.SourcePartial, domain.SourceNotFound,
-		domain.SourceUnavailable, domain.SourceSkipped, domain.SourceError,
+		domain.SourceUnavailable, domain.SourceThrottled, domain.SourceSkipped, domain.SourceError,
 	),
 	enumOf(domain.ChangeAdded, domain.ChangeRemoved, domain.ChangeUpdated, domain.ChangeUnchanged),
 	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated,
@@ -56,9 +56,10 @@ var enums = []enumSet{
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
-		domain.EvidenceLocalFile, domain.EvidenceInput,
+		domain.EvidenceLocalFile, domain.EvidenceInput, domain.EvidenceRenderedDiff, domain.EvidenceRendered,
+		domain.EvidenceLinkedPR, domain.EvidenceLinkedCommit,
 	),
-	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages),
+	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages, domain.SnapshotLines),
 	enumOf(
 		domain.ArtifactSourceRelease, domain.ArtifactHelmChart, domain.ArtifactContainerImage, domain.ArtifactOperator,
 		domain.ArtifactBinary, domain.ArtifactPackage, domain.ArtifactManifest, domain.ArtifactCRD,
@@ -86,12 +87,40 @@ var enums = []enumSet{
 	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
 	enumOf(
 		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
-		domain.DimensionImages, domain.DimensionCluster,
+		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts, domain.DimensionFromVersion, domain.DimensionRender,
 	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
 		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
+		domain.MatchProduct, domain.MatchTextLine, domain.MatchReference, domain.MatchFromVersion, domain.MatchAbsence,
+		domain.MatchRenderedChange,
 	),
+	// --- semantic knowledge (internal/domain/semantic.go) ---
+	enumOf(domain.SubjectFamilies...),
+	enumOf(domain.ChangeKinds...),
+	enumOf(domain.ConditionOps...),
+	enumOf(domain.FieldStates...),
+	enumOf(domain.ConsequenceKinds...),
+	enumOf(domain.Aspects...),
+	enumOf(domain.UnknownReasons...),
+	enumOf(domain.VerificationLevels...),
+	enumOf(domain.ReviewerHuman, domain.ReviewerProxy),
+	enumOf(domain.ProposalTasks...),
+	enumOf(domain.OutcomeConfirmed, domain.OutcomeRefuted, domain.OutcomeInconclusive),
+	enumOf(domain.QuestionTypes...),
+	enumOf(domain.ReviewPending, domain.ReviewNeedsEvidence, domain.ReviewDeferred, domain.ReviewDecided, domain.ReviewSuperseded),
+	enumOf(domain.RouteAutoVerify, domain.RouteReview, domain.RouteMissingEvidence),
+	enumOf(domain.PriorityHigh, domain.PriorityNormal, domain.PriorityLow),
+	enumOf(domain.RoutingSignals...),
+	enumOf(domain.ActionAccept, domain.ActionReject, domain.ActionCorrect, domain.ActionNeedMoreEvidence, domain.ActionDefer),
+	enumOf(domain.FeedbackLabels...),
+	enumOf(domain.FactActive, domain.FactRetracted, domain.FactSuperseded),
+	enumOf(domain.RenderRelease, domain.RenderEnvironment),
+	enumOf(domain.ConsensusCrossModel, domain.ConsensusSameModel),
+	enumOf(domain.RenderAttributableChange, domain.RenderNoAttributableChange, domain.RenderUnavailable),
+	enumOf(domain.RenderConfirmed, domain.RenderNotVisible, domain.RenderContradicted, domain.RenderNotApplicable),
+	enumOf(domain.RenderVerifiable, domain.RenderPartiallyVerifiable, domain.RenderNotVerifiable),
+	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
 }
 
 // notSerialised names typed-constant sets that never appear in the JSON
@@ -164,11 +193,13 @@ var typePatches = map[string]obj{
 			o("required", []string{"values"}),
 			o("required", []string{"crds"}),
 			o("required", []string{"images"}),
+			o("required", []string{"lines"}),
 		},
 		"allOf", []any{
 			snapshotKindRule(domain.SnapshotHelmValues, "values"),
 			snapshotKindRule(domain.SnapshotCRDs, "crds"),
 			snapshotKindRule(domain.SnapshotImages, "images"),
+			snapshotKindRule(domain.SnapshotLines, "lines"),
 		},
 	),
 }
@@ -227,6 +258,49 @@ func impactClassRules() []any {
 		o("if", classIs(domain.ImpactUnknown),
 			"then", o("required", []string{"neededToDetermine"},
 				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
+		// unknownReason is unknown-only, and every unknown states one
+		o("if", o("required", []string{"unknownReason"}),
+			"then", classIs(domain.ImpactUnknown)),
+		o("if", classIs(domain.ImpactUnknown),
+			"then", o("required", []string{"unknownReason"})),
+		// the trust ladder (docs/phase3/learning-loop/DESIGN.md §4): a finding
+		// evaluated from verified knowledge reaches not-affected only from a
+		// trusted (deterministic/human) fact, and action-required from a
+		// trusted fact or a consensus-action fact (PO-2), never from proxy
+		o("if", o("allOf", all(classIs(domain.ImpactNotAffected), o("required", []string{"knowledge"}))),
+			"then", o("properties", o("knowledge", o("properties", o("verification",
+				o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)})))))),
+		o("if", o("allOf", all(classIs(domain.ImpactActionRequired), o("required", []string{"knowledge"}))),
+			"then", o("properties", o("knowledge", o("anyOf", []any{
+				o("properties", o("verification", o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)}))),
+				o("properties", o("verification", o("const", string(domain.VerifiedConsensus)), "consensusAction", o("const", true)),
+					"required", []string{"consensusAction"}),
+			})))),
+		// PO-3: the values-default verdict rules have fixed classes
+		o("if", ruleIs(o("const", domain.RuleValuesDefaultApplies)),
+			"then", classIs(domain.ImpactReviewRequired)),
+		o("if", ruleIs(o("enum", []any{domain.RuleValuesDefaultNoEffect, domain.RuleValuesDefaultUnrendered})),
+			"then", classIs(domain.ImpactNotAffected)),
+		// PO-7a render-first verdicts (docs/RENDER-FIRST.md)
+		o("if", ruleIs(o("const", domain.RuleRenderTargetRejects)),
+			"then", classIs(domain.ImpactActionRequired)),
+		o("if", ruleIs(o("const", domain.RuleValuesSetNoEffect)),
+			"then", classIs(domain.ImpactNotAffected)),
+		o("if", ruleIs(o("const", domain.RuleImageRenderUnchanged)),
+			"then", classIs(domain.ImpactNotAffected)),
+		// PO-4: a refinement comes from a trusted fact, stays affected, and
+		// refinedFrom is carried exactly by impact:knowledge-refined
+		o("if", o("required", []string{"refinedFrom"}),
+			"then", o("allOf", all(
+				ruleIs(o("const", domain.RuleKnowledgeRefined)),
+				classIs(affected...),
+				o("required", []string{"knowledge"}, "properties", o("knowledge", o("properties", o("verification",
+					o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)}))))))),
+			"else", ruleIs(o("not", o("const", domain.RuleKnowledgeRefined)))),
+		// knowledge is carried exactly by impact:knowledge-* rules
+		o("if", o("required", []string{"knowledge"}),
+			"then", ruleIs(o("pattern", "^"+domain.KnowledgeRulePrefix)),
+			"else", ruleIs(o("not", o("pattern", "^"+domain.KnowledgeRulePrefix)))),
 	}
 }
 
@@ -270,6 +344,11 @@ var descriptions = map[string]string{
 		"optional AI enrichments, which are kept apart from changes. Referential integrity (every " +
 		"evidence/fact id resolves within this document, from < to) is checked by " +
 		"domain.UpgradeEdge.Validate() in Go and cannot be expressed in JSON Schema.",
+	"KnowledgeRecord": "One file of the learning loop's knowledge store (knowledge/<product>/<release>/<kind>/<id>.json): " +
+		"exactly one entity — a semantic candidate, a model proposal (AI, never collapsed with other models), a deterministic " +
+		"validation result, a review item, a review decision (human or proxy, labelled) or a verified release-level fact. " +
+		"Cross-record integrity (a fact's per-aspect verification resolves to confirming validations or to decisions by a " +
+		"reviewer of the claimed kind, or to separate agreeing model calls for consensus) is checked by domain.ValidateFactRecords in Go. See docs/phase3/learning-loop/DESIGN.md.",
 	"Release": "Everything deterministically known about one product release, as produced by ingestion " +
 		"from the sources of a product definition. UpgradeEdges are computed from Releases. Contains no AI output.",
 
@@ -319,6 +398,8 @@ var descriptions = map[string]string{
 	"ImpactReport.enrichmentRun":    "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
 	"ImpactReport.generatedAt":      "When the report was built (UTC).",
 	"ImpactReport.definitionDigest": "Digest of the product definition revision the underlying edge was built from.",
+	"KnowledgeRef":                  "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Only deterministic/human facts yield not-affected; action-required needs a deterministic/human fact or a consensus fact with consensusAction (PO-2, rendered \"ACTION REQUIRED · model consensus\"); proxy facts yield neither.",
+	"ImpactFinding.unknownReason":   "Why an unknown finding is unknown: release-knowledge-gap, environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap or semantic-ambiguity (docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only.",
 	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
 		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
 		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
@@ -465,7 +546,7 @@ var descriptions = map[string]string{
 	"SourceStatus":         "What happened when a source was consulted; lets consumers tell \"nothing found\" from \"could not look\".",
 	"SourceStatus.kind":    "Locator kind, e.g. \"github-releases\", \"repo-file\" or \"oci\".",
 	"SourceStatus.version": "Release the status refers to; omitted for product-level sources.",
-	"SourceStatus.state":   "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); skipped (not applicable or disabled); error.",
+	"SourceStatus.state":   "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); throttled (reachable but rate limited; retrying later is expected to work); skipped (not applicable or disabled); error.",
 
 	// --- artifacts -----------------------------------------------------------
 	"ArtifactInstance":            "One concrete artifact (image, chart, manifest, ...) belonging to a release.",

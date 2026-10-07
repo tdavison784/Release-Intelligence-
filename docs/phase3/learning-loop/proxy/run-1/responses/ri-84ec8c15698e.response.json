@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-84ec8c15698e",
+  "promptDigest": "sha256:aa18acb6f626bbd4f40cf6ec53422f4eb5219e7f65a716b0c4180523b3a4ff61",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7670900e-0d31-47dc-aaed-3cd1832bee53",
+  "startedAt": "2026-10-02T13:02:09.279Z",
+  "decidedAt": "2026-10-02T13:02:19.390Z",
+  "durationMs": 8970,
+  "costUSD": 0.089828,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-387dcb005901] names `istio-cni-node` as a DaemonSet whose memory footprint was improved. It does not name a container image or repository. The proposed image-in-use{name: istio-cni-node} treats the DaemonSet name as an image repository, which the evidence does not support and which may not match anything. The exposed environments are those running the istio-cni-node DaemonSet, so the condition should check for that resource.",
+    "citations": [
+      "ev-387dcb005901"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Environments that run the istio-cni-node DaemonSet get the reduced memory footprint (up to 80% less in many cases). Exposure is the presence of that DaemonSet, not the use of an image with that name.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "apps",
+          "kind": "DaemonSet",
+          "name": "istio-cni-node",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.name",
+              "state": "equals",
+              "values": [
+                "istio-cni-node"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

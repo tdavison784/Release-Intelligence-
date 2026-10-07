@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9091586f80f7",
+    "candidateId": "sc-5851fd4cdacf",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters",
+        "component": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.kafka.metrics",
+                  "state": "unset"
+                }
+              ],
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Kafka brokers run Kafka 4.0.0 or later and relied on the implicitly registered JMXReporter (it is not statically visible whether JMXReporter was being implicitly added to metric.reporters before the upgrade)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.kafka.metrics",
+                  "state": "set"
+                },
+                {
+                  "op": "text-line",
+                  "path": "spec.kafka.config[\"metric.reporters\"]",
+                  "state": "exists",
+                  "pattern": "JMXReporter"
+                }
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "version": "v1beta2",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "From Kafka 4.0.0, an environment that relied on the implicitly registered JMXReporter will no longer have it enabled unless metrics are enabled in .spec.kafka.metrics or JMXReporter is explicitly added to metric.reporters.",
+        "remediation": "Enable metrics in .spec.kafka.metrics, or explicitly add JMXReporter to metric.reporters.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, the JMXReporter is no longer implicitly registered: to enable it, you must either enable metrics in .spec.kafka.metrics or explicitly add JMXReporter in metric.reporters."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f432b7205700"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:329958786cc4937e81f904e2ca2a72e91221d772ea99c554196cbdb8f0ddfd14",
+      "inputEvidence": [
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-02T06:34:51Z",
+      "callId": "8712fa5c-57cf-4ebf-8a70-06a60459722e"
+    }
+  }
+}

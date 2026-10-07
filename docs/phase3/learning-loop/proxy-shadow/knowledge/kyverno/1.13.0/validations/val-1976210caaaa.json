@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1976210caaaa",
+    "candidateId": "sc-b4c5db49b8f5",
+    "proposalId": "sp-7d8abcc3f6ba",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "kyverno",
+        "name": "--enableReporting",
+        "component": "admission-controller"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"validate,mutate,mutateExisting,imageVerify,generate\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new --enableReporting flag is added with a default value that enables reporting for multiple rule types, providing new observability without requiring configuration changes."
+      },
+      "statement": "Kyverno 1.13 adds the --enableReporting container flag to admission-controller, background-controller, and reports-controller deployments with default value enabling reporting for validate, mutate, mutateExisting, imageVerify, and generate rule types."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

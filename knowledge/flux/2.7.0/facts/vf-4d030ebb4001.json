@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4d030ebb4001",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-d8e84835a252"
+        ],
+        "statementKeys": [
+          "sk-c17504f8afde"
+        ],
+        "changeIds": [
+          "chg-4fa296260574"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-91780e939ebc"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--all-namespaces",
+        "component": "events"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux events --all-namespaces` from the CLI (this is a client-side invocation that cluster manifests do not show)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`flux events --all-namespaces` now honours the flag, so its output may differ from what earlier CLI versions printed.",
+        "remediation": "Check any scripts that parse `flux events --all-namespaces` output.",
+        "severity": "low"
+      },
+      "statement": "fix(events): respect `--all-namespaces` flag by @mohiuddin-khan-shiam in https://github.com/fluxcd/flux2/pull/5414"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-98fb3cc372de"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-98fb3cc372de"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b4d8e8bc1135"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-3a8e285f39a3"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b27c9d0a38d7",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L106-L106 (CLI changelog)",
+        "excerpt": "* fix(events): respect `--all-namespaces` flag by @mohiuddin-khan-shiam in https://github.com/fluxcd/flux2/pull/5414",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:03:06.142Z"
+  }
+}

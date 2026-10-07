@@ -339,3 +339,66 @@ provenance:
     notes channels are HTML everywhere the content exists, which the new
     extract.format html renders; storage.googleapis.com/golang is blocked,
     dl.google.com serves the same objects.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: go-env-vars
+  channel: env-vars
+  component: go command
+  summary: The go command is configured by environment variables (GOFLAGS, GOTOOLCHAIN, GOPROXY, GOOS/GOARCH, ...);
+    persistent per-user defaults are written with go env -w to the Go environment configuration file whose location
+    GOENV controls.
+  references:
+  - url: https://pkg.go.dev/cmd/go
+    quote: The go command and the tools it invokes consult environment variables for configuration.
+  - url: https://pkg.go.dev/cmd/go
+    quote: Defaults changed using 'go env -w' are recorded in a Go environment configuration file stored in the
+      per-user configuration directory, as reported by os.UserConfigDir.
+  - url: https://pkg.go.dev/cmd/go
+    quote: A space-separated list of -flag=value settings to apply to go commands by default, when the given flag
+      is known by the current command.
+- id: go-mod
+  channel: config-file
+  component: go command
+  summary: Per-module configuration in go.mod (line-oriented directives) - the go line (minimum Go version), the
+    toolchain line (suggested toolchain, Go 1.21+) and godebug directives; go.work does the same for a workspace.
+  file: go.mod
+  format: text
+  references:
+  - url: https://go.dev/ref/mod
+    quote: A module is defined by a UTF-8 encoded text file named go.mod in its root directory.
+  - url: https://go.dev/doc/toolchain
+    quote: The toolchain line declares a suggested toolchain to use with the module or workspace.
+  - url: https://go.dev/ref/mod
+    quote: A godebug directive declares a single GODEBUG setting to apply when this module is the main module.
+- id: gotoolchain
+  channel: env-vars
+  component: go command
+  summary: GOTOOLCHAIN (Go 1.21+) selects the toolchain (local, a version such as go1.21.0, with +auto or +path
+    switching) and interacts with the go.mod go/toolchain lines.
+  references:
+  - url: https://go.dev/doc/toolchain
+    quote: The go command selects the Go toolchain to use based on the GOTOOLCHAIN setting.
+  - url: https://pkg.go.dev/cmd/go
+    quote: Controls which Go toolchain is used. See https://go.dev/doc/toolchain.
+- id: goroot-go-env
+  channel: config-file
+  component: go command
+  summary: The toolchain-wide defaults file $GOROOT/go.env (standard toolchains set GOTOOLCHAIN=auto there; repackaged
+    toolchains may change it).
+  file: go.env
+  format: text
+  references:
+  - url: https://go.dev/doc/toolchain
+    quote: In standard Go toolchains, the $GOROOT/go.env file sets the default GOTOOLCHAIN=auto, but repackaged
+      Go toolchains may change this value.
+- id: build-flags
+  channel: cli-flags
+  component: go command
+  summary: Build flags shared by go build/clean/get/install/list/run/test (e.g. -C, -mod, -tags, -trimpath); GOFLAGS
+    applies them by default.
+  references:
+  - url: https://pkg.go.dev/cmd/go
+    quote: 'The build flags are shared by the build, clean, get, install, list, run, and test commands:'

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-64acadc811b3",
+    "reviewItemId": "ri-e5995382af5a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ces-write-qps-limit",
+          "component": "cilium-operator",
+          "state": "set"
+        }
+      },
+      "statement": "The Cilium Operator's six CiliumEndpointSlice rate limit flags (ces-write-qps-limit, ces-write-qps-burst, ces-enable-dynamic-rate-limit, ces-dynamic-rate-limit-nodes, ces-dynamic-rate-limit-qps-limit, ces-dynamic-rate-limit-qps-burst) are deprecated and their usage is now ignored; the ces-rate-limits flag or ciliumEndpointSlice.rateLimits Helm value replaces them."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:acc60860e73d094e0a142977bd3292e417eb60bebac5335b9d90d65e63f89a6b",
+      "inputEvidence": [
+        "ev-7994b2163342",
+        "ev-e24450bf8fed",
+        "ev-736cdc5fc0d2",
+        "ev-5ba316aaead4",
+        "ev-25984c3785d4",
+        "ev-dc0997efed20",
+        "ev-b5190a359c10",
+        "ev-2c2bce4c1f26",
+        "ev-fbe2aedc4ddc",
+        "ev-540db624a6ea",
+        "ev-89034c5d2c74",
+        "ev-4dff543b3882",
+        "ev-6e35b4906b1d",
+        "ev-abfbf30753a5",
+        "ev-2bdafc717eab",
+        "ev-793f1f2f3e70",
+        "ev-12660f87be40",
+        "ev-b62da9c1ceb5",
+        "ev-ee4d25413bf4",
+        "ev-8aa9ac2ddd3a",
+        "ev-a6c56e62cf47",
+        "ev-e6932b8a5ba9",
+        "ev-e477115a445b",
+        "ev-f64f7c540c6d",
+        "ev-0b06499d6851",
+        "ev-b8b62ef806f0",
+        "ev-91fac6720d6f",
+        "ev-07d6be356398"
+      ],
+      "generatedAt": "2026-10-03T17:05:17.755Z",
+      "callId": "dc568540-b678-4e97-b342-553d8dd5d171",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-7994b2163342] says `ces-write-qps-limit` is one of the deprecated flags and that using it \"will be ignored\". The proposed exposure fires when that flag is set on the cilium-operator, which is exactly the case where a set value stops being honoured. The subject (the single flag `--ces-write-qps-limit`) is fixed context. For that subject, the condition is neither too broad nor too narrow: operators who never set the flag simply get the new dynamic default.",
+    "startedAt": "2026-10-03T17:05:10.017Z",
+    "decidedAt": "2026-10-03T17:05:17.755Z",
+    "resultingFact": "vf-cd433327916a"
+  }
+}

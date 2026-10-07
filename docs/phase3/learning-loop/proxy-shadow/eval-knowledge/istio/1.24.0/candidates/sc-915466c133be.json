@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-915466c133be",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-c3f8c7af503e",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-646203433459"
+          ],
+          "statementKeys": [
+            "sk-67accabb55c2"
+          ],
+          "changeIds": [
+            "chg-c3f8c7af503e"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Added the `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/part-of`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by`, and…",
+    "text": "Added the `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/part-of`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by`, and `helm.sh/chart` labels to almost all resources.",
+    "evidence": [
+      {
+        "id": "ev-d4a0f83c6c05",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52034-labels.yaml",
+        "locator": "52034-labels.yaml L8-L9",
+        "excerpt": "- |\n    **Added** the `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/part-of`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by`, and `helm.sh/chart` labels to almost all resources.",
+        "contentDigest": "sha256:d93223d6b6b912f95282362a4a4b5e0a7268af3fd890ef7525b49f94646bdf39",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-ab5dbc3771c2",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52034",
+        "locator": "title and description",
+        "excerpt": "issue: Helm templates should be used to force consistency among charts [closed; labels kind/enhancement, lifecycle/stale, lifecycle/automatically-closed, area/charts]\n**Describe the feature request**\n\nRight now, there is no consistency between Istio Helm charts for how basic things like\n\n- labels\n- annotations\n- image URLs\n\nare templated.\n\nThis is because each chart does each of these things their own way.\n\nThe way to solve this is have a single template for all charts, such that given the same set of values, it will spit out exactly the same structure, for each chart, respecting the (local | …",
+        "contentDigest": "sha256:8453de534f35ef216f5fdc3d0cc0a90de516d3cf24e00e70b67fdda61160880e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-13e2292be1c6",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/istio/issues/52034",
+        "locator": "description (part 2)",
+        "excerpt": "https://github.com/istio/istio/pull/51517/files#diff-9e517c2405d381930226cbdc5b4ec16976f5c4939bc34bc145214a71df658be2R87\n\nExample:\n\n---\nIn every chart we do something like:\n\n```\nlabels:\nistio.io/component: ztunnel\noperator.istio.io/component: Ztunnel\nk8s-app: ztunnel\napp: ztunnel\n{{ with .Values.labels -}}{{ toYaml . | nindent 4}}{{ end }}\n```\n\nThis would be replaced with a template, so each chart would have.\n\n```\nlabels:\n{{ template \"istio-labels\" . }}\n```\n\ninstead.\n\nWe don't have to do this for everything, but …",
+        "contentDigest": "sha256:8453de534f35ef216f5fdc3d0cc0a90de516d3cf24e00e70b67fdda61160880e",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "hints": [
+      "code:app.kubernetes.io/name",
+      "code:app.kubernetes.io/instance",
+      "code:app.kubernetes.io/part-of",
+      "code:app.kubernetes.io/version",
+      "code:app.kubernetes.io/managed-by",
+      "code:helm.sh/chart"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

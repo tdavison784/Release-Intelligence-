@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5b925d4f146a",
+    "reviewItemId": "ri-6f679bfe1a5e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-cache-metrics"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics `querier_cache_added_total`, `querier_cache_gets_total` and `querier_cache_misses_total`; requests made to the configured cache (`embeddedcache`, `memcached` or `redis`) are instead instrumented by `loki_cache_fetched_keys`, `loki_cache_hits` and `loki_cache_request_duration_seconds`."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-added-gets-misses-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-cache-metrics"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total; use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:0354b3e4b9897a1823bcdfeb0212782283d384d9a118ccaf617739368efcd9f5",
+      "inputEvidence": [
+        "ev-dd7907f24ce5",
+        "ev-1f9807113c9e",
+        "ev-53101f583cb5"
+      ],
+      "generatedAt": "2026-10-03T12:56:58.848Z",
+      "callId": "17de87cc-fcf4-460b-ac98-0af45c4d718f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-dd7907f24ce5] says three specific metrics are removed (querier_cache_added_total, querier_cache_gets_total, querier_cache_misses_total) and replaced by the loki_cache_* metrics, so the change type \"removed\" and the replacement are correct. The subject name \"embedded-cache-metrics\" is too broad. The same section also renames other embedded cache metrics [ev-1f9807113c9e] and removes querier_cache_stale_gets_total as a separate change [ev-53101f583cb5]. I narrowed the name to the three removed metrics. No subject family covers metrics, so protocol-behavior is the closest fit, which is why confidence is low.",
+    "startedAt": "2026-10-03T12:56:43.89Z",
+    "decidedAt": "2026-10-03T12:56:58.848Z"
+  }
+}

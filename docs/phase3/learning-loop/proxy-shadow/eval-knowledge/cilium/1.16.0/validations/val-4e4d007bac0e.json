@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4e4d007bac0e",
+    "candidateId": "sc-00f02ba8dd12",
+    "proposalId": "sp-8c41659be4fa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether third-party old-style tc BPF users are present in the environment"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium will attach tc BPF programs using tcx BPF links instead of old-style tc BPF attachment on Linux kernel 6.6+; if third-party old-style tc BPF users are present and bpf.enableTCX is not explicitly set to false, this behavioral switch may cause compatibility issues with those third-party tools."
+      },
+      "statement": "For Linux kernels 6.6 or newer, Cilium 1.16.0 defaults to tcx BPF links for tc BPF program attachment instead of old-style tc BPF attachment; environments with third-party old-style tc BPF users can disable this via Helm value bpf.enableTCX=false to maintain backward compatibility."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

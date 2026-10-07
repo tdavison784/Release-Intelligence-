@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f5da9c5c9d6c",
+    "candidateId": "sc-a8b00c6ca141",
+    "proposalId": "sp-86f87ef0d6ad",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--frontend.cache-split-interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--querier.split-queries-by-interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--frontend.cache-split-interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The flag is removed and no longer honoured; results caching interval is now determined by querier.split-queries-by-interval.",
+        "remediation": "Remove the flag and verify querier.split-queries-by-interval gives the desired caching interval.",
+        "severity": "medium"
+      },
+      "statement": "The frontend.cache-split-interval CLI flag is removed; results caching interval is now determined by querier.split-queries-by-interval."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

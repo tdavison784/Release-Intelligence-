@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-afa8a757b5f1",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-3bbd124982a2"
+        ],
+        "statementKeys": [
+          "sk-d3a82cd25e5e"
+        ],
+        "changeIds": [
+          "chg-e3f74dceec11"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-6069811be30d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment relies on Cilium MTU auto-detection (rather than an explicitly configured MTU) and changes network device MTUs while the agent is running; the release notes name no configuration key for this"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "MTU changes on network devices are now detected continuously without requiring agent restart; this improves operational flexibility but represents a change in runtime behavior.",
+        "severity": "low"
+      },
+      "statement": "MTU auto-detection is now continuous during agent lifetime, changing device MTU no longer requires restarting the agent to pick up the new MTU"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-a98504863076"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-a98504863076"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-9f40cff26466"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7d27d23accc5"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-01a5226ddc9a",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L314-L315 (1.17 Upgrade Notes)",
+        "excerpt": "* MTU auto-detection is now continuous during agent lifetime, changing device MTU no longer requires\n  restarting the agent to pick up the new MTU.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:03:51.258Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-863180a59a63",
+    "candidateId": "sc-95a09b1d10b1",
+    "proposalId": "sp-0f44fd9722ca",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "tracing-vendor-output-formats"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer supports direct vendor tracing output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic); tracing must move to OpenTelemetry.",
+        "remediation": "Send traces to the vendor's OTLP ingestion endpoint, or use an OpenTelemetry collector with appropriate exporters for legacy stacks.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 tracing is OpenTelemetry-only; direct vendor output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic) are no longer supported."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6d36cbc004f1",
+    "reviewItemId": "ri-a4678e319fa3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "ClusterPushSecret",
+        "path": "spec.pushSecretSpec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.pushSecretSpec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "ClusterPushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "After the upgrade, the API server rejects external-secrets.io/v1alpha1 ClusterPushSecret resources whose spec.pushSecretSpec.template.engineVersion is \"v1\" (the removed enum value fails schema validation on write).",
+        "remediation": "Before or after upgrading, edit any external-secrets.io/v1alpha1 ClusterPushSecret that pins spec.pushSecretSpec.template.engineVersion to \"v1\" and set it to a value the new schema still permits; writes specifying the removed value otherwise fail schema validation.",
+        "severity": "medium"
+      },
+      "statement": "ClusterPushSecret v1alpha1 schema: allowed values changed: `spec.pushSecretSpec.template.engineVersion`"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:3ba6b50587c101ddaa0469242be269ba7af99c9b9f1717f96c15cbfc2494e5d4",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T16:56:56.859Z",
+      "callId": "678b30bf-d39e-4c02-a3fe-8170cc6e7fd2",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between the v0.15.0 and v0.16.0 CRD bundles [ev-9889c9b8706d] [ev-e08924afdc47] shows that \"v1\" was removed from the enum for spec.pushSecretSpec.template.engineVersion in ClusterPushSecret v1alpha1. No values were added. With a smaller enum, the API server's schema validation rejects any write that still sets the removed value. So resource-rejected is the right kind, and the statement correctly limits the rejection to writes (\"on write\"). The excerpts themselves only show the bundle headers, so this decision relies on the deterministic artifact diff rather than on prose that says so directly.",
+    "startedAt": "2026-10-03T16:56:44.941Z",
+    "decidedAt": "2026-10-03T16:56:56.859Z",
+    "resultingFact": "vf-2a1d3520d913"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-28accb40ffc7",
+    "candidateId": "sc-2bc48827dd02",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The `CiliumLoadBalancerIPPool.spec.cidrs` field has been deprecated in v1.15 favor of `CiliumLoadBalancerIPPool.spec.blocks`. As of v1.15 both fields have the…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CiliumLoadBalancerIPPool resources using spec.cidrs must be migrated to spec.blocks before upgrading to v1.16; the cidrs field will be removed.",
+        "remediation": "Update all CiliumLoadBalancerIPPool resources to use spec.blocks instead of spec.cidrs before upgrading to Cilium v1.16.",
+        "severity": "high"
+      },
+      "statement": "The CiliumLoadBalancerIPPool.spec.cidrs field is removed in v1.16; environments must migrate to spec.blocks before upgrading."
+    },
+    "proposals": [
+      "sp-728c5343fe5f",
+      "sp-81fb3ba002c6"
+    ],
+    "validations": [
+      "val-208feb6ea86a",
+      "val-4130a19d2b65",
+      "val-6f57fd7ba0e3",
+      "val-a51bfc32981e",
+      "val-c5a4a0609d7d",
+      "val-c76fb872d65b",
+      "val-ce899223e340",
+      "val-e854717d518a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:59:11Z"
+  }
+}

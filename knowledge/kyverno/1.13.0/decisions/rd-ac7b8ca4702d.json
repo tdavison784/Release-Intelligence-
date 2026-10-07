@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ac7b8ca4702d",
+    "reviewItemId": "ri-3b0be77f62d7",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 now applies PolicyException declarations when auto-generating Kubernetes ValidatingAdmissionPolicies from Kyverno policies that use the validate.cel subrule, populating the generated policy's matchConstraints.excludeResourceRules with the excepted resources."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether ValidatingAdmissionPolicy auto-generation is enabled for those validate.cel policies, and whether a PolicyException targets them; the evidence does not name the enabling setting"
+            }
+          ]
+        }
+      },
+      "statement": "In Kyverno 1.13, when a ValidatingAdmissionPolicy is auto-generated from a ClusterPolicy or Policy that uses validate.cel, the resources in a matching PolicyException populate the generated VAP's matchConstraints.excludeResourceRules. Exposed: environments with such policies and PolicyExceptions where VAP auto-generation is active for those policies."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:68ebcc869e4cf8cdd29705b0ad84bd725fcaccf67a17eed9007bbc8ef9e36bf3",
+      "inputEvidence": [
+        "ev-b9ece170da60",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831",
+        "ev-043bcc5e9e57",
+        "ev-0b95f4d8b2b8",
+        "ev-388d68569c8a",
+        "ev-3f8a3adffa22",
+        "ev-495a542d4d66",
+        "ev-6032b12f614d",
+        "ev-64e559957f23",
+        "ev-6644b79acdaf",
+        "ev-705a5952643c",
+        "ev-72ae67cf1bd1",
+        "ev-7b96a5794081",
+        "ev-8acbbd901b75",
+        "ev-8ed706991976",
+        "ev-904a58b60df3",
+        "ev-a4c10d98e48c",
+        "ev-ab4f180a917e",
+        "ev-b077d5605267",
+        "ev-b3d07020d879",
+        "ev-c7493c8ebf56",
+        "ev-d55bb7c165b2",
+        "ev-e4d8d307c8bd",
+        "ev-e6f72293517f",
+        "ev-f4eb4632dd60",
+        "ev-f5ab4321b780",
+        "ev-fd8deebe9622",
+        "ev-ff8bc99281a6"
+      ],
+      "generatedAt": "2026-10-02T23:11:06.083Z",
+      "callId": "10e99016-1657-4448-afa3-13ca7edf0b8a"
+    },
+    "reason": "[ev-b9ece170da60] says PolicyException resources populate matchConstraints.excludeResourceRules only \"while auto-generating Kubernetes ValidatingAdmissionPolicies\" from policies that use validate.cel. The proposed condition only checks for a validate.cel policy and any PolicyException. It leaves out that VAP generation must be happening, so it is broader than the real exposure. The evidence does not say which setting turns generation on, or how a PolicyException is matched to a policy. I keep the policy and PolicyException leaves and add an undecidable operand for that missing piece instead of guessing a flag or field.",
+    "startedAt": "2026-10-02T23:10:48.653Z",
+    "decidedAt": "2026-10-02T23:11:06.083Z"
+  }
+}

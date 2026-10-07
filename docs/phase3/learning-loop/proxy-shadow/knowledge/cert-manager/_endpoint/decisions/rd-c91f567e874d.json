@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c91f567e874d",
+    "reviewItemId": "ri-e4f82fa8eeb4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "acme.cert-manager.io",
+          "version": "v1",
+          "kind": "Order"
+        }
+      },
+      "statement": "A new spec.profile field was added to the acme.cert-manager.io/v1 Order CRD schema (present in the v1.18.0 CRD bundle, absent in v1.17.0)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:46c23bc1e2e2fcc71fb8ac0921db27e3944390630d8654205e5ba4739f055d3e",
+      "inputEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "generatedAt": "2026-10-02T16:01:54.659Z",
+      "callId": "42a24cda-710f-4eb9-9dd2-d1ac4ba77286"
+    },
+    "reason": "The validators confirm from the v1.17.0 [ev-60054fcf0986] and v1.18.0 [ev-9b6164ce0df7] CRD bundles that spec.profile is new in the acme.cert-manager.io/v1 Order schema. The consequence for a purely additive field is none. Because no environment can already be setting a field that did not exist, the only environments the change touches are those that use the Order v1 kind, which is what gvk-in-use{acme.cert-manager.io, v1, Order} expresses. The canonical validator has no standard shape for this case, so this is a judgement call rather than a proof, and confidence is low.",
+    "startedAt": "2026-10-02T16:01:46.709Z",
+    "decidedAt": "2026-10-02T16:01:54.659Z",
+    "resultingFact": "vf-83a2869f7cf3"
+  }
+}

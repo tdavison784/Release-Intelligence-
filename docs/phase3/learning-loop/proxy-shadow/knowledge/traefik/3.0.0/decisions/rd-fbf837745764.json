@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fbf837745764",
+    "reviewItemId": "ri-ad0610f89a94",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if any Marathon provider configuration remains in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The Marathon provider has been removed in Traefik v3.0.0 and Marathon-related configuration is no longer supported."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:f98e4ff4e2c8499eb334f3af6c025dbdaf295773b803df54d93d65a5f4f566e9",
+      "inputEvidence": [
+        "ev-c71146d39072"
+      ],
+      "generatedAt": "2026-10-03T16:58:18.41Z",
+      "callId": "2359b976-0a1c-4bba-83ba-9754d80be4eb",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c71146d39072] says the Marathon provider was removed in v3, and that Marathon provider configuration \"is now unsupported and would prevent Traefik to start\". It also says all of that configuration must be removed from the static configuration. If the operator does nothing, the upgraded Traefik does not come up. That is an unmet precondition for the upgrade, so it needs action, and upgrade-blocked with critical severity fits. The proposed statement says the same thing as the evidence.",
+    "startedAt": "2026-10-03T16:58:10.364Z",
+    "decidedAt": "2026-10-03T16:58:18.41Z",
+    "resultingFact": "vf-cf57ff397fd9"
+  }
+}

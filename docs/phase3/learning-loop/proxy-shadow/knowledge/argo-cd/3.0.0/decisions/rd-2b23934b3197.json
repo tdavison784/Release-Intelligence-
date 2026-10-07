@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2b23934b3197",
+    "reviewItemId": "ri-9ee5d5a358f5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The login return_url parameter now functions correctly when Argo CD is deployed with custom server paths, fixing a bug where it previously did not work.",
+        "severity": "medium"
+      },
+      "statement": "A bug fix enables the login return_url parameter to work correctly with custom server paths in Argo CD, where it previously did not function properly."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Login return_url redirects now work when the server uses a custom path; before the fix they did not. Nothing fails, and operators may want to check that the post-login redirect behaves as expected.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD 3.0.0, a bug fix makes the login return_url work when Argo CD is served under a custom server path. Before this fix it did not work. The redirect after login now goes to the intended return URL. No operator action is required."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:751230047dff42b9605d980ed2690006e458bf059cd54d9c0cc18e8b5e81ad82",
+      "inputEvidence": [
+        "ev-a6fc1c17efbb"
+      ],
+      "generatedAt": "2026-10-02T15:52:31.961Z",
+      "callId": "a26f044d-7f39-4050-a278-0f5a044c37f1"
+    },
+    "reason": "[ev-a6fc1c17efbb] lists only a bug fix: the login return_url now works with custom server paths. Nothing says anything fails, is rejected or needs operator action, so behavior-change (review) is the right kind: the post-login redirect now behaves differently and correctly. The evidence gives no basis for medium severity, since a fix that restores intended redirect behavior is low-impact, so I lowered the severity to low.",
+    "startedAt": "2026-10-02T15:52:20.369Z",
+    "decidedAt": "2026-10-02T15:52:31.961Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a598eae1d622",
+    "candidateId": "sc-194c2ca12ce9",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "default-changed",
+        "before": "\"policy exceptions allowed in all namespaces\"",
+        "after": "\"policy exceptions disabled; allowed only in a specified namespace\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "kind": "PolicyException"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to 1.13.0 with default configuration, policy exceptions are disabled, so existing PolicyException resources stop being honoured and no longer exempt resources from policies until the operator follows the upgrade guidance to re-enable exceptions and configure the allowed namespace.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guidance linked from the release notes to re-enable policy exceptions and configure the namespace in which exceptions may be created (CVE-2024-48921).",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13.0 changes the defaults so that policy exceptions are disabled and can only be created in a specified namespace (CVE-2024-48921); environments relying on policy exceptions must follow the upgrade guidance to preserve prior behavior."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the text names the feature (policy exceptions) and states its defaults changed, but names no Helm value, config key, flag or gate whose default changed, so the exact identity cannot be spelled",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-2bd1a74f9c4a",
+      "ev-b8120a2bb840"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:565b0207e1b040f043f85741d2f03404346460153d5d9bb205e4d36cd010bc09",
+      "inputEvidence": [
+        "ev-2bd1a74f9c4a",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T16:16:43Z",
+      "callId": "5eb4900f-c6e1-470b-b711-79847d5f647d"
+    }
+  }
+}

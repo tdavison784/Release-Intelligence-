@@ -37,6 +37,7 @@ const (
 	DimManifests  = "manifests"
 	DimCRDs       = "crds"
 	DimImages     = "images"
+	// DimProducts (the product inventory) is declared in inventory.go.
 )
 
 // dimensionOrder is the fixed reporting order of the dimensions.
@@ -91,6 +92,16 @@ type Inputs struct {
 	// CRDs are files or directories of installed CustomResourceDefinitions.
 	// CRD documents inside Manifests are picked up as well.
 	CRDs []string
+	// RenderedCRDs are CRD documents extracted from the FROM render of the
+	// customer's install (PO-7a addendum item 6): helm template with their
+	// values — honouring CRD gates such as crds.enabled / installCRDs exactly
+	// as they set them — or kustomize build of their overlay. Rendered CRDs
+	// are render evidence, never observed state: an observed CRDs input wins
+	// over them (Load loads them only without one), they never mark the
+	// dimension supplied for absence conclusions, and a render without CRD
+	// documents says nothing (a gate or a separate install path), so the
+	// dimension stays absent/partial — never "no CRDs installed".
+	RenderedCRDs []RenderedCRDSource
 	// Images are explicit image references (mirror lists and the like).
 	Images []string
 	// Repo enables directory mode: the tree below Repo is walked (bounded
@@ -101,11 +112,25 @@ type Inputs struct {
 	// files are loaded first, explicit entries after them (so an explicit
 	// values file wins per-key), and a file named by both is loaded once.
 	Repo string
+	// Inventory is a declared product inventory file (YAML list of {product,
+	// version, note?}). In repo mode <Repo>/inventory.yaml is picked up when
+	// Inventory is empty.
+	Inventory string
+	// ManifestsComplete declares that Manifests (and repo-discovered
+	// manifests) are every object the environment runs — workloads and the
+	// resources they reference — so an object missing from them is genuinely
+	// absent (--manifests-complete). Without it a missing workload or an
+	// unresolved reference is "not shown", never "not there".
+	ManifestsComplete bool
+	// ProductHints let images be recognised as catalog products (see
+	// HintsFromCatalog); without them only declared and Helm/Argo/Flux
+	// detections populate the inventory.
+	ProductHints []ProductHint
 }
 
 // Empty reports whether no input was given at all.
 func (in Inputs) Empty() bool {
-	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == ""
+	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == "" && strings.TrimSpace(in.Inventory) == ""
 }
 
 // SuppliedInputs records which environment inputs were given on the command
@@ -168,7 +193,29 @@ type InstalledCRD struct {
 	// PreserveUnknownFields is spec.preserveUnknownFields when stated.
 	HasPreserveUnknownFields bool
 	PreserveUnknownFields    bool
-	Evidence                 []domain.EvidenceID
+	// Rendered marks a CRD extracted from the render of the customer's
+	// install (Inputs.RenderedCRDs): its evidence is render provenance, and
+	// it is not observed cluster state (PO-7a addendum item 6).
+	Rendered bool
+	Evidence []domain.EvidenceID
+}
+
+// RenderedCRDSource is one render's worth of CRD documents for
+// Inputs.RenderedCRDs: the CustomResourceDefinition objects the FROM render
+// of the customer's install produced, with the provenance of that render.
+type RenderedCRDSource struct {
+	// Label names the render in evidence URIs and warnings, e.g.
+	// "chart example@1.0.0" or "kustomize overlay overlays/prod".
+	Label string
+	// Tool is the renderer ("helm" | "kustomize").
+	Tool string
+	// ChartDigest and ValuesDigest carry the render's artifact/values
+	// provenance ("" when the renderer states none).
+	ChartDigest  string
+	ValuesDigest string
+	// Docs is the rendered CustomResourceDefinition documents (a YAML
+	// stream; non-CRD documents are ignored).
+	Docs []byte
 }
 
 // ManifestField is one flattened field path set by a manifest document
@@ -180,6 +227,22 @@ type ManifestField struct {
 	Kind       string
 	Line       int
 	Evidence   []domain.EvidenceID
+}
+
+// RenderedCRDsPresent reports whether any installed CRD came from the
+// render of the customer's install (Inputs.RenderedCRDs, PO-7a addendum 6):
+// render evidence for CRD questions when no observed CRDs input exists —
+// never observed state (a name is never both: an observed input wins).
+func (e *Environment) RenderedCRDsPresent() bool {
+	if e == nil {
+		return false
+	}
+	for _, c := range e.CRDs {
+		if c.Rendered {
+			return true
+		}
+	}
+	return false
 }
 
 // ImageUse is one container image the environment references.
@@ -211,6 +274,27 @@ type Environment struct {
 	// Installed is the best-effort identification of the installed
 	// product/chart(s), each with the mechanism that grounded it.
 	Installed []InstalledProduct
+	// Products is the product inventory (declared + detected, conflicts kept
+	// visible); see ProductInstance and Environment.Product.
+	Products []ProductInstance
+	// InventoryComplete: the declared inventory file states `complete: true`
+	// — every product running here is listed, so a product it does not list
+	// is not installed (while the products dimension is healthy).
+	// InventoryCompleteEvidence cites the declaration. False without a
+	// declaration: absence from an inventory is never proof of absence.
+	// CONTRACT-CHANGE(applicability): requested by DESIGN.md §1.3 (envinv follow-up).
+	InventoryComplete         bool
+	InventoryCompleteEvidence []domain.EvidenceID
+	// ManifestsDeclaredComplete: the caller declared the supplied manifests
+	// complete (Inputs.ManifestsComplete, with manifests supplied);
+	// ManifestsCompleteEvidence cites the declaration. Distinct from parse
+	// health: healthy manifests are fully parsed, not necessarily everything.
+	ManifestsDeclaredComplete bool
+	ManifestsCompleteEvidence []domain.EvidenceID
+	// Resources are the per-document resource facts (field values with "[]"
+	// sequence paths, embedded text lines, references); see resources.go and
+	// the query API (ResourcesOfKind, FieldValues, TextBlocks, ResolveRef).
+	Resources []Resource
 
 	// RepoRoot is the repository directory of repo mode ("" otherwise) and
 	// Discovered lists every file the walk classified, with its evidence.
@@ -245,6 +329,10 @@ func (e *Environment) Health(dimension string) Health {
 }
 
 // Statuses returns the state of every input dimension in fixed order.
+//
+// The products dimension (DimProducts) is deliberately not listed: it is read
+// through Health/ProductsStatus, so the enrichment prompts that print these
+// statuses (and their committed answer caches) stay byte-identical.
 func (e *Environment) Statuses() []DimensionStatus {
 	out := make([]DimensionStatus, 0, len(dimensionOrder))
 	for _, d := range dimensionOrder {
@@ -268,6 +356,15 @@ type loader struct {
 	gvk         map[gvkKey]*gvkStage
 	installed   []InstalledProduct
 	repoFiles   int
+	// productsSupplied: an inventory file or a detected product backs the
+	// products dimension.
+	productsSupplied bool
+	// resFacts / resLines count the resource-fact store against its caps.
+	resFacts, resLines int
+	// renderedCRDs counts CRD documents loaded from Inputs.RenderedCRDs
+	// (PO-7a addendum 6): they reach the loader, so the dimension is not
+	// absent — but they are render output, so it is partial, never supplied.
+	renderedCRDs int
 }
 
 // warnf records a warning on the Environment and attributes it to the input
@@ -365,6 +462,15 @@ func Load(in Inputs) (*Environment, error) {
 	if err := l.loadFiles(mans, false); err != nil {
 		return nil, err
 	}
+	// PO-7a addendum 6: without an observed --crds input, the CRDs the FROM
+	// render of the customer's install produced populate the dimension as
+	// render evidence (partial; absence in a render is a gate or a separate
+	// install path, never knowledge that nothing is installed). Loaded after
+	// every observed input — a CRD name an observed file or manifest already
+	// states keeps its observed provenance.
+	if len(crds) == 0 {
+		l.loadRenderedCRDs(in.RenderedCRDs)
+	}
 	for _, ref := range in.Images {
 		l.addImageAt(ref, "list", "", 0)
 	}
@@ -385,6 +491,13 @@ func Load(in Inputs) (*Environment, error) {
 	})
 	l.finalizeGVK()
 	l.finalizeInstalled()
+	invFile := in.Inventory
+	if strings.TrimSpace(invFile) == "" {
+		invFile = repoInventory(in.Repo)
+	}
+	if err := l.loadProducts(invFile, in.ProductHints); err != nil {
+		return nil, err
+	}
 
 	// Supplied reflects anything that reached the loader: explicit inputs or
 	// repo-discovered files (the impact layer reads it for visibility rules).
@@ -392,6 +505,10 @@ func Load(in Inputs) (*Environment, error) {
 	l.env.Supplied.Manifests = len(in.Manifests) > 0 || len(discMans) > 0
 	l.env.Supplied.CRDs = len(in.CRDs) > 0
 	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
+	if in.ManifestsComplete && l.env.Supplied.Manifests {
+		l.env.ManifestsDeclaredComplete = true
+		l.env.ManifestsCompleteEvidence = []domain.EvidenceID{l.evInput("flag:--manifests-complete", "the supplied manifests are every object this environment runs")}
+	}
 
 	// A dimension is "supplied" when anything reached the loader for it —
 	// explicit inputs or repo-discovered files (vals/mans already merged).
@@ -399,12 +516,13 @@ func Load(in Inputs) (*Environment, error) {
 		DimKubernetes: strings.TrimSpace(in.KubernetesVersion) != "",
 		DimValues:     len(vals) > 0 || len(in.ValuesFiles) > 0,
 		DimManifests:  len(mans) > 0 || len(in.Manifests) > 0,
-		DimCRDs:       len(crds) > 0 || len(in.CRDs) > 0,
+		DimCRDs:       len(crds) > 0 || len(in.CRDs) > 0 || l.renderedCRDs > 0,
 		DimImages:     len(in.Images) > 0 || len(l.env.Images) > 0,
 	}
 	l.env.health = map[string]Health{}
 	l.env.dimWarnings = l.dimWarnings
-	for _, d := range dimensionOrder {
+	supplied[DimProducts] = l.productsSupplied
+	for _, d := range append(append([]string{}, dimensionOrder...), DimProducts) {
 		switch {
 		case !supplied[d]:
 			l.env.health[d] = HealthAbsent
@@ -625,7 +743,7 @@ func (l *loader) loadFiles(files []string, crdOnly bool) error {
 			l.env.ManifestDocCount++
 			kind := scalarOf(d.node, "kind")
 			if kind == "CustomResourceDefinition" {
-				l.loadCRD(d)
+				l.loadCRD(d, nil)
 				continue
 			}
 			if crdOnly {
@@ -638,7 +756,16 @@ func (l *loader) loadFiles(files []string, crdOnly bool) error {
 	return nil
 }
 
-func (l *loader) loadCRD(d doc) {
+func (l *loader) loadCRD(d doc, rs *RenderedCRDSource) {
+	// The CRD document is itself a resource (apiextensions.k8s.io
+	// CustomResourceDefinition): conditions over its own fields
+	// (status.storedVersions, spec.versions[].served) read it like any other
+	// resource. Without this a "resource CustomResourceDefinition [...]"
+	// predicate found no resource of the kind and decided false from never
+	// looking.
+	if g, v := splitGroupVersion(scalarOf(d.node, "apiVersion")); g == "apiextensions.k8s.io" {
+		l.collectResource(d, g, v, "CustomResourceDefinition")
+	}
 	spec := fieldOf(d.node, "spec")
 	if spec == nil {
 		l.warnf(DimCRDs, "%s L%d: CustomResourceDefinition without spec", d.file, d.startLine)
@@ -664,7 +791,7 @@ func (l *loader) loadCRD(d doc) {
 		l.warnf(DimCRDs, "%s L%d: CustomResourceDefinition without name or group", d.file, d.startLine)
 		return
 	}
-	crd := InstalledCRD{Name: name, Group: group, Kind: kind}
+	crd := InstalledCRD{Name: name, Group: group, Kind: kind, Rendered: rs != nil}
 	if pv := fieldOf(spec, "preserveUnknownFields"); pv != nil && pv.Tag == "!!bool" {
 		crd.HasPreserveUnknownFields = true
 		crd.PreserveUnknownFields = pv.Value == "true"
@@ -685,7 +812,12 @@ func (l *loader) loadCRD(d doc) {
 			crd.Versions = append(crd.Versions, v)
 		}
 	}
-	ev := l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "CustomResourceDefinition "+name)
+	var ev domain.EvidenceID
+	if rs != nil { // PO-7a addendum 6: render provenance, distinct from observed
+		ev = l.evRendered(rs, name)
+	} else {
+		ev = l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "CustomResourceDefinition "+name)
+	}
 	crd.Evidence = []domain.EvidenceID{ev}
 	// A CRD document also states the group/version pairs it serves.
 	for _, v := range crd.Versions {
@@ -696,6 +828,71 @@ func (l *loader) loadCRD(d doc) {
 		l.gvkAddEvidence(st, ev)
 	}
 	l.env.CRDs = append(l.env.CRDs, crd)
+}
+
+// evRendered records the evidence of one rendered CRD: an EvidenceRendered
+// record whose URI names the render and whose Render provenance carries the
+// chart and values digests — "rendered (chart X@from, values digest …)",
+// distinct from every observed input (PO-7a addendum item 6).
+func (l *loader) evRendered(rs *RenderedCRDSource, name string) domain.EvidenceID {
+	uri := "render:" + rs.Label
+	e := domain.NewEvidence(domain.EvidenceRendered, "render@v1", uri, "CustomResourceDefinition "+name,
+		fmt.Sprintf("rendered CustomResourceDefinition %s (render of %s with your configuration)", name, rs.Label),
+		domain.Digest([]byte(uri+"\x00"+name)), zeroTime)
+	rp := domain.RenderProvenance{Scope: domain.RenderEnvironment, Tool: rs.Tool,
+		ChartDigest: rs.ChartDigest, ValuesDigest: rs.ValuesDigest, Change: "crd-rendered"}
+	e.Render = &rp
+	return l.record(e)
+}
+
+// loadRenderedCRDs loads Inputs.RenderedCRDs (PO-7a addendum item 6): the
+// CustomResourceDefinition documents the FROM render of the customer's
+// install produced, with their gates exactly as set. Rendered CRDs never
+// override an observed input — a CRD name already loaded from --crds or a
+// manifest is skipped, and Load calls this only without --crds files — and
+// they never mark the dimension supplied for absence conclusions; the
+// dimension stays partial (render output is not observed state).
+func (l *loader) loadRenderedCRDs(srcs []RenderedCRDSource) {
+	seen := map[string]bool{}
+	for _, c := range l.env.CRDs {
+		seen[c.Name] = true
+	}
+	var labels []string
+	for _, src := range srcs {
+		if len(bytes.TrimSpace(src.Docs)) == 0 {
+			continue
+		}
+		docs, perr := parseDocs(src.Docs, nil)
+		switch {
+		case perr != nil && len(docs) == 0:
+			l.warnf(DimCRDs, "rendered CRDs of %s were not parsed: %v", src.Label, perr)
+			continue
+		case perr != nil:
+			l.warnf(DimCRDs, "rendered CRDs of %s: parsing stopped after %d document(s): %v", src.Label, len(docs), perr)
+		}
+		for _, d := range docs {
+			if d.node == nil || scalarOf(d.node, "kind") != "CustomResourceDefinition" {
+				continue // the extractor keeps CRD documents; anything else is noise
+			}
+			if n := scalarOf(d.node, "metadata", "name"); n != "" && seen[n] {
+				continue // an observed input already states this CRD
+			}
+			d.file = "render:" + src.Label // warnings name the render, not a file
+			n0 := len(l.env.CRDs)
+			l.loadCRD(d, &src)
+			if len(l.env.CRDs) > n0 {
+				seen[l.env.CRDs[n0].Name] = true
+				l.renderedCRDs++
+				if len(labels) == 0 || labels[len(labels)-1] != src.Label {
+					labels = append(labels, src.Label)
+				}
+			}
+		}
+	}
+	if l.renderedCRDs > 0 {
+		l.warnf(DimCRDs, "%d rendered CRD(s) from %s: rendered with your configuration, not observed state — the CRDs dimension stays partial",
+			l.renderedCRDs, strings.Join(labels, ", "))
+	}
 }
 
 func (l *loader) loadManifest(d doc) {
@@ -710,6 +907,7 @@ func (l *loader) loadManifest(d doc) {
 		l.gvkAddName(st, scalarOf(d.node, "metadata", "name"), scalarOf(d.node, "metadata", "namespace"))
 		l.gvkAddEvidence(st, l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "apiVersion: "+apiVersion+" / kind: "+kind))
 		l.detectInstalled(d)
+		l.collectResource(d, group, version, kind)
 	}
 	// images: any mapping key "image" with a reference value
 	walkMappings(d.node, func(key string, val *yaml.Node, path string) {

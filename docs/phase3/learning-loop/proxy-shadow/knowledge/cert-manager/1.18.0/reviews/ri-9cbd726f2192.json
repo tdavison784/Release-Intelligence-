@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-9cbd726f2192",
+    "candidateId": "sc-c094933998fc",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "applicability",
+    "question": "For \"Fix AWS Route53 error detection for not-found errors during deletion of DNS records\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 fixes how the AWS Route53 DNS01 solver detects not-found errors when it deletes DNS records."
+    },
+    "proposals": [
+      "sp-03857c26eb07",
+      "sp-5f3972061217",
+      "sp-747c4429a5ff",
+      "sp-fef1b94d5a95"
+    ],
+    "validations": [
+      "val-4eb28d2dc371",
+      "val-5c42669ceb5d",
+      "val-a4d429984276",
+      "val-b1662227c2e5",
+      "val-d9551dc1604e",
+      "val-e34cb81ba5ca"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:42:08Z"
+  }
+}

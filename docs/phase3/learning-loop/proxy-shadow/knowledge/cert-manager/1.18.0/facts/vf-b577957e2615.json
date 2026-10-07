@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b577957e2615",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-d466f20f6f90"
+        ],
+        "statementKeys": [
+          "sk-b3341b30f846"
+        ],
+        "changeIds": [
+          "chg-c2b61b098891"
+        ]
+      },
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-5aca882119d2"
+        ],
+        "statementKeys": [
+          "sk-d8fd27e5b602"
+        ],
+        "changeIds": [
+          "chg-a3c2e0538ac2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-292ab9525adb"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade to 1.18, cert-manager garbage-collects all stale CertificateRequest resources for Certificates that do not explicitly set revisionHistoryLimit. Only the latest revision is kept. The release notes flag this as a potentially breaking change.",
+        "remediation": "To keep more CertificateRequest history, set spec.revisionHistoryLimit explicitly on Certificate resources before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information."
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-a70353975014"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-515d6ecff980",
+          "sp-c1ce771ec6e3",
+          "sp-d223efe9991f",
+          "sp-e4bb086ea9b3"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-515d6ecff980",
+          "sp-c1ce771ec6e3",
+          "sp-d223efe9991f",
+          "sp-e4bb086ea9b3"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-515d6ecff980",
+          "sp-c1ce771ec6e3",
+          "sp-d223efe9991f",
+          "sp-e4bb086ea9b3"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-bbe29a5fdc19",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+        "locator": "L12-L14",
+        "excerpt": "1. We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+        "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-04b3e69b5e24",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L151-L160 (Major Themes › The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`)",
+        "excerpt": "### The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`\n\n> ⚠️ Potentially breaking change\n\nThe default value for the `Certificate` resource's `revisionHistoryLimit` field is now set to 1.\nThis ensures that old `CertificateRequest` revisions are automatically garbage collected, improving resource management and reducing clutter in clusters.\nPreviously, if not specified, no limit was applied, potentially leading to an accumulation of stale `CertificateRequest` resources.\nWith this update, users no longer need to manually configure the revision history limit to benefit fro…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-9b6164ce0df7",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6c8d7fc0e16acf6a50a61b3ff2827d0a3ef95300de8f7fd1d2aa5f55b600a6ab",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "createdAt": "2026-10-02T11:24:46Z"
+  }
+}

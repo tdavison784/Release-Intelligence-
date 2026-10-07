@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-06ee4f35bef9",
+    "candidateId": "sc-4eec988b66b4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "security.istio.io",
+              "version": "v1beta1",
+              "kind": "AuthorizationPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The formatting of AuthorizationPolicy status conditions is experimental and will change in future releases.",
+        "remediation": "Review status condition formats written to AuthorizationPolicy resources and plan for format changes in upcoming releases.",
+        "severity": "medium"
+      },
+      "statement": "A status condition for binding AuthorizationPolicy to a waypoint proxy is now written to the AuthorizationPolicy status; the formatting of these conditions is experimental and will change."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1fd772318bb8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:344cf702b54cb7fa079c4128dd46110916660ed6a2eb94e28acfaa4b20ab1566",
+      "inputEvidence": [
+        "ev-1fd772318bb8"
+      ],
+      "generatedAt": "2026-10-02T06:05:19Z",
+      "callId": "35ff6542-eae5-4dc8-bafb-54033e63bf06"
+    }
+  }
+}

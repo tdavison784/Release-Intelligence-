@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a86cfec7172a",
+    "candidateId": "sc-4330cdde4865",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+        "component": "pilot"
+      },
+      "change": {
+        "type": "added"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments with DestinationRules on the same host but totally different exportTo attributes no longer have those rules merged by pilot, so the previously merged (and inconsistent) behavior is replaced by the unmerged behavior unless ENABLE_ENHANCED_DESTINATIONRULE_MERGE is set to `false` in the pilot deployment.",
+        "remediation": "If the previous merging behavior is wanted, set the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to `false` in the pilot deployment.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 stops merging DestinationRules on the same host when their exportTo attributes are totally different, and the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable (settable to `false` in the pilot deployment) toggles this behavior."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The note ties the changed behavior to having two or more DestinationRules on the same host with totally different exportTo; no available predicate can compare two resources, so the exposed state cannot be expressed (the only setting the note names, ENABLE_ENHANCED_DESTINATIONRULE_MERGE, shields rather than exposes).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:de009cb90db4e9eb6eb680ad7bb596536f99131b20bdca077cb804d1f53c22fc",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-03T08:04:32Z",
+      "callId": "7b38629e-7bd9-4523-bd57-da26c2f0f870"
+    }
+  }
+}

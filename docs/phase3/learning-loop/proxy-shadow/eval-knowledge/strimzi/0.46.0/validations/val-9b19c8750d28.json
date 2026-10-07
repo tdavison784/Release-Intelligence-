@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9b19c8750d28",
+    "candidateId": "sc-91bdc6129fc9",
+    "proposalId": "sp-41b73f591f00",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-usestrimzipodsets-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "enabled"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "core.strimzi.io",
+              "version": "v1beta2",
+              "kind": "StrimziPodSet"
+            }
+          ]
+        }
+      },
+      "statement": "When upgrading from Strimzi 0.34 or older to 0.46.0 with the Kafka operand in use, the operator must make sure the UseStrimziPodSets feature gate is enabled and StrimziPodSet resources are used before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

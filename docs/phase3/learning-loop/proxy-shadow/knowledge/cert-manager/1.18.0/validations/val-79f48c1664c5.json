@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-79f48c1664c5",
+    "candidateId": "sc-a7ff62a3be31",
+    "proposalId": "sp-859143e5cd2e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "operatorhub",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "operators.coreos.com",
+              "kind": "Subscription"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments using OperatorHub or Operator Lifecycle Manager (OLM) to deploy or update cert-manager can no longer obtain versions beyond v1.16.5 from those sources; updates must switch to alternative distribution methods.",
+        "remediation": "Switch to alternative cert-manager installation methods (Helm, direct manifests, or cloud-provider distributions) for versions after v1.16.5.",
+        "severity": "high"
+      },
+      "statement": "cert-manager no longer publishes packages to OperatorHub, with v1.16.5 being the last release available on OperatorHub and the cert-manager-olm repository archived."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/removed",
+        "detail": "no canonical exposure condition for product-relationship removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

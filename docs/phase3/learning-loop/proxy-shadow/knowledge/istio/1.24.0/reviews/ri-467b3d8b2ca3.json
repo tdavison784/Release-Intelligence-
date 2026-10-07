@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-467b3d8b2ca3",
+    "candidateId": "sc-fafb14837d69",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Fixed an issue when using mirror policies with waypoints\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.http[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.tcp[].mirror",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            }
+          ]
+        }
+      },
+      "statement": "Mirror policies with waypoints, which previously had an issue, are now fixed in this release."
+    },
+    "proposals": [
+      "sp-198568779326",
+      "sp-216a0a24c46c"
+    ],
+    "validations": [
+      "val-9adffdec125e",
+      "val-d1587713ba40"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T06:06:39Z"
+  }
+}

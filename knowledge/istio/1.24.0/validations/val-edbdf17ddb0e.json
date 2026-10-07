@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-edbdf17ddb0e",
+    "candidateId": "sc-4eec988b66b4",
+    "proposalId": "sp-06ee4f35bef9",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "security.istio.io",
+              "version": "v1beta1",
+              "kind": "AuthorizationPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The formatting of AuthorizationPolicy status conditions is experimental and will change in future releases.",
+        "remediation": "Review status condition formats written to AuthorizationPolicy resources and plan for format changes in upcoming releases.",
+        "severity": "medium"
+      },
+      "statement": "A status condition for binding AuthorizationPolicy to a waypoint proxy is now written to the AuthorizationPolicy status; the formatting of these conditions is experimental and will change."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

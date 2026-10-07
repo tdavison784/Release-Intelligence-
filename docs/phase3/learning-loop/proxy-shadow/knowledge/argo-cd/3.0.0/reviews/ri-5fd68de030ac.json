@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5fd68de030ac",
+    "candidateId": "sc-88f18e36ba8f",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"686964daaa468bf4bf0ae76f3d84ed69a308723e: fix: removed null security context from redis-ha values.yaml to placate helm 3.17.1\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With Helm 3.17.1, the null security context value in redis-ha subchart values.yaml would be rejected during chart validation, preventing successful chart deployment or upgrade.",
+        "remediation": "Upgrade to Argo CD 3.0.0 or later which removes the problematic null value, allowing Helm 3.17.1 to successfully validate and deploy the chart.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 removes a null security context value from the redis-ha Helm subchart values to resolve validation errors with Helm 3.17.1."
+    },
+    "proposals": [
+      "sp-b87628952431",
+      "sp-ca95bcaf4b7e"
+    ],
+    "validations": [
+      "val-08d909d2a82a",
+      "val-18d1682649c7",
+      "val-5ec7aca82751",
+      "val-856b81983e0d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:05:27Z"
+  }
+}

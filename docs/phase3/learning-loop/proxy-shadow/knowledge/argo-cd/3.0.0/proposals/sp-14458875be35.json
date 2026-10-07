@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-14458875be35",
+    "candidateId": "sc-03aa929e64d5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override",
+        "component": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"null object in values.yaml warned 'cannot overwrite table with non table' and the K8s object was not overridden\"",
+        "after": "\"warning still emitted but the K8s object is overridden with the invalid null value\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Rendered K8s objects are overridden with the invalid null value from values.yaml null objects, which may require editing values.yaml files for subcharts.",
+        "remediation": "Identify values.yaml files with null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value instead of being ignored with a warning."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on the contents of Helm charts' subchart values.yaml files (null sections), which no listed predicate can read.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b8041528e3f8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:37b37a622dcb4bffb2ad9ae435f323340a59fa16479bb8f23b696bcb370f6e86",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-03T07:03:52Z",
+      "callId": "bf7186af-b260-40d6-a70d-a4639dd027d5"
+    }
+  }
+}

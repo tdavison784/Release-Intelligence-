@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-245bdf956dd3",
+    "candidateId": "sc-dfcb35d1329d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-update-duration-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_update_duration\"",
+        "after": "\"envoy_cilium_npds_update_duration\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-update-duration-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerts or queries reference the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_update_duration"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to 1.17.0 the metric is emitted under the new name only, so dashboards, alerts or queries still referencing `envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` will no longer receive data for it.",
+        "remediation": "Update dashboards, alerts and queries that use `envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` to use `envoy_cilium_npds_update_duration`.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 renames the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` to `envoy_cilium_npds_update_duration`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3fa40f2e19e8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0641be5725c34b0d954b2a685223dc6036c115accd15eee833637baadd053882",
+      "inputEvidence": [
+        "ev-3fa40f2e19e8"
+      ],
+      "generatedAt": "2026-10-03T07:55:40Z",
+      "callId": "1fce1e25-276b-4d6d-ab13-90de2ee66cfa"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0c0ae72af39b",
+  "promptDigest": "sha256:505ab19f144955582f403e2c9ebc73ff0d5c02356a7628b76c9ab59f423d63e7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "03bdd7b1-3460-4662-8357-116ab3606774",
+  "startedAt": "2026-10-03T12:43:39.001Z",
+  "decidedAt": "2026-10-03T12:43:53.639Z",
+  "durationMs": 13775,
+  "costUSD": 0.142576,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-793f1f2f3e70] describes `etcd.operator` as an option passed through `kvstore-opt`, now a no-op and removed. It does not describe a Helm values key. The validator also found no `etcd.operator.kvstore-opt` key in the chart values of either release ([ev-28e0ccb5774a], [ev-39a22d88e2f5]), so a values-key predicate on that path cannot match any environment. The exposed state is therefore a `--kvstore-opt` container argument whose key=value list includes the key `etcd.operator`. The same note also bundles a port-handling change and an automatic DNS-to-ClusterIP change, which this condition does not cover.",
+    "citations": [
+      "ev-793f1f2f3e70"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The etcd.operator option of kvstore-opt is now a no-op and has been removed. Exposed environments are those whose Cilium workloads pass --kvstore-opt with an etcd.operator key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--kvstore-opt",
+          "state": "has-token-key",
+          "values": [
+            "etcd.operator"
+          ],
+          "separator": ","
+        }
+      }
+    }
+  }
+}

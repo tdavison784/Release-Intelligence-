@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-48c8f20d9b08",
+    "candidateId": "sc-abf77fd4f44f",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"f258c450b8d115df8185d103aebfeffbebdef8a6: feat: add `ARGOCD_APP_PROJECT_NAME` to the build environment\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ARGOCD_APP_PROJECT_NAME",
+              "component": "build",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether build environment variables are dynamically injected or statically configured in the operator's deployment"
+            }
+          ]
+        }
+      },
+      "statement": "Argo CD 3.0.0 adds the ARGOCD_APP_PROJECT_NAME environment variable to the build environment, making the application project name available to build processes."
+    },
+    "proposals": [
+      "sp-999d8506622c",
+      "sp-c16c6d4efad7"
+    ],
+    "validations": [
+      "val-0975a58ebe45",
+      "val-4dcf13f3672e",
+      "val-4ed79ccd248d",
+      "val-89c36a668e7f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:08:00Z"
+  }
+}

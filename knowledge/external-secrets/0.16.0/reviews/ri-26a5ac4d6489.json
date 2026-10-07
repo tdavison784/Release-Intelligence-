@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-26a5ac4d6489",
+    "candidateId": "sc-dd35e147bb75",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "classification",
+    "question": "Is fact vf-e00d920557d9 (Make sure there are no storedVersions on v1alpha1 for `externalsecrets`, `clusterexternalsecrets`, `secretstores` and `clustersecretstores` crds: Run the…) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-stored-versions"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "externalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clusterexternalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "secretstores.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1alpha1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustersecretstores.external-secrets.io"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "This is a pre-upgrade check in the 0.16 upgrade guide. If any of the four CRDs still lists v1alpha1 in status.storedVersions, the check reports \"NOT SAFE! REMOVE v1alpha1 FROM YOUR STORED VERSIONS\", and v1alpha1 must be removed from the stored versions before upgrading. In 0.16.0 the chart's CRDs no longer include v1alpha1.",
+        "remediation": "Run the kubectl check from the upgrade guide. If it reports NOT SAFE, remove v1alpha1 from status.storedVersions of the affected CRDs and confirm the change is persisted before upgrading.",
+        "severity": "high"
+      },
+      "statement": "Make sure there are no storedVersions on v1alpha1 for `externalsecrets`, `clusterexternalsecrets`, `secretstores` and `clustersecretstores` crds: Run the…"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "auto-approved",
+        "consensus-action",
+        "consensus-cross-model",
+        "consensus-same-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T07:14:46.706412-05:00"
+  }
+}

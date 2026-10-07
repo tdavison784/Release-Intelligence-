@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fda4dc601f09",
+    "reviewItemId": "ri-c09939eb4bf3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istio-clean-iptables",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ISTIO_OUTPUT iptables chain not removed\"",
+        "after": "\"ISTIO_OUTPUT iptables chain removed\""
+      },
+      "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain, fixing a previous issue where it was not being removed."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-clean-iptables-istio-output-chain",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The pilot-agent istio-clean-iptables command now removes the ISTIO_OUTPUT iptables chain, which it previously left in place."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:80e09cbd91651992f39d1fe76a5db468fe95ed847e98226868c129345dfeb0e5",
+      "inputEvidence": [
+        "ev-dd94d38ea856"
+      ],
+      "generatedAt": "2026-10-02T15:56:44.665Z",
+      "callId": "eda00cf5-2bba-4daf-b9bc-ada0cd3dcd54"
+    },
+    "reason": "[ev-dd94d38ea856] describes a bugfix: the `pilot-agent istio-clean-iptables` command now removes the `ISTIO_OUTPUT` iptables chain. `istio-clean-iptables` is a subcommand, not a flag. It has no leading `--`, so the cli-flag family does not fit. The closest family is a runtime networking behaviour of pilot-agent, so I used protocol-behavior. The proposed before/after values paraphrase the note instead of quoting literals from it, so I left them out; they are optional for behavior-changed.",
+    "startedAt": "2026-10-02T15:56:26.681Z",
+    "decidedAt": "2026-10-02T15:56:44.665Z"
+  }
+}

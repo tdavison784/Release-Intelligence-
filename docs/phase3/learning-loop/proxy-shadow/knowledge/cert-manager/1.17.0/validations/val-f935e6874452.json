@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f935e6874452",
+    "candidateId": "sc-a2b29fc53908",
+    "proposalId": "sp-a3c50e4d7d99",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "decode-x509-certificate-set-bytes-pem-limit"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "the size of the TLS trust bundles (PEM data) supplied to cert-manager, relative to the previous parse limit of pki.DecodeX509CertificateSetBytes — the previous and new limits are not stated in the evidence"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "pki.DecodeX509CertificateSetBytes now parses a larger amount of PEM data than before, so cert-manager can read larger TLS trust bundles; nothing fails, existing configurations keep working, and no operator action is required, though environments using large trust bundles may want to verify they are now handled.",
+        "remediation": "No action required; operators relying on large TLS trust bundles may verify they are now read successfully.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 increases the amount of PEM data that pki.DecodeX509CertificateSetBytes can parse, enabling cert-manager to read larger TLS trust bundles."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

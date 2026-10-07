@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a07cbc04bd62",
+    "candidateId": "sc-c770479afc97",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "certificate-create-while-deleting"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.deletionTimestamp",
+              "state": "set"
+            }
+          ],
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "While a Certificate is being deleted, cert-manager will no longer create CertificateRequest or Secret objects for it; previously it could do so during deletion.",
+        "severity": "low"
+      },
+      "statement": "A Certificate that is being deleted will no longer cause cert-manager to create CertificateRequest or Secret objects for it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ab4bd1639399"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:684b89fc83b2cbe1087a5b319d5cd0b7c8d7192d7bcddabb48c1261e51eb52bd",
+      "inputEvidence": [
+        "ev-ab4bd1639399"
+      ],
+      "generatedAt": "2026-10-02T11:31:38Z",
+      "callId": "d3aa0afd-8d0e-467a-9906-d3f69f72e48f"
+    }
+  }
+}

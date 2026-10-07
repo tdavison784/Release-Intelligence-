@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-cabf835b2a76",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-b15a1c23bd89",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-8e7f32129984"
+          ],
+          "statementKeys": [
+            "sk-4c87c917a25a"
+          ],
+          "changeIds": [
+            "chg-b15a1c23bd89"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Added support for warmup configuration in DestinationRule's LB trafficPolicy duration: specify the duration of warmup mode minimumPercent : specifies the…",
+    "text": "Added support for warmup configuration in DestinationRule's LB trafficPolicy duration: specify the duration of warmup mode minimumPercent : specifies the initial percent of origin load aggression : will define the evolution of the % of traffic sent to the pods from minimumPercent to 100%",
+    "evidence": [
+      {
+        "id": "ev-c2809b3da7db",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/3215.yaml",
+        "locator": "3215.yaml L9-L14",
+        "excerpt": "- |\n    **Added** support for warmup configuration in DestinationRule's LB trafficPolicy\n\n    duration: specify the duration of warmup mode\n    minimumPercent : specifies the initial percent of origin load\n    aggression : will define the evolution of the % of traffic sent to the pods from minimumPercent to 100%",
+        "contentDigest": "sha256:72b44b20fece2a275158a946f7d8425e5e9008eff63ba28dbb26aa1a1cba9f17",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-75059a613d13",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/api/issues/3215",
+        "locator": "title and description",
+        "excerpt": "issue: Support agression and min_weight_percent in DestinationRule [closed; labels kind/enhancement, area/networking]\n(This is used to request new product features, please visit <https://discuss.istio.io> for questions on using Istio)\n\n**Describe the feature request**\nWe are using Java micro-services, which usually needs a warmup phase to have the best performance. After testing `warmupDurationSecs` on production it was not concluant, because of the `min_weight_percent` that is by default 10%. It is already too much for our service.\n\nIndeed currently DestinationRules only support envoy's `slow…",
+        "contentDigest": "sha256:74b43406736d522cfacddc6a46d45548c124bae879e74644327dc500c27681eb",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      },
+      {
+        "id": "ev-0af6ff789752",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/istio/api/issues/3215",
+        "locator": "description (part 2)",
+        "excerpt": "host:app.svc.cluster.local\ntrafficPolicy:\nloadBalancer:\nwarmupDurationSecs: 2\n```\n\nBut the API is lacking `aggression` and `min_weight_percent` parameters (cf. [envoy doc](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/slow_start)) which are essentials in our context.\n\n**Describe alternatives you've considered**\n\nWe considered using EnvoyFilter (cf. https://github.com/istio/istio/issues/41039#issuecomment-1979174285); It provides us good technical results but having so much …",
+        "contentDigest": "sha256:74b43406736d522cfacddc6a46d45548c124bae879e74644327dc500c27681eb",
+        "retrievedAt": "2026-10-06T01:27:31Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

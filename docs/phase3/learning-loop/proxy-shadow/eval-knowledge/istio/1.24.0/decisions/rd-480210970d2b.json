@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-480210970d2b",
+    "reviewItemId": "ri-0759d1f41d04",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "security.istio.io",
+              "version": "v1beta1",
+              "kind": "AuthorizationPolicy"
+            }
+          ]
+        }
+      },
+      "statement": "A status condition for binding AuthorizationPolicy to a waypoint proxy is now written to the AuthorizationPolicy status; the formatting of these conditions is experimental and will change."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.targetRefs",
+                  "state": "set"
+                }
+              ],
+              "group": "security.istio.io",
+              "kind": "AuthorizationPolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the AuthorizationPolicy targetRefs resolve to a waypoint proxy"
+            }
+          ]
+        }
+      },
+      "statement": "Istio now writes an experimental status condition on AuthorizationPolicy resources that are bound to a waypoint proxy through targetRefs. Policies with multiple targetRefs get a single condition. Exposed environments have an AuthorizationPolicy with spec.targetRefs pointing at a waypoint proxy."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:43c00b73f291c5e21837f64201a4f7ac4a941d3e2918fa717fb0259a3cede4a5",
+      "inputEvidence": [
+        "ev-1fd772318bb8"
+      ],
+      "generatedAt": "2026-10-02T12:46:05.047Z",
+      "callId": "9a7da67b-0218-498e-b46b-b2699613064d"
+    },
+    "reason": "[ev-1fd772318bb8] says the status condition is written for binding an AuthorizationPolicy to a waypoint proxy via targetRefs, not for every AuthorizationPolicy. The proposed exposure (any use of AuthorizationPolicy, and only at v1beta1, a version the evidence never names) is broader than the affected environments. Exposure should be limited to AuthorizationPolicies with spec.targetRefs set. Whether the target is a waypoint proxy can't be decided from the evidence, so that part is marked undecidable.",
+    "startedAt": "2026-10-02T12:45:47.62Z",
+    "decidedAt": "2026-10-02T12:46:05.047Z"
+  }
+}

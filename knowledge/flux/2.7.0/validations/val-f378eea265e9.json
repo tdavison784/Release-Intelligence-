@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f378eea265e9",
+    "candidateId": "sc-55aa41cb3e29",
+    "proposalId": "sp-6a5c3d32c0f6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider",
+        "component": "flux push artifact"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux push artifact --provider azure` from Azure DevOps runners (CLI usage in CI pipelines, not cluster configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A bug fix: on Azure DevOps runners, `flux push artifact --provider azure` can now call the Azure CLI. Operators do not need to do anything.",
+        "remediation": "None needed. If your CI pipelines on Azure DevOps had a workaround for this, check that it is still needed.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, `flux push artifact --provider azure` is allowed to call the Azure CLI when it runs on Azure DevOps runners."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

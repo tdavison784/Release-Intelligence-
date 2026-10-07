@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a30004db53e4",
+    "reviewItemId": "ri-c0005edaf57b",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:be4ad9eafe6190646f64fb19c2f2b64dc1f21f8eed7414b474973d32fc05daf3",
+      "inputEvidence": [
+        "ev-e598abf2a6cd"
+      ],
+      "generatedAt": "2026-10-03T17:00:33.888Z",
+      "callId": "0d91f56f-e532-48c4-b982-cbdd6accc174",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-e598abf2a6cd] says only that `-compactor.delete-request-store` \"should be explicitly configured when retention is enabled\" because it \"is required for storing delete requests\". It does not say what happens if the flag is left unset. It could fail config validation at startup, block the upgrade, or make delete requests fail, and none of these is stated. Either way, setting-ignored is the wrong kind: no configured value stops being honoured here. A setting that was not set is now required. To decide the kind and severity, we need upstream text (for example, the config validation error or a release note) that states the failure mode when retention is enabled and no delete request store is set.",
+    "startedAt": "2026-10-03T17:00:26.201Z",
+    "decidedAt": "2026-10-03T17:00:33.888Z"
+  }
+}

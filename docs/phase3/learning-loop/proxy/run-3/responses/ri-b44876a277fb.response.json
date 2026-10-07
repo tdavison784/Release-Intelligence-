@@ -1,0 +1,50 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b44876a277fb",
+  "promptDigest": "sha256:3f01d783696c7a28ccb659f847a3232793cedc9239a5df1f939d411ad61e45b4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4eb057f7-d5cc-4774-95ec-d0e86cba8cbb",
+  "startedAt": "2026-10-03T12:32:15.392Z",
+  "decidedAt": "2026-10-03T12:32:26.105Z",
+  "durationMs": 9742,
+  "costUSD": 0.247024,
+  "output": {
+    "action": "correct",
+    "reason": "The breaking-change entry [ev-dea2079e5dc4] says the chart used to enable policy exceptions in all namespaces by default. The section context [ev-2bbc505de6bb] names the setting: users keep that behaviour by setting the Helm value `features.policyExceptions.namespace` to `*`. So only environments that use PolicyExceptions and leave this value unset are exposed. The proposed condition, gvk-in-use alone, is too broad because it also flags environments that already set the value explicitly; those environments are shielded and belong under overlap.",
+    "citations": [
+      "ev-dea2079e5dc4",
+      "ev-2bbc505de6bb"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "In Kyverno 1.13.0 the Helm chart no longer enables policy exceptions in all namespaces by default (CVE-2024-48921). Environments that use PolicyExceptions without setting features.policyExceptions.namespace are affected; setting it to '*' keeps the previous behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "values-key",
+              "path": "features.policyExceptions.namespace",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "features.policyExceptions.namespace",
+          "state": "set"
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

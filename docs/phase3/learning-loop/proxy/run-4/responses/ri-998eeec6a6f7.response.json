@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-998eeec6a6f7",
+  "promptDigest": "sha256:aba1821f76b48850645107e5584db7a8d1ac4101b91be1cf7edd1310240ed3fd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "bd1b28b1-4961-44e2-8891-632cb17f249f",
+  "startedAt": "2026-10-06T01:50:40.853Z",
+  "decidedAt": "2026-10-06T01:50:50.438Z",
+  "durationMs": 8600,
+  "costUSD": 0.102308,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "The release note on its own is too thin [ev-aae2a6aa6ee6], but the linked issue and PR fill the gap, and both proposals missed them. Issue #21488 shows what was broken. When server-side diff was used, for example after changing an Ingress PathType, the comparison failed with \"error calculating server side diff ... error converting json string to unstructured ... unmarshal error: invalid character '.' after top-level value\" [ev-bb9e7540628e][ev-53a4634f1a2c]. PR #21749 names the cause and the fix: the server-side diff dry run now uses the new kube applier from gitops engine, so the kube command's stderr is no longer joined onto its stdout. The changed files are in the application controller and util/kube/kubectl.go [ev-b0d8cf4ba6aa][ev-ecf742cef7d1]. That is enough to write the assertion: the subject is the server-side diff dry run, the change is a bug fix, exposure is applications compared with server-side diff where the dry run writes to stderr, and the consequence that is now removed is a failed diff (comparison error).",
+    "citations": [
+      "ev-bb9e7540628e",
+      "ev-53a4634f1a2c",
+      "ev-b0d8cf4ba6aa",
+      "ev-ecf742cef7d1",
+      "ev-aae2a6aa6ee6"
+    ],
+    "confidence": "medium"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-393bc332469c",
+    "reviewItemId": "ri-dc5fa98fcdb4",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "loki.query_range.results_cache",
+              "state": "unset"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1",
+              "kind": "LokiStack"
+            }
+          ]
+        }
+      },
+      "statement": "Results caching for 'stats', 'volume', 'label', and 'series' queries in the TSDB index type is now enabled by default, caching to the results_cache configured in the query_range config section using an in-memory cache by default."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "release-knowledge-gap",
+          "needed": "the config keys that enable or disable results caching for stats, volume, label and series queries (and their old defaults), so environments that have explicitly turned these caches off can be told apart from exposed ones"
+        }
+      },
+      "statement": "Loki 3.0.0 turns on results caching by default for label and series requests, and for stats and volume queries on the TSDB index type. Results go to query_range.results_cache, which is in-memory by default. Any environment that has not switched these caches off is exposed, but the evidence does not name the keys that switch them off."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:5f50640d2737d2ec11b865fdc1bbf91a28d7f0569627ee88306ad1827a08d422",
+      "inputEvidence": [
+        "ev-959df790f1d4"
+      ],
+      "generatedAt": "2026-10-03T02:03:44.091Z",
+      "callId": "2714621a-d64c-44bb-a9c8-d54e8c10b223"
+    },
+    "reason": "[ev-959df790f1d4] says label and series caching is now on by default without limiting it to any index type, and stats and volume caching is on by default for TSDB. It names no config keys for turning these caches off. Nothing in it mentions the LokiStack CRD (Loki Operator), so the gvk-in-use LokiStack operand has no support and wrongly leaves out plain Loki deployments. The results_cache-unset operand is also unsupported, because the new caching uses results_cache whether it is set or left at the in-memory default.",
+    "startedAt": "2026-10-03T02:03:27.001Z",
+    "decidedAt": "2026-10-03T02:03:44.091Z",
+    "resultingFact": "vf-6b4feb44dedf"
+  }
+}

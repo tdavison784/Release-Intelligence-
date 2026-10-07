@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fbc4ad6e462d",
+    "candidateId": "sc-ea58236c92a6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "experimental.http3",
+        "component": "static-configuration"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"experimental.http3\""
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "If the `experimental.http3` option remains in the static configuration, it is unsupported and prevents Traefik from starting.",
+        "remediation": "Remove the `http3` option from the experimental section of the static configuration.",
+        "severity": "high"
+      },
+      "statement": "The `experimental.http3` static configuration option is removed in v3; leaving it set is unsupported and prevents Traefik from starting."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The static configuration (file or CLI) is not an available input, so whether experimental.http3 is set cannot be expressed. Only a Helm values key (ports.websecure.http3.enabled) is visible, and the text does not tie it to this option.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2df1b23f32ac"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3b2e934cd680ecb6d744be98e2966e5a88f8e266b35365a782ce98570b9c6f30",
+      "inputEvidence": [
+        "ev-2df1b23f32ac"
+      ],
+      "generatedAt": "2026-10-02T16:13:52Z",
+      "callId": "0ccb3575-ec84-4e8d-92b1-1fc024cb656a"
+    }
+  }
+}

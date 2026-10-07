@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-240e0f545833",
+    "reviewItemId": "ri-c38721756b8c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Nomad provider `namespace` configuration option was removed in v3.0.0 and must be replaced with `namespaces`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:21cac10a8c7646b0674ff58f87f548ac26ab1f226a83b65d294368d3416f63c4",
+      "inputEvidence": [
+        "ev-482dffeba461"
+      ],
+      "generatedAt": "2026-10-03T17:01:02.353Z",
+      "callId": "e5ac6f62-f0ab-4d59-b6f9-6eed1ef4d3eb",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-482dffeba461] says the Nomad provider `namespace` option is removed in v3 and would prevent Traefik from starting. It shows the option being set as a CLI flag (`--nomad.namespace=foobar`) or as `nomad: namespace` in the static configuration. The proposed exposure is any of `--nomad.namespace` being set or the `nomad.namespace` key path being set. That matches the canonical shape for a removed setting, which flags only environments that set the removed option. Confidence is low because the evidence shows static file configuration rather than Helm values, so the values-key leaf only approximates the file-based case.",
+    "startedAt": "2026-10-03T17:00:48.216Z",
+    "decidedAt": "2026-10-03T17:01:02.353Z"
+  }
+}

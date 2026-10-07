@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-912131cf4239",
+    "candidateId": "sc-a2b29fc53908",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-trust-bundle-parse-limit"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which TLS trust bundles supplied to cert-manager exceed the previous PEM parse amount of pki.DecodeX509CertificateSetBytes (the evidence states no size threshold and does not say where the bundles are configured)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "TLS trust bundles larger than the previous parse amount, which could not be read before, become readable by pki.DecodeX509CertificateSetBytes after the upgrade; the evidence states no failure mode.",
+        "remediation": "No action required; verify that large TLS trust bundles now parse as expected.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 increases the amount of PEM data that pki.DecodeX509CertificateSetBytes can parse, enabling reading larger TLS trust bundles that previously could not be parsed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-db955cc00d69"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a3022528e236c234c2c844093f2e912746010d7bb518731098834f790ae292dc",
+      "inputEvidence": [
+        "ev-db955cc00d69"
+      ],
+      "generatedAt": "2026-10-03T07:12:34Z",
+      "callId": "e1cd796f-8a28-46a3-b446-d2d9e7471c2a"
+    }
+  }
+}

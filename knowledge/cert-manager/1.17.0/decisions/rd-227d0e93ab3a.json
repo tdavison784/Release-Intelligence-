@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-227d0e93ab3a",
+    "reviewItemId": "ri-677476e555df",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signature-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SHA-256 always used when signing with RSA\"",
+        "after": "\"3072-bit keys use SHA-384, 4096-bit keys use SHA-512\""
+      },
+      "statement": "From v1.17.0 cert-manager picks the RSA signing hash by key length (3072-bit uses SHA-384, 4096-bit uses SHA-512) instead of always using SHA-256."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:4dbfc392750069baf6ba9d9c5109fe379e6599fc6137aac9ba1a4c43d32afe46",
+      "inputEvidence": [
+        "ev-c76ce5c9366c"
+      ],
+      "generatedAt": "2026-10-02T12:58:06.562Z",
+      "callId": "0e7d15f8-4642-45c8-8724-d78e9e9eff0e"
+    },
+    "reason": "The release-notes section [ev-c76ce5c9366c] (Major Themes › RSA Certificate Compliance; its full text appears in the change text) says cert-manager previously always used SHA-256 when signing with RSA. In v1.17.0 it picks the hash from the RSA key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys. That is the same configuration with different semantics, so behavior-changed with these before/after values is right, and rsa-signature-hash-algorithm is a short kebab-case name from the evidence's own words. Confidence is low because the shown excerpt is cut off before the sentences about the hash algorithm.",
+    "startedAt": "2026-10-02T12:57:52.677Z",
+    "decidedAt": "2026-10-02T12:58:06.562Z"
+  }
+}

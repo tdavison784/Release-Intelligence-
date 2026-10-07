@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-30917389637f",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "members": [
+      {
+        "changeId": "chg-a686b141e47b",
+        "anchor": {
+          "release": "1.0.0",
+          "evidenceKeys": [
+            "ek-e1438493f68e"
+          ],
+          "statementKeys": [
+            "sk-e7ab0fc41b98"
+          ],
+          "changeIds": [
+            "chg-a686b141e47b"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "Make sure EbsOptimizedInfo exists when selecting instances by EBS maximum bandwidth (#6663) #6663 (Nicole Wren)",
+    "evidence": [
+      {
+        "id": "ev-4b121944161e",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/aws/karpenter-provider-aws/releases/tag/v1.0.0",
+        "locator": "L30-L30 (Bug Fixes)",
+        "excerpt": "- Make sure EbsOptimizedInfo exists when selecting instances by EBS maximum bandwidth (#6663) [#6663](https://github.com/aws/karpenter-provider-aws/pull/6663) ([Nicole Wren](https://github.com/aws/karpenter-provider-aws/commit/525a56be4af6e1c5a71986f11ff6cecfc7b57ccf))",
+        "contentDigest": "sha256:e846961f22406466bf69a0da39428079fae9ac9eb27bbd0774cb3f738ce4acff",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      },
+      {
+        "id": "ev-17f96431993d",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6663",
+        "locator": "title and description",
+        "excerpt": "PR: fix: Make sure EbsOptimizedInfo exists when selecting instances by EBS maximum bandwidth [closed]\nWe observed that `g2.xlarge` has `.EbsInfo.EbsOptimizedSupport == \"default\"`, but no `.EbsInfo.EbsOptimizedInfo`:\n\n```\n$ aws ec2 describe-instance-types --region us-west-2 --instance-types 'g2.xlarge' | jq '.InstanceTypes[0].EbsInfo'\n{\n\"EbsOptimizedSupport\": \"default\",\n\"EncryptionSupport\": \"supported\",\n\"NvmeSupport\": \"required\"\n}\n```\n\nThis can cause a nil pointer dereference when gathering instance info, following the support for EBS maximum bandwidth introduced in #5925\n\n```",
+        "contentDigest": "sha256:76969701224cea400c65329b283ff5d23f00fb1f1bb93c24d34302a759892f75",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-7f0dd9723b20",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6663",
+        "locator": "description (part 2)",
+        "excerpt": "{\"level\":\"INFO\",\"time\":\"2024-08-05T18:52:30.307Z\",\"logger\":\"controller\",\"message\":\"Observed a panic in reconciler: runtime error: invalid memory address or nil pointer dereference\",\"commit\":\"490ef94\",\"controller\":\"nodeclaim.disruption\",\"controllerGroup\":\"karpenter.sh\",\"controllerKind\":\"NodeClaim\",\"NodeClaim\":{\"name\":\"utility-7lkkw\"},\"namespace\":\"\",\"name\":\"utility-7lkkw\",\"reconcileID\":\"997d55c4-ab30-4309-a0bb-32ad3e4b89b6\"}\npanic: runtime error: invalid memory address or nil pointer dereference [recovered]\npanic: …",
+        "contentDigest": "sha256:76969701224cea400c65329b283ff5d23f00fb1f1bb93c24d34302a759892f75",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-bb92a95e954f",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/pull/6663",
+        "locator": "changed files",
+        "excerpt": "1 changed file(s): pkg/providers/instancetype/types.go",
+        "contentDigest": "sha256:76969701224cea400c65329b283ff5d23f00fb1f1bb93c24d34302a759892f75",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-261f7a60eb27",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/commit/525a56be4af6e1c5a71986f11ff6cecfc7b57ccf",
+        "locator": "title and description",
+        "excerpt": "commit: fix: Make sure EbsOptimizedInfo exists when selecting instances by EBS maximum bandwidth (#6663)",
+        "contentDigest": "sha256:b1acec3375ac08c74094b485a3d038f57eb8c2f016c16d9f27e2b50f42fe44a6",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      },
+      {
+        "id": "ev-d42ae42e9039",
+        "kind": "linked-commit",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/aws/karpenter-provider-aws/commit/525a56be4af6e1c5a71986f11ff6cecfc7b57ccf",
+        "locator": "changed files",
+        "excerpt": "1 changed file(s): pkg/providers/instancetype/types.go",
+        "contentDigest": "sha256:b1acec3375ac08c74094b485a3d038f57eb8c2f016c16d9f27e2b50f42fe44a6",
+        "retrievedAt": "2026-10-06T01:27:47Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

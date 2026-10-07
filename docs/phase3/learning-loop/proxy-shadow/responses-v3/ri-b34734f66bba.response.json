@@ -1,0 +1,41 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b34734f66bba",
+  "promptDigest": "sha256:8bbf9fcaa4d037b312ccb99200dc53e458259c1d11b07c77a1a85ad22db00336",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d77d2368-aeb0-4292-b663-763078c6f885",
+  "startedAt": "2026-10-03T16:58:51.283Z",
+  "decidedAt": "2026-10-03T16:59:07.501Z",
+  "durationMs": 15602,
+  "costUSD": 0.114176,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f07fad593227] shows the secretstores.external-secrets.io CRD's spec.versions[name=v1beta1].storage going from true to false between 0.15.0 and 0.16.0. The restatement validator confirms this computed change names the external-secrets.io/v1beta1 SecretStore gvk, so the subject is right. behavior-changed is the right change type: v1beta1 is still served but is no longer the storage version, and it is not deprecated (validator refuted P3's 'deprecated'). The before/after values 'storage version'/'non-storage version' paraphrase the evidence, so I replaced them with the values the artifact states, true → false.",
+    "citations": [
+      "ev-f07fad593227",
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "external-secrets.io/v1beta1 SecretStore stops being the storage version of the secretstores.external-secrets.io CRD (spec.versions[name=v1beta1].storage: true → false, 0.15.0 → 0.16.0); v1 becomes the storage version and existing objects stay stored as v1beta1 until rewritten.",
+      "subject": {
+        "determination": "asserted",
+        "family": "gvk",
+        "group": "external-secrets.io",
+        "kind": "SecretStore",
+        "version": "v1beta1"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "behavior-changed",
+        "before": true,
+        "after": false
+      }
+    },
+    "labels": [
+      "wrong-change-type"
+    ]
+  }
+}

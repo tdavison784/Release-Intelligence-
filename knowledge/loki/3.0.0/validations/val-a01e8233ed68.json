@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a01e8233ed68",
+    "candidateId": "sc-a6585a7675ea",
+    "proposalId": "sp-3813eea5d377",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "shared_store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store\\s*:"
+                }
+              ],
+              "kind": "Secret"
+            },
+            {
+              "op": "values-key",
+              "path": "loki.config.shared_store",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the Loki configuration still sets `shared_store` after upgrading to 3.0.0, that setting is no longer honoured because the config option has been removed.",
+        "remediation": "Remove `shared_store` from the Loki configuration (the config.yaml passed with -config.file, or loki.config in the Helm chart) and follow the upgrade guide section 'Removed `shared_store` and `shared_store_key_prefix` from shipper configuration'.",
+        "severity": "medium"
+      },
+      "statement": "In Loki 3.0.0 the `shared_store` configuration option is removed, so a Loki configuration that still sets `shared_store` no longer has that setting honoured."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

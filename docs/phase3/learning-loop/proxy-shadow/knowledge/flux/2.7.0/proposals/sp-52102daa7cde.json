@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-52102daa7cde",
+    "candidateId": "sc-3caf50c85cc9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "flux-migrate"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters not deployed via Flux Operator must run `flux migrate` before upgrading, because the v1beta1 and v2beta1 APIs have been removed from the CRDs.",
+        "remediation": "Run `flux migrate` on the cluster before upgrading to Flux 2.7; see the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Flux APIs v1beta1 and v2beta1 were removed from the CRDs; unless Flux Operator deploys the controllers, `flux migrate` must be run on clusters before upgrading to 2.7."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The text does not name the affected kinds or say how to detect use of v1beta1/v2beta1 resources, so exposure cannot be expressed as a predicate.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-82be76c03b0e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e15507b4c8859bf4e0b9cdcb58aaacef324a1a104da00af2b1004ec957a55419",
+      "inputEvidence": [
+        "ev-82be76c03b0e"
+      ],
+      "generatedAt": "2026-10-02T16:17:50Z",
+      "callId": "952f0fbe-4e47-4520-b90a-9a2e1a334c66"
+    }
+  }
+}

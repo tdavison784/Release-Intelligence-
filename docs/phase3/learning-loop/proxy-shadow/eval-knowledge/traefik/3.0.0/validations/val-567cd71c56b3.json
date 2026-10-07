@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-567cd71c56b3",
+    "candidateId": "sc-ed7b17f5ccdf",
+    "proposalId": "sp-279ca887a52f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.redis.tls.caOptional",
+        "component": "redis-provider"
+      },
+      "change": {
+        "type": "removed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.redis.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "providers.redis.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed providers.redis.tls.caOptional option is no longer honoured; the guide says it should be removed from the Redis provider static configuration.",
+        "remediation": "Remove the tls.caOptional option from the Redis provider static configuration.",
+        "severity": "low"
+      },
+      "statement": "The Redis provider static option tls.caOptional was removed in v3 and should be removed from configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

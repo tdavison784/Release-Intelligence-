@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-91a0704e42e2",
+  "promptDigest": "sha256:27377d5c8f337edc4f70bcef7b686a9100fae2bf1f274fcc76978311da13947f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7e48cca5-a664-4807-8239-a6a72fd32a7b",
+  "startedAt": "2026-10-03T01:53:34.775Z",
+  "decidedAt": "2026-10-03T01:53:46.686Z",
+  "durationMs": 11087,
+  "costUSD": 0.096892,
+  "output": {
+    "action": "correct",
+    "reason": "The change says all of Traefik v2 is end-of-life: v2.11 lost support on 2026-09-07 and older v2 minors ended earlier. So the exposed environments are those running a v2 release today. [ev-525d11df6567] backs the support-window policy (the last minor after a new major gets 2 years), but its excerpt is cut off and does not state the v2 dates itself. The version range in the proposal is right, but it uses product-version, which is for another product's version. The version of this product that an environment runs is expressed by edge-from-version.",
+    "citations": [
+      "ev-525d11df6567"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik Proxy v2 (last minor v2.11) is end-of-life since 2026-09-07 and gets no more security fixes. Environments running any v2 release (>=2.0.0, <3.0.0) are exposed and should plan the move to v3.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": ">=2.0.0, <3.0.0"
+        }
+      }
+    }
+  }
+}

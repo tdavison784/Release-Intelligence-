@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-38e7f7190112",
+    "reviewItemId": "ri-f4c23d893cc6",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:07d75060671da4a0cf9a6d5edafb270260277283f759c2f2eba9e2c2173e6669",
+      "inputEvidence": [
+        "ev-117557f906cd"
+      ],
+      "generatedAt": "2026-10-02T16:04:03.471Z",
+      "callId": "c2dbe1df-93a3-4878-853f-8992bb9bafc0"
+    },
+    "reason": "[ev-117557f906cd] describes a new optional chart value, but it also says that on some platforms (e.g. OpenShift) istio-cni-node pods \"may fail to start\" without `seLinuxOptions.type=spc_t`. The evidence doesn't say whether that failure is new in 1.24.0, which would make it a workload-failure for exposed SELinux platforms, or an existing limitation that the new value only works around, which would make it none. It also doesn't give the chart default for the value. Marking this \"none\" could hide a real startup failure, so a decision needs evidence on whether 1.24.0 brings in the hostPath/SELinux constraint and on the default `seLinuxOptions`.",
+    "startedAt": "2026-10-02T16:03:51.207Z",
+    "decidedAt": "2026-10-02T16:04:03.471Z"
+  }
+}

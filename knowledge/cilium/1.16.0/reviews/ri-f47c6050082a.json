@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f47c6050082a",
+    "candidateId": "sc-413ea0b3d406",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Deprecated options `proxy.prometheus.enabled` and `proxy.prometheus.port` have been removed\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration key `proxy.prometheus.enabled` is no longer honoured; Prometheus monitoring for the proxy/Envoy will not be enabled unless the new `envoy.prometheus.enabled` key is used.",
+        "remediation": "Replace `proxy.prometheus.enabled` with `envoy.prometheus.enabled` and `proxy.prometheus.port` with `envoy.prometheus.port` in your Helm values before or during the upgrade to 1.16.0.",
+        "severity": "high"
+      },
+      "statement": "The deprecated Helm values `proxy.prometheus.enabled` and `proxy.prometheus.port` have been removed in Cilium 1.16.0; users must migrate to `envoy.prometheus.enabled` and `envoy.prometheus.port`."
+    },
+    "proposals": [
+      "sp-8fe6e84211fd",
+      "sp-c345fa5d6a89"
+    ],
+    "validations": [
+      "val-033a2cbe88a3",
+      "val-11b4ac46007a",
+      "val-2774d6fdd4b1",
+      "val-2cf46adf4c5c",
+      "val-4a59eedec4cd",
+      "val-d0b8401e7d13",
+      "val-d35cd4897068",
+      "val-d4431b4d7500"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:05:46Z"
+  }
+}

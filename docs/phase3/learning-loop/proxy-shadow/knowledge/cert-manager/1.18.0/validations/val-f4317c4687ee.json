@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f4317c4687ee",
+    "candidateId": "sc-292ab9525adb",
+    "proposalId": "sp-515d6ecff980",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade to 1.18, cert-manager garbage-collects all stale CertificateRequest resources for Certificates that do not explicitly set revisionHistoryLimit. Only the latest revision is kept. The release notes flag this as a potentially breaking change.",
+        "remediation": "To keep more CertificateRequest history, set spec.revisionHistoryLimit explicitly on Certificate resources before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In cert-manager 1.18.0 the default of Certificate spec.revisionHistoryLimit changed from nil (no limit) to 1, so on upgrade stale CertificateRequest resources are garbage collected for Certificates that do not set the field explicitly."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

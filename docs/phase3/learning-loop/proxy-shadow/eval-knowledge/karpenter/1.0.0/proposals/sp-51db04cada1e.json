@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-51db04cada1e",
+    "candidateId": "sc-ee5a3d56460b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "karpenter",
+        "name": "removed-annotations-and-tags"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-consolidate\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-evict\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.tags[\"karpenter.sh/managed-by\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Karpenter 1.0.0 removes support for karpenter.sh/do-not-consolidate, karpenter.sh/do-not-evict annotations and karpenter.sh/managed-by tag; environments using these must migrate to eks:eks-cluster-name tag and adjust taint tolerations from karpenter.sh/disruption=disrupting:NoSchedule to karpenter.sh/disrupted:NoSchedule.",
+        "remediation": "Update all Node resources and workloads: remove karpenter.sh/do-not-consolidate and karpenter.sh/do-not-evict annotations, replace karpenter.sh/managed-by tags with eks:eks-cluster-name, and update any Pod toleration policies referencing karpenter.sh/disruption=disrupting:NoSchedule to use karpenter.sh/disrupted:NoSchedule instead.",
+        "severity": "high"
+      },
+      "statement": "In Karpenter 1.0.0, the annotations karpenter.sh/do-not-consolidate, karpenter.sh/do-not-evict, and the tag karpenter.sh/managed-by are removed; karpenter.sh/managed-by is replaced by eks:eks-cluster-name, and the disruption taint key changed from karpenter.sh/disruption=disrupting:NoSchedule to karpenter.sh/disrupted:NoSchedule."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f83dc72c2c99"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f1fa888a6f94f5b5167b6b4a9b3362ddfdac49be675a725ec043ed91286c2428",
+      "inputEvidence": [
+        "ev-f83dc72c2c99"
+      ],
+      "generatedAt": "2026-10-02T06:03:41Z",
+      "callId": "e0ce3706-9997-4fc8-a741-fdff8f851b08"
+    }
+  }
+}

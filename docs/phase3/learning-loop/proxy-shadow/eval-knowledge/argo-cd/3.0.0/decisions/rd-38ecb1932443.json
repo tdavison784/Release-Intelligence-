@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-38ecb1932443",
+    "reviewItemId": "ri-3cc23e546654",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "dex-rbac-subject-claim"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"sub claim\"",
+        "after": "\"federated_claims.user_id claim\""
+      },
+      "statement": "With Dex SSO, Argo CD 3.0 bases the RBAC subject on the federated_claims.user_id claim (requesting the federated:id scope) instead of the sub claim, so RBAC policies that reference the Dex sub claim must be updated to keep the same access."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:98f2af3e1d8fe6429883160f79e81695deb4b259ddd7786907cb734599446318",
+      "inputEvidence": [
+        "ev-0b6150153730"
+      ],
+      "generatedAt": "2026-10-03T12:50:06.001Z",
+      "callId": "61c95659-d1ce-4f0a-a90d-ea2a6c65d740",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0b6150153730] says that with Dex, Argo CD used the `sub` claim as the RBAC subject. It says the new behavior bases the subject on the `federated_claims.user_id` claim instead, requesting the `federated:id` scope. The same Dex setup now gives a different meaning, so behavior-changed fits, with before = sub claim and after = federated_claims.user_id claim. protocol-behavior with the kebab-case name dex-rbac-subject-claim uses only words from the evidence and names the subject clearly.",
+    "startedAt": "2026-10-03T12:49:59.345Z",
+    "decidedAt": "2026-10-03T12:50:06.001Z"
+  }
+}

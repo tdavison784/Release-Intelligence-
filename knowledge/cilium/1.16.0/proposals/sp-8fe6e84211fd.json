@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8fe6e84211fd",
+    "candidateId": "sc-413ea0b3d406",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "proxy.prometheus.enabled"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "envoy.prometheus.enabled"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "proxy.prometheus.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration key `proxy.prometheus.enabled` is no longer honoured; Prometheus monitoring for the proxy/Envoy will not be enabled unless the new `envoy.prometheus.enabled` key is used.",
+        "remediation": "Replace `proxy.prometheus.enabled` with `envoy.prometheus.enabled` and `proxy.prometheus.port` with `envoy.prometheus.port` in your Helm values before or during the upgrade to 1.16.0.",
+        "severity": "high"
+      },
+      "statement": "The deprecated Helm values `proxy.prometheus.enabled` and `proxy.prometheus.port` have been removed in Cilium 1.16.0; users must migrate to `envoy.prometheus.enabled` and `envoy.prometheus.port`."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-69b054a33ac2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5c9ec684a5e94ec36d8b85ff14323d67c521624eea45a3bfb67650405a866b5d",
+      "inputEvidence": [
+        "ev-69b054a33ac2"
+      ],
+      "generatedAt": "2026-10-02T06:05:46Z",
+      "callId": "54e1efb0-552f-4a81-ab9f-bb6b7581d16f"
+    }
+  }
+}

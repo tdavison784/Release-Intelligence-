@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c7bd53a1c2d2",
+    "candidateId": "sc-178716874e9a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "sidecar-scoping-conflict-resolution"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Where several services share a hostname, or several Gateway API Routes target the same service, a proxy may now resolve to a different service or route than before. Without a Sidecar it now prefers a same-namespace Service. With a Sidecar it now prefers a Kubernetes Service over a ServiceEntry and the local-namespace route.",
+        "remediation": "Check for duplicate hostnames across Services and ServiceEntries, and for multiple Gateway API Routes per service. The upgrade notes say the old behavior can be kept temporarily by changing a setting, but the excerpt is cut off before naming it.",
+        "severity": "medium"
+      },
+      "statement": "In Istio 1.24.0, service conflict resolution works the same whether or not a `Sidecar` resource is defined. When several services share a hostname, Istio now prefers the one in the proxy's namespace, then a Kubernetes Service over a ServiceEntry. When several Gateway API Routes target the same service, it now prefers the local proxy namespace."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on several services sharing one hostname, or several Gateway API Routes targeting one service, across namespaces. No available predicate can express that cross-resource duplication. The evidence is cut off before naming the setting that keeps the old behavior, so no overlap condition can be written either.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-927d998f5cdd",
+      "ev-80c52188197b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:dc7c10262b5040e620eac7a5c6295310b7b6f50b1c69b8e6108a758736b7399d",
+      "inputEvidence": [
+        "ev-80c52188197b",
+        "ev-927d998f5cdd"
+      ],
+      "generatedAt": "2026-10-03T07:07:37Z",
+      "callId": "ccffed4a-543f-4369-a617-56bab1cec8f4"
+    }
+  }
+}

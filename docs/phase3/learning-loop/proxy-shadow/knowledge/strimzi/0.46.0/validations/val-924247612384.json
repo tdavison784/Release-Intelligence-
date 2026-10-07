@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-924247612384",
+    "candidateId": "sc-f6734cfa890c",
+    "proposalId": "sp-1c404e5141d6",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regarding-object"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Kafka resource as the regardingObject and the Pod in the related field\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which monitoring, alerting or automation consumes the Kubernetes events emitted during a Pod restart and keys on the regardingObject or related fields"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events emitted during a Pod restart are now emitted with the Kafka resource as the regardingObject and the Pod in the related field, so consumers of these events will see them attributed to the Kafka resource rather than the Pod.",
+        "remediation": "Review any monitoring, alerting or automation that consumes the Kubernetes events emitted during a Pod restart and update any logic that expects the Pod to be the regarding object.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events emitted during a Pod restart were updated to have the Kafka resource as the regardingObject and the Pod in the related field."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

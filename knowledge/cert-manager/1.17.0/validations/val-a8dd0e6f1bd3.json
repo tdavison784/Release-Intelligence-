@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a8dd0e6f1bd3",
+    "candidateId": "sc-9cd4a1953216",
+    "proposalId": "sp-8c9710c59882",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "acme.cert-manager.io",
+              "version": "v1",
+              "kind": "Challenge"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new optional field enables enhanced flexibility for multi-tenant Azure environments using managed identities; existing configurations are unaffected."
+      },
+      "statement": "A new optional `tenantID` configuration field is added to the AzureDNS provider in Issuer, ClusterIssuer, and Challenge resources for specifying the tenant ID when using managed identities with service principals."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

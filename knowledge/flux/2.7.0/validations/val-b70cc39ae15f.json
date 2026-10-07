@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b70cc39ae15f",
+    "candidateId": "sc-cc1d78205e7e",
+    "proposalId": "sp-71e902edd5a2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "push-artifact-insecure-registry"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux push artifact` against insecure registries (e.g. in CI pipelines), which no static environment input carries"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "`flux push artifact` now works against insecure registries where it previously failed; nothing breaks and no operator action is required — the fix only removes the failure.",
+        "remediation": "none; environments pushing to insecure registries simply get the corrected behavior after upgrading the flux CLI to 2.7.0",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 fixes the `flux push artifact` CLI command so that it works with insecure registries, where it previously failed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

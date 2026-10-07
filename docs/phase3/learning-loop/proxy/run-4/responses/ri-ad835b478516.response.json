@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ad835b478516",
+  "promptDigest": "sha256:d0b9f345e93c5ce439e2011fb7a3b7cef606fa65a048f9f1da5d80d0ab2676cd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "fc93f375-8bac-458c-a298-5df7dfc38605",
+  "startedAt": "2026-10-06T01:52:30.825Z",
+  "decidedAt": "2026-10-06T01:52:44.716Z",
+  "durationMs": 13036,
+  "costUSD": 0.090852,
+  "output": {
+    "action": "correct",
+    "reason": "The linked PR [ev-be7b495ffc4a] says the fix makes a taint with no value keep a leading colon before its effect in Bottlerocket settings, and that without it the Bottlerocket instance cannot register with the cluster. Upgrading therefore fixes a failure; nothing new breaks, so behavior-change with low severity (review) is right. The proposed statement is too broad: it says all tainted Bottlerocket nodes get a different format, but the fix covers only taints with no value. The changed files [ev-586dee25060d] are limited to the Bottlerocket bootstrap code and its userdata golden files.",
+    "citations": [
+      "ev-be7b495ffc4a",
+      "ev-586dee25060d",
+      "ev-5506a0d4614a"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Karpenter 1.0.0 changes how Bottlerocket userdata renders a taint with no value: it now keeps a leading colon before the effect. With the old format, such Bottlerocket instances could not register with the cluster.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "After the upgrade, Karpenter writes Bottlerocket taints that have no value with a leading colon before the effect. Bottlerocket nodes with such taints can now register with the cluster; under the old format they could not. Nothing that worked before stops working.",
+        "remediation": "After upgrading, check that Bottlerocket nodes with value-less taints register and carry the expected taints."
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-cd46ebca5f3e",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-d19c3b3199e4",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-f9def79ed6f8"
+          ],
+          "statementKeys": [
+            "sk-23a7992e2cb0"
+          ],
+          "changeIds": [
+            "chg-d19c3b3199e4"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Fine-Grained RBAC for application `update` and `delete` sub-resources: The default behavior of fine-grained policies have changed so they no longer apply to…",
+    "text": "Fine-Grained RBAC for application `update` and `delete` sub-resources: The default behavior of fine-grained policies have changed so they no longer apply to sub-resources. Prior to v3, policies granting `update` or `delete` to an application also applied to any of its sub-resources. Starting with v3, the `update` or `delete` actions only apply to the application itself. New policies must be defined to allow the `update/*` or `delete/*` actions on an Application's managed resources. The v2 behavior can be preserved by setting the config value `server.rbac.disableApplicationFineGrainedRBACInheritance` to `false` in the Argo CD ConfigMap `argocd-cm`. Read the RBAC documentation for more detailed information.",
+    "evidence": [
+      {
+        "id": "ev-d0cda25040fe",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L12-L24 (v2.14 to 3.0 › Breaking Changes › Fine-Grained RBAC for application `update` and `delete` sub-resources)",
+        "excerpt": "### Fine-Grained RBAC for application `update` and `delete` sub-resources\n\nThe default behavior of fine-grained policies have changed so they no longer apply to sub-resources.\nPrior to v3, policies granting `update` or `delete` to an application also applied to any of its sub-resources.\n\nStarting with v3, the `update` or `delete` actions only apply to the application itself. New policies must be defined\nto allow the `update/*` or `delete/*` actions on an Application's managed resources.\n\nThe v2 behavior can be preserved by setting the config value `server.rbac.disableApplicationFineGrainedRBAC…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:update",
+      "code:delete",
+      "code:update/*",
+      "code:delete/*",
+      "code:server.rbac.disableApplicationFineGrainedRBACInheritance",
+      "code:false",
+      "code:argocd-cm",
+      "path:server.rbac.disableApplicationFineGrainedRBACInheritance"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-511b8e4f55b9",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-67b544656a4b",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-87a3df739380"
+          ],
+          "statementKeys": [
+            "sk-063f8c25285e"
+          ],
+          "changeIds": [
+            "chg-67b544656a4b"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "bugfix",
+    "title": "922dd771e36973d8d1cc69ad14dd9e3002ab313a: fix(appset): improve git generator repo credential fallback",
+    "text": "922dd771e36973d8d1cc69ad14dd9e3002ab313a: fix(appset): improve git generator repo credential fallback (#21167) (@blakepettersson)",
+    "evidence": [
+      {
+        "id": "ev-99d47f7e30ee",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L82-L82 (Changelog › Bug fixes)",
+        "excerpt": "* 922dd771e36973d8d1cc69ad14dd9e3002ab313a: fix(appset): improve git generator repo credential fallback (#21167) (@blakepettersson)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-4e83bbc5b12c",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21167",
+        "locator": "title and description",
+        "excerpt": "PR (cited in the notes as #21167): fix(appset): improve git generator repo credential fallback [closed; labels ready-for-review]\nWith https://github.com/argoproj/argo-cd/pull/18388, we added the possibility of being able to create a repository credential with the same URL per AppProject (previously it was only possible to create one credential globally for the same URL). Sadly, this caused a regression in regards to ApplicationSets using Git Generators. Now, any credential that is used for an appset needs to have an unset appproject - which leads to a lot of hard to diagnose errors from users …",
+        "contentDigest": "sha256:b57f00864ab65818195d7491bc03d41b7e46a7b71f18ab6812602a631ef0445d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-0dfc5b50bfff",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21167",
+        "locator": "description (part 2)",
+        "excerpt": "scoped to a project.\n\n~This PR fixes it by using _similar_ semantics as the API server (used when doing `argocd repo get` or `argocd repo delete`):~\n\n~* If there is only one repo credential with the given URL - use that.~\n~* If there are multiple repo credentials with the same URL - first find a repo cred with an unset approject~\n~* Otherwise, If there are multiple repo credentials with the same URL - use the first one found (order undefined)~\n~* Otherwise, fail with an error~\n\n~This has a provision to be extended …",
+        "contentDigest": "sha256:b57f00864ab65818195d7491bc03d41b7e46a7b71f18ab6812602a631ef0445d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      },
+      {
+        "id": "ev-fea272151d74",
+        "kind": "linked-pr",
+        "sourceId": "linkedev@v1",
+        "uri": "https://github.com/argoproj/argo-cd/pull/21167",
+        "locator": "changed files",
+        "excerpt": "16 changed file(s): applicationset/generators/git.go, applicationset/generators/git_test.go, applicationset/generators/matrix_test.go, applicationset/services/mocks/Repos.go, applicationset/services/repo_service.go, applicationset/services/repo_service_test.go, cmd/argocd-applicationset-controller/commands/applicationset_controller.go, docs/operator-manual/applicationset/Generators-Git.md, docs/user-guide/projects.md, server/applicationset/applicationset.go, test/e2e/applicationset_git_generator_test.go (added), test/e2e/applicationset_test.go… +4 more",
+        "contentDigest": "sha256:b57f00864ab65818195d7491bc03d41b7e46a7b71f18ab6812602a631ef0445d",
+        "retrievedAt": "2026-10-06T01:19:49Z"
+      }
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

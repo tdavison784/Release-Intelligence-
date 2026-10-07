@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5c4ee5766191",
+    "reviewItemId": "ri-67dea2336aef",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer supports direct vendor tracing output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic); tracing must move to OpenTelemetry.",
+        "remediation": "Send traces to the vendor's OTLP ingestion endpoint, or use an OpenTelemetry collector with appropriate exporters for legacy stacks.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 tracing is OpenTelemetry-only; direct vendor output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic) are no longer supported."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:9a6658f6455046542af89c6544b333b987dd7ae1868905eff6f4aa89d497d7d6",
+      "inputEvidence": [
+        "ev-fd174730dfa6"
+      ],
+      "generatedAt": "2026-10-03T12:55:50.73Z",
+      "callId": "e3af816b-602a-4e96-9cc7-59bc4d0d5353",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-fd174730dfa6] is in the v2-to-v3 migration guide. It says v3 \"no longer supports direct output formats\" for Instana, Jaeger, Zipkin, Haystack, Datadog and Elastic, and it gives two transition strategies: OTLP ingestion endpoints, or an OTel collector with exporters. So an environment that relies on these vendor outputs must move to OpenTelemetry to keep tracing, which is a mandatory operator step. That supports migration-required with the stated remediation. The evidence does not say whether old vendor config is rejected or silently ignored, but either way the operator has to migrate.",
+    "startedAt": "2026-10-03T12:55:42.038Z",
+    "decidedAt": "2026-10-03T12:55:50.73Z"
+  }
+}

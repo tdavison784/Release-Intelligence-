@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-54de742dc836",
+    "reviewItemId": "ri-67110380683a",
+    "action": "defer",
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v4",
+      "promptDigest": "sha256:daff55d6d5bb1917103c86aa20957c8378714a74bb049987cbe8243fc77bf3f9",
+      "inputEvidence": [
+        "ev-87995aee2ded",
+        "ev-7967909f7436",
+        "ev-b097e50b8371",
+        "ev-aa9242d349fc",
+        "ev-d4e1d3eac674",
+        "ev-30d2c387f95f",
+        "ev-1d4a9d664d8c",
+        "ev-e8facc7cba98",
+        "ev-dde3ce032096",
+        "ev-38243747b200",
+        "ev-41698084a48b",
+        "ev-861cb2d69752",
+        "ev-d4918828336e",
+        "ev-4fcf47388827",
+        "ev-7be235e771a3",
+        "ev-8f6e397ae33c",
+        "ev-0bb0d885678d",
+        "ev-cf14b14073be",
+        "ev-330bb03a882f"
+      ],
+      "generatedAt": "2026-10-06T01:45:16.807Z",
+      "callId": "6cef6981-ba91-42a6-a378-378d64a65f85",
+      "provider": "anthropic"
+    },
+    "reason": "evidence sufficient (proxy gate verdict; the open aspects need proposals): The release note alone is vague [ev-87995aee2ded], but the linked PR fills the gap. It says cert-manager used to pick the signature algorithm from a hard-coded mapping based on key algorithm and size, and now lets users choose one through a new `signatureAlgorithm` field, e.g. `SHA256WithRSA` [ev-7967909f7436][ev-b097e50b8371]. It also says the field is opt-in, and omitting it keeps the existing default mapping [ev-b097e50b8371]. The changed files (deploy/crds/crd-certificates.yaml, pkg/apis/certmanager/v1/types_certificate.go, pkg/util/pki/csr.go) show it is a new field on the Certificate CRD [ev-aa9242d349fc]. That supports subject = Certificate CRD field signatureAlgorithm, change = added, and applicability limited to Certificates that set it; confidence is low only because the truncated YAML example does not show the field's full nesting path.",
+    "startedAt": "2026-10-06T01:45:06.395Z",
+    "decidedAt": "2026-10-06T01:45:16.807Z"
+  }
+}

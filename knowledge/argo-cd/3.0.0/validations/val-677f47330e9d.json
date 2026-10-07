@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-677f47330e9d",
+    "candidateId": "sc-a1d88092526a",
+    "proposalId": "sp-007335b5c10a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications targeting the in-cluster cluster go to an Unknown state and cannot sync resources; new in-cluster Applications cannot be created; deleting an existing Application does not delete previously managed resources.",
+        "remediation": "Before upgrading, clean up or migrate existing in-cluster Applications; to clean up after migration, temporarily enable in-cluster.",
+        "severity": "high"
+      },
+      "statement": "With cluster.inClusterEnabled explicitly \"false\", in-cluster Applications become Unknown and cannot sync, new in-cluster Applications cannot be created, and deleting an Application no longer deletes its previously managed resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

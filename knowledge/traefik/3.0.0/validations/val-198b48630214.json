@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-198b48630214",
+    "candidateId": "sc-664f60a3392a",
+    "proposalId": "sp-62135230abe2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which backends send responses without a Content-Type header at runtime, and whether the routes serving them use a ContentType middleware"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses from backends that do not set a Content-Type header no longer get an auto-detected Content-Type value from Traefik.",
+        "remediation": "Attach the ContentType middleware to the affected routers to turn Content-Type auto-detection back on.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3, the Content-Type header is no longer auto-detected when the backend does not set it; auto-detection now has to be turned on with the ContentType middleware."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

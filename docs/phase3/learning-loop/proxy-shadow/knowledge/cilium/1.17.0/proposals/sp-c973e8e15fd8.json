@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c973e8e15fd8",
+    "candidateId": "sc-d8ce8b124388",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-conflicting-pools-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_conflicting_pools_total\"",
+        "after": "\"lbipam_conflicting_pools\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-conflicting-pools"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which Prometheus dashboards, alerting rules, or PromQL queries reference the old metric name lbipam_conflicting_pools_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is only exposed under the new name lbipam_conflicting_pools, so dashboards, alerts, or queries still referencing lbipam_conflicting_pools_total will stop receiving data for it.",
+        "remediation": "Update dashboards, alerting rules, and PromQL queries to use lbipam_conflicting_pools instead of lbipam_conflicting_pools_total.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Prometheus metric lbipam_conflicting_pools_total has been renamed to lbipam_conflicting_pools."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2e2ab2d37845"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5e4566a0f730d3d13a4b4c7210e4f1e6e29d6bd973d1199bc2e7de38d5b53334",
+      "inputEvidence": [
+        "ev-2e2ab2d37845"
+      ],
+      "generatedAt": "2026-10-03T07:30:03Z",
+      "callId": "434b7600-b7fc-493f-96dd-74fb253cbd8d"
+    }
+  }
+}

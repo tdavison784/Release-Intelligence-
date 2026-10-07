@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4f7fe5b706e5",
+    "reviewItemId": "ri-b830744aa6c4",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new v1 API version is available for use; existing v1beta1 ExternalSecret resources continue to work without changes."
+      },
+      "statement": "A new stable API version external-secrets.io/v1 of ExternalSecret is now available."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The external-secrets.io/v1 version of ExternalSecret becomes available to use. The evidence shows no failure, rejection or required action caused by adding this version. Other CRD changes in the same release, such as the v1beta1 storage flag and the removed v1alpha1 version and conversion webhook, are separate changes and are not covered here.",
+        "severity": "low"
+      },
+      "statement": "The ExternalSecret CRD now serves a new API version, external-secrets.io/v1. Adding this version has no operational consequence on its own (kind none, informational)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:829a204f0a98b9d311090185e755d50622ba3d6800a35f18397df9c8e19b791a",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-27394cd50375",
+        "ev-7a082965d61c",
+        "ev-b80f52507eed",
+        "ev-4a1f27e04efd",
+        "ev-557ab6e0939a",
+        "ev-efc5158ff817",
+        "ev-dedabc51d637",
+        "ev-10a72c580d6b",
+        "ev-09b8aa472138",
+        "ev-9e957ffda511"
+      ],
+      "generatedAt": "2026-10-03T12:32:47.309Z",
+      "callId": "4e1d2701-e810-42b5-b165-615c8ac5f292",
+      "provider": "anthropic"
+    },
+    "reason": "The CRD bundles and render [ev-9889c9b8706d][ev-e08924afdc47][ev-09b8aa472138][ev-9e957ffda511] show only that external-secrets.io/v1 ExternalSecret is a newly served version. Adding a version causes nothing to fail on its own, so kind none (informational) is right. The proposed statement goes further and says existing v1beta1 resources \"continue to work without changes\", and the evidence doesn't support that. The same CRD diff also flips v1beta1 storage from true to false [ev-10a72c580d6b], removes the conversion webhook [ev-7a082965d61c] and removes v1alpha1 [ev-4a1f27e04efd]. Those are separate changes and should be judged on their own, so the statement should be limited to the added version.",
+    "startedAt": "2026-10-03T12:32:32.738Z",
+    "decidedAt": "2026-10-03T12:32:47.309Z",
+    "resultingFact": "vf-9a75dcd1a296"
+  }
+}

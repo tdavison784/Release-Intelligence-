@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-029304e265d8",
+    "candidateId": "sc-08185c9e1f20",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "validation-tightened",
+        "after": "\"at most 32 lower case alphanumeric characters and '-', start and end with an alphanumeric character\""
+      },
+      "statement": "In Cilium 1.16.0, the cluster name is validated more strictly: it must have at most 32 characters, use only lowercase letters, digits and '-', and start and end with a letter or digit. Setting upgradeCompatibility to v1.15 or earlier bypasses this for now; v1.17 will enforce it strictly."
+    },
+    "undetermined": [
+      "subject",
+      "applicability",
+      "consequence"
+    ],
+    "undeterminedReason": "subject: The evidence says 'the Cilium cluster name' but does not name the values key, config key or flag that carries it, and the artifact context lists only upgradeCompatibility.; applicability: No setting key for the cluster name is named, so no predicate can read it. The upgradeCompatibility bypass could only define overlap, not exposure.; consequence: The evidence says the name is now validated and can be bypassed through upgradeCompatibility, but not what happens when validation fails (for example agent startup failure or a rejected install).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6e35b4906b1d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:55cfbd8cb03c1e434e346d9d2f9b6c8e3e5056b059a7467dc9e24ee385e53736",
+      "inputEvidence": [
+        "ev-6e35b4906b1d"
+      ],
+      "generatedAt": "2026-10-03T07:15:02Z",
+      "callId": "a9402707-6f3e-4823-86f6-812044db080c"
+    }
+  }
+}

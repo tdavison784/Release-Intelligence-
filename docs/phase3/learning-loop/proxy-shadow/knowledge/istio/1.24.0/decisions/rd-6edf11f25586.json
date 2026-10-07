@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6edf11f25586",
+    "reviewItemId": "ri-f544942d0ee4",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether scripts or CI invoke istioctl manifest diff or istioctl manifest profile diff"
+        }
+      },
+      "statement": "The `istioctl manifest diff` and `istioctl manifest profile diff` commands were removed; generic YAML comparison tools are suggested instead."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators, scripts or CI pipelines invoke `istioctl manifest diff` or `istioctl manifest profile diff`"
+        }
+      },
+      "statement": "The `istioctl manifest diff` and `istioctl manifest profile diff` commands are removed in 1.24.0. Exposure depends on whether operators or CI scripts invoke these commands, which no static configuration shows."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:4def8be69bd03921bafa0abcde65ec76b5c4933ff1c8495526617b15ac1bcd7d",
+      "inputEvidence": [
+        "ev-0307de1909a6",
+        "ev-a2198475a8e4",
+        "ev-a660cba27ffe",
+        "ev-6696145232da",
+        "ev-cb004eb264ca",
+        "ev-a486e34929cd",
+        "ev-eb9884e0aaab",
+        "ev-f0e757e54820"
+      ],
+      "generatedAt": "2026-10-03T17:07:12.254Z",
+      "callId": "416343eb-3110-4bd6-b271-921a473899a1",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0307de1909a6] says only that the `istioctl manifest diff` and `istioctl manifest profile diff` commands were removed. These are client-side CLI subcommands that operators or CI scripts run. They are not container arguments of Istio workloads, Helm values or manifest fields, so P1's cli-flag predicate does not read them. The proposed undecidable leaf is the right shape, but its reason \"environment-visibility-gap\" is not an allowed value. Whether anyone runs these commands is usage behaviour that no configuration input carries, so the reason should be runtime-behavior-gap.",
+    "startedAt": "2026-10-03T17:07:01.429Z",
+    "decidedAt": "2026-10-03T17:07:12.254Z"
+  }
+}

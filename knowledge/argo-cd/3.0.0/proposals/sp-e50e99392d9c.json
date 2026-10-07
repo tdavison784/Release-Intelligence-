@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e50e99392d9c",
+    "candidateId": "sc-91d1feb7a7d7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.repositories",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm ConfigMap will no longer be honored in Argo CD 3.0, as this legacy configuration method has been removed.",
+        "remediation": "Migrate repositories from argocd-cm ConfigMap to repository Secrets following the declarative management documentation.",
+        "severity": "high"
+      },
+      "statement": "The argocd-cm ConfigMap keys for repositories (repositories, repository.credentials, helm.repositories) have been removed and are no longer supported in Argo CD 3.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-ea324615706c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:207993fb6076798db7559c78df320d3093a864bd25268c12b3f642d3b7b6f2b1",
+      "inputEvidence": [
+        "ev-ea324615706c"
+      ],
+      "generatedAt": "2026-10-02T06:04:05Z",
+      "callId": "163c7410-4914-49d9-933b-cce962c40f8b"
+    }
+  }
+}

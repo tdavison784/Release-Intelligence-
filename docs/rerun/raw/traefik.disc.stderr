@@ -1,0 +1,74 @@
+# Discovery report: traefik
+
+- Repository: `github.com/traefik/traefik` at `v3.7.13` (commit `fc92cc118a05…`)
+- Generated: 2026-10-02T12:38:26Z
+- LLM: not used (deterministic resolver only)
+- Tags: 581 tags: prefix "v", 311 stable, 180 prereleases (alphaN×8, beta.N×71, betaN×6, rc.N×3, rcN×92), 90 junk; latest stable v3.7.13; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|beta\.\d+|beta\d+|rc\.\d+|rc\d+))?)$` (junk sample: v1.0, v1.0.alpha.0e683cc5355bc507dabac68bbc7559d3f179e185, v1.0.alpha.11781087cadf9068d1d0b43902b6161ee10ea458, v1.0.alpha.157, v1.0.alpha.164, v1.0.alpha.170)
+- Scanned `github.com/traefik/traefik@v3.7.13` (source profile): 2277 files listed, 826 read
+- Validation: done against v3.5.0, v3.5.6, v3.6.0, v3.6.25, v3.7.0, v3.7.13
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 4 | git-tags github.com/traefik/traefik; github-releases traefik/traefik |
+| release-notes | found | 0 | github-releases traefik/traefik  @{{.Tag}} |
+| changelog | found | 1 | repo-file github.com/traefik/traefik CHANGELOG.md |
+| helm-charts | found | 2 | traefik via helm-repo:https://traefik.github.io/charts, helm-git:github.com/traefik/traefik-helm-chart |
+| registries | candidates-only | 1 |  |
+| images | candidates-only | 26 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 2 | github-advisories traefik/traefik |
+| version-relations | found | 0 | traefik-chart: lookup appVersion == {{.Tag}}; crds: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/traefik/traefik/blob/v3.7.13/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml#L2 (+2) |
+| source:changelog | historically-validated | changelog.file | https://github.com/traefik/traefik/blob/v3.7.13/CHANGELOG.md#L1 |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/traefik/traefik/blob/v3.7.13/.github/workflows/release.yaml#L68 (+1) |
+| artifact:traefik-chart | exception | chart.external-lookup-appversion | https://github.com/traefik/traefik/blob/v3.7.13/docs/content/migrate/nginx-to-traefik.md#L252 (+1) |
+| source:advisories | discovered | security.advisories-referenced | https://github.com/traefik/traefik/blob/v3.7.13/SECURITY.md#L14 (+1) |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/traefik/traefik/blob/v3.7.13/.github/workflows/release.yaml#L68 (+1) |
+| source:tags | discovered | versions.git-tags | https://github.com/traefik/traefik/releases/tag/v3.7.13#refs/tags/v3.7.13 |
+| versioning | discovered | tags.scheme | https://github.com/traefik/traefik/releases/tag/v3.7.13#refs/tags/v3.7.13 (+1) |
+
+Statuses: 3 historically-validated, 4 discovered, 1 exception.
+
+## Open questions for the reviewer
+
+- Ambiguity (chart-version): How do the versions of chart(s) traefik relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | v3.5.0 | v3.5.6 | v3.6.0 | v3.6.25 | v3.7.0 | v3.7.13 |
+|---|---|---|---|---|---|---|---|
+| artifact:crds | validated |  |  |  |  |  |  |
+| artifact:traefik-chart | failing |  |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |  |
+| source:changelog | validated |  |  |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |  |  |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 581 tags: prefix "v", 311 stable, 180 prereleases (alphaN×8, beta.N×71, betaN×6, rc.N×3, rcN×92), 90 junk; latest stable v3.7.13; lineage minor; strict tagPattern excludes junk tags such as v1.0, v1.0.alpha.0e683cc5… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (581 tags: prefix "v", 311 stable, 180 prereleases (alphaN×8, beta.N×71, betaN×6, rc.N×3, rcN×92), 90 junk; latest stable v3.7.13; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 3.7.13 (heading "## [v3.7.13](https://github.com/traefik/traefik/tree/v3.7.13) (2026-09-04)"). |
+| source:advisories | include | security.advisories-referenced | heuristic | The security policy states that advisories are published as GitHub Security Advisories. |
+| artifact:traefik-chart | include | chart.external-lookup-appversion | heuristic | The chart lives in a separate repository with independent versions; the chart release for a product release is looked up by appVersion == release tag (GitHub Pages URL by the chart-releaser convention). |
+| artifact:crds | include | crd.in-repo | heuristic | 20 CRDs of the product's API groups in docs/content/reference/dynamic-configuration at the release tag. |
+| artifact:traefik-chart | annotate | validate.optional-lookup | computed | Lookup artifact present for 4 sampled release(s) and absent for others; kept as optional. |
+
+62 candidates were found; 34 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/traefik.report.md
+proposed definition written to docs/rerun/discovery/traefik.proposed.yaml

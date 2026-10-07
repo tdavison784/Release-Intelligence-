@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fba1df2c248a",
+    "reviewItemId": "ri-a8cf4d0627fa",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "ValidateCAA",
+          "path": "featureGates",
+          "state": "enabled"
+        }
+      },
+      "statement": "cert-manager v1.17 deprecates the ValidateCAA feature gate, which validates the CAA DNS record during ACME issuance; it still works in v1.17 but will be removed entirely in cert-manager v1.18.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:3df2c7470a98c9a3e76fee9d5443f8f6c1fd8f8f36d877e2bb840a78db713696",
+      "inputEvidence": [
+        "ev-0d3b308e9192",
+        "ev-463f236bf567",
+        "ev-775b7a64f057",
+        "ev-09a9c9047035"
+      ],
+      "generatedAt": "2026-10-03T12:31:00.049Z",
+      "callId": "85768eb3-04bd-45d3-8816-e9da4b763d43",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0d3b308e9192] bundles four separate feature-gate changes, and each one exposes a different set of environments. NameConstraints and UseDomainQualifiedFinalizer are promoted to beta and enabled by default. CAInjectorMerging is a new opt-in gate. ValidateCAA is deprecated. The proposed exposure (ValidateCAA enabled) does fit the deprecation item on its own, since [ev-09a9c9047035] tells people who manually enable it to stop. It leaves out the environments affected by the two gates that are now on by default, so one exposure condition can't cover this change as a whole. It should be split into one assertion per gate.",
+    "startedAt": "2026-10-03T12:30:44.262Z",
+    "decidedAt": "2026-10-03T12:31:00.049Z"
+  }
+}

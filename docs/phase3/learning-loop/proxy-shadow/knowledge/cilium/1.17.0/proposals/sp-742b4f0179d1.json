@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-742b4f0179d1",
+    "candidateId": "sc-8d62e25744ec",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "the metric previously exposed as `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` is exposed under the new name `envoy_cilium_npds_init_fetch_timeout`; monitoring that still references the old name no longer matches it",
+        "remediation": "update dashboards, alerts and other monitoring that reference the old metric name to use `envoy_cilium_npds_init_fetch_timeout`",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 renames the metric `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` to `envoy_cilium_npds_init_fetch_timeout`, so after upgrade the metric is exposed under the new name."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: the subject is the metric name `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout`; the subject-family taxonomy has no family for metric names, so the identity cannot be pinned; change: the evidence states the metric was renamed to `envoy_cilium_npds_init_fetch_timeout`, but the renamed type requires a same-family replacedBy identity and no subject family covers metric names; applicability: the evidence names no setting, flag, values key, field or ConfigMap key; whether an environment references the old metric name lives in external monitoring configuration (dashboards, alerting rules) that none of the listed predicates read, and inventing a manifest shape for it would go beyond the evidence",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3c947c36df35"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:cb88857ec3f09fb4884e6fdd79489c342b1a810877551f8154b43bfde141aa15",
+      "inputEvidence": [
+        "ev-3c947c36df35"
+      ],
+      "generatedAt": "2026-10-03T08:01:02Z",
+      "callId": "2866d516-27af-4a89-96ab-85de1942bd2e"
+    }
+  }
+}

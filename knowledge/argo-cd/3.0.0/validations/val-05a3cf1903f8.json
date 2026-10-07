@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-05a3cf1903f8",
+    "candidateId": "sc-03aa929e64d5",
+    "proposalId": "sp-14458875be35",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override",
+        "component": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"null object in values.yaml warned 'cannot overwrite table with non table' and the K8s object was not overridden\"",
+        "after": "\"warning still emitted but the K8s object is overridden with the invalid null value\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Rendered K8s objects are overridden with the invalid null value from values.yaml null objects, which may require editing values.yaml files for subcharts.",
+        "remediation": "Identify values.yaml files with null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value instead of being ignored with a warning."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

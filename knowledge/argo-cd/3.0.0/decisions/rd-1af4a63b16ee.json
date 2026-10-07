@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1af4a63b16ee",
+    "reviewItemId": "ri-84cec4a3d230",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "appLabelKey-caching",
+        "component": "server"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"argocd server does not pass the appLabelKey for caching\"",
+        "after": "\"argocd server passes the appLabelKey for proper caching\""
+      },
+      "statement": "The argocd server component now passes the appLabelKey parameter for proper caching, fixing a previous behavior where it did not."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:4c2a4b3bfc38ce5edca0f87db62388ea9c52bb7158fce6f30e8d67faf747f813",
+      "inputEvidence": [
+        "ev-602e50572fe9"
+      ],
+      "generatedAt": "2026-10-02T13:02:17.403Z",
+      "callId": "e8845336-609b-4111-bdbf-7dd3ceed2fd7"
+    },
+    "reason": "[ev-602e50572fe9] is a one-line bug-fix title saying the argocd server now passes the appLabelKey for proper caching. That is an internal caching fix, not wire/protocol behaviour, so protocol-behavior is the wrong family. The name \"appLabelKey-caching\" also breaks the lowercase kebab-case rule. The before/after values only paraphrase the title, and the evidence names no config key, flag or other typed subject, so no correct assertion follows from it (the PR #22186 would be needed).",
+    "startedAt": "2026-10-02T13:02:01.916Z",
+    "decidedAt": "2026-10-02T13:02:17.403Z"
+  }
+}

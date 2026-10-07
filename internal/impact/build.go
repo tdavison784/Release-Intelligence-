@@ -69,6 +69,10 @@ var joinRules = map[string]bool{
 	upgrade.RuleCRDVersionUnserved: true, upgrade.RuleCRDVersionDeprecated: true,
 	upgrade.RuleCRDFieldsRemoved: true,
 	upgrade.RuleImageRemoved:     true, upgrade.RuleImageMoved: true, upgrade.RuleImageTagsChanged: true,
+	// schema attributes and storage versions (crd_attrs.go)
+	upgrade.RuleCRDDefaultChanged: true, upgrade.RuleCRDEnumChanged: true,
+	upgrade.RuleCRDFieldRequired: true, upgrade.RuleCRDFieldTypeChange: true,
+	upgrade.RuleCRDStorageChanged: true,
 }
 
 // unimplementedDiffRules are computed diff rules the join family knows about
@@ -77,8 +81,8 @@ var joinRules = map[string]bool{
 // note-derived changes.
 var unimplementedDiffRules = map[string]bool{
 	upgrade.RuleCRDAdded: true, upgrade.RuleCRDVersionAdded: true,
-	upgrade.RuleCRDStorageChanged: true, upgrade.RuleCRDFieldsAdded: true,
-	upgrade.RuleImageAdded: true,
+	upgrade.RuleCRDFieldsAdded: true,
+	upgrade.RuleImageAdded:     true,
 }
 
 // builder accumulates the report while Build runs.
@@ -92,6 +96,17 @@ type builder struct {
 	edgeEv   map[domain.EvidenceID]bool
 	upCited  map[domain.EvidenceID]bool
 	locCited map[domain.EvidenceID]bool
+
+	// factEv: upstream evidence of verified facts not in the edge's pool;
+	// extraLocal: environment records created by condition evaluation.
+	factEv          map[domain.EvidenceID]domain.Evidence
+	factEvOrder     []domain.EvidenceID
+	extraLocal      map[domain.EvidenceID]domain.Evidence
+	extraLocalOrder []domain.EvidenceID
+
+	unset UnsetValuesEvaluator // CONTRACT-CHANGE(render): PO-3, nil without --render
+	set   SetValuesEvaluator   // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
+	image ImageRenderEvaluator // CONTRACT-CHANGE(renderfirst): PO-7a, nil without --render
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -106,6 +121,8 @@ func build(in Input) (*domain.ImpactReport, error) {
 		edge: in.Edge, env: in.Env,
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
+		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
+		unset: in.Unset, set: in.Set, image: in.Image,
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -118,14 +135,23 @@ func build(in Input) (*domain.ImpactReport, error) {
 		GeneratedAt:   now.UTC(),
 	}
 	b.rep.Environment = environmentSummary(in.Env)
+	for _, p := range b.rep.Environment.Products {
+		for _, id := range p.Evidence {
+			b.locCited[id] = true // the inventory is part of the local evidence chain
+		}
+	}
 	b.rep.Warnings = append(append([]string{}, in.Edge.Warnings...), in.Env.Warnings...)
 	b.rep.DefinitionDigest = in.Edge.DefinitionDigest
 
 	b.valuesFamily()
 	b.crdFamily()
+	b.crdAttributeFamily()
 	b.compatibilityChecks()
 	b.imageFamily()
 	b.unjoinedChanges()
+	if len(in.Facts) > 0 {
+		b.knowledge(in.Facts, in.MinVerification, in.Render)
+	}
 
 	sortFindings(b.findings)
 	b.rep.Findings = b.findings
@@ -152,6 +178,15 @@ func environmentSummary(e *env.Environment) domain.ImpactEnvironment {
 	}
 	for _, f := range e.Files {
 		s.Files = append(s.Files, domain.ImpactFile{Path: f.Path, Digest: f.Digest})
+	}
+	if h := e.Health(env.DimProducts); h != env.HealthAbsent {
+		s.ProductsHealth = string(h)
+		for _, p := range e.Products {
+			s.Products = append(s.Products, domain.ImpactProduct{
+				Product: p.Product, Catalog: p.Catalog, Version: p.Version, RawVersion: p.RawVersion,
+				VersionOf: p.VersionOf, Source: p.Source, Note: p.Note, Conflict: p.Conflict, Evidence: p.Evidence,
+			})
+		}
 	}
 	return s
 }
@@ -247,6 +282,17 @@ func (b *builder) verdict(rule string, class domain.ImpactClass, key, title, det
 	}
 }
 
+// unknown appends an UNKNOWN record with the reason it is unknown (MISSION
+// G18; DESIGN.md §1.5) — every unknown verdict states one.
+func (b *builder) unknown(reason domain.UnknownReason, rule, key, title, detail string,
+	change domain.Change, upstream []domain.EvidenceID, checks []domain.ImpactCheck, needed ...string) {
+	n := len(b.findings)
+	b.verdict(rule, domain.ImpactUnknown, key, title, detail, change, upstream, checks, needed...)
+	if len(b.findings) > n {
+		b.findings[n].UnknownReason = reason
+	}
+}
+
 func (b *builder) attachChange(f *domain.ImpactFinding, change domain.Change) {
 	if change.ID != "" {
 		f.ChangeID = change.ID
@@ -301,7 +347,7 @@ func (b *builder) clusterCheck(platform string, subjects []string) domain.Impact
 // no subjects at all: there is nothing to compare, so applicability is
 // unknown rather than "not affected".
 func (b *builder) subjectLess(c domain.Change) {
-	b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID,
+	b.unknown(domain.UnknownReleaseKnowledgeGap, RuleNotJoined, c.ID,
 		fmt.Sprintf("Not evaluated for this environment: %s", c.Title),
 		"The change carries no comparable subjects, so there is nothing to check against the environment.",
 		c, c.Evidence, nil, "computed change carries no subjects to compare")
@@ -337,7 +383,7 @@ func (b *builder) valuesFamily() {
 		// "no match" must never be read as "not affected" (the contract's
 		// example).
 		if !b.env.Supplied.Values {
-			b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+			b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 				fmt.Sprintf("Cannot tell whether this affects you: no Helm values were supplied (%s)", c.Title),
 				"Applicability of a Helm values change can only be decided against the values you actually set; without a values file there is nothing to compare.",
 				c, c.Evidence, nil, "Helm values files (--values) not supplied")
@@ -362,6 +408,13 @@ func (b *builder) valuesFamily() {
 			}
 		}
 		if len(matches) == 0 {
+			// CONTRACT-CHANGE(render): PO-3 — a changed default or new key
+			// left unset reaches the customer; rendering decides it
+			// (values-unset stays for removed keys only).
+			if kind == "default-changed" || kind == "added" {
+				b.unsetValues(b.unset, c, kind)
+				continue
+			}
 			title := fmt.Sprintf("Your values do not touch %s", codeList(c.Subjects, 3))
 			if len(c.Subjects) == 1 {
 				title = fmt.Sprintf("Your values do not set %s", code(c.Subjects[0]))
@@ -374,13 +427,10 @@ func (b *builder) valuesFamily() {
 		}
 		switch kind {
 		case "removed":
-			title := fmt.Sprintf("You set %s that %s removed", pluralKeys(exact, partial), toTag)
-			if len(exact)+len(partial) == 1 {
-				title = fmt.Sprintf("You set %s, which %s removed", code(firstOf(exact, partial)), toTag)
-			}
-			detail := fmt.Sprintf("%s no longer has these values keys; keys you set here stop taking effect (or are rejected when the chart validates values against a schema). Remove them from your values and migrate the configuration they controlled.\nYou set: %s.",
-				toTag, strings.Join(append(append([]string{}, exact...), partial...), ", "))
-			b.add(RuleValuesRemoved, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — the customer's render
+			// decides (refuses / attributes / nothing); today's verdict when
+			// there is no evaluator or no decisive render.
+			b.setValues(b.set, c, matches, exact, partial)
 		case "default-changed":
 			if len(exact) > 0 {
 				title := fmt.Sprintf("You pin %s, so the new default of %s does not apply", codeList(exact, 3), toTag)
@@ -445,6 +495,11 @@ func (b *builder) compatibilityChecks() {
 		// deciding dimension: the cluster version of this platform. Only the
 		// kubernetes platform is collectable today (--kubernetes).
 		supplied := b.env.Kubernetes != nil && strings.EqualFold(platform, "kubernetes")
+		if !strings.EqualFold(platform, "kubernetes") && !strings.EqualFold(platform, "openshift") {
+			// an operand/peer product: decided against the product inventory
+			b.productCompat(cc, platform)
+			continue
+		}
 		if !supplied {
 			needed := fmt.Sprintf("%s cluster version not supplied", platform)
 			hint := "no input collects it (ri impact supports --kubernetes)"
@@ -452,7 +507,7 @@ func (b *builder) compatibilityChecks() {
 				needed = "Kubernetes cluster version (--kubernetes) not supplied"
 				hint = "supply it to evaluate support ranges"
 			}
-			b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, "compat:"+platform+"/"+compatKind(cc),
+			b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, "compat:"+platform+"/"+compatKind(cc),
 				fmt.Sprintf("Cannot evaluate the %s %s constraint without the cluster version", platform, compatKind(cc)),
 				fmt.Sprintf("The target declares %s %s = %s. Applicability is decided against the running cluster version; %s.",
 					platform, compatKind(cc), cc.To.Raw, hint),
@@ -467,7 +522,7 @@ func (b *builder) compatibilityChecks() {
 		}
 		chk := upgrade.EvaluatePlatformConstraint(cc.To, cluster)
 		if !chk.Computable {
-			b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, "compat:"+platform+"/"+kind,
+			b.unknown(domain.UnknownEvidenceGap, RuleInsufficientVisibility, "compat:"+platform+"/"+kind,
 				fmt.Sprintf("The %s %s constraint is not machine-readable", platform, kind),
 				fmt.Sprintf("The target declares %s %s = %q, which cannot be evaluated against cluster %s. Check it manually.", platform, kind, cc.To.Raw, cluster),
 				compatChangeFor(b.edge, cc), constraintEvidence(cc), []domain.ImpactCheck{b.clusterCheck(platform, []string{cc.To.Raw})},
@@ -655,7 +710,7 @@ func (b *builder) imageFamily() {
 			continue
 		}
 		if !b.imagesVisible() {
-			b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+			b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 				fmt.Sprintf("Cannot tell whether the image change affects you: no image references were supplied (%s)", c.Title),
 				"Applicability is decided against the images your environment references; none were supplied.",
 				c, c.Evidence, nil, "no image references supplied (--images, --values or --manifests)")
@@ -679,7 +734,9 @@ func (b *builder) imageFamily() {
 			if strings.TrimSpace(c.Detail) != "" {
 				detail = c.Detail + "\nYour environment references this repository (as " + firstImageRef(uses) + ")."
 			}
-			b.add(RuleImageChanged, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
+			// CONTRACT-CHANGE(renderfirst): PO-7a — the customer's rendered
+			// upgrade delta decides (their pin may keep the change away)
+			b.imageVerdict(b.image, c, s, matches, detail, title)
 		}
 		if len(unmatched) > 0 && len(unmatched) == len(c.Subjects) {
 			title := fmt.Sprintf("Your environment does not reference %s", codeList(unmatched, 3))
@@ -706,7 +763,7 @@ func (b *builder) imageArtifacts() {
 		key := "artifact:" + ac.From.Coordinate + "→" + ac.To.Coordinate
 		upstream := append(append([]domain.EvidenceID{}, ac.From.Evidence...), ac.To.Evidence...)
 		if !b.imagesVisible() {
-			b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, key,
+			b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, key,
 				fmt.Sprintf("Cannot tell whether the image move affects you: no image references were supplied (%s → %s)", ac.From.Coordinate, ac.To.Coordinate),
 				"Applicability is decided against the images your environment references; none were supplied.",
 				domain.Change{}, upstream, nil, "no image references supplied (--images, --values or --manifests)")
@@ -811,7 +868,7 @@ func (b *builder) unjoinedChanges() {
 		} else {
 			needed = "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
 		}
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownReleaseKnowledgeGap, RuleNotJoined, c.ID,
 			fmt.Sprintf("Not evaluated for this environment: %s", c.Title),
 			"The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
 			c, c.Evidence, nil, needed)
@@ -913,9 +970,21 @@ func (b *builder) collectEvidence() {
 			b.rep.Evidence = append(b.rep.Evidence, e)
 		}
 	}
+	for _, id := range b.factEvOrder {
+		if b.upCited[id] {
+			b.rep.Evidence = append(b.rep.Evidence, b.factEv[id])
+		}
+	}
+	inEnv := map[domain.EvidenceID]bool{}
 	for _, e := range b.env.Evidence {
+		inEnv[e.ID] = true
 		if b.locCited[e.ID] {
 			b.rep.EnvironmentEvidence = append(b.rep.EnvironmentEvidence, e)
+		}
+	}
+	for _, id := range b.extraLocalOrder {
+		if b.locCited[id] && !inEnv[id] {
+			b.rep.EnvironmentEvidence = append(b.rep.EnvironmentEvidence, b.extraLocal[id])
 		}
 	}
 }

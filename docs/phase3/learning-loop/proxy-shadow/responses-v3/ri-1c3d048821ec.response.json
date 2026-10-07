@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1c3d048821ec",
+  "promptDigest": "sha256:3e9988d8cdb6e1bce4df3569bba939b02f2f6a53adcf5b241c809f3c99548166",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b4c29dc0-b111-4551-9d40-50ae754c94ca",
+  "startedAt": "2026-10-03T12:45:43.568Z",
+  "decidedAt": "2026-10-03T12:45:58.050Z",
+  "durationMs": 13677,
+  "costUSD": 0.12232799999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The subject is right: [ev-a7c9af863980] changes which Kafka operand versions are supported, and the validator confirmed that kafka has compatibility rows in both releases. The change type is wrong. A change to the supported Kafka versions is a requirement-changed on a compatibility-boundary, not a generic behavior-changed. The kafka-versions.yaml rows show the supported set going from 3.8.0, 3.8.1 and 3.9.0 [ev-029b4f635db8] to 3.9.0 and 4.0.0 [ev-e7a043486f16], which matches the changelog adding 4.0.0 and removing 3.8.0 and 3.8.1.",
+    "citations": [
+      "ev-a7c9af863980",
+      "ev-029b4f635db8",
+      "ev-e7a043486f16"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "Strimzi 0.46.0 changes its supported Kafka versions: it adds Kafka 4.0.0 and removes Kafka 3.8.0 and 3.8.1. The supported set goes from 3.8.0, 3.8.1 and 3.9.0 to 3.9.0 and 4.0.0.",
+      "subject": {
+        "determination": "asserted",
+        "family": "compatibility-boundary",
+        "name": "kafka"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "requirement-changed",
+        "before": "3.8.0 || 3.8.1 || 3.9.0",
+        "after": "3.9.0 || 4.0.0"
+      }
+    }
+  }
+}

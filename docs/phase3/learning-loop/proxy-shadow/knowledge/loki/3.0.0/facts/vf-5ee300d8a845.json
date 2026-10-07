@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5ee300d8a845",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-3cc4b94dbacc"
+        ],
+        "statementKeys": [
+          "sk-707c41620ce0"
+        ],
+        "changeIds": [
+          "chg-198ede997f6b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9304cd36d82a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--querier.worker-parallelism"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--querier.max-concurrent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--querier.worker-parallelism",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML key corresponding to the removed `querier.worker-parallelism` flag, which the evidence does not name, to check whether the Loki config file sets it"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `querier.worker-parallelism` CLI flag and its YAML setting are removed in 3.0.0, so a value configured there is no longer honoured. Querier concurrency is governed by `querier.max-concurrent`, whose default is now 4.",
+        "remediation": "Remove `querier.worker-parallelism` from the Loki CLI flags and YAML config. Upstream recommends configuring `querier.max-concurrent` to limit the max concurrent requests processed by the queriers; set it explicitly if the new default of 4 does not suit your workload.",
+        "severity": "high"
+      },
+      "statement": "loki Config: Removes `querier.worker-parallelism` and updates default value of `querier.max-concurrent` to 4. 10785"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-b8d4fc5bf9aa"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b8d4fc5bf9aa"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-6178f0791909"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-bd87c309d18f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4b79cb1a8226",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md",
+        "locator": "L55-L55 (3.0.0 (2024-04-08) › Features)",
+        "excerpt": "* **loki** Config: Removes `querier.worker-parallelism` and updates default value of `querier.max-concurrent` to 4. [10785](https://github.com/grafana/loki/pull/10785)",
+        "contentDigest": "sha256:00180773d14762ad3d76fc62da2a63c57f7b099077c2f87fd452fca73a292e85",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:56:56.291Z"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-13c6a1e6755c",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-549d63559f2f"
+        ],
+        "statementKeys": [
+          "sk-442a214eca3a"
+        ],
+        "changeIds": [
+          "chg-73594e8d8cff"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e0a2573a3e8a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.etcd.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.etcd.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.etcd.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The tls.caOptional option configured in the ETCD provider will be ignored and no longer honored in Traefik v3.0.0.",
+        "remediation": "Remove the tls.caOptional option from the ETCD provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "TLS.CAOptional: ETCD provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-83899af7a6fb"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-83899af7a6fb"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0cb5bc446d4f"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-da6b3fd66b8c"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-ebfb740bf1f8",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L448-L472 (Migration Guide: From v2 to v3 › Static configuration › ETCD Provider › TLS.CAOptional)",
+        "excerpt": "#### TLS.CAOptional\n\nETCD provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType).\n\n??? example \"An example usage of the TLS.CAOptional option\"\n\n    ```yaml tab=\"File (YAML)\"\n    providers:\n      etcd:\n        tls: \n          caOptional: true\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [providers.etcd.tls]\n        caOptional=true\n    ```\n\n    ```bash tab=\"CLI\"\n    --providers.etcd.tls.caOptional=true\n    ```\n\n##### Remediation\n\nThe `tls.caOptional` option should be removed from the ETCD prov…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T16:55:19.017Z"
+  }
+}
