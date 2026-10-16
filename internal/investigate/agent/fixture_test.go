@@ -233,8 +233,8 @@ type fakeOverride struct {
 	calls int
 }
 
-func (v *fakeOverride) Name() string                           { return "fake.override@v1" }
-func (v *fakeOverride) Kind() domain.ValidationKind            { return domain.ValidationOverrideInspection }
+func (v *fakeOverride) Name() string                             { return "fake.override@v1" }
+func (v *fakeOverride) Kind() domain.ValidationKind              { return domain.ValidationOverrideInspection }
 func (v *fakeOverride) Applies(fam domain.ChangeItemFamily) bool { return fam == domain.FamilyBehavior }
 func (v *fakeOverride) Validate(ctx context.Context, in investigate.ValidationInput) (*investigate.ValidationOutput, error) {
 	v.calls++

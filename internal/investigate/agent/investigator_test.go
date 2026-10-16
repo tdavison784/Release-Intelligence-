@@ -18,7 +18,9 @@ import (
 
 // fullScript exercises every record kind.
 func fullScript(f *fixture) []Step {
-	cite := func(a domain.ArtifactRef, q string) []map[string]any { return []map[string]any{{"artifact": a.ID, "locator": "L1", "quote": q}} }
+	cite := func(a domain.ArtifactRef, q string) []map[string]any {
+		return []map[string]any{{"artifact": a.ID, "locator": "L1", "quote": q}}
+	}
 	hypArgs := map[string]any{"changeItem": f.behaviour, "statement": "The environment pins the old rotation policy with controller.rotationPolicy: Never.",
 		"subjects": []string{deployID.String()}, "citations": append(cite(f.values, "rotationPolicy: Never"), cite(f.notes, "Set `controller.rotationPolicy: Never` in your values")...)}
 	return []Step{
@@ -31,7 +33,7 @@ func fullScript(f *fixture) []Step {
 			"hypothesis": hypID(f, hypArgs["statement"].(string), "scripted-call-1")}},
 		{Tool: investigate.ToolRecordAssertion, Args: map[string]any{"changeItem": f.behaviour, "stance": "raises-concern",
 			"statement": "demo-config may be read by another consumer.", "subjects": []string{f.cfgMap}, "paths": []string{f.path}, "renderedChanges": []string{f.rcLoose},
-			"citations": []map[string]any{{"artifact": f.toRender.ID, "quote": "mode: fast"}},
+			"citations":    []map[string]any{{"artifact": f.toRender.ID, "quote": "mode: fast"}},
 			"proposedEdge": map[string]any{"kind": "references", "from": f.cfgMap, "to": "workload:apps/v1/Deployment/demo/demo-reader", "reason": "the reader mounts demo-config (by convention)"}}},
 		{Tool: investigate.ToolRequestValidation, Args: map[string]any{"changeItem": f.behaviour, "kind": "override-inspection", "subjects": []string{f.deploy},
 			"inputs": []string{f.values.ID}, "hypothesis": hypID(f, hypArgs["statement"].(string), "scripted-call-1")}},
