@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/tdavison784/release-intelligence/internal/domain"
 	"sort"
 	"strings"
 	"testing"
@@ -245,6 +246,94 @@ func TestCRDDescriptionDoesNotSwallowSchemaChanges(t *testing.T) {
 	}
 	if classes[CRDDescriptionChanged] != 1 || classes[FieldAdded] != 1 || len(d.Changes) != 2 {
 		t.Fatalf("classes = %v (%s)", classes, changeSummaries(d))
+	}
+}
+
+// crdWithDescriptionField is a CRD whose spec declares a real FIELD named
+// "description" (schema node fieldSchema) next to documented text.
+func crdWithDescriptionField(t *testing.T, fieldSchema string) []Object {
+	t.Helper()
+	field := ""
+	if fieldSchema != "" {
+		field = "                description: " + fieldSchema + "\n"
+	}
+	return objs(t, `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: widgets.demo.example.org}
+spec:
+  group: demo.example.org
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+`+field+`                mode: {type: string}
+`)
+}
+
+// A schema property NAMED "description" is API structure, not documentation:
+// adding, removing or retyping the field keeps the ordinary field classes —
+// only the `description` keyword with text (or absent) values is the
+// documentation class.
+func TestCRDFieldNamedDescriptionIsStructure(t *testing.T) {
+	cases := []struct {
+		name     string
+		from, to string
+		want     ChangeClass
+	}{
+		{"field added", "", "{type: string, description: \"what the widget is for\"}", FieldAdded},
+		{"field removed", "{type: string}", "", FieldRemoved},
+		{"field retyped", "{type: string}", "{type: integer}", FieldChanged},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			d := Diff(crdWithDescriptionField(t, c.from), crdWithDescriptionField(t, c.to), DiffOptions{})
+			if len(d.Changes) != 1 || d.Changes[0].Class != c.want {
+				t.Fatalf("changes = %s, want one %s", changeSummaries(d), c.want)
+			}
+		})
+	}
+	// …while the field's own documentation keyword is still documentation
+	d := Diff(crdWithDescriptionField(t, "{type: string, description: old}"), crdWithDescriptionField(t, "{type: string, description: new}"), DiffOptions{})
+	if len(d.Changes) != 1 || d.Changes[0].Class != CRDDescriptionChanged || DocumentedField(d.Changes[0]) != "description" {
+		t.Fatalf("documentation of a field named description = %s", changeSummaries(d))
+	}
+}
+
+// DocumentedField names the property a description keyword documents,
+// through list items and map values; "" where no named property owns it.
+func TestDocumentedField(t *testing.T) {
+	const root = "spec.versions[].schema.openAPIV3Schema."
+	cases := map[string]string{
+		root + "properties.spec.properties.privateKey.properties.rotationPolicy.description": "rotationPolicy",
+		root + "properties.spec.properties.solvers.items.description":                        "solvers",
+		root + "properties.spec.properties.labels.additionalProperties.description":          "labels",
+		root + "properties.spec.description":                                                 "spec",
+		root + "description":                                                                 "",
+		root + "properties.spec.allOf[].description":                                         "",
+	}
+	for pattern, want := range cases {
+		if got := DocumentedField(Change{Class: CRDDescriptionChanged, Pattern: pattern}); got != want {
+			t.Errorf("%s: %q, want %q", pattern, got, want)
+		}
+	}
+	if got := DocumentedField(Change{Class: FieldChanged, Pattern: root + "properties.spec.properties.mode.description"}); got != "" {
+		t.Errorf("not a documentation change: %q", got)
+	}
+}
+
+// The domain names the documentation class without importing render.
+func TestDocumentationClassMatchesDomain(t *testing.T) {
+	if string(CRDDescriptionChanged) != domain.RenderedClassDocumentation {
+		t.Fatalf("render %q != domain %q", CRDDescriptionChanged, domain.RenderedClassDocumentation)
 	}
 }
 

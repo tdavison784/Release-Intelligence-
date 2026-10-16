@@ -95,34 +95,62 @@ func TestRenderDiffSilentRenderedConfigPasses(t *testing.T) {
 }
 
 // CRD description text (the declared render class) documents behaviour, it
-// configures nothing: the validator passes it as harmless. Description
-// changes correlate to no item and anchor none (render/correlate), so the
-// way they reach this validator is a requested check.
+// configures nothing: the validator passes it as harmless — correlated to the
+// item by the field it documents (render/correlate documents-field), or as a
+// requested check.
 func TestRenderDiffDescriptionOnlyIsHarmless(t *testing.T) {
-	f, item := renderFx(t)
-	ids := f.pair("argocd:apps/a.yaml", controller(), controller(),
-		rc(string(render.CRDDescriptionChanged), crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
-			`"defaults to safe"`, `"defaults to fast"`, ""))
-	b := f.bundle()
-	r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item, RenderedChanges: ids}))
-	wantOutcome(t, r, domain.ValidationPass, "description text only")
-	if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
-		t.Fatalf("the harmless description change must be covered: %+v", r)
+	for _, requested := range []bool{false, true} {
+		t.Run(map[bool]string{false: "correlated", true: "requested"}[requested], func(t *testing.T) {
+			f, item := renderFx(t)
+			corr, items := "documents-field", []string{item}
+			if requested {
+				corr, items = "", nil
+			}
+			ids := f.pair("argocd:apps/a.yaml", controller(), controller(),
+				rc(string(render.CRDDescriptionChanged), crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
+					`"defaults to safe"`, `"defaults to fast"`, corr, items...))
+			b := f.bundle()
+			in := investigate.ValidationInput{Bundle: b, ChangeItem: item}
+			if requested {
+				in.RenderedChanges = ids
+			}
+			r := one(t, run(t, RenderDiff(), in))
+			wantOutcome(t, r, domain.ValidationPass, "description text only")
+			if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
+				t.Fatalf("the harmless description change must be covered: %+v", r)
+			}
+		})
 	}
 }
 
 // Render silence never clears a behaviour item — not even when the only
-// correlated trace is a text mention (that text is often the only trace).
+// correlated trace is the reworded documentation of its field (that text is
+// often the only trace of a controller default), nor a text-mentioned schema
+// change.
 func TestRenderDiffSilenceNeverClearsBehaviour(t *testing.T) {
+	traces := map[string]func(item string) domain.RenderedChange{
+		"description of its field": func(item string) domain.RenderedChange {
+			return rc(string(render.CRDDescriptionChanged), crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
+				`"defaults to safe"`, `"defaults to fast"`, "documents-field", item)
+		},
+		"text-mentioned schema change": func(item string) domain.RenderedChange {
+			return rc("field-changed", crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.type",
+				`"string"`, `"integer"`, "mentions-field", item)
+		},
+	}
 	for _, m := range []domain.Manifestation{domain.ManifestControllerBehaviour, domain.ManifestUnknown} {
-		t.Run(string(m), func(t *testing.T) {
-			f, item := renderFx(t, func(it *domain.ChangeItem) { it.Manifestation, it.ManifestationRule = m, "manifest:test" })
-			f.pair("argocd:apps/a.yaml", controller(), controller(),
-				rc("field-changed", crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.type",
-					`"string"`, `"integer"`, "mentions-field", item))
-			b := f.bundle()
-			wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationNotRun, "render silence proves nothing")
-		})
+		for name, trace := range traces {
+			t.Run(string(m)+"/"+name, func(t *testing.T) {
+				f, item := renderFx(t, func(it *domain.ChangeItem) { it.Manifestation, it.ManifestationRule = m, "manifest:test" })
+				f.pair("argocd:apps/a.yaml", controller(), controller(), trace(item))
+				b := f.bundle()
+				r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+				if r.Outcome == domain.ValidationPass || r.ClearsBehaviour() {
+					t.Fatalf("render silence cleared a %s item: %+v", m, r)
+				}
+				wantOutcome(t, r, domain.ValidationNotRun, "render silence proves nothing")
+			})
+		}
 	}
 }
 
