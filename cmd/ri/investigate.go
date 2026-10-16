@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,6 +18,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/investigate/agent"
 	"github.com/tdavison784/release-intelligence/internal/investigate/bundle"
+	"github.com/tdavison784/release-intelligence/internal/investigate/classify"
 	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/investigate/renderdiff"
 	runpkg "github.com/tdavison784/release-intelligence/internal/investigate/run"
@@ -26,14 +27,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/orchestrate"
 )
 
-// newClassifier supplies the deterministic classifier and review applier
-// (lane classify: classify.New()). It is a hook so this lane builds before
-// classify merges; the default says so instead of guessing a class.
-var newClassifier = func() (investigate.Classifier, investigate.ReviewApplier, error) {
-	return nil, nil, errors.New("this build has no classifier (lane classify is not merged yet)")
-}
-
-const policyVersion = "classify.policy@v1"
+const policyVersion = classify.Policy
 
 // invFlags are the flags that describe an investigation request and its
 // wiring; `ri investigate` and `ri worker` share them.
@@ -42,7 +36,7 @@ type invFlags struct {
 	knowledge, minVerification                                            *string
 	render                                                                *bool
 	agent                                                                 *bool
-	driver, model, exchange, replay, claudeBin                            *string
+	driver, model, exchange, replay, script, claudeBin                    *string
 }
 
 func addInvFlags(c *cli, fs interface {
@@ -61,10 +55,11 @@ func addInvFlags(c *cli, fs interface {
 		knowledge:  fs.String("knowledge", "knowledge", "directory of verified knowledge (facts clear changes only when trusted)"),
 		render:     fs.Bool("render", true, "render both releases with the environment's configuration (the centerpiece evidence)"),
 		agent:      fs.Bool("agent", false, "run the investigation agent (a sanctioned LLM stage; never decides a class)"),
-		driver:     fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay"),
+		driver:     fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted"),
 		model:      fs.String("agent-model", "", "model for the agent driver"),
 		exchange:   fs.String("agent-exchange", "", "exchange driver: directory for request/answer files"),
 		replay:     fs.String("agent-replay", "", "replay driver: transcript file of an earlier session"),
+		script:     fs.String("agent-script", "", "scripted driver: JSON file [{\"tool\":…,\"args\":{…}}, …] played as the model's tool calls (deterministic runs, live checks without a model)"),
 		claudeBin:  fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)"),
 	}
 }
@@ -125,10 +120,7 @@ func (c *cli) pipeline(f invFlags) (*runpkg.Pipeline, *store.Store, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	cls, rev, err := newClassifier()
-	if err != nil {
-		return nil, nil, err
-	}
+	cls, rev := classify.New(), classify.NewReviewApplier()
 	var facts []domain.VerifiedFact
 	if *f.knowledge != "" {
 		if ks, err := app.LoadKnowledge(*f.knowledge); err == nil {
@@ -154,6 +146,24 @@ func (c *cli) pipeline(f invFlags) (*runpkg.Pipeline, *store.Store, error) {
 			return nil, nil, err
 		}
 		opts = append(opts, agent.WithDriver(agent.DriverReplay, &agent.Replay{Transcript: raw}))
+	}
+	if *f.script != "" {
+		raw, err := os.ReadFile(*f.script)
+		if err != nil {
+			return nil, nil, err
+		}
+		var steps []struct {
+			Tool string `json:"tool"`
+			Args any    `json:"args"`
+		}
+		if err := json.Unmarshal(raw, &steps); err != nil {
+			return nil, nil, fmt.Errorf("--agent-script: %w", err)
+		}
+		sc := &agent.Scripted{Model: "scripted", ModelVersion: "scripted-1", Provider: "scripted", Turns: len(steps)}
+		for i, st := range steps {
+			sc.Steps = append(sc.Steps, agent.Step{Call: fmt.Sprintf("script-%d", i+1), Tool: st.Tool, Args: st.Args})
+		}
+		opts = append(opts, agent.WithDriver(agent.DriverScripted, sc))
 	}
 	if *f.claudeBin != "" {
 		opts = append(opts, agent.WithDriver(agent.DriverClaudeCLI, &agent.ClaudeCLI{Binary: *f.claudeBin}))
@@ -362,10 +372,7 @@ func (c *cli) investigateReview(args []string) error {
 		fmt.Fprintf(c.out, "sent %s from %s to workflow %s\n", d.Action, d.Reviewer, pos[0])
 		return nil
 	}
-	_, rev, err := newClassifier()
-	if err != nil {
-		return err
-	}
+	rev := classify.NewReviewApplier()
 	st, err := store.New(c.g.state)
 	if err != nil {
 		return err

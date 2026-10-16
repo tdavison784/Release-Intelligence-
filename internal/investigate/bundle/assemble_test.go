@@ -1,7 +1,11 @@
 package bundle
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -201,5 +205,49 @@ func TestAssembleRefusals(t *testing.T) {
 	cp.Artifacts = append(append([]domain.ArtifactRef{}, p.change.Artifacts...), ghost)
 	if _, err := a.Assemble(ctx, &cp, p.snap, nil); err == nil || !strings.Contains(err.Error(), "not retrievable") {
 		t.Errorf("unstored artifact: %v", err)
+	}
+}
+
+// Principle 6: the bundle is fully determined by its inputs. Assembling the
+// same inputs twice, with real wall-clock time passing, yields byte-identical
+// JSON, and storing it again is a no-op.
+func TestAssembleByteIdenticalAndPutIsNoop(t *testing.T) {
+	ctx := context.Background()
+	st := newSt(t)
+	repo := testRepo(t)
+	assemble := func() *domain.EvidenceBundle {
+		change, err := NewChangeCollectorOver(&fakeUpstream{edge: fixtureEdge(), pair: fixturePair()}, st).CollectChange(ctx,
+			investigate.ChangeRequest{Product: "acme", From: "v1.0.0", To: "v2.0.0", Render: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		snap, err := NewSnapshotBuilder(st).BuildSnapshot(ctx, investigate.EnvironmentInputs{Name: "shop-prod", Repo: repo})
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := NewAssembler(st).Assemble(ctx, change, snap, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	a := assemble()
+	time.Sleep(1100 * time.Millisecond) // a wall-clock second passes
+	b := assemble()
+	ja, _ := json.Marshal(a)
+	jb, _ := json.Marshal(b)
+	if !bytes.Equal(ja, jb) {
+		t.Fatal("re-assembling identical inputs changed the bundle bytes")
+	}
+	if err := st.PutBundle(ctx, a); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(st.Dir(), "bundles", a.ID+".json")
+	before, _ := os.ReadFile(path)
+	if err := st.PutBundle(ctx, b); err != nil {
+		t.Fatalf("storing the identical bundle again must be a no-op: %v", err)
+	}
+	if after, _ := os.ReadFile(path); !bytes.Equal(before, after) {
+		t.Fatal("the stored bundle changed")
 	}
 }

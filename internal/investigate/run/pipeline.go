@@ -337,17 +337,10 @@ func (p *Pipeline) assemble(ctx context.Context, in StageInput) (*stageResult, e
 	if err != nil {
 		return nil, err
 	}
-	// A bundle is immutable and content-identified, but CreatedAt is wall
-	// clock: re-assembling the same inputs (a retry after the put succeeded,
-	// an evidence round that found nothing new) must attach to the stored one.
-	if old, err := p.d.Records.GetBundle(ctx, b.ID); err == nil {
-		b = old
-	} else if errors.Is(err, investigate.ErrNotFound) {
-		if err := p.d.Records.PutBundle(ctx, b); err != nil {
-			return nil, investigate.PermanentError(in.Stage, err)
-		}
-	} else {
-		return nil, err
+	// The bundle is fully determined by its inputs (no wall clock inside),
+	// so storing a re-assembled identical bundle is a no-op.
+	if err := p.d.Records.PutBundle(ctx, b); err != nil {
+		return nil, investigate.PermanentError(in.Stage, err)
 	}
 	inv := &domain.Investigation{
 		SchemaVersion: domain.InvestigationSchemaVersion,
@@ -519,7 +512,7 @@ func (p *Pipeline) validate(ctx context.Context, in StageInput) (*stageResult, e
 	var arts []domain.ArtifactRef
 	var evid []domain.Evidence
 	ran := 0
-	items := append(append([]domain.ChangeItem(nil), rc.bundle.Change.Items...), rc.bundle.EnvironmentItems...)
+	items := rc.bundle.Items()
 	for _, it := range items {
 		if !it.InScope {
 			continue
