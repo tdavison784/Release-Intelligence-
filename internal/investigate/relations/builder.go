@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/render"
@@ -30,17 +31,61 @@ type ProducesRule struct {
 	ProducedKind  string `json:"producedKind"`
 }
 
+// rel is a declarative relationship with the rule id its edges carry.
+type rel struct {
+	id string
+	r  catalog.Relationship
+}
+
+func (b *builder) add(id string, r catalog.Relationship) { b.rels = append(b.rels, rel{id, r}) }
+
 // Option configures the builder.
 type Option func(*builder)
 
 // WithProducesRules adds declarative produces rules.
 func WithProducesRules(rules ...ProducesRule) Option {
-	return func(b *builder) { b.rules = append(b.rules, rules...) }
+	return func(b *builder) {
+		for _, r := range rules {
+			b.add("relationship:"+r.Name, catalog.Relationship{
+				ID: r.Name, Kind: catalog.RelProduces,
+				From: catalog.ObjectType{Group: r.Group, Kind: r.Kind},
+				To:   catalog.ObjectType{Group: r.ProducedGroup, Kind: r.ProducedKind}, Path: r.NamePath,
+			})
+		}
+	}
+}
+
+// WithRelationships adds the relationships a product definition declares
+// (catalog `relationships:`); their edges carry the rule id
+// "relationship:<product>/<id>". Invalid relationships (catalog.Validate reports them)
+// are skipped.
+func WithRelationships(product string, rs ...catalog.Relationship) Option {
+	return func(b *builder) {
+		for _, r := range rs {
+			b.add("relationship:"+product+"/"+r.ID, r)
+		}
+	}
+}
+
+// WithCatalog adds the relationships of every product in the catalog, in
+// product id order. Rules of products the environment does not use match no
+// object and cost nothing.
+func WithCatalog(c *catalog.Catalog) Option {
+	return func(b *builder) {
+		if c == nil {
+			return
+		}
+		defs := c.List()
+		sort.Slice(defs, func(i, j int) bool { return defs[i].ID < defs[j].ID })
+		for _, d := range defs {
+			WithRelationships(d.ID, d.Relationships...)(b)
+		}
+	}
 }
 
 type builder struct {
-	st    investigate.ArtifactStore
-	rules []ProducesRule
+	st   investigate.ArtifactStore
+	rels []rel
 }
 
 // NewBuilder returns the GraphBuilder. st serves the bundle's artifacts
@@ -158,6 +203,7 @@ type gb struct {
 	producers map[string][]producer
 	objNode   map[*object]*gnode
 	env       *environment
+	rels      []rel
 }
 
 func (g *gb) node(kind domain.NodeKind, id render.ObjectID, key string, artifact string) *gnode {
@@ -227,8 +273,9 @@ func (bd *builder) BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*d
 	if err != nil {
 		return nil, err
 	}
-	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env}
+	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels}
 
+	env.cluster = clusterKinds(env.objects, bd.rels)
 	applyNamespaces(env)
 	objs := dedupe(env.objects)
 
@@ -250,16 +297,40 @@ func (bd *builder) BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*d
 	for _, n := range g.sortedNodes() {
 		g.index(n)
 	}
-	g.indexProducers(bd.rules)
+	g.indexProducers(bd.rels)
 
 	g.kustomizeEdges()
 	g.gitopsEdges()
 	g.renderEdges()
 	g.referenceEdges()
 	g.selectorEdges()
+	g.relationshipSelectEdges()
 	g.apiEdges()
 
 	return g.finish(), nil
+}
+
+// clusterKinds is the set of kinds known to be cluster-scoped: the built-in
+// ones, kinds a declared relationship says are cluster-scoped, and kinds of
+// CRDs in the snapshot with spec.scope: Cluster.
+func clusterKinds(objs []*object, rels []rel) map[string]bool {
+	out := map[string]bool{}
+	for k := range clusterScoped {
+		out[k] = true
+	}
+	for _, r := range rels {
+		if r.r.Scope == "cluster" {
+			out[r.r.To.Kind] = true
+		}
+	}
+	for _, o := range objs {
+		if o.id.Kind == "CustomResourceDefinition" && str(o.body, "spec", "scope") == "Cluster" {
+			if k := str(o.body, "spec", "names", "kind"); k != "" {
+				out[k] = true
+			}
+		}
+	}
+	return out
 }
 
 func (g *gb) index(n *gnode) {
@@ -383,7 +454,7 @@ func applyNamespaces(env *environment) {
 	}
 
 	for _, o := range env.objects {
-		if o.file != "" && !clusterScoped[o.id.Kind] {
+		if o.file != "" && !env.cluster[o.id.Kind] {
 			if ns, ok := fileNS[o.file]; ok {
 				o.id.Namespace, o.effNS = ns, ns
 			} else if o.id.Namespace == "" {
@@ -410,7 +481,7 @@ func applyNamespaces(env *environment) {
 			continue
 		}
 		for _, o := range env.pairObjects[t] {
-			if o.id.Namespace == "" && !clusterScoped[o.id.Kind] {
+			if o.id.Namespace == "" && !env.cluster[o.id.Kind] {
 				o.effNS = dest
 			}
 		}

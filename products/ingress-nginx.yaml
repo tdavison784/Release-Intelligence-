@@ -408,3 +408,37 @@ configSources:
     quote: The NGINX template is located in the file `/etc/nginx/template/nginx.tmpl`.
   - url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/values.yaml
     quote: '## Override NGINX template'
+
+# Upstream-documented object relationships followed by the investigation's
+# relationship graph (docs/INVESTIGATE.md "Relationships"). Release-level facts
+# from the ingress-nginx annotation documentation, not from any environment.
+relationships:
+- id: auth-secret
+  kind: references
+  from: {group: networking.k8s.io, kind: Ingress}
+  to: {kind: Secret}
+  path: metadata.annotations[nginx.ingress.kubernetes.io/auth-secret]
+  summary: The auth-secret annotation names the Secret holding basic-auth credentials.
+  references:
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/nginx-configuration/annotations.md
+    quote: 'nginx.ingress.kubernetes.io/auth-secret: secretName'
+- id: auth-tls-secret
+  kind: references
+  from: {group: networking.k8s.io, kind: Ingress}
+  to: {kind: Secret}
+  path: metadata.annotations[nginx.ingress.kubernetes.io/auth-tls-secret]
+  format: namespace/name
+  summary: The auth-tls-secret annotation names, as namespace/secretName, the Secret whose ca.crt authenticates client certificates.
+  references:
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/nginx-configuration/annotations.md
+    quote: 'nginx.ingress.kubernetes.io/auth-tls-secret: namespace/secretName'
+- id: proxy-ssl-secret
+  kind: references
+  from: {group: networking.k8s.io, kind: Ingress}
+  to: {kind: Secret}
+  path: metadata.annotations[nginx.ingress.kubernetes.io/proxy-ssl-secret]
+  format: namespace/name
+  summary: The proxy-ssl-secret annotation names, as namespace/secretName, the Secret with the client certificate used towards a proxied HTTPS backend.
+  references:
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/nginx-configuration/annotations.md
+    quote: This annotation expects the Secret name in the form "namespace/secretName".

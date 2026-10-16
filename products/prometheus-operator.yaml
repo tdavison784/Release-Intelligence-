@@ -418,3 +418,32 @@ configSources:
   references:
   - url: https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/Documentation/platform/webhook.md
     quote: '- --web.enable-tls=true'
+
+# Upstream-documented object relationships followed by the investigation's
+# relationship graph (docs/INVESTIGATE.md "Relationships"). Release-level facts
+# from the prometheus-operator API field documentation, not from any environment.
+relationships:
+- id: servicemonitor-services
+  kind: selects
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Service}
+  selectorPath: spec.selector
+  namespaceSelectorPath: spec.namespaceSelector
+  summary: A ServiceMonitor selects the Services (their Endpoints) it scrapes by label, in its own namespace unless namespaceSelector says otherwise.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/servicemonitor_types.go
+    quote: Label selector to select the Kubernetes `Endpoints` objects to scrape metrics from.
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/servicemonitor_types.go
+    quote: By default, the services are discovered in the same namespace as the `ServiceMonitor` object
+- id: podmonitor-pods
+  kind: selects
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Pod}
+  selectorPath: spec.selector
+  namespaceSelectorPath: spec.namespaceSelector
+  summary: A PodMonitor selects the Pods it scrapes by label, in its own namespace unless namespaceSelector says otherwise; workloads are matched through their pod template labels.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/podmonitor_types.go
+    quote: Label selector to select the Kubernetes `Pod` objects to scrape metrics from.
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/podmonitor_types.go
+    quote: By default, the pods are discovered in the same namespace as the `PodMonitor` object

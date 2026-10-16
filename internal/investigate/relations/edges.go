@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
@@ -200,13 +201,16 @@ func (g *gb) renderEdges() {
 
 // --- references -------------------------------------------------------------------------------
 
+// anyGroup, as the group of a reference, means the group is not stated: match by kind and name.
+const anyGroup = "*"
+
 var placeholderVersion = map[string]string{"IngressClass": "v1"}
 
 // resolve finds the object a reference names. It returns the node and how
 // well the reference is established; an absent object becomes a placeholder
 // node, with a producing custom resource when one is known.
 func (g *gb) resolve(group string, groupStated bool, kind, name, ns string) (*gnode, domain.EdgeStatus, string) {
-	cluster := clusterScoped[kind]
+	cluster := g.env.cluster[kind]
 	if cluster {
 		ns = ""
 	}
@@ -238,7 +242,24 @@ func (g *gb) resolve(group string, groupStated bool, kind, name, ns string) (*gn
 		}
 		return unknown[0], domain.EdgeInferred, reason
 	}
-	// Absent: placeholder.
+	// Absent. When the referrer's namespace is unknown (a cluster-scoped
+	// object reading a namespaced one), a producer of that name in any
+	// namespace explains it — but only as inferred.
+	nsUnknown := false
+	if ns == "" && !cluster {
+		var keys []string
+		for k := range g.producers {
+			if strings.HasPrefix(k, kind+"|") && strings.HasSuffix(k, "|"+name) {
+				keys = append(keys, k)
+			}
+		}
+		if len(keys) > 0 {
+			sort.Strings(keys)
+			ns = strings.Split(keys[0], "|")[1]
+			nsUnknown = true
+		}
+	}
+	// Placeholder.
 	version := "v1"
 	if !groupStated || group != "" {
 		version = "*"
@@ -248,33 +269,40 @@ func (g *gb) resolve(group string, groupStated bool, kind, name, ns string) (*gn
 	}
 	id := render.ObjectID{Group: group, Version: version, Kind: kind, Namespace: ns, Name: name}
 	n := g.node(classify(id), id, id.String(), "")
-	n.n.Placeholder = true
-	n.effNS = ns
-	n.phStatus = domain.EdgeMissing
-	n.phReason = fmt.Sprintf("%s %q is not defined in the snapshot", kind, name)
-	if ns != "" {
-		n.phReason = fmt.Sprintf("%s %s/%s is not defined in the snapshot", kind, ns, name)
-	}
-	for _, p := range g.producers[kind+"|"+ns+"|"+name] {
-		st := domain.EdgeInferred
-		reason := fmt.Sprintf("%s %q is not defined in the snapshot; %s/%s names it by convention (%s), so its controller is presumed to create it", kind, name, p.node.id.Kind, p.node.id.Name, p.rule)
-		if p.declared {
-			st, reason = domain.EdgeEstablished, ""
+	if !n.n.Placeholder {
+		n.n.Placeholder = true
+		n.effNS = ns
+		n.phStatus = domain.EdgeMissing
+		n.phReason = fmt.Sprintf("%s %q is not defined in the snapshot", kind, name)
+		if ns != "" {
+			n.phReason = fmt.Sprintf("%s %s/%s is not defined in the snapshot", kind, ns, name)
 		}
-		g.edge(domain.EdgeProduces, p.node, n, st, p.rule, producesDetail(p), reason, p.node.obj.artifact)
-		if n.phStatus != domain.EdgeEstablished {
-			n.phStatus, n.phReason = st, reason
+		for _, p := range g.producers[kind+"|"+ns+"|"+name] {
+			st := domain.EdgeInferred
+			reason := fmt.Sprintf("%s %q is not defined in the snapshot; %s/%s names it by convention (%s), so its controller is presumed to create it", kind, name, p.node.id.Kind, p.node.id.Name, p.rule)
+			if p.declared {
+				st, reason = domain.EdgeEstablished, ""
+			}
+			g.edge(domain.EdgeProduces, p.node, n, st, p.rule, producesDetail(p), reason, p.node.obj.artifact)
+			if n.phStatus != domain.EdgeEstablished {
+				n.phStatus, n.phReason = st, reason
+			}
 		}
+		g.index(n)
 	}
-	g.index(n)
-	return n, n.phStatus, n.phReason
+	status, reason := n.phStatus, n.phReason
+	if nsUnknown && status == domain.EdgeEstablished {
+		status = domain.EdgeInferred
+		reason = fmt.Sprintf("%s %q is produced in namespace %q, but the namespace of the referrer is not known", kind, name, ns)
+	}
+	return n, status, reason
 }
 
 func producesDetail(p producer) string { return p.detail }
 
 // link adds a references edge target → referrer.
 func (g *gb) link(referrer *gnode, group, kind, name, ns, rule, detail string) {
-	groupStated := true
+	groupStated := group != anyGroup
 	target, status, reason := g.resolve(group, groupStated, kind, name, ns)
 	if target == nil {
 		return
@@ -310,6 +338,7 @@ func (g *gb) referenceEdges() {
 		if o == nil {
 			continue
 		}
+		g.relationshipRefs(n)
 		switch {
 		case n.n.Kind == domain.NodeWorkload:
 			g.podRefs(n)
@@ -388,6 +417,16 @@ func (g *gb) ingressRefs(n *gnode) {
 	}
 }
 
+func groupOf(m map[string]any) string {
+	if g := str(m, "group"); g != "" {
+		return g
+	}
+	if str(m, "kind") == "" { // implied core kind (secretRef, configMapRef, ...)
+		return ""
+	}
+	return anyGroup
+}
+
 var impliedRefKinds = map[string]string{"secretRef": "Secret", "configMapRef": "ConfigMap", "serviceAccountRef": "ServiceAccount"}
 
 // refFields follows the generic `*Ref` convention of custom resources: an
@@ -409,12 +448,12 @@ func (g *gb) refFields(n *gnode) {
 					if kind == "" {
 						kind = impliedRefKinds[k]
 					}
-					if name != "" && kind != "" {
+					if name != "" && kind != "" && !g.covered(n.obj, child+".name") {
 						ns := str(m, "namespace")
 						if ns == "" {
 							ns = n.effNS
 						}
-						g.link(n, str(m, "group"), kind, name, ns, ruleRefs+"ref-field", strings.TrimPrefix(child, "."))
+						g.link(n, groupOf(m), kind, name, ns, ruleRefs+"ref-field", strings.TrimPrefix(child, "."))
 						continue
 					}
 				}
@@ -427,6 +466,18 @@ func (g *gb) refFields(n *gnode) {
 		}
 	}
 	walk(n.obj.body["spec"], "spec")
+}
+
+// covered reports whether a declared references relationship already
+// follows the name field at p (".spec.x.name" form) of the object.
+func (g *gb) covered(o *object, p string) bool {
+	p = strings.TrimPrefix(p, ".")
+	for _, r := range g.rels {
+		if r.r.Kind == catalog.RelReferences && g.matches(r, o) && r.r.Path == p {
+			return true
+		}
+	}
+	return false
 }
 
 // --- selectors --------------------------------------------------------------------------------
@@ -513,32 +564,208 @@ func (g *gb) apiEdges() {
 
 // --- producers --------------------------------------------------------------------------------
 
-// indexProducers records which custom resources name objects they create:
-// declared rules first, then the generic `spec.secretName` convention.
-func (g *gb) indexProducers(rules []ProducesRule) {
+// readName reads the name (and namespace, for namespace/name) a relationship
+// field holds in an object.
+func readName(o *object, path []string, format, defaultNS string) (ns, name string) {
+	v, _ := get(o.body, path...).(string)
+	if v == "" {
+		return "", ""
+	}
+	if format == catalog.RelFormatNamespaceName {
+		i := strings.Index(v, "/")
+		if i <= 0 || i == len(v)-1 {
+			return "", ""
+		}
+		return v[:i], v[i+1:]
+	}
+	return defaultNS, v
+}
+
+func (g *gb) matches(r rel, o *object) bool {
+	if r.r.From.Group != o.id.Group || r.r.From.Kind != o.id.Kind {
+		return false
+	}
+	if r.r.WhenPath != "" {
+		p, err := catalog.SplitFieldPath(r.r.WhenPath)
+		if err != nil {
+			return false
+		}
+		if v, _ := get(o.body, p...).(string); v != r.r.WhenEquals {
+			return false
+		}
+	}
+	return true
+}
+
+// indexProducers records which objects name objects they create: declared
+// produces relationships first, then the generic `spec.secretName`
+// convention for custom resources no declared relationship covers.
+func (g *gb) indexProducers(rels []rel) {
 	for _, n := range g.sortedNodes() {
 		o := n.obj
-		if o == nil || n.n.Kind != domain.NodeCustomResource {
+		if o == nil {
 			continue
 		}
 		declared := false
-		for _, r := range rules {
-			if r.Group != o.id.Group || r.Kind != o.id.Kind {
+		for _, r := range rels {
+			if r.r.Kind != catalog.RelProduces || !g.matches(r, o) {
 				continue
 			}
-			name, _ := get(o.body, strings.Split(r.NamePath, ".")...).(string)
+			path, err := catalog.SplitFieldPath(r.r.Path)
+			if err != nil {
+				continue
+			}
+			ns, name := readName(o, path, r.r.Format, n.effNS)
 			if name == "" {
 				continue
 			}
 			declared = true
-			g.addProducer(r.ProducedKind, n.effNS, name, producer{node: n, rule: "relationship:" + r.Name, declared: true, detail: r.NamePath})
+			g.addProducer(r.r.To.Kind, ns, name, producer{node: n, rule: r.id, declared: true, detail: r.r.Path})
 		}
-		if !declared {
+		if !declared && n.n.Kind == domain.NodeCustomResource {
 			if name := str(o.body, "spec", "secretName"); name != "" {
 				g.addProducer("Secret", n.effNS, name, producer{node: n, rule: ruleProduces + "spec.secretName", detail: "spec.secretName"})
 			}
 		}
 	}
+}
+
+// relationshipRefs applies declared references relationships to one object.
+func (g *gb) relationshipRefs(n *gnode) {
+	for _, r := range g.rels {
+		if r.r.Kind != catalog.RelReferences || !g.matches(r, n.obj) {
+			continue
+		}
+		path, err := catalog.SplitFieldPath(r.r.Path)
+		if err != nil {
+			continue
+		}
+		ns, name := readName(n.obj, path, r.r.Format, n.effNS)
+		if name != "" {
+			g.link(n, r.r.To.Group, r.r.To.Kind, name, ns, r.id, r.r.Path)
+		}
+	}
+}
+
+// relationshipSelectEdges applies declared selects relationships: a selected
+// Service or Pod-template workload → the selecting object.
+func (g *gb) relationshipSelectEdges() {
+	nodes := g.sortedNodes()
+	for _, r := range g.rels {
+		if r.r.Kind != catalog.RelSelects {
+			continue
+		}
+		selPath, err := catalog.SplitFieldPath(r.r.SelectorPath)
+		if err != nil {
+			continue
+		}
+		var nsPath []string
+		if r.r.NamespaceSelectorPath != "" {
+			if nsPath, err = catalog.SplitFieldPath(r.r.NamespaceSelectorPath); err != nil {
+				continue
+			}
+		}
+		for _, src := range nodes {
+			if src.obj == nil || !g.matches(r, src.obj) {
+				continue
+			}
+			sel := asMap(get(src.obj.body, selPath...))
+			if len(asMap(sel["matchLabels"])) == 0 && len(asSeq(sel["matchExpressions"])) == 0 {
+				continue // an empty selector is not treated as "everything": no edges, no noise
+			}
+			anyNS, names := false, []string(nil)
+			if nsPath != nil {
+				nsSel := asMap(get(src.obj.body, nsPath...))
+				anyNS, _ = nsSel["any"].(bool)
+				for _, x := range asSeq(nsSel["matchNames"]) {
+					if s, ok := x.(string); ok {
+						names = append(names, s)
+					}
+				}
+			}
+			for _, tgt := range nodes {
+				if tgt.obj == nil {
+					continue
+				}
+				var labels map[string]any
+				switch {
+				case r.r.To.Kind == "Service" && tgt.n.Kind == domain.NodeService:
+					labels = asMap(get(tgt.obj.body, "metadata", "labels"))
+				case r.r.To.Kind == "Pod" && tgt.n.Kind == domain.NodeWorkload:
+					_, labels, _ = podTemplate(tgt.obj)
+				default:
+					continue
+				}
+				if !labelSelectorMatches(sel, labels) {
+					continue
+				}
+				status, reason := domain.EdgeEstablished, ""
+				switch {
+				case anyNS:
+				case len(names) > 0 && !containsString(names, tgt.effNS):
+					if tgt.effNS != "" {
+						continue
+					}
+					status, reason = domain.EdgeInferred, "namespace of the selected object is not known"
+				case len(names) == 0 && tgt.effNS != src.effNS:
+					if tgt.effNS != "" && src.effNS != "" {
+						continue
+					}
+					status, reason = domain.EdgeInferred, "namespace of the selecting or selected object is not known"
+				}
+				g.edge(domain.EdgeSelects, tgt, src, status, r.id, r.r.SelectorPath, reason, src.obj.artifact, tgt.obj.artifact)
+			}
+		}
+	}
+}
+
+// labelSelectorMatches evaluates a Kubernetes LabelSelector (matchLabels and
+// matchExpressions In/NotIn/Exists/DoesNotExist) against a label set. An
+// operator it does not know never matches.
+func labelSelectorMatches(sel, labels map[string]any) bool {
+	for k, v := range asMap(sel["matchLabels"]) {
+		if lv, has := labels[k]; !has || fmt.Sprint(lv) != fmt.Sprint(v) {
+			return false
+		}
+	}
+	for _, e := range asSeq(sel["matchExpressions"]) {
+		key, op := str(e, "key"), str(e, "operator")
+		lv, has := labels[key]
+		var vals []string
+		for _, x := range asSeq(asMap(e)["values"]) {
+			vals = append(vals, fmt.Sprint(x))
+		}
+		switch op {
+		case "In":
+			if !has || !containsString(vals, fmt.Sprint(lv)) {
+				return false
+			}
+		case "NotIn":
+			if has && containsString(vals, fmt.Sprint(lv)) {
+				return false
+			}
+		case "Exists":
+			if !has {
+				return false
+			}
+		case "DoesNotExist":
+			if has {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func containsString(xs []string, s string) bool {
+	for _, x := range xs {
+		if x == s {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *gb) addProducer(kind, ns, name string, p producer) {
