@@ -48,10 +48,18 @@ renew() { # same status change `cmctl renew` makes: add Issuing=True (ManuallyTr
   log "renewed $ns/$name: revision $rev -> $(k get certificate -n "$ns" "$name" -o jsonpath='{.status.revision}')"
 }
 call_ledger() { # checkout -> ledger over mutual TLS, exactly as the checkout container does
+  # Connection-level failures right after a rollout (curl exit 7 = connect refused, 28 = timeout)
+  # are retried; any TLS verdict (or success) is final and recorded as is.
   log "checkout -> ledger call ($1)"
+  local rc
   set +e
-  k exec -n payments deploy/checkout -- curl -sS --max-time 5 --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ledger.payments.svc/ >>"$LOG" 2>&1
-  echo "exit=$?" | tee -a "$LOG"
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    k exec -n payments deploy/checkout -- curl -sS --max-time 5 --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ledger.payments.svc/ >>"$LOG" 2>&1
+    rc=$?
+    echo "attempt=$attempt exit=$rc" | tee -a "$LOG"
+    if [ "$rc" != 7 ] && [ "$rc" != 28 ]; then break; fi
+    sleep 3
+  done
   set -e
 }
 cross_verify() { # does each side's trust anchor (its own ca.crt) verify the other side's leaf?

@@ -1,4 +1,4 @@
-### 17:52:20Z case cert-manager-1.17-1.18--payments-eu, cluster ri-groundtruth-cm-eu, kind v0.24.0 go1.22.6 darwin/arm64
+### 17:57:20Z case cert-manager-1.17-1.18--payments-eu, cluster ri-groundtruth-cm-eu, kind v0.24.0 go1.22.6 darwin/arm64
 Creating cluster "ri-groundtruth-cm-eu" ...
  • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
  ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
@@ -25,13 +25,13 @@ Client Version: v1.34.1
 Kustomize Version: v5.7.1
 Server Version: v1.31.0
 Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
-### 17:52:50Z render-level diff of the cert-manager release (helm template v1.17.2 vs v1.18.0, same values)
+### 17:57:50Z render-level diff of the cert-manager release (helm template v1.17.2 vs v1.18.0, same values)
 69:-                    `--feature-gates=AdditionalCertificateOutputFormats=false` option set on both
 91:+                        `--feature-gates=DefaultPrivateKeyRotationPolicyAlways=false` option on
-### 17:52:50Z phase 0: install cert-manager v1.17.2 (Application cert-manager) + platform/pki/overlays/prod + apps/payments/overlays/prod
+### 17:57:50Z phase 0: install cert-manager v1.17.2 (Application cert-manager) + platform/pki/overlays/prod + apps/payments/overlays/prod
 Release "cert-manager" does not exist. Installing it now.
 NAME: cert-manager
-LAST DEPLOYED: Fri Oct 16 12:52:50 2026
+LAST DEPLOYED: Fri Oct 16 12:57:50 2026
 NAMESPACE: cert-manager
 STATUS: deployed
 REVISION: 1
@@ -68,36 +68,35 @@ certificate.cert-manager.io/checkout-tls condition met
 Waiting for deployment "ledger" rollout to finish: 0 of 2 updated replicas are available...
 Waiting for deployment "ledger" rollout to finish: 1 of 2 updated replicas are available...
 deployment "ledger" successfully rolled out
-Waiting for deployment "checkout" rollout to finish: 0 of 1 updated replicas are available...
 deployment "checkout" successfully rolled out
 NS             NAME           READY   ROTATION
 cert-manager   mesh-root-ca   True    <none>
 payments       checkout-tls   True    <none>
 payments       ledger-tls     True    <none>
-### 17:53:17Z fingerprints (v1.17.2 initial issuance)
-cert-manager/mesh-root-ca pubkey-sha256=fc0bab63bf14637480bc0c5bf294ca57ba3e9fef50f3331be740d85fbae9f745 serial=88B4313DD5EFCB4F2BF163276117B3D1
-payments/ledger-tls pubkey-sha256=fb7ffe88f6b513fae7214e69f83d9fd57d12873c7d0f1d55d7429dadaa762f1b serial=CB6CAB241603EC9939F019246D5DF4AB
-payments/checkout-tls pubkey-sha256=dcc45efffcc9d927a1dc80dde614a3f101c8d2449f6856db25d9251beb3aa542 serial=3742E09D0E5F7FC50D8EA41EBED46C26
-### 17:53:18Z checkout -> ledger call (v1.17.2 initial)
+### 17:58:19Z fingerprints (v1.17.2 initial issuance)
+cert-manager/mesh-root-ca pubkey-sha256=ec2f291356b18a4acb77d674fd74edb6d932296d00fe842a62d8d7e85bbea0e1 serial=1C108F62BAA477D7EDEF72E6FBB35486
+payments/ledger-tls pubkey-sha256=133fac87d115917321e9c04dbf50f9c5fa6e8be8ece010fc7e5900e1a38cdb39 serial=1BEEE8F146E9A90D7D1EE195AF2E5EA4
+payments/checkout-tls pubkey-sha256=d4921df3b88441f7bec15e755f0b9494dc36557598642ca3435607cdfb0ab7cb serial=6779811802CF7153A02A37133CA19E99
+### 17:58:19Z checkout -> ledger call (v1.17.2 initial)
 ledger ok: client=CN=checkout.payments.svc
-exit=0
-### 17:53:18Z phase 1 (control, still v1.17.2): re-issue the root CA
+attempt=1 exit=0
+### 17:58:19Z phase 1 (control, still v1.17.2): re-issue the root CA
 certificate.cert-manager.io/mesh-root-ca patched
 certificate.cert-manager.io/mesh-root-ca condition met
-### 17:53:18Z renewed cert-manager/mesh-root-ca: revision 1 -> 2
-### 17:53:18Z fingerprints (v1.17.2 after root CA re-issuance)
-cert-manager/mesh-root-ca pubkey-sha256=fc0bab63bf14637480bc0c5bf294ca57ba3e9fef50f3331be740d85fbae9f745 serial=C8B83E0CD9C4421A85101E875CAD9EDE
-payments/ledger-tls pubkey-sha256=fb7ffe88f6b513fae7214e69f83d9fd57d12873c7d0f1d55d7429dadaa762f1b serial=CB6CAB241603EC9939F019246D5DF4AB
-payments/checkout-tls pubkey-sha256=dcc45efffcc9d927a1dc80dde614a3f101c8d2449f6856db25d9251beb3aa542 serial=3742E09D0E5F7FC50D8EA41EBED46C26
-### 17:53:18Z CertificateRequests (v1.17.2)
+### 17:58:20Z renewed cert-manager/mesh-root-ca: revision 1 -> 2
+### 17:58:20Z fingerprints (v1.17.2 after root CA re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=ec2f291356b18a4acb77d674fd74edb6d932296d00fe842a62d8d7e85bbea0e1 serial=BBA4F3FF89C75017805EEAB6DD1C8C58
+payments/ledger-tls pubkey-sha256=133fac87d115917321e9c04dbf50f9c5fa6e8be8ece010fc7e5900e1a38cdb39 serial=1BEEE8F146E9A90D7D1EE195AF2E5EA4
+payments/checkout-tls pubkey-sha256=d4921df3b88441f7bec15e755f0b9494dc36557598642ca3435607cdfb0ab7cb serial=6779811802CF7153A02A37133CA19E99
+### 17:58:20Z CertificateRequests (v1.17.2)
 cert-manager   mesh-root-ca-1   1
 cert-manager   mesh-root-ca-2   2
 payments       checkout-tls-1   1
 payments       ledger-tls-1     1
-### 17:53:18Z phase 2: upgrade cert-manager to v1.18.0 (Application targetRevision bump, same values)
+### 17:58:20Z phase 2: upgrade cert-manager to v1.18.0 (Application targetRevision bump, same values)
 Release "cert-manager" has been upgraded. Happy Helming!
 NAME: cert-manager
-LAST DEPLOYED: Fri Oct 16 12:53:18 2026
+LAST DEPLOYED: Fri Oct 16 12:58:20 2026
 NAMESPACE: cert-manager
 STATUS: deployed
 REVISION: 2
@@ -131,21 +130,21 @@ NS             NAME           READY   ROTATION
 cert-manager   mesh-root-ca   True    <none>
 payments       checkout-tls   True    <none>
 payments       ledger-tls     True    <none>
-### 17:53:32Z checkout -> ledger call (v1.18.0 right after upgrade, nothing re-issued yet)
+### 17:58:34Z checkout -> ledger call (v1.18.0 right after upgrade, nothing re-issued yet)
 ledger ok: client=CN=checkout.payments.svc
-exit=0
-### 17:53:32Z phase 3: root CA reaches its renewal window (forced) on v1.18.0
+attempt=1 exit=0
+### 17:58:34Z phase 3: root CA reaches its renewal window (forced) on v1.18.0
 certificate.cert-manager.io/mesh-root-ca patched
 certificate.cert-manager.io/mesh-root-ca condition met
-### 17:53:55Z renewed cert-manager/mesh-root-ca: revision 2 -> 3
-### 17:53:55Z fingerprints (v1.18.0 after root CA re-issuance)
-cert-manager/mesh-root-ca pubkey-sha256=2daa8bd06fbff4f477cfb979dbb6e53354c574eece832b5f232cb88b7df1b925 serial=2F96B9101637B1114D4A648DDC48022F
-payments/ledger-tls pubkey-sha256=fb7ffe88f6b513fae7214e69f83d9fd57d12873c7d0f1d55d7429dadaa762f1b serial=CB6CAB241603EC9939F019246D5DF4AB
-payments/checkout-tls pubkey-sha256=dcc45efffcc9d927a1dc80dde614a3f101c8d2449f6856db25d9251beb3aa542 serial=3742E09D0E5F7FC50D8EA41EBED46C26
-### 17:53:56Z phase 4: ledger's leaf reaches its renewal window (forced); ledger pods restart and load it
+### 17:58:59Z renewed cert-manager/mesh-root-ca: revision 2 -> 3
+### 17:58:59Z fingerprints (v1.18.0 after root CA re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=b4b0d35b0ebd32e225f771fa55148690202788852b5fb623bc2aa05acad86f81 serial=642EABB667EAA02B01B0CD350FCAA1EF
+payments/ledger-tls pubkey-sha256=133fac87d115917321e9c04dbf50f9c5fa6e8be8ece010fc7e5900e1a38cdb39 serial=1BEEE8F146E9A90D7D1EE195AF2E5EA4
+payments/checkout-tls pubkey-sha256=d4921df3b88441f7bec15e755f0b9494dc36557598642ca3435607cdfb0ab7cb serial=6779811802CF7153A02A37133CA19E99
+### 17:58:59Z phase 4: ledger's leaf reaches its renewal window (forced); ledger pods restart and load it
 certificate.cert-manager.io/ledger-tls patched
 certificate.cert-manager.io/ledger-tls condition met
-### 17:53:56Z renewed payments/ledger-tls: revision 1 -> 2
+### 17:58:59Z renewed payments/ledger-tls: revision 1 -> 2
 deployment.apps/ledger restarted
 Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have been updated...
 Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have been updated...
@@ -153,14 +152,14 @@ Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have 
 Waiting for deployment "ledger" rollout to finish: 1 old replicas are pending termination...
 Waiting for deployment "ledger" rollout to finish: 1 old replicas are pending termination...
 deployment "ledger" successfully rolled out
-### 17:53:58Z fingerprints (v1.18.0 after ledger leaf re-issuance)
-cert-manager/mesh-root-ca pubkey-sha256=2daa8bd06fbff4f477cfb979dbb6e53354c574eece832b5f232cb88b7df1b925 serial=2F96B9101637B1114D4A648DDC48022F
-payments/ledger-tls pubkey-sha256=98550c45cde63dddaa2e298f2bc9e3cc555f2498aa240d8ff66fbb3e3ecb9623 serial=B1A42EA1FE0AE5945A7DD95066230EE4
-payments/checkout-tls pubkey-sha256=dcc45efffcc9d927a1dc80dde614a3f101c8d2449f6856db25d9251beb3aa542 serial=3742E09D0E5F7FC50D8EA41EBED46C26
-### 17:53:59Z openssl cross-verification (ledger re-issued, checkout not yet)
-ledger trusts checkout leaf:  CN=checkout.payments.svc error 20 at 0 depth lookup: unable to get local issuer certificate error /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.DV9lPJTzmL/checkout-tls.tls.crt: verification failed 
-checkout trusts ledger leaf:  CN=ledger.payments.svc error 20 at 0 depth lookup: unable to get local issuer certificate error /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.DV9lPJTzmL/ledger-tls.tls.crt: verification failed 
-### 17:53:59Z checkout -> ledger call (ledger re-issued after CA re-issuance, checkout still on its earlier certificate)
+### 17:59:01Z fingerprints (v1.18.0 after ledger leaf re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=b4b0d35b0ebd32e225f771fa55148690202788852b5fb623bc2aa05acad86f81 serial=642EABB667EAA02B01B0CD350FCAA1EF
+payments/ledger-tls pubkey-sha256=8bfe47f1a22815db1a4f01e1b4bf4a2576dd4421606d53b8450eef87a0030909 serial=A45D9FD876FDC49A62D9209061DCB71C
+payments/checkout-tls pubkey-sha256=d4921df3b88441f7bec15e755f0b9494dc36557598642ca3435607cdfb0ab7cb serial=6779811802CF7153A02A37133CA19E99
+### 17:59:01Z openssl cross-verification (ledger re-issued, checkout not yet)
+ledger trusts checkout leaf:  CN=checkout.payments.svc error 20 at 0 depth lookup: unable to get local issuer certificate error /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.oGxUUj65qm/checkout-tls.tls.crt: verification failed 
+checkout trusts ledger leaf:  CN=ledger.payments.svc error 20 at 0 depth lookup: unable to get local issuer certificate error /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.oGxUUj65qm/ledger-tls.tls.crt: verification failed 
+### 17:59:02Z checkout -> ledger call (ledger re-issued after CA re-issuance, checkout still on its earlier certificate)
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.se/docs/sslcerts.html
 
@@ -168,26 +167,26 @@ curl failed to verify the legitimacy of the server and therefore could not
 establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the webpage mentioned above.
 command terminated with exit code 60
-exit=60
-### 17:53:59Z phase 5: checkout's leaf is re-issued too and checkout restarts
+attempt=1 exit=60
+### 17:59:02Z phase 5: checkout's leaf is re-issued too and checkout restarts
 certificate.cert-manager.io/checkout-tls patched
 certificate.cert-manager.io/checkout-tls condition met
-### 17:53:59Z renewed payments/checkout-tls: revision 1 -> 2
+### 17:59:02Z renewed payments/checkout-tls: revision 1 -> 2
 deployment.apps/checkout restarted
 Waiting for deployment "checkout" rollout to finish: 1 old replicas are pending termination...
 Waiting for deployment "checkout" rollout to finish: 1 old replicas are pending termination...
 deployment "checkout" successfully rolled out
-### 17:54:00Z openssl cross-verification (both leaves re-issued)
-ledger trusts checkout leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.aG1NtYGuiI/checkout-tls.tls.crt: OK 
-checkout trusts ledger leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.aG1NtYGuiI/ledger-tls.tls.crt: OK 
-### 17:54:01Z checkout -> ledger call (both leaves re-issued)
+### 17:59:03Z openssl cross-verification (both leaves re-issued)
+ledger trusts checkout leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.QxxTOmKtod/checkout-tls.tls.crt: OK 
+checkout trusts ledger leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.QxxTOmKtod/ledger-tls.tls.crt: OK 
+### 17:59:03Z checkout -> ledger call (both leaves re-issued)
 ledger ok: client=CN=checkout.payments.svc
-exit=0
-### 17:54:01Z CertificateRequests (v1.18.0)
+attempt=1 exit=0
+### 17:59:03Z CertificateRequests (v1.18.0)
 cert-manager   mesh-root-ca-3   3
 payments       checkout-tls-2   2
 payments       ledger-tls-2     2
-### 17:54:01Z controller log lines mentioning private keys
-### 17:54:01Z done; deleting cluster
+### 17:59:03Z controller log lines mentioning private keys
+### 17:59:03Z done; deleting cluster
 Deleting cluster "ri-groundtruth-cm-eu" ...
 Deleted nodes: ["ri-groundtruth-cm-eu-control-plane"]
