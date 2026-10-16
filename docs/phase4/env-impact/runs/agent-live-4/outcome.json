@@ -1,0 +1,1132 @@
+{
+  "run": {
+    "status": "submitted",
+    "model": "claude-sonnet-5-5",
+    "provider": "anthropic",
+    "promptVersion": "investigate-agent/v4",
+    "promptDigest": "sha256:71985c9d53e50299be36473b6e37cd50c4a19ff47fd5a0bfb9783c87a40badfb",
+    "callId": "6cc6bf52-1e09-4fa1-95a3-4218b2d11bdd",
+    "budget": {
+      "maxTurns": 14,
+      "maxToolCalls": 16,
+      "maxTokens": 150000,
+      "maxReadBytes": 1048576,
+      "maxSeconds": 360
+    },
+    "turns": 83,
+    "toolCalls": 72,
+    "tokens": 124425,
+    "transcript": "art-f8e7bc6cccb8",
+    "coverage": [
+      {
+        "changeItem": "ci-194d5b487655",
+        "priority": 0,
+        "priorityRule": "agenda:behaviour",
+        "disposition": "raises-concern",
+        "summary": "The environment sets none of the settings that control this change: prometheus.serviceAccount.createTokenSecret, the per-component authorization, or ignoreNamespaceSelectors. The 90.x defaults therefore apply. The kubelet ServiceMonitor is rendered in kube-system and references Secret kube-prometheus-stack-prometheus-token. The chart creates that Secret in the monitoring namespace (rc-49f24e98534f). Upstream says the Secret must be in the ServiceMonitor's namespace, so the kubelet, apiserver and coredns scrapes may lose their credential. The override-inspection validation (vr-99475deee0c2) returned not-run, so no pin was found and the concern is unanswered. A runtime check of whether the Secret resolves from kube-system and default is still needed.",
+        "assertion": "asr-9b492f5c0bc7",
+        "records": [
+          "asr-018e69c391e6",
+          "asr-9b492f5c0bc7"
+        ],
+        "citations": [
+          "ev-7acedae3729c",
+          "ev-d102e341cabb"
+        ],
+        "examined": true,
+        "inspections": 1,
+        "validationRequests": 1,
+        "callId": "6cc6bf52-1e09-4fa1-95a3-4218b2d11bdd",
+        "sessionStatus": "submitted",
+        "turns": 10,
+        "toolCalls": 9,
+        "tokens": 25815
+      },
+      {
+        "changeItem": "ci-0a5e2fb2331c",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "examined-no-concern",
+        "summary": "The chart-default change to the kube-controller-manager ServiceMonitor spec.endpoints is explained by UPGRADE.md (89.x to 90.x). Control-plane ServiceMonitors move from bearerTokenFile/caFile to authorization from a Secret and the kube-root-ca.crt ConfigMap. This environment sets kubeControllerManager.enabled=false, so the object isn't rendered. The environment render shows ServiceMonitor changes only for apiserver, coredns and kubelet, not controller-manager. This is not a safety proof, and no validation was requested.",
+        "assertion": "asr-25e6d6786d47",
+        "records": [
+          "asr-25e6d6786d47"
+        ],
+        "citations": [
+          "ev-de76c1246e40"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "callId": "8fd6c810-a711-4533-b1cd-5d9864f6ee30",
+        "sessionStatus": "submitted",
+        "turns": 7,
+        "toolCalls": 6,
+        "tokens": 7325
+      },
+      {
+        "changeItem": "ci-1871449ec07f",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "The coredns ServiceMonitor in kube-system changes from bearerTokenFile to authorization.credentials, which references Secret kube-prometheus-stack-prometheus-token. The rendered Secret is in namespace monitoring. Prometheus Operator reads a ServiceMonitor's secret references from the ServiceMonitor's own namespace, so the secret may not resolve and coredns scraping could stop. I did not find a kube-system copy of the secret. The render-diff validation (vr-411bb29f72a8) returned not-run, so the concern is unanswered.",
+        "assertion": "asr-baba929e6a7d",
+        "records": [
+          "asr-baba929e6a7d",
+          "asr-c1573382a12c"
+        ],
+        "citations": [
+          "ev-a0e63a50d9de",
+          "ev-0ecaf267fe90"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "validationRequests": 1,
+        "callId": "a07e2c47-7592-43fb-9f87-048a11062815",
+        "sessionStatus": "submitted",
+        "turns": 10,
+        "toolCalls": 9,
+        "tokens": 15217
+      },
+      {
+        "changeItem": "ci-1e94c8421137",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "examined-no-concern",
+        "summary": "The kube-scheduler ServiceMonitor spec.endpoints change appears only in the chart-default (release) render. UPGRADE.md for 89.x→90.x says the control-plane ServiceMonitors now use Secret-based `authorization` and the CA from a ConfigMap instead of filesystem `bearerTokenFile` and `caFile`. The environment sets kubeScheduler.enabled: false, so the ServiceMonitor is not rendered. The environment render shows 0 changes for it, which matches. I found no consumer in this environment. This is not a mitigation and does not lower the class.",
+        "assertion": "asr-719474b8ce54",
+        "records": [
+          "asr-719474b8ce54"
+        ],
+        "citations": [
+          "ev-134699bc2522"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "callId": "2caa06d4-5207-4008-b40d-1a574bff853d",
+        "sessionStatus": "submitted",
+        "turns": 6,
+        "toolCalls": 5,
+        "tokens": 6492
+      },
+      {
+        "changeItem": "ci-1f035001bfe6",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "examined-no-concern",
+        "summary": "The ServiceMonitor kube-prometheus-stack-kube-etcd change appears only in the chart-default render (rc-e660ba1c0591). The 90.x UPGRADE note explains it: control-plane ServiceMonitors move from bearerTokenFile and caFile to Secret-based authorization and a ConfigMap CA. The environment sets kubeEtcd.enabled: false in env/platform/monitoring/values.yaml, so the object is not rendered here. The environment render has no correlated change and vr-46eeab440470 passed. This is not a mitigation claim.",
+        "assertion": "asr-f53d041c9627",
+        "records": [
+          "asr-f53d041c9627"
+        ],
+        "citations": [
+          "ev-3287ef0ddda6"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "callId": "f44f1b40-a271-46e4-9be4-7fc2defa63ce",
+        "sessionStatus": "submitted",
+        "turns": 6,
+        "toolCalls": 5,
+        "tokens": 6452
+      },
+      {
+        "changeItem": "ci-51933c83f5d4",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "examined-no-concern",
+        "summary": "The kube-proxy ServiceMonitor spec.endpoints change appears only in the chart-defaults (release-scope) render. The 90.x UPGRADE.md says control-plane ServiceMonitors move from bearerTokenFile/caFile to authorization with a Secret and the kube-root-ca.crt ConfigMap. The environment values set kubeProxy.enabled: false, and the environment-scope render shows 0 changes correlated to this item, so this ServiceMonitor should not be rendered for obs-prod-north. This is not a mitigation or a validation. I did not diff the environment render directly for the object. I did not confirm that this values file is among the Argo app's value files; only the clean environment render supports that.",
+        "assertion": "asr-9223a4b794ea",
+        "records": [
+          "asr-9223a4b794ea"
+        ],
+        "citations": [
+          "ev-2c758eb47ea4"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "callId": "a9edffd0-60a6-4bcb-a8c8-fa9b93c2c06a",
+        "sessionStatus": "submitted",
+        "turns": 6,
+        "toolCalls": 5,
+        "tokens": 9019
+      },
+      {
+        "changeItem": "ci-555bf9fefdf5",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "The 90.x upgrade replaces bearerTokenFile and tlsConfig.caFile on the apiserver ServiceMonitor with authorization.credentials (Secret kube-prometheus-stack-prometheus-token) and tlsConfig.ca.configMap (kube-root-ca.crt). That matches the UPGRADE.md note for 89.x to 90.x. In this environment's render the ServiceMonitor is in namespace default, but the new token Secret is in namespace monitoring. Prometheus Operator resolves these references in the ServiceMonitor's own namespace, so the token lookup may fail and the apiserver scrape could break. I have not confirmed this. The static-reference validation (vr-2344d971f40f) returned not-run because the item has no impact paths to check, so nothing has answered the concern yet.",
+        "assertion": "asr-d9ff00ce0364",
+        "records": [
+          "asr-1d1de290421d",
+          "asr-d9ff00ce0364"
+        ],
+        "citations": [
+          "ev-4a85a8562a28",
+          "ev-d2a42e759caa"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "validationRequests": 1,
+        "callId": "5469ebca-ab8e-486d-a9d5-3b377d409946",
+        "sessionStatus": "submitted",
+        "turns": 11,
+        "toolCalls": 10,
+        "tokens": 17999
+      },
+      {
+        "changeItem": "ci-903ca29715e3",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "The kubelet ServiceMonitor endpoints change from bearerTokenFile/caFile to authorization.credentials (Secret kube-prometheus-stack-prometheus-token) and tlsConfig.ca.configMap (kube-root-ca.crt). The UPGRADE.md 89.x to 90.x note explains the change. The new token Secret renders in namespace monitoring, while the ServiceMonitor is in kube-system. Prometheus Operator resolves these references in the ServiceMonitor's namespace, so the scrapes could fail if the Secret or ConfigMap isn't available in kube-system. A static-reference validation (vr-b92fd5b84a43) was not-run because the item has no impact paths to check, so the concern is unanswered.",
+        "assertion": "asr-a50bd25574b3",
+        "records": [
+          "asr-280fed47b266",
+          "asr-a50bd25574b3"
+        ],
+        "citations": [
+          "ev-d315c008f306"
+        ],
+        "examined": true,
+        "inspections": 2,
+        "validationRequests": 1,
+        "callId": "35b5e76e-9976-4a97-a346-66545319c27a",
+        "sessionStatus": "submitted",
+        "turns": 11,
+        "toolCalls": 10,
+        "tokens": 17593
+      },
+      {
+        "changeItem": "ci-a56630d1b23c",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "examined-no-concern",
+        "summary": "The only change is in the chart defaults. The Grafana subchart now renders a `[plugins] preinstall_auto_update = false` section in grafana.ini (rc-e45727453dad). The 89.x to 90.x UPGRADE.md covers only the control-plane ServiceMonitors and does not mention this change. In the environment render the ConfigMap kube-prometheus-stack-grafana is absent from the 'to' render (get_rendered_object found=false), and no environment change is attributable to this item. This suggests Grafana is not rendered in obs-prod-north. This is not a mitigation and does not lower any class. I did not read the environment values file to confirm that Grafana is disabled.",
+        "assertion": "asr-76f13659d5bf",
+        "records": [
+          "asr-76f13659d5bf"
+        ],
+        "citations": [
+          "ev-8c50daab647b"
+        ],
+        "examined": true,
+        "inspections": 3,
+        "callId": "7f2bd7b4-5c80-40e3-9f9b-6dddf34b2cde",
+        "sessionStatus": "submitted",
+        "turns": 8,
+        "toolCalls": 7,
+        "tokens": 10122
+      },
+      {
+        "changeItem": "ci-aaeb79bed47e",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "explains",
+        "summary": "The operator arg --secret-field-selector drops 'type!=kubernetes.io/service-account-token', so the operator now sees service-account-token Secrets. This fits the 90.x UPGRADE note that control-plane ServiceMonitors now take the bearer token from a Secret through `authorization`. No environment file sets secret-field-selector, so the chart default applies. Effect: the operator's Secret cache and watch scope widen to include SA-token Secrets. This is not harmful on its face, but I did not validate it, and the UPGRADE text does not mention the arg itself. The link rests on the rendered diff.",
+        "assertion": "asr-3dff7290e5f1",
+        "records": [
+          "asr-3dff7290e5f1"
+        ],
+        "citations": [
+          "ev-19214bf30d1f"
+        ],
+        "examined": true,
+        "inspections": 3,
+        "callId": "6493130d-7b61-4425-ab92-1776c9fb3e25",
+        "sessionStatus": "submitted",
+        "turns": 8,
+        "toolCalls": 6,
+        "tokens": 8391
+      },
+      {
+        "changeItem": "ci-ac26042a3a1c",
+        "priority": 1,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-0f8475f72a68",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-186eefc98ab9",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-1b14cf0134ba",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-1d8a464ef1b7",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-2ecd3769e47d",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-337251f802e5",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-4fafc7794273",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-5df55229fb90",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-63ebfdbffcaf",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-779e8207da5f",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-93f70f86bcd3",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-9d2d9680733c",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-b798ed2dd1af",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-f08ea0fa28f6",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      },
+      {
+        "changeItem": "ci-f8350fd0b224",
+        "priority": 2,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "beyond cap 10: no session (closed by the runner, not by the model)"
+      }
+    ],
+    "budgetRule": "item@v1: per item 16 calls, 14 turns, 150000 tokens, 1048576 bytes, 360 s (item defaults 16/14/150000/1MiB/360 s unless AgentConfig.ItemBudget sets them); cap 10 items: 10 of 26 agenda items get a session",
+    "itemCap": 10
+  },
+  "assertions": [
+    {
+      "id": "asr-018e69c391e6",
+      "changeItem": "ci-194d5b487655",
+      "stance": "raises-concern",
+      "statement": "The kubelet ServiceMonitor is rendered in namespace kube-system, and the apiserver and coredns ServiceMonitors are in default and kube-system. They reference Secret kube-prometheus-stack-prometheus-token through `authorization`. The chart creates that Secret in the monitoring namespace (rc-49f24e98534f). The upstream guide says the Secret must exist in the ServiceMonitor's namespace. If that holds here, the operator cannot resolve the credential and the kubelet, apiserver and coredns targets stop being scraped. The environment values (art-0b249a49a0db) set none of prometheus.serviceAccount.createTokenSecret, kubelet/kubeApiServer/coreDns serviceMonitor.authorization, or ignoreNamespaceSelectors, so the new defaults apply unchanged.",
+      "subjects": [
+        "gn-004906487a76",
+        "gn-25954107a7c0",
+        "gn-5456abbe51ec"
+      ],
+      "citations": [
+        "ev-7acedae3729c",
+        "ev-d102e341cabb"
+      ],
+      "noValidationReason": "Requesting override-inspection below as well.",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:01fcba076465e5828ccd14f0a2c10f62b3a9275354123adae2b1617dd4689966",
+        "inputEvidence": [
+          "ev-75ebb2851d6e",
+          "ev-7acedae3729c",
+          "ev-d102e341cabb"
+        ],
+        "generatedAt": "2026-10-16T20:09:12Z",
+        "callId": "6cc6bf52-1e09-4fa1-95a3-4218b2d11bdd",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-9b492f5c0bc7",
+      "changeItem": "ci-194d5b487655",
+      "stance": "raises-concern",
+      "statement": "The environment sets none of the settings that control this change: prometheus.serviceAccount.createTokenSecret, the per-component authorization, or ignoreNamespaceSelectors. The 90.x defaults therefore apply. The kubelet ServiceMonitor is rendered in kube-system and references Secret kube-prometheus-stack-prometheus-token. The chart creates that Secret in the monitoring namespace (rc-49f24e98534f). Upstream says the Secret must be in the ServiceMonitor's namespace, so the kubelet, apiserver and coredns scrapes may lose their credential. The override-inspection validation (vr-99475deee0c2) returned not-run, so no pin was found and the concern is unanswered. A runtime check of whether the Secret resolves from kube-system and default is still needed.",
+      "citations": [
+        "ev-7acedae3729c",
+        "ev-d102e341cabb"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:01fcba076465e5828ccd14f0a2c10f62b3a9275354123adae2b1617dd4689966",
+        "inputEvidence": [
+          "ev-75ebb2851d6e",
+          "ev-7acedae3729c",
+          "ev-d102e341cabb"
+        ],
+        "generatedAt": "2026-10-16T20:09:17Z",
+        "callId": "6cc6bf52-1e09-4fa1-95a3-4218b2d11bdd",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-25e6d6786d47",
+      "changeItem": "ci-0a5e2fb2331c",
+      "stance": "explains",
+      "statement": "The chart-default change to the kube-controller-manager ServiceMonitor spec.endpoints is explained by UPGRADE.md (89.x to 90.x). Control-plane ServiceMonitors move from bearerTokenFile/caFile to authorization from a Secret and the kube-root-ca.crt ConfigMap. This environment sets kubeControllerManager.enabled=false, so the object isn't rendered. The environment render shows ServiceMonitor changes only for apiserver, coredns and kubelet, not controller-manager. This is not a safety proof, and no validation was requested.",
+      "citations": [
+        "ev-de76c1246e40"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:48f42bb981bd42cc831419bd4b501cec7d251f733cb285219df09ffdc910331e",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-de76c1246e40"
+        ],
+        "generatedAt": "2026-10-16T20:09:29Z",
+        "callId": "8fd6c810-a711-4533-b1cd-5d9864f6ee30",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-c1573382a12c",
+      "changeItem": "ci-1871449ec07f",
+      "stance": "raises-concern",
+      "statement": "The coredns ServiceMonitor in kube-system now takes its bearer token from Secret kube-prometheus-stack-prometheus-token via authorization.credentials. The rendered Secret is in namespace monitoring. Prometheus Operator resolves SecretKeySelectors in a ServiceMonitor from the ServiceMonitor's own namespace (kube-system). The secret may therefore not be found, and coredns scraping could be dropped. I could not confirm a copy of the secret in kube-system, which needs checking.",
+      "subjects": [
+        "gn-b26933976260",
+        "gn-ceafd59c04ac"
+      ],
+      "citations": [
+        "ev-0ecaf267fe90",
+        "ev-a0e63a50d9de"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:58814a3a1fd0a0cef01715effa1e1e22e02b1ead7f44a92c819dcfdc9cacc2e5",
+        "inputEvidence": [
+          "ev-0ecaf267fe90",
+          "ev-46baa887bb1c",
+          "ev-a0e63a50d9de"
+        ],
+        "generatedAt": "2026-10-16T20:09:46Z",
+        "callId": "a07e2c47-7592-43fb-9f87-048a11062815",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-baba929e6a7d",
+      "changeItem": "ci-1871449ec07f",
+      "stance": "raises-concern",
+      "statement": "The coredns ServiceMonitor in kube-system changes from bearerTokenFile to authorization.credentials, which references Secret kube-prometheus-stack-prometheus-token. The rendered Secret is in namespace monitoring. Prometheus Operator reads a ServiceMonitor's secret references from the ServiceMonitor's own namespace, so the secret may not resolve and coredns scraping could stop. I did not find a kube-system copy of the secret. The render-diff validation (vr-411bb29f72a8) returned not-run, so the concern is unanswered.",
+      "citations": [
+        "ev-a0e63a50d9de",
+        "ev-0ecaf267fe90"
+      ],
+      "noValidationReason": "A render-diff validation was requested (vr-411bb29f72a8) and returned not-run. No validator can check namespace resolution of the secret reference against a live cluster.",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:58814a3a1fd0a0cef01715effa1e1e22e02b1ead7f44a92c819dcfdc9cacc2e5",
+        "inputEvidence": [
+          "ev-0ecaf267fe90",
+          "ev-46baa887bb1c",
+          "ev-a0e63a50d9de"
+        ],
+        "generatedAt": "2026-10-16T20:09:51Z",
+        "callId": "a07e2c47-7592-43fb-9f87-048a11062815",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-719474b8ce54",
+      "changeItem": "ci-1e94c8421137",
+      "stance": "explains",
+      "statement": "The kube-scheduler ServiceMonitor spec.endpoints change appears only in the chart-default (release) render. UPGRADE.md for 89.x→90.x says the control-plane ServiceMonitors now use Secret-based `authorization` and the CA from a ConfigMap instead of filesystem `bearerTokenFile` and `caFile`. The environment sets kubeScheduler.enabled: false, so the ServiceMonitor is not rendered. The environment render shows 0 changes for it, which matches. I found no consumer in this environment. This is not a mitigation and does not lower the class.",
+      "citations": [
+        "ev-134699bc2522"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:b7a35f2cef14f1165824ea9a9090ad99dcd5261bc7e957b37b8ebff5bb9d3b6d",
+        "inputEvidence": [
+          "ev-134699bc2522",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:10:03Z",
+        "callId": "2caa06d4-5207-4008-b40d-1a574bff853d",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-f53d041c9627",
+      "changeItem": "ci-1f035001bfe6",
+      "stance": "explains",
+      "statement": "The ServiceMonitor kube-prometheus-stack-kube-etcd change appears only in the chart-default render (rc-e660ba1c0591). The 90.x UPGRADE note explains it: control-plane ServiceMonitors move from bearerTokenFile and caFile to Secret-based authorization and a ConfigMap CA. The environment sets kubeEtcd.enabled: false in env/platform/monitoring/values.yaml, so the object is not rendered here. The environment render has no correlated change and vr-46eeab440470 passed. This is not a mitigation claim.",
+      "citations": [
+        "ev-3287ef0ddda6"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:c097433b5fcd53e7ff303e0fbf98e3ae343c970bcabd5b4c178ce9e396f44c18",
+        "inputEvidence": [
+          "ev-3287ef0ddda6",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:10:16Z",
+        "callId": "f44f1b40-a271-46e4-9be4-7fc2defa63ce",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-9223a4b794ea",
+      "changeItem": "ci-51933c83f5d4",
+      "stance": "explains",
+      "statement": "The kube-proxy ServiceMonitor spec.endpoints change appears only in the chart-defaults (release-scope) render. The 90.x UPGRADE.md says control-plane ServiceMonitors move from bearerTokenFile/caFile to authorization with a Secret and the kube-root-ca.crt ConfigMap. The environment values set kubeProxy.enabled: false, and the environment-scope render shows 0 changes correlated to this item, so this ServiceMonitor should not be rendered for obs-prod-north. This is not a mitigation or a validation. I did not diff the environment render directly for the object. I did not confirm that this values file is among the Argo app's value files; only the clean environment render supports that.",
+      "citations": [
+        "ev-2c758eb47ea4"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:940f4002f99e7bb371cd60209ed90693f721db287cab11686e49f761aa089917",
+        "inputEvidence": [
+          "ev-2c758eb47ea4",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:10:28Z",
+        "callId": "a9edffd0-60a6-4bcb-a8c8-fa9b93c2c06a",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-1d1de290421d",
+      "changeItem": "ci-555bf9fefdf5",
+      "stance": "raises-concern",
+      "statement": "The apiserver ServiceMonitor switches from bearerTokenFile/caFile to authorization.credentials (Secret kube-prometheus-stack-prometheus-token) and tlsConfig.ca.configMap (kube-root-ca.crt). In this environment's render the ServiceMonitor is in namespace \"default\" while the new token Secret is in namespace \"monitoring\". Prometheus Operator resolves these references in the ServiceMonitor's namespace, so the token Secret may not be found and the apiserver target could fail to scrape (or the config be rejected). Needs verification of the namespace mismatch.",
+      "subjects": [
+        "gn-62f82d6758b8",
+        "gn-b26933976260"
+      ],
+      "citations": [
+        "ev-4a85a8562a28",
+        "ev-d2a42e759caa",
+        "ev-1fbda3e9c534"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:0454f0b483d838331900e8c5c263c6ecc56c0d305a08d3c72f955457022fe0de",
+        "inputEvidence": [
+          "ev-1fbda3e9c534",
+          "ev-46baa887bb1c",
+          "ev-4a85a8562a28",
+          "ev-d2a42e759caa"
+        ],
+        "generatedAt": "2026-10-16T20:10:46Z",
+        "callId": "5469ebca-ab8e-486d-a9d5-3b377d409946",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-d9ff00ce0364",
+      "changeItem": "ci-555bf9fefdf5",
+      "stance": "raises-concern",
+      "statement": "The 90.x upgrade replaces bearerTokenFile and tlsConfig.caFile on the apiserver ServiceMonitor with authorization.credentials (Secret kube-prometheus-stack-prometheus-token) and tlsConfig.ca.configMap (kube-root-ca.crt). That matches the UPGRADE.md note for 89.x to 90.x. In this environment's render the ServiceMonitor is in namespace default, but the new token Secret is in namespace monitoring. Prometheus Operator resolves these references in the ServiceMonitor's own namespace, so the token lookup may fail and the apiserver scrape could break. I have not confirmed this. The static-reference validation (vr-2344d971f40f) returned not-run because the item has no impact paths to check, so nothing has answered the concern yet.",
+      "citations": [
+        "ev-4a85a8562a28",
+        "ev-d2a42e759caa"
+      ],
+      "noValidationReason": "A static-reference validation was requested (vr-2344d971f40f) and returned not-run because the item has no impact paths. No other deterministic validator covers a cross-namespace Secret reference.",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:0454f0b483d838331900e8c5c263c6ecc56c0d305a08d3c72f955457022fe0de",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-4a85a8562a28",
+          "ev-d2a42e759caa"
+        ],
+        "generatedAt": "2026-10-16T20:10:53Z",
+        "callId": "5469ebca-ab8e-486d-a9d5-3b377d409946",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-280fed47b266",
+      "changeItem": "ci-903ca29715e3",
+      "stance": "raises-concern",
+      "statement": "The kubelet ServiceMonitor in kube-system now uses authorization.credentials from Secret kube-prometheus-stack-prometheus-token and a CA from ConfigMap kube-root-ca.crt, replacing bearerTokenFile/caFile. The new Secret renders in namespace \"monitoring\" (rc-49f24e98534f), but Prometheus Operator resolves ServiceMonitor secret and configMap refs in the ServiceMonitor's own namespace (kube-system). If the Secret is not reachable there, the kubelet, cadvisor and probes scrapes fail. Check that the token Secret is populated and present in kube-system.",
+      "subjects": [
+        "gn-5456abbe51ec"
+      ],
+      "citations": [
+        "ev-d315c008f306"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:9966e1ce076db4d2709791d3e8c61f518f438f00090550e6ee3f8a8f51e97860",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-d315c008f306"
+        ],
+        "generatedAt": "2026-10-16T20:11:09Z",
+        "callId": "35b5e76e-9976-4a97-a346-66545319c27a",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-a50bd25574b3",
+      "changeItem": "ci-903ca29715e3",
+      "stance": "raises-concern",
+      "statement": "The kubelet ServiceMonitor endpoints change from bearerTokenFile/caFile to authorization.credentials (Secret kube-prometheus-stack-prometheus-token) and tlsConfig.ca.configMap (kube-root-ca.crt). The UPGRADE.md 89.x to 90.x note explains the change. The new token Secret renders in namespace monitoring, while the ServiceMonitor is in kube-system. Prometheus Operator resolves these references in the ServiceMonitor's namespace, so the scrapes could fail if the Secret or ConfigMap isn't available in kube-system. A static-reference validation (vr-b92fd5b84a43) was not-run because the item has no impact paths to check, so the concern is unanswered.",
+      "citations": [
+        "ev-d315c008f306"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:9966e1ce076db4d2709791d3e8c61f518f438f00090550e6ee3f8a8f51e97860",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-d315c008f306"
+        ],
+        "generatedAt": "2026-10-16T20:11:17Z",
+        "callId": "35b5e76e-9976-4a97-a346-66545319c27a",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-76f13659d5bf",
+      "changeItem": "ci-a56630d1b23c",
+      "stance": "explains",
+      "statement": "The only change is in the chart defaults. The Grafana subchart now renders a `[plugins] preinstall_auto_update = false` section in grafana.ini (rc-e45727453dad). The 89.x to 90.x UPGRADE.md covers only the control-plane ServiceMonitors and does not mention this change. In the environment render the ConfigMap kube-prometheus-stack-grafana is absent from the 'to' render (get_rendered_object found=false), and no environment change is attributable to this item. This suggests Grafana is not rendered in obs-prod-north. This is not a mitigation and does not lower any class. I did not read the environment values file to confirm that Grafana is disabled.",
+      "citations": [
+        "ev-8c50daab647b"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:1fb3a6be8f4a8e82df2e40ff53e78c8c79981a1434cc5756770816c003e120d0",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-8c50daab647b"
+        ],
+        "generatedAt": "2026-10-16T20:11:37Z",
+        "callId": "7f2bd7b4-5c80-40e3-9f9b-6dddf34b2cde",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-3dff7290e5f1",
+      "changeItem": "ci-aaeb79bed47e",
+      "stance": "explains",
+      "statement": "The operator arg --secret-field-selector drops 'type!=kubernetes.io/service-account-token', so the operator now sees service-account-token Secrets. This fits the 90.x UPGRADE note that control-plane ServiceMonitors now take the bearer token from a Secret through `authorization`. No environment file sets secret-field-selector, so the chart default applies. Effect: the operator's Secret cache and watch scope widen to include SA-token Secrets. This is not harmful on its face, but I did not validate it, and the UPGRADE text does not mention the arg itself. The link rests on the rendered diff.",
+      "citations": [
+        "ev-19214bf30d1f"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:8a80e5721e8b8ed8c6ad43999a6ea519c9aa24014de570cf048efeec1fe3e7d7",
+        "inputEvidence": [
+          "ev-19214bf30d1f",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:11:55Z",
+        "callId": "6493130d-7b61-4425-ab92-1776c9fb3e25",
+        "provider": "anthropic"
+      }
+    }
+  ],
+  "validationRequests": [
+    {
+      "id": "vrq-8e51659a2129",
+      "changeItem": "ci-194d5b487655",
+      "kind": "override-inspection",
+      "subjects": [
+        "gn-004906487a76",
+        "gn-25954107a7c0"
+      ],
+      "status": "fulfilled",
+      "result": "vr-99475deee0c2",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:01fcba076465e5828ccd14f0a2c10f62b3a9275354123adae2b1617dd4689966",
+        "inputEvidence": [
+          "ev-75ebb2851d6e"
+        ],
+        "generatedAt": "2026-10-16T20:09:13Z",
+        "callId": "6cc6bf52-1e09-4fa1-95a3-4218b2d11bdd",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "vrq-c9b1edb4e923",
+      "changeItem": "ci-1871449ec07f",
+      "kind": "render-diff",
+      "subjects": [
+        "gn-b26933976260",
+        "gn-ceafd59c04ac"
+      ],
+      "answers": [
+        "asr-c1573382a12c"
+      ],
+      "status": "fulfilled",
+      "result": "vr-411bb29f72a8",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:58814a3a1fd0a0cef01715effa1e1e22e02b1ead7f44a92c819dcfdc9cacc2e5",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-fab09e8d2a27"
+        ],
+        "generatedAt": "2026-10-16T20:09:48Z",
+        "callId": "a07e2c47-7592-43fb-9f87-048a11062815",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "vrq-ba4ad52f6d11",
+      "changeItem": "ci-555bf9fefdf5",
+      "kind": "static-reference",
+      "subjects": [
+        "gn-62f82d6758b8",
+        "gn-b26933976260"
+      ],
+      "answers": [
+        "asr-1d1de290421d"
+      ],
+      "status": "fulfilled",
+      "result": "vr-2344d971f40f",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:0454f0b483d838331900e8c5c263c6ecc56c0d305a08d3c72f955457022fe0de",
+        "inputEvidence": [
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:10:48Z",
+        "callId": "5469ebca-ab8e-486d-a9d5-3b377d409946",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "vrq-3ef532ae9eca",
+      "changeItem": "ci-903ca29715e3",
+      "kind": "static-reference",
+      "subjects": [
+        "gn-5456abbe51ec"
+      ],
+      "answers": [
+        "asr-280fed47b266"
+      ],
+      "status": "fulfilled",
+      "result": "vr-b92fd5b84a43",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v4",
+        "promptDigest": "sha256:9966e1ce076db4d2709791d3e8c61f518f438f00090550e6ee3f8a8f51e97860",
+        "inputEvidence": [
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T20:11:11Z",
+        "callId": "35b5e76e-9976-4a97-a346-66545319c27a",
+        "provider": "anthropic"
+      }
+    }
+  ],
+  "validations": [
+    {
+      "id": "vr-99475deee0c2",
+      "validator": "validate.override-inspection@v1",
+      "kind": "override-inspection",
+      "level": "deterministic",
+      "changeItem": "ci-194d5b487655",
+      "subjects": [
+        "gn-004906487a76",
+        "gn-25954107a7c0"
+      ],
+      "property": "An explicit setting in the environment pins the old behaviour, so the item does not reach it (From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns…)",
+      "inputs": null,
+      "outcome": "not-run",
+      "detail": "no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts):\n- no verified fact is attached to the item",
+      "request": "vrq-8e51659a2129",
+      "provenance": {
+        "method": "computed",
+        "producer": "validate.override-inspection@v1",
+        "rule": "pin:no-rule",
+        "confidence": "high"
+      },
+      "checkedAt": "2026-10-16T20:09:13Z"
+    },
+    {
+      "id": "vr-411bb29f72a8",
+      "validator": "validate.render-diff@v1",
+      "kind": "render-diff",
+      "level": "deterministic",
+      "changeItem": "ci-1871449ec07f",
+      "subjects": [
+        "gn-b26933976260",
+        "gn-ceafd59c04ac"
+      ],
+      "renderedChanges": [
+        "rc-566829f890c0"
+      ],
+      "property": "The item's effect does not reach the environment's rendered configuration (field-changed: monitoring.coreos.com/v1/ServiceMonitor/kube-prometheus-stack/kube-prometheus-stack-coredns spec.endpoints (not mentioned by any change))",
+      "inputs": null,
+      "outcome": "not-run",
+      "detail": "the item is not breaking (scope:rendered-unexplained), but its effect reaches the rendered deployment; a render cannot say whether that is harmless, nor name a concrete failure:\n- rc-566829f890c0 field-changed monitoring.coreos.com/v1/ServiceMonitor/kube-system/kube-prometheus-stack-coredns spec.endpoints (sensitive; values withheld) [correlation release-anchor]",
+      "answers": [
+        "asr-c1573382a12c"
+      ],
+      "request": "vrq-c9b1edb4e923",
+      "provenance": {
+        "method": "computed",
+        "producer": "validate.render-diff@v1",
+        "rule": "render-diff:undecided",
+        "confidence": "high"
+      },
+      "checkedAt": "2026-10-16T20:09:48Z"
+    },
+    {
+      "id": "vr-2344d971f40f",
+      "validator": "validate.static-reference@v1",
+      "kind": "static-reference",
+      "level": "deterministic",
+      "changeItem": "ci-555bf9fefdf5",
+      "subjects": [
+        "gn-62f82d6758b8",
+        "gn-b26933976260"
+      ],
+      "property": "References along the item's impact paths still resolve after the upgrade",
+      "inputs": null,
+      "outcome": "not-run",
+      "detail": "the item has no impact paths to check",
+      "answers": [
+        "asr-1d1de290421d"
+      ],
+      "request": "vrq-ba4ad52f6d11",
+      "provenance": {
+        "method": "computed",
+        "producer": "validate.static-reference@v1",
+        "rule": "reference:no-paths",
+        "confidence": "high"
+      },
+      "checkedAt": "2026-10-16T20:10:48Z"
+    },
+    {
+      "id": "vr-b92fd5b84a43",
+      "validator": "validate.static-reference@v1",
+      "kind": "static-reference",
+      "level": "deterministic",
+      "changeItem": "ci-903ca29715e3",
+      "subjects": [
+        "gn-5456abbe51ec"
+      ],
+      "property": "References along the item's impact paths still resolve after the upgrade",
+      "inputs": null,
+      "outcome": "not-run",
+      "detail": "the item has no impact paths to check",
+      "answers": [
+        "asr-280fed47b266"
+      ],
+      "request": "vrq-3ef532ae9eca",
+      "provenance": {
+        "method": "computed",
+        "producer": "validate.static-reference@v1",
+        "rule": "reference:no-paths",
+        "confidence": "high"
+      },
+      "checkedAt": "2026-10-16T20:11:11Z"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "art-f8e7bc6cccb8",
+      "kind": "agent-transcript",
+      "mediaType": "application/x-ndjson",
+      "digest": "sha256:e87fd9f7765cf26959afe9f063da0268702629e386ee25f004deba929f9b826a",
+      "size": 79177,
+      "path": "derived/agent/cc0e617c6692/transcript.jsonl",
+      "origin": "derived",
+      "uri": "ri:investigate.agent@v1",
+      "producer": "investigate.agent@v1",
+      "tags": [
+        "agent-transcript",
+        "claude-cli",
+        "claude-sonnet-5-5"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-0ecaf267fe90",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "ServiceMonitor/kube-system/kube-prometheus-stack-coredns spec.endpoints",
+      "excerpt": "name: kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-134699bc2522",
+      "kind": "local-file",
+      "sourceId": "art-0b249a49a0db",
+      "uri": "platform/monitoring/values.yaml",
+      "locator": "env/platform/monitoring/values.yaml",
+      "excerpt": "kubeScheduler:\n  enabled: false",
+      "contentDigest": "sha256:522a06191604c56aa48d6773ccafcf9bacd07e73873cc512556dca450dcc3b8b"
+    },
+    {
+      "id": "ev-19214bf30d1f",
+      "kind": "rendered-diff",
+      "sourceId": "art-29626b19ca92",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/diff.json",
+      "locator": "line 216",
+      "excerpt": "--secret-field-selector=type!=kubernetes.io/dockercfg,type!=helm.sh/release.v1",
+      "contentDigest": "sha256:a89bb1fd14386ca5a2e00bd82fb824ed7243a5da8e3be83813bf69417ea0468f"
+    },
+    {
+      "id": "ev-1fbda3e9c534",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "ServiceMonitor spec.endpoints",
+      "excerpt": "name: kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-2c758eb47ea4",
+      "kind": "local-file",
+      "sourceId": "art-0b249a49a0db",
+      "uri": "platform/monitoring/values.yaml",
+      "locator": "env/platform/monitoring/values.yaml",
+      "excerpt": "kubeProxy:\n  enabled: false",
+      "contentDigest": "sha256:522a06191604c56aa48d6773ccafcf9bacd07e73873cc512556dca450dcc3b8b"
+    },
+    {
+      "id": "ev-3287ef0ddda6",
+      "kind": "local-file",
+      "sourceId": "art-0b249a49a0db",
+      "uri": "platform/monitoring/values.yaml",
+      "locator": "values.yaml kubeEtcd",
+      "excerpt": "kubeEtcd:\n  enabled: false",
+      "contentDigest": "sha256:522a06191604c56aa48d6773ccafcf9bacd07e73873cc512556dca450dcc3b8b"
+    },
+    {
+      "id": "ev-4a85a8562a28",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "ServiceMonitor default/kube-prometheus-stack-apiserver metadata",
+      "excerpt": "namespace: default",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-7acedae3729c",
+      "kind": "document",
+      "sourceId": "art-b5ced75b1ff9",
+      "uri": "https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-90.0.0/charts/kube-prometheus-stack/UPGRADE.md",
+      "locator": "UPGRADE.md 89.x to 90.x",
+      "excerpt": "The Secret must exist in the namespace of the ServiceMonitor",
+      "contentDigest": "sha256:4e84eda679fca6edb73c60a85425cb548e243c6d207bff37dcb1b861e2ab0109"
+    },
+    {
+      "id": "ev-8c50daab647b",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "to render",
+      "excerpt": "kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-a0e63a50d9de",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "Secret/monitoring/kube-prometheus-stack-prometheus-token",
+      "excerpt": "namespace: monitoring",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-d102e341cabb",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "ServiceMonitor/kube-system/kube-prometheus-stack-kubelet spec.endpoints",
+      "excerpt": "name: kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-d2a42e759caa",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "Secret monitoring/kube-prometheus-stack-prometheus-token",
+      "excerpt": "namespace: monitoring",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-d315c008f306",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "locator": "ServiceMonitor kube-system/kube-prometheus-stack-kubelet spec.endpoints",
+      "excerpt": "name: kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-de76c1246e40",
+      "kind": "local-file",
+      "sourceId": "art-0b249a49a0db",
+      "uri": "platform/monitoring/values.yaml",
+      "locator": "env/platform/monitoring/values.yaml L9-10",
+      "excerpt": "kubeControllerManager:\n  enabled: false",
+      "contentDigest": "sha256:522a06191604c56aa48d6773ccafcf9bacd07e73873cc512556dca450dcc3b8b"
+    }
+  ],
+  "answerLinks": [
+    {
+      "validation": "vr-411bb29f72a8",
+      "request": "vrq-c9b1edb4e923",
+      "assertions": [
+        "asr-c1573382a12c"
+      ]
+    },
+    {
+      "validation": "vr-2344d971f40f",
+      "request": "vrq-ba4ad52f6d11",
+      "assertions": [
+        "asr-1d1de290421d"
+      ]
+    },
+    {
+      "validation": "vr-b92fd5b84a43",
+      "request": "vrq-3ef532ae9eca",
+      "assertions": [
+        "asr-280fed47b266"
+      ]
+    }
+  ]
+}
