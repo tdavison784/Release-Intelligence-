@@ -70,8 +70,11 @@ type SessionConfig struct {
 	Report      *domain.ImpactReport
 	Validations []domain.ValidationRecord // the deterministic pass before the agent
 	Validators  []investigate.Validator
-	Budget      domain.AgentBudget
-	Prompt      *Prompt
+	// RunArtifacts are artifacts of the investigation beyond the bundle
+	// (validator outputs, an earlier transcript) the session may serve.
+	RunArtifacts []domain.ArtifactRef
+	Budget       domain.AgentBudget
+	Prompt       *Prompt
 	// PromptDigest pins the rendered prompt the session serves.
 	PromptDigest string
 	// Model is the requested model (the transcript header names it).
@@ -144,6 +147,9 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
+	}
+	for _, a := range cfg.RunArtifacts {
+		s.addRunArtifact(a)
 	}
 	for _, it := range b.Change.Items {
 		s.items[it.ID] = it
