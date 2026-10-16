@@ -139,7 +139,87 @@ Coverage on the groundtruth environments (8 cases) is recorded in
 
 ## Validators
 
-(lane validate)
+Package `internal/investigate/validate` (DESIGN.md §2.6, §3.1, §7). Five `investigate.Validator`s turn the
+bundle, the traversal and the deterministic join into `ValidationRecord`s. Every record is at level
+`deterministic` and states its outcome relative to the **safety property** of (item, subjects): `pass` =
+demonstrably not reached / not broken, `fail` = demonstrably reached **and** breaking, `error` = the validator
+broke, `not-run` = it could not decide, with the reason. **A validator that cannot decide never passes.** No
+validator calls a model; agent assertions are never inputs.
+
+| Constructor | Name | Kind | Applies | Decides |
+|---|---|---|---|---|
+| `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
+| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs |
+| `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
+| `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
+| `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references along the impact paths after the upgrade |
+
+Options: `WithStore(st)` (read artifact bytes — renders, environment files, the upgrade edge, knowledge facts;
+without it a validator that needs bytes is `not-run`), `WithFacts(facts…)` (verified facts the wiring loaded from
+`knowledge/`), `WithReportArtifact(id)` (cite the impact report as an input), `WithClock`. Invalid input (no
+bundle, unknown item, a requested path or rendered change that is not the item's) is an error wrapping
+`investigate.ErrNotFound` / `ErrRejected`, never a record.
+
+**Coverage.** A record speaks for the requested subjects/paths, or — with none requested — for every root and
+path of the item. An item-wide result (a silent complete render, a universal pin, an in-range cluster) claims all
+of them; an object-level result (schema-compat, static-reference) claims the nodes and paths of the objects it
+checked. Render pairs with status `not-applicable` (a target that does not deploy the product) are no render of
+it and are ignored; any `partial`/`unavailable` pair makes the render incomplete.
+
+**JoinVerdicts** — at most one record per item, for the item as a whole (no subjects): any `action-required`
+finding of the item's change (incl. `impact:render-target-rejects`; a model-consensus fact is labelled as such)
+→ `fail`; every finding `not-affected`, deterministic, with checks, from a trusted fact when one is involved →
+`pass`; all not-affected but one rests on no render (`impact:values-default-unrendered`, or a render check
+`unavailable`) → `not-run`; review-required / informational / unknown or a mix → no record. Record kind follows the
+evidence that decided it (render → render-diff, CRD/API/cluster → schema-compat, else override-inspection).
+
+**RenderDiff** — `fail` only for a *breaking* item (§1.3: declared, computed-breaking, rendered-structural)
+whose environment rendered change is correlated by a rule that ties it to the item's effect (`subject`,
+`values-default`, `artifact`, `release-anchor`, or the item is that change), on a path that is not CRD description
+text; complete pairs decide. `pass` only for a `rendered-config` item when every pair is complete and nothing is
+attributable — or only CRD description text, which is shown harmless and cited. Never a pass for
+`controller-behaviour`/`unknown` items (render silence proves nothing), never a fail for `scope:category` /
+`scope:rendered-unexplained` items (no concrete failure named); text-mention correlations decide nothing.
+
+**OverrideInspection** — establishes an explicit environment setting that pins the old behaviour and records
+it as the pass's `PinnedSetting` (kind, subject, path, value, the rendered object it lands in, environment
+evidence) — the only deterministic validation that clears a behaviour item (`ClearsBehaviour`). Which setting
+pins which behaviour is never guessed; it comes from a declarative, release-level **pin rule**, cited in the
+record (rule id in the provenance, source in the detail):
+
+| Rule | Source | Setting |
+|---|---|---|
+| `pin:join-pinned@v1` | the join's own pinned verdict on a computed default change (`impact:values-pinned`, `impact:crd-default-pinned`), with no other non-clear finding of the change | the values keys (every changed key) / the field on every resource; objects only the environment render shows must set it too |
+| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
+| `pin:knowledge-exposure@v1` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` | the explicit setting / one of `V` |
+
+The setting must hold **everywhere it matters**: in every complete environment render target (controller flags,
+env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every visible object of the kind
+(environment files and rendered objects). A setting that is absent, set only on some objects or installs, set only
+after the upgrade to a non-old value, or changed across it is never a pass; neither is any rule from a consensus
+or proxy fact, an incomplete render, a partially collected input, or an unparsable environment file that may
+declare objects of the kind. Facts come from the bundle's `knowledge-fact` artifacts related to the item and from
+`WithFacts` (attached through the report's knowledge findings or `impact.AttachedChanges`).
+
+**SchemaCompat** — compatibility items: the snapshot's Kubernetes version against the target constraint
+(`upgrade.EvaluatePlatformConstraint`; anchors `<platform>` or `<platform>/<kind>`): inside → `pass`; outside a
+supported/minimum/chart-kubeVersion range → `fail`; outside a *tested* range, other platforms, no cluster version →
+`not-run`. API-schema items anchored on a computed CRD change (`impact.CRDIdentity` scopes the kind exactly as
+the join): every visible object of the kind (environment files + environment to-renders) against the change —
+removed CRD/version still used, removed field set, removed enum value used, newly required field omitted (parent
+present), value of the old type → `fail`; all compatible with complete inputs → `pass` for those objects. Default,
+storage and additive changes → `not-run`; no visible object → `not-run` (absence in a repository is not proof).
+
+**StaticReference** — on the item's paths: an edge whose provider the target render no longer renders
+(`resource-removed`) while its consumer survives unchanged → `fail` (dangling reference, named); every edge
+established, no placeholder, no provider removed → `pass` for those paths. Unresolved edges, placeholders, a
+truncated traversal, an incomplete render or a root-only path → `not-run`. The property is references only: it
+never clears a behaviour item and never passes a `scope:rendered-unexplained` item.
+
+Tests: `go test ./internal/investigate/validate` (synthetic bundles of a fictional product; every output is
+checked with `Investigation.ValidateAgainst`). Real bundles from the groundtruth inputs (bundle + renderdiff +
+relations, offline): `RI_VALIDATE_STATE=<warm .ri> go test ./internal/investigate/validate -run Groundtruth -v`
+(`RI_VALIDATE_VERBOSE=1` logs every record).
 
 ## Relationships
 
