@@ -58,6 +58,9 @@ func (p appPipeline) EnrichedImpact(ctx context.Context, product, from, to strin
 // against the real pipeline, with regression detection against eval/results,
 // hard gates (eval/gates.yaml) and — opt-in — AI-suggestion scoring.
 func (c *cli) eval(args []string) error {
+	if rest, ok := hasFlag(args, "investigations"); ok {
+		return c.evalInvestigations(rest) // Phase 4: eval_investigations.go
+	}
 	fs := c.flags("eval", "[entries...]  # case ids under eval/cases")
 	output := fs.String("o", "text", "output format: text|json")
 	update := fs.Bool("update", false, "rewrite the stored results under eval/results after review (never the expectations)")

@@ -862,3 +862,49 @@ their repo-relative paths): the same content in another checkout, path or commit
 enclosing commit, dirty flag, remote and checkout path are provenance recorded in the `build-snapshot` audit event, not in the bundle.
 A loader warning that a non-semver version (a branch) was found counts as a collection gap only when it concerns the product under
 investigation; for another product's deployment it is recorded as a `note:` on the repo input.
+
+## Evaluation
+
+`ri eval -investigations` scores the investigation pipeline against the blind ground truth in
+`eval/investigations/` (format: `eval/investigations/FORMAT.md`; design: DESIGN.md §6). For every case it
+builds the request from `input.yaml` + `env/` only (the pipeline never sees `expected.yaml`), runs the same
+in-process pipeline as `ri investigate` with its store in a temporary directory (`-work DIR` keeps it), and
+scores the stored run record:
+
+- **Item decisions** — one per (case, expected item). The item's `match` alternatives select the system's
+  in-scope change items (subject = substring of the item's subjects; text = RE2 over the title and the
+  upstream change detail); several → the strongest class decides and all are listed; none →
+  `insufficient-evidence` and an `itemMatchMiss`.
+- **Metrics** — every DESIGN §6.2 metric (falseNegativeRate, unsafeEligibilityRate, falsePositiveRate,
+  affectedDetection/Confirmation, notAffectedConfirmation, exposureRecall, evidenceCoverage,
+  citationResolution, unresolvedRate, observedAgreement, reproducibility, pipelineFailures, human-review and
+  eligibility rates), each with numerator/denominator, and split per finding basis
+  (`deterministic`/`observed`/`none`), per manifestation and per expected verification.
+- **Gates** — `eval/investigations/gates.yaml` (frozen). A gate whose denominator is below its `minSample`
+  (or 0/0) is `INSUFFICIENT-DATA`: printed as such, never a pass, and a FAIL for the autonomy criteria. The
+  command exits non-zero unless every gate passes.
+- **Reproducibility** — the stored records are re-classified (`classify.New()`) and must reproduce the
+  findings and decision byte for byte.
+
+```
+ri -state <cache> -offline eval -investigations                    # arm A: deterministic only
+ri eval -investigations -case <id>[,<id>] -o json                   # a subset, JSON score
+ri eval -investigations -save                                       # keep results/<run-id>/ (never overwritten)
+ri eval -investigations -agent -agent-driver claude-cli -agent-model claude-sonnet-5-5 -save   # arm B
+ri eval -investigations -runtime -save                                  # arm C: + observed validation (one
+                                                                       # throwaway kind cluster per case, deleted after)
+ri eval -investigations -agent -agent-driver replay -agent-replay-dir eval/investigations/results/<B run>   # replay B offline
+ri eval -investigations -rescore eval/investigations/results/<run-id>   # re-classify + re-score a stored run offline
+```
+
+A stored run (`eval/investigations/results/<run-id>/`) holds, uncompressed, `run.json` (arm, binary commit
+and dirty flag, configuration, per-case input/env/expected digests, investigation and bundle ids, record
+digests), `score.json` (decisions, metrics, splits, gates), `gates.json` (gate states + autonomy at a
+glance) and `report.txt`; the bulky per-case records — `request.json`, `investigation.json`, `bundle.json`,
+`graph.json`, `impact-report.json`, `changes.json` (+ `transcript.jsonl` when the agent ran) under
+`cases/<id>/` — live in one deterministic `cases.tar.gz` (sorted entries, zero times, gzip -9), enough to
+re-score offline. `-rescore` and the replay driver read the archive transparently (the legacy uncompressed
+`cases/` directory is still read); `ri eval -investigations -pack <run dir>` converts a legacy run, checking
+every file byte for byte before removing `cases/`.
+Scored runs are kept, never overwritten or cherry-picked; the analysis is
+`docs/phase4/env-impact/EVAL-REPORT.md`.
