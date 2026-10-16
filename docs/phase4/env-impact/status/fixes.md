@@ -7,7 +7,7 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
 ## Done
 - Lane setup: brief + FLEET + wave preambles + EVAL-REPORT §5 + status/eval.md read; baseline
   `go build ./...` + `go vet` green.
-- Fix 1 core implemented (NOT yet committed at this checkpoint; working tree holds it):
+- Fix 1 (layered values files, EVAL-REPORT §5.1a) COMPLETE, commit a638c39a; full build/vet/test green.
   - `internal/env/valuesmerge.go` (new): `valuesMerge` — layered Helm coalesce (later source overrides
     earlier per key; mappings deep-merge; any other leaf replaces the subtree below its path), one
     effective `ValuesKey` per path with evidence from the file/line that set it; `valuesContainerPaths` /
@@ -16,32 +16,43 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
     under maxValuesKeys + image extraction from the MERGED keys — repository/tag siblings may come from
     different layers, as Helm merges them).
   - `internal/env/env.go`: layering warning at old L428 REMOVED; `loadValuesFiles` feeds the merge;
-    `finalizeValues` called after manifests load (inline Argo/Flux/parameter values apply after files, as
-    Helm/Argo/Flux apply them); `Supplied.Values` now also true for inline-only values
-    (`len(values.eff) > 0`) — a repo whose values are only Argo/Flux inline no longer reads "no Helm values
-    supplied"; values health: a values reference that could not be collected (`valuesNamed`) is
-    supplied-with-gap (partial), never absent, and deliberately does NOT count as visibility.
+    `finalizeValues` called after manifests load; `Supplied.Values` now also true for inline-only values;
+    values health: a values reference that could not be collected (`valuesNamed`) is supplied-with-gap
+    (partial), never absent, and deliberately does NOT count as visibility. New loader fields
+    `argoValueFiles` / `helmfileValues`.
   - `internal/env/installed.go`: `inlineValues` + `parametersToValues` route through the merge (inline
     wins over files; parameter value-mappings deep-merge).
   - `internal/env/repo.go`: helmfile values reference that is missing → warning + `valuesNamed`;
-    `orderValuesFiles` — values inputs ordered as the repo's config applies them (Argo helm.valueFiles
-    list order first, then name-convention alphabetical, then helmfile list order);
-    `argoValueFilesOf` — collects Argo `helm.valueFiles` ($ref/ paths resolved against repo root, mirroring
-    internal/render/source.go) in list order, adds files the name convention misses, warns on missing refs.
-  - Tests: `internal/env/valuesmerge_test.go` (new: deep-merge, leaf/map replacement, merge keys, merged
-    images, missing helmfile ref), repo_test.go trio rewritten for merge semantics, bundle
-    `TestSnapshotLayeredValuesFilesAreComplete` (gitops-repo input OK + merged facts), app/cmd e2e
-    assertions updated, impact goldens regenerated (9 keys → 6 effective, warning line gone — reviewed).
-  - Full `go build ./... && go vet ./... && go test ./...` was GREEN before the Argo-ordering addition.
+    `orderValuesFiles` (Argo valueFiles list order → name-convention alphabetical → helmfile list order);
+    `argoValueFilesOf` collects Argo `helm.valueFiles` ($ref/ paths resolved against repo root, mirroring
+    internal/render/source.go) in list order, collects referenced files the name convention misses, and
+    warns on missing refs.
+  - Tests: `internal/env/valuesmerge_test.go` new (deep-merge, leaf/map replacement, merge keys, merged
+    images, missing helmfile ref, Argo list-order precedence incl. non-convention filename, missing
+    $values ref), repo_test.go trio rewritten for merge semantics, bundle
+    `TestSnapshotLayeredValuesFilesAreComplete` (gitops-repo input CollectionOK + merged facts with list
+    order beating alphabetical), app/cmd e2e assertions updated, impact goldens regenerated
+    (9 keys → 6 effective, warning line gone — reviewed).
 
-## In progress (exact next step)
-- Finish fix 1's Argo ordering: ADD loader fields `argoValueFiles []string` and `helmfileValues []string`
-  to the loader struct in `internal/env/env.go` (orderValuesFiles/argoValueFilesOf in repo.go already
-  reference them — **the tree does NOT compile until the fields exist**); change `discHelmfile` to append
-  to `l.helmfileValues` instead of `*vals`; fix `TestSnapshotLayeredValuesFilesAreComplete` to use an
-  Argo Application with `valueFiles: [$values/...base, $values/...prod]` (list order must beat
-  alphabetical); add an env test for Argo list-order precedence + missing `$values/` reference warning;
-  run full suite; commit fix 1.
+  Behaviour changes (all generic, each with its why):
+  - Layering no longer warns and no longer degrades the values dimension → gitops-repo input can be
+    CollectionOK for repos that layer values files (the §5.1a symptom). Why: layering is the documented,
+    supported shape of every gitops tool; the effective values are fully derivable from the layers.
+  - One effective key per path (was: one key per file per path, "last file wins" per key only by
+    accident of load order). Why: Helm coalesces; downstream rules (values-pinned etc.) must see the
+    effective value, and provenance must name the layer that actually set it.
+  - Effective values apply in config order (Argo list order beats alphabetical). Why: Helm's -f order is
+    the application order; an alphabetical walk can invert override direction.
+  - Images come from the merged set only (was: per-file scan → stale refs from overridden layers).
+    Why: Helm never applies the overridden layer's image.
+  - Referenced-but-missing values file (helmfile or Argo `$values/`): warning with reason, values
+    partial, no visibility claim. Why: fail-closed — a file the config names but we cannot read is a
+    collection gap, not silence.
+  - Inline Argo/Flux-only values now count as `Supplied.Values`. Why: values visibility is about content
+    presence, not file presence.
+
+## In progress
+- (nothing — between fixes)
 
 ## Not started
 - Fix 2 (run-record reproducibility: ImpactReport embeds evidence `retrievedAt`; two identical runs must
@@ -75,9 +86,14 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
 - none.
 
 ## Test status
-- Full suite green pre-Argo-ordering; tree currently mid-edit (see In progress).
+- Full `go build ./... && go vet ./... && go test ./...` green at fix-1 commit a638c39a.
 
 ## GLM handoff log
 - (session start) Resumed from brief + commander routing (commit 3729ab10); no prior lane status file
   existed. Began with fix 1.
 - (checkpoint) Context 82%: status committed mid-fix-1 as above; next agent resumes at "In progress".
+- Fix 1 finished and committed (a638c39a) after the checkpoint: loader fields added, discHelmfile moved to
+  helmfileValues, Argo list-order tests (env + bundle) added, full suite green. Next: fix 2
+  (retrievedAt reproducibility) — start by locating where the ImpactReport artifact embeds `retrievedAt`
+  (grep `retrievedAt` in internal/investigate + internal/app) and how bundle CreatedAt was kept out of
+  identified content (prior art).
