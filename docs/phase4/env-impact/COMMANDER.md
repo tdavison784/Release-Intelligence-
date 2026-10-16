@@ -47,7 +47,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab + 43dad6f9; follow-up: prompt v4 per-item sessions + live run 4 (same obs-north input) |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
-| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab + e6474142 + 52300485; follow-up: Argo/Flux multi-source version attribution in internal/env, ProposedNodes |
+| orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
+| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | (tab, see herdr) | wave 3, started 15:02: harness + arm A now; B after agent v4; C after runtime |
 | runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -106,6 +107,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 e6474142 orchestrate2 follow-ups: classify.New() wired, devstubs deleted, kustomize build status in snapshot, --agent-driver scripted, CreatedAt determinism; live e2e on :7299 (payments-eu, real classify, scripted agent): 18 findings (2 affected / 9 potentially / 7 insufficient), human approval via CLI. validate/common.go conflict = identical fix from classify, kept one. Green.
 - 2026-10-16 52300485 orchestrate2: ApplyAnswerLinks before classify; loader-warning gap only for the product under investigation (EnvironmentInputs.Product); bundle identity = env-subtree tree digest + repo-relative paths, provenance in audit detail (TestSnapshotAndBundleIdenticalAcrossCheckouts). Found: env loader attributes an Argo values-ref source's targetRevision 'main' to the product version → follow-up. Green.
 - 2026-10-16 43dad6f9 agent v3: D1 (explains/examined-no-concern only after get_change_item + item-unique citation), D2 (behaviour concerns need request_validation or reason), depth fields in coverage. Live run 3 (kps obs-north, v3, 12 calls / 58k tokens): 26/26 closed, 2 examined, 16 not-examined, 10 concerns (9 resting on one item), 1 validation request (not-run). Green.
+- 2026-10-16 8e602992 orchestrate2 final: Argo multi-source values-ref sources never carry the product version (payments envs: cert-manager v1.17.2, repo input ok with a note); Flux pinned by test; agent ProposedNodes via agent.MergeGraph. No golden/eval changes. Lane complete, cleaned up (tab w1:t18).
 
 ## Open questions for the user
 
