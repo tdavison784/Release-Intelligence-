@@ -37,6 +37,13 @@ const (
 	AnnotationAdded       ChangeClass = "annotation-added"
 	AnnotationRemoved     ChangeClass = "annotation-removed"
 	AnnotationChanged     ChangeClass = "annotation-changed"
+	// CRDDescriptionChanged is a difference of OpenAPI description text
+	// inside a CustomResourceDefinition's schema (added, removed or
+	// reworded): it documents the API for humans — kubectl shows it,
+	// nothing configures by it. One class covers every presence shape, the
+	// way image-changed does: the semantics are "this schema node's
+	// documentation differs", never an effect on rendered configuration.
+	CRDDescriptionChanged ChangeClass = "crd-description-changed"
 )
 
 // ChangeClasses lists every class.
@@ -45,6 +52,7 @@ var ChangeClasses = []ChangeClass{
 	RBACPermissionAdded, RBACPermissionRemoved, ServicePortAdded, ServicePortRemoved, ServicePortChanged,
 	ContainerArgAdded, ContainerArgRemoved, ContainerArgChanged, EnvVarAdded, EnvVarRemoved, EnvVarChanged,
 	LabelAdded, LabelRemoved, LabelChanged, AnnotationAdded, AnnotationRemoved, AnnotationChanged,
+	CRDDescriptionChanged,
 }
 
 // Presence is the contract-level shape of a change at its path: what the
@@ -382,6 +390,12 @@ func (d *differ) value(path, pattern string, a, b any) {
 // then the generic recursion.
 func (d *differ) keyed(path, pattern, key string, a, b any) {
 	if reflect.DeepEqual(a, b) {
+		return
+	}
+	if key == "description" && d.kind == "CustomResourceDefinition" && strings.Contains(pattern, "openAPIV3Schema") {
+		// OpenAPI description text inside a CRD schema documents the API;
+		// it configures nothing (crd-description-changed, not field-*).
+		d.emit(Change{Class: CRDDescriptionChanged, Path: path, Pattern: pattern, Name: key, Before: enc(a), After: enc(b)})
 		return
 	}
 	parent := lastSeg(trimLastSeg(pattern))

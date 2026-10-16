@@ -569,3 +569,39 @@ func TestChangeStoresAttachedKnowledgeFacts(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// A CRD description-text change documents the API; it configures nothing: it
+// stays a visible rendered change of the pair but correlates to no item and
+// anchors none — reworded schema docs must not flood the investigation with
+// scope:rendered-unexplained items.
+func TestChangeCRDDescriptionAnchorsNoItem(t *testing.T) {
+	pair := fixturePair()
+	pair.Diff.Changes = append(pair.Diff.Changes, render.Change{
+		Class:  render.CRDDescriptionChanged,
+		Object: render.ObjectID{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition", Name: "widgets.acme.io"},
+		Path:   "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Name: "description",
+		Before: s(`"defaults to safe"`), After: s(`"defaults to fast"`)})
+	res, _ := collect(t, &fakeUpstream{edge: fixtureEdge(), pair: pair}, true)
+	rec := res.Record
+	var found *domain.RenderedChange
+	for i := range rec.Renders[0].Changes {
+		c := &rec.Renders[0].Changes[i]
+		if c.Class == string(render.CRDDescriptionChanged) {
+			found = c
+		}
+	}
+	if found == nil {
+		t.Fatal("the description change must stay visible in the pair")
+	}
+	if len(found.ChangeItems) != 0 || found.Correlation != "" {
+		t.Fatalf("description text must correlate to no item: %+v", found)
+	}
+	for _, it := range rec.Items {
+		if it.RenderedChange == found.ID {
+			t.Fatalf("description text anchored an item: %+v", it)
+		}
+	}
+	if err := rec.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

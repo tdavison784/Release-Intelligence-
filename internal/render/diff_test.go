@@ -180,3 +180,88 @@ func TestParseObjectsRejectsGarbage(t *testing.T) {
 		t.Fatalf("list expansion: %v %+v", err, o)
 	}
 }
+
+// crdObjects is a CustomResourceDefinition whose schema carries description
+// text (root and per-property) and, when deprecated, one more schema field.
+func crdObjects(t *testing.T, schemaDesc, modeDesc, modeExtra string) []Object {
+	t.Helper()
+	extra := ""
+	if modeExtra != "" {
+		extra = "          " + modeExtra + "\n"
+	}
+	return objs(t, `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: widgets.demo.example.org}
+spec:
+  group: demo.example.org
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: `+schemaDesc+`
+          properties:
+            spec:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  description: `+modeDesc+`
+`+extra)
+}
+
+// OpenAPI description text inside a CRD schema is its own declared class — it
+// documents the API, it configures nothing. Everything else in the schema
+// keeps its ordinary class, and a "description" field of a non-CRD object is
+// an ordinary field change.
+func TestCRDDescriptionIsItsOwnClass(t *testing.T) {
+	d := Diff(crdObjects(t, `"Widgets v1"`, `"defaults to safe"`, ""),
+		crdObjects(t, `"The Widget API"`, `"defaults to fast"`, ""), DiffOptions{})
+	if len(d.Changes) != 2 {
+		t.Fatalf("changes = %s", changeSummaries(d))
+	}
+	for _, c := range d.Changes {
+		if c.Class != CRDDescriptionChanged || c.Name != "description" {
+			t.Errorf("description diff = %s, want crd-description-changed", c.Summary(true))
+		}
+		if !strings.Contains(c.Path, "openAPIV3Schema") {
+			t.Errorf("description class applied outside the schema: %s", c.Path)
+		}
+	}
+}
+
+// A real schema difference beside a reworded description keeps its ordinary
+// class: the description class must swallow documentation, not structure.
+func TestCRDDescriptionDoesNotSwallowSchemaChanges(t *testing.T) {
+	d := Diff(crdObjects(t, `"Widgets"`, `"safe"`, ""),
+		crdObjects(t, `"Widgets"`, `"fast"`, "deprecated: true"), DiffOptions{})
+	classes := map[ChangeClass]int{}
+	for _, c := range d.Changes {
+		classes[c.Class]++
+	}
+	if classes[CRDDescriptionChanged] != 1 || classes[FieldAdded] != 1 || len(d.Changes) != 2 {
+		t.Fatalf("classes = %v (%s)", classes, changeSummaries(d))
+	}
+}
+
+// A "description" field of a non-CRD object is data, not schema documentation.
+func TestDescriptionFieldOfNonCRDStaysAFieldChange(t *testing.T) {
+	from := objs(t, "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: c}\ndata:\n  description: old\n")
+	to := objs(t, "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: c}\ndata:\n  description: new\n")
+	d := Diff(from, to, DiffOptions{})
+	if len(d.Changes) != 1 || d.Changes[0].Class != FieldChanged {
+		t.Fatalf("changes = %s", changeSummaries(d))
+	}
+}
+
+func changeSummaries(d DiffResult) string {
+	var out []string
+	for _, c := range d.Changes {
+		out = append(out, c.Summary(true))
+	}
+	return strings.Join(out, "; ")
+}
