@@ -78,6 +78,11 @@ internal/discovery     source discovery: repo scanner (workflows, Makefiles, cha
                        (historically-validated / discovered / inferred / unverified / exception)
                        and the evidence file that grounds it
 internal/app           composition root + use cases (wires adapters by locator kind; offline e2e tests)
+internal/investigate   Phase 4 environment-aware breaking-change investigation: ports only (api.go) —
+                       change/snapshot/render/bundle/graph/validate/agent/classify stages, the
+                       content-addressed artifact store, the agent's tool surface; implementations in
+                       its sub-packages (docs/phase4/env-impact/DESIGN.md); contract types in
+                       internal/domain/investigation.go
 internal/llm           LLM port + Anthropic implementation, response cache (by prompt digest), file exchange
 internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →
                        validator → Enrichments with full provenance (docs/ENRICHMENT.md)
@@ -106,7 +111,8 @@ eval/                  validation dataset (cases with hand-curated ground truth 
                        adjudications/ and the adversarial/ join-fooling pack —
                        consumed by `ri eval` and `go test ./internal/eval`
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
-                       release, impact-report and knowledge-record (generated from internal/domain, run
+                       release, impact-report, knowledge-record, evidence-bundle, investigation and
+                       investigation-graph (generated from internal/domain, run
                        `go run ./internal/domain/schemagen`; a test fails when they are stale)
 ```
 
