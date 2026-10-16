@@ -14,8 +14,9 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate/renderdiff"
 )
 
-// DefaultPromptVersion is the prompt set used when the configuration names none.
-const DefaultPromptVersion = "investigate-agent/v1"
+// DefaultPromptVersion is the prompt set used when the configuration names
+// none. investigate-agent/v1 stays embedded so its transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v2"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -31,6 +32,24 @@ type Prompt struct {
 	// the prompt digest.
 	ToolsJSON []byte
 	Tools     []ToolSchema
+	// MetaJSON is the optional meta.json (part of the digest when present);
+	// Features is what it switches on.
+	MetaJSON []byte
+	Features Features
+}
+
+// Features are behaviours a prompt version opts into (meta.json). A version
+// without meta.json (v1) has none, so its sessions behave — and replay —
+// exactly as recorded.
+type Features struct {
+	// Agenda: the task lists the agenda (Agenda), the budget scales with it
+	// (AgendaBudget), and submit_findings must close every agenda item with
+	// a disposition.
+	Agenda bool `json:"agenda"`
+	// ResolveSubjects: subjects may be named the way a model names them
+	// (values keys, setting names, object references, rendered changes,
+	// files) and are resolved deterministically to graph nodes.
+	ResolveSubjects bool `json:"resolveSubjects"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -70,6 +89,14 @@ func LoadPrompt(version string) (*Prompt, error) {
 		return nil, err
 	}
 	p := &Prompt{Version: version, System: string(sys), ToolsJSON: tools}
+	if meta, err := promptFS.ReadFile(dir + "meta.json"); err == nil {
+		p.MetaJSON = meta
+		dec := json.NewDecoder(bytes.NewReader(meta))
+		dec.DisallowUnknownFields()
+		if err := dec.Decode(&p.Features); err != nil {
+			return nil, fmt.Errorf("agent: prompt %s: meta.json: %w", version, err)
+		}
+	}
 	if err := json.Unmarshal(tools, &p.Tools); err != nil {
 		return nil, fmt.Errorf("agent: prompt %s: tools.json: %w", version, err)
 	}
@@ -91,12 +118,14 @@ func LoadPrompt(version string) (*Prompt, error) {
 	return p, nil
 }
 
-// Digest is sha256(system ‖ rendered task ‖ tool schemas JSON) (DESIGN.md §4.4).
+// Digest is sha256(system ‖ rendered task ‖ tool schemas JSON [‖ meta.json])
+// (DESIGN.md §4.4; meta.json only for versions that have one).
 func (p *Prompt) Digest(task string) string {
 	var b bytes.Buffer
 	b.WriteString(p.System)
 	b.WriteString(task)
 	b.Write(p.ToolsJSON)
+	b.Write(p.MetaJSON)
 	return domain.Digest(b.Bytes())
 }
 
@@ -121,6 +150,8 @@ type taskData struct {
 	UnresolvedCount, UnresolvedMore                                     int
 	OutOfScope                                                          int
 	Budget                                                              string
+	// Agenda (prompt feature agenda): the items to close, in priority order.
+	Agenda []string
 }
 
 type taskItem struct {
@@ -138,6 +169,10 @@ type taskItem struct {
 // summary, the correlated and uncorrelated rendered changes, the roots and
 // unresolved edges, and the validations already run.
 func (p *Prompt) RenderTask(in investigate.InvestigateInput, budget domain.AgentBudget) (string, error) {
+	return p.renderTask(in, budget, nil)
+}
+
+func (p *Prompt) renderTask(in investigate.InvestigateInput, budget domain.AgentBudget, agenda []domain.AgendaCoverage) (string, error) {
 	b := in.Bundle
 	if b == nil {
 		return "", fmt.Errorf("agent: no bundle")
@@ -271,6 +306,13 @@ func (p *Prompt) RenderTask(in investigate.InvestigateInput, budget domain.Agent
 			}
 			d.Unresolved = append(d.Unresolved, fmt.Sprintf("%s %s %s → %s (%s): %s", e.ID, e.Kind, keys[e.From], keys[e.To], e.Status, clip(e.Reason, taskExcerpt)))
 		}
+	}
+	titles := map[string]string{}
+	for _, it := range b.Change.Items {
+		titles[it.ID] = it.Title
+	}
+	for i, e := range agenda {
+		d.Agenda = append(d.Agenda, fmt.Sprintf("%d. %s [%s] %s", i+1, e.ChangeItem, e.PriorityRule, clip(titles[e.ChangeItem], 120)))
 	}
 	var out bytes.Buffer
 	if err := p.task.Execute(&out, d); err != nil {

@@ -2279,6 +2279,69 @@ type AgentRun struct {
 	ToolCalls     int            `json:"toolCalls"`
 	Tokens        int            `json:"tokens"`
 	Transcript    string         `json:"transcript,omitempty"` // agent-transcript artifact id
+	// Coverage is the agent's per-item account of its agenda: every in-scope
+	// item the deterministic pass did not already decide, in priority order,
+	// with the disposition the agent closed it with (or not-examined).
+	// BudgetRule names the formula that scaled Budget to the agenda size.
+	// CONTRACT-CHANGE(agent): additive (commander decision 2026-10-16:
+	// coverage must not depend on the model's diligence).
+	Coverage   []AgendaCoverage `json:"coverage,omitempty"`
+	BudgetRule string           `json:"budgetRule,omitempty"`
+}
+
+// CoverageDisposition is how the agent closed an agenda item.
+// CONTRACT-CHANGE(agent): additive.
+type CoverageDisposition string
+
+const (
+	// CoverRaisesConcern, CoverClaimsMitigation and CoverExplains close the
+	// item with an assertion of that stance.
+	CoverRaisesConcern    CoverageDisposition = "raises-concern"
+	CoverClaimsMitigation CoverageDisposition = "claims-mitigation"
+	CoverExplains         CoverageDisposition = "explains"
+	// CoverExaminedNoConcern: the agent inspected the item (it cites what it
+	// inspected) and has no concern to raise. Recorded as an explains
+	// assertion. It is NOT a mitigation and can never lower a class (DESIGN.md
+	// §3.3): an absent concern is not evidence of safety.
+	CoverExaminedNoConcern CoverageDisposition = "examined-no-concern"
+	// CoverNotExamined: the agent did not examine the item (the reason, e.g.
+	// the budget, is stated). No assertion.
+	CoverNotExamined CoverageDisposition = "not-examined"
+)
+
+// CoverageDispositions lists every disposition.
+var CoverageDispositions = []CoverageDisposition{CoverRaisesConcern, CoverClaimsMitigation, CoverExplains, CoverExaminedNoConcern, CoverNotExamined}
+
+// AgendaCoverage is one agenda item and how the agent closed it.
+// CONTRACT-CHANGE(agent): additive.
+type AgendaCoverage struct {
+	ChangeItem string `json:"changeItem"`
+	// Priority orders the agenda (0 first); PriorityRule is the declared
+	// agenda rule that placed the item, e.g. "agenda:behaviour".
+	Priority     int                 `json:"priority"`
+	PriorityRule string              `json:"priorityRule"`
+	Disposition  CoverageDisposition `json:"disposition"`
+	// Summary is the agent's closing summary, or the reason for not-examined.
+	Summary string `json:"summary"`
+	// Assertion is the closing assertion (none for not-examined); Records
+	// every hypothesis/assertion the run made about the item; Citations the
+	// evidence the closing entry cites.
+	Assertion string       `json:"assertion,omitempty"`
+	Records   []string     `json:"records,omitempty"`
+	Citations []EvidenceID `json:"citations,omitempty"`
+}
+
+// closingStance is the assertion stance a disposition is recorded with.
+func (d CoverageDisposition) closingStance() (AssertionStance, bool) {
+	switch d {
+	case CoverRaisesConcern:
+		return StanceRaisesConcern, true
+	case CoverClaimsMitigation:
+		return StanceClaimsMitigation, true
+	case CoverExplains, CoverExaminedNoConcern:
+		return StanceExplains, true
+	}
+	return "", false
 }
 
 // Stage names a pipeline stage (the orchestration activities, DESIGN.md §5).
@@ -2531,6 +2594,28 @@ func (inv *Investigation) Validate() error {
 		}
 		if a.Transcript != "" && !arts[a.Transcript] {
 			bad("agent: transcript %s is not a run artifact", a.Transcript)
+		}
+		seenCov := map[string]bool{}
+		for _, c := range a.Coverage {
+			if seenCov[c.ChangeItem] {
+				bad("agent: coverage lists %s twice", c.ChangeItem)
+			}
+			seenCov[c.ChangeItem] = true
+			if !strings.HasPrefix(c.ChangeItem, ChangeItemIDPrefix) || !strings.HasPrefix(c.PriorityRule, "agenda:") || strings.TrimSpace(c.Summary) == "" {
+				bad("agent: coverage of %s needs a change item, an agenda:* rule and a summary or reason", c.ChangeItem)
+			}
+			stance, closes := c.Disposition.closingStance()
+			switch {
+			case !oneOf(c.Disposition, CoverageDispositions):
+				bad("agent: coverage of %s: unknown disposition %q", c.ChangeItem, c.Disposition)
+			case !closes && c.Assertion != "":
+				bad("agent: coverage of %s is not-examined but names assertion %s", c.ChangeItem, c.Assertion)
+			case closes:
+				as, ok := asserts[c.Assertion]
+				if !ok || as.ChangeItem != c.ChangeItem || as.Stance != stance {
+					bad("agent: coverage of %s (%s) needs its closing %s assertion about the item (got %q)", c.ChangeItem, c.Disposition, stance, c.Assertion)
+				}
+			}
 		}
 	}
 	errs = append(errs, validateAudit(inv.Audit)...)
@@ -2845,6 +2930,14 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 					bad("validation %s: pin evidence %s is %s evidence; a pinned setting is established from the environment", v.ID, id, e.Kind)
 				}
 			}
+		}
+	}
+	if a := inv.Agent; a != nil {
+		for _, c := range a.Coverage {
+			if it, ok := b.Change.Item(c.ChangeItem); !ok || !it.InScope {
+				bad("agent coverage: %s is not an in-scope change item", c.ChangeItem)
+			}
+			evid("agent coverage "+c.ChangeItem, c.Citations)
 		}
 	}
 	for _, f := range inv.Findings {

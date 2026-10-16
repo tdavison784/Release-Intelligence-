@@ -73,8 +73,17 @@ type SessionConfig struct {
 	// RunArtifacts are artifacts of the investigation beyond the bundle
 	// (validator outputs, an earlier transcript) the session may serve.
 	RunArtifacts []domain.ArtifactRef
-	Budget       domain.AgentBudget
-	Prompt       *Prompt
+	// ValidationArtifacts / ValidationEvidence are the deterministic pass's
+	// outputs: readable and citable, resolved in the evidence pool, but not
+	// part of the agent's outcome (the runner records them).
+	ValidationArtifacts []domain.ArtifactRef
+	ValidationEvidence  []domain.Evidence
+	// Agenda is the agent's agenda (prompt feature agenda); BudgetRule the
+	// formula that scaled Budget to it.
+	Agenda     []domain.AgendaCoverage
+	BudgetRule string
+	Budget     domain.AgentBudget
+	Prompt     *Prompt
 	// PromptDigest pins the rendered prompt the session serves.
 	PromptDigest string
 	// Model is the requested model (the transcript header names it).
@@ -125,6 +134,11 @@ type Session struct {
 	valIDs      map[string]domain.ValidationRecord
 	propNodes   []domain.GraphNode
 	recordIndex map[string]bool
+	passArts    []domain.ArtifactRef // deterministic-pass outputs (served, not the agent's)
+	onAgenda    map[string]bool
+	closing     map[string]investigate.ItemSummary // accepted submit entries by item (agenda mode)
+	closingIDs  map[string]string                  // item -> closing assertion id
+	closingEv   map[string][]domain.EvidenceID
 }
 
 var (
@@ -144,12 +158,27 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	s := &Session{cfg: cfg, arts: map[string]domain.ArtifactRef{}, text: map[string][]byte{}, pool: b.EvidenceByID(),
 		runEv: map[domain.EvidenceID]domain.Evidence{}, rcs: b.RenderedChanges(), items: map[string]domain.ChangeItem{},
 		nodes: map[string]domain.GraphNode{}, nodeKey: map[string]string{}, edges: map[string]domain.GraphEdge{},
-		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{}}
+		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
+		onAgenda: map[string]bool{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
 	for _, a := range cfg.RunArtifacts {
 		s.addRunArtifact(a)
+	}
+	for _, a := range cfg.ValidationArtifacts {
+		if _, ok := s.arts[a.ID]; !ok {
+			s.arts[a.ID] = a
+			s.passArts = append(s.passArts, a)
+		}
+	}
+	for _, e := range cfg.ValidationEvidence {
+		if _, ok := s.pool[e.ID]; !ok {
+			s.pool[e.ID] = e
+		}
+	}
+	for _, e := range cfg.Agenda {
+		s.onAgenda[e.ChangeItem] = true
 	}
 	for _, it := range b.Change.Items {
 		s.items[it.ID] = it
@@ -175,8 +204,16 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	for _, v := range cfg.Validations {
 		s.valIDs[v.ID] = v
 	}
-	s.writeLine(map[string]any{"type": "session", "format": TranscriptFormat, "bundle": b.ID, "promptVersion": cfg.Prompt.Version,
-		"promptDigest": cfg.PromptDigest, "model": cfg.Model, "budget": cfg.Budget, "readOnly": cfg.ReadOnly})
+	header := map[string]any{"type": "session", "format": TranscriptFormat, "bundle": b.ID, "promptVersion": cfg.Prompt.Version,
+		"promptDigest": cfg.PromptDigest, "model": cfg.Model, "budget": cfg.Budget, "readOnly": cfg.ReadOnly}
+	if cfg.Prompt.Features.Agenda {
+		var items []string
+		for _, e := range cfg.Agenda {
+			items = append(items, e.ChangeItem)
+		}
+		header["agenda"], header["budgetRule"] = items, cfg.BudgetRule
+	}
+	s.writeLine(header)
 	return s, nil
 }
 
@@ -289,6 +326,19 @@ func (s *Session) invoke(ctx context.Context, tool string, args json.RawMessage,
 	switch {
 	case s.submitted:
 		err = rejectf("the run was submitted; no further calls are accepted")
+	case s.exhausted != "" && s.closingAllowed(tool):
+		// With an agenda, the closing submit_findings is accepted once after
+		// the budget is spent, so coverage is always reported; the run stays
+		// budget-exhausted. It is not counted and its result not metered.
+		if out, err = impl(ctx); err == nil {
+			view := out.view
+			if view == nil {
+				view = out.value
+			}
+			if res, err = normalizedJSON(view); err == nil && out.commit != nil {
+				out.commit()
+			}
+		}
 	case s.exhausted != "":
 		err = fmt.Errorf("%w: %s", investigate.ErrBudgetExhausted, s.exhausted)
 	default:
@@ -336,6 +386,10 @@ func (s *Session) invoke(ctx context.Context, tool string, args json.RawMessage,
 		return nil, nil, err
 	}
 	return out.value, res, nil
+}
+
+func (s *Session) closingAllowed(tool string) bool {
+	return s.cfg.Prompt.Features.Agenda && tool == investigate.ToolSubmitFindings
 }
 
 func errorClass(err error) string {

@@ -141,7 +141,7 @@ func TestClaudeCLIDriver(t *testing.T) {
 	run := func(mode string) *investigate.AgentOutcome {
 		t.Setenv("AGENT_TEST_MODE", mode)
 		inv := New(f.st, WithDriver(DriverClaudeCLI, &ClaudeCLI{Binary: exe, RIBinary: exe}), WithClock(fixedNow))
-		out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI,
+		out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverClaudeCLI,
 			Model: "claude-sonnet-5-5", Budget: investigate.DefaultAgentBudget}))
 		must(t, err)
 		return out
@@ -173,7 +173,7 @@ func TestClaudeCLIDriver(t *testing.T) {
 	}
 
 	_, err = New(f.st, WithDriver(DriverClaudeCLI, &ClaudeCLI{Binary: "/nonexistent/claude"})).Investigate(context.Background(),
-		f.input(investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI}))
+		f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverClaudeCLI}))
 	if investigate.ClassOf(err) != investigate.Permanent {
 		t.Fatalf("missing CLI: %v", err)
 	}

@@ -86,13 +86,21 @@ func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, vali
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
 	budget := Budget(in.Config.Budget)
-	task, err := p.RenderTask(in, budget)
+	var agenda []domain.AgendaCoverage
+	var budgetRule string
+	if p.Features.Agenda {
+		agenda = Agenda(in.Bundle, in.Validations)
+		budget, budgetRule = AgendaBudget(in.Config.Budget, len(agenda))
+	}
+	task, err := p.renderTask(in, budget, agenda)
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
 	digest := p.Digest(task)
 	s, err := NewSession(SessionConfig{Bundle: in.Bundle, Store: st, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
-		Validations: in.Validations, Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now})
+		Validations: in.Validations, ValidationArtifacts: in.ValidationArtifacts, ValidationEvidence: in.ValidationEvidence,
+		Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now,
+		Agenda: agenda, BudgetRule: budgetRule})
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
@@ -237,7 +245,7 @@ func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, dri
 	out.Artifacts = append([]domain.ArtifactRef{ref}, s.runArts...)
 	out.Run = domain.AgentRun{Status: status, Reason: reason, Model: model, Provider: dr.Provider, PromptVersion: s.cfg.Prompt.Version,
 		PromptDigest: s.cfg.PromptDigest, CallID: dr.CallID, Budget: s.cfg.Budget, Turns: dr.Turns, ToolCalls: s.toolCalls,
-		Tokens: dr.Tokens, Transcript: ref.ID}
+		Tokens: dr.Tokens, Transcript: ref.ID, Coverage: s.coverage(status, reason), BudgetRule: s.cfg.BudgetRule}
 	return out, nil
 }
 
@@ -310,4 +318,37 @@ func MergeGraph(g *domain.RelationshipGraph, out *investigate.AgentOutcome) *dom
 	m.Builder = g.Builder + "+" + Producer
 	m.ID = m.DerivedID()
 	return &m
+}
+
+// coverage reports, for every agenda item in agenda order, how the agent
+// closed it; an item without a closing entry is not-examined, saying how the
+// run ended. Caller holds s.mu.
+func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain.AgendaCoverage {
+	if len(s.cfg.Agenda) == 0 {
+		return nil
+	}
+	records := map[string][]string{}
+	for _, h := range s.hyps {
+		records[h.ChangeItem] = append(records[h.ChangeItem], h.ID)
+	}
+	for _, a := range s.asserts {
+		records[a.ChangeItem] = append(records[a.ChangeItem], a.ID)
+	}
+	out := make([]domain.AgendaCoverage, 0, len(s.cfg.Agenda))
+	for _, e := range s.cfg.Agenda {
+		c := e
+		if sum, ok := s.closing[e.ChangeItem]; ok {
+			c.Disposition, c.Summary = sum.Disposition, sum.Summary
+			c.Assertion, c.Citations = s.closingIDs[e.ChangeItem], s.closingEv[e.ChangeItem]
+		} else {
+			c.Disposition = domain.CoverNotExamined
+			c.Summary = "no closing entry: the run ended " + string(status)
+			if reason != "" {
+				c.Summary += " (" + reason + ")"
+			}
+		}
+		c.Records = uniqSorted(records[e.ChangeItem])
+		out = append(out, c)
+	}
+	return out
 }

@@ -17,11 +17,13 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -115,33 +117,11 @@ func TestLiveAgentRun(t *testing.T) {
 	trav, err := relations.NewTraverser().Traverse(ctx, g, roots, domain.DefaultTraversalBound)
 	must(t, err)
 
-	// The deterministic pass before the agent (DESIGN.md §5.1): every
-	// validator over every in-scope item.
+	// The deterministic pass before the agent (DESIGN.md §5.1).
 	validators := liveValidators(st, rep, facts)
-	var pre []domain.ValidationRecord
-	var preArts []domain.ArtifactRef
-	var preEv []domain.Evidence
-	seen := map[string]bool{}
-	for _, it := range b.Change.Items {
-		if !it.InScope {
-			continue
-		}
-		for _, v := range validators {
-			if !v.Applies(it.Family) {
-				continue
-			}
-			vo, err := v.Validate(ctx, investigate.ValidationInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, ChangeItem: it.ID})
-			must(t, err)
-			for _, r := range vo.Records {
-				if !seen[r.ID] {
-					seen[r.ID] = true
-					pre = append(pre, r)
-				}
-			}
-			preArts = append(preArts, vo.Artifacts...)
-			preEv = append(preEv, vo.Evidence...)
-		}
-	}
+	pass, err := DeterministicPass(ctx, validators, investigate.ValidationInput{Bundle: b, Graph: g, Traversal: trav, Report: rep})
+	must(t, err)
+	pre, preArts, preEv := pass.Records, pass.Artifacts, pass.Evidence
 
 	model := os.Getenv("RI_AGENT_MODEL")
 	if model == "" {
@@ -154,8 +134,13 @@ func TestLiveAgentRun(t *testing.T) {
 	if n, err := strconv.Atoi(os.Getenv("RI_AGENT_TURNS")); err == nil {
 		budget.MaxTurns = n
 	}
-	cfg := investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI, Model: model, PromptVersion: DefaultPromptVersion, Budget: budget}
-	input := investigate.InvestigateInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, Validations: pre, Config: cfg}
+	prompt := os.Getenv("RI_AGENT_PROMPT") // e.g. investigate-agent/v1 to replay run 1
+	if prompt == "" {
+		prompt = DefaultPromptVersion
+	}
+	cfg := investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI, Model: model, PromptVersion: prompt, Budget: budget}
+	input := investigate.InvestigateInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, Validations: pre,
+		ValidationArtifacts: preArts, ValidationEvidence: preEv, Config: cfg}
 	_, as, err := Prepare(st, input, nil, nil)
 	must(t, err)
 	must(t, os.MkdirAll(outDir, 0o755))
@@ -196,7 +181,7 @@ func TestLiveAgentRun(t *testing.T) {
 	sum := map[string]any{"case": in.ID, "bundle": b.ID, "promptVersion": as.PromptVersion, "promptDigest": as.PromptDigest, "model": model,
 		"budget": budget, "renders": renderdiff.Summaries(b), "uncorrelated": len(b.Uncorrelated()), "graph": map[string]int{"nodes": len(g.Nodes), "edges": len(g.Edges)},
 		"traversal":    map[string]any{"roots": len(trav.Roots), "paths": len(trav.Paths), "unresolved": len(trav.Unresolved), "complete": trav.Complete},
-		"impactReport": rep != nil, "validators": len(validators), "deterministicPass": len(pre)}
+		"impactReport": rep != nil, "validators": len(validators), "deterministicPass": len(pre), "agenda": len(out.Run.Coverage)}
 	var items []item
 	for _, it := range b.Change.Items {
 		if it.InScope {
@@ -206,6 +191,22 @@ func TestLiveAgentRun(t *testing.T) {
 	sum["inScope"] = items
 	sb, _ := json.MarshalIndent(sum, "", "  ")
 	write("bundle-summary.json", append(sb, '\n'))
+	if len(out.Run.Coverage) > 0 {
+		var md strings.Builder
+		counts := map[domain.CoverageDisposition]int{}
+		fmt.Fprintf(&md, "| # | item | agenda rule | disposition | records | summary |\n|---|---|---|---|---|---|\n")
+		for i, c := range out.Run.Coverage {
+			counts[c.Disposition]++
+			fmt.Fprintf(&md, "| %d | %s | %s | %s | %d | %s |\n", i+1, c.ChangeItem, c.PriorityRule, c.Disposition, len(c.Records), strings.ReplaceAll(clip(c.Summary, 220), "|", "\\|"))
+		}
+		fmt.Fprintf(&md, "\nTotals:")
+		for _, d := range domain.CoverageDispositions {
+			fmt.Fprintf(&md, " %s %d;", d, counts[d])
+		}
+		fmt.Fprintf(&md, " budget rule: %s\n", out.Run.BudgetRule)
+		write("coverage.md", []byte(md.String()))
+		t.Logf("coverage: %v", counts)
+	}
 
 	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out, pre...)
 	have := map[domain.EvidenceID]bool{}

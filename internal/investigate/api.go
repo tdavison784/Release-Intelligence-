@@ -275,7 +275,15 @@ type InvestigateInput struct {
 	Report    *domain.ImpactReport      `json:"report,omitempty"`
 	// Validations already run (the deterministic pass before the agent).
 	Validations []domain.ValidationRecord `json:"validations,omitempty"`
-	Config      AgentConfig               `json:"config"`
+	// ValidationArtifacts and ValidationEvidence are the deterministic
+	// pass's outputs (ValidationOutput.Artifacts / .Evidence): the agent can
+	// read and cite them, and the evidence its records cite resolves. The
+	// runner stores them in the run record (Investigation.Artifacts /
+	// .Evidence) — they are not part of the AgentOutcome.
+	// CONTRACT-CHANGE(agent): additive.
+	ValidationArtifacts []domain.ArtifactRef `json:"validationArtifacts,omitempty"`
+	ValidationEvidence  []domain.Evidence    `json:"validationEvidence,omitempty"`
+	Config              AgentConfig          `json:"config"`
 }
 
 // AgentOutcome is what the agent stage recorded. Validations requested by
@@ -586,9 +594,15 @@ type ValidationRequestInput struct {
 // ItemSummary is the agent's closing summary for one change item. It is
 // recorded as an `explains` assertion; it never sets a class.
 type ItemSummary struct {
-	ChangeItem string     `json:"changeItem"`
-	Summary    string     `json:"summary"`
-	Citations  []Citation `json:"citations"`
+	ChangeItem string `json:"changeItem"`
+	// Disposition closes an agenda item (prompt versions with an agenda):
+	// raises-concern / claims-mitigation / explains / examined-no-concern
+	// (citing what was inspected) / not-examined (Summary = the reason).
+	// Empty = explains (prompt v1).
+	// CONTRACT-CHANGE(agent): additive.
+	Disposition domain.CoverageDisposition `json:"disposition,omitempty"`
+	Summary     string                     `json:"summary"`
+	Citations   []Citation                 `json:"citations"`
 }
 
 // SubmitInput ends the agent run.

@@ -45,6 +45,7 @@ type validationResult struct {
 
 type validationView struct {
 	Request    requestView              `json:"request"`
+	Subjects   []SubjectResolution      `json:"subjects,omitempty"` // how named subjects were resolved (v2)
 	Validation *domain.ValidationRecord `json:"validation,omitempty"`
 }
 
@@ -143,7 +144,7 @@ func (s *Session) recordHypothesis(ctx context.Context, in investigate.Hypothesi
 	if err != nil {
 		return nil, err
 	}
-	subjects, err := s.nodeIDs("subject", in.Subjects)
+	subjects, _, err := s.resolveSubjects(ctx, "subject", in.Subjects)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +212,7 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	if err != nil {
 		return nil, err
 	}
-	subjects, err := s.nodeIDs("subject", in.Subjects)
+	subjects, _, err := s.resolveSubjects(ctx, "subject", in.Subjects)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +442,7 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 	if !known {
 		return nil, rejectf("kind %q: want override-inspection, render-diff, schema-compat, static-reference or runtime", in.Kind)
 	}
-	subjects, err := s.nodeIDs("subject", in.Subjects)
+	subjects, resolved, err := s.resolveSubjects(ctx, "subject", in.Subjects)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +456,13 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 			return nil, rejectf("impact path %s belongs to change item %s, not %s", p, pp.ChangeItem, it.ID)
 		}
 	}
-	rcs, err := s.renderedIDs(in.RenderedChanges)
+	named := append([]string(nil), in.RenderedChanges...)
+	for _, r := range resolved {
+		if r.Rule == SubjectRenderedChange {
+			named = append(named, r.Given)
+		}
+	}
+	rcs, err := s.renderedIDs(named)
 	if err != nil {
 		return nil, err
 	}
@@ -584,7 +591,7 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 	if err := invalid(func() error { c := req; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
 	}
-	view := validationView{Request: requestView{ID: id, Status: req.Status, Resolution: req.Resolution, Result: req.Result}, Validation: res.Validation}
+	view := validationView{Request: requestView{ID: id, Status: req.Status, Resolution: req.Resolution, Result: req.Result}, Subjects: resolved, Validation: res.Validation}
 	return &outcome{value: res, view: view, commit: func() {
 		s.valReqs = append(s.valReqs, req)
 		for _, v := range fresh {
@@ -603,19 +610,44 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 // --- submit_findings --------------------------------------------------------------------
 
 type submitView struct {
-	Submitted  bool     `json:"submitted"`
-	Assertions []string `json:"assertions"`
-	Note       string   `json:"note"`
+	Submitted  bool        `json:"submitted"`
+	Assertions []string    `json:"assertions"`
+	Note       string      `json:"note"`
+	Agenda     *agendaView `json:"agenda,omitempty"` // prompt feature agenda
+}
+
+type agendaView struct {
+	Items        int            `json:"items"`
+	Dispositions map[string]int `json:"dispositions"`
+}
+
+// stanceOf is the assertion stance an agenda disposition is recorded with
+// (examined-no-concern is an explains assertion: never a mitigation).
+func stanceOf(d domain.CoverageDisposition) (domain.AssertionStance, bool) {
+	switch d {
+	case domain.CoverRaisesConcern:
+		return domain.StanceRaisesConcern, true
+	case domain.CoverClaimsMitigation:
+		return domain.StanceClaimsMitigation, true
+	case domain.CoverExplains, domain.CoverExaminedNoConcern:
+		return domain.StanceExplains, true
+	}
+	return "", false
 }
 
 func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput) (*outcome, error) {
 	if err := s.writable(); err != nil {
 		return nil, err
 	}
+	agenda := s.cfg.Prompt.Features.Agenda
 	seen := map[string]bool{}
 	var made []domain.AgentAssertion
 	var evs []domain.Evidence
 	ids := []string{}
+	closing := map[string]investigate.ItemSummary{}
+	closingIDs := map[string]string{}
+	closingEv := map[string][]domain.EvidenceID{}
+	counts := map[string]int{}
 	for i, sum := range in.Items {
 		it, err := s.item(sum.ChangeItem)
 		if err != nil {
@@ -628,25 +660,60 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			return nil, rejectf("items[%d]: change item %s is summarised twice", i, it.ID)
 		}
 		seen[it.ID] = true
-		stmt, err := s.statement(fmt.Sprintf("items[%d].summary", i), sum.Summary)
+		disp := sum.Disposition
+		switch {
+		case !agenda && disp != "":
+			return nil, rejectf("items[%d]: this prompt version (%s) has no agenda; dispositions are not accepted", i, s.cfg.Prompt.Version)
+		case !agenda:
+			disp = domain.CoverExplains
+		case disp == "":
+			return nil, rejectf("items[%d]: disposition is required: raises-concern, claims-mitigation, explains, examined-no-concern or not-examined", i)
+		}
+		stance, closes := stanceOf(disp)
+		if !closes && disp != domain.CoverNotExamined {
+			return nil, rejectf("items[%d]: unknown disposition %q: want raises-concern, claims-mitigation, explains, examined-no-concern or not-examined", i, disp)
+		}
+		what := fmt.Sprintf("items[%d].summary", i)
+		if !closes {
+			what = fmt.Sprintf("items[%d].summary (the reason it was not examined)", i)
+		}
+		stmt, err := s.statement(what, sum.Summary)
 		if err != nil {
 			return nil, err
+		}
+		counts[string(disp)]++
+		sum.Disposition, sum.Summary = disp, stmt
+		closing[it.ID] = sum
+		if !closes {
+			if len(sum.Citations) > 0 { // optional; checked when given
+				cs, err := s.citations(ctx, sum.Citations)
+				if err != nil {
+					return nil, fmt.Errorf("items[%d]: %w", i, err)
+				}
+				closingEv[it.ID] = evidenceIDs(cs)
+				evs = append(evs, cs...)
+			}
+			continue
 		}
 		cs, err := s.citations(ctx, sum.Citations)
 		if err != nil {
 			return nil, fmt.Errorf("items[%d]: %w", i, err)
 		}
-		id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(domain.StanceExplains)+"\x00"+stmt, s.call.ID)
+		id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(stance)+"\x00"+stmt, s.call.ID)
 		ids = append(ids, id)
+		cites := evidenceIDs(cs)
+		closingIDs[it.ID], closingEv[it.ID] = id, cites
 		dup := false
 		for _, a := range s.asserts {
+			dup = dup || a.ID == id
+		}
+		for _, a := range made {
 			dup = dup || a.ID == id
 		}
 		if dup {
 			continue
 		}
-		cites := evidenceIDs(cs)
-		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: domain.StanceExplains, Statement: stmt, Citations: cites,
+		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: stance, Statement: stmt, Citations: cites,
 			Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 		if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 			return nil, err
@@ -655,10 +722,32 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		evs = append(evs, cs...)
 	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
+	if agenda {
+		var missing []string
+		for _, e := range s.cfg.Agenda {
+			if !seen[e.ChangeItem] {
+				missing = append(missing, e.ChangeItem)
+			}
+		}
+		if len(missing) > 0 {
+			return nil, rejectf("submit_findings must close every agenda item; %d of %d have no entry: %s (close an item you did not examine with disposition not-examined and the reason)",
+				len(missing), len(s.cfg.Agenda), strings.Join(missing, ", "))
+		}
+		view.Agenda = &agendaView{Items: len(s.cfg.Agenda), Dispositions: counts}
+	}
 	return &outcome{value: nil, view: view, commit: func() {
 		s.asserts = append(s.asserts, made...)
 		for _, e := range evs {
 			s.addRunEvidence(e)
+		}
+		for k, v := range closing {
+			s.closing[k] = v
+		}
+		for k, v := range closingIDs {
+			s.closingIDs[k] = v
+		}
+		for k, v := range closingEv {
+			s.closingEv[k] = v
 		}
 		s.submitted = true
 	}}, nil

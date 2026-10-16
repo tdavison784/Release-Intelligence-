@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
@@ -42,6 +43,9 @@ type fixture struct {
 	deploy    string // node id of the controller Deployment
 	cfgMap    string // node id of a ConfigMap reached by an inferred edge
 	path      string // an impact path of the behaviour item
+	appFile   domain.ArtifactRef
+	appNode   string // the Argo CD Application node the env render target is declared in
+	valsNode  string // the values-source node of the values file
 }
 
 const (
@@ -128,14 +132,17 @@ func newFixture(t *testing.T) *fixture {
 		MediaType: "application/yaml", URI: "apps/demo/values.yaml", Producer: "test.snapshot@v1", Tags: []string{"values", "demo"}}, []byte(valuesText))
 	f.secret = put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFile, Path: "env/apps/demo/secret.yaml", Origin: domain.OriginEnvironment,
 		MediaType: "application/yaml", URI: "apps/demo/secret.yaml", Producer: "test.snapshot@v1", Redacted: true, Tags: []string{"secret"}}, []byte(secretText))
+	f.appFile = put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFile, Path: "env/apps/demo.yaml", Origin: domain.OriginEnvironment,
+		MediaType: "application/yaml", URI: "apps/demo.yaml", Producer: "test.snapshot@v1", Tags: []string{"application"}},
+		[]byte("apiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata:\n  name: demo\n  namespace: argocd\n"))
 	facts := put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFacts, Path: "derived/env/facts.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:env@v1", Producer: "test.snapshot@v1"}, []byte(`{"name":"prod"}`))
 	f.envEv = domain.NewEvidence(domain.EvidenceLocalFile, "values", "apps/demo/values.yaml", "L2", "rotationPolicy: Never", f.values.Digest, time.Time{})
 	snap := domain.EnvironmentSnapshot{Environment: "prod", Repo: &domain.RepoRef{Path: "env", TreeDigest: domain.Digest([]byte("tree"))},
-		Inputs: []domain.SnapshotInput{{Kind: domain.InputGitOpsRepo, Path: "env", Status: domain.CollectionOK, Artifacts: []string{f.secret.ID, f.values.ID}}},
+		Inputs: []domain.SnapshotInput{{Kind: domain.InputGitOpsRepo, Path: "env", Status: domain.CollectionOK, Artifacts: []string{f.appFile.ID, f.secret.ID, f.values.ID}}},
 		Facts:  facts.ID, Producer: "test.snapshot@v1"}
 	snap.ID = snap.DerivedID()
-	snapRes := &investigate.SnapshotResult{Snapshot: snap, Artifacts: []domain.ArtifactRef{f.values, f.secret, facts}, Evidence: []domain.Evidence{f.envEv}}
+	snapRes := &investigate.SnapshotResult{Snapshot: snap, Artifacts: []domain.ArtifactRef{f.values, f.secret, f.appFile, facts}, Evidence: []domain.Evidence{f.envEv}}
 
 	deploy := func(arg string) render.Object {
 		return render.Object{ID: deployID, Body: map[string]any{"apiVersion": "apps/v1", "kind": "Deployment",
@@ -183,10 +190,16 @@ func newFixture(t *testing.T) *fixture {
 	f.deploy, f.cfgMap = dn.ID, cn.ID
 	e := domain.GraphEdge{Kind: domain.EdgeReferences, From: dn.ID, To: cn.ID, Status: domain.EdgeInferred, Rule: "test:name-match", Detail: "env[0].valueFrom", Reason: "matched by name only"}
 	e.ID = domain.EdgeID(e.Kind, e.From, e.To, e.Detail)
-	g := domain.RelationshipGraph{Bundle: b.ID, Builder: "test.graph@v1", Nodes: []domain.GraphNode{dn, cn}, Edges: []domain.GraphEdge{e}}
-	if g.Nodes[0].ID > g.Nodes[1].ID {
-		g.Nodes[0], g.Nodes[1] = g.Nodes[1], g.Nodes[0]
-	}
+	an := domain.GraphNode{ID: domain.NodeID(domain.NodeGitOpsApplication, "argoproj.io/v1alpha1/Application/argocd/demo"), Kind: domain.NodeGitOpsApplication,
+		Key: "argoproj.io/v1alpha1/Application/argocd/demo", Artifacts: []string{f.appFile.ID}}
+	vn := domain.GraphNode{ID: domain.NodeID(domain.NodeValuesSource, "env/apps/demo/values.yaml"), Kind: domain.NodeValuesSource, Key: "env/apps/demo/values.yaml",
+		Artifacts: []string{f.values.ID}}
+	f.appNode, f.valsNode = an.ID, vn.ID
+	ve := domain.GraphEdge{Kind: domain.EdgeConfigures, From: vn.ID, To: an.ID, Status: domain.EdgeEstablished, Rule: "test:values-file", Detail: "helm.valueFiles", Artifacts: []string{f.appFile.ID}}
+	ve.ID = domain.EdgeID(ve.Kind, ve.From, ve.To, ve.Detail)
+	g := domain.RelationshipGraph{Bundle: b.ID, Builder: "test.graph@v1", Nodes: []domain.GraphNode{dn, cn, an, vn}, Edges: []domain.GraphEdge{e, ve}}
+	sort.Slice(g.Nodes, func(i, j int) bool { return g.Nodes[i].ID < g.Nodes[j].ID })
+	sort.Slice(g.Edges, func(i, j int) bool { return g.Edges[i].ID < g.Edges[j].ID })
 	g.ID = g.DerivedID()
 	must(t, g.Validate())
 	f.g = &g
@@ -207,12 +220,15 @@ func (f *fixture) input(cfg investigate.AgentConfig) investigate.InvestigateInpu
 
 func (f *fixture) session(t *testing.T, validators ...investigate.Validator) (*Session, investigate.AgentSession) {
 	t.Helper()
-	s, as, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, PromptVersion: DefaultPromptVersion,
+	s, as, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, PromptVersion: promptV1,
 		Budget: investigate.DefaultAgentBudget}), validators, fixedNow)
 	must(t, err)
 	s.SetCall(CallInfo{ID: "call-1", Model: "test-model", ModelVersion: "test-model-2026", Provider: "test"})
 	return s, as
 }
+
+// promptV1 pins the tests of v1 behaviour (its transcripts must keep replaying).
+const promptV1 = "investigate-agent/v1"
 
 func fixedNow() time.Time { return time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC) }
 
