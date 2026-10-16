@@ -13,8 +13,10 @@ Branch `p4ei/contract`, worktree `.claude/worktrees/p4ei-contract`. Brief: `brie
   enums, provenance-variant patches; schemagen tests validate the samples and reject AI findings /
   AI validations / deterministic assertions / a fifth class.
 
+- `internal/investigate/{doc,api,api_test}.go`: stage ports, stores, agent Tools + AgentDriver, error classes, idempotency keys; no Temporal import.
+
 ## In progress
-- `internal/investigate/{doc,api}.go` (ports only).
+- DESIGN.md
 
 ## Next step
 - ports → DESIGN.md (§0–§7) → eval/investigations/{FORMAT.md,gates.yaml} → full build/vet/test.
