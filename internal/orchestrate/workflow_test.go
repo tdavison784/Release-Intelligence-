@@ -1,13 +1,56 @@
 package orchestrate
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 )
+
+func noErr(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func isErr(t *testing.T, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+}
+
+func eq(t *testing.T, want, got any) {
+	t.Helper()
+	if !reflect.DeepEqual(want, got) {
+		t.Fatalf("want %v, got %v", want, got)
+	}
+}
+
+func ne(t *testing.T, a, b any) {
+	t.Helper()
+	if reflect.DeepEqual(a, b) {
+		t.Fatalf("expected values to differ, both %v", a)
+	}
+}
+
+func isTrue(t *testing.T, v bool, msg string) {
+	t.Helper()
+	if !v {
+		t.Fatal(msg)
+	}
+}
+
+func empty[T any](t *testing.T, s []T) {
+	t.Helper()
+	if len(s) != 0 {
+		t.Fatalf("expected empty, got %v", s)
+	}
+}
 
 func testInput() InvestigationInput {
 	return InvestigationInput{
@@ -43,46 +86,46 @@ func TestHappyPathAutoCompletes(t *testing.T) {
 	a := &Activities{Classification: ClassNotAffected}
 	env := newEnv(t, a)
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
+	noErr(t, env.GetWorkflowError())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeAutoCompleted, res.Outcome)
-	require.Equal(t, ClassNotAffected, res.Classification)
-	require.Len(t, res.Artifacts, 6)
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeAutoCompleted, res.Outcome)
+	eq(t, ClassNotAffected, res.Classification)
+	eq(t, 6, len(res.Artifacts))
 	for _, s := range []string{StageCollectChange, StageEnvSnapshot, StageGraph, StageInvestigate, StageValidate, StageClassify} {
-		require.Equal(t, []string{"started", "completed"}, statuses(res.Audit, s), s)
+		eq(t, []string{"started", "completed"}, statuses(res.Audit, s))
 	}
-	require.Empty(t, statuses(res.Audit, StageReview))
+	empty(t, statuses(res.Audit, StageReview))
 	for i, e := range res.Audit {
-		require.Equal(t, i+1, e.Seq)
+		eq(t, i+1, e.Seq)
 	}
 }
 
 func TestIdempotencyKeysAreContentDerived(t *testing.T) {
 	a := []ArtifactRef{{Digest: "x"}, {Digest: "y"}}
-	require.Equal(t, IdempotencyKey("s", a), IdempotencyKey("s", a))
-	require.NotEqual(t, IdempotencyKey("s", a), IdempotencyKey("t", a))
-	require.NotEqual(t, IdempotencyKey("s", a), IdempotencyKey("s", a[:1]))
-	require.Equal(t, WorkflowID(testInput()), WorkflowID(testInput()))
+	eq(t, IdempotencyKey("s", a), IdempotencyKey("s", a))
+	ne(t, IdempotencyKey("s", a), IdempotencyKey("t", a))
+	ne(t, IdempotencyKey("s", a), IdempotencyKey("s", a[:1]))
+	eq(t, WorkflowID(testInput()), WorkflowID(testInput()))
 	other := testInput()
 	other.ToVersion = "2.0.1"
-	require.NotEqual(t, WorkflowID(testInput()), WorkflowID(other))
+	ne(t, WorkflowID(testInput()), WorkflowID(other))
 }
 
 func TestRetryThenSucceed(t *testing.T) {
 	a := &Activities{Classification: ClassNotAffected, TransientFailures: map[string]int{StageEnvSnapshot: 2}}
 	env := newEnv(t, a)
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
-	require.Equal(t, 3, a.Attempts(StageEnvSnapshot))
+	noErr(t, env.GetWorkflowError())
+	eq(t, 3, a.Attempts(StageEnvSnapshot))
 }
 
 func TestTransientExhaustsRetries(t *testing.T) {
 	a := &Activities{TransientFailures: map[string]int{StageGraph: 100}}
 	env := newEnv(t, a)
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.Error(t, env.GetWorkflowError())
-	require.Equal(t, 4, a.Attempts(StageGraph))
+	isErr(t, env.GetWorkflowError())
+	eq(t, 4, a.Attempts(StageGraph))
 }
 
 func TestNonRetryableFailure(t *testing.T) {
@@ -90,11 +133,11 @@ func TestNonRetryableFailure(t *testing.T) {
 	env := newEnv(t, a)
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
 	err := env.GetWorkflowError()
-	require.Error(t, err)
-	require.Equal(t, 1, a.Attempts(StageCollectChange))
+	isErr(t, err)
+	eq(t, 1, a.Attempts(StageCollectChange))
 	var appErr *temporal.ApplicationError
-	require.ErrorAs(t, err, &appErr)
-	require.Equal(t, ErrTypeInvalidInput, appErr.Type())
+	isTrue(t, errors.As(err, &appErr), "want ApplicationError")
+	eq(t, ErrTypeInvalidInput, appErr.Type())
 }
 
 func TestReviewApprove(t *testing.T) {
@@ -102,12 +145,12 @@ func TestReviewApprove(t *testing.T) {
 	env := newEnv(t, a)
 	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionApprove, Reviewer: "alice"})
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
+	noErr(t, env.GetWorkflowError())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeApproved, res.Outcome)
-	require.Equal(t, "alice", res.Reviewer)
-	require.Equal(t, []string{"waiting", "signal"}, statuses(res.Audit, StageReview))
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeApproved, res.Outcome)
+	eq(t, "alice", res.Reviewer)
+	eq(t, []string{"waiting", "signal"}, statuses(res.Audit, StageReview))
 }
 
 func TestReviewReject(t *testing.T) {
@@ -115,8 +158,8 @@ func TestReviewReject(t *testing.T) {
 	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionReject, Reviewer: "bob"})
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeRejected, res.Outcome)
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeRejected, res.Outcome)
 }
 
 func TestRequestMoreEvidenceThenApprove(t *testing.T) {
@@ -125,13 +168,13 @@ func TestRequestMoreEvidenceThenApprove(t *testing.T) {
 	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionMoreEvidence, Reviewer: "a", Note: "check overlays"})
 	signalAfter(env, 2*time.Minute, ReviewDecision{Decision: DecisionApprove, Reviewer: "a"})
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
+	noErr(t, env.GetWorkflowError())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeApproved, res.Outcome)
-	require.Equal(t, 1, res.Rounds)
-	require.Equal(t, 2, a.Attempts(StageInvestigate))
-	require.Equal(t, 1, a.Attempts(StageCollectChange))
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeApproved, res.Outcome)
+	eq(t, 1, res.Rounds)
+	eq(t, 2, a.Attempts(StageInvestigate))
+	eq(t, 1, a.Attempts(StageCollectChange))
 }
 
 func TestMoreEvidenceIsBounded(t *testing.T) {
@@ -141,46 +184,46 @@ func TestMoreEvidenceIsBounded(t *testing.T) {
 	}
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeRejected, res.Outcome)
-	require.Equal(t, MaxEvidenceRounds, res.Rounds)
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeRejected, res.Outcome)
+	eq(t, MaxEvidenceRounds, res.Rounds)
 }
 
 func TestReviewTimeoutFailsClosed(t *testing.T) {
 	env := newEnv(t, &Activities{})
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
+	noErr(t, env.GetWorkflowError())
 	var res InvestigationResult
-	require.NoError(t, env.GetWorkflowResult(&res))
-	require.Equal(t, OutcomeReviewTimedOut, res.Outcome)
-	require.Equal(t, []string{"waiting", "timed-out"}, statuses(res.Audit, StageReview))
+	noErr(t, env.GetWorkflowResult(&res))
+	eq(t, OutcomeReviewTimedOut, res.Outcome)
+	eq(t, []string{"waiting", "timed-out"}, statuses(res.Audit, StageReview))
 }
 
 func TestCancelWhileAwaitingReview(t *testing.T) {
 	env := newEnv(t, &Activities{})
 	env.RegisterDelayedCallback(func() {
 		v, err := env.QueryWorkflow(QueryState)
-		require.NoError(t, err)
+		noErr(t, err)
 		var st State
-		require.NoError(t, v.Get(&st))
-		require.True(t, st.AwaitingReview)
-		require.Equal(t, StageReview, st.CurrentStage)
+		noErr(t, v.Get(&st))
+		isTrue(t, st.AwaitingReview, "want awaitingReview")
+		eq(t, StageReview, st.CurrentStage)
 		env.CancelWorkflow()
 	}, time.Minute)
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
 	err := env.GetWorkflowError()
-	require.Error(t, err)
-	require.True(t, temporal.IsCanceledError(err), "got %v", err)
+	isErr(t, err)
+	isTrue(t, temporal.IsCanceledError(err), "want CanceledError, got "+err.Error())
 }
 
 func TestQueryStateAfterCompletion(t *testing.T) {
 	env := newEnv(t, &Activities{Classification: ClassNotAffected})
 	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	require.NoError(t, env.GetWorkflowError())
+	noErr(t, env.GetWorkflowError())
 	v, err := env.QueryWorkflow(QueryState)
-	require.NoError(t, err)
+	noErr(t, err)
 	var st State
-	require.NoError(t, v.Get(&st))
-	require.Equal(t, ClassNotAffected, st.Classification)
-	require.NotEmpty(t, st.Audit)
+	noErr(t, v.Get(&st))
+	eq(t, ClassNotAffected, st.Classification)
+	isTrue(t, len(st.Audit) > 0, "want audit entries")
 }

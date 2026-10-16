@@ -22,7 +22,7 @@ Branch `p4ei/orchestrate`, worktree `.claude/worktrees/p4ei-orchestrate`. Brief:
   go1.27.1 is fine; anyone/CI on Go < 1.26 now needs to upgrade or auto-fetch a toolchain. Commander should
   confirm CI/Docker images use ≥1.26.
 - Only `internal/orchestrate` imports it; `cmd/ri` does not yet, so the `ri` binary is unaffected until wiring.
-- Also added `github.com/stretchr/testify v1.12.1` as a direct dep (tests use `require`; the SDK testsuite already needs it transitively). Also bumped `golang.org/x/text` 0.14.0 → 0.41.0 (indirect).
+- testify is NOT a direct dependency (commander review: repo tests are stdlib-only); `workflow_test.go` uses plain `testing` with small local helpers. testify remains `// indirect` via the SDK testsuite. Also bumped `golang.org/x/text` 0.14.0 → 0.41.0 (indirect).
 - `go build ./... && go vet ./... && go test ./...` all green on the full module.
 
 ## Decisions
@@ -32,7 +32,7 @@ Branch `p4ei/orchestrate`, worktree `.claude/worktrees/p4ei-orchestrate`. Brief:
 - Cancellation returns a CanceledError (workflow shows Canceled) and records audit on a disconnected context.
 
 ## Files touched outside ownership
-- None beyond `go.mod`/`go.sum` (testify and x/text bumps are consequences of the SDK addition).
+- None beyond `go.mod`/`go.sum` (the x/text bump and indirect testify are consequences of the SDK addition).
 
 ## Contract changes
 - n/a. Guidance for the contract lane is in TEMPORAL.md "Findings that affect other lanes" (payload size
@@ -41,7 +41,7 @@ Branch `p4ei/orchestrate`, worktree `.claude/worktrees/p4ei-orchestrate`. Brief:
   these were not cross-checked against its types.
 
 ## Open questions (for commander)
-- Is Go ≥1.26 acceptable repo-wide (CI/Docker)? See above.
+- (Resolved by commander) Go 1.26.0 directive accepted; no CI/Docker pins Go.
 
 ## Tests
 `go build ./... && go vet ./... && go test ./...` pass; `go test -race ./internal/orchestrate` pass.
