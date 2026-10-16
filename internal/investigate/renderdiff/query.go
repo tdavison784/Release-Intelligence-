@@ -64,7 +64,9 @@ func QueryPage(b *domain.EvidenceBundle, q investigate.DiffQuery) (*DiffPage, er
 		return nil, rejectf("unknown %s render target %q (targets: %s)", scopeName(q.Scope), q.Target, strings.Join(targetNames(pairs), ", "))
 	}
 	if q.ChangeItem != "" {
-		if _, ok := b.Change.Item(q.ChangeItem); !ok {
+		// Bundle.Item: record items and environment-scope items
+		// (EnvironmentItems, DESIGN §1.3 amendment).
+		if _, ok := b.Item(q.ChangeItem); !ok {
 			return nil, rejectf("unknown change item %q", q.ChangeItem)
 		}
 	}

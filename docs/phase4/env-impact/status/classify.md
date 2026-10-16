@@ -3,7 +3,7 @@
 Branch `p4ei/classify`, worktree `.claude/worktrees/p4ei-classify`. Brief: `briefs/classify.md`
 (+ `_wave2-common.md`, `_wave1-common.md`, DESIGN §3 / §7 "classify"). Merged `p4-env-impact` @ 359605dc
 (wave 1 complete, incl. the §1.3 amendment items in `EvidenceBundle.EnvironmentItems`).
-State: **DONE** (2026-10-16), incl. follow-up 1 (below). Merged into p4-env-impact @ 7bb6e559; follow-up
+State: **DONE** (2026-10-16), incl. follow-ups 1 and 2 (below). Merged into p4-env-impact @ 7bb6e559; follow-up
 branch re-merged `p4-env-impact` first. Resume from: this file + brief + `git log` + `docs/INVESTIGATE.md`
 "Classification and review".
 
@@ -92,6 +92,18 @@ harmless by render silence nor fail without a concrete failure (DESIGN §1.3 ame
 `potentially-affected` (R3, correlated rendered change); their gaps now carry the validators' reasons instead of
 "no validation".
 
+## Follow-up 2 (commander): renderdiff env-scope lookup — DONE
+
+Commander assigned ownership of `internal/investigate/renderdiff/` for the same bug.
+- Fix: `renderdiff/query.go` `QueryPage` validates `DiffQuery.ChangeItem` with `b.Item` (record + environment items)
+  instead of `b.Change.Item`; the filter itself already matched `RenderedChange.ChangeItems`.
+- Regression test `TestQueryByEnvironmentScopeItem` (query_test.go): for every environment-scope item of the query
+  fixture, `QueryPage` by its id succeeds and returns its anchoring rendered change (and only changes correlated to
+  it); an unknown id is still `ErrRejected`. Verified it fails without the fix ("unknown change item").
+- Other lookups in renderdiff: `index.go:107` iterates `rec.Items` while indexing inside the renderer — correct,
+  environment items are created by the renderer from that index (`renderer.go:147`), so none exist yet. No other
+  record-only lookup. Agent-side instances (`agent/prompts.go:180`, `agent/session.go:154,733`) are the agent lane's.
+
 ## In progress / next step
 
 - Nothing. Commander: review + merge `p4ei/classify`.
@@ -132,6 +144,7 @@ harmless by render silence nor fail without a concrete failure (DESIGN §1.3 ame
 - `internal/investigate/api.go` — contract change 1 below.
 - `internal/domain/investigation.go` — contract change 2 below (one condition).
 - `docs/INVESTIGATE.md` — new section "Classification and review"; follow-up 1: one sentence in "Validators".
+- Follow-up 2: `internal/investigate/renderdiff/query.go`, `query_test.go` (ownership assigned for this bug).
 - Follow-up 1: `internal/investigate/validate/common.go`, `harness_test.go`, `renderdiff_test.go` (ownership
   assigned by the commander for gap (a)).
 
