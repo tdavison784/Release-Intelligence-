@@ -1,0 +1,34 @@
+# Shared kube-prometheus-stack settings for all clusters.
+
+# Dashboards are served by the central Grafana.
+grafana:
+  enabled: false
+
+# Managed control plane: scheduler, controller-manager, etcd and kube-proxy are not reachable
+# from inside the cluster.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+    # Pick up rules, ServiceMonitors and PodMonitors from every namespace, not only the ones
+    # carrying this release's label.
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false

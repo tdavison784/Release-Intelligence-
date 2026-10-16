@@ -1,0 +1,27 @@
+# Shared ingress-nginx settings for all shop clusters.
+controller:
+  ingressClassResource:
+    name: nginx
+    default: true
+  config:
+    use-forwarded-headers: "true"
+    proxy-body-size: "8m"
+    server-tokens: "false"
+    # Edge tracing
+    enable-opentelemetry: "true"
+    otlp-collector-host: otel-collector.observability.svc
+    otlp-collector-port: "4317"
+    otel-service-name: ingress-nginx
+    otel-sampler: AlwaysOn
+    otel-sampler-ratio: "1.0"
+  opentelemetry:
+    enabled: true
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+  metrics:
+    enabled: true
+  # Scraped by the central Prometheus via pod annotations.
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "10254"

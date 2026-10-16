@@ -1,0 +1,42 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: kube-prometheus-stack-89-90--obs-north
+pair: kube-prometheus-stack-89-90--control-plane-auth
+product: kube-prometheus-stack
+chart:
+  repo: https://prometheus-community.github.io/helm-charts
+  name: kube-prometheus-stack
+from:
+  version: 89.2.4          # chart; prometheus-operator v0.93.1
+  chartVersion: 89.2.4
+to:
+  version: 90.2.0          # chart; prometheus-operator v0.93.1
+  chartVersion: 90.2.0
+environment:
+  id: obs-prod-north
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  description: >-
+    Production cluster on a managed Kubernetes service, managed by Argo CD from this repository
+    (app-of-apps rooted at clusters/prod). kube-prometheus-stack is installed from the upstream
+    Helm chart with the value files in platform/monitoring (values.yaml shared by all clusters,
+    values-prod.yaml for this cluster, in that order). The checkout team ships its alerting rules
+    with its application (apps/checkout). The repository is the complete declaration of what runs in
+    the cluster; nothing is applied by hand.
+  complete: true
+scope:
+  # The "From 89.x to 90.x" section of the chart's UPGRADE.md.
+  - id: B1
+    title: Control-plane ServiceMonitors authenticate with a chart-created service-account token Secret (authorization) and the kube-root-ca.crt ConfigMap instead of bearerTokenFile / tlsConfig.caFile
+    subject: kubelet.serviceMonitor.authorization
+    source: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L3-L19
+  - id: B2
+    title: prometheusOperator.secretFieldSelector no longer excludes kubernetes.io/service-account-token Secrets
+    subject: prometheusOperator.secretFieldSelector
+    source: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L43-L46
+  - id: B3
+    title: File-based ServiceMonitor values removed (<component>.serviceMonitor.bearerTokenFile, kubelet.serviceMonitor.insecureSkipVerify, kubeApiServer.tlsConfig.caSecret, kubeEtcd/kubeControllerManager/kubeScheduler/kubeProxy TLS keys)
+    subject: kubelet.serviceMonitor.insecureSkipVerify
+    source: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L48-L59
+withheld: []
