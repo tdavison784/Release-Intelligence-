@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -570,38 +571,116 @@ func TestChangeStoresAttachedKnowledgeFacts(t *testing.T) {
 	}
 }
 
-// A CRD description-text change documents the API; it configures nothing: it
-// stays a visible rendered change of the pair but correlates to no item and
-// anchors none — reworded schema docs must not flood the investigation with
-// scope:rendered-unexplained items.
-func TestChangeCRDDescriptionAnchorsNoItem(t *testing.T) {
-	pair := fixturePair()
-	pair.Diff.Changes = append(pair.Diff.Changes, render.Change{
+// crdDescription is a crd-description-changed change of the fixture CRD that
+// rewords the documentation of the schema field `field`.
+func crdDescription(field string) render.Change {
+	return render.Change{
 		Class:  render.CRDDescriptionChanged,
 		Object: render.ObjectID{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition", Name: "widgets.acme.io"},
-		Path:   "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Name: "description",
-		Before: s(`"defaults to safe"`), After: s(`"defaults to fast"`)})
-	res, _ := collect(t, &fakeUpstream{edge: fixtureEdge(), pair: pair}, true)
-	rec := res.Record
-	var found *domain.RenderedChange
+		Path:   "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties." + field + ".description", Name: "description",
+		Before: s(`"defaults to safe"`), After: s(`"defaults to fast"`)}
+}
+
+func descriptionChange(t *testing.T, rec domain.ChangeEvidenceRecord) *domain.RenderedChange {
+	t.Helper()
 	for i := range rec.Renders[0].Changes {
-		c := &rec.Renders[0].Changes[i]
-		if c.Class == string(render.CRDDescriptionChanged) {
-			found = c
+		if c := &rec.Renders[0].Changes[i]; c.Class == string(render.CRDDescriptionChanged) {
+			return c
 		}
 	}
-	if found == nil {
-		t.Fatal("the description change must stay visible in the pair")
+	t.Fatal("the description change must stay visible in the pair")
+	return nil
+}
+
+// A CRD description-text change no change documents configures nothing: it
+// stays a visible rendered change of the pair, anchored on an OUT-OF-SCOPE
+// scope:documentation item — so it is accounted for (correlated, never an
+// approval-blocking "uncorrelated" change) and never an in-scope
+// scope:rendered-unexplained item: reworded schema docs must not flood the
+// investigation with items to review.
+func TestChangeCRDDescriptionIsOutOfScopeDocumentation(t *testing.T) {
+	pair := fixturePair()
+	pair.Diff.Changes = append(pair.Diff.Changes, crdDescription("mode"))
+	res, _ := collect(t, &fakeUpstream{edge: fixtureEdge(), pair: pair}, true)
+	rec := res.Record
+	found := descriptionChange(t, rec)
+	if len(found.ChangeItems) != 1 || found.Correlation != "rendered-anchor" {
+		t.Fatalf("description text must be anchored on its documentation item: %+v", found)
 	}
-	if len(found.ChangeItems) != 0 || found.Correlation != "" {
-		t.Fatalf("description text must correlate to no item: %+v", found)
+	it, ok := rec.Item(found.ChangeItems[0])
+	if !ok || it.RenderedChange != found.ID || it.InScope || it.ScopeRule != ScopeDocumentation ||
+		it.Family != domain.FamilyRendered || it.Manifestation != domain.ManifestRenderedConfig {
+		t.Fatalf("documentation item = %+v", it)
 	}
-	for _, it := range rec.Items {
-		if it.RenderedChange == found.ID {
-			t.Fatalf("description text anchored an item: %+v", it)
+	for _, id := range rec.InScope() {
+		if id == it.ID {
+			t.Fatal("a documentation item must never be in scope")
 		}
 	}
 	if err := rec.Validate(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The documentation of the field a change names belongs to that change
+// (documents-field): exposure is never silently dropped (DESIGN §2.4). The
+// link never makes the item render-decided — a behaviour change whose only
+// rendered trace is its field's reworded documentation stays
+// controller-behaviour (§2.2.1, keyed on the class), and no documentation
+// item is anchored for a change that is already explained.
+func TestChangeCRDDescriptionLinksTheChangeOfItsField(t *testing.T) {
+	edge := fixtureEdge()
+	edge.Changes = append(edge.Changes, domain.Change{ID: "c-rotation", Category: domain.CategoryConfiguration,
+		Title: "The default of rotationMode changed to Always", Subjects: []string{"spec.privateKey.rotationMode"},
+		Breaking: true, Provenance: declared("marker:breaking"), Evidence: edge.Changes[2].Evidence}) // c-feature's: unrelated text
+	pair := fixturePair()
+	pair.Diff.Changes = append(pair.Diff.Changes, crdDescription("rotationMode"))
+	res, _ := collect(t, &fakeUpstream{edge: edge, pair: pair}, true)
+	rec := res.Record
+	found := descriptionChange(t, rec)
+	item, _ := itemByChange(rec, "c-rotation")
+	if len(found.ChangeItems) != 1 || found.ChangeItems[0] != item.ID || found.Correlation != "documents-field" {
+		t.Fatalf("the field's documentation must link to the change naming the field: %+v (item %s)", found, item.ID)
+	}
+	if item.Manifestation != domain.ManifestControllerBehaviour || item.ManifestationRule != ManifestRuleDeclaredBehaviour {
+		t.Fatalf("a description link must not make a behaviour change render-decided: %s / %s", item.Manifestation, item.ManifestationRule)
+	}
+	for _, it := range rec.Items {
+		if it.ScopeRule == ScopeDocumentation {
+			t.Fatalf("an explained description change anchored a documentation item: %+v", it)
+		}
+	}
+	if err := rec.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// manifest:rendered-correlated is decided per link: one change's subject
+// match on a rendered change must not make another change — linked to the
+// same rendered change only because its text mentions the flag — render-
+// decided (render silence would then clear a behaviour change).
+func TestRenderedCorrelatedIsPerLink(t *testing.T) {
+	edge := fixtureEdge()
+	edge.Changes = append(edge.Changes, domain.Change{ID: "c-mention", Category: domain.CategoryConfiguration,
+		Title: "Controller restarts are now graceful", Breaking: true, Provenance: declared("marker:breaking"),
+		Evidence: edge.Changes[0].Evidence}) // c-breaking's note: its text names --enable-thing
+	res, _ := collect(t, &fakeUpstream{edge: edge, pair: fixturePair()}, true)
+	rec := res.Record
+	breaking, _ := itemByChange(rec, "c-breaking")
+	mention, _ := itemByChange(rec, "c-mention")
+	var arg *domain.RenderedChange
+	for i := range rec.Renders[0].Changes {
+		if c := &rec.Renders[0].Changes[i]; c.Class == string(render.ContainerArgAdded) {
+			arg = c
+		}
+	}
+	if arg == nil || !slices.Contains(arg.ChangeItems, breaking.ID) || !slices.Contains(arg.ChangeItems, mention.ID) {
+		t.Fatalf("fixture: the argument change must link to both changes: %+v", arg)
+	}
+	if breaking.ManifestationRule != ManifestRuleRenderedCorrelated {
+		t.Errorf("subject match: %s, want %s", breaking.ManifestationRule, ManifestRuleRenderedCorrelated)
+	}
+	if mention.Manifestation != domain.ManifestControllerBehaviour || mention.ManifestationRule != ManifestRuleDeclaredBehaviour {
+		t.Errorf("a text mention borrowed another change's subject match: %s / %s", mention.Manifestation, mention.ManifestationRule)
 	}
 }

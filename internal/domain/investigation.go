@@ -389,13 +389,25 @@ const (
 	// bump of an artifact the product definition itself publishes is an
 	// out-of-scope item, so the change is correlated.
 	ScopeRoutineSelfArtifact = "scope:routine-self-artifact"
+	// ScopeDocumentation: a crd-description-changed rendered change (CRD
+	// schema documentation text) that no change item correlates is an
+	// out-of-scope item, so the change is correlated (never "uncorrelated")
+	// and never an in-scope item of its own: documentation configures
+	// nothing (DESIGN.md §1.3).
+	// CONTRACT-CHANGE(fixes2): additive, mirrors ScopeRoutineSelfArtifact.
+	ScopeDocumentation = "scope:documentation"
+	// RenderedClassDocumentation is the render class ScopeDocumentation
+	// items anchor on (render.CRDDescriptionChanged; domain cannot import
+	// render).
+	RenderedClassDocumentation = "crd-description-changed"
 )
 
 // renderedScopeErrors checks the amendment rules' shape: anchored on a
 // rendered change, family rendered, manifestation rendered-config;
-// rendered-unexplained in scope, routine-self-artifact out of scope.
+// rendered-unexplained in scope, routine-self-artifact and documentation out
+// of scope.
 func (it ChangeItem) renderedScopeErrors() []string {
-	if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
+	if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact && it.ScopeRule != ScopeDocumentation {
 		return nil
 	}
 	var out []string
@@ -507,9 +519,11 @@ func (r ChangeEvidenceRecord) Validate() error {
 		bad("producer is required")
 	}
 	releaseChanges := map[string]bool{}
+	releaseClass := map[string]string{}
 	for _, p := range r.Renders {
 		for _, c := range p.Changes {
 			releaseChanges[c.ID] = true
+			releaseClass[c.ID] = c.Class
 		}
 	}
 	seen := map[string]bool{}
@@ -530,6 +544,9 @@ func (r ChangeEvidenceRecord) Validate() error {
 			}
 			if it.Family != FamilyRendered {
 				bad("item %s: a rendered-change item has family rendered", it.ID)
+			}
+			if it.ScopeRule == ScopeDocumentation && releaseChanges[it.RenderedChange] && releaseClass[it.RenderedChange] != RenderedClassDocumentation {
+				bad("item %s: %s is only for a %s rendered change, not %q", it.ID, ScopeDocumentation, RenderedClassDocumentation, releaseClass[it.RenderedChange])
 			}
 		}
 		for _, e := range it.renderedScopeErrors() {
@@ -1026,8 +1043,8 @@ func (b *EvidenceBundle) Validate() error {
 		if it.ID != ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange) || it.anchors() != 1 || it.RenderedChange == "" {
 			bad("environment item %s: must be anchored on exactly one rendered change, id derived from it", it.ID)
 		}
-		if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
-			bad("environment item %s: scope rule %q; environment items are %s or %s", it.ID, it.ScopeRule, ScopeRenderedUnexplained, ScopeRoutineSelfArtifact)
+		if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact && it.ScopeRule != ScopeDocumentation {
+			bad("environment item %s: scope rule %q; environment items are %s, %s or %s", it.ID, it.ScopeRule, ScopeRenderedUnexplained, ScopeRoutineSelfArtifact, ScopeDocumentation)
 		}
 		for _, e := range it.renderedScopeErrors() {
 			bad("environment item %s: %s", it.ID, e)
@@ -1039,6 +1056,8 @@ func (b *EvidenceBundle) Validate() error {
 			bad("environment item %s: rendered change %s is not an environment-scope rendered change of this bundle", it.ID, it.RenderedChange)
 		} else if !contains(c.ChangeItems, it.ID) {
 			bad("environment item %s: its rendered change %s is not correlated to it", it.ID, it.RenderedChange)
+		} else if it.ScopeRule == ScopeDocumentation && c.Class != RenderedClassDocumentation {
+			bad("environment item %s: %s is only for a %s rendered change, not %q", it.ID, ScopeDocumentation, RenderedClassDocumentation, c.Class)
 		}
 	}
 	for _, ps := range [][]ManifestPair{b.Change.Renders, b.Renders} {

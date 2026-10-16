@@ -67,10 +67,23 @@ func TestManifestationRules(t *testing.T) {
 		{"crd version unserved", computed("crd:version-unserved"), domain.ManifestRenderedConfig, ManifestRuleComputedCRDStruct},
 		{"crd required", computed("crd:field-required"), domain.ManifestRenderedConfig, ManifestRuleComputedCRDStruct},
 		{"crd default is server-side behaviour", computed("crd:default-changed"), domain.ManifestControllerBehaviour, ManifestRuleCRDDefault},
-		{"declared with a rendered subject match", changeFacts{CorrelatedPaths: []string{"spec.template.spec.containers[name=a].args"}}, domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated},
-		// description-only paths no longer reach CorrelatedPaths at all (a
-		// crd-description-changed render change correlates to no item), so
-		// every correlated path is a real one; see render's correlate tests.
+		{"declared with a rendered subject match", changeFacts{Correlated: []correlatedChange{{Path: "spec.template.spec.containers[name=a].args", Class: render.ContainerArgChanged}}}, domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated},
+		// DESIGN §2.2.1: manifest:rendered-correlated needs a correlated
+		// change that is not description text — keyed on the class, so a
+		// behaviour change whose only rendered trace is the reworded
+		// documentation of its field stays controller-behaviour (render
+		// silence or a harmless docs pass can never clear it).
+		{"declared with only a CRD description match", changeFacts{Correlated: []correlatedChange{
+			{Path: "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Class: render.CRDDescriptionChanged}}},
+			domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour},
+		{"declared with a description and a config match", changeFacts{Correlated: []correlatedChange{
+			{Path: "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Class: render.CRDDescriptionChanged},
+			{Path: "spec.template.spec.containers[name=a].args", Class: render.ContainerArgChanged}}},
+			domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated},
+		// the guard is the class, not the spelling: a configuration path
+		// that merely ends in "description" is still configuration
+		{"declared with a config path ending in description", changeFacts{Correlated: []correlatedChange{{Path: "data.description", Class: render.FieldChanged}}},
+			domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated},
 		{"declared with no render match", changeFacts{}, domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour},
 		{"computed rule nobody classified fails closed", computed("something:new"), domain.ManifestUnknown, ManifestRuleUnknown},
 		{"computed crd fields added fails closed", computed("crd:fields-added"), domain.ManifestUnknown, ManifestRuleUnknown},
