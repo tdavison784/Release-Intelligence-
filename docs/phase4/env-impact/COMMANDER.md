@@ -30,6 +30,7 @@ Last updated: 2026-10-16 (Claude commander, Opus 5.5, session 77622fd0)
 | 2 | agent | Opus | P3 investigation agent centred on diff-query tools (MCP, claude -p runner, replay) | bundle, renderdiff | (from DESIGN §7) |
 | 2 | classify | Opus | §A6 four-class policy, findings, approval eligibility | contract, validate | (from DESIGN §7) |
 | 2 | orchestrate (cont.) | Sonnet | P5 real activities, `ri worker`, human review signal | all wave 1 | (from DESIGN §7) |
+| 2b | runtime | Opus | §A5 runtime: throwaway kind cluster upgrade → observed-level pass/fail (user-approved 2026-10-16) | bundle, renderdiff, validate | briefs/runtime.md |
 | 3 | eval | Opus | P6 harness + scored report vs groundtruth | all | (from DESIGN §7) |
 
 *Model per wave-1/2 lane is re-decided when the briefs are written from DESIGN §7 (Opus where the lane
@@ -74,6 +75,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Commander owns eval/investigations/FORMAT.md now (contract lane gone); groundtruth adds renderedChanges labelling as an additive CONTRACT-CHANGE section.
 - 2026-10-16 DESIGN §1.3 amendment (adf4fe08, commander): `scope:rendered-unexplained` (in scope; every rendered change nothing upstream explains, release or env scope, becomes its own item, treated like scope:category) and `scope:routine-self-artifact` (out of scope, correlated). Why: diffs are the centerpiece + Principle 3; an unexplained change to the customer's rendered deployment must be investigated, not only block approval. Generic rule, not tuned to a case.
 - 2026-10-16 Agent coverage must not depend on model diligence: deterministic agenda of undecided in-scope items, a mandatory per-item entry (incl. examined-no-concern / not-examined), submission rejected while any item lacks one; examined-no-concern never lowers a class. Prompt v2; v1 kept for replay. Live run 2 on a different product to keep the prompt generic.
+- 2026-10-16 USER APPROVED a runtime validation lane: throwaway kind cluster, apply env FROM render → TO render, generic observations on impact-path objects, declared exercises; quiet window without the relevant exercise is never a pass. Opus, opt-in (--runtime).
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
