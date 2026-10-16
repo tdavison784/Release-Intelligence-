@@ -441,7 +441,7 @@ first matching rule, to graph nodes:
 `request_validation` returns the resolution. An unresolvable subject, or one matching more than 20 nodes, is
 rejected with the list of accepted forms. Prompt v1 keeps its contract: node ids and keys only.
 
-**Answering concerns (prompt `investigate-agent/v3`, the default).** The classifier lifts a `raises-concern`,
+**Answering concerns (prompt `investigate-agent/v3`).** The classifier lifts a `raises-concern`,
 or establishes a `claims-mitigation`, only through a counting passing validation whose `Answers` lists the
 **assertion id** (R2.6/R2.7). The validators know only the request's hypothesis, so the tool layer links
 assertions into the record. A link needs all of the following:
@@ -482,7 +482,7 @@ Coverage entries report depth per item:
 
 The rules never change a class: they decide only which agent records are accepted.
 
-**Per-item sessions (prompt `investigate-agent/v4`, the default; commander decision 2026-10-16).** In live run 3,
+**Per-item sessions (prompt `investigate-agent/v4`; commander decision 2026-10-16).** In live run 3,
 depth was a choice the model declined: 12 of 168 calls. A budget floor could be met with useless calls, so v4
 changes the structure instead.
 
@@ -523,6 +523,34 @@ The tools are unchanged and still bundle-scoped.
 - **Transcript:** one `item` line per session (item, prompt digest, budget), then its calls and envelope. Replay
   walks the segments in order and must reproduce each byte for byte.
 
+**Setting claims (prompt `investigate-agent/v5`, the default; commander decision 2026-10-16).** Live run 4
+showed the remaining gap: citations are checked, prose is not — a session closed
+`raises-concern` while its summary said the environment does not set a key that
+`values-prod.yaml` sets to `true` (fail-safe, but unverified). v5 makes environment facts
+structured and checked:
+
+- `record_claim` states a fact — setting S is `absent` / `present` / has `value` V in an
+  input (an environment file, an environment render, or `environment-files` for all of them) —
+  and the tool layer verifies it **deterministically before recording**
+  (`investigate.claim-check@v1`, recorded as the claim's `Verifier` with the artifacts
+  `Checked`).
+- A setting is searched three ways: as a dotted key path from a YAML document root, as its
+  last key anywhere in a document, and as a whole token in the text — so `absent` is verified
+  only when the setting occurs nowhere in any form. `value` compares the decoded YAML scalar
+  (canonically) at every key match.
+- A claim that does not hold is **rejected with the contradicting line** (artifact, path,
+  line, text); it is never recorded.
+- Recorded claims are `domain.SettingClaim` (`clm-…`, AI provenance: the claim is the agent's,
+  the verification is deterministic). Assertions and closing summaries name them in `claims`;
+  a claim about another item is rejected. The evidence of a present/value claim joins the
+  run's evidence pool.
+- Everything the agent writes in free text (assertion / hypothesis / note statements,
+  summaries) is labelled `unverified-ai-prose` (`StatementKind` / `SummaryKind`); summaries the
+  runner writes (beyond-cap, failed sessions) carry no label.
+
+A claim supports the agent's records; it is never a validation and never a policy input —
+classification still runs only over validation records.
+
 **Environment-scope items.** Items anchored on environment-only rendered changes
 (`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
 iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
@@ -537,7 +565,8 @@ the agent's outputs.
 **Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
-agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`).
+agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
+v5 adds setting claims (`record_claim`) and the prose labels.
 Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:
