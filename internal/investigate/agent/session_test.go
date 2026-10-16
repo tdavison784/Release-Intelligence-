@@ -293,7 +293,7 @@ func TestDriverBudgets(t *testing.T) {
 		want string
 	}{
 		{investigate.DriverResult{Stop: "submitted", Tokens: 700_000}, "budget:tokens"},
-		{investigate.DriverResult{Stop: "submitted", Turns: 41}, "budget:turns"},
+		{investigate.DriverResult{Stop: "submitted", Turns: 42}, "budget:turns"},
 		{investigate.DriverResult{Stop: "budget:seconds"}, "budget:seconds"},
 		{investigate.DriverResult{Stop: "pending:/x/1.request.json"}, "exchange-pending"},
 		{investigate.DriverResult{Stop: "error:boom"}, "boom"},

@@ -34,6 +34,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/investigate/renderdiff"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
+	"github.com/tdavison784/release-intelligence/internal/investigate/validate"
 )
 
 // liveInput is the part of input.yaml the run needs.
@@ -53,9 +54,13 @@ type liveInput struct {
 	} `yaml:"environment"`
 }
 
-// liveValidators are the validators the live run offers request_validation
-// (none until lane validate's package is merged into this branch).
-var liveValidators = func(*app.App, investigate.ArtifactStore, *domain.ImpactReport) []investigate.Validator { return nil }
+// liveValidators are lane validate's five validators, as the orchestrator
+// wires them: the deterministic pass before the agent and request_validation.
+func liveValidators(st investigate.ArtifactStore, rep *domain.ImpactReport, facts []domain.VerifiedFact) []investigate.Validator {
+	return []investigate.Validator{validate.JoinVerdicts(rep, validate.WithStore(st)), validate.RenderDiff(validate.WithStore(st)),
+		validate.OverrideInspection(validate.WithStore(st), validate.WithFacts(facts...)), validate.SchemaCompat(validate.WithStore(st)),
+		validate.StaticReference(validate.WithStore(st))}
+}
 
 func TestLiveAgentRun(t *testing.T) {
 	caseID, state, riBin, outDir := os.Getenv("RI_AGENT_LIVE"), os.Getenv("RI_STATE"), os.Getenv("RI_BIN"), os.Getenv("RI_AGENT_OUT")
@@ -84,7 +89,11 @@ func TestLiveAgentRun(t *testing.T) {
 	must(t, err)
 	st, err := store.New(t.TempDir())
 	must(t, err)
-	change, err := bundle.NewChangeCollector(a, st).CollectChange(ctx, investigate.ChangeRequest{Product: in.Product, From: in.From.Version, To: in.To.Version, Render: true})
+	var facts []domain.VerifiedFact
+	if ks, err := app.LoadKnowledge(filepath.Join(root, "knowledge")); err == nil {
+		facts = ks.Facts
+	}
+	change, err := bundle.NewChangeCollector(a, st, bundle.WithKnowledge(facts...)).CollectChange(ctx, investigate.ChangeRequest{Product: in.Product, From: in.From.Version, To: in.To.Version, Render: true})
 	must(t, err)
 	snap, err := bundle.NewSnapshotBuilderWithHints(st, env.HintsFromCatalog(a.Catalog)).BuildSnapshot(ctx,
 		investigate.EnvironmentInputs{Name: in.Environment.ID, Repo: envDir, KubernetesVersion: in.Environment.Kubernetes})
@@ -93,10 +102,6 @@ func TestLiveAgentRun(t *testing.T) {
 	must(t, err)
 	b, err := bundle.NewAssembler(st).Assemble(ctx, change, snap, renders)
 	must(t, err)
-	var facts []domain.VerifiedFact
-	if ks, err := app.LoadKnowledge(filepath.Join(root, "knowledge")); err == nil {
-		facts = ks.Facts
-	}
 	rep, err := a.Impact(ctx, in.Product, in.From.Version, in.To.Version, app.ImpactOptions{Environment: env.Inputs{Repo: envDir, KubernetesVersion: in.Environment.Kubernetes},
 		Facts: facts, MinVerification: domain.VerifiedHuman, Render: &app.RenderOptions{Repo: envDir, KubeVersion: in.Environment.Kubernetes}})
 	if err != nil {
@@ -110,6 +115,30 @@ func TestLiveAgentRun(t *testing.T) {
 	trav, err := relations.NewTraverser().Traverse(ctx, g, roots, domain.DefaultTraversalBound)
 	must(t, err)
 
+	// The deterministic pass before the agent (DESIGN.md §5.1): every
+	// validator over every in-scope item.
+	validators := liveValidators(st, rep, facts)
+	var pre []domain.ValidationRecord
+	seen := map[string]bool{}
+	for _, it := range b.Change.Items {
+		if !it.InScope {
+			continue
+		}
+		for _, v := range validators {
+			if !v.Applies(it.Family) {
+				continue
+			}
+			vo, err := v.Validate(ctx, investigate.ValidationInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, ChangeItem: it.ID})
+			must(t, err)
+			for _, r := range vo.Records {
+				if !seen[r.ID] {
+					seen[r.ID] = true
+					pre = append(pre, r)
+				}
+			}
+		}
+	}
+
 	model := os.Getenv("RI_AGENT_MODEL")
 	if model == "" {
 		model = "claude-sonnet-5-5"
@@ -122,14 +151,14 @@ func TestLiveAgentRun(t *testing.T) {
 		budget.MaxTurns = n
 	}
 	cfg := investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI, Model: model, PromptVersion: DefaultPromptVersion, Budget: budget}
-	input := investigate.InvestigateInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, Config: cfg}
+	input := investigate.InvestigateInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, Validations: pre, Config: cfg}
 	_, as, err := Prepare(st, input, nil, nil)
 	must(t, err)
 	must(t, os.MkdirAll(outDir, 0o755))
 	write := func(name string, b []byte) { must(t, os.WriteFile(filepath.Join(outDir, name), b, 0o644)) }
 	write("task.md", []byte(as.Task))
 
-	inv := New(st, WithDriver(DriverClaudeCLI, &ClaudeCLI{RIBinary: riBin, Stderr: os.Stderr}), WithValidators(liveValidators(a, st, rep)...))
+	inv := New(st, WithDriver(DriverClaudeCLI, &ClaudeCLI{RIBinary: riBin, Stderr: os.Stderr}), WithValidators(validators...))
 	out, err := inv.Investigate(ctx, input)
 	must(t, err)
 
@@ -146,7 +175,7 @@ func TestLiveAgentRun(t *testing.T) {
 	sum := map[string]any{"case": in.ID, "bundle": b.ID, "promptVersion": as.PromptVersion, "promptDigest": as.PromptDigest, "model": model,
 		"budget": budget, "renders": renderdiff.Summaries(b), "uncorrelated": len(b.Uncorrelated()), "graph": map[string]int{"nodes": len(g.Nodes), "edges": len(g.Edges)},
 		"traversal": map[string]any{"roots": len(trav.Roots), "paths": len(trav.Paths), "unresolved": len(trav.Unresolved), "complete": trav.Complete},
-		"impactReport": rep != nil, "validators": len(liveValidators(a, st, rep))}
+		"impactReport": rep != nil, "validators": len(validators), "deterministicPass": len(pre)}
 	var items []item
 	for _, it := range b.Change.Items {
 		if it.InScope {
@@ -157,7 +186,7 @@ func TestLiveAgentRun(t *testing.T) {
 	sb, _ := json.MarshalIndent(sum, "", "  ")
 	write("bundle-summary.json", append(sb, '\n'))
 
-	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out)
+	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out, pre...)
 	if err := run.ValidateAgainst(b); err != nil {
 		t.Errorf("run record: %v", err)
 	}

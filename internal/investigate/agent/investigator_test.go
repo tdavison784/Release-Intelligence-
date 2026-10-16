@@ -66,7 +66,7 @@ func runScripted(t *testing.T, f *fixture, steps []Step) (*investigate.AgentOutc
 
 // runRecord assembles the investigation run record the orchestrator would
 // write from the agent outcome, so the contract's own checks judge it.
-func runRecord(t *testing.T, f *fixture, out *investigate.AgentOutcome) *domain.Investigation {
+func runRecord(t *testing.T, f *fixture, out *investigate.AgentOutcome, pre ...domain.ValidationRecord) *domain.Investigation {
 	t.Helper()
 	cfg := investigate.Config{Policy: "classify.policy@v1", Bound: domain.DefaultTraversalBound, Agent: investigate.AgentConfig{Enabled: true}}
 	g := MergeGraph(f.g, out)
@@ -76,7 +76,7 @@ func runRecord(t *testing.T, f *fixture, out *investigate.AgentOutcome) *domain.
 	inv := &domain.Investigation{SchemaVersion: domain.InvestigationSchemaVersion, Bundle: f.b.ID, Snapshot: f.b.Snapshot.ID, ChangeRecord: f.b.Change.ID,
 		Environment: f.b.Snapshot.Environment, Config: cfg.Digest(), Status: domain.InvestigationRunning, Traversal: f.trav, Agent: &out.Run,
 		Hypotheses: out.Hypotheses, Assertions: out.Assertions, EvidenceRequests: out.EvidenceRequests, ValidationRequests: out.ValidationRequests,
-		Validations: out.Validations, Artifacts: out.Artifacts, Evidence: out.Evidence, Review: domain.HumanReview{State: domain.ReviewAwaiting}, CreatedAt: fixedNow()}
+		Validations: append(append([]domain.ValidationRecord(nil), pre...), out.Validations...), Artifacts: out.Artifacts, Evidence: out.Evidence, Review: domain.HumanReview{State: domain.ReviewAwaiting}, CreatedAt: fixedNow()}
 	inv.ID = domain.InvestigationID(inv.Bundle, inv.Config)
 	inv.AppendAudit(domain.AuditEvent{At: fixedNow(), Stage: domain.StageInvestigate, Event: "completed", Actor: "agent:" + out.Run.Model, Refs: []string{out.Run.Transcript}})
 	return inv

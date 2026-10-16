@@ -145,6 +145,10 @@ func (i *Investigator) Investigate(ctx context.Context, in investigate.Investiga
 // is complete).
 func runStatus(dr investigate.DriverResult, s *Session) (domain.AgentRunStatus, string) {
 	b := s.cfg.Budget
+	turns := b.MaxTurns
+	if s.Submitted() {
+		turns++ // the closing message after an accepted submit_findings
+	}
 	switch {
 	case strings.HasPrefix(dr.Stop, "pending:"):
 		return domain.AgentFailed, "exchange-pending: the round request " + strings.TrimPrefix(dr.Stop, "pending:") + " awaits an answer; answer it and re-run the stage"
@@ -154,7 +158,7 @@ func runStatus(dr investigate.DriverResult, s *Session) (domain.AgentRunStatus, 
 		return domain.AgentBudgetExhausted, dr.Stop
 	case b.MaxTokens > 0 && dr.Tokens > b.MaxTokens:
 		return domain.AgentBudgetExhausted, fmt.Sprintf("budget:tokens (%d reported, budget %d)", dr.Tokens, b.MaxTokens)
-	case b.MaxTurns > 0 && dr.Turns > b.MaxTurns:
+	case b.MaxTurns > 0 && dr.Turns > turns:
 		return domain.AgentBudgetExhausted, fmt.Sprintf("budget:turns (%d reported, budget %d)", dr.Turns, b.MaxTurns)
 	case dr.Stop == "submitted" && s.Submitted():
 		return domain.AgentSubmitted, ""
