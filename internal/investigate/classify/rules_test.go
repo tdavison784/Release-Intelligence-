@@ -611,3 +611,30 @@ func TestOutOfScopeItemsAreNotClassified(t *testing.T) {
 		t.Fatalf("findings %d", len(cls.Findings))
 	}
 }
+
+// A compatibility item takes the join's platform checks no change id names.
+func TestPlatformJoinFindings(t *testing.T) {
+	f := newFx(t)
+	item := f.item(platform("kubernetes"))
+	f.input(domain.InputClusterVersion, "", "1.31", domain.CollectionOK, "")
+	in := f.in((&trav{}).result(), nil)
+	in.Report = &domain.ImpactReport{Findings: []domain.ImpactFinding{
+		{ID: "imf-k8s", Classification: domain.ImpactReviewRequired, Rule: "impact:kubernetes-range", Checks: []domain.ImpactCheck{{Dimension: domain.DimensionCluster, Platform: "Kubernetes"}}},
+		{ID: "imf-peer", Classification: domain.ImpactReviewRequired, Rule: "impact:peer", Checks: []domain.ImpactCheck{{Dimension: domain.DimensionCluster, Platform: "istio"}}},
+		{ID: "imf-chg", ChangeID: "chg-x", Classification: domain.ImpactReviewRequired, Rule: "impact:values-set"},
+	}}
+	cls, _ := run(t, in)
+	fd := finding(t, cls, item)
+	if len(fd.ImpactFindings) != 1 || fd.ImpactFindings[0].ID != "imf-k8s" {
+		t.Fatalf("join refs %+v", fd.ImpactFindings)
+	}
+	wantClass(t, fd, domain.FindingPotentiallyAffected, RulePlausibleImpact)
+}
+
+func TestSettingExtractionCamelCaseInBackticks(t *testing.T) {
+	x := &index{ev: map[domain.EvidenceID]domain.Evidence{"e1": {ID: "e1", Excerpt: "set `rotationPolicy` to keep it; `Never` is a value; `the old way` is prose"}}}
+	got := x.settings(&itemEval{item: domain.ChangeItem{Title: "x", Evidence: []domain.EvidenceID{"e1"}}})
+	if len(got) != 1 || got[0] != "rotationPolicy" {
+		t.Fatalf("settings %v", got)
+	}
+}
