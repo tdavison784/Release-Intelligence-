@@ -33,6 +33,7 @@ into `p4-env-impact`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding
   `Merge lane <lane>: <one line>`), then `go build ./... && go vet ./... && go test ./...`; if red, fix
   forward only trivially (conflict glue) or revert the merge and send the lane the failure. Then tell
   still-running lanes that need it to `git merge p4-env-impact`.
+- Never chain lane cleanup after a merge with `;` — gate it on the merge AND the tests (`&&`, or check exit codes). On 2026-10-16 a conflicted merge was followed by a worktree removal; only `git branch -d` refusing an unmerged branch kept the work safe.
 - **Clean up every merged lane immediately** (user requirement: keep disk free): confirm the lane's
   worktree is clean (`git -C <worktree> status --porcelain` empty — otherwise ask the lane first), send
   `/exit` to its agent, close its tab (`herdr tab close <tab>`), then
