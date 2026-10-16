@@ -54,6 +54,11 @@ type Features struct {
 	// and links them into the record's Answers under the coverage guard
 	// (answerGuard), so a concern can be lifted by the validation it asked for.
 	AnswerLinks bool `json:"answerLinks"`
+	// DepthRules: an explains / examined-no-concern record needs
+	// get_change_item on its item and a citation no other item shares; a
+	// raises-concern on a controller-behaviour/unknown item needs a
+	// validation request for the item or a stated reason (depth.go).
+	DepthRules bool `json:"depthRules"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON

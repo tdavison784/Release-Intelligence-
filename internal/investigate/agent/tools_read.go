@@ -104,7 +104,15 @@ func (s *Session) getChangeItem(ctx context.Context, id string) (*outcome, error
 			}
 		}
 	}
-	return &outcome{value: d}, nil
+	return &outcome{value: d, commit: func() { s.examined[it.ID] = true; s.inspections[it.ID]++ }}, nil
+}
+
+// inspected counts an accepted query call that names a change item.
+func (s *Session) inspected(item string) func() {
+	if item == "" {
+		return nil
+	}
+	return func() { s.inspections[item]++ }
 }
 
 // --- renders and diffs (renderdiff's query engine, DESIGN.md §7) ------------------------
@@ -125,7 +133,7 @@ func (s *Session) queryDiff(q investigate.DiffQuery) (*outcome, error) {
 	if page.Changes == nil {
 		page.Changes = []domain.RenderedChange{}
 	}
-	return &outcome{value: page.Changes, view: page}, nil
+	return &outcome{value: page.Changes, view: page, commit: s.inspected(q.ChangeItem)}, nil
 }
 
 func (s *Session) getRenderedObject(ctx context.Context, r investigate.ObjectRequest) (*outcome, error) {
@@ -220,7 +228,7 @@ func (s *Session) searchManifest(ctx context.Context, q investigate.SearchQuery)
 		}
 		hits = append(hits, hit)
 	}
-	return &outcome{value: hits}, nil
+	return &outcome{value: hits, commit: s.inspected(q.ChangeItem)}, nil
 }
 
 func matchesTerms(a domain.ArtifactRef, terms []string) bool {
@@ -564,5 +572,5 @@ func (s *Session) listPaths(q investigate.PathQuery) (*outcome, error) {
 		}
 		out = append(out, p)
 	}
-	return &outcome{value: out}, nil
+	return &outcome{value: out, commit: s.inspected(q.ChangeItem)}, nil
 }

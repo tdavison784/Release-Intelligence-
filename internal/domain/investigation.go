@@ -1807,7 +1807,12 @@ type AgentAssertion struct {
 	// with Assertion set to this assertion's id.
 	ProposedEdge *GraphEdge `json:"proposedEdge,omitempty"`
 	Hypothesis   string     `json:"hypothesis,omitempty"`
-	Provenance   Provenance `json:"provenance"` // method ai
+	// NoValidationReason is the agent's stated reason for not requesting a
+	// validation of a raises-concern (prompt depth rules: a concern on a
+	// controller-behaviour/unknown item needs a request or a reason).
+	// CONTRACT-CHANGE(agent): additive.
+	NoValidationReason string     `json:"noValidationReason,omitempty"`
+	Provenance         Provenance `json:"provenance"` // method ai
 }
 
 // AgentRecordID derives the id of an agent record (hypothesis, assertion,
@@ -2334,6 +2339,13 @@ type AgendaCoverage struct {
 	Assertion string       `json:"assertion,omitempty"`
 	Records   []string     `json:"records,omitempty"`
 	Citations []EvidenceID `json:"citations,omitempty"`
+	// Depth: Examined = the agent retrieved the item (get_change_item);
+	// Inspections = accepted query calls naming the item (get_change_item,
+	// query_diff, search_manifest, list_paths); ValidationRequests = recorded
+	// requests for the item. CONTRACT-CHANGE(agent): additive.
+	Examined           bool `json:"examined,omitempty"`
+	Inspections        int  `json:"inspections,omitempty"`
+	ValidationRequests int  `json:"validationRequests,omitempty"`
 }
 
 // closingStance is the assertion stance a disposition is recorded with.

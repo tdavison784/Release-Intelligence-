@@ -1,7 +1,7 @@
 [
   {
     "name": "get_change_item",
-    "description": "One change item with everything upstream says about it: the upstream change (title, detail text, subjects, references) or compatibility change, the upstream evidence records (URI, locator, verbatim excerpt), the upstream source artifacts (read them with read_artifact), migration notes, the release- and environment-scope rendered changes correlated to it, and the deterministic join's findings for it. Start every item here: for a controller-behaviour item the upstream text is where the setting that restores the old behaviour is named.",
+    "description": "One change item with everything upstream says about it: the upstream change (title, detail text, subjects, references) or compatibility change, the upstream evidence records (URI, locator, verbatim excerpt), the upstream source artifacts (read them with read_artifact), migration notes, the release- and environment-scope rendered changes correlated to it, and the deterministic join's findings for it. Start every item here: for a controller-behaviour item the upstream text is where the setting that restores the old behaviour is named. Required before you explain an item or close it as explains / examined-no-concern.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -431,7 +431,7 @@
   },
   {
     "name": "record_assertion",
-    "description": "Record a claim about a change item with at least one checked citation. raises-concern = a plausible impact (blocks a not-affected conclusion until a passing validation answers it); explains = reasoning attached to the finding; claims-mitigation = you believe something mitigates the change (it stays an unvalidated assumption until a validation establishes it). A proposedEdge adds an inferred relationship (never established).",
+    "description": "Record a claim about a change item with at least one checked citation. raises-concern = a plausible impact (blocks a not-affected conclusion until a passing validation answers it); explains = reasoning attached to the finding; claims-mitigation = you believe something mitigates the change (it stays an unvalidated assumption until a validation establishes it). A proposedEdge adds an inferred relationship (never established). An explains assertion is accepted only after get_change_item on its item and with at least one citation no other item's records share.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -534,6 +534,10 @@
             "reason"
           ],
           "additionalProperties": false
+        },
+        "noValidationReason": {
+          "type": "string",
+          "description": "for a raises-concern: why you are not requesting a validation (required for a concern on a controller-behaviour/unknown item unless you made a request_validation for the item in this session)"
         }
       },
       "required": [
@@ -547,7 +551,7 @@
   },
   {
     "name": "submit_findings",
-    "description": "End the session by closing EVERY agenda item (the task lists them), each with a disposition: raises-concern (a plausible impact), claims-mitigation (something mitigates it; stays an unvalidated assumption), explains (reasoning), examined-no-concern (you inspected it and have no concern — cite what you inspected; this is not a mitigation and never lowers a class) or not-examined (you did not get to it; the summary states why, e.g. budget). Every disposition except not-examined needs at least one checked citation. The call is rejected while any agenda item has no entry; it is accepted once even after the budget is spent. It never sets a class: the deterministic policy classifies. After submitting, stop.",
+    "description": "End the session by closing EVERY agenda item (the task lists them), each with a disposition: raises-concern (a plausible impact), claims-mitigation (something mitigates it; stays an unvalidated assumption), explains (reasoning), examined-no-concern (you inspected it and have no concern — cite what you inspected; this is not a mitigation and never lowers a class) or not-examined (you did not get to it; the summary states why, e.g. budget). Every disposition except not-examined needs at least one checked citation. The call is rejected while any agenda item has no entry; it is accepted once even after the budget is spent. It never sets a class: the deterministic policy classifies. After submitting, stop. Depth rules (checked here): explains / examined-no-concern entries need get_change_item on the item earlier in the session and at least one citation not shared with another item (same artifact and quote); every raises-concern on a controller-behaviour/unknown item needs a request_validation for the item in this session or a noValidationReason.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -595,6 +599,10 @@
                   "additionalProperties": false
                 },
                 "description": "at least one for every disposition except not-examined"
+              },
+              "noValidationReason": {
+                "type": "string",
+                "description": "for a raises-concern: why you are not requesting a validation (required for a concern on a controller-behaviour/unknown item unless you made a request_validation for the item in this session)"
               }
             },
             "required": [

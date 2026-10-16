@@ -95,6 +95,7 @@ func TestV3AnswerGuards(t *testing.T) {
 	s := f.v3session(t, f.input(investigate.AgentConfig{}), &fakeOverride{f: f})
 	onDeploy := concern(t, s, f, "concern on the Deployment", map[string]any{"subjects": []string{f.deploy}})
 	itemWide := concern(t, s, f, "concern on the item", nil)
+	ok(t, s, investigate.ToolGetChangeItem, map[string]any{"id": f.behaviour})
 	expl := ok(t, s, investigate.ToolRecordAssertion, map[string]any{"changeItem": f.behaviour, "stance": "explains", "statement": "reasoning",
 		"citations": []map[string]any{{"artifact": f.notes.ID, "quote": "Faster startup."}}})["id"].(string)
 	other := ok(t, s, investigate.ToolRecordAssertion, map[string]any{"changeItem": f.values2, "stance": "raises-concern", "statement": "legacy",

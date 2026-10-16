@@ -76,6 +76,14 @@ the assertion first, then request the validation that would decide it and name t
 an item-wide request for an assertion that names none). The validator decides the outcome; a link only says
 which question the validation answered.
 
+Depth rules (enforced by the tool layer):
+
+- You may explain an item, or close it as `explains` / `examined-no-concern`, only after `get_change_item` on that
+  item, and only with at least one citation specific to it: a quote no record about another item cites. A grep
+  shared across items is not an examination of each.
+- Every `raises-concern` on a `controller-behaviour` or `unknown` item needs a `request_validation` for that item
+  (usually an `override-inspection` of the setting you named), or a `noValidationReason` saying why none applies.
+
 Subjects: name what you want checked the way the evidence names it — a graph node, an object
 (`Kind/namespace/name`), a Helm values key (`controller.someSetting`), a container flag, an annotation
 key, a rendered change id or an environment file. The tool layer resolves each deterministically to
