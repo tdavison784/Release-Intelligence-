@@ -1948,16 +1948,16 @@ type ApprovalEligibility struct {
 // computed by the deterministic policy. It carries every field MISSION §A6
 // requires.
 type InvestigationFinding struct {
-	ID          string       `json:"id"` // InvestigationFindingID(environment, changeItem, class, rule)
+	ID         string       `json:"id"` // InvestigationFindingID(environment, changeItem, class, rule)
 	ChangeItem string       `json:"changeItem"`
 	Class      FindingClass `json:"class"`
 	// Manifestation is copied from the change item (checked against the
 	// bundle); it decides which validations can clear the item.
 	Manifestation Manifestation `json:"manifestation"`
-	Rule          string        `json:"rule"` // policy rule that decided the class, e.g. "classify:validated-clear"
-	Reasoning   string       `json:"reasoning"`   // deterministic explanation of the class
-	Environment string       `json:"environment"` // snapshot environment name
-	Components  []string     `json:"components,omitempty"`
+	Rule          string        `json:"rule"`        // policy rule that decided the class, e.g. "classify:validated-clear"
+	Reasoning     string        `json:"reasoning"`   // deterministic explanation of the class
+	Environment   string        `json:"environment"` // snapshot environment name
+	Components    []string      `json:"components,omitempty"`
 	// RenderedChanges are the environment-scope rendered changes correlated
 	// to the item: the exposure evidence (empty = the render shows none).
 	RenderedChanges []string `json:"renderedChanges,omitempty"`

@@ -182,6 +182,11 @@ type RenderResult struct {
 	Pairs     []domain.ManifestPair `json:"pairs"`
 	Artifacts []domain.ArtifactRef  `json:"artifacts"`
 	Evidence  []domain.Evidence     `json:"evidence"`
+	// Notes say what target detection skipped and why (a values file not
+	// naming the product, renders disabled, no deployment found), so "no
+	// pairs" is never silent.
+	// CONTRACT-CHANGE(renderdiff): additive; the port had no place for them.
+	Notes []string `json:"notes,omitempty"`
 }
 
 // EnvironmentRenderer renders the product's from and to releases with the
@@ -416,6 +421,12 @@ type DiffQuery struct {
 	Namespaces   []string           `json:"namespaces,omitempty"` // "-" = cluster-scoped
 	PathPrefix   string             `json:"pathPrefix,omitempty"`
 	Limit        int                `json:"limit,omitempty"` // default 50, max 200
+	// After continues a bounded result: the id of the last rendered change
+	// of the previous page (results are in a fixed order, so pages never
+	// overlap or skip).
+	// CONTRACT-CHANGE(renderdiff): additive; "bounded result sizes with
+	// continuation" (brief) needs a cursor.
+	After string `json:"after,omitempty"`
 }
 
 // ObjectRequest reads one rendered object (or a field of it) from one side

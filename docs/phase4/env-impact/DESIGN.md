@@ -203,11 +203,13 @@ says which the investigation must classify. Rules (first match wins; recorded in
 | `scope:breaking` | yes | `Breaking` or `ActionRequired` (declared) |
 | `scope:computed-breaking` | yes | computed diffs that remove or narrow: `values:removed`, `values:default-changed`, `crd:removed`, `crd:version-*`, `crd:fields-removed`, `crd:*-changed`/`-required`, image removed/moved, `CompatibilityChange.Narrowed` |
 | `scope:rendered-structural` | yes | release-scope rendered changes no Change explains whose class the default tier policy blocks: `rbac-permission-removed`, `resource-removed`, `api-version-changed`, CRD storage/served moves (docs/POLICY.md) |
+| `scope:routine-self-artifact` | no | *(commander amendment 2026-10-16)* a rendered change that is only the version bump of an artifact the product definition itself publishes (its own images / image args at the new release's version): anchored as an out-of-scope item so it is **correlated** (never "uncorrelated") |
+| `scope:rendered-unexplained` | yes | *(commander amendment 2026-10-16)* every other rendered change — release scope **or** environment scope — that no Change, computed diff or structural rule explains: anchored as its own item (manifestation `rendered-config`, `RenderedAnchor` = the rendered change). Treated like `scope:category` in §3: `affected` only through a failing validation naming a concrete failure; `not-affected` only through a passing validation covering it; otherwise R3/R4. Rationale: render diffs are the centerpiece evidence (MISSION clarification) and Principle 3 (context completeness) — a change to the customer's rendered deployment that nothing upstream explains is exactly what must be investigated, not only an approval blocker. |
 | `scope:category` | yes | non-breaking `removal`, `deprecation`, `migration` changes (they can still bite) |
 | `scope:not-breaking` | no | everything else (features, bugfixes, security fixes — the join's `impact:security-fix` covers those) |
 
 "Breaking" in §3 means an item in scope under `scope:breaking`, `scope:computed-breaking` or
-`scope:rendered-structural`; `scope:category` items can be `affected` only through a failing validation
+`scope:rendered-structural`; `scope:category` and `scope:rendered-unexplained` items can be `affected` only through a failing validation
 that names a concrete failure.
 
 ### §1.4 Out of scope (milestone 1)

@@ -366,3 +366,47 @@ configSources:
     quote: --config string Path to a file containing a ControllerConfiguration object used to configure the controller
   - url: https://cert-manager.io/docs/installation/configuring-components/
     quote: To configure the cert-manager components, you can use CLI flags or a configuration file.
+
+# Upstream-documented object relationships followed by the investigation's
+# relationship graph (docs/INVESTIGATE.md "Relationships"). Release-level facts
+# from the cert-manager API field documentation, not from any environment.
+relationships:
+- id: certificate-secret
+  kind: produces
+  from: {group: cert-manager.io, kind: Certificate}
+  to: {kind: Secret}
+  path: spec.secretName
+  summary: A Certificate's controller creates and manages the Secret named by spec.secretName, in the Certificate's namespace.
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+    quote: Name of the Secret resource that will be automatically created and managed by this Certificate resource.
+- id: issuer-ca-secret
+  kind: references
+  from: {group: cert-manager.io, kind: Issuer}
+  to: {kind: Secret}
+  path: spec.ca.secretName
+  summary: A CA Issuer signs with the key pair held in the Secret named by spec.ca.secretName, in the Issuer's namespace.
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_issuer.go
+    quote: SecretName is the name of the secret used to sign Certificates issued by this Issuer.
+- id: clusterissuer-ca-secret
+  kind: references
+  from: {group: cert-manager.io, kind: ClusterIssuer}
+  to: {kind: Secret}
+  path: spec.ca.secretName
+  summary: A CA ClusterIssuer signs with the Secret named by spec.ca.secretName, which cert-manager reads from its cluster resource namespace (the namespace is not stated on the issuer, so the match is by name).
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_issuer.go
+    quote: SecretName is the name of the secret used to sign Certificates issued by this Issuer.
+- id: certificate-cluster-issuer
+  kind: references
+  from: {group: cert-manager.io, kind: Certificate}
+  to: {group: cert-manager.io, kind: ClusterIssuer}
+  scope: cluster
+  path: spec.issuerRef.name
+  whenPath: spec.issuerRef.kind
+  whenEquals: ClusterIssuer
+  summary: A Certificate whose issuerRef.kind is ClusterIssuer is issued by the cluster-scoped ClusterIssuer of that name, usable from any namespace.
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+    quote: If the issuer is cluster-scoped, it can be used from any namespace.

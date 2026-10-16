@@ -1,0 +1,253 @@
+### 18:20:08Z case ingress-nginx-1.11-1.12--shop-nl, cluster ri-groundtruth-in-nl, kind v0.24.0 go1.22.6 darwin/arm64
+Creating cluster "ri-groundtruth-in-nl" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 3m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 3m0s for control-plane = Ready ⏳
+ • Ready after 17s 💚
+Set kubectl context to "kind-ri-groundtruth-in-nl"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth-in-nl
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+### 18:20:37Z render-level diff of the ingress-nginx release (helm template 4.11.5 vs 4.12.0, same value files)
+### 18:20:38Z controller ConfigMap data as rendered by 4.12.0
+---
+# Source: ingress-nginx/templates/controller-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    helm.sh/chart: ingress-nginx-4.12.0
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/version: "1.12.0"
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: controller
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+data:
+  enable-opentelemetry: "true"
+  otel-sampler: "AlwaysOn"
+  otel-sampler-ratio: "1.0"
+  otel-service-name: "ingress-nginx"
+  otlp-collector-host: "otel-collector.observability.svc"
+  otlp-collector-port: "4317"
+  proxy-body-size: "8m"
+  proxy-read-timeout: "120"
+  server-tokens: "false"
+  use-forwarded-headers: "true"
+### 18:20:38Z phase 0: platform/otel-collector, then ingress-nginx chart 4.11.5 (Application ingress-nginx), then apps/*/overlays/prod
+namespace/observability created
+configmap/otel-collector-k9c78977fb created
+service/otel-collector created
+deployment.apps/otel-collector created
+Waiting for deployment "otel-collector" rollout to finish: 0 of 1 updated replicas are available...
+deployment "otel-collector" successfully rolled out
+Release "ingress-nginx" does not exist. Installing it now.
+NAME: ingress-nginx
+LAST DEPLOYED: Fri Oct 16 13:20:41 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 of 2 updated replicas are available...
+deployment "ingress-nginx-controller" successfully rolled out
+pod/ingress-nginx-controller-7fb8dfdb86-4l7fr condition met
+pod/ingress-nginx-controller-7fb8dfdb86-xksxs condition met
+registry.k8s.io/ingress-nginx/controller:v1.11.5@sha256:a1cbad75b0a7098bf9325132794dddf9eef917e8a7fe246749a4cea7ff6f01eb
+namespace/storefront created
+service/storefront created
+deployment.apps/storefront created
+ingress.networking.k8s.io/storefront created
+namespace/catalog-api created
+service/catalog-api created
+deployment.apps/catalog-api created
+ingress.networking.k8s.io/catalog-api created
+Waiting for deployment "storefront" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "storefront" rollout to finish: 1 of 2 updated replicas are available...
+deployment "storefront" successfully rolled out
+Waiting for deployment "catalog-api" rollout to finish: 0 of 1 updated replicas are available...
+deployment "catalog-api" successfully rolled out
+pod/client created
+pod/client condition met
+### 18:21:25Z requests through the controller (chart 4.11.5 / controller 1.11.5)
+shop.example.com/ -> HTTP/1.1 200 OK | body: storefront | 
+api.shop.example.com/v1 -> HTTP/1.1 200 OK | body: catalog-api | 
+### 18:21:26Z server blocks in the running nginx.conf (1.11.5)
+Defaulted container "controller" out of: controller, opentelemetry (init)
+	## start server _
+	## start server api.shop.example.com
+	## start server shop.example.com
+### 18:21:41Z tracing and metrics (1.11.5)
+-- controller pod init containers / volumes
+   pod/ingress-nginx-controller-7fb8dfdb86-4l7fr init=[opentelemetry] volumes=[modules webhook-cert kube-api-access-9gchx] metrics-flag=[]
+   pod/ingress-nginx-controller-7fb8dfdb86-xksxs init=[opentelemetry] volumes=[modules webhook-cert kube-api-access-ggkjj] metrics-flag=[]
+-- nginx.conf OpenTelemetry lines
+Defaulted container "controller" out of: controller, opentelemetry (init)
+7:load_module /etc/nginx/modules/otel_ngx_module.so;
+26:	opentelemetry_config /etc/ingress-controller/telemetry/opentelemetry.toml;
+311:			opentelemetry on;
+482:			opentelemetry on;
+636:			opentelemetry on;
+Defaulted container "controller" out of: controller, opentelemetry (init)
+-- spans received by the collector since 2026-10-16T18:21:25Z (service.name / span names)
+   4     Name           : 
+   4      -> service.name: Str(ingress-nginx)
+-- controller metrics endpoint (pod IP:10254/metrics, as the annotation-based scraper sees it)
+HTTP 200
+   nginx_ingress_controller_requests series: 2
+### 18:21:41Z phase 1: upgrade to chart 4.12.0 (Application targetRevision bump, same value files)
+Release "ingress-nginx" has been upgraded. Happy Helming!
+NAME: ingress-nginx
+LAST DEPLOYED: Fri Oct 16 13:21:41 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+deployment "ingress-nginx-controller" successfully rolled out
+pod/ingress-nginx-controller-5cf86db4c4-gtnkf condition met
+pod/ingress-nginx-controller-5cf86db4c4-qlz6b condition met
+pod/ingress-nginx-controller-7fb8dfdb86-4l7fr condition met
+pod/ingress-nginx-controller-7fb8dfdb86-xksxs condition met
+registry.k8s.io/ingress-nginx/controller:v1.12.0@sha256:e6b8de175acda6ca913891f0f727bca4527e797d52688cbe9fec9040d6f6b6fa
+{"enable-opentelemetry":"true","otel-sampler":"AlwaysOn","otel-sampler-ratio":"1.0","otel-service-name":"ingress-nginx","otlp-collector-host":"otel-collector.observability.svc","otlp-collector-port":"4317","proxy-body-size":"8m","proxy-read-timeout":"120","server-tokens":"false","use-forwarded-headers":"true"}
+### 18:22:34Z requests through the controller (chart 4.12.0 / controller 1.12.0)
+shop.example.com/ -> HTTP/1.1 200 OK | body: storefront | 
+api.shop.example.com/v1 -> HTTP/1.1 200 OK | body: catalog-api | 
+### 18:22:34Z server blocks in the running nginx.conf (1.12.0)
+	## start server _
+	## start server api.shop.example.com
+	## start server shop.example.com
+### 18:22:49Z tracing and metrics (1.12.0)
+-- controller pod init containers / volumes
+   pod/ingress-nginx-controller-5cf86db4c4-gtnkf init=[] volumes=[webhook-cert kube-api-access-mb5gh] metrics-flag=[enable-metrics=true]
+   pod/ingress-nginx-controller-5cf86db4c4-qlz6b init=[] volumes=[webhook-cert kube-api-access-r9cg7] metrics-flag=[enable-metrics=true]
+-- nginx.conf OpenTelemetry lines
+7:load_module /etc/nginx/modules/otel_ngx_module.so;
+26:	opentelemetry_config /etc/ingress-controller/telemetry/opentelemetry.toml;
+230:			opentelemetry on;
+374:			opentelemetry on;
+503:			opentelemetry on;
+-- spans received by the collector since 2026-10-16T18:22:34Z (service.name / span names)
+   4     Name           : 
+   4      -> service.name: Str(ingress-nginx)
+-- controller metrics endpoint (pod IP:10254/metrics, as the annotation-based scraper sees it)
+HTTP 200
+   nginx_ingress_controller_requests series: 2
+### 18:22:50Z phase 2: Argo CD re-sync of the app Ingresses after the upgrade (kubectl replace --dry-run=server: always sends the object through the admission webhook, persists nothing)
+ingress.networking.k8s.io/storefront replaced (server dry run)
+ingress.networking.k8s.io/catalog-api replaced (server dry run)
+### 18:22:50Z controller log lines about the Ingresses
+I1016 18:21:52.989197      10 store.go:440] "Found valid IngressClass" ingress="catalog-api/catalog-api" ingressclass="nginx"
+I1016 18:21:52.989996      10 store.go:440] "Found valid IngressClass" ingress="storefront/storefront" ingressclass="nginx"
+I1016 18:21:52.990097      10 event.go:377] Event(v1.ObjectReference{Kind:"Ingress", Namespace:"catalog-api", Name:"catalog-api", UID:"facf3055-2182-4a10-b5ff-2251a81e67ad", APIVersion:"networking.k8s.io/v1", ResourceVersion:"737", FieldPath:""}): type: 'Normal' reason: 'Sync' Scheduled for sync
+I1016 18:21:52.990132      10 event.go:377] Event(v1.ObjectReference{Kind:"Ingress", Namespace:"storefront", Name:"storefront", UID:"45bff9f3-5c70-4415-a146-fa1d0b3a8b20", APIVersion:"networking.k8s.io/v1", ResourceVersion:"711", FieldPath:""}): type: 'Normal' reason: 'Sync' Scheduled for sync
+10.244.0.13 - - [16/Oct/2026:18:22:34 +0000] "GET / HTTP/1.1" 200 11 "-" "curl/8.10.1" 80 0.001 [storefront-storefront-http] [] 10.244.0.11:5678 11 0.000 200 8d3d979041c2767c8c561861441e8dec
+### 18:22:50Z done; deleting cluster
+Deleting cluster "ri-groundtruth-in-nl" ...
+Deleted nodes: ["ri-groundtruth-in-nl-control-plane"]

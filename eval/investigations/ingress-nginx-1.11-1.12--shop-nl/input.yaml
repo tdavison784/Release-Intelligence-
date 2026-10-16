@@ -1,0 +1,40 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: ingress-nginx-1.11-1.12--shop-nl
+pair: ingress-nginx-1.11-1.12--chart-cleanup
+product: ingress-nginx
+chart:
+  repo: https://kubernetes.github.io/ingress-nginx
+  name: ingress-nginx
+from:
+  version: controller-v1.11.5
+  chartVersion: 4.11.5
+to:
+  version: controller-v1.12.0
+  chartVersion: 4.12.0
+environment:
+  id: shop-prod-nl
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster of the web shop, managed by Argo CD from this repository (app-of-apps rooted
+    at clusters/prod). ingress-nginx is installed from the upstream Helm chart with the value files
+    in platform/ingress-nginx (values.yaml shared by all shop clusters, values-prod.yaml for this
+    cluster, in that order). Edge requests are traced with OpenTelemetry into an in-cluster
+    collector (platform/otel-collector); the controller's metrics are scraped by an external
+    Prometheus through pod annotations. Two applications are exposed: the storefront and the
+    catalog API. The repository is the complete declaration of what runs in the cluster; nothing is
+    applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: "Images: Remove OpenTelemetry (#12024) — chart values controller.opentelemetry.* removed; the OpenTelemetry init container and its modules volume are no longer rendered"
+    subject: controller.opentelemetry
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  - id: B2
+    title: "Metrics: Disable by default (#12153) — --enable-metrics defaults to false; the chart now passes --enable-metrics=true only when controller.metrics.enabled"
+    subject: --enable-metrics
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+withheld: []
