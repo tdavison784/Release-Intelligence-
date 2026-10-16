@@ -24,6 +24,13 @@ into `p4-env-impact`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding
   `Merge lane <lane>: <one line>`), then `go build ./... && go vet ./... && go test ./...`; if red, fix
   forward only trivially (conflict glue) or revert the merge and send the lane the failure. Then tell
   still-running lanes that need it to `git merge p4-env-impact`.
+- **Clean up every merged lane immediately** (user requirement: keep disk free): confirm the lane's
+  worktree is clean (`git -C <worktree> status --porcelain` empty — otherwise ask the lane first), send
+  `/exit` to its agent, close its tab (`herdr tab close <tab>`), then
+  `git worktree remove .claude/worktrees/p4ei-<lane>` and `git branch -d p4ei/<lane>` (`-d` only — it
+  refuses unmerged branches; never `-D`). Check `kind get clusters` for leftovers named `ri-<lane>-*`.
+  Record it in the merge log. A lane needed again in a later wave gets a fresh worktree + agent from the
+  current integration branch.
 
 ## One commander at a time
 
@@ -53,7 +60,7 @@ May do:
    uncertain) and keep the lane table current. Commit with `[glm-handoff] commander: …`.
 
 Must not: edit DESIGN.md decisions, gates files or ground-truth expectations; write new briefs; push,
-open PRs, delete branches/worktrees; start or prompt Claude-model agents; close or kill any `ri-*`
+open PRs, delete branches/worktrees other than the merged-lane cleanup above (`git branch -d` only); start or prompt Claude-model agents; close or kill any `ri-*`
 agent or its pane; edit `.lane-lead`.
 
 Handback (message starting `HANDBACK`): stop starting work, finish/abort any in-progress merge cleanly

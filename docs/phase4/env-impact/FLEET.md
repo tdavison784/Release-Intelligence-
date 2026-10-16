@@ -91,5 +91,11 @@ are OK, note them).
   then continue.
 - If blocked on a decision only the commander/user can make, write it in the status file, state it as
   your final message, and stop. Don't guess on contract questions; do pick sensible defaults on local ones.
+- **Clean up before reporting done (disk space is shared):** delete every `kind` cluster you created
+  (`kind get clusters`), remove `bin/`, scratch renders, downloaded charts/tarballs and any other large
+  untracked or gitignored output in your worktree (`git status --ignored` should show nothing big), and
+  stop any server you started (`temporal server start-dev`, port-forwards). Never delete the shared
+  `.ri` cache in the primary checkout. Say what you cleaned in your final message. You do not remove
+  your own worktree — the commander does that after merging (see `briefs/commander.md`).
 - When finished: commit everything, then end with a final message starting `LANE DONE:` followed by a
   ≤15-line summary (branch, commits, what works, test results, known gaps).

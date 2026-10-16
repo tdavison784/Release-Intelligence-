@@ -41,7 +41,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 |---|---|---|---|---|---|
 | contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
 | groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E | working (kicked off 2026-10-16) |
-| orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | pane w1:p2G | wave 0 merged; idle, kept for wave 2 (context 8%) |
+| orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -56,11 +56,13 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 ri-guard runs with shell cwd in p4-integration (already trusted) instead of ~/.claude/fleet-guard: Claude Code showed a folder-trust dialog there that the commander must not answer for the user.
 - 2026-10-16 PRODUCT OWNER: "DFS" in the goal was a mistype for **diffs**. Render before/after diffs (internal/render) are the centerpiece evidence for the agent; graph/DFS demoted to lightweight supporting context. `graph` lane replaced by `renderdiff` (critical path) + optional `relations`. Sent to ri-contract mid-design; noted in MISSION.md.
 - 2026-10-16 orchestrate: go directive 1.24.7 → 1.26.0 accepted (Temporal SDK v1.50.0 requires it; no CI/Docker pins Go in this repo; toolchain go1.27.1). testify removed as a direct dep before merge (stdlib test idiom).
+- 2026-10-16 USER: every lane cleans up when complete to keep disk free — lanes delete kind clusters/bin/scratch output before LANE DONE; the commander removes the worktree + merged branch (`-d`) and closes the agent/tab right after each merge (FLEET.md, briefs/commander.md).
+- 2026-10-16 Pre-existing processes NOT from this fleet, left alone: `temporal server start-dev` (pid 46289, up 22 d) and `./bin/worker` (pid 80813, up 16 d) on :7233. Lanes needing a Temporal dev server use another port (`--port`).
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
 
-- 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge.
+- 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge. Cleanup: agent exited, tab w1:t11 closed, worktree removed, branch p4ei/orchestrate deleted (-d).
 
 ## Open questions for the user
 
