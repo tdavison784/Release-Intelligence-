@@ -4,7 +4,7 @@ Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/age
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
 store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
 (commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
-`git merge p4-env-impact`. State: **DONE (follow-up complete)** (2026-10-16).
+`git merge p4-env-impact`. State: **DONE (follow-ups 1 and 2 complete)** (2026-10-16).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -105,7 +105,37 @@ Resume from: this file + brief + `git log`.
   the closing assertion of the matching stance, none for not-examined) and `ValidateAgainst` (in-scope
   items, citations resolve); schemas regenerated.
 
+## Follow-up 2 (commander notes after classify merged) — done
+
+- **Answer links (prompt v3, now the default; v2 frozen by live run 2).** `request_validation` takes
+  `answers` (assertion ids). It also links `raises-concern` / `claims-mitigation` assertions recorded with the
+  request's hypothesis. A link is written into the record's `Answers` under a deterministic guard:
+  - same item;
+  - the record covers every subject, path and rendered change the assertion names;
+  - an assertion naming none needs an item-wide record (every root and path).
+
+  A named assertion the request cannot cover is rejected up front. `ValidationRequest.Answers` persists
+  the ask. A link to an existing (deterministic-pass) record goes into `AgentOutcome.AnswerLinks`, and
+  the runner applies it with `agent.ApplyAnswerLinks` before classify (orchestrate2).
+  - Tested against the real classifier: a linked pass lifts the concern; the same pass without the link
+    leaves it open; a pass-record link lifts it only after `ApplyAnswerLinks`; plus every guard rejection.
+- **Environment-scope items**: every item iteration in the agent package (task, agenda, session item index,
+  deterministic pass, live harness) and my domain coverage check now use `EvidenceBundle.Items()` /
+  `Item()`. Tested with a fixture `scope:rendered-unexplained` item in `EnvironmentItems`: it is in the
+  task, the agenda, `get_change_item`, assertions, `request_validation`, the submission requirement,
+  coverage and the deterministic pass.
+  - `query_diff changeItem=<env item>` still depends on renderdiff's `QueryPage` fix (classify is making it):
+    merge `p4-env-impact` when it lands.
+- Live run 2 had already been done (under v2) when the "merge before live run 2" note arrived. Its
+  bundle's in-scope items were all record items (16 in scope, none environment-scope), so it is unaffected
+  by the env-item fix. A v3 live run was not requested; offered.
+
 ## Decisions (with why)
+
+- **Answer links need the agent's request plus a coverage guard.** The agent can only weaken its own concern
+  this way, and the classifier still decides whether the pass counts (behaviour items: pin or observed only).
+  Linking by subject overlap alone would let a validation of a different property answer a concern nobody
+  asked it about.
 
 - **"Decided" = a failing validation only** (agenda exclusion): R1 makes such an item affected whatever the
   agent records. A pass decides nothing alone (R2 needs every concern answered), so items with passes stay on
@@ -156,6 +186,8 @@ Resume from: this file + brief + `git log`.
     `CoverageDisposition` (+ `CoverageDispositions`, schema enum) and the coverage checks in
     `Validate`/`ValidateAgainst`;
   - investigate: `ItemSummary.Disposition`, `InvestigateInput.ValidationArtifacts` / `ValidationEvidence`.
+- `// CONTRACT-CHANGE(agent)` (follow-up 2): domain `ValidationRequest.Answers` (+ `Validate` check);
+  investigate `ValidationRequestInput.Answers`, `AgentOutcome.AnswerLinks`, `AnswerLink`.
 
 
 - `// CONTRACT-CHANGE(agent)` `AgentOutcome.ProposedNodes []domain.GraphNode`: placeholder nodes for proposed

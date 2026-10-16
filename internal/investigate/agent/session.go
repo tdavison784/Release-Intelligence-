@@ -139,6 +139,7 @@ type Session struct {
 	closing     map[string]investigate.ItemSummary // accepted submit entries by item (agenda mode)
 	closingIDs  map[string]string                  // item -> closing assertion id
 	closingEv   map[string][]domain.EvidenceID
+	links       []investigate.AnswerLink
 }
 
 var (
@@ -180,7 +181,7 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	for _, e := range cfg.Agenda {
 		s.onAgenda[e.ChangeItem] = true
 	}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		s.items[it.ID] = it
 	}
 	if g := cfg.Graph; g != nil {
@@ -784,7 +785,7 @@ func (s *Session) renderedIDs(ids []string) ([]string, error) {
 // items: the input evidence of records not tied to one item.
 func (s *Session) taskEvidence() []domain.EvidenceID {
 	var out []domain.EvidenceID
-	for _, it := range s.cfg.Bundle.Change.Items {
+	for _, it := range s.cfg.Bundle.Items() {
 		if it.InScope {
 			out = append(out, it.Evidence...)
 		}

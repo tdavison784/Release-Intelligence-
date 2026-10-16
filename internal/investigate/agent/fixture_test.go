@@ -46,6 +46,7 @@ type fixture struct {
 	appFile   domain.ArtifactRef
 	appNode   string // the Argo CD Application node the env render target is declared in
 	valsNode  string // the values-source node of the values file
+	envItem   string // the environment-scope item (newFixture(t, true))
 }
 
 const (
@@ -77,7 +78,10 @@ data:
 var deployID = render.ObjectID{Group: "apps", Version: "v1", Kind: "Deployment", Namespace: "demo", Name: "demo-controller"}
 var cmID = render.ObjectID{Version: "v1", Kind: "ConfigMap", Namespace: "demo", Name: "demo-config"}
 
-func newFixture(t *testing.T) *fixture {
+// newFixture builds the fixture; with envItem, the uncorrelated environment
+// rendered change is anchored as an environment-scope item
+// (scope:rendered-unexplained; EvidenceBundle.EnvironmentItems).
+func newFixture(t *testing.T, envItem ...bool) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	st, err := store.New(t.TempDir())
@@ -161,6 +165,7 @@ func newFixture(t *testing.T) *fixture {
 	diffRef := put(investigate.ArtifactSpec{Kind: domain.ArtifactRenderDiff, Path: "derived/render/env/argocd-demo/diff.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:renderdiff@v1", Producer: "test.render@v1"}, []byte(`{"changes":2}`))
 	target := "argocd:apps/demo.yaml"
+	var envItems []domain.ChangeItem
 	rcA := domain.RenderedChange{Class: "image-changed", Object: deployID.String(), Path: "spec.template.spec.containers[name=controller].image",
 		Before: `"demo/controller:v1"`, After: `"demo/controller:v2"`, ChangeItems: []string{f.behaviour}, Correlation: "subject"}
 	rcB := domain.RenderedChange{Class: "field-changed", Object: cmID.String(), Path: "data.mode", Before: `"fast"`, After: `"fast"`}
@@ -171,12 +176,20 @@ func newFixture(t *testing.T) *fixture {
 		snapRes.Evidence = append(snapRes.Evidence, e)
 	}
 	f.rcItem, f.rcLoose = rcA.ID, rcB.ID
+	if len(envItem) > 0 && envItem[0] {
+		it := domain.ChangeItem{ID: domain.ChangeItemID("", "", rcB.ID), RenderedChange: rcB.ID, Family: domain.FamilyRendered,
+			Title: "field-changed: " + rcB.Object + " " + rcB.Path, Evidence: rcB.Evidence, Manifestation: domain.ManifestRenderedConfig,
+			ManifestationRule: "manifest:rendered-anchor", InScope: true, ScopeRule: domain.ScopeRenderedUnexplained}
+		rcB.ChangeItems, rcB.Correlation = []string{it.ID}, "rendered-unexplained"
+		f.envItem = it.ID
+		envItems = append(envItems, it)
+	}
 	changes := []domain.RenderedChange{rcA, rcB}
 	if changes[0].ID > changes[1].ID {
 		changes[0], changes[1] = changes[1], changes[0]
 	}
 	pair := domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, From: fromRef.ID, To: f.toRender.ID, Diff: diffRef.ID, Status: domain.CollectionOK, Changes: changes}
-	renders := &investigate.RenderResult{Pairs: []domain.ManifestPair{pair}, Artifacts: []domain.ArtifactRef{fromRef, f.toRender, diffRef}}
+	renders := &investigate.RenderResult{Pairs: []domain.ManifestPair{pair}, Artifacts: []domain.ArtifactRef{fromRef, f.toRender, diffRef}, Items: envItems}
 
 	b, err := bundle.NewAssembler(st).Assemble(ctx, change, snapRes, renders)
 	must(t, err)
@@ -255,6 +268,14 @@ func (v *fakeOverride) Applies(fam domain.ChangeItemFamily) bool { return fam ==
 func (v *fakeOverride) Validate(ctx context.Context, in investigate.ValidationInput) (*investigate.ValidationOutput, error) {
 	v.calls++
 	inputs := []string{v.f.values.ID}
+	if len(in.Subjects) == 0 && len(in.Paths) == 0 && in.Traversal != nil { // item-wide, as the real validators do
+		for _, r := range in.Traversal.RootsOf(in.ChangeItem) {
+			in.Subjects = append(in.Subjects, r.Node)
+		}
+		for _, p := range in.Traversal.PathsOf(in.ChangeItem) {
+			in.Paths = append(in.Paths, p.ID)
+		}
+	}
 	rec := domain.ValidationRecord{Validator: v.Name(), Kind: v.Kind(), Level: domain.LevelDeterministic, ChangeItem: in.ChangeItem,
 		Subjects: in.Subjects, Paths: in.Paths, RenderedChanges: in.RenderedChanges, Property: "the environment pins controller.rotationPolicy",
 		Inputs: inputs, Outcome: domain.ValidationPass, Evidence: []domain.EvidenceID{v.f.envEv.ID},

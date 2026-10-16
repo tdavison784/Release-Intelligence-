@@ -1868,10 +1868,15 @@ type ValidationRequest struct {
 	Subjects   []string       `json:"subjects,omitempty"`
 	Inputs     []string       `json:"inputs,omitempty"` // artifact ids the agent suggests
 	Hypothesis string         `json:"hypothesis,omitempty"`
-	Status     RequestStatus  `json:"status"`
-	Resolution string         `json:"resolution,omitempty"`
-	Result     string         `json:"result,omitempty"` // validation record id (fulfilled only)
-	Provenance Provenance     `json:"provenance"`       // method ai
+	// Answers are the agent assertions (raises-concern / claims-mitigation)
+	// the request was made to answer; the tool layer links them into the
+	// resulting record's Answers only when the record covers what each
+	// assertion names. CONTRACT-CHANGE(agent): additive.
+	Answers    []string      `json:"answers,omitempty"`
+	Status     RequestStatus `json:"status"`
+	Resolution string        `json:"resolution,omitempty"`
+	Result     string        `json:"result,omitempty"` // validation record id (fulfilled only)
+	Provenance Provenance    `json:"provenance"`       // method ai
 }
 
 func validateAI(what string, p Provenance) []error {
@@ -2529,6 +2534,11 @@ func (inv *Investigation) Validate() error {
 			errs = append(errs, err)
 		}
 		vreqs[r.ID] = true
+		for _, a := range r.Answers {
+			if as, ok := asserts[a]; !ok || as.ChangeItem != r.ChangeItem {
+				bad("validation request %s answers unknown assertion %s (or one about another item)", r.ID, a)
+			}
+		}
 		if r.Result != "" {
 			if v, ok := vals[r.Result]; !ok || v.Request != r.ID {
 				bad("validation request %s: result %s is not a validation run for it", r.ID, r.Result)
@@ -2940,7 +2950,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	}
 	if a := inv.Agent; a != nil {
 		for _, c := range a.Coverage {
-			if it, ok := b.Change.Item(c.ChangeItem); !ok || !it.InScope {
+			if it, ok := b.Item(c.ChangeItem); !ok || !it.InScope {
 				bad("agent coverage: %s is not an in-scope change item", c.ChangeItem)
 			}
 			evid("agent coverage "+c.ChangeItem, c.Citations)

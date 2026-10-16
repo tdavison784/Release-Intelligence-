@@ -46,6 +46,7 @@ type validationResult struct {
 type validationView struct {
 	Request    requestView              `json:"request"`
 	Subjects   []SubjectResolution      `json:"subjects,omitempty"` // how named subjects were resolved (v2)
+	Answers    []answerResult           `json:"answers,omitempty"`  // which assertions were linked (v3)
 	Validation *domain.ValidationRecord `json:"validation,omitempty"`
 }
 
@@ -475,6 +476,10 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 	if in.Hypothesis != "" && !s.hasHypothesis(in.Hypothesis) {
 		return nil, rejectf("unknown hypothesis %q (record it with record_hypothesis first)", in.Hypothesis)
 	}
+	answers, err := s.answerCandidates(it.ID, in.Answers, in.Hypothesis, subjects, paths, rcs, len(in.Subjects)+len(in.Paths)+len(in.RenderedChanges) == 0)
+	if err != nil {
+		return nil, err
+	}
 	id := domain.AgentRecordID(domain.ValidationRequestIDPrefix, it.ID, string(in.Kind)+"\x00"+strings.Join(subjects, ","), s.call.ID)
 	for i := range s.valReqs {
 		if s.valReqs[i].ID == id {
@@ -491,7 +496,7 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 		evIn = append(evIn, s.rcs[rc].Evidence...)
 	}
 	req := domain.ValidationRequest{ID: id, ChangeItem: it.ID, Kind: in.Kind, Subjects: subjects, Inputs: inputs,
-		Hypothesis: in.Hypothesis, Status: domain.RequestOpen, Provenance: s.aiProvenance(evIn)}
+		Hypothesis: in.Hypothesis, Answers: uniqSorted(in.Answers), Status: domain.RequestOpen, Provenance: s.aiProvenance(evIn)}
 
 	var applicable []investigate.Validator
 	var configured []string
@@ -591,8 +596,42 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 	if err := invalid(func() error { c := req; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
 	}
-	view := validationView{Request: requestView{ID: id, Status: req.Status, Resolution: req.Resolution, Result: req.Result}, Subjects: resolved, Validation: res.Validation}
+	// Link the assertions the request answers into the record (guarded: the
+	// record must cover what each assertion names). The agent's own record
+	// carries the link; a link to an existing record (the deterministic
+	// pass's) is reported for the runner to apply.
+	var links []answerResult
+	var link *investigate.AnswerLink
+	if target := res.Validation; target != nil && len(answers) > 0 {
+		var linked []string
+		for _, a := range answers {
+			r := answerResult{Assertion: a.ID, Linked: true}
+			if why := answerGuard(a, *target, s.cfg.Traversal); why != "" {
+				r.Linked, r.Reason = false, why
+			} else {
+				linked = append(linked, a.ID)
+			}
+			links = append(links, r)
+		}
+		if len(linked) > 0 {
+			link = &investigate.AnswerLink{Validation: target.ID, Request: id, Assertions: uniqSorted(linked)}
+			if len(fresh) > 0 && target.ID == fresh[0].ID {
+				fresh[0].Answers = uniqSorted(append(fresh[0].Answers, linked...))
+				v := fresh[0]
+				res.Validation = &v
+			}
+		}
+	} else if len(answers) > 0 {
+		for _, a := range answers {
+			links = append(links, answerResult{Assertion: a.ID, Reason: "no validation record was produced"})
+		}
+	}
+	view := validationView{Request: requestView{ID: id, Status: req.Status, Resolution: req.Resolution, Result: req.Result}, Subjects: resolved,
+		Answers: links, Validation: res.Validation}
 	return &outcome{value: res, view: view, commit: func() {
+		if link != nil {
+			s.links = append(s.links, *link)
+		}
 		s.valReqs = append(s.valReqs, req)
 		for _, v := range fresh {
 			s.vals = append(s.vals, v)
@@ -751,4 +790,113 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		}
 		s.submitted = true
 	}}, nil
+}
+
+// --- answer links (prompt feature answerLinks) ------------------------------------------
+
+type answerResult struct {
+	Assertion string `json:"assertion"`
+	Linked    bool   `json:"linked"`
+	Reason    string `json:"reason,omitempty"`
+}
+
+// answerCandidates are the assertions a validation request answers: those it
+// names in Answers (checked: they exist, are about the item, and are
+// raises-concern or claims-mitigation), plus such assertions recorded with
+// the request's hypothesis. A named assertion whose subjects, paths or
+// rendered changes the request does not cover is rejected before anything
+// runs; an implicit one that does not fit is simply not linked.
+func (s *Session) answerCandidates(item string, named []string, hypothesis string, subjects, paths, rcs []string, itemWide bool) ([]domain.AgentAssertion, error) {
+	if !s.cfg.Prompt.Features.AnswerLinks {
+		if len(named) > 0 {
+			return nil, rejectf("this prompt version (%s) does not link answers", s.cfg.Prompt.Version)
+		}
+		return nil, nil
+	}
+	byID := map[string]domain.AgentAssertion{}
+	for _, a := range s.asserts {
+		byID[a.ID] = a
+	}
+	var out []domain.AgentAssertion
+	seen := map[string]bool{}
+	for _, id := range uniqSorted(named) {
+		a, ok := byID[id]
+		switch {
+		case !ok:
+			return nil, rejectf("answers: unknown assertion %q (record it with record_assertion first)", id)
+		case a.ChangeItem != item:
+			return nil, rejectf("answers: assertion %s is about change item %s, not %s", id, a.ChangeItem, item)
+		case a.Stance != domain.StanceRaisesConcern && a.Stance != domain.StanceClaimsMitigation:
+			return nil, rejectf("answers: assertion %s is %s; only raises-concern and claims-mitigation assertions are answered", id, a.Stance)
+		}
+		if why := coverageGap(a, subjects, paths, rcs, itemWide); why != "" {
+			return nil, rejectf("answers: assertion %s: %s — request the validation for what the assertion names", id, why)
+		}
+		seen[id] = true
+		out = append(out, a)
+	}
+	if hypothesis != "" {
+		for _, a := range s.asserts {
+			if a.Hypothesis == hypothesis && a.ChangeItem == item && !seen[a.ID] &&
+				(a.Stance == domain.StanceRaisesConcern || a.Stance == domain.StanceClaimsMitigation) {
+				seen[a.ID] = true
+				out = append(out, a)
+			}
+		}
+	}
+	return out, nil
+}
+
+// coverageGap says what of the assertion a set of subjects/paths/rendered
+// changes does not cover ("" = covered). An assertion naming none of them
+// is about the whole item and needs an item-wide request.
+func coverageGap(a domain.AgentAssertion, subjects, paths, rcs []string, itemWide bool) string {
+	if len(a.Subjects)+len(a.Paths)+len(a.RenderedChanges) == 0 {
+		if !itemWide {
+			return "it names no subject, path or rendered change, so only an item-wide validation (no subjects, paths or rendered changes requested) answers it"
+		}
+		return ""
+	}
+	for _, x := range a.Subjects {
+		if !contains(subjects, x) {
+			return "subject " + x + " is not covered"
+		}
+	}
+	for _, x := range a.Paths {
+		if !contains(paths, x) {
+			return "impact path " + x + " is not covered"
+		}
+	}
+	for _, x := range a.RenderedChanges {
+		if !contains(rcs, x) {
+			return "rendered change " + x + " is not covered"
+		}
+	}
+	return ""
+}
+
+// answerGuard checks the produced record against the assertion ("" = the
+// record may answer it): same item, and the record covers everything the
+// assertion names — an assertion naming nothing needs a record covering
+// every root and path of the item.
+func answerGuard(a domain.AgentAssertion, v domain.ValidationRecord, t *domain.TraversalResult) string {
+	if a.ChangeItem != v.ChangeItem {
+		return "the validation is about another change item"
+	}
+	if len(a.Subjects)+len(a.Paths)+len(a.RenderedChanges) > 0 {
+		return coverageGap(a, v.Subjects, v.Paths, v.RenderedChanges, false)
+	}
+	if t != nil {
+		for _, r := range t.RootsOf(v.ChangeItem) {
+			if !contains(v.Subjects, r.Node) {
+				return "the validation does not cover root " + r.Node + " of the item (an item-wide assertion needs an item-wide validation)"
+			}
+		}
+		for _, p := range t.PathsOf(v.ChangeItem) {
+			if !contains(v.Paths, p.ID) {
+				return "the validation does not cover impact path " + p.ID + " of the item"
+			}
+		}
+	}
+	return ""
 }

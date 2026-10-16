@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. investigate-agent/v1 stays embedded so its transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v2"
+// none. Earlier versions (v1, v2) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v3"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -50,6 +50,10 @@ type Features struct {
 	// (values keys, setting names, object references, rendered changes,
 	// files) and are resolved deterministically to graph nodes.
 	ResolveSubjects bool `json:"resolveSubjects"`
+	// AnswerLinks: request_validation takes the assertions it should answer
+	// and links them into the record's Answers under the coverage guard
+	// (answerGuard), so a concern can be lifted by the validation it asked for.
+	AnswerLinks bool `json:"answerLinks"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -212,7 +216,7 @@ func (p *Prompt) renderTask(in investigate.InvestigateInput, budget domain.Agent
 		}
 		vals[v.ChangeItem] = append(vals[v.ChangeItem], line)
 	}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		if !it.InScope {
 			d.OutOfScope++
 			continue
@@ -308,7 +312,7 @@ func (p *Prompt) renderTask(in investigate.InvestigateInput, budget domain.Agent
 		}
 	}
 	titles := map[string]string{}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		titles[it.ID] = it.Title
 	}
 	for i, e := range agenda {

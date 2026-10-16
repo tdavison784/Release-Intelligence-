@@ -226,6 +226,7 @@ func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, dri
 	}
 	out.Validations = append(out.Validations, s.vals...)
 	out.ProposedNodes = append(out.ProposedNodes, s.propNodes...)
+	out.AnswerLinks = append(out.AnswerLinks, s.links...)
 	for _, id := range s.runEvIDs {
 		out.Evidence = append(out.Evidence, s.runEv[id])
 	}
@@ -349,6 +350,26 @@ func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain
 		}
 		c.Records = uniqSorted(records[e.ChangeItem])
 		out = append(out, c)
+	}
+	return out
+}
+
+// ApplyAnswerLinks adds the outcome's answer links to the validation records
+// they name (record Answers, deduplicated and sorted) and returns the
+// records. The agent's own records already carry their links; the runner
+// applies this to the deterministic pass's records before classify, so a
+// concern answered by an existing validation is lifted (DESIGN.md §3.1 R2.6).
+func ApplyAnswerLinks(records []domain.ValidationRecord, links []investigate.AnswerLink) []domain.ValidationRecord {
+	add := map[string][]string{}
+	for _, l := range links {
+		add[l.Validation] = append(add[l.Validation], l.Assertions...)
+	}
+	out := make([]domain.ValidationRecord, len(records))
+	for i, r := range records {
+		if extra, ok := add[r.ID]; ok {
+			r.Answers = uniqSorted(append(append([]string(nil), r.Answers...), extra...))
+		}
+		out[i] = r
 	}
 	return out
 }

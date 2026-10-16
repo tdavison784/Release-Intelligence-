@@ -34,9 +34,9 @@ func rec(item string, outcome domain.ValidationOutcomeKind) domain.ValidationRec
 func TestPromptV2(t *testing.T) {
 	p1, err := LoadPrompt(promptV1)
 	must(t, err)
-	p2, err := LoadPrompt("")
+	p2, err := LoadPrompt(promptV2)
 	must(t, err)
-	if p2.Version != promptV2 || !p2.Features.Agenda || !p2.Features.ResolveSubjects || p1.Features.Agenda || p1.MetaJSON != nil {
+	if p2.Version != promptV2 || !p2.Features.Agenda || !p2.Features.ResolveSubjects || p2.Features.AnswerLinks || p1.Features.Agenda || p1.MetaJSON != nil {
 		t.Fatalf("features: v1 %+v v2 %+v", p1.Features, p2.Features)
 	}
 	f := newFixture(t)
@@ -337,5 +337,60 @@ func TestV2ReplayReproduces(t *testing.T) {
 	}
 	if err := runRecord(t, f, out).ValidateAgainst(f.b); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestEnvironmentScopeItems: an item anchored on an environment-only
+// rendered change lives in EvidenceBundle.EnvironmentItems, not in the change
+// record; the task, the agenda, the per-item tools and the coverage include it.
+func TestEnvironmentScopeItems(t *testing.T) {
+	f := newFixture(t, true)
+	if _, inRecord := f.b.Change.Item(f.envItem); inRecord || len(f.b.EnvironmentItems) != 1 {
+		t.Fatal("fixture: the item must be environment-scope only")
+	}
+	agenda := Agenda(f.b, nil)
+	if len(agenda) != 3 || agenda[1].ChangeItem != f.envItem || agenda[1].PriorityRule != AgendaRenderedUnexplained {
+		t.Fatalf("agenda: %+v", agenda)
+	}
+	p, _ := LoadPrompt(promptV3)
+	task, err := p.renderTask(f.input(investigate.AgentConfig{}), investigate.DefaultAgentBudget, agenda)
+	must(t, err)
+	if strings.Count(task, f.envItem) < 2 || !strings.Contains(task, "Change items in scope (3)") {
+		t.Fatalf("the task lacks the environment item:\n%s", task)
+	}
+	s := f.v3session(t, f.input(investigate.AgentConfig{}), &fakeOverride{f: f})
+	d := ok(t, s, investigate.ToolGetChangeItem, map[string]any{"id": f.envItem})
+	if !strings.Contains(string(mustJSON(d)), f.rcLoose) {
+		t.Fatalf("get_change_item on the environment item: %v", d)
+	}
+	ok(t, s, investigate.ToolRecordAssertion, map[string]any{"changeItem": f.envItem, "stance": "raises-concern", "statement": "demo-config mode changes",
+		"renderedChanges": []string{f.rcLoose}, "citations": []map[string]any{{"artifact": f.toRender.ID, "quote": "mode: fast"}}})
+	r := ok(t, s, investigate.ToolRequestValidation, map[string]any{"changeItem": f.envItem, "kind": "render-diff"})
+	if r["request"].(map[string]any)["status"] != "unavailable" { // no render-diff validator configured: recorded, not rejected
+		t.Fatalf("request_validation on the environment item: %v", r)
+	}
+	cite := []map[string]any{{"artifact": f.values.ID, "quote": "rotationPolicy: Never"}}
+	if _, err := call(t, s, investigate.ToolSubmitFindings, submitArgs(
+		map[string]any{"changeItem": f.behaviour, "disposition": "not-examined", "summary": "later"},
+		map[string]any{"changeItem": f.values2, "disposition": "not-examined", "summary": "later"})); err == nil || !strings.Contains(err.Error(), f.envItem) {
+		t.Fatalf("a submission without the environment item: %v", err)
+	}
+	ok(t, s, investigate.ToolSubmitFindings, submitArgs(
+		map[string]any{"changeItem": f.behaviour, "disposition": "not-examined", "summary": "later"},
+		map[string]any{"changeItem": f.envItem, "disposition": "raises-concern", "summary": "unexplained change", "citations": cite},
+		map[string]any{"changeItem": f.values2, "disposition": "not-examined", "summary": "later"}))
+	out, err := s.Outcome(context.Background(), f.st, DriverScripted, investigate.DriverResult{Model: "test-model", ModelVersion: "v", Stop: "submitted"})
+	must(t, err)
+	if len(out.Run.Coverage) != 3 || out.Run.Coverage[1].ChangeItem != f.envItem || out.Run.Coverage[1].Disposition != domain.CoverRaisesConcern {
+		t.Fatalf("coverage: %+v", out.Run.Coverage)
+	}
+	if err := runRecord(t, f, out).ValidateAgainst(f.b); err != nil {
+		t.Fatal(err)
+	}
+	pass, err := DeterministicPass(context.Background(), []investigate.Validator{&brokenValidator{kind: domain.ValidationStaticReference, other: f.envItem}},
+		investigate.ValidationInput{Bundle: f.b, Graph: f.g, Traversal: f.trav})
+	must(t, err)
+	if len(pass.Records) == 0 {
+		t.Fatal("the deterministic pass skipped the environment item")
 	}
 }

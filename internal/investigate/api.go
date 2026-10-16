@@ -312,6 +312,21 @@ type AgentOutcome struct {
 	// CONTRACT-CHANGE(agent): additive; a node id alone cannot be turned
 	// back into the kind and key a placeholder node needs.
 	ProposedNodes []domain.GraphNode `json:"proposedNodes,omitempty"`
+	// AnswerLinks are the assertion ids the tool layer linked to validation
+	// records (record Answers). The agent's own records already carry them;
+	// a link to a record of the deterministic pass (a requested validation
+	// that duplicated one) must be applied by the runner before classify —
+	// agent.ApplyAnswerLinks. CONTRACT-CHANGE(agent): additive.
+	AnswerLinks []AnswerLink `json:"answerLinks,omitempty"`
+}
+
+// AnswerLink links agent assertions to the validation record that answers
+// them, through the validation request that asked for it.
+// CONTRACT-CHANGE(agent): additive.
+type AnswerLink struct {
+	Validation string   `json:"validation"`
+	Request    string   `json:"request"`
+	Assertions []string `json:"assertions"`
 }
 
 // Investigator runs the agent stage (MISSION §A4; lane agent): it serves
@@ -612,6 +627,10 @@ type ValidationRequestInput struct {
 	RenderedChanges []string              `json:"renderedChanges,omitempty"`
 	Inputs          []string              `json:"inputs,omitempty"`
 	Hypothesis      string                `json:"hypothesis,omitempty"`
+	// Answers names the agent's raises-concern / claims-mitigation
+	// assertions this validation is requested to answer (prompt versions
+	// with feature answerLinks). CONTRACT-CHANGE(agent): additive.
+	Answers []string `json:"answers,omitempty"`
 }
 
 // ItemSummary is the agent's closing summary for one change item. It is

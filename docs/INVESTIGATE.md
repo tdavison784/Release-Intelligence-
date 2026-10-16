@@ -385,7 +385,7 @@ approval ineligible.
 Results carry no wall-clock fields (`checkedAt`, `generatedAt`, … are stripped), so a replay reproduces the
 transcript byte for byte.
 
-**Agenda and coverage (prompt `investigate-agent/v2`, the default).** Coverage does not depend on the model's
+**Agenda and coverage (prompt `investigate-agent/v2` and later).** Coverage does not depend on the model's
 diligence. `agent.Agenda(bundle, validations)` lists every in-scope item the deterministic pass did not decide.
 "Decided" means a failing validation, which makes the item affected by R1 whatever the agent records. Items are
 in priority order, and each entry names its declared rule:
@@ -423,7 +423,7 @@ the configured budget and the formula below, which only ever raises the budget:
 | returned bytes | 1 MiB + 192 KiB·n | 16 MiB |
 | seconds | 300 + 60n | 3600 |
 
-**Subjects (v2).** The model may name a subject the way the evidence names it. Each subject resolves, by the
+**Subjects (v2 and later).** The model may name a subject the way the evidence names it. Each subject resolves, by the
 first matching rule, to graph nodes:
 
 | Rule | Form |
@@ -439,6 +439,33 @@ first matching rule, to graph nodes:
 `request_validation` returns the resolution. An unresolvable subject, or one matching more than 20 nodes, is
 rejected with the list of accepted forms. Prompt v1 keeps its contract: node ids and keys only.
 
+**Answering concerns (prompt `investigate-agent/v3`, the default).** The classifier lifts a `raises-concern`,
+or establishes a `claims-mitigation`, only through a counting passing validation whose `Answers` lists the
+**assertion id** (R2.6/R2.7). The validators know only the request's hypothesis, so the tool layer links
+assertions into the record. A link needs all of the following:
+
+- **Request:** the agent names the assertions in `request_validation`'s `answers`, or the assertion was
+  recorded with the request's `hypothesis`.
+- **Stance and item:** the assertion is about the same item, with stance `raises-concern` or
+  `claims-mitigation`.
+- **Coverage:** the record covers everything the assertion names: its subjects, impact paths and rendered
+  changes. An assertion naming none of them needs an item-wide record, covering every root and path of the
+  item.
+
+A named assertion the request cannot cover is rejected before anything runs. An implicit one is simply not
+linked, and the result says why. `ValidationRequest.Answers` records what was asked.
+
+Some requests duplicate a record the deterministic pass already made. That record is not recorded twice:
+`AgentOutcome.AnswerLinks` reports the link, and the runner applies it with
+`agent.ApplyAnswerLinks(passRecords, outcome.AnswerLinks)` before classify. The link only says which question a
+validation answered. The validator decides the outcome, and the classifier decides whether that pass counts:
+for a controller-behaviour item, only a pinned setting or an observed outcome does.
+
+**Environment-scope items.** Items anchored on environment-only rendered changes
+(`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
+iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
+through `EvidenceBundle.Items()` / `Item()`.
+
 **Deterministic pass.** `agent.DeterministicPass(ctx, validators, input)` runs every applicable validator over
 every in-scope item; output is deduplicated, in item × validator order. Its `Records`, `Artifacts` and
 `Evidence` go into the run record. They are also passed to the agent as `InvestigateInput.Validations`,
@@ -447,8 +474,8 @@ the agent's outputs.
 
 **Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
-`PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`, so it stays
-embedded and replays exactly as recorded.
+`PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
+agenda and subject resolution; v3 adds answer links. Every version stays embedded and replays exactly as recorded.
 
 The task lists:
 

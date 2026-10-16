@@ -45,7 +45,7 @@ func Agenda(b *domain.EvidenceBundle, validations []domain.ValidationRecord) []d
 		}
 	}
 	var out []domain.AgendaCoverage
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		if !it.InScope || failed[it.ID] {
 			continue
 		}
@@ -116,7 +116,7 @@ func DeterministicPass(ctx context.Context, validators []investigate.Validator, 
 	}
 	out := &investigate.ValidationOutput{}
 	seenRec, seenArt, seenEv := map[string]bool{}, map[string]bool{}, map[domain.EvidenceID]bool{}
-	for _, it := range base.Bundle.Change.Items {
+	for _, it := range base.Bundle.Items() {
 		if !it.InScope {
 			continue
 		}

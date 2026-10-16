@@ -183,7 +183,7 @@ func TestLiveAgentRun(t *testing.T) {
 		"traversal":    map[string]any{"roots": len(trav.Roots), "paths": len(trav.Paths), "unresolved": len(trav.Unresolved), "complete": trav.Complete},
 		"impactReport": rep != nil, "validators": len(validators), "deterministicPass": len(pre), "agenda": len(out.Run.Coverage)}
 	var items []item
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		if it.InScope {
 			items = append(items, item{it.ID, it.Title, string(it.Family), string(it.Manifestation), it.ManifestationRule, it.ScopeRule})
 		}
