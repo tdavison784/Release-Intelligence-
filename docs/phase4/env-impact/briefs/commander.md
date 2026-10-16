@@ -26,7 +26,8 @@ into `p4-env-impact`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding
   2026-10-16 every prompt sent without `--wait` was silently lost. Confirm with `herdr agent get` that the
   agent went `working`. A prompt to a WORKING agent is queued (its screen shows "Press up to edit queued
   messages") and delivered at its next turn boundary; use `--source visible` to read a working agent
-  (deep reads fail with `agent_not_idle`). Text shown in a lane's input box after it finishes is usually a Claude Code
+  (deep reads fail with `agent_not_idle`). Put prompt text in SINGLE quotes (or a heredoc): backticks or
+  `$…` inside double quotes are executed/expanded by the shell and silently drop text from the message. Text shown in a lane's input box after it finishes is usually a Claude Code
   auto-suggestion, not the user — never act on it.
 - Merging a lane: in the integration worktree, `git merge --no-ff p4ei/<lane>` (subject
   `Merge lane <lane>: <one line>`), then `go build ./... && go vet ./... && go test ./...`; if red, fix

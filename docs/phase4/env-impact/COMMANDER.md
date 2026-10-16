@@ -47,7 +47,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab; follow-up: v3 depth rules + live run 3 (kps) |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
-| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab + e6474142; follow-up: ApplyAnswerLinks, scoped Argo-warning rule, bundle repro (env-subtree identity) |
+| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab + e6474142 + 52300485; follow-up: Argo/Flux multi-source version attribution in internal/env, ProposedNodes |
 | runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -103,6 +103,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 classify follow-up 2: renderdiff query.go accepts env-scope items (+ regression test). Classify lane complete, cleaned up (tab w1:t17).
 - 2026-10-16 071facab agent follow-ups: deterministic agenda (mandatory per-item disposition), prompt v2 (frozen by live run 2: cert-manager payments-eu, coverage 14/14, 33k tokens, thin depth), prompt v3 (answer links), subject resolution, env-scope items everywhere. Green.
 - 2026-10-16 e6474142 orchestrate2 follow-ups: classify.New() wired, devstubs deleted, kustomize build status in snapshot, --agent-driver scripted, CreatedAt determinism; live e2e on :7299 (payments-eu, real classify, scripted agent): 18 findings (2 affected / 9 potentially / 7 insufficient), human approval via CLI. validate/common.go conflict = identical fix from classify, kept one. Green.
+- 2026-10-16 52300485 orchestrate2: ApplyAnswerLinks before classify; loader-warning gap only for the product under investigation (EnvironmentInputs.Product); bundle identity = env-subtree tree digest + repo-relative paths, provenance in audit detail (TestSnapshotAndBundleIdenticalAcrossCheckouts). Found: env loader attributes an Argo values-ref source's targetRevision 'main' to the product version → follow-up. Green.
 
 ## Open questions for the user
 
