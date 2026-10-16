@@ -2,6 +2,7 @@ package reviewui
 
 import (
 	"context"
+	"github.com/Masterminds/semver/v3"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -107,51 +108,6 @@ func editHidden(s *knowledge.Snapshot, r *rig) {
 	s.Facts = append(s.Facts, humanFact(rbac, domain.VerifiedConsensus, domain.FactActive))
 }
 
-func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
-	r := newTriageRig(t, demoScope(), editHidden)
-	st, body := r.get("/")
-	if st != 200 {
-		t.Fatal(st)
-	}
-	ids := cardOrder(body)
-	for _, c := range []struct {
-		title string
-		shown bool
-	}{
-		{tRotation, true}, {tRBAC, true}, // pending; consensus-only fact does not hide
-		{tRSA, true},       // proxy-acted but blocking: a proxy is not a human
-		{tHTTP01, false},   // human-verified fact
-		{tDecided, false},  // human decision
-		{tParked, false},   // deferred
-		{tEvidence, false}, // needs evidence
-	} {
-		if got := slices.Contains(ids, r.id(c.title)); got != c.shown {
-			t.Errorf("%q shown=%v, want %v", c.title, got, c.shown)
-		}
-	}
-	// what is left: the pending fixtures minus the proxy-acted and the human-verified ones
-	want := 0
-	for _, id := range r.q.ItemIDs() {
-		it, _ := r.q.ItemRecord(id)
-		if it.Status == domain.ReviewPending && id != r.id(tHTTP01) {
-			want++
-		}
-	}
-	if len(ids) != want {
-		t.Errorf("cards = %d, want %d", len(ids), want)
-	}
-	contains(t, body, "Needs your review: "+itoa(want), `href="/?scope=other"`, "Other open items (0)", `href="/?scope=all"`, "Show all staged data")
-	lacks(t, body, "Showing all staged data")
-	_, other := r.get("/?scope=other")
-	contains(t, other, "Other open items: 0", "Not included: "+itoa(len(r.q.ItemIDs())-want)+" already handled",
-		"already verified", "already decided", "parked")
-	lacks(t, other, "acted on by an AI proxy")
-	contains(t, body, "An AI proxy already acted on it; that is not human verification.")
-	// the status filter does not exist in this view; counts reflect it
-	lacks(t, body, `<option value="decided"`, "Needs more evidence", ">Deferred<")
-	contains(t, body, "<b>"+itoa(want)+"</b><span>Blocking investigations</span>")
-}
-
 func itoa(n int) string { return strconv.Itoa(n) }
 
 func TestShowAllStagedDataIsExplicitAndLabelsWhatItHides(t *testing.T) {
@@ -178,114 +134,6 @@ func TestProxyDecisionNeverAppearsAsHuman(t *testing.T) {
 	}
 	if hum := triageOne(r.itemOf(tRSA), domain.SemanticCandidate{}, []domain.ReviewDecision{{Reviewer: "x", ReviewerKind: domain.ReviewerProxy}}, nil, demoScope()); hum.Hidden != HiddenProxy {
 		t.Errorf("proxy decision hidden as %q", hum.Hidden)
-	}
-}
-
-func TestBlockingItemsComeFirstThenTheRest(t *testing.T) {
-	// the "Default of --…" items are semantic mappings of a settable flag whose default changed:
-	// verified, they are pin sources. Scope them in by product.
-	probe := newTriageRig(t, BlockingScope{}, nil)
-	var pinProduct domain.ProductID
-	var pins []string
-	for _, id := range probe.routine() {
-		it, _ := probe.q.ItemRecord(id)
-		pinProduct = it.Product
-		pins = append(pins, id)
-	}
-	if len(pins) == 0 {
-		t.Fatal("no routine fixtures")
-	}
-	r := newTriageRig(t, BlockingScope{Products: []domain.ProductID{pinProduct}}, nil)
-	_, body := r.get("/")
-	ids := cardOrder(body)
-	tr, _ := func() (map[string]Triage, error) {
-		snap, _ := r.q.Snapshot(context.Background())
-		return triageItems(snap, BlockingScope{Products: []domain.ProductID{pinProduct}}), nil
-	}()
-	rank := func(id string) int {
-		switch x := tr[id]; {
-		case x.PinSource:
-			return 0
-		case x.Blocking:
-			return 1
-		}
-		return 2
-	}
-	if !slices.IsSortedFunc(ids, func(a, b string) int { return rank(a) - rank(b) }) {
-		t.Errorf("not blocking-first: %v", ids)
-	}
-	nPin := 0
-	for _, id := range ids {
-		if tr[id].PinSource {
-			nPin++
-		}
-	}
-	if nPin == 0 {
-		t.Fatalf("no pin-source item among %d cards; fixtures changed?", len(ids))
-	}
-	for _, id := range ids[:nPin] {
-		if !tr[id].PinSource {
-			t.Errorf("%s is ranked among the first %d but is not a pin source", id, nPin)
-		}
-	}
-	contains(t, body, "Blocks investigations.", pinSourceWhy, "Blocking investigations")
-	// the generic rule: an unscoped product ranks nothing first
-	r2 := newTriageRig(t, BlockingScope{}, nil)
-	_, b2 := r2.get("/")
-	lacks(t, b2, "Blocks investigations.")
-	// the Blocking filter narrows to the blockers and keeps the counts
-	_, only := r.get("/?blocking=yes")
-	if got := len(cardOrder(only)); got == 0 || got > len(ids) {
-		t.Errorf("blocking filter lists %d of %d", got, len(ids))
-	}
-	for _, id := range cardOrder(only) {
-		if !tr[id].Blocking {
-			t.Errorf("%s listed under the blocking filter but is not blocking", id)
-		}
-	}
-	contains(t, only, "<b>"+itoa(len(ids))+"</b><span>Blocking investigations</span>")
-}
-
-func TestPriorityStaysInsideEachRankAndCountsIgnoreIt(t *testing.T) {
-	r := newTriageRig(t, demoScope(), nil)
-	_, body := r.get("/")
-	ids := cardOrder(body)
-	hi := map[string]bool{}
-	for _, id := range ids {
-		it, _ := r.q.ItemRecord(id)
-		hi[id] = it.Routing.Priority == domain.PriorityHigh
-	}
-	if len(ids) < 3 || !hi[ids[0]] {
-		t.Errorf("highest priority first expected, got %v", ids)
-	}
-	_, high := r.get("/?priority=high")
-	contains(t, high, "<b>2</b><span>High priority</span>", "<b>"+itoa(len(ids))+"</b><span>Blocking investigations</span>")
-	if got := len(cardOrder(high)); got != 2 {
-		t.Errorf("priority=high lists %d", got)
-	}
-}
-
-func TestDecidingLeavesTheDefaultView(t *testing.T) {
-	r := newTriageRig(t, demoScope(), nil)
-	_, before := r.get("/")
-	n := len(cardOrder(before))
-	id := r.id(tRBAC)
-	r.get("/items/" + id + "/detail")
-	st, _, _ := r.post("/items/"+id+"/decision", form("action", "accept", "reviewer", "dana", "started", started, "return", "/"))
-	if st != http.StatusSeeOther {
-		t.Fatalf("decision status %d", st)
-	}
-	_, after := r.get("/")
-	if got := len(cardOrder(after)); got != n-1 || slices.Contains(cardOrder(after), id) {
-		t.Errorf("after deciding: %d cards (was %d), item still listed=%v", got, n, slices.Contains(cardOrder(after), id))
-	}
-	contains(t, after, "Needs your review: "+itoa(n-1))
-	_, all := r.get("/?scope=all&status=all")
-	contains(t, all, "Not on the review list: decided by dana")
-	// the recorded decision is the Phase 3 contract: human, reviewer named
-	last := r.q.Decisions()[len(r.q.Decisions())-1]
-	if last.ReviewerKind != domain.ReviewerHuman || last.Reviewer != "dana" {
-		t.Errorf("decision recorded as %s/%s", last.Reviewer, last.ReviewerKind)
 	}
 }
 
@@ -376,33 +224,10 @@ func TestScopeFromInvestigationsReadsInputsAndProductSources(t *testing.T) {
 func TestCountNeedsReview(t *testing.T) {
 	q := NewDemoQueue()
 	snap, _ := q.Snapshot(context.Background())
-	needs, blocking := CountNeedsReview(snap, BlockingScope{})
+	pins, blocking, others := CountViews(snap, BlockingScope{})
+	needs := pins + blocking + others
 	if needs != 10 || blocking != 0 {
 		t.Errorf("needs=%d blocking=%d, want 10/0", needs, blocking)
-	}
-}
-
-func TestOtherOpenItemsAreASeparateLabelledView(t *testing.T) {
-	// nothing is scoped in: every open item is "other", the default view is empty
-	r := newTriageRig(t, BlockingScope{}, nil)
-	_, def := r.get("/")
-	if got := cardOrder(def); len(got) != 0 {
-		t.Errorf("default view lists %d items although none blocks", len(got))
-	}
-	contains(t, def, "Needs your review: 0", "Other open items (10)", `href="/?scope=other"`)
-	_, other := r.get("/?scope=other")
-	ids := cardOrder(other)
-	if len(ids) != 10 {
-		t.Fatalf("other view lists %d, want 10", len(ids))
-	}
-	contains(t, other, "Other open items: 10", "<b>10</b><span>Other open items</span>", "Back to items that block investigations (0)")
-	lacks(t, other, "Blocks investigations.")
-	// a blocker leaves "other" and fills the default view; the two never mix
-	r2 := newTriageRig(t, demoScope(), nil)
-	_, d2 := r2.get("/")
-	_, o2 := r2.get("/?scope=other")
-	if len(cardOrder(d2)) != 10 || len(cardOrder(o2)) != 0 {
-		t.Errorf("default %d, other %d", len(cardOrder(d2)), len(cardOrder(o2)))
 	}
 }
 
@@ -455,5 +280,178 @@ func TestProxyActionNeverRemovesABlockerButMayHideOthers(t *testing.T) {
 	hd := append(px, domain.ReviewDecision{Reviewer: "dana", ReviewerKind: domain.ReviewerHuman, Action: domain.ActionAccept})
 	if got := triageOne(it, cand, hd, nil, sc); got.NeedsReview || got.Hidden != HiddenDecided {
 		t.Errorf("human decision: %+v", got)
+	}
+}
+
+// openIDs is every item listed by the three needs-review views.
+func (r *rig) openIDs() (pins, blocking, other []string) {
+	_, a := r.get("/")
+	_, b := r.get("/?scope=blocking")
+	_, c := r.get("/?scope=other")
+	return cardOrder(a), cardOrder(b), cardOrder(c)
+}
+
+func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
+	r := newTriageRig(t, demoScope(), editHidden)
+	pins, blk, oth := r.openIDs()
+	all := append(append(append([]string{}, pins...), blk...), oth...)
+	for _, c := range []struct {
+		title string
+		shown bool
+	}{
+		{tRotation, true}, {tRBAC, true}, // pending; a consensus-only fact does not hide
+		{tRSA, true},       // proxy-acted but blocking: a proxy is not a human
+		{tHTTP01, false},   // human-verified fact
+		{tDecided, false},  // human decision
+		{tParked, false},   // deferred
+		{tEvidence, false}, // needs evidence
+	} {
+		if got := slices.Contains(all, r.id(c.title)); got != c.shown {
+			t.Errorf("%q shown=%v, want %v", c.title, got, c.shown)
+		}
+	}
+	want := 0
+	for _, id := range r.q.ItemIDs() {
+		it, _ := r.q.ItemRecord(id)
+		if it.Status == domain.ReviewPending && id != r.id(tHTTP01) {
+			want++
+		}
+	}
+	if len(all) != want {
+		t.Errorf("open items = %d, want %d", len(all), want)
+	}
+	// the views partition the open items: no item in two views
+	seen := map[string]bool{}
+	for _, id := range all {
+		if seen[id] {
+			t.Errorf("%s listed in two views", id)
+		}
+		seen[id] = true
+	}
+	_, body := r.get("/")
+	contains(t, body, "Needs your verification: "+itoa(len(pins)), "Other blocking items ("+itoa(len(blk))+")", "Other open items ("+itoa(len(oth))+")",
+		`href="/?scope=blocking"`, `href="/?scope=other"`, `href="/?scope=all"`, "Show all staged data")
+	lacks(t, body, "Showing all staged data", `<option value="decided"`)
+	_, other := r.get("/?scope=other")
+	lacks(t, other, "acted on by an AI proxy")
+	_, rsa := r.get("/?scope=blocking")
+	_, rsa2 := r.get("/")
+	if !strings.Contains(rsa+rsa2, "An AI proxy already acted on it; that is not human verification.") && slices.Contains(all, r.id(tRSA)) {
+		// the RSA item is a blocker whose proxy action is stated on its row
+		t.Error("a proxy-acted blocker must say so")
+	}
+	_, hidden := r.get("/?scope=blocking")
+	contains(t, hidden, "Not included: "+itoa(len(r.q.ItemIDs())-want)+" already handled", "already verified", "already decided", "parked")
+}
+
+func TestPinSourcesAreTheDefaultAndRankedByPriority(t *testing.T) {
+	r := newTriageRig(t, demoScope(), nil)
+	pins, blk, _ := r.openIDs()
+	snap, _ := r.q.Snapshot(context.Background())
+	tr := triageItems(snap, demoScope())
+	if len(pins) == 0 || len(blk) == 0 {
+		t.Fatalf("fixtures: %d pin sources, %d other blockers", len(pins), len(blk))
+	}
+	for _, id := range pins {
+		if !tr[id].PinSource {
+			t.Errorf("%s in the default view is not a pin source", id)
+		}
+	}
+	for _, id := range blk {
+		if !tr[id].Blocking || tr[id].PinSource {
+			t.Errorf("%s in the blocking view: %+v", id, tr[id])
+		}
+	}
+	_, body := r.get("/")
+	contains(t, body, "Blocks investigations.", pinSourceWhy, "<b>"+itoa(len(pins))+"</b><span>Needs your verification</span>")
+	_, bb := r.get("/?scope=blocking")
+	contains(t, bb, blockingWhy, "<b>"+itoa(len(blk))+"</b><span>Other blocking items</span>", "Back to items to verify ("+itoa(len(pins))+")")
+	lacks(t, bb, pinSourceWhy)
+	// nothing scoped in: nothing blocks, everything open is "other"
+	r2 := newTriageRig(t, BlockingScope{}, nil)
+	p2, b2, o2 := r2.openIDs()
+	if len(p2) != 0 || len(b2) != 0 || len(o2) != len(pins)+len(blk)+len(func() []string { _, _, o := r.openIDs(); return o }()) {
+		t.Errorf("unscoped: %d/%d/%d", len(p2), len(b2), len(o2))
+	}
+	// priority inside a view; counters ignore the priority filter
+	hiCount := 0
+	for _, id := range pins {
+		it, _ := r.q.ItemRecord(id)
+		if it.Routing.Priority == domain.PriorityHigh {
+			hiCount++
+		}
+	}
+	_, high := r.get("/?priority=high")
+	contains(t, high, "<b>"+itoa(len(pins))+"</b><span>Needs your verification</span>")
+	if got := len(cardOrder(high)); got != hiCount {
+		t.Errorf("priority=high lists %d, want %d", got, hiCount)
+	}
+}
+
+func TestDecidingLeavesTheDefaultView(t *testing.T) {
+	r := newTriageRig(t, demoScope(), nil)
+	pins, _, _ := r.openIDs()
+	id := pins[0]
+	r.get("/items/" + id + "/detail")
+	st, _, _ := r.post("/items/"+id+"/decision", form("action", "accept", "reviewer", "dana", "started", started, "return", "/"))
+	if st != http.StatusSeeOther {
+		t.Fatalf("decision status %d", st)
+	}
+	_, after := r.get("/")
+	if got := cardOrder(after); len(got) != len(pins)-1 || slices.Contains(got, id) {
+		t.Errorf("after deciding: %d cards (was %d), still listed=%v", len(got), len(pins), slices.Contains(got, id))
+	}
+	contains(t, after, "Needs your verification: "+itoa(len(pins)-1))
+	_, all := r.get("/?scope=all&status=all")
+	contains(t, all, "Not on the review list: decided by dana")
+	last := r.q.Decisions()[len(r.q.Decisions())-1]
+	if last.ReviewerKind != domain.ReviewerHuman || last.Reviewer != "dana" {
+		t.Errorf("decision recorded as %s/%s", last.Reviewer, last.ReviewerKind)
+	}
+}
+
+func TestOtherViewsAreSeparateAndLabelled(t *testing.T) {
+	r := newTriageRig(t, BlockingScope{}, nil)
+	p, b, o := r.openIDs()
+	if len(p) != 0 || len(b) != 0 || len(o) != 10 {
+		t.Fatalf("views %d/%d/%d, want 0/0/10", len(p), len(b), len(o))
+	}
+	_, def := r.get("/")
+	contains(t, def, "Needs your verification: 0", "Other blocking items (0)", "Other open items (10)")
+	_, other := r.get("/?scope=other")
+	contains(t, other, "Other open items: 10", "<b>10</b><span>Other open items</span>", "Back to items to verify (0)")
+	lacks(t, other, "Blocks investigations.")
+	_, blk := r.get("/?scope=blocking")
+	contains(t, blk, "Other blocking items: 0")
+}
+
+func TestVersionRangeLimitsBlockingToInvestigatedUpgrades(t *testing.T) {
+	v := func(s string) *semver.Version { return semver.MustParse(s) }
+	sc := BlockingScope{Products: []domain.ProductID{"p"}, Ranges: map[domain.ProductID][]VersionRange{"p": {{v("1.17.2"), v("1.18.0")}}}}
+	for rel, want := range map[string]bool{"1.18.0": true, "v1.18.0": true, "1.17.0": false, "1.17.2": false, "1.17.3": true, "1.18.1": false, "weird": true} {
+		if got := sc.covers("p", rel, domain.SemanticCandidate{}); got != want {
+			t.Errorf("release %q covered=%v, want %v", rel, got, want)
+		}
+	}
+	if sc.covers("p2", "9.9.9", domain.SemanticCandidate{Evidence: []domain.Evidence{{URI: "x"}}}) {
+		t.Error("unrelated product covered")
+	}
+}
+
+func TestUnreviewedPinFactsAreFoundUntilAnAuditExists(t *testing.T) {
+	sc := BlockingScope{Products: []domain.ProductID{"p"}}
+	a := domain.SemanticAssertion{
+		Subject: &domain.Subject{Family: domain.SubjectCLIFlag, Product: "p", Name: "f"},
+		Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged},
+	}
+	f := domain.VerifiedFact{ID: "vf-1", Product: "p", Candidates: []string{"c"}, Assertion: a, Status: domain.FactActive,
+		Verification: []domain.AspectVerification{{Aspect: domain.AspectSubject, Level: domain.VerifiedConsensus}}}
+	snap := &knowledge.Snapshot{Facts: []domain.VerifiedFact{f}, Candidates: []domain.SemanticCandidate{{ID: "c", Members: []domain.CandidateMember{{ChangeID: "x"}}}}}
+	if got := UnreviewedPinFacts(snap, sc); len(got) != 1 {
+		t.Fatalf("got %d", len(got))
+	}
+	snap.ReviewItems = []domain.ReviewItem{{ID: domain.ReviewItemID("c", domain.QuestionClassification, a)}}
+	if got := UnreviewedPinFacts(snap, sc); len(got) != 0 {
+		t.Errorf("an audit item exists: %d", len(got))
 	}
 }

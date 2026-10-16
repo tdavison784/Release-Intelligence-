@@ -335,10 +335,13 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Enums: enums(), NeedsView: needs, Hidden: hidden,
 	}
 	if needs {
-		if form.Other {
+		switch form.View {
+		case "blocking":
+			v.Tiles = needsTiles(in.Counts, "Other blocking items", "blocking")
+		case "other":
 			v.Tiles = needsTiles(in.Counts, "Other open items", "other")
-		} else {
-			v.Tiles = needsTiles(in.Counts, "Blocking investigations", "")
+		default:
+			v.Tiles = needsTiles(in.Counts, "Needs your verification", "")
 		}
 	}
 	// a Queue implementor that ignores Matches (zero) must not make the page
@@ -359,9 +362,10 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	s.render(w, http.StatusOK, "inbox.html", v)
 }
 
-// needsReview builds the default inbox: only the items that block
-// investigations (pin sources first), or with ?scope=other the other open
-// items. Counters cover just the listed set. The queue is asked for every status with the user's
+// needsReview builds one of the three needs-review views: the pin-source items
+// whose human verification would let an investigation clear an environment
+// (default), ?scope=blocking the other blocking items, ?scope=other the
+// remaining open items. Counters cover just the listed set. The queue is asked for every status with the user's
 // other filters (so the counts and the hidden tally respect them); the
 // priority and blocking filters and the limit apply afterwards, so the counts
 // stay independent of them, as in the full view.
@@ -373,7 +377,7 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 		return nil, hiddenSummary{}, err
 	}
 	out := &knowledge.Inbox{}
-	hidden := hiddenSummary{ByReason: map[string]int{}}
+	hidden := hiddenSummary{ByReason: map[string]int{}, Products: map[string]int{}}
 	var rows []knowledge.InboxRow
 	for _, row := range all.Items {
 		t, ok := tr[row.Item.ID]
@@ -383,14 +387,23 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 			continue
 		}
 		it := row.Item
-		if ok && t.Blocking {
+		// the sub-view the item belongs to: pin sources (default), other
+		// blockers, the rest; the three never mix
+		view := "other"
+		switch {
+		case ok && t.PinSource:
+			view = ""
+			hidden.Pin++
+		case ok && t.Blocking:
+			view = "blocking"
 			hidden.Blocking++
-		} else {
+		default:
 			hidden.Other++
 		}
-		if form.Other == (ok && t.Blocking) { // the default lists blockers only; ?scope=other the rest
+		if view != form.View {
 			continue
 		}
+		hidden.Products[string(it.Product)]++
 		out.Counts.Pending++
 		if it.Routing.Priority == domain.PriorityHigh {
 			out.Counts.HighPriority++

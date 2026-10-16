@@ -61,7 +61,10 @@ type filterForm struct {
 	// All is the explicit "Show all staged data" scope (?scope=all); Blocking
 	// narrows the default view to items that block investigations
 	// (?blocking=yes); Triage says the server can tell what needs review.
-	All, Other, Blocking, Triage bool
+	All, Triage bool
+	// View is the needs-review sub-view: "" (pin sources, the default),
+	// "blocking" (other blocking items) or "other" (the remaining open items).
+	View string
 }
 
 func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, s) }
@@ -84,7 +87,10 @@ func parseFilter(q url.Values, limit int) (knowledge.InboxFilter, filterForm) {
 		Source: g("source"), Reviewer: g("reviewer"), Priority: g("priority"),
 	}
 	form.All = g("scope") == "all"
-	form.Other = g("scope") == "other"
+	switch g("scope") {
+	case "blocking", "other":
+		form.View = g("scope")
+	}
 	f := knowledge.InboxFilter{
 		Product: domain.ProductID(form.Product), Release: form.Release, SubjectType: domain.SubjectFamily(form.Subject),
 		QuestionType: domain.QuestionType(form.Question), Severity: domain.ImpactSeverity(form.Severity),
@@ -158,8 +164,24 @@ func tiles(c knowledge.InboxCounts) []tile {
 type hiddenSummary struct {
 	Total    int
 	ByReason map[string]int
-	Blocking int // open items that block investigations (the default view)
-	Other    int // the other open items (?scope=other)
+	Pin      int            // pin-source items: the default view
+	Blocking int            // the other blocking items (?scope=blocking)
+	Other    int            // the remaining open items (?scope=other)
+	Products map[string]int // items of the listed view per product
+}
+
+// ProductLine is "cert-manager 3, ingress-nginx 2" for the listed view.
+func (h hiddenSummary) ProductLine() string {
+	var ps []string
+	for p := range h.Products {
+		ps = append(ps, p)
+	}
+	sort.Strings(ps)
+	var out []string
+	for _, p := range ps {
+		out = append(out, fmt.Sprintf("%s %d", p, h.Products[p]))
+	}
+	return strings.Join(out, ", ")
 }
 
 // Lines lists the reasons with counts, largest first, for the header note.

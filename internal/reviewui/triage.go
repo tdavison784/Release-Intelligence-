@@ -324,18 +324,21 @@ type SnapshotSource interface {
 	Snapshot(ctx context.Context) (*knowledge.Snapshot, error)
 }
 
-// CountNeedsReview returns how many items the default view lists and how many
-// of those block investigations (what `ri review serve` prints at start).
-func CountNeedsReview(snap *knowledge.Snapshot, scope BlockingScope) (needs, blocking int) {
+// CountViews returns how many items each needs-review view lists: pin sources
+// (the default), the other blocking items, and the remaining open items.
+func CountViews(snap *knowledge.Snapshot, scope BlockingScope) (pins, blocking, others int) {
 	for _, t := range triageItems(snap, scope) {
-		if t.NeedsReview {
-			needs++
-			if t.Blocking {
-				blocking++
-			}
+		switch {
+		case !t.NeedsReview:
+		case t.PinSource:
+			pins++
+		case t.Blocking:
+			blocking++
+		default:
+			others++
 		}
 	}
-	return needs, blocking
+	return pins, blocking, others
 }
 
 // UnreviewedPinFacts lists active facts that would be OverrideInspection pin

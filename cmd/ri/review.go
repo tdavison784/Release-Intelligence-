@@ -67,8 +67,8 @@ func (c *cli) reviewServe(args []string) error {
 	var waiting string
 	if snap != nil {
 		if sn, err := snap(c.ctx); err == nil {
-			needs, blocking := reviewui.CountNeedsReview(sn, scope)
-			waiting = fmt.Sprintf("%d item(s) block investigations and need your review (listed); %d other open item(s) are one link away", blocking, needs-blocking)
+			pins, blocking, others := reviewui.CountViews(sn, scope)
+			waiting = fmt.Sprintf("%d pin-source item(s) need your verification (listed); %d other blocking and %d other open item(s) are one link away", pins, blocking, others)
 			if n := len(reviewui.UnreviewedPinFacts(sn, scope)); n > 0 {
 				waiting += fmt.Sprintf("\n%d pin-source fact(s) hold only consensus/proxy verification and have no review item: run `ri review open-audits -knowledge %s -apply` to open them", n, *dir)
 			}
