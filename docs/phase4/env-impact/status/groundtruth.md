@@ -203,6 +203,6 @@ insufficient-evidence case.
 
 ## Test status
 
-2026-10-16 on 1b14540f: `go build ./... && go vet ./... && go test ./...` green (35 packages ok, no
+2026-10-16 on 1b14540f: `go build ./... && go vet ./... && go test ./...` green (32 packages ok, 3 without tests, no
 FAIL; this lane changes no Go code). All case YAML parses; every env overlay renders with
 `kubectl kustomize`. No kind clusters left behind.
