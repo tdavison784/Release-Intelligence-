@@ -10,8 +10,8 @@ Last updated: 2026-10-16 (Claude commander, Opus 5.5, session 77622fd0)
 - Integration branch `p4-env-impact` (base `main` @ 05b2a147), worktree `.claude/worktrees/p4-integration`.
 - Lanes: branch `p4ei/<lane>`, worktree `.claude/worktrees/p4ei-<lane>`, herdr tab `ri-<lane>` in
   workspace `w1`, agent `ri-<lane>` (Claude) or `glm-<lane>` (GLM).
-- Fleet guard: `~/.claude/fleet-guard/fleet_guard.py` (v3 is being built by lane `guard`; v2 backup
-  `fleet_guard.v2.py`), runs in herdr tab `ri-guard` (w1:tN). Usage at fleet start: Claude 5h 0 %,
+- Fleet guard: `~/.claude/fleet-guard/fleet_guard.py` v3 (README-guard.md; v2 backup `fleet_guard.v2.py`),
+  RUNNING in herdr pane w1:p1C (tab `ri-guard`, w1:tN) since 2026-10-16 12:50, `--fleet-dir docs/phase4/env-impact`. Usage at fleet start: Claude 5h 0 %,
   7d 0 % (7d resets 2026-10-22 17:00 CDT); Z.AI 5h 0 %, week 0 %.
 - Commander herdr pane: `w1:pM` (tab w1:t8), agent name `ri-commander`.
 
@@ -42,7 +42,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
 | groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E | working (kicked off 2026-10-16) |
 | orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | pane w1:p2G | wave 0 merged; idle, kept for wave 2 (context 8%) |
-| guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | v3 reviewed; fixing idle-commander RESUME bug |
+| guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
 
@@ -69,8 +69,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 ## Next actions
 
 1. ~~Start wave 0 lanes~~ done 2026-10-16. Watch for LANE DONE (herdr agent list / read).
-2. When guard reports LANE DONE: review the diff vs `fleet_guard.v2.py`, copy STATUS-guard.md to
-   `status/guard.md`, start the guard in tab ri-guard with `--reset-state` and the README command.
+2. ~~Start guard~~ done 2026-10-16 12:50. If it ever needs a restart: in pane w1:p1C, `cd ~/.claude/fleet-guard && python3 fleet_guard.py --commander-cwd /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p4-integration --commander-session <commander session id>` (NO --reset-state unless the state is stale). Log: `~/.claude/fleet-guard/events.jsonl`.
 3. When contract reports LANE DONE: review DESIGN.md critically (gap map honesty, fail-closed policy,
    ACTION REQUIRED contract preserved), merge, tell groundtruth + orchestrate to
    `git merge p4-env-impact`, then write wave-1 briefs from DESIGN §7 and start wave 1.
