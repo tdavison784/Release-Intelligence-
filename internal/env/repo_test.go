@@ -218,44 +218,52 @@ func TestRepoInlineValuesBecomeValuesKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Argo CD spec.source.helm.values (block scalar) — flattened like a file;
-	// several sources set replicaCount, so find the argo one by its evidence
-	var argoEV domain.Evidence
-	for _, k := range e.ValuesKeys {
-		if k.Path != "replicaCount" {
-			continue
+	key := func(path string) *ValuesKey {
+		for i, k := range e.ValuesKeys {
+			if k.Path == path {
+				return &e.ValuesKeys[i]
+			}
 		}
-		ev := evURI(*e, k.Evidence[0])
-		if strings.Contains(ev.URI, "cert-manager-argocd.yaml") {
-			argoEV = ev
-		}
+		return nil
 	}
-	if argoEV.ID == "" || !strings.Contains(argoEV.Locator, "$.spec.source.helm.values.replicaCount") {
-		t.Fatalf("argo inline values missing or mislocated: %+v", argoEV)
+	// Argo CD spec.source.helm.values (block scalar) — flattened like a file;
+	// prometheus.servicemonitor.enabled is set by a values file AND the argo
+	// inline values, and the inline source is applied after every file, so
+	// the single effective key cites the Application.
+	k := key("prometheus.servicemonitor.enabled")
+	if k == nil {
+		t.Fatal("prometheus.servicemonitor.enabled missing")
+	}
+	ev := evURI(*e, k.Evidence[0])
+	if !strings.Contains(ev.URI, "cert-manager-argocd.yaml") ||
+		!strings.Contains(ev.Locator, "$.spec.source.helm.values.prometheus.servicemonitor.enabled") {
+		t.Fatalf("argo inline values missing or mislocated: %+v", ev)
+	}
+	// replicaCount is set by the dev values file, the argo inline values and
+	// the flux spec.values (the last source): one effective key, from flux.
+	k = key("replicaCount")
+	if k == nil || k.Value != "2" {
+		t.Fatalf("replicaCount = %+v, want the flux inline value 2 (last layer)", k)
+	}
+	ev = evURI(*e, k.Evidence[0])
+	if !strings.Contains(ev.URI, "cert-manager-helmrelease.yaml") {
+		t.Fatalf("replicaCount evidence = %+v, want the HelmRelease", ev)
 	}
 	// Argo valuesObject keeps exact line numbers from the original node
-	for _, k := range e.ValuesKeys {
-		if k.Path != "webhook.timeoutSeconds" {
-			continue
-		}
-		if k.Line != 22 || k.Value != "10" {
-			t.Errorf("valuesObject key = %+v", k)
-		}
+	if k := key("webhook.timeoutSeconds"); k == nil || k.Line != 22 || k.Value != "10" {
+		t.Errorf("valuesObject key = %+v", k)
 	}
 	// Flux spec.values (string leaves keep the JSON encoding of a parsed
-	// values file)
-	var fluxKey *ValuesKey
-	for i, k := range e.ValuesKeys {
-		if k.Path == "global.leaderElection.namespace" {
-			fluxKey = &e.ValuesKeys[i]
-		}
+	// values file), deep-merged with the prod values file's global.rbac
+	if k := key("global.leaderElection.namespace"); k == nil || k.Value != `"cert-manager"` {
+		t.Fatalf("flux values key = %+v", k)
 	}
-	if fluxKey == nil || fluxKey.Value != `"cert-manager"` {
-		t.Fatalf("flux values key = %+v", fluxKey)
-	}
-	fx := evURI(*e, fluxKey.Evidence[0])
+	fx := evURI(*e, key("global.leaderElection.namespace").Evidence[0])
 	if !strings.Contains(fx.Locator, "$.spec.values.global.leaderElection.namespace (L21)") {
 		t.Errorf("flux values evidence = %+v", fx)
+	}
+	if k := key("global.rbac.disableHTTPChallengesRole"); k == nil || k.Value != "true" {
+		t.Errorf("prod-file key lost in the deep merge: %+v", k)
 	}
 }
 
@@ -298,7 +306,6 @@ func TestRepoWarnings(t *testing.T) {
 	}
 	joined := strings.Join(e.Warnings, "\n")
 	for _, want := range []string{
-		"2 values files",
 		"is not built with kustomize",
 		"templating (go templates, environments) is not evaluated",
 		"valuesFrom",
@@ -307,45 +314,58 @@ func TestRepoWarnings(t *testing.T) {
 			t.Errorf("warning %q missing in %v", want, e.Warnings)
 		}
 	}
+	// Layered values files are normal GitOps shape, not a gap: the repo has
+	// two values files and the loader must merge them, not warn. (The values
+	// dimension is still partial here — the fixture's HelmRelease uses
+	// spec.valuesFrom, a values source no file can answer for: an honest
+	// gap.)
+	for _, w := range e.Warnings {
+		if strings.Contains(w, "values files") {
+			t.Errorf("layered values files raised a warning: %q", w)
+		}
+	}
 }
 
 // TestRepoPrecedence: explicit flags compose with discovery — discovered
-// files load first, explicit entries after (so they win per key), and a file
-// named by both is loaded once.
+// files load first, explicit entries after (so they win per key over the
+// discovered files), and inline Argo/Flux values apply after every file, as
+// Helm/Argo/Flux apply them.
 func TestRepoPrecedence(t *testing.T) {
 	e, err := Load(Inputs{Repo: repoFixture})
 	if err != nil {
 		t.Fatal(err)
 	}
-	base, err := Load(Inputs{Repo: repoFixture})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = base
 
 	extra := filepath.Join(t.TempDir(), "extra.yaml")
-	if err := os.WriteFile(extra, []byte("replicaCount: 9\n"), 0o644); err != nil {
+	if err := os.WriteFile(extra, []byte("replicaCount: 9\nextraKey: 1\nprometheus:\n  servicemonitor:\n    targetPort: 1234\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	merged, err := Load(Inputs{Repo: repoFixture, ValuesFiles: []string{extra}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	// the explicit file's key is present and applied after the discovered
-	// ones (the last replicaCount wins per Helm merge semantics)
-	last := -1
-	for i, k := range merged.ValuesKeys {
-		if k.Path == "replicaCount" && k.Value == "9" {
-			last = i
+	key := func(path string) *ValuesKey {
+		for i, k := range merged.ValuesKeys {
+			if k.Path == path {
+				return &merged.ValuesKeys[i]
+			}
 		}
+		return nil
 	}
-	if last < 0 {
-		t.Fatal("explicit values file missing")
+	// the explicit file reaches the merge (its unique key is present) and
+	// overrides a discovered file's key it also sets
+	if k := key("extraKey"); k == nil || k.Value != "1" {
+		t.Fatalf("explicit values file missing from the merge: %+v", k)
 	}
-	for i, k := range merged.ValuesKeys {
-		if k.Path == "replicaCount" && k.Value == "1" && i > last {
-			t.Errorf("explicit values file must apply after the discovered ones")
-		}
+	if k := key("prometheus.servicemonitor.targetPort"); k == nil || k.Value != "1234" {
+		t.Fatalf("explicit file must override the discovered values file per key: %+v", k)
+	}
+	if ev := evURI(*merged, key("prometheus.servicemonitor.targetPort").Evidence[0]); !strings.Contains(ev.URI, "extra.yaml") {
+		t.Errorf("overriding key must cite the explicit file: %+v", ev)
+	}
+	// inline values apply after every file, so they still win per key
+	if k := key("replicaCount"); k == nil || k.Value != "2" {
+		t.Fatalf("replicaCount = %+v, want the flux inline value 2 (inline applies after files)", k)
 	}
 
 	// an explicit manifest directory that overlaps discovery loads each file

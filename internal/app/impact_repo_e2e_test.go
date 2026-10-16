@@ -117,10 +117,14 @@ func TestE2EImpactRepo(t *testing.T) {
 		t.Error("no environment evidence cites the discovered repository")
 	}
 
-	// repo-mode warnings travel into the report
+	// repo-mode warnings travel into the report; layered values files are
+	// merged, so they must NOT appear as a warning
 	joined := strings.Join(rep.Warnings, "\n")
-	if !strings.Contains(joined, "is not built with kustomize") || !strings.Contains(joined, "values files") {
+	if !strings.Contains(joined, "is not built with kustomize") {
 		t.Errorf("repo warnings missing from the report: %v", rep.Warnings)
+	}
+	if strings.Contains(joined, "values files; all are applied") {
+		t.Errorf("layered values files must be merged, not warned about: %v", rep.Warnings)
 	}
 
 	var text strings.Builder

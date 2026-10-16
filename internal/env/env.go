@@ -84,7 +84,8 @@ const (
 type Inputs struct {
 	// KubernetesVersion is the cluster version ("1.31" or "1.31.5").
 	KubernetesVersion string
-	// ValuesFiles are Helm values files, in the order -f would apply them.
+	// ValuesFiles are Helm values files, in the order -f would apply them
+	// (later files override earlier ones per key; mappings deep-merge).
 	ValuesFiles []string
 	// Manifests are files or directories of Kubernetes manifests
 	// (multi-document YAML streams).
@@ -108,9 +109,14 @@ type Inputs struct {
 	// depth, VCS/vendor directories skipped) and environment inputs are
 	// discovered by convention — values files, k8s-shaped manifests, Argo CD
 	// Applications, Flux HelmReleases, kustomizations, workflow/terraform
-	// image references. Explicit flags COMPOSE with discovery: discovered
-	// files are loaded first, explicit entries after them (so an explicit
-	// values file wins per-key), and a file named by both is loaded once.
+	// image references. Several values files for one release (Argo
+	// helm.valueFiles, Flux valuesFrom, helmfile layering) are normal: they
+	// are merged as Helm applies them (later overrides earlier per key,
+	// mappings deep-merge), one effective key per path with the provenance
+	// of the file and line that set it. Explicit flags COMPOSE with
+	// discovery: discovered files are loaded first, explicit entries after
+	// them (so an explicit values file wins per-key), and a file named by
+	// both is loaded once.
 	Repo string
 	// Inventory is a declared product inventory file (YAML list of {product,
 	// version, note?}). In repo mode <Repo>/inventory.yaml is picked up when
@@ -161,6 +167,11 @@ type KubernetesVersion struct {
 
 // ValuesKey is one key a user's values file sets, flattened with exactly the
 // same path syntax as domain.ValuesSnapshot entries (lists are leaves).
+// ValuesKey is one EFFECTIVE values key of the layered merge: the source
+// (values file, inline Argo/Flux values, Argo parameter) that was applied
+// last for its path, per Helm coalesce semantics. A key an earlier layer set
+// and a later layer overrode does not appear twice — the evidence points at
+// the file and line that set the effective value.
 type ValuesKey struct {
 	Path     string
 	Value    string // JSON-encoded leaf
@@ -356,6 +367,21 @@ type loader struct {
 	gvk         map[gvkKey]*gvkStage
 	installed   []InstalledProduct
 	repoFiles   int
+	// values accumulates every values source (files, inline Argo/Flux
+	// values, Argo parameters) as one layered merge, materialized by
+	// finalizeValues once every source has been applied.
+	values *valuesMerge
+	// valuesNamed: a configuration file named a values input that could not
+	// be collected (a helmfile values reference that is not present). The
+	// values dimension is supplied-with-a-gap (partial), never "absent".
+	valuesNamed bool
+	// argoValueFiles: repo-local values files Argo CD Applications list in
+	// helm.valueFiles ($<ref>/ paths resolved against the root), in config
+	// order — Helm's -f order, which the layered merge honours.
+	argoValueFiles []string
+	// helmfileValues: repo-local values files helmfile releases reference,
+	// in list order.
+	helmfileValues []string
 	// productsSupplied: an inventory file or a detected product backs the
 	// products dimension.
 	productsSupplied bool
@@ -410,7 +436,7 @@ func Load(in Inputs) (*Environment, error) {
 	l := &loader{
 		env: &Environment{}, evidence: map[domain.EvidenceID]bool{},
 		files: map[string]string{}, warned: map[string]bool{}, dimWarnings: map[string][]string{},
-		gvk: map[gvkKey]*gvkStage{},
+		gvk: map[gvkKey]*gvkStage{}, values: newValuesMerge(),
 	}
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
@@ -424,9 +450,6 @@ func Load(in Inputs) (*Environment, error) {
 			return nil, err
 		}
 		discVals, discMans = vals, mans
-		if len(discVals) > 1 {
-			l.warnf(DimValues, "repo mode found %d values files; all are applied, the last one wins per key", len(discVals))
-		}
 		if len(discVals)+len(discMans) == 0 {
 			l.warnf("", "repo mode found no values or manifest files in %s", in.Repo)
 		}
@@ -474,6 +497,9 @@ func Load(in Inputs) (*Environment, error) {
 	for _, ref := range in.Images {
 		l.addImageAt(ref, "list", "", 0)
 	}
+	// Every values source has applied (files above, inline values while the
+	// manifests loaded): materialize the layered merge.
+	l.finalizeValues()
 
 	sort.Slice(l.env.APIVersions, func(i, j int) bool {
 		a, b := l.env.APIVersions[i], l.env.APIVersions[j]
@@ -499,9 +525,13 @@ func Load(in Inputs) (*Environment, error) {
 		return nil, err
 	}
 
-	// Supplied reflects anything that reached the loader: explicit inputs or
-	// repo-discovered files (the impact layer reads it for visibility rules).
-	l.env.Supplied.Values = len(in.ValuesFiles) > 0 || len(discVals) > 0
+	// Supplied reflects anything that reached the loader: explicit inputs,
+	// repo-discovered files, or inline values of a collected Argo/Flux
+	// source (the impact layer reads it for visibility rules). A values
+	// reference that could not be collected (valuesNamed) deliberately does
+	// NOT count: no values were seen, so no visibility conclusion may rest
+	// on it — the partial health and the loader warning carry the gap.
+	l.env.Supplied.Values = len(in.ValuesFiles) > 0 || len(discVals) > 0 || len(l.values.eff) > 0
 	l.env.Supplied.Manifests = len(in.Manifests) > 0 || len(discMans) > 0
 	l.env.Supplied.CRDs = len(in.CRDs) > 0
 	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
@@ -514,7 +544,7 @@ func Load(in Inputs) (*Environment, error) {
 	// explicit inputs or repo-discovered files (vals/mans already merged).
 	supplied := map[string]bool{
 		DimKubernetes: strings.TrimSpace(in.KubernetesVersion) != "",
-		DimValues:     len(vals) > 0 || len(in.ValuesFiles) > 0,
+		DimValues:     len(vals) > 0 || len(in.ValuesFiles) > 0 || l.valuesNamed || len(l.values.eff) > 0,
 		DimManifests:  len(mans) > 0 || len(in.Manifests) > 0,
 		DimCRDs:       len(crds) > 0 || len(in.CRDs) > 0 || l.renderedCRDs > 0,
 		DimImages:     len(in.Images) > 0 || len(l.env.Images) > 0,
@@ -623,7 +653,12 @@ func expand(path string) ([]string, error) {
 }
 
 // loadValuesFiles parses Helm values files (already expanded and
-// deduplicated, discovered ones first and explicit ones last).
+// deduplicated, discovered ones first and explicit ones last) into the
+// layered-values merge: later files override earlier ones per key with Helm
+// coalesce semantics, keeping one effective key per path with the provenance
+// of the file and line that set it. The merged keys (and their image
+// references) are materialized by finalizeValues once every values source —
+// files, then the inline Argo/Flux values of the manifests — has applied.
 func (l *loader) loadValuesFiles(files []string) error {
 	for _, f := range files {
 		b, err := l.readFile(f)
@@ -633,55 +668,7 @@ func (l *loader) loadValuesFiles(files []string) error {
 		if len(bytes.TrimSpace(b)) == 0 {
 			continue
 		}
-		flat, err := normalize.FlattenValues(b)
-		if err != nil {
-			l.warnf(DimValues, "%s was not parsed as a Helm values mapping: %v", f, err)
-			continue
-		}
-		// yaml.Unmarshal decodes only a stream's FIRST document and silently
-		// drops the rest; a Helm values file must be a single document, so
-		// make any extra ones an explicit, dimension-degrading warning.
-		if n := countDocs(b); n > 1 {
-			l.warnf(DimValues, "%s holds %d YAML documents; a Helm values file is one document — the rest was ignored", f, n)
-		}
-		for _, kv := range flat {
-			if !l.addValuesKey(ValuesKey{
-				Path: kv.Path, Value: kv.Value, Line: kv.Line,
-				Evidence: []domain.EvidenceID{l.ev(f, fmt.Sprintf("$.%s (L%d)", kv.Path, kv.Line), kv.Path+": "+kv.Value)},
-			}) {
-				l.warnf(DimValues, "more than %d values keys; the rest of %s was ignored", maxValuesKeys, f)
-				break
-			}
-		}
-		// images set through the usual chart conventions
-		byPath := make(map[string]normalize.FlattenedValue, len(flat))
-		for _, kv := range flat {
-			byPath[kv.Path] = kv
-		}
-		for _, kv := range flat {
-			base := lastSegment(kv.Path)
-			if base != "repository" && base != "hub" && base != "image" {
-				continue
-			}
-			ref := strings.Trim(strings.Trim(kv.Value, `"`), `'`)
-			if !strings.Contains(ref, "/") {
-				continue // a bare name or a non-reference value
-			}
-			tag := ""
-			if base != "image" {
-				if sib, ok := byPath[siblingPath(kv.Path, "tag")]; ok {
-					tag = strings.Trim(strings.Trim(sib.Value, `"`), `'`)
-				}
-			}
-			full := ref
-			if tag != "" && base != "image" {
-				full = ref + ":" + tag
-			}
-			if _, err := normalize.ParseImageRef(full); err != nil {
-				continue
-			}
-			l.addImageAt(full, "values", f, kv.Line)
-		}
+		l.applyValuesFile(f, b)
 	}
 	return nil
 }
