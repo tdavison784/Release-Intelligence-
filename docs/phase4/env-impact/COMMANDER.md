@@ -26,7 +26,7 @@ Last updated: 2026-10-16 (Claude commander, Opus 5.5, session 77622fd0)
 | 1 | bundle | Sonnet* | P1 change evidence + env snapshot → evidence bundle | contract | (from DESIGN §7) |
 | 1 | renderdiff | Opus | **critical path**: env-scoped render before/after manifests + structured diffs into the bundle, diff query API | contract | (from DESIGN §7) |
 | 1 | relations | Sonnet | (only if needed) lightweight consumer/reference discovery from rendered objects | contract | (from DESIGN §7) |
-| 1 | validate | Sonnet | P4 override/render/schema/reference validators | contract | (from DESIGN §7) |
+| 1 | validate | Opus | P4 override/render/schema/reference validators | contract | (from DESIGN §7) |
 | 2 | agent | Opus | P3 investigation agent centred on diff-query tools (MCP, claude -p runner, replay) | bundle, renderdiff | (from DESIGN §7) |
 | 2 | classify | Opus | §A6 four-class policy, findings, approval eligibility | contract, validate | (from DESIGN §7) |
 | 2 | orchestrate (cont.) | Sonnet | P5 real activities, `ri worker`, human review signal | all wave 1 | (from DESIGN §7) |
@@ -39,9 +39,13 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
-| contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F (tab w1:t0) | DESIGN.md reviewed 13:15: merge-ready after the 'manifestation' fix (R2.4 hole: render silence must not clear controller-behaviour items); fixing |
+| contract | — | claude-opus-5-5 | (removed) | (closed) | MERGED 861e847d + cleaned up |
 | groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 5 cases merged (23f79063); follow-up: diff-visible pair + diff-visible-harmless trap; adopt FORMAT.md after contract merges; worktree kept until then |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
+| renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | wave 1, working since 13:20 (CRITICAL PATH) |
+| validate | ri-validate | claude-opus-5-5 | .claude/worktrees/p4ei-validate | pane w1:p2J (tab w1:t13) | wave 1, working since 13:20 |
+| bundle | ri-bundle | claude-sonnet-5-5 | .claude/worktrees/p4ei-bundle | pane w1:p2K (tab w1:t14) | wave 1, working since 13:20 |
+| relations | ri-relations | claude-sonnet-5-5 | .claude/worktrees/p4ei-relations | pane w1:p2M (tab w1:t15) | wave 1, working since 13:20 |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -68,6 +72,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 - 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge. Cleanup: agent exited, tab w1:t11 closed, worktree removed, branch p4ei/orchestrate deleted (-d).
 - 2026-10-16 23f79063 groundtruth (ff91c6de..c5eedd71): 5 cases in eval/investigations — cert-manager 1.17.2→1.18.0 rotationPolicy pair (payments-eu affected / payments-us not), ingress-nginx 4.11.5→4.12.0 risk-level pair (shop-de affected / shop-fr not), shop-pl insufficient-evidence. All observed in kind v1.31. Green after merge. Worktree NOT removed: lane continues (follow-up).
+- 2026-10-16 861e847d contract (3757157d..ae2e4ab2): DESIGN.md (gap map, scope cert-manager + ingress-nginx (+argo-cd), contracts, manifestation rule §2.2.1, fail-closed four-class policy §3, agent §4, Temporal boundary §5, eval §6, lane plan §7), internal/domain/investigation.go, internal/investigate/api.go, schemas, eval/investigations/{FORMAT.md,gates.yaml} (gates now FROZEN). Green after merge. Cleanup: agent exited, tab w1:t0 closed, worktree removed, branch deleted.
 
 ## Open questions for the user
 
@@ -75,13 +80,10 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-0. When groundtruth reports LANE DONE on the follow-up: review the new cases (diff-visible pair + trap), merge, keep the worktree only if FORMAT.md adoption is still pending.
-
-1. ~~Start wave 0 lanes~~ done 2026-10-16. Watch for LANE DONE (herdr agent list / read).
-2. ~~Start guard~~ done 2026-10-16 12:50. If it ever needs a restart: in pane w1:p1C, `cd ~/.claude/fleet-guard && python3 fleet_guard.py --commander-cwd /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p4-integration --commander-session <commander session id>` (NO --reset-state unless the state is stale). Log: `~/.claude/fleet-guard/events.jsonl`.
-3. When contract reports LANE DONE: review DESIGN.md critically (gap map honesty, fail-closed policy,
-   ACTION REQUIRED contract preserved), merge, tell groundtruth + orchestrate to
-   `git merge p4-env-impact`, then write wave-1 briefs from DESIGN §7 and start wave 1.
+1. Wave 1 running (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
+2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.
+3. Wave 2 briefs (agent Opus, classify Opus, orchestrate Sonnet — DESIGN §7 Wave 2) once bundle + renderdiff (agent) / validate (classify) are merged; orchestrate after all of wave 1. Write them while wave 1 runs.
+4. Wave 3: eval (Opus) after everything.
 
 ## GLM commander log
 
