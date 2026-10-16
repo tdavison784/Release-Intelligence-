@@ -44,7 +44,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
-| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab + 43dad6f9; follow-up: prompt v4 per-item sessions + live run 4 (same obs-north input) |
+| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED through ea983257 (v4); follow-up: prompt v5 structured verified claims, pipeline AgentNotes, list not-run validator gaps |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
@@ -108,6 +108,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 52300485 orchestrate2: ApplyAnswerLinks before classify; loader-warning gap only for the product under investigation (EnvironmentInputs.Product); bundle identity = env-subtree tree digest + repo-relative paths, provenance in audit detail (TestSnapshotAndBundleIdenticalAcrossCheckouts). Found: env loader attributes an Argo values-ref source's targetRevision 'main' to the product version → follow-up. Green.
 - 2026-10-16 43dad6f9 agent v3: D1 (explains/examined-no-concern only after get_change_item + item-unique citation), D2 (behaviour concerns need request_validation or reason), depth fields in coverage. Live run 3 (kps obs-north, v3, 12 calls / 58k tokens): 26/26 closed, 2 examined, 16 not-examined, 10 concerns (9 resting on one item), 1 validation request (not-run). Green.
 - 2026-10-16 8e602992 orchestrate2 final: Argo multi-source values-ref sources never carry the product version (payments envs: cert-manager v1.17.2, repo input ok with a note); Flux pinned by test; agent ProposedNodes via agent.MergeGraph. No golden/eval changes. Lane complete, cleaned up (tab w1:t18).
+- 2026-10-16 ea983257 agent v4: per-item sessions (cap 10, priority order), concerns need item-session evidence. Live run 4 (same obs-north input as run 3): 72 tool calls, 10/10 sessions examined, 4 validation requests / 3 answer links (all not-run → nothing lifted), 0 cross-item concerns, 124k tokens. Found: closing prose can state false environment facts (fail-safe, misleads reviewers) → v5 structured verified claims. Green.
 
 ## Open questions for the user
 
@@ -117,12 +118,12 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-- ~~classify merged; orchestrate2 told~~ (14:40). When orchestrate2, classify and agent follow-ups merge: (wire classify.New(), drop devstubs, live e2e with --agent scripted/replay); then start lane eval (Wave 3, Opus — write briefs/eval.md from DESIGN §6/§7 first; include runtime results if merged, reported per basis).
+Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In order:
 
-1. ~~Wave 1~~ COMPLETE 2026-10-16 14:20 (all merged + cleaned up). Old text for reference: (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
-2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.
-3. Wave 2 briefs WRITTEN (briefs/_wave2-common.md, agent.md (Opus), classify.md (Opus), orchestrate2.md (Sonnet; lane name `orchestrate2`, branch p4ei/orchestrate2)). agent STARTED 13:55; classify + orchestrate2 STARTED 14:15; classify once validate is merged; orchestrate2 after all of wave 1. GLM commander may start them (as glm-<lane>) per protocol.
-4. Wave 3: eval (Opus) after everything.
+1. **agent** (ri-agent, working): prompt v5 = structured, tool-verified environment claims; pipeline copies AgentNotes; list of validator/pin-rule gaps behind every not-run answer. On LANE DONE: review (replay of runs 1–4 still byte-identical, v4 frozen), merge, then route the listed validator gaps (validate package is unowned now — a new small lane or the eval lane must NOT fix them). Keep the ri-agent worktree only if more agent work is queued; else clean up.
+2. **eval** (ri-eval, working): harness + **arm A only**. Arm B (+agent) runs only when (a) agent v5 is merged AND (b) a Claude window is available — it calls `claude -p` with claude-sonnet-5-5. **A GLM commander must NOT start arm B and must not let it run with a GLM model** (that would change the model under test). Tell ri-eval when B may start. Arm C waits for runtime.
+3. **runtime** (ri-runtime, working): on LANE DONE review that a quiet window never passes and every kind cluster is deleted (`kind get clusters`), merge, clean up, tell ri-eval arm C may run (Claude window not needed for C unless combined with the agent).
+4. After eval's report: commander reviews EVAL-REPORT.md, then the user decides on push/PR (nothing pushed yet).
 
 ## GLM commander log
 
