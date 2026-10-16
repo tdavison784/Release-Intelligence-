@@ -44,10 +44,10 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
-| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd; follow-up: deterministic per-item agenda + prompt v2, subject resolution, live run 2 on another product |
+| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab; follow-up: v3 depth rules + live run 3 (kps) |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
-| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab; follow-up: bundle CreatedAt determinism (owns bundle now), then wire classify.New() + drop devstubs when classify merges |
+| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab + e6474142; follow-up: ApplyAnswerLinks, scoped Argo-warning rule, bundle repro (env-subtree identity) |
 | runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -77,6 +77,9 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 DESIGN §1.3 amendment (adf4fe08, commander): `scope:rendered-unexplained` (in scope; every rendered change nothing upstream explains, release or env scope, becomes its own item, treated like scope:category) and `scope:routine-self-artifact` (out of scope, correlated). Why: diffs are the centerpiece + Principle 3; an unexplained change to the customer's rendered deployment must be investigated, not only block approval. Generic rule, not tuned to a case.
 - 2026-10-16 Agent coverage must not depend on model diligence: deterministic agenda of undecided in-scope items, a mandatory per-item entry (incl. examined-no-concern / not-examined), submission rejected while any item lacks one; examined-no-concern never lowers a class. Prompt v2; v1 kept for replay. Live run 2 on a different product to keep the prompt generic.
 - 2026-10-16 USER APPROVED a runtime validation lane: throwaway kind cluster, apply env FROM render → TO render, generic observations on impact-path objects, declared exercises; quiet window without the relevant exercise is never a pass. Opus, opt-in (--runtime).
+- 2026-10-16 Agent depth rules (v3, before scoring, generic): examined-no-concern/explains only after get_change_item on the item + an item-specific citation; raises-concern on behaviour/unknown items needs request_validation or a stated reason.
+- 2026-10-16 Loader warnings are gaps only for inputs that decide the item (the product's own deployment); non-semver targetRevision on Applications not deploying the product = note. Not a blanket waiver.
+- 2026-10-16 Bundle identity = env-subtree content + repo-relative paths (enclosing commit only as provenance), so bundle ids don't change with unrelated commits/checkouts — prerequisite for stored eval runs.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -98,6 +101,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 7bb6e559 classify: R1–R4 in order, manifestation rule, §3.3 agent-record table, tier-policy input (Config.TierPolicy, additive), ReviewApplier (proxy never approves), ~45 tests, real-pipeline run over 8 inputs valid + reproducible. Domain relaxed: eligible ⇒ every finding eligible (was ⇔) — accepted, fail-closed preserved. INVESTIGATE.md conflict (both lanes appended sections) resolved keeping both. Gaps routed: (a) validate env-scope lookup → classify; (b) snapshot 'partial' for unbuilt kustomizations blocks R2.1 everywhere → orchestrate2 (owns bundle); (c) Answers must carry assertion ids → agent.
 - 2026-10-16 1a355107 classify follow-up: validate env-scope item lookup fixed (+ regression test); records for env-scope items 0 → 6 (cert-manager), 0 → 12 (shop-nl), all not-run (honest: unexplained change present in the env render can't be cleared by an empty diff nor fail without a concrete failure). Same bug found in renderdiff query.go:67 → classify; agent prompts.go/session.go → agent.
 - 2026-10-16 classify follow-up 2: renderdiff query.go accepts env-scope items (+ regression test). Classify lane complete, cleaned up (tab w1:t17).
+- 2026-10-16 071facab agent follow-ups: deterministic agenda (mandatory per-item disposition), prompt v2 (frozen by live run 2: cert-manager payments-eu, coverage 14/14, 33k tokens, thin depth), prompt v3 (answer links), subject resolution, env-scope items everywhere. Green.
+- 2026-10-16 e6474142 orchestrate2 follow-ups: classify.New() wired, devstubs deleted, kustomize build status in snapshot, --agent-driver scripted, CreatedAt determinism; live e2e on :7299 (payments-eu, real classify, scripted agent): 18 findings (2 affected / 9 potentially / 7 insufficient), human approval via CLI. validate/common.go conflict = identical fix from classify, kept one. Green.
 
 ## Open questions for the user
 
