@@ -2,9 +2,9 @@
 
 Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/agent.md` (+ `_wave2-common.md`,
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
-store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
-(commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
-`git merge p4-env-impact`. State: **DONE (follow-ups 1–4 complete)** (2026-10-16).
+store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-ups
+1–4 merged through ea983257. State: **follow-up 5 (verified setting claims, prompt v5) complete** (2026-10-16,
+GLM handoff).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -183,6 +183,61 @@ Resume from: this file + brief + `git log`.
 - **For orchestrate2 (not my file)**: `run/pipeline.go` must copy `AgentOutcome.Notes` into
   `Investigation.AgentNotes`. Its default prompt (agent.DefaultPromptVersion) is now v4.
 
+## Follow-up 5 (commander decision: verified setting claims) — done (GLM handoff)
+
+- **Prompt v5** (meta feature `claims`; default now v5, v1–v4 frozen and byte-identical):
+  environment facts are structured, not prose. `record_claim` states "setting S is absent /
+  present / has value V in input X" (an environment file, an environment render, or
+  `environment-files` = all environment files) and the tool layer verifies it
+  deterministically before recording (`claims.go`, verifier `investigate.claim-check@v1`):
+  - the setting is searched as a dotted key path from a YAML root, as its last key anywhere,
+    and as a whole token in the text — so `absent` holds only when it occurs nowhere in any
+    form (a wrong or partial path is still caught by the last-key and token searches);
+  - `value` compares the decoded YAML scalar at every key match, canonically;
+  - a failed verification **rejects the claim with the contradicting line** (the live-run-4
+    failure mode — "the environment does not set X" while `values-prod.yaml:8` sets it — is
+    now a rejection, not prose);
+  - present/value claims cite the matching lines (≤5 evidence); `absent` cites none but lists
+    the artifacts `Checked`.
+- **Domain** (`SettingClaim` `clm-…`, AI provenance — the claim is the agent's, the check is
+  deterministic): `Investigation.AgentClaims` with `Validate` (derived id, kind/value shape,
+  verifier/checked/detail, present-value needs evidence, no duplicates) and `ValidateAgainst`
+  (item, evidence, artifacts resolve). `AgentAssertion` / `Hypothesis` / `AgentNote` /
+  `AgendaCoverage` gain `StatementKind` / `SummaryKind` (`unverified-ai-prose` for agent free
+  text under a claims prompt; runner-written summaries carry none) and `Claims` (checked ids).
+- **Tool layer**: `Tools.RecordClaim` (+ Dispatch, not in base `ToolNames`; prompts without the
+  feature reject it as an unknown tool). `record_assertion` / `submit_findings` accept `claims`
+  ids (`claimRefs`: recorded in this run, and about the record's item or no item). MCP serves
+  `record_claim` from the prompt's tools.json (v5 only). Schemas regenerated.
+- **Runner** (`run/pipeline.go`, orchestrate2's file, additive): copies `AgentOutcome.Notes`
+  → `Investigation.AgentNotes` (the follow-up-4 gap I had flagged) and `AgentOutcome.Claims`
+  → `Investigation.AgentClaims`; `agentOutcome()` reads both back.
+- **Live run 5** `runs/agent-live-5/` (obs-north again, claude-sonnet-5-5, v5): see its README.
+- Tests (`claims_test.go`): every verification outcome + rejection (false absence with the
+  contradicting line, wrong kind, non-environment input, value on a token, unknown input,
+  value/kind shape), claims backing assertions/submissions (wrong item, unknown id), prose
+  labels, v5 per-item run with a rejected false-absence claim replayed byte for byte, v4
+  unchanged, `DefaultPromptVersion` = newest embedded (guard test).
+- Docs: `docs/INVESTIGATE.md` "Setting claims (prompt v5…)".
+
+## GLM handoff log
+
+- 2026-10-16 (glm-agent, GLM-5.3): took over the lane mid-follow-up-5. Found the feature
+  (domain contract, claims.go, prompt v5, wiring, tests) implemented and green in the working
+  tree but uncommitted; nothing in it looked unfinished — build/vet/fresh tests passed and
+  schema regen produced no drift. Continued by: committing it in three `[glm-handoff]`
+  commits (domain contract; claims + v5 + tests; runner), writing the missing
+  `docs/INVESTIGATE.md` section (v5 + prose labels; dropped stale "the default" annotations
+  from v3/v4), and running live run 5 (obs-north, v5) + replay. Status entries above mine
+  were written by ri-agent; this log section is the GLM handoff record the handoff prompt
+  requires.
+- Uncertainties: (1) I inferred follow-up 5's scope from the in-flight diff and the
+  "commander decision 2026-10-16" comment in claims.go — COMMANDER.md's decision list (at
+  p4-env-impact @ ea983257 merge state) does not yet name it; if the commander's ask differed,
+  the delta is visible in these commits. (2) I chose obs-north for live run 5 to compare
+  against run 4's false-absence failure mode (the feature's motivating case); a different
+  input was not specified anywhere I could see.
+
 ## Decisions (with why)
 
 - **v4 uses `AgentConfig.ItemBudget` (a pointer)**, not `Budget`: the runner passes the investigation-wide
@@ -246,9 +301,19 @@ Resume from: this file + brief + `git log`.
   one usage line. **orchestrate2**: route the non-`mcp` case to your runner when merging.
 - `README.md`: one command line. `docs/INVESTIGATE.md`: my section only.
 - `internal/investigate/api.go`: the contract change below.
+- `internal/investigate/run/pipeline.go` (follow-up 5, additive): stores `AgentOutcome.Notes` →
+  `Investigation.AgentNotes` and `AgentOutcome.Claims` → `Investigation.AgentClaims` (the note copy was the
+  follow-up-4 gap flagged for orchestrate2; done from this lane as a two-line additive change, plus
+  `agentOutcome()` reading them back). `run/agent_test.go`: one test.
 
 ## Contract changes
 
+- `// CONTRACT-CHANGE(agent)` (follow-up 5): domain `SettingClaim` (+ prefix `clm-`, `ClaimKind` /
+  `ClaimKinds`, `SettingClaimID`, checks in `Validate`/`ValidateAgainst`, `Investigation.AgentClaims`),
+  `StatementUnverifiedProse`, `StatementKind` on `AgentAssertion` / `Hypothesis` / `AgentNote`,
+  `SummaryKind` on `AgendaCoverage`, `AgentAssertion.Claims` (+ check); investigate `ClaimInput`,
+  `Tools.RecordClaim` (not in `ToolNames`), `AgentOutcome.Claims`, `AssertionInput.Claims`,
+  `ItemSummary.Claims`. Schema enum `ClaimKinds`.
 - `// CONTRACT-CHANGE(agent)` (follow-up):
   - domain: `AgentRun.Coverage []AgendaCoverage`, `AgentRun.BudgetRule`, `AgendaCoverage`,
     `CoverageDisposition` (+ `CoverageDispositions`, schema enum) and the coverage checks in
