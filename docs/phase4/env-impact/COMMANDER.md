@@ -41,8 +41,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 |---|---|---|---|---|---|
 | contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
 | groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E | working (kicked off 2026-10-16) |
-| orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | pane w1:p2G | working (kicked off 2026-10-16) |
-| guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | working (kicked off 2026-10-16) |
+| orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | pane w1:p2G | wave 0 merged; idle, kept for wave 2 (context 8%) |
+| guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | v3 reviewed; fixing idle-commander RESUME bug |
 
 ## Decisions
 
@@ -60,7 +60,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Merge log
 
-(none yet)
+- 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge.
 
 ## Open questions for the user
 

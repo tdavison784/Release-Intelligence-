@@ -25,6 +25,13 @@ into `p4-env-impact`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding
   forward only trivially (conflict glue) or revert the merge and send the lane the failure. Then tell
   still-running lanes that need it to `git merge p4-env-impact`.
 
+## One commander at a time
+
+The integration worktree's `.lane-lead` file (written only by the fleet guard, git-excluded) names who
+commands. If you are the Claude commander and it says `"role": "glm"`, `glm-commander` is in charge: do not
+merge, prompt lanes, start agents or edit COMMANDER.md — wait for the guard's RESUME message (a background
+watcher firing is not a resume). The GLM commander likewise never acts once the lead is back to `claude`.
+
 ## GLM commander protocol (`glm-commander`, started by the fleet guard)
 
 You run while every Claude agent is paused. You hold the integration worktree's lane lead.
