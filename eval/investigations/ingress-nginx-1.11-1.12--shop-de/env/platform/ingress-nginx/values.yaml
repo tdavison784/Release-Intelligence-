@@ -1,0 +1,16 @@
+# Shared ingress-nginx settings for all shop clusters.
+controller:
+  ingressClassResource:
+    name: nginx
+    default: true
+  # The storefront team manages response headers per Ingress.
+  allowSnippetAnnotations: true
+  config:
+    use-forwarded-headers: "true"
+    proxy-body-size: "8m"
+    server-tokens: "false"
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+  metrics:
+    enabled: false

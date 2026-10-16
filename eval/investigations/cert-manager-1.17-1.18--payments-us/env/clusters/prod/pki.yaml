@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  source:
+    repoURL: https://git.example.com/platform/gitops-payments-us.git
+    targetRevision: main
+    path: platform/pki/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

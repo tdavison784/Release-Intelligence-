@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mesh-root-ca
+  namespace: cert-manager
+spec:
+  duration: 8760h # 1y in prod
+  renewBefore: 720h
+  subject:
+    organizations:
+      - Example Payments Inc
+    countries:
+      - US
+  privateKey:
+    rotationPolicy: Never
