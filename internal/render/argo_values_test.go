@@ -261,3 +261,90 @@ spec:
 		t.Fatalf("env health = %s", e.Health(env.DimValues))
 	}
 }
+
+// targetAndRelease detects the product's single target of a kind and the
+// env release with the same id.
+func targetAndRelease(t *testing.T, repo string, kind TargetKind) (Target, *env.Environment, map[string]string) {
+	t.Helper()
+	e, err := env.Load(env.Inputs{Repo: repo, Product: "cert-manager"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts, _ := DetectTargets(TargetOptions{Product: "cert-manager", Charts: []string{"cert-manager"}, Repo: repo, Files: RepoFilesFrom(e)})
+	var of []Target
+	for _, tg := range ts {
+		if tg.Kind == kind {
+			of = append(of, tg)
+		}
+	}
+	if len(of) != 1 {
+		t.Fatalf("%s targets = %+v", kind, ts)
+	}
+	want, ok := envEffective(e, of[0].ID)
+	if !ok {
+		t.Fatalf("no env release with the render target's id %s: %+v", of[0].ID, e.ValuesReleases)
+	}
+	return of[0], e, want
+}
+
+// The renderer and the environment model layer a helmfile release's values
+// identically: values entries in order (files, inline maps), then set — whose
+// value is a string field in helmfile, so the scalar's text as written
+// ("1.50", "0123", a quoted "12") reaches helm --set and is typed there.
+func TestHelmfileRenderAndEnvStacksAgree(t *testing.T) {
+	repo := writeTree(t, map[string]string{
+		"helmfile.yaml": `releases:
+  - name: cm
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.17.2
+    values:
+      - envs/z-base.yaml
+      - who: inline
+        keep: {}
+      - envs/a-prod.yaml
+    set:
+      - {name: f, value: 1.50}
+      - {name: z, value: 0123}
+      - {name: q, value: "12"}
+      - {name: b, value: TRUE}
+      - {name: s, value: plain}
+      - {name: podAnnotations.prometheus\.io/scrape, value: "true"}
+      - {name: gone, value: null}
+`,
+		"envs/z-base.yaml": "who: base\norder: z\nkeep: {a: 1}\ngone: {deep: 1}\nlist: [1, 2]\n",
+		"envs/a-prod.yaml": "order: a\nlist: [3]\n",
+	})
+	tg, e, want := targetAndRelease(t, repo, TargetHelmfile)
+	got := renderEffective(t, tg)
+	if g, w := sortedPairs(got), sortedPairs(want); strings.Join(g, "\n") != strings.Join(w, "\n") {
+		t.Fatalf("render and env disagree:\nrender: %v\nenv:    %v", g, w)
+	}
+	for k, v := range map[string]string{"f": `"1.50"`, "z": `"0123"`, "q": "12", "b": "true", "s": `"plain"`, "order": `"a"`, "who": `"inline"`, "keep.a": "1", "list": "[3]"} {
+		if got[k] != v {
+			t.Errorf("%s = %s, want %s (all: %v)", k, got[k], v, got)
+		}
+	}
+	if !tg.ValuesComplete || e.Health(env.DimValues) != env.HealthOK {
+		t.Fatalf("completeness: render %v (%s), env %s %v", tg.ValuesComplete, tg.IncompleteReason, e.Health(env.DimValues), e.Warnings)
+	}
+}
+
+// A set entry neither tool evaluates (a values list, --set-file, list syntax)
+// leaves both incomplete.
+func TestHelmfileUnsupportedSetAgrees(t *testing.T) {
+	for name, entry := range map[string]string{
+		"values list": "{name: hosts, values: [a, b]}",
+		"set-file":    "{name: config, file: config.json}",
+		"index":       `{name: "tolerations[0].key", value: x}`,
+		"list value":  `{name: hosts, value: "{a,b}"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			repo := writeTree(t, map[string]string{"helmfile.yaml": "releases:\n  - name: cm\n    chart: jetstack/cert-manager\n    set:\n      - " + entry + "\n"})
+			tg, e, _ := targetAndRelease(t, repo, TargetHelmfile)
+			if tg.ValuesComplete || e.Health(env.DimValues) != env.HealthPartial {
+				t.Fatalf("render complete=%v (%s), env %s", tg.ValuesComplete, tg.IncompleteReason, e.Health(env.DimValues))
+			}
+		})
+	}
+}
