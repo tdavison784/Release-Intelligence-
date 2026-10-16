@@ -204,3 +204,44 @@ func TestRenderDiffRenderedUnexplained(t *testing.T) {
 		wantOutcome(t, r, domain.ValidationNotRun, "concrete failure")
 	})
 }
+
+// Regression (classify follow-up): an ENVIRONMENT-scope item —
+// scope:rendered-unexplained anchored on an environment rendered change, in
+// EvidenceBundle.EnvironmentItems — is a known item to every validator: each
+// returns real records about it (never ErrNotFound), the records conform, and
+// no validator fails it without a concrete failure.
+func TestEnvironmentScopeItemGetsRecords(t *testing.T) {
+	f := newFx(t)
+	ids := f.pair("argocd:apps/a.yaml", controller(), controller("--extra=1"),
+		rc("container-arg-added", deployKey, "spec.template.spec.containers[name=controller].args[=--extra]", "", `"--extra=1"`, ""))
+	item := f.envUnexplained(ids[0])
+	b := f.bundle()
+	if _, inRecord := b.Change.Item(item); inRecord {
+		t.Fatal("fixture: the item must live in EnvironmentItems only")
+	}
+	total := 0
+	for _, v := range allValidators(f.st) {
+		if !v.Applies(domain.FamilyRendered) {
+			continue
+		}
+		out := run(t, v, investigate.ValidationInput{Bundle: b, ChangeItem: item})
+		for _, r := range out.Records {
+			if r.Outcome == domain.ValidationFail {
+				t.Fatalf("%s failed a rendered-unexplained item without a concrete failure: %s", v.Name(), r.Detail)
+			}
+		}
+		total += len(out.Records)
+		if v.Name() == NameRenderDiff {
+			r := one(t, out)
+			if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
+				t.Fatalf("render-diff must speak for the anchoring change: %+v", r.RenderedChanges)
+			}
+			wantOutcome(t, r, domain.ValidationNotRun, "concrete failure")
+		}
+	}
+	if total == 0 {
+		t.Fatal("no validator produced a record for the environment-scope item")
+	}
+	// A requested rendered change of the item resolves too.
+	run(t, RenderDiff(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item, RenderedChanges: ids})
+}

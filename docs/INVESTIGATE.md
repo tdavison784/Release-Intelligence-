@@ -165,7 +165,9 @@ Options: `WithStore(st)` (read artifact bytes — renders, environment files, th
 without it a validator that needs bytes is `not-run`), `WithFacts(facts…)` (verified facts the wiring loaded from
 `knowledge/`), `WithReportArtifact(id)` (cite the impact report as an input), `WithClock`. Invalid input (no
 bundle, unknown item, a requested path or rendered change that is not the item's) is an error wrapping
-`investigate.ErrNotFound` / `ErrRejected`, never a record.
+`investigate.ErrNotFound` / `ErrRejected`, never a record. Items are looked up with `EvidenceBundle.Item`, so
+environment-scope items (`EnvironmentItems`, `scope:rendered-unexplained` anchored on an environment rendered
+change) are validated like record items.
 
 **Coverage.** A record speaks for the requested subjects/paths, or — with none requested — for every root and
 path of the item. An item-wide result (a silent complete render, a universal pin, an in-range cluster) claims all

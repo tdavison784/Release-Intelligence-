@@ -16,7 +16,6 @@ package classify
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -136,7 +135,6 @@ func TestGroundtruthClassification(t *testing.T) {
 			var vEv []domain.Evidence
 			var vArts []domain.ArtifactRef
 			seenEv, seenArt := map[domain.EvidenceID]bool{}, map[string]bool{}
-			unvalidated := 0
 			for _, id := range b.InScope() {
 				it, _ := b.Item(id)
 				for _, v := range validators {
@@ -144,13 +142,6 @@ func TestGroundtruthClassification(t *testing.T) {
 						continue
 					}
 					out, err := v.Validate(ctx, investigate.ValidationInput{Bundle: b, Graph: g, Traversal: tr, Report: rep, ChangeItem: id})
-					if err != nil && errors.Is(err, investigate.ErrNotFound) && isEnvItem(b, id) {
-						// Known cross-lane gap (status/classify.md): validate looks items
-						// up in the change record only, so environment-scope items
-						// (scope:rendered-unexplained) get no records — they stay open.
-						unvalidated++
-						continue
-					}
 					if err != nil {
 						t.Fatalf("%s: %v", v.Name(), err)
 					}
@@ -208,8 +199,24 @@ func TestGroundtruthClassification(t *testing.T) {
 			for _, k := range keys {
 				t.Logf("%-48s %d", k, counts[k])
 			}
-			if unvalidated > 0 {
-				t.Logf("%d validator run(s) on environment-scope items returned ErrNotFound (validate looks items up in the change record only)", unvalidated)
+			envItems, envRecords := 0, 0
+			envOutcomes := map[string]int{}
+			for _, it := range b.EnvironmentItems {
+				if it.InScope {
+					envItems++
+				}
+			}
+			for _, v := range vals {
+				if isEnvItem(b, v.ChangeItem) {
+					envRecords++
+					envOutcomes[v.Validator+" "+string(v.Outcome)]++
+				}
+			}
+			if envItems > 0 {
+				t.Logf("%d environment-scope in-scope item(s), %d validation record(s) about them: %v", envItems, envRecords, envOutcomes)
+				if envRecords == 0 {
+					t.Fatal("environment-scope items got no validation records")
+				}
 			}
 			t.Logf("decision %s: %s", cls.Decision.Outcome, strings.Join(cls.Decision.Reasons, " | "))
 			if os.Getenv("RI_CLASSIFY_VERBOSE") != "" {

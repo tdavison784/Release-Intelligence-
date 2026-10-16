@@ -57,6 +57,7 @@ type fx struct {
 	rel    []domain.ManifestPair
 	files  []string
 	inputs []domain.SnapshotInput
+	env    []domain.ChangeItem // environment-scope items (EvidenceBundle.EnvironmentItems)
 	kube   string
 	up     domain.Evidence
 }
@@ -183,6 +184,27 @@ func (f *fx) unexplained(class, object, path string) (item, releaseRC string) {
 	return it.ID, c.ID
 }
 
+// envUnexplained anchors a scope:rendered-unexplained ENVIRONMENT-scope item
+// on the environment rendered change rcID (already added by pair) and
+// correlates the change to it, as the renderdiff lane does.
+func (f *fx) envUnexplained(rcID string) string {
+	it := domain.ChangeItem{RenderedChange: rcID, Family: domain.FamilyRendered, Title: "unexplained environment change " + rcID,
+		Evidence: []domain.EvidenceID{f.up.ID}, InScope: true, ScopeRule: scopeRenderedUnexplained,
+		Manifestation: domain.ManifestRenderedConfig, ManifestationRule: "manifest:rendered-anchor"}
+	it.ID = domain.ChangeItemID("", "", rcID)
+	for pi := range f.pairs {
+		for ci := range f.pairs[pi].Changes {
+			if c := &f.pairs[pi].Changes[ci]; c.ID == rcID {
+				c.ChangeItems = append(c.ChangeItems, it.ID)
+				sort.Strings(c.ChangeItems)
+				c.Correlation = "rendered-anchor"
+			}
+		}
+	}
+	f.env = append(f.env, it)
+	return it.ID
+}
+
 // naPair adds a not-applicable environment pair (a target that does not
 // deploy the product).
 func (f *fx) naPair(target string) {
@@ -224,7 +246,7 @@ func (f *fx) bundle() *domain.EvidenceBundle {
 	man := domain.BundleManifest{Artifacts: append([]domain.ArtifactRef(nil), f.arts...)}
 	sort.Slice(man.Artifacts, func(i, j int) bool { return man.Artifacts[i].Path < man.Artifacts[j].Path })
 	b := &domain.EvidenceBundle{SchemaVersion: domain.EvidenceBundleSchemaVersion, Change: cr, Snapshot: snap, Renders: f.pairs,
-		Manifest: man, Evidence: f.ev, Producer: "test.bundle@v1", CreatedAt: testNow}
+		EnvironmentItems: f.env, Manifest: man, Evidence: f.ev, Producer: "test.bundle@v1", CreatedAt: testNow}
 	b.ID = domain.BundleID(cr.ID, snap.ID, man.Digest(), b.Renders)
 	if err := b.Validate(); err != nil {
 		f.t.Fatalf("fixture bundle invalid: %v", err)
