@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
+
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate/validate"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
@@ -51,8 +53,8 @@ type Triage struct {
 	// clear or flag it until a human verifies it. PinSource ranks first among
 	// those: the proposed assertion, once verified, names a setting
 	// OverrideInspection can look for. Why says it in one plain sentence.
-	Blocking, PinSource bool
-	Why                 string
+	Blocking, PinSource, ProxyActed bool
+	Why                             string
 }
 
 // BlockingScope says what feeds investigations: an item is a candidate blocker
@@ -62,17 +64,52 @@ type Triage struct {
 // (investigation inputs, product definitions), never a list of product names.
 type BlockingScope struct {
 	Products []domain.ProductID
+	// Ranges are the upgrades investigated per product: an item of such a
+	// product only blocks when its release lies in (From, To] of one of them.
+	// An unparsable release, or a product without ranges, is never excluded.
+	Ranges map[domain.ProductID][]VersionRange
 	// Sources are repository paths ("prometheus-operator/prometheus-operator")
 	// whose upstream statements investigations read.
 	Sources []string
 }
 
+// VersionRange is one investigated upgrade, From exclusive, To inclusive.
+type VersionRange struct{ From, To *semver.Version }
+
+var reVersion = regexp.MustCompile(`\d+\.\d+\.\d+`)
+
+func parseVersion(s string) *semver.Version {
+	m := reVersion.FindString(s)
+	if m == "" {
+		return nil
+	}
+	v, err := semver.NewVersion(m)
+	if err != nil {
+		return nil
+	}
+	return v
+}
+
+func (b BlockingScope) inRange(product domain.ProductID, release string) bool {
+	rs := b.Ranges[product]
+	rel := parseVersion(release)
+	if len(rs) == 0 || rel == nil {
+		return true
+	}
+	for _, r := range rs {
+		if rel.GreaterThan(r.From) && !rel.GreaterThan(r.To) {
+			return true
+		}
+	}
+	return false
+}
+
 // Empty reports whether nothing feeds investigations.
 func (b BlockingScope) Empty() bool { return len(b.Products) == 0 && len(b.Sources) == 0 }
 
-func (b BlockingScope) covers(product domain.ProductID, c domain.SemanticCandidate) bool {
+func (b BlockingScope) covers(product domain.ProductID, release string, c domain.SemanticCandidate) bool {
 	if slices.Contains(b.Products, product) {
-		return true
+		return b.inRange(product, release)
 	}
 	for _, e := range c.Evidence {
 		uri := strings.ToLower(e.URI)
@@ -87,6 +124,7 @@ func (b BlockingScope) covers(product domain.ProductID, c domain.SemanticCandida
 
 var (
 	reProduct = regexp.MustCompile(`(?m)^product:\s*(\S+)`)
+	reFromTo  = regexp.MustCompile(`(?ms)^from:\s*\n\s+version:\s*(\S+).*?^to:\s*\n\s+version:\s*(\S+)`)
 	reRepo    = regexp.MustCompile(`(?m)^\s*repository:\s*['"]?([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)['"]?\s*$`)
 )
 
@@ -104,7 +142,24 @@ func ScopeFromInvestigations(investigationsDir, productsDir string) BlockingScop
 			continue
 		}
 		m := reProduct.FindSubmatch(b)
-		if m == nil || seenProduct[string(m[1])] {
+		if m == nil {
+			continue
+		}
+		if ft := reFromTo.FindSubmatch(b); ft != nil {
+			// kube-prometheus-stack-style chart versions do not match the release
+			// ids of the knowledge store, which parse independently; both are kept
+			from, to := parseVersion(string(ft[1])), parseVersion(string(ft[2]))
+			if from != nil && to != nil {
+				if sc.Ranges == nil {
+					sc.Ranges = map[domain.ProductID][]VersionRange{}
+				}
+				p := domain.ProductID(m[1])
+				if r := (VersionRange{from, to}); !slices.ContainsFunc(sc.Ranges[p], func(x VersionRange) bool { return x.From.Equal(r.From) && x.To.Equal(r.To) }) {
+					sc.Ranges[p] = append(sc.Ranges[p], r)
+				}
+			}
+		}
+		if seenProduct[string(m[1])] {
 			continue
 		}
 		seenProduct[string(m[1])] = true
@@ -147,23 +202,35 @@ func triageItems(snap *knowledge.Snapshot, scope BlockingScope) map[string]Triag
 func hide(reason, text string) Triage { return Triage{Hidden: reason, HiddenText: text} }
 
 func triageOne(it domain.ReviewItem, cand domain.SemanticCandidate, decs []domain.ReviewDecision, facts []domain.VerifiedFact, scope BlockingScope) Triage {
-	for _, d := range decs {
-		if d.ReviewerKind != domain.ReviewerHuman {
-			return hide(HiddenProxy, fmt.Sprintf("an AI proxy (%s) acted on it; that is not a human decision", d.Reviewer))
+	var human []domain.ReviewDecision
+	var proxy *domain.ReviewDecision
+	for i, d := range decs {
+		if d.ReviewerKind == domain.ReviewerHuman {
+			human = append(human, d)
+		} else {
+			proxy = &decs[i]
 		}
 	}
-	if n := len(decs); n > 0 {
-		last := decs[n-1]
+	if n := len(human); n > 0 {
+		last := human[n-1]
 		switch it.Status {
 		case domain.ReviewNeedsEvidence, domain.ReviewDeferred:
 			return hide(HiddenParked, fmt.Sprintf("%s by %s", strings.ReplaceAll(string(it.Status), "-", " "), last.Reviewer))
 		}
 		return hide(HiddenDecided, fmt.Sprintf("decided by %s (%s)", last.Reviewer, last.Action))
 	}
+	// no human decision: a proxy decision settles nothing (FLEET: a proxy is
+	// never human; DESIGN: proxy-verified facts are capped and never pin
+	// sources), so the item stays open when it blocks investigations
 	switch it.Status {
 	case domain.ReviewPending:
-	case domain.ReviewNeedsEvidence, domain.ReviewDeferred:
-		return hide(HiddenParked, strings.ReplaceAll(string(it.Status), "-", " "))
+	case domain.ReviewNeedsEvidence, domain.ReviewDeferred, domain.ReviewDecided:
+		if proxy == nil {
+			if it.Status == domain.ReviewDecided {
+				return hide(HiddenDecided, "status decided")
+			}
+			return hide(HiddenParked, strings.ReplaceAll(string(it.Status), "-", " "))
+		}
 	case domain.ReviewSuperseded:
 		return hide(HiddenSuperseded, "superseded by a newer item")
 	default:
@@ -178,16 +245,26 @@ func triageOne(it domain.ReviewItem, cand domain.SemanticCandidate, decs []domai
 		if audit && f.Status != domain.FactActive {
 			return hide(HiddenSuperseded, "the fact it audits is "+string(f.Status))
 		}
+		if audit {
+			aspects = domain.Aspects // an audit re-asks the whole fact
+		}
 		if f.Status == domain.FactActive && trustedAspects(f, aspects) {
 			return hide(HiddenVerified, "already verified at human or deterministic level by fact "+f.ID)
 		}
 	}
 	t := Triage{NeedsReview: true}
-	if scope.covers(it.Product, cand) && controllerBehaviour(cand) {
+	if scope.covers(it.Product, it.Release, cand) && controllerBehaviour(cand) {
 		t.Blocking, t.Why = true, blockingWhy
 		if validate.CanBePinSource(it.Proposed) {
 			t.PinSource, t.Why = true, pinSourceWhy
 		}
+	}
+	if proxy != nil {
+		t.ProxyActed = true
+		if !t.Blocking {
+			return hide(HiddenProxy, fmt.Sprintf("an AI proxy (%s) acted on it; that is not a human decision", proxy.Reviewer))
+		}
+		t.Why += " An AI proxy already acted on it; that is not human verification."
 	}
 	return t
 }
@@ -259,4 +336,37 @@ func CountNeedsReview(snap *knowledge.Snapshot, scope BlockingScope) (needs, blo
 		}
 	}
 	return needs, blocking
+}
+
+// UnreviewedPinFacts lists active facts that would be OverrideInspection pin
+// sources, belong to an investigated upgrade, rest on upstream behaviour
+// statements, and are not verified at human or deterministic level on every
+// aspect, yet have no review item a human could decide (consensus auto-approval
+// supersedes the questions and samples only some facts into audit). The review
+// UI cannot show what has no item; `ri review open-audits` opens the missing
+// fact-review items.
+func UnreviewedPinFacts(snap *knowledge.Snapshot, scope BlockingScope) []domain.VerifiedFact {
+	cands := map[string]domain.SemanticCandidate{}
+	for _, c := range snap.Candidates {
+		cands[c.ID] = c
+	}
+	have := map[string]bool{}
+	for _, it := range snap.ReviewItems {
+		have[it.ID] = true
+	}
+	var out []domain.VerifiedFact
+	for _, f := range snap.Facts {
+		if f.Status != domain.FactActive || len(f.Candidates) == 0 || trustedAspects(f, domain.Aspects) {
+			continue
+		}
+		cand := cands[f.Candidates[0]]
+		if !scope.covers(f.Product, f.Release, cand) || !controllerBehaviour(cand) || !validate.CanBePinSource(f.Assertion) {
+			continue
+		}
+		if have[domain.ReviewItemID(f.Candidates[0], domain.QuestionClassification, f.Assertion)] {
+			continue
+		}
+		out = append(out, f)
+	}
+	return out
 }

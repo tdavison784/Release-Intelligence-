@@ -386,7 +386,7 @@ type aspectText struct {
 
 func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values) *itemView {
 	v := &itemView{Ctx: rc, Item: rc.Item, Candidate: rc.Candidate, Related: rc.RelatedDecisions, Facts: rc.RelatedFacts,
-		Rendered: rd, Editable: eligible(rc.Item.Status), Disagrees: disagrees(rc), Form: form}
+		Rendered: rd, Editable: decidable(rc), Disagrees: disagrees(rc), Form: form}
 	// evidence, with who cited what
 	cited := map[domain.EvidenceID][]string{}
 	modelOf := map[string]string{}

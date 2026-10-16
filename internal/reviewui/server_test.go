@@ -756,10 +756,15 @@ func TestProxyDecidedItemsLeavePendingAndAreMarked(t *testing.T) {
 	_, decided := r.getAll("/?status=decided")
 	contains(t, decided, "Default of --max-concurrent-challenges")
 	_, page := r.getAll("/items/" + id)
-	contains(t, page, "opus-proxy", "(proxy)", "no further decision can be added")
-	// and a human cannot re-decide it from the UI
+	contains(t, page, "opus-proxy", "(proxy)")
+	lacks(t, page, "no further decision can be added")
+	// a proxy is not human verification: a human can still decide it, once
+	r.get("/items/" + id)
+	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 303 {
+		t.Errorf("human decision on a proxy-decided item: %d", st)
+	}
 	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 409 {
-		t.Errorf("%d", st)
+		t.Errorf("second decision: %d", st)
 	}
 }
 

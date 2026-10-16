@@ -251,7 +251,30 @@ func (s *server) renderedDelta(ctx context.Context, id string, rc *knowledge.Rev
 	return deltaFromContext(rc.Render)
 }
 
-// eligible reports whether an item can still be decided.
+// decidable reports whether a human can still decide the item: it is open, or
+// a proxy settled it (a proxy decision is never human verification, so the
+// item stays open for a human; any human decision closes it).
+func decidable(rc *knowledge.ReviewContext) bool {
+	if eligible(rc.Item.Status) {
+		return true
+	}
+	if rc.Item.Status != domain.ReviewDecided {
+		return false
+	}
+	proxy := false
+	for _, d := range rc.RelatedDecisions {
+		if d.ReviewItemID != rc.Item.ID {
+			continue
+		}
+		if d.ReviewerKind == domain.ReviewerHuman {
+			return false
+		}
+		proxy = true
+	}
+	return proxy
+}
+
+// eligible reports whether an item's status is open for decisions.
 func eligible(st domain.ReviewStatus) bool {
 	return st == domain.ReviewPending || st == domain.ReviewNeedsEvidence || st == domain.ReviewDeferred
 }

@@ -119,7 +119,7 @@ func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
 		shown bool
 	}{
 		{tRotation, true}, {tRBAC, true}, // pending; consensus-only fact does not hide
-		{tRSA, false},      // proxy-acted
+		{tRSA, true},       // proxy-acted but blocking: a proxy is not a human
 		{tHTTP01, false},   // human-verified fact
 		{tDecided, false},  // human decision
 		{tParked, false},   // deferred
@@ -133,7 +133,7 @@ func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
 	want := 0
 	for _, id := range r.q.ItemIDs() {
 		it, _ := r.q.ItemRecord(id)
-		if it.Status == domain.ReviewPending && id != r.id(tRSA) && id != r.id(tHTTP01) {
+		if it.Status == domain.ReviewPending && id != r.id(tHTTP01) {
 			want++
 		}
 	}
@@ -144,7 +144,9 @@ func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
 	lacks(t, body, "Showing all staged data")
 	_, other := r.get("/?scope=other")
 	contains(t, other, "Other open items: 0", "Not included: "+itoa(len(r.q.ItemIDs())-want)+" already handled",
-		"acted on by an AI proxy", "already verified", "already decided", "parked")
+		"already verified", "already decided", "parked")
+	lacks(t, other, "acted on by an AI proxy")
+	contains(t, body, "An AI proxy already acted on it; that is not human verification.")
 	// the status filter does not exist in this view; counts reflect it
 	lacks(t, body, `<option value="decided"`, "Needs more evidence", ">Deferred<")
 	contains(t, body, "<b>"+itoa(want)+"</b><span>Blocking investigations</span>")
@@ -159,7 +161,6 @@ func TestShowAllStagedDataIsExplicitAndLabelsWhatItHides(t *testing.T) {
 		t.Errorf("show-all with status all lists %d, want every item %d", got, len(r.q.ItemIDs()))
 	}
 	contains(t, all, "Showing all staged data", `href="/"`, "Back to Needs review",
-		"Not on the review list: an AI proxy (claude-proxy) acted on it; that is not a human decision",
 		"Not on the review list: already verified at human or deterministic level by fact",
 		"Not on the review list: decided by morgan")
 	lacks(t, all, "Hidden from this view")
@@ -364,7 +365,7 @@ func TestScopeFromInvestigationsReadsInputsAndProductSources(t *testing.T) {
 		t.Errorf("scope = %+v", sc)
 	}
 	cand := domain.SemanticCandidate{Evidence: []domain.Evidence{{URI: "https://github.com/acme/operator/blob/v1/CHANGELOG.md"}}}
-	if !sc.covers("other-product", cand) || sc.covers("other-product", domain.SemanticCandidate{}) {
+	if !sc.covers("other-product", "", cand) || sc.covers("other-product", "", domain.SemanticCandidate{}) {
 		t.Error("an investigated product's bundled upstream repo must be covered, nothing else")
 	}
 	if !ScopeFromInvestigations(filepath.Join(dir, "nope"), dir).Empty() {
@@ -419,5 +420,40 @@ func TestComputedCRDDefaultChangeCountsAsBlocking(t *testing.T) {
 		if got := triageOne(it, cand(rule), nil, nil, sc); got.Blocking || !got.NeedsReview {
 			t.Errorf("%s is decided by a render, not blocking: %+v", rule, got)
 		}
+	}
+}
+
+func TestProxyActionNeverRemovesABlockerButMayHideOthers(t *testing.T) {
+	r := newTriageRig(t, BlockingScope{}, editHidden)
+	// nothing blocks: the proxy-acted item is hidden, never shown as human
+	_, other := r.get("/?scope=other")
+	if slices.Contains(cardOrder(other), r.id(tRSA)) {
+		t.Error("a non-blocking proxy-acted item must stay hidden")
+	}
+	_, all := r.get("/?scope=all&status=all")
+	contains(t, all, "Not on the review list: an AI proxy (claude-proxy) acted on it; that is not a human decision")
+	// unit level: proxy decision with status decided (what Phase 3 stores) on a blocker stays open
+	sc := BlockingScope{Products: []domain.ProductID{"p"}}
+	it := domain.ReviewItem{ID: "ri-q", CandidateID: "c", Product: "p", QuestionType: domain.QuestionApplicability, Status: domain.ReviewDecided}
+	cand := domain.SemanticCandidate{Members: []domain.CandidateMember{{ChangeID: "chg"}}}
+	px := []domain.ReviewDecision{{Reviewer: "claude", ReviewerKind: domain.ReviewerProxy}}
+	if got := triageOne(it, cand, px, nil, sc); !got.NeedsReview || !got.Blocking || !got.ProxyActed {
+		t.Errorf("proxy-decided blocker: %+v", got)
+	}
+	if got := triageOne(it, cand, px, nil, BlockingScope{}); got.NeedsReview || got.Hidden != HiddenProxy {
+		t.Errorf("proxy-decided non-blocker: %+v", got)
+	}
+	// a proxy- or consensus-level fact does not clear it; a human one does
+	for lvl, hidden := range map[domain.VerificationLevel]bool{domain.VerifiedProxy: false, domain.VerifiedConsensus: false, domain.VerifiedHuman: true} {
+		f := domain.VerifiedFact{Candidates: []string{"c"}, Status: domain.FactActive,
+			Verification: []domain.AspectVerification{{Aspect: domain.AspectApplicability, Level: lvl}}}
+		if got := triageOne(it, cand, px, []domain.VerifiedFact{f}, sc); got.NeedsReview == hidden {
+			t.Errorf("fact at %s: needsReview=%v", lvl, got.NeedsReview)
+		}
+	}
+	// a human decision on top of the proxy one settles it
+	hd := append(px, domain.ReviewDecision{Reviewer: "dana", ReviewerKind: domain.ReviewerHuman, Action: domain.ActionAccept})
+	if got := triageOne(it, cand, hd, nil, sc); got.NeedsReview || got.Hidden != HiddenDecided {
+		t.Errorf("human decision: %+v", got)
 	}
 }
