@@ -426,6 +426,11 @@ func (b *builder) valuesFamily() {
 				b.unsetValues(b.unset, c, kind)
 				continue
 			}
+			// a removed key left unset whose source default set something:
+			// the environment relied on that default (lane defaults)
+			if b.removedDefault(c) {
+				continue
+			}
 			title := fmt.Sprintf("Your values do not touch %s", codeList(c.Subjects, 3))
 			if len(c.Subjects) == 1 {
 				title = fmt.Sprintf("Your values do not set %s", code(c.Subjects[0]))
