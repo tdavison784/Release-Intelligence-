@@ -195,6 +195,16 @@ func avatarOf(model string) avatar {
 
 // --- subjects, changes, consequences ----------------------------------------------------
 
+// flagText writes a CLI flag: a stored name that carries its dashes
+// ("--enable-metrics", "-v") as stored, a bare one ("enable-metrics") as
+// "--enable-metrics" — never "----enable-metrics".
+func flagText(name string) string {
+	if strings.HasPrefix(name, "-") {
+		return name
+	}
+	return "--" + name
+}
+
 func subjectPhrase(s *domain.Subject) string {
 	if s == nil {
 		return "this"
@@ -208,9 +218,9 @@ func subjectPhrase(s *domain.Subject) string {
 		return fmt.Sprintf("the %s field `%s`", kind, s.Path)
 	case domain.SubjectCLIFlag:
 		if s.Component != "" {
-			return fmt.Sprintf("the %s flag `--%s`", s.Component, s.Name)
+			return fmt.Sprintf("the %s flag `%s`", s.Component, flagText(s.Name))
 		}
-		return fmt.Sprintf("the flag `--%s`", s.Name)
+		return fmt.Sprintf("the flag `%s`", flagText(s.Name))
 	case domain.SubjectHelmValue:
 		return fmt.Sprintf("the Helm value `%s`", s.Path)
 	case domain.SubjectConfigKey:

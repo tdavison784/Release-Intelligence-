@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -364,49 +363,82 @@ func argoTargets(o TargetOptions, file string) (out []Target, notes []string) {
 			}
 		}
 		ns := str(d, "spec", "destination", "namespace")
+		refs := map[string]bool{}
+		for _, s := range srcs {
+			if r := str(s, "ref"); r != "" {
+				refs[r] = true
+			}
+		}
 		for i, s := range srcs {
 			origin := fmt.Sprintf("%s#%d/$.%s", file, di, locs[i])
-			if p := str(s, "path"); p != "" && o.Repo != "" {
-				dir := filepath.Join(o.Repo, p)
+			chart, path := str(s, "chart"), str(s, "path")
+			helm, _ := get(s, "helm").(map[string]any)
+			identity := chart
+			if chart == "" {
+				if path == "" || o.Repo == "" {
+					continue // a values-only (ref) source deploys nothing
+				}
+				dir := filepath.Join(o.Repo, path)
 				if KustomizationFile(dir) != "" {
 					out = append(out, Target{Kind: TargetKustomize, Kustomize: &KustomizeInput{Dir: dir, Root: o.Repo},
-						Why: fmt.Sprintf("Argo CD Application %s deploys this overlay (%s.path: %s)", app, locs[i], p)})
+						Why: fmt.Sprintf("Argo CD Application %s deploys this overlay (%s.path: %s)", app, locs[i], path)})
+					continue
 				}
-				continue
+				// a git Helm chart source: Helm settings, or a Chart.yaml in this
+				// repository (env.argoReleases applies the same rule)
+				if _, err := os.Stat(filepath.Join(dir, "Chart.yaml")); helm == nil && err != nil {
+					continue
+				}
+				identity = path
 			}
-			if !o.matchesChart(str(s, "chart")) {
+			if !o.matchesChart(identity) {
 				continue
 			}
 			t := Target{ID: "argocd:" + origin, Kind: TargetArgoCD, Origin: origin, Namespace: ns, ValuesComplete: true,
-				Why: fmt.Sprintf("Argo CD Application %s installs chart %s", app, str(s, "chart"))}
+				Why: fmt.Sprintf("Argo CD Application %s installs chart %s", app, identity)}
 			t.ReleaseName = str(s, "helm", "releaseName")
 			if t.ReleaseName == "" {
 				t.ReleaseName = app
 			}
-			helm, _ := get(s, "helm").(map[string]any)
-			if vf, ok := helm["valueFiles"].([]any); ok && len(vf) > 0 {
-				for _, f := range vf {
-					fs, _ := f.(string)
-					if strings.HasPrefix(fs, "$") && o.Repo != "" {
-						if i := strings.IndexByte(fs, '/'); i >= 0 {
-							p := filepath.Join(o.Repo, fs[i+1:])
-							if b, err := os.ReadFile(p); err == nil {
-								t.Values = append(t.Values, ValuesLayer{Origin: p, Content: b})
-								continue
-							}
-						}
-					}
-					t.ValuesComplete = false
-					t.IncompleteReason = fmt.Sprintf("helm.valueFiles %q is not readable from this repository", fs)
+			incomplete := func(reason string) {
+				if t.ValuesComplete {
+					t.ValuesComplete, t.IncompleteReason = false, reason
 				}
 			}
-			if v, ok := helm["values"].(string); ok && strings.TrimSpace(v) != "" {
+			// Argo CD "Helm Value Precedence": parameters > valuesObject > values
+			// > valueFiles; the stack below is env.argoReleases' (one rule set)
+			if vf, ok := helm["valueFiles"].([]any); ok {
+				ignoreMissing, _ := helm["ignoreMissingValueFiles"].(bool)
+				for _, f := range vf {
+					fs, _ := f.(string)
+					if strings.TrimSpace(fs) == "" {
+						continue
+					}
+					p, why := argoValueFile(o.Repo, fs, path, refs)
+					if why == "" {
+						b, err := os.ReadFile(p)
+						if err == nil {
+							t.Values = append(t.Values, ValuesLayer{Origin: p, Content: b})
+							continue
+						}
+						why = fmt.Sprintf("helm.valueFiles %q is not present in the repository", fs)
+						if ignoreMissing {
+							why += " (ignoreMissingValueFiles: its absence here does not show its absence in the revision Argo CD deploys)"
+						}
+					}
+					incomplete(why)
+				}
+			}
+			_, hasValues := helm["values"]
+			if vo, ok := helm["valuesObject"].(map[string]any); ok {
+				t.Values = append(t.Values, ValuesLayer{Origin: origin + ".helm.valuesObject", Content: yamlBytes(vo)})
+				if hasValues && helm["values"] != nil {
+					notes = append(notes, fmt.Sprintf("Argo CD Application %s (%s): helm.values is ignored — valuesObject is set, and Argo CD applies valuesObject only (\"valuesObject trumps values\")", app, origin))
+				}
+			} else if v, ok := helm["values"].(string); ok && strings.TrimSpace(v) != "" {
 				t.Values = append(t.Values, ValuesLayer{Origin: origin + ".helm.values", Content: []byte(v)})
 			} else if vm, ok := helm["values"].(map[string]any); ok {
 				t.Values = append(t.Values, ValuesLayer{Origin: origin + ".helm.values", Content: yamlBytes(vm)})
-			}
-			if vo, ok := helm["valuesObject"].(map[string]any); ok {
-				t.Values = append(t.Values, ValuesLayer{Origin: origin + ".helm.valuesObject", Content: yamlBytes(vo)})
 			}
 			if ps, ok := helm["parameters"].([]any); ok {
 				for _, p := range ps {
@@ -415,15 +447,18 @@ func argoTargets(o TargetOptions, file string) (out []Target, notes []string) {
 					if name == "" {
 						continue
 					}
-					val := fmt.Sprint(pm["value"])
-					var enc string
-					if force, _ := pm["forceString"].(bool); force {
-						enc = encode(val)
-					} else {
-						enc = encodeSetValue(val)
+					val := ""
+					if pm["value"] != nil {
+						val = fmt.Sprint(pm["value"])
 					}
-					t.Set = append(t.Set, SetValue{Path: name, Value: enc, Origin: origin + ".helm.parameters"})
+					force, _ := pm["forceString"].(bool)
+					// Argo CD passes --set (--set-string with forceString): Helm's
+					// strvals typing decides the type, as env.SetValueJSON encodes it
+					t.Set = append(t.Set, SetValue{Path: name, Value: env.SetValueJSON(val, force), Origin: origin + ".helm.parameters"})
 				}
+			}
+			if fp, ok := helm["fileParameters"].([]any); ok && len(fp) > 0 {
+				incomplete("helm.fileParameters (--set-file) are not evaluated")
 			}
 			out = append(out, t)
 		}
@@ -431,18 +466,41 @@ func argoTargets(o TargetOptions, file string) (out []Target, notes []string) {
 	return out, notes
 }
 
-// encodeSetValue encodes a --set style value the way helm types it: bools,
-// numbers and null as such, everything else as a string.
-func encodeSetValue(v string) string {
-	switch v {
-	case "true", "false", "null":
-		return v
+// argoValueFile resolves one helm.valueFiles entry as Argo CD does: "$<ref>/path"
+// from the repository root (the ref source is taken to be this repository), a
+// plain path relative to the chart root — readable only for a git source whose
+// path lies in this repository. why says why it is not readable ("" if it is).
+func argoValueFile(repo, entry, srcPath string, refs map[string]bool) (path, why string) {
+	inRepo := func(parts ...string) (string, bool) {
+		if repo == "" {
+			return "", false
+		}
+		p := filepath.Join(append([]string{repo}, parts...)...)
+		r, err := filepath.Rel(repo, p)
+		if err != nil || r == ".." || strings.HasPrefix(r, "../") {
+			return "", false
+		}
+		return p, true
 	}
-	var n json.Number
-	if err := json.Unmarshal([]byte(v), &n); err == nil {
-		return v
+	switch {
+	case strings.Contains(entry, "://"):
+		return "", fmt.Sprintf("helm.valueFiles %q is a remote URL, not readable from files", entry)
+	case strings.HasPrefix(entry, "$"):
+		ref, rest, _ := strings.Cut(entry[1:], "/")
+		if !refs[ref] {
+			return "", fmt.Sprintf("helm.valueFiles %q names $%s, which no source of the Application declares as ref", entry, ref)
+		}
+		if p, ok := inRepo(rest); ok {
+			return p, ""
+		}
+	case srcPath == "":
+		return "", fmt.Sprintf("helm.valueFiles %q resolves inside the chart package (relative to the chart root), not from this repository", entry)
+	default:
+		if p, ok := inRepo(srcPath, entry); ok {
+			return p, ""
+		}
 	}
-	return encode(v)
+	return "", fmt.Sprintf("helm.valueFiles %q is not readable from this repository", entry)
 }
 
 func fluxTargets(o TargetOptions, file string) (out []Target, notes []string) {
