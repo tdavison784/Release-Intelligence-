@@ -25,6 +25,7 @@ type invFixture struct {
 	pathA   string
 	pathB   string
 	edgeRef string // secret → deployment
+	rcA     string // the environment rendered change correlated to item A
 }
 
 var fixNow = time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
@@ -56,7 +57,7 @@ func computed(producer string) Provenance {
 func newInvFixture(t *testing.T) *invFixture {
 	t.Helper()
 	fx := &invFixture{}
-	itemA, itemB, itemC := ChangeItemID("chg-a", ""), ChangeItemID("chg-b", ""), ChangeItemID("chg-c", "")
+	itemA, itemB, itemC := ChangeItemID("chg-a", "", ""), ChangeItemID("chg-b", "", ""), ChangeItemID("chg-c", "", "")
 	fx.itemA, fx.itemB, fx.itemC = itemA, itemB, itemC
 
 	// Artifacts and evidence.
@@ -76,7 +77,7 @@ func newInvFixture(t *testing.T) *invFixture {
 		{ChangeID: "chg-c", Family: FamilyBehavior, Title: "Bump Go to 1.24", Evidence: []EvidenceID{upEv.ID}, InScope: false, ScopeRule: "scope:routine-excluded"},
 	}
 	for i := range items {
-		items[i].ID = ChangeItemID(items[i].ChangeID, items[i].Platform)
+		items[i].ID = ChangeItemID(items[i].ChangeID, items[i].Platform, items[i].RenderedChange)
 	}
 	var sources []ChangeSourceStatus
 	for _, k := range ChangeSourceKinds {
@@ -110,11 +111,25 @@ func newInvFixture(t *testing.T) *invFixture {
 	}
 	snap.ID = snap.DerivedID()
 
-	man := BundleManifest{Artifacts: []ArtifactRef{edgeArt, notesArt, crdArt, factsArt, valuesArt, certArt}}
+	fromArt := artifact(ArtifactRenderedManifests, OriginDerived, "derived/render/env/argocd-cert-manager/from.yaml", "from")
+	toArt := artifact(ArtifactRenderedManifests, OriginDerived, "derived/render/env/argocd-cert-manager/to.yaml", "to")
+	diffArt := artifact(ArtifactRenderDiff, OriginDerived, "derived/render/env/argocd-cert-manager/diff.json", "diff")
+	rendEv := NewEvidence(EvidenceRenderedDiff, "render", "templates/deployment.yaml", "spec.template.spec.containers[0].args", "--default-private-key-rotation-policy", diffArt.Digest, fixNow)
+	target := "argocd:apps/cert-manager.yaml"
+	rcA := RenderedChange{Class: "container-arg-added", Object: "apps/v1/Deployment/cert-manager/cert-manager",
+		Path: "spec.template.spec.containers[0].args", After: `"--default-private-key-rotation-policy=Always"`,
+		ChangeItems: []string{itemA}, Correlation: "changelog-subject", Evidence: []EvidenceID{rendEv.ID}}
+	rcA.ID = RenderedChangeID(RenderEnvironment, target, rcA.Object, rcA.Path, rcA.Class)
+	fx.rcA = rcA.ID
+	envPair := ManifestPair{Scope: RenderEnvironment, Target: target, From: fromArt.ID, To: toArt.ID, Diff: diffArt.ID,
+		Status: CollectionOK, Changes: []RenderedChange{rcA}}
+
+	man := BundleManifest{Artifacts: []ArtifactRef{edgeArt, notesArt, crdArt, factsArt, valuesArt, certArt, fromArt, toArt, diffArt}}
 	sort.Slice(man.Artifacts, func(i, j int) bool { return man.Artifacts[i].Path < man.Artifacts[j].Path })
 	b := &EvidenceBundle{
 		SchemaVersion: EvidenceBundleSchemaVersion, Change: cr, Snapshot: snap, Manifest: man,
-		Evidence: []Evidence{upEv, upEvB, envEv}, Producer: "bundle@v1", CreatedAt: fixNow,
+		Renders:  []ManifestPair{envPair},
+		Evidence: []Evidence{upEv, upEvB, envEv, rendEv}, Producer: "bundle@v1", CreatedAt: fixNow,
 	}
 	b.ID = BundleID(cr.ID, snap.ID, man.Digest(), b.Renders)
 	fx.b = b
@@ -155,7 +170,7 @@ func newInvFixture(t *testing.T) *invFixture {
 	sort.Strings(visited)
 	tr := &TraversalResult{Graph: g.ID, Algorithm: "graph.dfs@v1", Bound: DefaultTraversalBound,
 		Roots: []ExposureRoot{
-			{ChangeItem: itemA, Node: nAPI.ID, Rule: "exposure:crd-gvk", ImpactFinding: "imp-a"},
+			{ChangeItem: itemA, Node: nAPI.ID, Rule: "exposure:rendered-change", RenderedChange: rcA.ID},
 			{ChangeItem: itemB, Node: nDeploy.ID, Rule: "exposure:values-key"},
 		},
 		DepthReached: 3, Visited: visited, Paths: []ImpactPath{pA, pB}, Complete: true}
@@ -183,23 +198,23 @@ func newInvFixture(t *testing.T) *invFixture {
 
 	// Validations.
 	vA := ValidationRecord{Validator: "validate.render-diff@v1", Kind: ValidationRenderDiff, Level: LevelDeterministic,
-		ChangeItem: itemA, Subjects: []string{nCert.ID}, Paths: []string{pA.ID},
+		ChangeItem: itemA, Subjects: []string{nCert.ID}, Paths: []string{pA.ID}, RenderedChanges: []string{rcA.ID},
 		Property: "the customer's render is unchanged by the rotationPolicy default", Inputs: []string{certArt.ID},
 		Outputs: []string{renderArt.ID}, Outcome: ValidationFail, Detail: "Certificate web-tls inherits rotationPolicy Always",
 		Evidence: []EvidenceID{envEv.ID}, Provenance: computed("validate.render-diff@v1"), CheckedAt: fixNow}
-	vA.ID = ValidationRecordID(vA.Validator, vA.ChangeItem, vA.Subjects, vA.Paths, vA.Inputs)
+	vA.ID = ValidationRecordID(vA.Validator, vA.ChangeItem, vA.Subjects, vA.Paths, vA.RenderedChanges, vA.Inputs)
 	vB := ValidationRecord{Validator: "validate.override@v1", Kind: ValidationOverrideInspection, Level: LevelDeterministic,
 		ChangeItem: itemB, Subjects: []string{nDeploy.ID}, Paths: []string{pB.ID},
 		Property: "the values pin acmesolver pathType to Prefix", Inputs: []string{valuesArt.ID}, Outcome: ValidationPass,
 		Evidence: []EvidenceID{envEv.ID}, Answers: []string{concern.ID}, Request: vreq.ID,
 		Provenance: computed("validate.override@v1"), CheckedAt: fixNow}
-	vB.ID = ValidationRecordID(vB.Validator, vB.ChangeItem, vB.Subjects, vB.Paths, vB.Inputs)
+	vB.ID = ValidationRecordID(vB.Validator, vB.ChangeItem, vB.Subjects, vB.Paths, vB.RenderedChanges, vB.Inputs)
 	vreq.Result = vB.ID
 
 	// Findings.
 	fA := InvestigationFinding{ChangeItem: itemA, Class: FindingAffected, Rule: "classify:validated-exposure",
 		Reasoning: "render-diff demonstrates the default reaches Certificate web-tls", Environment: "prod-eu",
-		Components: []string{nCert.ID, nDeploy.ID}, Paths: []string{pA.ID}, Validations: []string{vA.ID},
+		Components: []string{nCert.ID, nDeploy.ID}, RenderedChanges: []string{rcA.ID}, Paths: []string{pA.ID}, Validations: []string{vA.ID},
 		Assertions:     []string{explain.ID},
 		ImpactFindings: []ImpactFindingRef{{ID: "imp-a", Classification: ImpactReviewRequired, Rule: "impact:crd-attr-default"}},
 		Evidence:       []EvidenceID{upEv.ID, envEv.ID}, Remediation: "set spec.privateKey.rotationPolicy: Never to keep today's behaviour",
@@ -360,8 +375,8 @@ func TestChangeRecordValidateRules(t *testing.T) {
 		"endpoints":             {func(r *ChangeEvidenceRecord) { r.From = Version{} }, "product, from and to are required"},
 		"edge is artifact":      {func(r *ChangeEvidenceRecord) { r.Edge = "edge.json" }, "edge must be an artifact id"},
 		"duplicate item":        {func(r *ChangeEvidenceRecord) { r.Items = append(r.Items, r.Items[0]) }, "duplicate item"},
-		"changeId xor platform": {func(r *ChangeEvidenceRecord) { r.Items[0].Platform = "kubernetes" }, "exactly one of changeId and platform"},
-		"item id derived":       {func(r *ChangeEvidenceRecord) { r.Items[0].ID = "ci-x" }, "id is not derived from changeId+platform"},
+		"changeId xor platform": {func(r *ChangeEvidenceRecord) { r.Items[0].Platform = "kubernetes" }, "exactly one of changeId, platform and renderedChange"},
+		"item id derived":       {func(r *ChangeEvidenceRecord) { r.Items[0].ID = "ci-x" }, "id is not derived from its anchor"},
 		"item family":           {func(r *ChangeEvidenceRecord) { r.Items[0].Family = "magic" }, "unknown family"},
 		"item scope rule":       {func(r *ChangeEvidenceRecord) { r.Items[0].ScopeRule = "" }, "title and scopeRule are required"},
 		"item evidence":         {func(r *ChangeEvidenceRecord) { r.Items[0].Evidence = nil }, "upstream evidence is required"},
@@ -625,7 +640,7 @@ func TestValidationRecordRules(t *testing.T) {
 	// not-run needs no inputs but a reason.
 	v := newInvFixture(t).inv.Validations[0]
 	v.Outcome, v.Inputs, v.Evidence, v.Outputs, v.Detail = ValidationNotRun, nil, nil, nil, "helm binary missing"
-	v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.Inputs)
+	v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.RenderedChanges, v.Inputs)
 	if err := v.Validate(); err != nil {
 		t.Errorf("a not-run record with a reason is valid: %v", err)
 	}
@@ -775,13 +790,13 @@ func TestInvestigationPolicyRules(t *testing.T) {
 		"not-affected contradicted": {func(fx *invFixture) {
 			v := fx.inv.Validations[0]
 			v.ChangeItem, v.Paths = fx.itemB, []string{fx.pathB}
-			v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.Inputs)
+			v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.RenderedChanges, v.Inputs)
 			fx.inv.Validations = append(fx.inv.Validations, v)
 		}, "not-affected contradicts validation"},
 		"not-affected path coverage": {func(fx *invFixture) {
 			v := &fx.inv.Validations[1]
 			v.Paths = nil
-			v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.Inputs)
+			v.ID = ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.RenderedChanges, v.Inputs)
 			fx.inv.Findings[1].Validations = []string{v.ID}
 			fx.inv.ValidationRequests[0].Result = v.ID
 		}, "is covered by no passing validation"},
@@ -955,4 +970,101 @@ func TestInvestigationSamples(t *testing.T) {
 			t.Errorf("%s is stale; rewrite with RI_UPDATE_SAMPLES=1 go test ./internal/domain -run TestInvestigationSamples", file)
 		}
 	}
+}
+
+func TestRenderedChangeRules(t *testing.T) {
+	pairCases := map[string]struct {
+		mut  func(p *ManifestPair)
+		want string
+	}{
+		"id derived":  {func(p *ManifestPair) { p.Changes[0].Path = "other" }, "id is not derived from scope+target+object+path+class"},
+		"class":       {func(p *ManifestPair) { p.Changes[0].Class = "" }, "needs class and object"},
+		"sensitive":   {func(p *ManifestPair) { p.Changes[0].Sensitive = true }, "is sensitive; its values are never recorded"},
+		"correlation": {func(p *ManifestPair) { p.Changes[0].Correlation = "" }, "correlation is set exactly when change items are"},
+		"items sorted": {func(p *ManifestPair) {
+			p.Changes[0].ChangeItems = []string{"ci-b", "ci-a"}
+		}, "changeItems must be sorted"},
+		"sorted unique": {func(p *ManifestPair) { p.Changes = append(p.Changes, p.Changes[0]) }, "must be sorted by id and unique"},
+		"incomplete render has no diff": {func(p *ManifestPair) {
+			p.Status, p.Reason = CollectionPartial, "template-error"
+		}, "an incomplete render is an evidence gap"},
+	}
+	for name, c := range pairCases {
+		t.Run(name, func(t *testing.T) {
+			fx := newInvFixture(t)
+			p := fx.b.Renders[0]
+			p.Changes = append([]RenderedChange(nil), p.Changes...)
+			c.mut(&p)
+			wantInvErr(t, p.validate(RenderEnvironment), c.want)
+		})
+	}
+	bundleCases := map[string]struct {
+		mut  func(fx *invFixture)
+		want string
+	}{
+		"unknown correlated item": {func(fx *invFixture) {
+			fx.b.Renders[0].Changes[0].ChangeItems = []string{"ci-nope"}
+		}, "is correlated to unknown change item ci-nope"},
+		"rendered evidence": {func(fx *invFixture) {
+			fx.b.Renders[0].Changes[0].Evidence = []EvidenceID{"ev-nope"}
+		}, "evidence ev-nope does not resolve"},
+		"release anchor": {func(fx *invFixture) {
+			it := &fx.b.Change.Items[2]
+			it.ChangeID, it.RenderedChange, it.Family = "", "rc-nope", FamilyRendered
+			it.ID = ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange)
+		}, "is not a release-scope rendered change of this record"},
+		"rendered family": {func(fx *invFixture) {
+			it := &fx.b.Change.Items[2]
+			it.ChangeID, it.RenderedChange = "", "rc-nope"
+			it.ID = ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange)
+		}, "a rendered-change item has family rendered"},
+	}
+	for name, c := range bundleCases {
+		t.Run(name, func(t *testing.T) {
+			fx := newInvFixture(t)
+			c.mut(fx)
+			wantInvErr(t, fx.b.Validate(), c.want)
+		})
+	}
+	invCases := map[string]struct {
+		mut  func(fx *invFixture)
+		want string
+	}{
+		"finding lists correlated changes": {func(fx *invFixture) {
+			fx.inv.Findings[0].RenderedChanges = nil
+		}, "the item's correlated environment changes are"},
+		"unknown rendered change": {func(fx *invFixture) {
+			fx.inv.Assertions[0].RenderedChanges = []string{"rc-nope"}
+		}, "rendered change rc-nope is not in the bundle"},
+		"uncorrelated blocks auto-approval": {func(fx *invFixture) {
+			fx.b.Renders[0].Changes[0].ChangeItems, fx.b.Renders[0].Changes[0].Correlation = nil, ""
+			fx.inv.Decision.Outcome = PolicyAutoApproveEligible
+		}, "rendered changes no change item explains"},
+		"auto-approval needs a render": {func(fx *invFixture) {
+			fx.b.Renders = nil
+			fx.inv.Decision.Outcome = PolicyAutoApproveEligible
+		}, "requires a complete environment render"},
+		"auto-approval needs complete renders": {func(fx *invFixture) {
+			fx.b.Renders[0].Status, fx.b.Renders[0].Reason, fx.b.Renders[0].Changes = CollectionUnavailable, "chart-unavailable", nil
+			fx.inv.Decision.Outcome = PolicyAutoApproveEligible
+		}, "requires every environment render to be complete"},
+	}
+	for name, c := range invCases {
+		t.Run(name, func(t *testing.T) {
+			fx := newInvFixture(t)
+			c.mut(fx)
+			wantInvErr(t, fx.inv.ValidateAgainst(fx.b), c.want)
+		})
+	}
+	// A not-affected item whose render shows a correlated change needs a
+	// passing validation that covers that change.
+	fx := newInvFixture(t)
+	f := &fx.inv.Findings[1]
+	f.RenderedChanges = []string{fx.rcA}
+	wantInvErr(t, fx.inv.Validate(), "is shown harmless by no passing validation")
+	// Root grounding is single-sourced.
+	tr := *fx.inv.Traversal
+	tr.Roots = append([]ExposureRoot(nil), tr.Roots...)
+	tr.Roots[0].ImpactFinding = "imp-a"
+	wantInvErr(t, tr.Validate(), "at most one of renderedChange and impactFinding")
 }

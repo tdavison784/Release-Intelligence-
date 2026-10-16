@@ -84,6 +84,7 @@
         "id": {"type": "string"},
         "changeId": {"type": "string"},
         "platform": {"type": "string"},
+        "renderedChange": {"type": "string"},
         "family": {"$ref": "#/$defs/ChangeItemFamily"},
         "title": {"type": "string"},
         "breaking": {"type": "boolean"},
@@ -249,7 +250,8 @@
         "to": {"type": "string"},
         "diff": {"type": "string"},
         "status": {"$ref": "#/$defs/CollectionStatus"},
-        "reason": {"type": "string"}
+        "reason": {"type": "string"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/RenderedChange"}}
       },
       "additionalProperties": false
     },
@@ -295,6 +297,23 @@
       "additionalProperties": false
     },
     "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "RenderedChange": {
+      "type": "object",
+      "required": ["id", "class", "object"],
+      "properties": {
+        "id": {"type": "string"},
+        "class": {"type": "string"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"},
+        "sensitive": {"type": "boolean"},
+        "changeItems": {"type": "array", "items": {"type": "string"}},
+        "correlation": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
     "RepoRef": {
       "type": "object",
       "required": ["path", "treeDigest"],

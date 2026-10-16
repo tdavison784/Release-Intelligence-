@@ -174,28 +174,50 @@ type SnapshotBuilder interface {
 	BuildSnapshot(ctx context.Context, in EnvironmentInputs) (*SnapshotResult, error)
 }
 
-// BundleAssembler joins change and environment evidence into the immutable
-// bundle, adding the environment-scope renders when enabled (lane bundle).
-type BundleAssembler interface {
-	Assemble(ctx context.Context, change *ChangeResult, snap *SnapshotResult, cfg Config) (*domain.EvidenceBundle, error)
+// RenderResult is the environment-scope render evidence: one ManifestPair
+// per render target the environment deploys the product with, its rendered
+// changes correlated to the change items, the stored renders/diffs, and the
+// rendered-diff evidence the changes cite.
+type RenderResult struct {
+	Pairs     []domain.ManifestPair `json:"pairs"`
+	Artifacts []domain.ArtifactRef  `json:"artifacts"`
+	Evidence  []domain.Evidence     `json:"evidence"`
 }
 
-// GraphBuilder builds the relationship graph of a bundle deterministically
-// (MISSION §A3; lane graph). The graph is stored as a graph artifact.
+// EnvironmentRenderer renders the product's from and to releases with the
+// environment's own configuration and diffs them (lane renderdiff; the
+// CENTERPIECE evidence). It builds on internal/render (DetectTargets,
+// RenderPair, Diff, Correlate, chart coverage): a target it cannot render
+// completely is a pair with a non-ok status and the render failure reason,
+// never an empty diff.
+type EnvironmentRenderer interface {
+	RenderEnvironment(ctx context.Context, change *ChangeResult, snap *SnapshotResult, cfg Config) (*RenderResult, error)
+}
+
+// BundleAssembler joins change evidence, environment evidence and the
+// environment renders into the immutable bundle (lane bundle).
+type BundleAssembler interface {
+	Assemble(ctx context.Context, change *ChangeResult, snap *SnapshotResult, renders *RenderResult) (*domain.EvidenceBundle, error)
+}
+
+// GraphBuilder builds the lightweight relationship graph of a bundle
+// deterministically from the rendered objects and environment files
+// (MISSION §A3, secondary context; lane relations). Stored as a graph artifact.
 type GraphBuilder interface {
 	BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*domain.RelationshipGraph, error)
 }
 
 // ExposureMapper maps the in-scope change items to their exposure roots:
-// the graph nodes the deterministic join's matches name, plus the nodes a
-// change family reaches by construction (lane graph). The report is the
-// domain.ImpactReport of the same upgrade and environment.
+// first the objects of the environment rendered changes correlated to each
+// item, then the graph nodes the deterministic join's matches name (lane
+// relations). The report is the domain.ImpactReport of the same upgrade and
+// environment.
 type ExposureMapper interface {
 	Exposure(ctx context.Context, b *domain.EvidenceBundle, g *domain.RelationshipGraph, report *domain.ImpactReport) ([]domain.ExposureRoot, error)
 }
 
-// Traverser runs the bounded, deterministic DFS (lane graph). Same graph,
-// roots and bound ⇒ byte-identical result.
+// Traverser runs the bounded, deterministic DFS (lane relations). Same
+// graph, roots and bound ⇒ byte-identical result.
 type Traverser interface {
 	Traverse(ctx context.Context, g *domain.RelationshipGraph, roots []domain.ExposureRoot, bound domain.TraversalBound) (*domain.TraversalResult, error)
 }
@@ -204,14 +226,15 @@ type Traverser interface {
 // traversal, the change item and the subjects/paths to check, optionally
 // the agent request that asked for it.
 type ValidationInput struct {
-	Bundle     *domain.EvidenceBundle    `json:"bundle"`
-	Graph      *domain.RelationshipGraph `json:"graph"`
-	Traversal  *domain.TraversalResult   `json:"traversal"`
-	Report     *domain.ImpactReport      `json:"report,omitempty"`
-	ChangeItem string                    `json:"changeItem"`
-	Subjects   []string                  `json:"subjects,omitempty"`
-	Paths      []string                  `json:"paths,omitempty"`
-	Request    *domain.ValidationRequest `json:"request,omitempty"`
+	Bundle          *domain.EvidenceBundle    `json:"bundle"`
+	Graph           *domain.RelationshipGraph `json:"graph"`
+	Traversal       *domain.TraversalResult   `json:"traversal"`
+	Report          *domain.ImpactReport      `json:"report,omitempty"`
+	ChangeItem      string                    `json:"changeItem"`
+	Subjects        []string                  `json:"subjects,omitempty"`
+	Paths           []string                  `json:"paths,omitempty"`
+	RenderedChanges []string                  `json:"renderedChanges,omitempty"`
+	Request         *domain.ValidationRequest `json:"request,omitempty"`
 }
 
 // ValidationOutput is what a validator produced. Outputs are already in the
@@ -320,8 +343,12 @@ type ReviewApplier interface {
 
 // --- the agent's tool surface (DESIGN.md §4) ----------------------------------------------
 
-// Tool names as exposed over MCP (`ri investigate mcp`).
+// Tool names as exposed over MCP (`ri investigate mcp`). The diff tools come
+// first: the rendered diff is the agent's primary evidence.
 const (
+	ToolListRenders       = "list_renders"
+	ToolQueryDiff         = "query_diff"
+	ToolGetRenderedObject = "get_rendered_object"
 	ToolSearchManifest    = "search_manifest"
 	ToolReadArtifact      = "read_artifact"
 	ToolExpandGraph       = "expand_graph"
@@ -335,8 +362,51 @@ const (
 
 // ToolNames lists every tool in a stable order.
 var ToolNames = []string{
+	ToolListRenders, ToolQueryDiff, ToolGetRenderedObject,
 	ToolSearchManifest, ToolReadArtifact, ToolExpandGraph, ToolListPaths, ToolRequestEvidence,
 	ToolRequestValidation, ToolRecordHypothesis, ToolRecordAssertion, ToolSubmitFindings,
+}
+
+// RenderSummary describes one render pair of the bundle.
+type RenderSummary struct {
+	Scope        domain.RenderScope      `json:"scope"`
+	Target       string                  `json:"target"`
+	Status       domain.CollectionStatus `json:"status"`
+	Reason       string                  `json:"reason,omitempty"`
+	Changes      int                     `json:"changes"`
+	Uncorrelated int                     `json:"uncorrelated"`
+	ByClass      map[string]int          `json:"byClass,omitempty"`
+}
+
+// DiffQuery filters rendered changes. Every set field must match; list
+// fields match any element.
+type DiffQuery struct {
+	Scope        domain.RenderScope `json:"scope,omitempty"` // default environment
+	Target       string             `json:"target,omitempty"`
+	ChangeItem   string             `json:"changeItem,omitempty"`
+	Uncorrelated bool               `json:"uncorrelated,omitempty"`
+	Classes      []string           `json:"classes,omitempty"`    // render change classes
+	Kinds        []string           `json:"kinds,omitempty"`      // object kinds
+	Namespaces   []string           `json:"namespaces,omitempty"` // "-" = cluster-scoped
+	PathPrefix   string             `json:"pathPrefix,omitempty"`
+	Limit        int                `json:"limit,omitempty"` // default 50, max 200
+}
+
+// ObjectRequest reads one rendered object (or a field of it) from one side
+// of a render pair. Sensitive values (Secret data) are redacted.
+type ObjectRequest struct {
+	Target string `json:"target"`
+	Side   string `json:"side"`           // "from" | "to"
+	Object string `json:"object"`         // <group>/<version>/<kind>/<namespace>/<name>
+	Path   string `json:"path,omitempty"` // field path; "" = whole object
+}
+
+// ObjectResult is the requested object or field as YAML, with the render
+// artifact it came from (cite it with Citation{Artifact, Locator: path, Quote}).
+type ObjectResult struct {
+	Artifact domain.ArtifactRef `json:"artifact"`
+	YAML     string             `json:"yaml"`
+	Found    bool               `json:"found"` // false: the object/path is absent on that side (a fact, not an error)
 }
 
 // SearchQuery searches the manifest (bundle + run artifacts). Terms match
@@ -422,14 +492,17 @@ type HypothesisInput struct {
 // AssertionInput records an assertion. ProposedEdge, when set, adds an
 // inferred edge to the run's graph view (never established).
 type AssertionInput struct {
-	ChangeItem   string                 `json:"changeItem"`
-	Stance       domain.AssertionStance `json:"stance"`
-	Statement    string                 `json:"statement"`
-	Subjects     []string               `json:"subjects,omitempty"`
-	Paths        []string               `json:"paths,omitempty"`
-	Citations    []Citation             `json:"citations"`
-	Hypothesis   string                 `json:"hypothesis,omitempty"`
-	ProposedEdge *ProposedEdge          `json:"proposedEdge,omitempty"`
+	ChangeItem string                 `json:"changeItem"`
+	Stance     domain.AssertionStance `json:"stance"`
+	Statement  string                 `json:"statement"`
+	Subjects   []string               `json:"subjects,omitempty"`
+	Paths      []string               `json:"paths,omitempty"`
+	// RenderedChanges cites rendered changes by id (in addition to the
+	// quote citations, which still need at least one entry).
+	RenderedChanges []string      `json:"renderedChanges,omitempty"`
+	Citations       []Citation    `json:"citations"`
+	Hypothesis      string        `json:"hypothesis,omitempty"`
+	ProposedEdge    *ProposedEdge `json:"proposedEdge,omitempty"`
 }
 
 // ProposedEdge is a relationship the agent believes exists.
@@ -451,12 +524,13 @@ type EvidenceRequestInput struct {
 
 // ValidationRequestInput asks a deterministic validator to test something.
 type ValidationRequestInput struct {
-	ChangeItem string                `json:"changeItem"`
-	Kind       domain.ValidationKind `json:"kind"`
-	Subjects   []string              `json:"subjects,omitempty"`
-	Paths      []string              `json:"paths,omitempty"`
-	Inputs     []string              `json:"inputs,omitempty"`
-	Hypothesis string                `json:"hypothesis,omitempty"`
+	ChangeItem      string                `json:"changeItem"`
+	Kind            domain.ValidationKind `json:"kind"`
+	Subjects        []string              `json:"subjects,omitempty"`
+	Paths           []string              `json:"paths,omitempty"`
+	RenderedChanges []string              `json:"renderedChanges,omitempty"`
+	Inputs          []string              `json:"inputs,omitempty"`
+	Hypothesis      string                `json:"hypothesis,omitempty"`
 }
 
 // ItemSummary is the agent's closing summary for one change item. It is
@@ -473,11 +547,15 @@ type SubmitInput struct {
 }
 
 // Tools is the agent's tool surface, scoped to one investigation (one
-// bundle, its graph and traversal, the run's records). Every call is
-// recorded in the transcript with its arguments and result digest, counted
-// against the budget, and validated: unknown ids, uncited claims or quotes
-// that do not occur are rejected with ErrRejected and nothing is recorded.
+// bundle, its renders and diffs, its graph and traversal, the run's
+// records). Every call is recorded in the transcript with its arguments and
+// result digest, counted against the budget, and validated: unknown ids,
+// uncited claims or quotes that do not occur are rejected with ErrRejected
+// and nothing is recorded.
 type Tools interface {
+	ListRenders(ctx context.Context) ([]RenderSummary, error)
+	QueryDiff(ctx context.Context, q DiffQuery) ([]domain.RenderedChange, error)
+	GetRenderedObject(ctx context.Context, r ObjectRequest) (*ObjectResult, error)
 	SearchManifest(ctx context.Context, q SearchQuery) ([]SearchHit, error)
 	ReadArtifact(ctx context.Context, r ReadRequest) (*ReadResult, error)
 	ExpandGraph(ctx context.Context, r ExpandRequest) (*Subgraph, error)

@@ -21,6 +21,15 @@ Branch `p4ei/contract`, worktree `.claude/worktrees/p4ei-contract`. Brief: `brie
 ## Next step
 - ports → DESIGN.md (§0–§7) → eval/investigations/{FORMAT.md,gates.yaml} → full build/vet/test.
 
+- Product-owner clarification (MISSION.md, 2026-10-16: "DFS" = diffs) absorbed into the contract:
+  `RenderedChange` (citable, correlated to change items) on every `ManifestPair`; change items may be
+  anchored on a release-scope rendered change; roots/validations/assertions/findings cite rendered
+  changes; a finding lists exactly its item's correlated env rendered changes; not-affected must cover
+  each with a passing validation; automated approval needs ≥1 complete env render and zero
+  uncorrelated env rendered changes. Ports: `EnvironmentRenderer` (lane renderdiff), diff-query tools
+  `list_renders` / `query_diff` / `get_rendered_object` first in the agent surface. Graph/DFS kept as
+  lightweight context (lane relations).
+
 ## Decisions
 - Name collisions with existing domain types forced renames (brief names in parentheses):
   `BundleManifest` (ArtifactManifest — an ArtifactType constant already), `ValidationRecord`

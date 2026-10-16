@@ -1,8 +1,8 @@
 {
   "schemaVersion": "ri.dev/evidence-bundle/v1alpha1",
-  "id": "bnd-1002d484018b",
+  "id": "bnd-bcaa1ef800f9",
   "change": {
-    "id": "cer-d72225d2a564",
+    "id": "cer-14579d0989b5",
     "product": {
       "id": "cert-manager",
       "name": "cert-manager"
@@ -18,7 +18,7 @@
     "edge": "art-7714bb9184c0",
     "items": [
       {
-        "id": "ci-9357afdf1fbb",
+        "id": "ci-93c5d1fd0993",
         "changeId": "chg-a",
         "family": "api-schema",
         "title": "Certificate privateKey.rotationPolicy default changes to Always",
@@ -30,7 +30,7 @@
         "scopeRule": "scope:breaking"
       },
       {
-        "id": "ci-29522604f5a6",
+        "id": "ci-62c5761ee34f",
         "changeId": "chg-b",
         "family": "values",
         "title": "ACME HTTP01 ingress pathType defaults to Exact",
@@ -42,7 +42,7 @@
         "scopeRule": "scope:breaking"
       },
       {
-        "id": "ci-94140b751894",
+        "id": "ci-c465889e3666",
         "changeId": "chg-c",
         "family": "behavior",
         "title": "Bump Go to 1.24",
@@ -135,6 +135,32 @@
     "producer": "bundle.snapshot@v1",
     "collectedAt": "2026-10-16T12:00:00Z"
   },
+  "renders": [
+    {
+      "scope": "environment",
+      "target": "argocd:apps/cert-manager.yaml",
+      "from": "art-c2139ad7969c",
+      "to": "art-f98fb20e6c87",
+      "diff": "art-12acbd603e0a",
+      "status": "ok",
+      "changes": [
+        {
+          "id": "rc-736fd0096100",
+          "class": "container-arg-added",
+          "object": "apps/v1/Deployment/cert-manager/cert-manager",
+          "path": "spec.template.spec.containers[0].args",
+          "after": "\"--default-private-key-rotation-policy=Always\"",
+          "changeItems": [
+            "ci-93c5d1fd0993"
+          ],
+          "correlation": "changelog-subject",
+          "evidence": [
+            "ev-8439c33d4f4c"
+          ]
+        }
+      ]
+    }
+  ],
   "manifest": {
     "artifacts": [
       {
@@ -149,6 +175,48 @@
         "producer": "bundle.collect@v1",
         "tags": [
           "environment-facts"
+        ]
+      },
+      {
+        "id": "art-12acbd603e0a",
+        "kind": "render-diff",
+        "mediaType": "application/yaml",
+        "digest": "sha256:df087996d45b03e7eb8c133c0298fd98d35113fca26aaba58612fef3cc212cad",
+        "size": 4,
+        "path": "derived/render/env/argocd-cert-manager/diff.json",
+        "origin": "derived",
+        "uri": "file://derived/render/env/argocd-cert-manager/diff.json",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "render-diff"
+        ]
+      },
+      {
+        "id": "art-c2139ad7969c",
+        "kind": "rendered-manifests",
+        "mediaType": "application/yaml",
+        "digest": "sha256:75857a45899985be4c4d941e90b6b396d6c92a4c7437aaf0bf102089fe21379d",
+        "size": 4,
+        "path": "derived/render/env/argocd-cert-manager/from.yaml",
+        "origin": "derived",
+        "uri": "file://derived/render/env/argocd-cert-manager/from.yaml",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "rendered-manifests"
+        ]
+      },
+      {
+        "id": "art-f98fb20e6c87",
+        "kind": "rendered-manifests",
+        "mediaType": "application/yaml",
+        "digest": "sha256:663ea1bfffe5038f3f0cf667f14c4257eff52d77ce7f2a218f72e9286616ea39",
+        "size": 2,
+        "path": "derived/render/env/argocd-cert-manager/to.yaml",
+        "origin": "derived",
+        "uri": "file://derived/render/env/argocd-cert-manager/to.yaml",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "rendered-manifests"
         ]
       },
       {
@@ -207,7 +275,7 @@
           "crd"
         ],
         "changeItems": [
-          "ci-9357afdf1fbb"
+          "ci-93c5d1fd0993"
         ]
       },
       {
@@ -224,8 +292,8 @@
           "upstream-document"
         ],
         "changeItems": [
-          "ci-9357afdf1fbb",
-          "ci-29522604f5a6"
+          "ci-93c5d1fd0993",
+          "ci-62c5761ee34f"
         ]
       }
     ]
@@ -258,6 +326,16 @@
       "locator": "$.spec",
       "excerpt": "secretName: web-tls",
       "contentDigest": "sha256:06298432e8066b29e2223bcc23aa9504b56ae508fabf3435508869b9c3190e22",
+      "retrievedAt": "2026-10-16T12:00:00Z"
+    },
+    {
+      "id": "ev-8439c33d4f4c",
+      "kind": "rendered-diff",
+      "sourceId": "render",
+      "uri": "templates/deployment.yaml",
+      "locator": "spec.template.spec.containers[0].args",
+      "excerpt": "--default-private-key-rotation-policy",
+      "contentDigest": "sha256:df087996d45b03e7eb8c133c0298fd98d35113fca26aaba58612fef3cc212cad",
       "retrievedAt": "2026-10-16T12:00:00Z"
     }
   ],

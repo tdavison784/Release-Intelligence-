@@ -15,6 +15,13 @@ import (
 // Changes and Evidence by id, an EnvironmentSnapshot pins the inputs env.Load
 // parses, and a finding references the deterministic ImpactReport's findings.
 //
+// The centerpiece evidence (product-owner clarification, MISSION.md) is the
+// rendered before/after DIFF of the environment's own configuration
+// (internal/render): every rendered change is a citable RenderedChange,
+// correlated to the change items it realises. The relationship graph and its
+// bounded traversal are lightweight supporting context for consumers the
+// render cannot show.
+//
 // Separation (MISSION P4, AC6): ValidationRecords are produced by
 // deterministic validators (or an observed runtime outcome); AgentAssertions,
 // Hypotheses and requests carry AI provenance and are never validation
@@ -31,6 +38,7 @@ const (
 // define the record's identity), so re-running a stage is idempotent.
 const (
 	ChangeRecordIDPrefix         = "cer-"
+	RenderedChangeIDPrefix       = "rc-"
 	ChangeItemIDPrefix           = "ci-"
 	SnapshotIDPrefix             = "snap-"
 	ArtifactIDPrefix             = "art-"
@@ -305,11 +313,14 @@ var ChangeItemFamilies = []ChangeItemFamily{
 // flags are copies so the record renders standalone.
 type ChangeItem struct {
 	ID string `json:"id"` // ChangeItemID(changeID, platform)
-	// ChangeID is the domain.Change id in the referenced UpgradeEdge.
-	// Exactly one of ChangeID and Platform is set.
-	ChangeID string `json:"changeId,omitempty"`
-	// Platform names an UpgradeEdge.Compatibility entry (e.g. "kubernetes").
+	// Exactly one anchor is set. ChangeID is the domain.Change id in the
+	// referenced UpgradeEdge; Platform names an UpgradeEdge.Compatibility
+	// entry (e.g. "kubernetes"); RenderedChange names a release-scope
+	// rendered change no Change accounts for (an undocumented chart change,
+	// family rendered).
+	ChangeID       string           `json:"changeId,omitempty"`
 	Platform       string           `json:"platform,omitempty"`
+	RenderedChange string           `json:"renderedChange,omitempty"`
 	Family         ChangeItemFamily `json:"family"`
 	Title          string           `json:"title"`
 	Breaking       bool             `json:"breaking,omitempty"`
@@ -325,9 +336,19 @@ type ChangeItem struct {
 	ScopeRule string `json:"scopeRule"`
 }
 
-// ChangeItemID derives a change item id.
-func ChangeItemID(changeID, platform string) string {
-	return ChangeItemIDPrefix + ShortHash(changeID, platform)
+// ChangeItemID derives a change item id from its anchor.
+func ChangeItemID(changeID, platform, renderedChange string) string {
+	return ChangeItemIDPrefix + ShortHash(changeID, platform, renderedChange)
+}
+
+func (it ChangeItem) anchors() int {
+	n := 0
+	for _, a := range []string{it.ChangeID, it.Platform, it.RenderedChange} {
+		if a != "" {
+			n++
+		}
+	}
+	return n
 }
 
 // ChangeEvidenceRecord is the structured breaking-change evidence of one
@@ -361,7 +382,7 @@ func (r ChangeEvidenceRecord) DerivedID() string {
 		parts = append(parts, string(s.Source), string(s.Status), strings.Join(s.Artifacts, ","))
 	}
 	for _, p := range r.Renders {
-		parts = append(parts, p.Target, p.From, p.To, p.Diff)
+		parts = append(parts, p.key()...)
 	}
 	return ChangeRecordIDPrefix + ShortHash(parts...)
 }
@@ -415,17 +436,31 @@ func (r ChangeEvidenceRecord) Validate() error {
 	if r.Producer == "" {
 		bad("producer is required")
 	}
+	releaseChanges := map[string]bool{}
+	for _, p := range r.Renders {
+		for _, c := range p.Changes {
+			releaseChanges[c.ID] = true
+		}
+	}
 	seen := map[string]bool{}
 	for _, it := range r.Items {
 		if seen[it.ID] {
 			bad("duplicate item %s", it.ID)
 		}
 		seen[it.ID] = true
-		if (it.ChangeID == "") == (it.Platform == "") {
-			bad("item %s: exactly one of changeId and platform is required", it.ID)
+		if it.anchors() != 1 {
+			bad("item %s: exactly one of changeId, platform and renderedChange is required", it.ID)
 		}
-		if it.ID != ChangeItemID(it.ChangeID, it.Platform) {
-			bad("item %s: id is not derived from changeId+platform", it.ID)
+		if it.ID != ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange) {
+			bad("item %s: id is not derived from its anchor", it.ID)
+		}
+		if it.RenderedChange != "" {
+			if !releaseChanges[it.RenderedChange] {
+				bad("item %s: rendered change %s is not a release-scope rendered change of this record", it.ID, it.RenderedChange)
+			}
+			if it.Family != FamilyRendered {
+				bad("item %s: a rendered-change item has family rendered", it.ID)
+			}
 		}
 		if !oneOf(it.Family, ChangeItemFamilies) {
 			bad("item %s: unknown family %q", it.ID, it.Family)
@@ -474,6 +509,48 @@ type ManifestPair struct {
 	Diff   string           `json:"diff,omitempty"` // render-diff artifact
 	Status CollectionStatus `json:"status"`
 	Reason string           `json:"reason,omitempty"` // required unless ok (render.FailureReason + detail)
+	// Changes index the diff: one citable record per semantic rendered
+	// change, sorted by id. Only a complete (ok) pair has changes; an empty
+	// list on an ok pair means "rendered, nothing changed".
+	Changes []RenderedChange `json:"changes,omitempty"`
+}
+
+func (p ManifestPair) key() []string {
+	parts := []string{string(p.Scope), p.Target, p.From, p.To, p.Diff, string(p.Status)}
+	for _, c := range p.Changes {
+		parts = append(parts, c.ID, strings.Join(c.ChangeItems, ","))
+	}
+	return parts
+}
+
+// RenderedChange is one semantic change between the from and to renders of
+// a ManifestPair (a render.Change, summarised for citation; the full record
+// is in the pair's render-diff artifact). ChangeItems are the change items
+// the render correlation attributes it to (render.Correlate); an
+// environment-scope change with none is UNCORRELATED — a change the
+// customer's deployment receives that no known change item explains.
+type RenderedChange struct {
+	ID string `json:"id"` // RenderedChangeID(scope, target, object, path, class)
+	// Class is the render change class (internal/render ChangeClass, e.g.
+	// "rbac-permission-removed", "image-changed", "field-changed").
+	Class  string `json:"class"`
+	Object string `json:"object"`         // <group>/<version>/<kind>/<namespace>/<name>
+	Path   string `json:"path,omitempty"` // field path inside the object ("" = the whole object)
+	// Before/After are JSON-encoded values at Path; never set when Sensitive.
+	Before    string `json:"before,omitempty"`
+	After     string `json:"after,omitempty"`
+	Sensitive bool   `json:"sensitive,omitempty"`
+	// ChangeItems the change is attributed to, sorted; Correlation is the
+	// rule that attributed it (render ChangeLink rule), set exactly when
+	// ChangeItems is non-empty.
+	ChangeItems []string     `json:"changeItems,omitempty"`
+	Correlation string       `json:"correlation,omitempty"`
+	Evidence    []EvidenceID `json:"evidence,omitempty"` // rendered-diff evidence records
+}
+
+// RenderedChangeID derives a rendered change id.
+func RenderedChangeID(scope RenderScope, target, object, path, class string) string {
+	return RenderedChangeIDPrefix + ShortHash(string(scope), target, object, path, class)
 }
 
 func (p ManifestPair) validate(scope RenderScope) error {
@@ -487,6 +564,29 @@ func (p ManifestPair) validate(scope RenderScope) error {
 	errs = append(errs, validateCollection("render "+p.Target, p.Status, p.Reason)...)
 	if p.Status == CollectionOK && (p.From == "" || p.To == "" || p.Diff == "") {
 		errs = append(errs, fmt.Errorf("render %s: status ok requires from, to and diff artifacts", p.Target))
+	}
+	if p.Status != CollectionOK && len(p.Changes) > 0 {
+		errs = append(errs, fmt.Errorf("render %s: only a complete (ok) pair indexes rendered changes; an incomplete render is an evidence gap, never a diff", p.Target))
+	}
+	for i, c := range p.Changes {
+		if c.ID != RenderedChangeID(p.Scope, p.Target, c.Object, c.Path, c.Class) {
+			errs = append(errs, fmt.Errorf("render %s: rendered change %s: id is not derived from scope+target+object+path+class", p.Target, c.ID))
+		}
+		if i > 0 && p.Changes[i-1].ID >= c.ID {
+			errs = append(errs, fmt.Errorf("render %s: rendered changes must be sorted by id and unique", p.Target))
+		}
+		if c.Class == "" || c.Object == "" {
+			errs = append(errs, fmt.Errorf("render %s: rendered change %s needs class and object", p.Target, c.ID))
+		}
+		if c.Sensitive && (c.Before != "" || c.After != "") {
+			errs = append(errs, fmt.Errorf("render %s: rendered change %s is sensitive; its values are never recorded", p.Target, c.ID))
+		}
+		if (len(c.ChangeItems) > 0) != (c.Correlation != "") {
+			errs = append(errs, fmt.Errorf("render %s: rendered change %s: correlation is set exactly when change items are", p.Target, c.ID))
+		}
+		if !sort.StringsAreSorted(c.ChangeItems) {
+			errs = append(errs, fmt.Errorf("render %s: rendered change %s: changeItems must be sorted", p.Target, c.ID))
+		}
 	}
 	return errors.Join(errs...)
 }
@@ -664,9 +764,38 @@ type EvidenceBundle struct {
 func BundleID(changeID, snapshotID, manifestDigest string, renders []ManifestPair) string {
 	parts := []string{changeID, snapshotID, manifestDigest}
 	for _, p := range renders {
-		parts = append(parts, p.Target, p.From, p.To, p.Diff, string(p.Status))
+		parts = append(parts, p.key()...)
 	}
 	return BundleIDPrefix + ShortHash(parts...)
+}
+
+// RenderedChanges indexes every rendered change of the bundle (release and
+// environment scope) by id.
+func (b *EvidenceBundle) RenderedChanges() map[string]RenderedChange {
+	m := map[string]RenderedChange{}
+	for _, ps := range [][]ManifestPair{b.Change.Renders, b.Renders} {
+		for _, p := range ps {
+			for _, c := range p.Changes {
+				m[c.ID] = c
+			}
+		}
+	}
+	return m
+}
+
+// Uncorrelated returns the environment-scope rendered changes no change item
+// accounts for, sorted by id. They block automated approval (DESIGN.md §3.4).
+func (b *EvidenceBundle) Uncorrelated() []string {
+	var out []string
+	for _, p := range b.Renders {
+		for _, c := range p.Changes {
+			if len(c.ChangeItems) == 0 {
+				out = append(out, c.ID)
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 // EvidenceByID returns the bundle's evidence index.
@@ -769,6 +898,22 @@ func (b *EvidenceBundle) Validate() error {
 	items := map[string]bool{}
 	for _, it := range b.Change.Items {
 		items[it.ID] = true
+	}
+	for _, ps := range [][]ManifestPair{b.Change.Renders, b.Renders} {
+		for _, p := range ps {
+			for _, c := range p.Changes {
+				for _, ci := range c.ChangeItems {
+					if !items[ci] {
+						bad("rendered change %s is correlated to unknown change item %s", c.ID, ci)
+					}
+				}
+				for _, id := range c.Evidence {
+					if !ev[id] {
+						bad("rendered change %s: evidence %s does not resolve", c.ID, id)
+					}
+				}
+			}
+		}
 	}
 	for _, a := range b.Manifest.Artifacts {
 		for _, ci := range a.ChangeItems {
@@ -996,15 +1141,17 @@ func (g RelationshipGraph) Validate() error {
 }
 
 // ExposureRoot is a node directly exposed to a change item: the start of
-// every impact path of that item. Rule names the exposure rule; when the
-// exposure comes from the deterministic join, ImpactFinding is the
-// ImpactReport finding whose match grounded it.
+// every impact path of that item. Rule names the exposure rule.
 type ExposureRoot struct {
-	ChangeItem    string       `json:"changeItem"`
-	Node          string       `json:"node"`
-	Rule          string       `json:"rule"`
-	ImpactFinding string       `json:"impactFinding,omitempty"`
-	Evidence      []EvidenceID `json:"evidence,omitempty"`
+	ChangeItem string `json:"changeItem"`
+	Node       string `json:"node"`
+	Rule       string `json:"rule"`
+	// RenderedChange is the environment-scope rendered change whose object
+	// is the root (the primary exposure source); ImpactFinding the join
+	// finding whose match grounded it. At most one is set.
+	RenderedChange string       `json:"renderedChange,omitempty"`
+	ImpactFinding  string       `json:"impactFinding,omitempty"`
+	Evidence       []EvidenceID `json:"evidence,omitempty"`
 }
 
 // ImpactPath is one maximal simple path from an exposure root of a change
@@ -1135,6 +1282,9 @@ func (t TraversalResult) Validate() error {
 	for _, r := range t.Roots {
 		if r.ChangeItem == "" || r.Node == "" || r.Rule == "" {
 			bad("root needs changeItem, node and rule")
+		}
+		if r.RenderedChange != "" && r.ImpactFinding != "" {
+			bad("root %s: at most one of renderedChange and impactFinding grounds it", r.Node)
 		}
 		roots[[2]string{r.ChangeItem, r.Node}] = true
 	}
@@ -1331,6 +1481,10 @@ type ValidationRecord struct {
 	// impact paths the result covers.
 	Subjects []string `json:"subjects,omitempty"`
 	Paths    []string `json:"paths,omitempty"`
+	// RenderedChanges are the rendered changes the result covers: for a
+	// pass, changes shown harmless for the subjects; for a fail, the changes
+	// that demonstrate the breakage.
+	RenderedChanges []string `json:"renderedChanges,omitempty"`
 	// Property states the checked safety property in one sentence.
 	Property string                `json:"property"`
 	Inputs   []string              `json:"inputs"`            // artifact ids (by digest) the validator read
@@ -1351,9 +1505,9 @@ type ValidationRecord struct {
 }
 
 // ValidationRecordID derives a validation record id.
-func ValidationRecordID(validator, changeItem string, subjects, paths, inputs []string) string {
+func ValidationRecordID(validator, changeItem string, subjects, paths, renderedChanges, inputs []string) string {
 	return ValidationRecordIDPrefix + ShortHash(validator, changeItem,
-		strings.Join(subjects, ","), strings.Join(paths, ","), strings.Join(inputs, ","))
+		strings.Join(subjects, ","), strings.Join(paths, ","), strings.Join(renderedChanges, ","), strings.Join(inputs, ","))
 }
 
 // Validate checks identity, level/kind consistency and the outcome shape.
@@ -1362,8 +1516,8 @@ func (v ValidationRecord) Validate() error {
 	bad := func(format string, args ...any) {
 		errs = append(errs, fmt.Errorf("validation %s: %s", v.ID, fmt.Sprintf(format, args...)))
 	}
-	if v.ID != ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.Inputs) {
-		bad("id is not derived from validator+changeItem+subjects+paths+inputs")
+	if v.ID != ValidationRecordID(v.Validator, v.ChangeItem, v.Subjects, v.Paths, v.RenderedChanges, v.Inputs) {
+		bad("id is not derived from validator+changeItem+subjects+paths+renderedChanges+inputs")
 	}
 	if !strings.Contains(v.Validator, "@v") {
 		bad("validator %q must be component@vN", v.Validator)
@@ -1447,6 +1601,8 @@ type AgentAssertion struct {
 	Statement  string          `json:"statement"`
 	Subjects   []string        `json:"subjects,omitempty"` // graph node ids
 	Paths      []string        `json:"paths,omitempty"`    // impact path ids
+	// RenderedChanges are rendered changes the claim is about (cited by id).
+	RenderedChanges []string `json:"renderedChanges,omitempty"`
 	// Citations are evidence ids the tool layer created after checking the
 	// cited quote occurs in the artifact's bytes (DESIGN.md §4.4).
 	Citations []EvidenceID `json:"citations"`
@@ -1702,8 +1858,11 @@ type InvestigationFinding struct {
 	Reasoning   string       `json:"reasoning"`   // deterministic explanation of the class
 	Environment string       `json:"environment"` // snapshot environment name
 	Components  []string     `json:"components,omitempty"`
-	Paths       []string     `json:"paths,omitempty"`
-	Validations []string     `json:"validations,omitempty"`
+	// RenderedChanges are the environment-scope rendered changes correlated
+	// to the item: the exposure evidence (empty = the render shows none).
+	RenderedChanges []string `json:"renderedChanges,omitempty"`
+	Paths           []string `json:"paths,omitempty"`
+	Validations     []string `json:"validations,omitempty"`
 	// Assertions are the agent assertions related to the item (explanations
 	// and concerns); Assumptions the subset that no validation established —
 	// shown as unvalidated assumptions (AC6).
@@ -2244,6 +2403,9 @@ func (inv *Investigation) validateFindingRefs(f InvestigationFinding, paths map[
 		for _, p := range v.Paths {
 			covered[p] = true
 		}
+		for _, rc := range v.RenderedChanges {
+			covered["rc:"+rc] = true
+		}
 		for _, r := range v.Subjects {
 			covered["root:"+r] = true
 		}
@@ -2254,6 +2416,11 @@ func (inv *Investigation) validateFindingRefs(f InvestigationFinding, paths map[
 	for _, p := range inv.Traversal.PathsOf(f.ChangeItem) {
 		if !covered[p.ID] {
 			bad("path %s of the item is covered by no passing validation", p.ID)
+		}
+	}
+	for _, rc := range f.RenderedChanges {
+		if !covered["rc:"+rc] {
+			bad("rendered change %s of the item is shown harmless by no passing validation", rc)
 		}
 	}
 	if len(inv.Traversal.PathsOf(f.ChangeItem)) == 0 {
@@ -2385,8 +2552,32 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 			bad("%s: unknown change item %s", what, id)
 		}
 	}
+	rcs := b.RenderedChanges()
+	rendered := func(what string, ids []string) {
+		for _, id := range ids {
+			if _, ok := rcs[id]; !ok {
+				bad("%s: rendered change %s is not in the bundle", what, id)
+			}
+		}
+	}
+	envCorrelated := map[string][]string{} // change item -> env-scope rendered changes correlated to it
+	for _, p := range b.Renders {
+		for _, c := range p.Changes {
+			for _, ci := range c.ChangeItems {
+				envCorrelated[ci] = append(envCorrelated[ci], c.ID)
+			}
+		}
+	}
 	art("impactReport", inv.ImpactReport)
 	art("graph", inv.Graph)
+	if t := inv.Traversal; t != nil {
+		for _, r := range t.Roots {
+			item("traversal root", r.ChangeItem)
+			if r.RenderedChange != "" {
+				rendered("traversal root", []string{r.RenderedChange})
+			}
+		}
+	}
 	for _, h := range inv.Hypotheses {
 		item("hypothesis "+h.ID, h.ChangeItem)
 		evid("hypothesis "+h.ID, h.Citations)
@@ -2395,6 +2586,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		item("assertion "+a.ID, a.ChangeItem)
 		evid("assertion "+a.ID, a.Citations)
 		evid("assertion "+a.ID+" provenance", a.Provenance.InputEvidence)
+		rendered("assertion "+a.ID, a.RenderedChanges)
 	}
 	for _, r := range inv.EvidenceRequests {
 		item("evidence request "+r.ID, r.ChangeItem)
@@ -2408,6 +2600,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		evid("validation "+v.ID, v.Evidence)
 		art("validation "+v.ID, v.Inputs...)
 		art("validation "+v.ID, v.Outputs...)
+		rendered("validation "+v.ID, v.RenderedChanges)
 	}
 	for _, f := range inv.Findings {
 		item("finding "+f.ID, f.ChangeItem)
@@ -2415,6 +2608,29 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		art("finding "+f.ID, f.Artifacts...)
 		if it, ok := b.Change.Item(f.ChangeItem); ok && !it.InScope {
 			bad("finding %s classifies out-of-scope item %s", f.ID, f.ChangeItem)
+		}
+		rendered("finding "+f.ID, f.RenderedChanges)
+		// The rendered diff is the primary exposure evidence: a finding lists
+		// exactly the environment-scope rendered changes correlated to its item.
+		want := append([]string(nil), envCorrelated[f.ChangeItem]...)
+		got := append([]string(nil), f.RenderedChanges...)
+		sort.Strings(want)
+		sort.Strings(got)
+		if strings.Join(want, ",") != strings.Join(got, ",") {
+			bad("finding %s cites rendered changes %v; the item's correlated environment changes are %v", f.ID, got, want)
+		}
+	}
+	if d := inv.Decision; d != nil && d.Outcome == PolicyAutoApproveEligible {
+		if un := b.Uncorrelated(); len(un) > 0 {
+			bad("automated approval is impossible while rendered changes no change item explains exist: %v", un)
+		}
+		if len(b.Renders) == 0 {
+			bad("automated approval requires a complete environment render: absence of change is only evidence from a render")
+		}
+		for _, p := range b.Renders {
+			if p.Status != CollectionOK {
+				bad("automated approval requires every environment render to be complete (%s is %s)", p.Target, p.Status)
+			}
 		}
 	}
 	if len(inv.Findings) > 0 {
