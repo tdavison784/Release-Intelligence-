@@ -336,6 +336,7 @@ func (f *fixture) bundle(t *testing.T, res *investigate.RenderResult) *domain.Ev
 	b := *f.base
 	b.Change = f.change.Record
 	b.Renders = res.Pairs
+	b.EnvironmentItems = res.Items
 	arts := append(append([]domain.ArtifactRef(nil), f.base.Manifest.Artifacts...), res.Artifacts...)
 	sort.Slice(arts, func(i, j int) bool { return arts[i].Path < arts[j].Path })
 	b.Manifest = domain.BundleManifest{Artifacts: arts}

@@ -15,6 +15,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/fetch"
+	"github.com/tdavison784/release-intelligence/internal/impact"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
@@ -71,22 +72,41 @@ func (u appUpstream) Fetch(ctx context.Context, rawURL string) ([]byte, string, 
 
 // ChangeCollector collects the change evidence of one upgrade (MISSION §A1).
 type ChangeCollector struct {
-	up  Upstream
-	st  investigate.ArtifactStore
-	now func() time.Time
+	up    Upstream
+	st    investigate.ArtifactStore
+	now   func() time.Time
+	facts []domain.VerifiedFact
+}
+
+// Option configures a ChangeCollector.
+type Option func(*ChangeCollector)
+
+// WithKnowledge supplies the verified facts the wiring loaded from knowledge/
+// (app.LoadKnowledge: facts whose verification the loaded records prove).
+// Every fact attached to a change of the edge (impact.AttachedChanges, the
+// rule the join and the validators use) is stored as a knowledge-fact
+// artifact related to that change's item, so an investigation is
+// reproducible from its bundle alone (Principle 6): validators read the
+// facts from the bundle, not from the live knowledge base.
+func WithKnowledge(facts ...domain.VerifiedFact) Option {
+	return func(c *ChangeCollector) { c.facts = append(c.facts, facts...) }
 }
 
 var _ investigate.ChangeCollector = (*ChangeCollector)(nil)
 
 // NewChangeCollector returns the collector over the application's Upgrade and
 // release-scope RenderDiffEdge, writing artifacts to st.
-func NewChangeCollector(a *app.App, st investigate.ArtifactStore) investigate.ChangeCollector {
-	return &ChangeCollector{up: appUpstream{a}, st: st, now: time.Now}
+func NewChangeCollector(a *app.App, st investigate.ArtifactStore, opts ...Option) investigate.ChangeCollector {
+	return NewChangeCollectorOver(appUpstream{a}, st, opts...)
 }
 
 // NewChangeCollectorOver is NewChangeCollector over any Upstream.
-func NewChangeCollectorOver(up Upstream, st investigate.ArtifactStore) investigate.ChangeCollector {
-	return &ChangeCollector{up: up, st: st, now: time.Now}
+func NewChangeCollectorOver(up Upstream, st investigate.ArtifactStore, opts ...Option) investigate.ChangeCollector {
+	c := &ChangeCollector{up: up, st: st, now: time.Now}
+	for _, o := range opts {
+		o(c)
+	}
+	return c
 }
 
 // CollectChange builds the ChangeEvidenceRecord. A source it cannot collect is
@@ -144,13 +164,18 @@ func (c *ChangeCollector) CollectChange(ctx context.Context, req investigate.Cha
 	}
 	b.finish() // manifestation / scope need the correlated paths
 
-	// 3. Anchored items for unexplained structural release changes (phase C).
+	// 3. Anchored items for every unexplained release change (phase C).
 	if mp != nil && mp.Status == domain.CollectionOK {
-		b.anchorStructural(mp, pair)
+		b.anchorUnexplained(mp, pair)
 	}
 	items := b.items()
 
-	// 4. Source collection status and documents.
+	// 4. The verified facts attached to the items, stored as artifacts.
+	if err := c.knowledgeFacts(put, edge, items); err != nil {
+		return nil, err
+	}
+
+	// 5. Source collection status and documents.
 	sources, err := c.sources(ctx, put, edge, items, mp, renderErr, req.Render)
 	if err != nil {
 		return nil, err
@@ -176,6 +201,60 @@ func (c *ChangeCollector) CollectChange(ctx context.Context, req investigate.Cha
 	sort.Slice(res.Artifacts, func(i, j int) bool { return res.Artifacts[i].Path < res.Artifacts[j].Path })
 	res.Artifacts = dedupeRefs(res.Artifacts)
 	return res, nil
+}
+
+// knowledgeFacts stores every supplied fact attached to a change that has an
+// item as a knowledge-fact artifact (canonical JSON of the fact as loaded:
+// its status and verification are what the knowledge base said at collection
+// time), related to those items, and lists it in the items' Artifacts.
+func (c *ChangeCollector) knowledgeFacts(put putFunc, edge *domain.UpgradeEdge, items []domain.ChangeItem) error {
+	if len(c.facts) == 0 {
+		return nil
+	}
+	index := map[string]int{}
+	for i, it := range items {
+		if it.ChangeID != "" {
+			index[it.ChangeID] = i
+		}
+	}
+	facts := append([]domain.VerifiedFact(nil), c.facts...)
+	sort.Slice(facts, func(i, j int) bool { return facts[i].ID < facts[j].ID })
+	seen := map[string]bool{}
+	for _, f := range facts {
+		if seen[f.ID] {
+			continue
+		}
+		seen[f.ID] = true
+		var related []int
+		var ids []string
+		for _, ch := range impact.AttachedChanges(f, edge) {
+			if i, ok := index[ch.ID]; ok {
+				related = append(related, i)
+				ids = append(ids, items[i].ID)
+			}
+		}
+		if len(related) == 0 {
+			continue // not about this upgrade's items
+		}
+		sort.Strings(ids)
+		data, err := json.MarshalIndent(f, "", "  ")
+		if err != nil {
+			return fmt.Errorf("change: knowledge fact %s: %w", f.ID, err)
+		}
+		ref, err := put(investigate.ArtifactSpec{
+			Kind: domain.ArtifactKnowledgeFact, Path: "derived/knowledge/" + string(edge.Product.ID) + "/" + f.ID + ".json",
+			Origin: domain.OriginDerived, MediaType: "application/json", URI: "knowledge:" + f.ID, Producer: ChangeProducer,
+			Tags:        []string{"knowledge-fact", string(edge.Product.ID), f.ID, string(f.Status), strings.ToLower(string(f.Level()))},
+			ChangeItems: uniqStrings(ids),
+		}, append(data, '\n'))
+		if err != nil {
+			return fmt.Errorf("change: knowledge fact %s: %w", f.ID, err)
+		}
+		for _, i := range related {
+			items[i].Artifacts = mergeSorted(items[i].Artifacts, []string{ref.ID})
+		}
+	}
+	return nil
 }
 
 // normalizedEdgeJSON serialises the edge without wall-clock fields.
@@ -350,28 +429,41 @@ func (b *itemBuilder) finish() {
 	}
 }
 
-// anchorStructural adds an in-scope item for every release-scope rendered
-// change no change explains whose class the default tier policy blocks
-// (scope:rendered-structural) and points the change at it.
-func (b *itemBuilder) anchorStructural(mp *domain.ManifestPair, pair *render.Pair) {
-	structural := map[string]bool{}
+// anchorUnexplained gives every release-scope rendered change no change
+// explains its own item and points the change at it (DESIGN.md §1.3, first
+// match wins): a class the default tier policy blocks is
+// scope:rendered-structural; the version bump of an image the product
+// definition publishes is scope:routine-self-artifact (out of scope, so the
+// change is correlated); anything else is scope:rendered-unexplained.
+func (b *itemBuilder) anchorUnexplained(mp *domain.ManifestPair, pair *render.Pair) {
+	scope := map[string]string{}
 	if pair != nil && pair.Diff != nil {
 		for _, c := range pair.Diff.Changes {
-			if isStructuralRender(c) {
-				structural[domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), c.Path, string(c.Class))] = true
+			id := domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), render.RenderedPath(c), string(c.Class))
+			switch _, self := render.SelfArtifactBump(c, b.edge); {
+			case isStructuralRender(c):
+				scope[id] = ScopeRenderedStructural
+			case self:
+				scope[id] = ScopeRoutineSelfArtifact
+			default:
+				scope[id] = ScopeRenderedUnexplained
 			}
 		}
 	}
 	evidence := b.diffEvidence(mp)
 	for i := range mp.Changes {
 		rc := &mp.Changes[i]
-		if len(rc.ChangeItems) > 0 || !structural[rc.ID] || len(evidence) == 0 {
+		if len(rc.ChangeItems) > 0 || scope[rc.ID] == "" || len(evidence) == 0 {
 			continue
 		}
-		f := changeFacts{RenderedAnchored: true}
+		f := changeFacts{RenderedAnchored: true, RenderedScope: scope[rc.ID]}
+		why := "not mentioned by any change"
+		if f.RenderedScope == ScopeRoutineSelfArtifact {
+			why = "version bump of the product's own image"
+		}
 		it := &domain.ChangeItem{
 			ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
-			Title:    strings.Join(strings.Fields(fmt.Sprintf("%s: %s %s (not mentioned by any change)", rc.Class, rc.Object, rc.Path)), " "),
+			Title:    strings.Join(strings.Fields(fmt.Sprintf("%s: %s %s (%s)", rc.Class, rc.Object, rc.Path, why)), " "),
 			Subjects: []string{rc.Object}, Evidence: evidence,
 		}
 		it.Manifestation, it.ManifestationRule = manifestationOf(f)
@@ -468,14 +560,14 @@ func (c *ChangeCollector) releasePair(ctx context.Context, put putFunc, pool map
 	}
 	byID := map[string]*domain.RenderedChange{}
 	for _, ch := range p.Diff.Changes {
-		id := domain.RenderedChangeID(domain.RenderRelease, releaseTarget, ch.Object.String(), ch.Path, string(ch.Class))
+		id := domain.RenderedChangeID(domain.RenderRelease, releaseTarget, ch.Object.String(), render.RenderedPath(ch), string(ch.Class))
 		l := linked[changeKey(ch)]
 		if existing, dup := byID[id]; dup { // two diff entries with one identity: merge their attributions
 			existing.ChangeItems = mergeSorted(existing.ChangeItems, l.items)
 			continue
 		}
 		rc := &domain.RenderedChange{
-			ID: id, Class: string(ch.Class), Object: ch.Object.String(), Path: ch.Path, Sensitive: ch.Sensitive,
+			ID: id, Class: string(ch.Class), Object: ch.Object.String(), Path: render.RenderedPath(ch), Sensitive: ch.Sensitive,
 			ChangeItems: l.items, Correlation: l.rule, Evidence: []domain.EvidenceID{ev.ID},
 		}
 		if !ch.Sensitive {

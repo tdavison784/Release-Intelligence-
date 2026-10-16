@@ -120,18 +120,7 @@ func (r *Renderer) RenderEnvironment(ctx context.Context, change *investigate.Ch
 		out.Notes = append(out.Notes, "render target detection failed: "+rel(err.Error()))
 		return out, nil
 	}
-	layered := valuesLayers(targets)
 	for _, n := range notes {
-		// a values file "skipped" on its own is still rendered as a layer
-		if f, _, ok := strings.Cut(strings.TrimPrefix(n, "values file "), ": skipped"); ok && strings.HasPrefix(n, "values file ") {
-			if by, ok := layered[filepath.Clean(f)]; ok {
-				n = fmt.Sprintf("values file %s: rendered as a values layer of %s, not on its own", f, by)
-			}
-		}
-		out.Notes = append(out.Notes, rel(n))
-	}
-	targets, skipped := dropLayeredValuesTargets(targets, layered, len(in.values) > 0)
-	for _, n := range skipped {
 		out.Notes = append(out.Notes, rel(n))
 	}
 	ix := newIndexer(change.Record, edge, rel)
@@ -148,17 +137,19 @@ func (r *Renderer) RenderEnvironment(ctx context.Context, change *investigate.Ch
 		}
 		seen[rel(t.ID)]++
 		status, reason := r.assess(ctx, p, edge)
-		mp, arts, evs, err := ix.pair(ctx, r.st, p, name, status, rel(reason))
+		mp, arts, evs, items, err := ix.pair(ctx, r.st, p, name, status, rel(reason))
 		if err != nil {
 			return nil, err
 		}
 		out.Pairs = append(out.Pairs, mp)
 		out.Artifacts = append(out.Artifacts, arts...)
 		out.Evidence = append(out.Evidence, evs...)
+		out.Items = append(out.Items, items...)
 	}
 	sort.Slice(out.Pairs, func(i, j int) bool { return out.Pairs[i].Target < out.Pairs[j].Target })
 	sort.Slice(out.Artifacts, func(i, j int) bool { return out.Artifacts[i].Path < out.Artifacts[j].Path })
 	out.Evidence = uniqueEvidence(out.Evidence)
+	sort.Slice(out.Items, func(i, j int) bool { return out.Items[i].ID < out.Items[j].ID })
 	if len(out.Pairs) == 0 {
 		out.Notes = append(out.Notes, "no deployment of "+product+" was found in the environment: no environment render exists")
 	}
@@ -400,46 +391,6 @@ func canonicalRepo(ref string) string {
 		ref = strings.TrimPrefix(ref, p)
 	}
 	return strings.TrimPrefix(ref, "library/")
-}
-
-// dropLayeredValuesTargets removes repo-discovered values-file targets whose
-// file is already a values layer of an Argo CD / Flux / Helmfile target: the
-// file alone is not how the environment deploys the product, and rendering
-// it alone would index changes of a configuration nobody runs. Explicit
-// --values targets are kept.
-func dropLayeredValuesTargets(targets []render.Target, layered map[string]string, explicitValues bool) ([]render.Target, []string) {
-	if explicitValues {
-		return targets, nil
-	}
-	var kept []render.Target
-	var notes []string
-	for _, t := range targets {
-		if t.Kind == render.TargetValuesFiles && len(t.Values) == 1 {
-			if by, ok := layered[filepath.Clean(t.Values[0].Origin)]; ok {
-				notes = append(notes, fmt.Sprintf("values file %s: rendered as a values layer of %s, not on its own", t.Origin, by))
-				continue
-			}
-		}
-		kept = append(kept, t)
-	}
-	return kept, notes
-}
-
-// valuesLayers maps each values file an Argo CD / Flux / Helmfile target
-// layers to that target's id.
-func valuesLayers(targets []render.Target) map[string]string {
-	layered := map[string]string{}
-	for _, t := range targets {
-		if t.Kind == render.TargetValuesFiles || t.Kind == render.TargetKustomize {
-			continue
-		}
-		for _, l := range t.Values {
-			if _, ok := layered[filepath.Clean(l.Origin)]; !ok {
-				layered[filepath.Clean(l.Origin)] = t.ID
-			}
-		}
-	}
-	return layered
 }
 
 // relativizer rewrites paths under the repository root to repo-relative

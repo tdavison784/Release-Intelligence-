@@ -2,7 +2,8 @@
 
 Branch `p4ei/renderdiff`, worktree `.claude/worktrees/p4ei-renderdiff`. Brief: `briefs/renderdiff.md`
 (+ `_wave1-common.md`, DESIGN §2.4 / §7 "renderdiff"). Merged `p4-env-impact` @ 918e855a (bundle lane).
-State: **DONE** (2026-10-16). Resume from: this file + brief + `git log`.
+State: **DONE — follow-ups 1 (DESIGN §1.3 amendment) and 2 (not-applicable, knowledge facts) complete** (2026-10-16). Resume from: this file +
+brief + `git log`. Since follow-up 1 the lane also owns `internal/investigate/bundle/` (bundle lane finished).
 
 ## Done
 
@@ -34,35 +35,93 @@ State: **DONE** (2026-10-16). Resume from: this file + brief + `git log`.
     `TestGroundtruthEnvironments` (`RI_RENDERDIFF_STATE=<warm .ri>`; skips without helm/kubectl).
 - `docs/INVESTIGATE.md` — "Render diffs" section.
 
+## Follow-up 1 (commander review of 5521569a; amendment adf4fe08) — done
+
+1. **`scope:routine-self-artifact`** — `render.SelfArtifactBump(change, edge)`: an `image-changed` (or an
+   argument `--flag=<image>`) whose before/after are one repository of the edge's container-image
+   artifacts (they come from the product definition) at exactly that artifact's from/to tags. Declarative:
+   reads the edge only; a mirrored repository or another tag does not qualify (→ unexplained, fail closed).
+   Out-of-scope item anchored on the change, so it is correlated.
+2. **`scope:rendered-unexplained`** — every other rendered change nothing explains gets its own in-scope
+   item (family `rendered`, `rendered-config`, `manifest:rendered-anchor`, evidence = the change's own
+   rendered-diff record):
+   - release scope: bundle collector `anchorUnexplained` (was `anchorStructural`): structural →
+     `scope:rendered-structural` (unchanged), self-artifact → `scope:routine-self-artifact`, else
+     `scope:rendered-unexplained`;
+   - environment scope: renderdiff, after Correlate links, computed-image attribution and
+     `release-anchor`, anchors the rest on **environment items** (`RenderResult.Items` → assembler →
+     `EvidenceBundle.EnvironmentItems`). Environment items cannot live in the change record (it is
+     environment-independent; its id is the collect-change idempotency key), hence the bundle field.
+   - domain: `ChangeItem` rule shape check (record + environment items), environment-item checks in
+     `EvidenceBundle.Validate` (anchor is an env rendered change of the bundle and correlates to the item,
+     scope rule is one of the two, unique ids, evidence), `Items()/Item()/InScope()`; `ValidateAgainst`
+     uses them (an in-scope environment item needs a finding). Schema: `scopeRule` pattern `^scope:` +
+     `ChangeItem` `allOf` conditionals for both rules; `environmentItems` property.
+3. **Shared path convention** — `render.RenderedPath` (member selectors for args / RBAC) used by the bundle
+   collector (release scope) and renderdiff (environment scope); renderdiff's local `changePath` removed.
+   Release-scope ids of arg/RBAC changes therefore change (they gain the selector) — no golden pins them.
+4. **`render.DetectTargets` fix** — a repo-local values file an Argo CD / Flux target layers is no longer a
+   target of its own (note: "rendered as a values layer of …"); renderdiff's filter and note rewriting removed.
+   **Golden changes: none** — every existing test/golden passed unchanged (no fixture has a values file both
+   layered by an Argo/Flux target and discovered on its own); new test `TestDetectTargetsLayeredValuesFile`.
+   The only regenerated file is `schemas/evidence-bundle.schema.json`: (a) `ChangeItem.scopeRule` gains
+   `"pattern": "^scope:"`; (b) `ChangeItem` gains the two `allOf` if/then rules above; (c)
+   `EvidenceBundle.environmentItems` (array of `ChangeItem`) is added. The other schemas are byte-identical.
+
+## Follow-up 2 (commander queue note, after validate merged at e9566913) — done
+
+(a) **`not-applicable` pairs never block** automated approval: already in follow-up 1's `ValidateAgainst`
+change (only `ok`/`not-applicable` allowed, ≥1 `ok`); `EvidenceBundle.Uncorrelated()` only reads indexed
+changes, which a non-ok pair cannot carry. Test `TestAutoApprovalAcceptsNotApplicableRenders` now also
+asserts the bundle validates with such a pair and `Uncorrelated()` is unchanged by it.
+
+(b) **Knowledge facts in the bundle** — `bundle.WithKnowledge(facts...)` option on
+`NewChangeCollector`/`NewChangeCollectorOver` (additive, variadic). Every supplied fact that
+`impact.AttachedChanges` attaches to a change with an item is stored as a `knowledge-fact` artifact
+(`derived/knowledge/<product>/<fact-id>.json`, canonical JSON of the fact as loaded, URI `knowledge:<id>`,
+tags incl. status and verification level, `ChangeItems` = those items) and listed in the items'
+`Artifacts`. validate's `OverrideInspection` already reads exactly these (`ArtifactKnowledgeFact` +
+`ChangeItems`), so the wiring can pass `bundle.WithKnowledge(ks.Facts...)` and drop
+`validate.WithFacts`. Facts not attached to any item are not stored; retracted/superseded or other-product
+facts never attach. Test `TestChangeStoresAttachedKnowledgeFacts`. Real bundles (groundtruth test, knowledge/
+loaded): cert-manager 18 fact artifacts per bundle; ingress-nginx 0 and kube-prometheus-stack 0 (no
+knowledge for those products in knowledge/ — honest).
+
+Note: `gofmt -l` flags four files in `internal/investigate/validate/` (validate lane, as merged); untouched.
+
 ## Render coverage on the groundtruth environments (8 cases, inputs + env/ only)
 
-Real helm/kubectl renders, kube-version 1.31. Measured with lane bundle's real collector / snapshot builder
-/ assembler + this renderer (all 8 bundles assemble and `Validate`); kube-prometheus-stack charts were fetched
-online once (warmed the shared `.ri` cache), everything else offline.
+Real pipeline (bundle collector + snapshot builder → renderdiff → assembler; every bundle `Validate`s,
+every indexed change resolves to the artifact bytes, two runs identical), helm/kubectl, kube-version 1.31,
+offline from the warm `.ri` cache. Reproduce: `RI_RENDERDIFF_STATE=<.ri> go test
+./internal/investigate/renderdiff -run Groundtruth -v` (`RI_RENDERDIFF_DUMP=1` lists every change's rule).
 
-| case | targets | ok | partial | unavailable | not-applicable | non-ok reasons | env rendered changes | correlated | uncorrelated |
-|---|---|---|---|---|---|---|---|---|---|
-| cert-manager-1.17-1.18--payments-eu | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 49 | 36 | 13 |
-| cert-manager-1.17-1.18--payments-us | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 49 | 36 | 13 |
-| ingress-nginx-1.11-1.12--shop-de | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 7 | 7 | 0 |
-| ingress-nginx-1.11-1.12--shop-fr | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 7 | 7 | 0 |
-| ingress-nginx-1.11-1.12--shop-nl | 4 | 1 | 0 | 0 | 3 | version-independent×3 | 11 | 7 | 4 |
-| ingress-nginx-1.11-1.12--shop-pl | 3 | 0 | 1 | 0 | 2 | values-incomplete×1 (value files in another repo), version-independent×2 | 0 | 0 | 0 |
-| kube-prometheus-stack-89-90--obs-north | 2 | 1 | 0 | 0 | 1 | version-independent×1 | 5 | 0 | 5 |
-| kube-prometheus-stack-89-90--obs-south | 2 | 1 | 0 | 0 | 1 | version-independent×1 | 5 | 0 | 5 |
+| case | targets | ok | partial | unavail. | n/a | non-ok reasons | env rendered changes | explained upstream | structural item | self-artifact item | unexplained item | env items | uncorrelated |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| cert-manager-1.17-1.18--payments-eu | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 49 | 34 | 2 | 5 | 8 | 2 | **0** |
+| cert-manager-1.17-1.18--payments-us | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 49 | 34 | 2 | 5 | 8 | 2 | **0** |
+| ingress-nginx-1.11-1.12--shop-de | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 7 | 7 | 0 | 0 | 0 | 0 | **0** |
+| ingress-nginx-1.11-1.12--shop-fr | 3 | 1 | 0 | 0 | 2 | version-independent×2 | 7 | 7 | 0 | 0 | 0 | 0 | **0** |
+| ingress-nginx-1.11-1.12--shop-nl | 4 | 1 | 0 | 0 | 3 | version-independent×3 | 11 | 7 | 0 | 0 | 4 | 4 | **0** |
+| ingress-nginx-1.11-1.12--shop-pl | 3 | 0 | 1 | 0 | 2 | values-incomplete×1, version-independent×2 | 0 | — | — | — | — | 0 | 0 |
+| kube-prometheus-stack-89-90--obs-north | 2 | 1 | 0 | 0 | 1 | version-independent×1 | 5 | 0 | 0 | 0 | 5 | 0 | **0** |
+| kube-prometheus-stack-89-90--obs-south | 2 | 1 | 0 | 0 | 1 | version-independent×1 | 5 | 0 | 0 | 0 | 5 | 0 | **0** |
 
-Every case with a complete repository has exactly one complete (`ok`) render of the product's Argo CD
-Application (all value files layered); shop-pl is honestly `partial`. Offline without the kps chart in
-cache, the kps pairs are `unavailable: chart-unavailable` (an honest gap).
+(Columns "structural/self-artifact/unexplained item" count environment changes attributed to an item of
+that rule, at release scope via `release-anchor` or at environment scope; "env items" are the
+environment-scope ones.) Previously uncorrelated: cert-manager 13, shop-nl 4, kps 5 → now **0** everywhere.
 
-What stays uncorrelated (with bundle's real items): cert-manager — 6 product-image version bumps
-(controller/webhook/cainjector/startupapicheck images, `--acme-http01-solver-image` arg), ClusterRole/
-Binding split into dns01/http01 (`resource-added` ×4), CRD `shortNames` ×2, webhook probe port ×2;
-shop-nl — 4 environment-only removals (`allow-snippet-annotations` ConfigMap key, `modules` init
-container/volume/mount) with no release-scope counterpart; kps — ServiceMonitor endpoints ×3, operator
-`--secret-field-selector` arg, a new `prometheus-token` Secret. With the collector rule proposed below
-(anchor every unexplained release-scope change), the simulated counts are cert-manager 2, kps 0, shop-nl 4
-(environment-specific, as it should be).
+- cert-manager: 5 self-artifact (controller / webhook / cainjector / startupapicheck images and the
+  `--acme-http01-solver-image` arg); 2 structural (old `*-controller-challenges` ClusterRole/Binding
+  removed); 8 unexplained in scope (dns01/http01 ClusterRole/Binding added ×4, webhook probe ports ×2, CRD
+  `spec.names.shortNames` ×2). The 2 CRD `shortNames` changes are **environment items**: the chart-defaults
+  render has CRDs disabled (`crds.enabled=false` by default), so they have no release counterpart.
+- shop-nl: 4 environment-only removals (ConfigMap `allow-snippet-annotations`, `modules` init container,
+  volume, mount) — enabled by this environment's values, absent from the chart-defaults render → 4 in-scope
+  environment items. Exactly the environment-specific signal the amendment wants investigated.
+- kps: 5 unexplained (ServiceMonitor endpoints ×3, operator `--secret-field-selector`, new
+  `prometheus-token` Secret) — matched to release-scope `scope:rendered-unexplained` items.
+- Honest gaps unchanged: shop-pl `partial` (value files in another repository → no changes indexed).
 
 ## Decisions (with why)
 
@@ -81,10 +140,11 @@ container/volume/mount) with no release-scope counterpart; kps — ServiceMonito
   `not-applicable` with reason `version-independent:` — their render cannot change with the product
   version; their `from` render is kept (useful to the agent/relations). Not a gap for R2.1. An overlay
   running the product's images unpinned is `unavailable` (a real gap).
-- **Layered values files**: a repo-discovered `values:` target whose file is a layer of an Argo/Flux/
-  Helmfile target is dropped (with a note): rendering it alone indexes changes of a configuration nobody
-  deploys (shop-de had 7 vs 8 spurious changes). render.DetectTargets' "skipped" note for such a file is
-  rewritten to "rendered as a values layer of …".
+- **Layered values files**: a repo-discovered values file an Argo/Flux/Helmfile target layers is not a
+  target of its own — now in `render.DetectTargets` itself (follow-up 1); rendering it alone indexed
+  changes of a configuration nobody deploys (shop-de had 7 vs 8 spurious changes).
+- **Self-artifact bump is strict** (same repository, exact edge tags): a customer mirror becomes
+  `scope:rendered-unexplained` (investigated) rather than silently routine — fail closed.
 - Incomplete pairs still store their renders and, when both sides rendered, the diff (`indexed: false`,
   no change items) for inspection; nothing is indexed.
 - `Correlation` = the distinct rules joined with `,` (a change can be linked by several).
@@ -94,10 +154,29 @@ container/volume/mount) with no release-scope counterpart; kps — ServiceMonito
 ## Files touched outside ownership (additive)
 
 - `internal/render/chartcoverage.go` — exported `(*Engine).ChartDefaults` (wrapper of `chartDefaults`).
+- `internal/render/rendered.go` (new: `RenderedPath`, `SelfArtifactBump` + tests), `internal/render/source.go`
+  (`DetectTargets` layered-values fix + test), `docs/RENDER.md` (values-files row) — commander-requested.
+- `internal/domain/investigation.go`, `internal/domain/schemagen/meta.go`, `schemas/evidence-bundle.schema.json`,
+  new `internal/domain/investigation_scope_test.go` — the amendment's contract (CONTRACT-CHANGE markers).
+- `internal/investigate/relations/exposure.go` — one line: exposure roots over `b.Items()` (record +
+  environment items).
 - `internal/investigate/api.go` — the two contract changes below.
 - `docs/INVESTIGATE.md` — "Render diffs" section only.
 
 ## Contract changes
+
+Follow-up 1 (all `// CONTRACT-CHANGE(renderdiff)`, additive):
+- `domain.ScopeRenderedStructural/ScopeRenderedUnexplained/ScopeRoutineSelfArtifact` constants and the
+  rendered-scope item shape rule (record and environment items; schema conditionals).
+- `EvidenceBundle.EnvironmentItems []ChangeItem` + `Items()/Item()/InScope()`; `Validate` /
+  `ValidateAgainst` use them. (`BundleID` unchanged: environment items are a deterministic function of the
+  renders, whose key already includes every item id a rendered change carries.)
+- `investigate.RenderResult.Items []domain.ChangeItem` (renderer → assembler).
+- `ValidateAgainst` auto-approval: a `not-applicable` environment pair (version-independent target) no
+  longer blocks; at least one `ok` pair is required. Before, every case with a consumer overlay could never
+  be approval-eligible. **Commander: please confirm.**
+
+Wave 1:
 
 - `// CONTRACT-CHANGE(renderdiff)` `RenderResult.Notes []string` — target-detection notes (skipped files,
   renders disabled, no deployment found) so "no pairs" is never silent.
@@ -106,7 +185,8 @@ container/volume/mount) with no release-scope counterpart; kps — ServiceMonito
 
 ## Open questions / cross-lane notes (commander)
 
-1. **Product-image version bumps have no change item** (bundle creates computed image items only for
+0. Items 1–3 below were resolved by follow-up 1 (amendment + shared helpers + DetectTargets fix).
+1. ~~**Product-image version bumps have no change item**~~ (bundle creates computed image items only for
    added/removed/moved images), so every upgrade leaves ~6 uncorrelated env changes for cert-manager and
    can never be approval-eligible. Proposal for lane bundle: anchor an item (family `rendered`/`image`,
    likely `scope:not-breaking`) on every release-scope rendered change no change explains (today only
@@ -121,7 +201,9 @@ container/volume/mount) with no release-scope counterpart; kps — ServiceMonito
 
 ## Tests
 
-- `go build ./... && go vet ./... && go test ./...` green (38 packages ok, 0 fail) after merging p4-env-impact.
+- `go build ./... && go vet ./... && go test ./...` green (39 packages ok, 0 fail) after merging p4-env-impact
+  @ 6f3ef2e4 (follow-up 2; TestEvalRenderCases offline).
+- `RI_STATE=<.ri> go test ./internal/investigate/bundle -run Groundtruth` ok (bundle's own groundtruth bundles).
 - `RI_RENDERDIFF_STATE=/Users/tommydavison/repos/Release-Intelligence-/.ri go test ./internal/investigate/renderdiff -run Groundtruth -v`
   — 8/8 pass (bundle validates, every change resolves, two runs identical).
 - Cleanup: no kind clusters or servers; `bin/` removed; scratch only in the session scratchpad.

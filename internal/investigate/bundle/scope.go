@@ -21,9 +21,12 @@ const (
 	ScopeRoutineExcluded    = "scope:routine-excluded"
 	ScopeBreaking           = "scope:breaking"
 	ScopeComputedBreaking   = "scope:computed-breaking"
-	ScopeRenderedStructural = "scope:rendered-structural"
-	ScopeCategory           = "scope:category"
-	ScopeNotBreaking        = "scope:not-breaking"
+	ScopeRenderedStructural = domain.ScopeRenderedStructural
+	// DESIGN.md §1.3 amendment (2026-10-16).
+	ScopeRenderedUnexplained = domain.ScopeRenderedUnexplained
+	ScopeRoutineSelfArtifact = domain.ScopeRoutineSelfArtifact
+	ScopeCategory            = "scope:category"
+	ScopeNotBreaking         = "scope:not-breaking"
 )
 
 // Manifestation rule names (DESIGN.md §2.2.1).
@@ -96,8 +99,11 @@ type changeFacts struct {
 	// CompatibilityChange.Narrowed.
 	Platform bool
 	Narrowed bool
-	// RenderedAnchored marks an item anchored on a release-scope rendered change.
+	// RenderedAnchored marks an item anchored on a release-scope rendered
+	// change; RenderedScope is its scope rule (structural, unexplained or
+	// self-artifact; "" = structural).
 	RenderedAnchored bool
+	RenderedScope    string
 	// CorrelatedPaths are the paths of the release-scope rendered changes
 	// correlated to the item by rule subject, values-default or artifact.
 	CorrelatedPaths []string
@@ -117,6 +123,10 @@ func scopeOf(f changeFacts) (bool, string) {
 		return false, ScopeRoutineExcluded
 	case f.Breaking || f.ActionRequired:
 		return true, ScopeBreaking
+	case f.RenderedAnchored && f.RenderedScope == ScopeRoutineSelfArtifact:
+		return false, ScopeRoutineSelfArtifact
+	case f.RenderedAnchored && f.RenderedScope == ScopeRenderedUnexplained:
+		return true, ScopeRenderedUnexplained
 	case f.RenderedAnchored:
 		return true, ScopeRenderedStructural
 	case f.Platform && f.Narrowed:

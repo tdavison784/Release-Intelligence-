@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/render"
@@ -55,17 +55,34 @@ func TestCompletePairIndexesCorrelatedChanges(t *testing.T) {
 	if _, ok := byKey["container-arg-added "+argPath+"[=--enable-foo]"]; !ok {
 		t.Errorf("--enable-foo change missing")
 	}
-	// a link to a change without a change item (routine) does not correlate
-	if c := byKey["container-arg-added "+argPath+"[=--enable-foo]"]; len(c.ChangeItems) != 0 {
-		t.Errorf("routine-only link correlated: %v", c.ChangeItems)
+	items := map[string]domain.ChangeItem{}
+	for _, it := range res.Items {
+		items[it.ID] = it
+	}
+	anchored := func(c domain.RenderedChange, scope string) bool {
+		it, ok := items[domain.ChangeItemID("", "", c.ID)]
+		return ok && reflect.DeepEqual(c.ChangeItems, []string{it.ID}) && c.Correlation == RuleRenderedAnchor &&
+			it.ScopeRule == scope && it.RenderedChange == c.ID && reflect.DeepEqual(it.Evidence, c.Evidence)
+	}
+	// a link to a change without a change item (routine) does not correlate:
+	// the change anchors its own, in-scope, environment item
+	if c := byKey["container-arg-added "+argPath+"[=--enable-foo]"]; !anchored(c, domain.ScopeRenderedUnexplained) {
+		t.Errorf("routine-only link: %+v", c)
 	}
 	if c := byKey["service-port-changed spec.ports[name=http]"]; !reflect.DeepEqual(c.ChangeItems, []string{domain.ChangeItemID("chg-b", "", "")}) {
 		t.Errorf("service port items = %v", c.ChangeItems)
 	}
-	// an artifact-delta link names no change: uncorrelated without an anchored item
+	// the product's own image at the new release's tag: an out-of-scope
+	// self-artifact item, so the change is correlated
 	img := byKey["image-changed spec.template.spec.containers[name=controller].image"]
-	if img.ID == "" || len(img.ChangeItems) != 0 || img.Correlation != "" {
+	if !anchored(img, domain.ScopeRoutineSelfArtifact) || items[img.ChangeItems[0]].InScope {
 		t.Errorf("image change = %+v", img)
+	}
+	if c := byKey["resource-added "]; !anchored(c, domain.ScopeRenderedUnexplained) || !items[c.ChangeItems[0]].InScope {
+		t.Errorf("new ConfigMap = %+v", c)
+	}
+	if len(res.Items) != 8 {
+		t.Errorf("environment items = %d, want 8 (every change no upstream change explains)", len(res.Items))
 	}
 	// RBAC permissions on one rules list are distinct changes
 	if _, ok := byKey["rbac-permission-added rules[=apps/deployments:watch]"]; !ok {
@@ -92,8 +109,8 @@ func TestCompletePairIndexesCorrelatedChanges(t *testing.T) {
 	if err := b.Validate(); err != nil {
 		t.Fatalf("bundle: %v", err)
 	}
-	if un := b.Uncorrelated(); len(un) == 0 {
-		t.Errorf("expected uncorrelated changes (image bump, ConfigMap)")
+	if un := b.Uncorrelated(); len(un) != 0 {
+		t.Errorf("every environment change is correlated now (DESIGN §1.3 amendment): %v", un)
 	}
 	assertResolves(t, f.st, b)
 	if len(res.Notes) == 0 || strings.Contains(strings.Join(res.Notes, "\n"), f.repo) {
@@ -106,7 +123,7 @@ func TestCompletePairIndexesCorrelatedChanges(t *testing.T) {
 // locator naming its entry, the entry is in the stored diff, and its object
 // (and path, when the object exists on that side) reads from the stored
 // render with text that occurs in the bytes.
-func assertResolves(t *testing.T, st *memStore, b *domain.EvidenceBundle) {
+func assertResolves(t *testing.T, st investigate.ArtifactStore, b *domain.EvidenceBundle) {
 	t.Helper()
 	ev := b.EvidenceByID()
 	for _, p := range b.Renders {
@@ -115,7 +132,7 @@ func assertResolves(t *testing.T, st *memStore, b *domain.EvidenceBundle) {
 		}
 		diffRef, _ := b.Manifest.Lookup(p.Diff)
 		var doc DiffDocument
-		raw := st.text(t, diffRef.Digest)
+		raw := storedText(t, st, diffRef.Digest)
 		if err := json.Unmarshal([]byte(raw), &doc); err != nil {
 			t.Fatal(err)
 		}
@@ -145,7 +162,7 @@ func assertResolves(t *testing.T, st *memStore, b *domain.EvidenceBundle) {
 				}
 				continue
 			}
-			if !investigate.QuoteOccurs(st.text(t, obj.Artifact.Digest), obj.YAML) {
+			if !investigate.QuoteOccurs(storedText(t, st, obj.Artifact.Digest), obj.YAML) {
 				t.Errorf("%s: object text does not occur in the artifact:\n%s", c.ID, obj.YAML)
 			}
 		}
@@ -254,30 +271,6 @@ spec:
 	}
 	if err := f.bundle(t, res).Validate(); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestLayeredValuesFileIsNotRenderedAlone(t *testing.T) {
-	f := newFixture(t)
-	argo := helmTarget("argocd:"+f.repo+"/app.yaml#0", render.TargetArgoCD, f.repo+"/app.yaml#0", "")
-	argo.Values = []render.ValuesLayer{{Origin: f.repo + "/values.yaml", Content: []byte("replicaCount: 2\n")}, {Origin: f.repo + "/values-prod.yaml", Content: []byte("replicaCount: 3\n")}}
-	f.targets = []render.Target{
-		argo,
-		helmTarget("values:"+f.repo+"/values.yaml", render.TargetValuesFiles, f.repo+"/values.yaml", "replicaCount: 2\n"),
-		helmTarget("values:"+f.repo+"/values-prod.yaml", render.TargetValuesFiles, f.repo+"/values-prod.yaml", "replicaCount: 3\n"),
-		helmTarget("values:"+f.repo+"/standalone.yaml", render.TargetValuesFiles, f.repo+"/standalone.yaml", "replicaCount: 1\n"),
-	}
-	f.r.targets = func(string, app.RenderOptions) ([]render.Target, []string, error) {
-		return f.targets, []string{"values file " + f.repo + "/values.yaml: skipped (its name does not name acme; pass it with --values to render it)"}, nil
-	}
-	res := renderOK(t, f)
-	if got := targetNames(res.Pairs); !reflect.DeepEqual(got, []string{"argocd:app.yaml#0", "values:standalone.yaml"}) {
-		t.Errorf("targets = %v", got)
-	}
-	notes := strings.Join(res.Notes, "\n")
-	if !strings.Contains(notes, "values file values-prod.yaml: rendered as a values layer of") ||
-		strings.Contains(notes, "skipped") || !strings.Contains(notes, "values file values.yaml: rendered as a values layer of argocd:app.yaml#0") {
-		t.Errorf("notes = %s", notes)
 	}
 }
 
@@ -401,4 +394,14 @@ func TestArtifactLinkAttachesToComputedImageItem(t *testing.T) {
 		}
 	}
 	must(t, f.bundle(t, res).Validate())
+}
+
+func storedText(t *testing.T, st investigate.ArtifactStore, digest string) string {
+	t.Helper()
+	rc, err := st.Open(context.Background(), digest)
+	must(t, err)
+	defer rc.Close()
+	b, err := io.ReadAll(rc)
+	must(t, err)
+	return string(b)
 }

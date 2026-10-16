@@ -57,13 +57,20 @@ type DiffDocument struct {
 type DiffEntry struct {
 	ID string `json:"id"`
 	// Path is the RenderedChange path: the render path, plus a member
-	// selector for set-valued paths (see changePath).
+	// selector for set-valued paths (render.RenderedPath).
 	Path string `json:"path,omitempty"`
 	render.Change
 	Links       []render.ChangeLink `json:"links,omitempty"`
 	ChangeItems []string            `json:"changeItems,omitempty"`
 	Correlation string              `json:"correlation,omitempty"`
+	// anchor is the scope rule of the environment item this entry anchors
+	// (nothing else explains it), "" when it is explained.
+	anchor string
 }
+
+// RuleRenderedAnchor is the correlation rule of a rendered change attributed
+// to the item anchored on it (the release-scope collector uses the same).
+const RuleRenderedAnchor = "rendered-anchor"
 
 // MarshalJSON keeps the entry's Path (the RenderedChange path) over the
 // embedded render path, which is kept as renderPath.
@@ -143,7 +150,7 @@ func anchorKeys(class, object, path, release string) []string {
 var memberSelector = regexp.MustCompile(`\[=[^\]]*\]$`)
 
 // pair stores one render pair's artifacts and indexes its changes.
-func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *render.Pair, name string, status domain.CollectionStatus, reason string) (domain.ManifestPair, []domain.ArtifactRef, []domain.Evidence, error) {
+func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *render.Pair, name string, status domain.CollectionStatus, reason string) (domain.ManifestPair, []domain.ArtifactRef, []domain.Evidence, []domain.ChangeItem, error) {
 	mp := domain.ManifestPair{Scope: domain.RenderEnvironment, Target: name, Status: status, Reason: reason}
 	dir := "derived/render/env/" + slug(name)
 	product := string(ix.edge.Product.ID)
@@ -170,15 +177,15 @@ func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *re
 		ref, err := put(investigate.ArtifactSpec{Kind: domain.ArtifactRenderedManifests, Path: dir + "/" + side.name + ".yaml",
 			MediaType: "application/yaml", Redacted: redacted, Tags: manifestTags(product, p, side.name, side.res.Objects)}, b)
 		if err != nil {
-			return mp, nil, nil, err
+			return mp, nil, nil, nil, err
 		}
 		*side.dst = ref.ID
 	}
 	if p.Diff == nil {
-		return mp, arts, nil, nil
+		return mp, arts, nil, nil, nil
 	}
 	indexed := status == domain.CollectionOK
-	entries := ix.entries(p, name)
+	entries := ix.entries(p, name, indexed)
 	doc := DiffDocument{SchemaVersion: DiffSchemaVersion, Product: product, From: p.From, To: p.To, Scope: domain.RenderEnvironment,
 		Target: name, TargetKind: p.Target.Kind, Why: ix.rel(p.Target.Why), ReleaseName: p.Target.ReleaseName, Namespace: p.Target.Namespace,
 		NamesAssumed: p.Target.NamesAssumed, Status: status, Reason: reason, Indexed: indexed,
@@ -189,7 +196,7 @@ func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *re
 	}
 	b, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
-		return mp, nil, nil, investigate.PermanentError(domain.StageAssemble, fmt.Errorf("renderdiff: encode diff: %w", err))
+		return mp, nil, nil, nil, investigate.PermanentError(domain.StageAssemble, fmt.Errorf("renderdiff: encode diff: %w", err))
 	}
 	var items []string
 	sensitive := false
@@ -205,13 +212,14 @@ func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *re
 	diffRef, err := put(investigate.ArtifactSpec{Kind: domain.ArtifactRenderDiff, Path: dir + "/diff.json", MediaType: "application/json",
 		Redacted: sensitive, Tags: diffTags(product, p, entries), ChangeItems: items}, b)
 	if err != nil {
-		return mp, nil, nil, err
+		return mp, nil, nil, nil, err
 	}
 	mp.Diff = diffRef.ID
 	if !indexed {
-		return mp, arts, nil, nil
+		return mp, arts, nil, nil, nil
 	}
 	var evs []domain.Evidence
+	var envItems []domain.ChangeItem
 	for _, e := range entries {
 		rc := domain.RenderedChange{ID: e.ID, Class: string(e.Class), Object: e.Object.String(), Path: e.Path, Sensitive: e.Sensitive,
 			ChangeItems: e.ChangeItems, Correlation: e.Correlation}
@@ -222,19 +230,37 @@ func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *re
 		rc.Evidence = []domain.EvidenceID{ev.ID}
 		evs = append(evs, ev)
 		mp.Changes = append(mp.Changes, rc)
+		if e.anchor != "" {
+			envItems = append(envItems, anchoredItem(rc, e.anchor))
+		}
 	}
-	return mp, arts, evs, nil
+	return mp, arts, evs, envItems, nil
+}
+
+// anchoredItem is the environment item of a rendered change nothing else
+// explains (DESIGN §1.3 amendment): scope:routine-self-artifact (out of
+// scope) for a self-artifact version bump, else scope:rendered-unexplained
+// (in scope). Its upstream evidence is the rendered change's own record.
+func anchoredItem(rc domain.RenderedChange, scope string) domain.ChangeItem {
+	title := fmt.Sprintf("%s: %s %s (not explained by any upstream change)", rc.Class, rc.Object, rc.Path)
+	if scope == domain.ScopeRoutineSelfArtifact {
+		title = fmt.Sprintf("%s: %s %s (version bump of the product's own image)", rc.Class, rc.Object, rc.Path)
+	}
+	return domain.ChangeItem{ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
+		Title: strings.Join(strings.Fields(title), " "), Subjects: []string{rc.Object}, Evidence: rc.Evidence,
+		Manifestation: domain.ManifestRenderedConfig, ManifestationRule: "manifest:rendered-anchor",
+		InScope: scope == domain.ScopeRenderedUnexplained, ScopeRule: scope}
 }
 
 // entries derives the indexed form of every change of the pair's diff,
 // sorted by id.
-func (ix *indexer) entries(p *render.Pair, target string) []DiffEntry {
+func (ix *indexer) entries(p *render.Pair, target string, indexed bool) []DiffEntry {
 	corr := render.Correlate(p.Diff, ix.edge)
 	release := p.Target.ReleaseName
 	seen := map[string]int{}
 	out := make([]DiffEntry, 0, len(p.Diff.Changes))
 	for i, c := range p.Diff.Changes {
-		e := DiffEntry{Change: c, Path: changePath(c)}
+		e := DiffEntry{Change: c, Path: render.RenderedPath(c)}
 		id := domain.RenderedChangeID(domain.RenderEnvironment, target, c.Object.String(), e.Path, string(c.Class))
 		if n := seen[id]; n > 0 { // still not unique: disambiguate in diff order
 			e.Path = fmt.Sprintf("%s[#%d]", e.Path, n+1)
@@ -275,6 +301,14 @@ func (ix *indexer) entries(p *render.Pair, target string) []DiffEntry {
 				break
 			}
 		}
+		if len(e.ChangeItems) == 0 && indexed {
+			// nothing explains it: it anchors its own environment item
+			e.anchor = domain.ScopeRenderedUnexplained
+			if _, ok := render.SelfArtifactBump(c, ix.edge); ok {
+				e.anchor = domain.ScopeRoutineSelfArtifact
+			}
+			e.ChangeItems, rules = []string{domain.ChangeItemID("", "", e.ID)}, []string{RuleRenderedAnchor}
+		}
 		sort.Strings(e.ChangeItems)
 		sort.Strings(rules)
 		e.Correlation = strings.Join(rules, ",")
@@ -297,27 +331,6 @@ func itemMentions(it domain.ChangeItem, repo string) bool {
 		}
 	}
 	return false
-}
-
-// changePath is the RenderedChange path of a render change. Container args
-// and RBAC rules are sets addressed by one path, so their changes get a
-// member selector — "...args[=--flag]", "rules[=apps/deployments:get]" —
-// which keeps (scope, target, object, path, class) unique per change.
-func changePath(c render.Change) string {
-	switch c.Class {
-	case render.ContainerArgAdded, render.ContainerArgRemoved, render.ContainerArgChanged:
-		if c.Name != "" {
-			return c.Path + "[=" + c.Name + "]"
-		}
-	case render.RBACPermissionAdded, render.RBACPermissionRemoved:
-		if c.Permission != nil {
-			return c.Path + "[=" + c.Permission.String() + "]"
-		}
-		if c.Name != "" {
-			return c.Path + "[=" + c.Name + "]"
-		}
-	}
-	return c.Path
 }
 
 // evidence is the rendered-diff evidence record of one indexed change: the

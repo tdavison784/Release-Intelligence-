@@ -187,6 +187,12 @@ type RenderResult struct {
 	// pairs" is never silent.
 	// CONTRACT-CHANGE(renderdiff): additive; the port had no place for them.
 	Notes []string `json:"notes,omitempty"`
+	// Items are the environment-scope change items anchored on rendered
+	// changes nothing else explains (DESIGN §1.3 amendment:
+	// scope:rendered-unexplained, scope:routine-self-artifact); the assembler
+	// puts them into EvidenceBundle.EnvironmentItems. Sorted by id.
+	// CONTRACT-CHANGE(renderdiff): additive.
+	Items []domain.ChangeItem `json:"items,omitempty"`
 }
 
 // EnvironmentRenderer renders the product's from and to releases with the

@@ -267,7 +267,10 @@ func newRenderEvalApp(t *testing.T) *App {
 	if err := copyTree(filepath.Join(e2eDir, "state"), dir, func(string, fs.DirEntry) bool { return false }); err != nil {
 		t.Fatal(err)
 	}
-	a, err := New(Config{ProductsDir: productsDir, StateDir: dir, GitHubToken: GitHubTokenFromEnv(), Logf: t.Logf})
+	// Offline by default (tests use no network): a cache miss makes the render
+	// unavailable and the case skips. RI_RENDER_EVAL_LIVE=1 allows live fetches.
+	live := os.Getenv("RI_RENDER_EVAL_LIVE") == "1"
+	a, err := New(Config{ProductsDir: productsDir, StateDir: dir, GitHubToken: GitHubTokenFromEnv(), Offline: !live, Logf: t.Logf})
 	if err != nil {
 		t.Fatal(err)
 	}
