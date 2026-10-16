@@ -212,7 +212,18 @@ Resume from: this file + brief + `git log`.
 - **Runner** (`run/pipeline.go`, orchestrate2's file, additive): copies `AgentOutcome.Notes`
   → `Investigation.AgentNotes` (the follow-up-4 gap I had flagged) and `AgentOutcome.Claims`
   → `Investigation.AgentClaims`; `agentOutcome()` reads both back.
-- **Live run 5** `runs/agent-live-5/` (obs-north again, claude-sonnet-5-5, v5): see its README.
+- **Live run 5** `runs/agent-live-5/` (obs-north again, claude-sonnet-5-5, v5; run during the GLM handoff, no
+  quota failure): 10 sessions, all closed by the model after spending their item budgets (status
+  `budget-exhausted`; the allowed closing submit each); 186 turns, 167 metered calls, 253 869 tokens (~2×
+  run 4). **20 `record_claim` calls: 13 verified + recorded, 1 verification rejection** (a false absence of
+  `arbitraryFSAccessThroughSMs` in the render, rejected with the contradicting line) **and 6 budget
+  refusals** (never verified; `errorClass: budget` in the transcript distinguishes them). The run-4 failure
+  mode is structurally fixed: run 5's first claim verifies
+  `prometheus.prometheusSpec.ignoreNamespaceSelectors = true` in `values-prod.yaml` — the fact run 4 stated
+  backwards in prose. 10 of 13 assertions name claim ids; every agent summary/statement is labelled
+  `unverified-ai-prose`. 4 validation requests (all `not-run`: no pin rules for these items), 0 answer links,
+  0 notes; dispositions 4 raises-concern / 4 examined-no-concern / 1 claims-mitigation / 1 explains, 16
+  beyond cap. Replay byte-identical (167 digests); the run record validates against the rebuilt bundle.
 - Tests (`claims_test.go`): every verification outcome + rejection (false absence with the
   contradicting line, wrong kind, non-environment input, value on a token, unknown input,
   value/kind shape), claims backing assertions/submissions (wrong item, unknown id), prose
@@ -228,15 +239,24 @@ Resume from: this file + brief + `git log`.
   schema regen produced no drift. Continued by: committing it in three `[glm-handoff]`
   commits (domain contract; claims + v5 + tests; runner), writing the missing
   `docs/INVESTIGATE.md` section (v5 + prose labels; dropped stale "the default" annotations
-  from v3/v4), and running live run 5 (obs-north, v5) + replay. Status entries above mine
-  were written by ri-agent; this log section is the GLM handoff record the handoff prompt
-  requires.
+  from v3/v4), and running live run 5 (obs-north, v5) + replay. The run completed on
+  claude-sonnet-5-5 with no quota failure (the commander's quota warning arrived mid-run; the
+  single in-flight attempt was left to finish, no retries were made and no model was
+  substituted). Run 5 artifacts + README committed under `runs/agent-live-5/`; docs live-runs
+  list updated. Full `go build ./... && go vet ./... && go test ./...` green on the branch;
+  gofmt clean. Cleanup: `bin/` removed, scratch outputs under `/tmp` deleted; no kind
+  clusters or servers were created by this handoff. Status entries above the handoff log were
+  written by ri-agent; this section is the GLM handoff record the handoff prompt requires.
 - Uncertainties: (1) I inferred follow-up 5's scope from the in-flight diff and the
   "commander decision 2026-10-16" comment in claims.go — COMMANDER.md's decision list (at
   p4-env-impact @ ea983257 merge state) does not yet name it; if the commander's ask differed,
   the delta is visible in these commits. (2) I chose obs-north for live run 5 to compare
   against run 4's false-absence failure mode (the feature's motivating case); a different
-  input was not specified anywhere I could see.
+  input was not specified anywhere I could see. (3) Open observation for the commander (not
+  acted on): v5 sessions spend their whole item budget on the claim/verify loop (all 10
+  budget-exhausted, ~2× run 4's tokens; 6 claims refused unverified by the budget). If every
+  agenda item should get a chance to state its facts, either the item budget or the claim
+  cost needs a look — your call, generic lever, not tuned to a case.
 
 ## Decisions (with why)
 

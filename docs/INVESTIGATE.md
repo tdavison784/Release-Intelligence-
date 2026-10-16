@@ -593,7 +593,7 @@ tools work, and record/request/submit tools are refused.
 - Agent-requested validations are in `AgentOutcome.Validations`. Their evidence and artifacts are in the
   outcome's `Evidence` / `Artifacts`, alongside the transcript.
 
-**Live runs.** Two `claude -p` runs on groundtruth inputs are recorded, each with what the agent did and
+**Live runs.** Five `claude -p` runs on groundtruth inputs are recorded, each with what the agent did and
 its replay check:
 
 - [agent-live-1](phase4/env-impact/runs/agent-live-1/README.md): ingress-nginx, prompt v1;
@@ -601,7 +601,9 @@ its replay check:
 - [agent-live-3](phase4/env-impact/runs/agent-live-3/README.md): kube-prometheus-stack, prompt v3: coverage,
   depth, validation requests and answer links;
 - [agent-live-4](phase4/env-impact/runs/agent-live-4/README.md): the same input under v4 (per-item sessions), for
-  a v3 vs v4 comparison of depth.
+  a v3 vs v4 comparison of depth;
+- [agent-live-5](phase4/env-impact/runs/agent-live-5/README.md): the same input under v5 (setting claims), for a
+  v4 vs v5 comparison of claim verification.
 
 **Reproducibility caveat.** A bundle's snapshot pins the HEAD commit of the git work tree containing the
 environment and the input path as supplied. The groundtruth environments sit inside this repository, so
