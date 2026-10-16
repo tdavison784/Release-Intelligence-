@@ -337,7 +337,7 @@ func conform(t *testing.T, in investigate.ValidationInput, out *investigate.Vali
 			at := testNow
 			h := domain.Hypothesis{ID: r.Hypothesis, ChangeItem: in.ChangeItem, Statement: "a hypothesis", Citations: []domain.EvidenceID{b.Evidence[0].ID},
 				Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "test.agent@v1", Confidence: domain.ConfidenceLow, Model: "m", ModelVersion: "m",
-					PromptVersion: "p/v1", PromptDigest: domain.Digest([]byte("p")), InputEvidence: []domain.EvidenceID{b.Evidence[0].ID}, GeneratedAt: &at}}
+					PromptVersion: "p/v1", PromptDigest: domain.Digest([]byte("p")), InputEvidence: []domain.EvidenceID{b.Evidence[0].ID}, GeneratedAt: &at, CallID: "call-1"}}
 			inv.Hypotheses = []domain.Hypothesis{h}
 		}
 	}

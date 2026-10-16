@@ -110,7 +110,7 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 			d.evidence = append(d.evidence, out.cite(e))
 		}
 		d.pin = pinOf(s.kind, pinPath(s), res.hits)
-		d.detail = fmt.Sprintf("pin rule %s, from fact %s (verification %s): %s\nThe environment sets %s %s everywhere it matters:\n%s",
+		d.detail = fmt.Sprintf("pin rule %s, from fact %s (verification %s): %s\nPinning setting: %s, %s — it holds everywhere it matters:\n%s",
 			s.rule, s.fact.ID, s.fact.Level(), factStatement(*s.fact), s.setting(), s.acceptance(), describeHits(res.hits))
 		if d.pin.RenderedObject != "" {
 			d.detail += "It lands in the environment render in " + d.pin.RenderedObject + "."

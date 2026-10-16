@@ -30,11 +30,15 @@ release-level, never product Go code, never an eval case):
 
 ## Done
 
-- (nothing committed yet)
+- `internal/investigate/validate/`: all five validators implemented (common.go, join.go, renderdiff.go,
+  override.go + pins.go + envview.go, schema.go, reference.go).
+- Test harness (`harness_test.go`): fictional product `gizmo` (never a case), in-memory store, bundle /
+  graph / traversal builders; every validator output is run through `Investigation.ValidateAgainst`.
+- Tests green: JoinVerdicts, RenderDiff, OverrideInspection (incl. every not-run path).
 
 ## In progress / next step
 
-- Implementing the package.
+- SchemaCompat + StaticReference tests; determinism test; docs/INVESTIGATE.md "Validators".
 
 ## Decisions (with why)
 

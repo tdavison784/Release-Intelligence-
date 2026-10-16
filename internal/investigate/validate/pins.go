@@ -67,7 +67,7 @@ func (s pinSpec) setting() string {
 	case s.container != nil:
 		return fmt.Sprintf("%s %s%s", s.kind, s.container.Name, componentOf(s.container.Component))
 	case s.kind == domain.PinConfigKey:
-		return fmt.Sprintf("key %s of ConfigMap %s", s.path, orAny(s.name))
+		return fmt.Sprintf("config-key %s of ConfigMap %s", s.path, orAny(s.name))
 	}
 	g := s.group
 	if g == "" {
@@ -77,7 +77,7 @@ func (s pinSpec) setting() string {
 	if s.name != "" {
 		sel += " " + s.name
 	}
-	return fmt.Sprintf("%s %s of every %s", s.kind, s.path, sel)
+	return fmt.Sprintf("%s %s on every %s", s.kind, s.path, sel)
 }
 
 func (s pinSpec) acceptance() string {
