@@ -48,7 +48,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
-| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | (tab, see herdr) | wave 3, started 15:02: harness + arm A now; B after agent v4; C after runtime |
+| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | arm A scored (not merged yet); HOLDING arm B until commander says ARM B GO |
+| fixes | ri-fixes | claude-opus-5-5 | .claude/worktrees/p4ei-fixes | pane w1:p2T | started 15:24: layered values, record digests, CRD-description noise, depth-8 truncation |
 | runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -109,6 +110,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 43dad6f9 agent v3: D1 (explains/examined-no-concern only after get_change_item + item-unique citation), D2 (behaviour concerns need request_validation or reason), depth fields in coverage. Live run 3 (kps obs-north, v3, 12 calls / 58k tokens): 26/26 closed, 2 examined, 16 not-examined, 10 concerns (9 resting on one item), 1 validation request (not-run). Green.
 - 2026-10-16 8e602992 orchestrate2 final: Argo multi-source values-ref sources never carry the product version (payments envs: cert-manager v1.17.2, repo input ok with a note); Flux pinned by test; agent ProposedNodes via agent.MergeGraph. No golden/eval changes. Lane complete, cleaned up (tab w1:t18).
 - 2026-10-16 ea983257 agent v4: per-item sessions (cap 10, priority order), concerns need item-session evidence. Live run 4 (same obs-north input as run 3): 72 tool calls, 10/10 sessions examined, 4 validation requests / 3 answer links (all not-run → nothing lifted), 0 cross-item concerns, 124k tokens. Found: closing prose can state false environment facts (fail-safe, misleads reviewers) → v5 structured verified claims. Green.
+- 2026-10-16 EVAL ARM A (deterministic only, results/A-20261016T201359Z-294a49e7a9 on p4ei/eval, not merged yet): PASS falsePositiveRate 1/20, citationResolution 1954/1954, reproducibility 8/8, pipelineFailures 0; FAIL affectedDetection 1/3, affectedConfirmation 0/3, notAffectedConfirmation 0/20, exposureRecall 2/7, evidenceCoverage 6/71, unresolvedRate 15/23, observedAgreement 0/21; INSUFFICIENT-DATA falseNegativeRate 0/3 (minSample 4), unsafeEligibilityRate 0/0. Safe but not useful: each pair's two envs get identical results. Routed generic defects to new lane fixes; one-note-three-items granularity = known limitation; shop-nl B1 FP stays (ACTION REQUIRED contract).
 
 ## Open questions for the user
 
@@ -121,9 +123,10 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In order:
 
 1. **agent** (ri-agent, working): prompt v5 = structured, tool-verified environment claims; pipeline copies AgentNotes; list of validator/pin-rule gaps behind every not-run answer. On LANE DONE: review (replay of runs 1–4 still byte-identical, v4 frozen), merge, then route the listed validator gaps (validate package is unowned now — a new small lane or the eval lane must NOT fix them). Keep the ri-agent worktree only if more agent work is queued; else clean up.
-2. **eval** (ri-eval, working): harness + **arm A only**. Arm B (+agent) runs only when (a) agent v5 is merged AND (b) a Claude window is available — it calls `claude -p` with claude-sonnet-5-5. **A GLM commander must NOT start arm B and must not let it run with a GLM model** (that would change the model under test). Tell ri-eval when B may start. Arm C waits for runtime.
-3. **runtime** (ri-runtime, working): on LANE DONE review that a quiet window never passes and every kind cluster is deleted (`kind get clusters`), merge, clean up, tell ri-eval arm C may run (Claude window not needed for C unless combined with the agent).
-4. After eval's report: commander reviews EVAL-REPORT.md, then the user decides on push/PR (nothing pushed yet).
+2. **eval** (ri-eval, idle by instruction): arm A DONE (see merge log). Merge p4ei/eval's harness + arm A results when convenient (review EVAL-REPORT.md). Then re-score arm A after **fixes** merges (new run id; keep the first). Arm B (+agent) runs only when (a) agent v5 is merged AND (b) a Claude window is available — it calls `claude -p` with claude-sonnet-5-5. **A GLM commander must NOT start arm B and must not let it run with a GLM model** (that would change the model under test). Tell ri-eval when B may start. Arm C waits for runtime.
+3. **fixes** (ri-fixes, working): on LANE DONE review that each fix is generic with its own test and justified by semantics, never by a score; merge; tell ri-eval to re-run arm A.
+4. **runtime** (ri-runtime, working): on LANE DONE review that a quiet window never passes and every kind cluster is deleted (`kind get clusters`), merge, clean up, tell ri-eval arm C may run (Claude window not needed for C unless combined with the agent).
+5. After eval's report: commander reviews EVAL-REPORT.md, then the user decides on push/PR (nothing pushed yet).
 
 ## GLM commander log
 
