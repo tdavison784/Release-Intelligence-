@@ -63,9 +63,7 @@ failure path: workflow failed, record status `failed`, no retry. The classify st
 - No domain/contract changes.
 
 ## Contract/observations for the commander
-- `bundle.Assembler` output has a wall-clock `CreatedAt`, so re-assembling identical inputs yields the same bundle id with different
-  content, and `RecordStore.PutBundle` then refuses ("bundles are immutable"). The pipeline works around it (attach to the stored
-  bundle). Suggest the bundle lane derive `CreatedAt` deterministically or the store treat same-id/same-identity as a no-op.
+- (Fixed in the follow-up below.) The bundle had wall-clock content.
 - Classifier is a hook (`newClassifier` in cmd/ri/investigate.go) until classify merges: replace its body with `classify.New()` (and its
   `ReviewApplier`), then delete `cmd/ri/investigate_devstubs.go` (build tag `ri_devstubs`, temporary scaffolding).
 - Agent prompt v2 / agenda: consumed only through `agent.New(...)` + `AgentConfig.PromptVersion` (currently `agent.DefaultPromptVersion`).
@@ -74,3 +72,12 @@ failure path: workflow failed, record status `failed`, no retry. The classify st
 
 ## Cleanup
 Dev server on :7299 and worker stopped; scratch state/binaries live in the session scratchpad only; no kind clusters; no `bin/`.
+
+## Follow-up: bundle determinism (Principle 6) — FIX DONE
+- `bundle.Assembler.CreatedAt` and `SnapshotBuilder.CollectedAt` now default to the zero time (`pinnedClock`); when the run happened is
+  in the run record's `CreatedAt` and audit trail. `NewAssemblerWithClock` / `NewSnapshotBuilderWithClock` let a caller pin a clock.
+  Pooled evidence `RetrievedAt` (wall clock, not in the evidence id) is zeroed at assembly. Re-assembling identical inputs is
+  byte-identical, so `PutBundle` is a no-op; the attach-to-stored-bundle workaround in `run.Pipeline` is removed.
+- Test: `TestAssembleByteIdenticalAndPutIsNoop` (a wall-clock second passes between two assemblies; JSON equal; stored file unchanged).
+- Pending (waiting for the commander's classify message): replace `newClassifier` with `classify.New()`, delete
+  `cmd/ri/investigate_devstubs.go` and the `ri_devstubs` tag, re-run the live end-to-end with `--agent` (scripted/replay driver).

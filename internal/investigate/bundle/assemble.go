@@ -14,6 +14,15 @@ import (
 // AssemblerProducer identifies the assembler in provenance.
 const AssemblerProducer = "bundle.assemble@v1"
 
+// pinnedClock is the default clock of the assembler and the snapshot
+// builder: the zero time. Principle 6: a bundle (and the snapshot inside it)
+// is fully determined by its inputs, so re-assembling identical inputs yields
+// byte-identical content and storing it again is a no-op. When the run
+// happened is recorded where time belongs: the run record's CreatedAt and
+// its audit trail. Callers that want real stamps pin a clock explicitly
+// (NewAssemblerWithClock / NewSnapshotBuilderWithClock).
+func pinnedClock() time.Time { return time.Time{} }
+
 // Assembler joins change evidence, environment evidence and the environment
 // renders into the immutable bundle.
 type Assembler struct {
@@ -26,7 +35,13 @@ var _ investigate.BundleAssembler = (*Assembler)(nil)
 // NewAssembler returns the bundle assembler. st is used to verify that every
 // listed artifact is stored before the bundle is built.
 func NewAssembler(st investigate.ArtifactStore) investigate.BundleAssembler {
-	return &Assembler{st: st, now: time.Now}
+	return &Assembler{st: st, now: pinnedClock}
+}
+
+// NewAssemblerWithClock is NewAssembler with CreatedAt taken from now. The
+// clock must be pinned by the caller if byte-identical re-assembly matters.
+func NewAssemblerWithClock(st investigate.ArtifactStore, now func() time.Time) investigate.BundleAssembler {
+	return &Assembler{st: st, now: now}
 }
 
 // Assemble builds and validates the bundle. renders may be nil (no
@@ -80,6 +95,9 @@ func (a *Assembler) Assemble(ctx context.Context, change *investigate.ChangeResu
 	for _, set := range [][]domain.Evidence{change.Evidence, snap.Evidence, renderEvidence} {
 		for _, e := range set {
 			if _, ok := pool[e.ID]; !ok {
+				// Retrieval time is wall clock, not identity (the id excludes it):
+				// keeping it would make re-assembly change the bundle's bytes.
+				e.RetrievedAt = time.Time{}
 				pool[e.ID] = e
 			}
 		}

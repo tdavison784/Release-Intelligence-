@@ -36,13 +36,13 @@ var _ investigate.SnapshotBuilder = (*SnapshotBuilder)(nil)
 
 // NewSnapshotBuilder returns the snapshot builder writing artifacts to st.
 func NewSnapshotBuilder(st investigate.ArtifactStore) investigate.SnapshotBuilder {
-	return &SnapshotBuilder{st: st, now: time.Now}
+	return &SnapshotBuilder{st: st, now: pinnedClock}
 }
 
 // NewSnapshotBuilderWithHints is NewSnapshotBuilder with the catalog's product
 // hints (env.HintsFromCatalog), so images are recognised as catalog products.
 func NewSnapshotBuilderWithHints(st investigate.ArtifactStore, hints []env.ProductHint) investigate.SnapshotBuilder {
-	return &SnapshotBuilder{st: st, hints: hints, now: time.Now}
+	return &SnapshotBuilder{st: st, hints: hints, now: pinnedClock}
 }
 
 // BuildSnapshot loads the environment and stores its files (redacted) and
@@ -411,4 +411,10 @@ func redactEvidence(in []domain.Evidence) []domain.Evidence {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
+}
+
+// NewSnapshotBuilderWithClock is NewSnapshotBuilderWithHints with CollectedAt
+// taken from now (see pinnedClock for why the default is the zero time).
+func NewSnapshotBuilderWithClock(st investigate.ArtifactStore, hints []env.ProductHint, now func() time.Time) investigate.SnapshotBuilder {
+	return &SnapshotBuilder{st: st, hints: hints, now: now}
 }
