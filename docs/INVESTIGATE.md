@@ -61,7 +61,71 @@ computed image items of that repository.
 
 ## Render diffs
 
-(lane renderdiff)
+The centerpiece evidence: the product's from and to releases rendered with the environment's own
+configuration, diffed, and indexed so every rendered change is a citable record
+(`internal/investigate/renderdiff`, DESIGN.md §2.4). `renderdiff.New(app, store)` implements the
+`EnvironmentRenderer` port over `internal/render` (target detection, helm/kustomize renders, the semantic
+diff, changelog correlation, chart coverage).
+
+**One pair per render target.** Every deployment of the product the snapshot's repository (or explicit
+values files) declares becomes a `ManifestPair` named by the target, with paths repo-relative so ids do
+not depend on where the repository is checked out: `argocd:clusters/prod/app.yaml#0/$.spec.sources[0]`,
+`flux:…`, `helmfile:…`, `values:<file>`, `kustomize:<dir>`. A repo-discovered values file that an Argo
+CD / Flux / Helmfile target already layers is not rendered on its own (that configuration is not
+deployed anywhere); a note says so.
+
+**Status** (what decides whether an absence of change is evidence):
+
+| Status | When | Changes indexed |
+|---|---|---|
+| `ok` | both renders succeeded, values complete, and the chart (from or to, or a declared dependency) defines every top-level values key the customer sets | yes — `[]` means "rendered, nothing changed" |
+| `partial` | `values-incomplete: …` (valuesFrom / value files outside the repo), `chart-coverage: …` (customer keys the chart never reads), or one side rendered and the other failed (e.g. `invalid-values: the target chart rejects…`) | **no** |
+| `unavailable` | neither side rendered (`chart-unavailable`, `renderer-unavailable`, `template-error`, …), or a Kustomize overlay runs the product's images without pinning their version | **no** |
+| `not-applicable` | `version-independent:` a Kustomize overlay (a consumer app) that neither pins nor runs the product: the upgrade does not change what it renders; its `from` render is kept for inspection | no |
+
+An incomplete pair is an evidence gap, never "no change". `RenderResult.Notes` records what target
+detection skipped, so "no pairs" is never silent.
+
+**Artifacts** (`derived/render/env/<target-slug>/`): `from.yaml` / `to.yaml` are the *normalized* objects
+the diff compared, one document per object headed by `# Object: <group>/<version>/<kind>/<ns>/<name>`
+(Secret data and credential-named values are `<sensitive sha256:…>` digest markers; the artifact is then
+`redacted`); `diff.json` is the full diff (`ri.dev/render-diff/v1alpha1`: provenance of both renders
+without timestamps, every change with its id, correlation links and change items; `indexed: false` for an
+incomplete pair).
+
+**Rendered changes.** One `RenderedChange` per `render.Change` of an ok pair, id
+`RenderedChangeID(environment, target, object, path, class)`. Container args and RBAC rules are sets
+addressed by one path, so their changes carry a member selector — `…args[=--flag]`,
+`rules[=apps/deployments:get]`. Each cites one `rendered-diff` evidence record whose `contentDigest` is
+the diff artifact's digest and whose locator is `changes[id=<rc>]`, so it resolves to the bytes.
+Sensitive changes record no values.
+
+**Correlation** to change items (`Correlation` = the rules, comma-joined):
+
+- a `render.Correlate` link to an edge change → that change's item (links to routine changes, which have
+  no item, are dropped);
+- an `artifact` link (no change id) → the computed image items (`manifest:computed-image`) whose title or
+  subjects name the repository — the collector's release-scope rule;
+- `release-anchor` → the item anchored on the matching release-scope rendered change (same class, API
+  group, kind, object name and path with the release name normalized).
+
+A change with no item is **uncorrelated**: the deployment changes and nothing known explains it. It is
+kept, and it blocks automated approval (DESIGN §3.4).
+
+**Queries** (what the agent's diff tools call): `renderdiff.QueryPage(bundle, DiffQuery)` filters by
+scope (default environment), target, change item, uncorrelated, classes, kinds, namespaces (`-` =
+cluster-scoped) and path prefix; results are ordered by (target, object, path, class), at most 200 per
+page (default 50, ≤256 KiB), with `Next` → `DiffQuery.After` to continue. Unknown targets, items,
+classes, scopes or cursors are rejected (`ErrRejected`), never answered with an empty page.
+`renderdiff.Object` reads one object or field (`spec.template.spec.containers[name=x].args[=--flag]`,
+`metadata.annotations["a/b"]`, `ports[port=443/TCP]`) from either side, as YAML whose text occurs in the
+stored render (cite it with `read_artifact`-style quotes); an absent object or path is `found: false`; a
+side that was not rendered is `ErrNotFound` with the pair's reason; objects over 64 KiB must be read by
+field. `renderdiff.Summaries` lists every pair with counts by class and uncorrelated.
+
+Coverage on the groundtruth environments (8 cases) is recorded in
+`docs/phase4/env-impact/status/renderdiff.md`; reproduce with
+`RI_RENDERDIFF_STATE=<warm .ri> go test ./internal/investigate/renderdiff -run Groundtruth -v`.
 
 ## Validators
 
