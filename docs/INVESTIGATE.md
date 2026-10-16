@@ -334,7 +334,7 @@ the bundle itself, only the manifest it can search.
 | `record_hypothesis`, `record_assertion` | `raises-concern` / `explains` / `claims-mitigation`, optionally a proposed (always inferred) edge |
 | `request_evidence` | recorded for the next collection round; live-cluster reads are rejected in milestone 1 |
 | `request_validation` | runs the configured deterministic validators of that kind now; the validator's record is the result |
-| `submit_findings` | one closing summary per item (recorded as `explains`); ends the run |
+| `submit_findings` | v2: closes every agenda item with a disposition (below); v1: one `explains` summary per item. Ends the run |
 
 **What it cannot do.** Classify. Every agent record carries AI provenance (`investigate.agent@v1`, model and
 version as reported, prompt version and digest, input evidence, call id). The deterministic policy
@@ -385,8 +385,70 @@ approval ineligible.
 Results carry no wall-clock fields (`checkedAt`, `generatedAt`, … are stripped), so a replay reproduces the
 transcript byte for byte.
 
+**Agenda and coverage (prompt `investigate-agent/v2`, the default).** Coverage does not depend on the model's
+diligence. `agent.Agenda(bundle, validations)` lists every in-scope item the deterministic pass did not decide.
+"Decided" means a failing validation, which makes the item affected by R1 whatever the agent records. Items are
+in priority order, and each entry names its declared rule:
+
+| Priority | Rule | Items |
+|---|---|---|
+| 0 | `agenda:behaviour` | manifestation `controller-behaviour` or `unknown` |
+| 0 | `agenda:rendered-unexplained` | `scope:rendered-unexplained` |
+| 1 | `agenda:pass-to-scrutinise` | a passing validation exists (R2 still needs every concern answered: a concern here prevents an unsafe clear) |
+| 2 | `agenda:undecided` | the rest |
+
+`submit_findings` must close **every** agenda item with a disposition:
+
+- `raises-concern`, `claims-mitigation`, `explains` — an assertion of that stance;
+- `examined-no-concern` — an `explains` assertion citing what was inspected. It is **not a mitigation** and
+  never lowers a class (DESIGN §3.3 unchanged);
+- `not-examined` — the summary states the reason.
+
+Every disposition except `not-examined` needs at least one checked citation. The call is rejected while any
+agenda item has no entry. It is accepted once even after the budget is spent, so coverage is always reported,
+but the run stays `budget-exhausted`. A run that ends without a submission reports every agenda item as
+`not-examined: no closing entry: the run ended <status>`.
+
+`AgentRun.Coverage` holds one entry per agenda item: rule, disposition, summary, closing assertion, every
+record about the item, citations.
+
+The budget scales with the agenda (`agenda@v1`, stated in `AgentRun.BudgetRule`). Each field is the larger of
+the configured budget and the formula below, which only ever raises the budget:
+
+| Field | Formula (n = agenda size) | Cap |
+|---|---|---|
+| tool calls | 12 + 6n | 400 |
+| turns | 10 + 3n | 200 |
+| tokens | 150 000 + 30 000n | 3 000 000 |
+| returned bytes | 1 MiB + 192 KiB·n | 16 MiB |
+| seconds | 300 + 60n | 3600 |
+
+**Subjects (v2).** The model may name a subject the way the evidence names it. Each subject resolves, by the
+first matching rule, to graph nodes:
+
+| Rule | Form |
+|---|---|
+| `subject:node-id` | `gn-…` |
+| `subject:node-key` | `<group>/<version>/<kind>/<namespace>/<name>` |
+| `subject:rendered-change` | `rc-…` (its object's node; the change joins the request) |
+| `subject:artifact` | `art-…` or an environment file path (the nodes carrying it) |
+| `subject:object-ref` | `Kind/name` or `Kind/namespace/name` |
+| `subject:values-key` | `a.b.c` or `values:a.b.c`: the values files that set it; else the values files of the product's render targets, noted "not set" |
+| `subject:rendered-setting` | a flag, annotation key, env var or config key found as a token in a complete environment render (to side) |
+
+`request_validation` returns the resolution. An unresolvable subject, or one matching more than 20 nodes, is
+rejected with the list of accepted forms. Prompt v1 keeps its contract: node ids and keys only.
+
+**Deterministic pass.** `agent.DeterministicPass(ctx, validators, input)` runs every applicable validator over
+every in-scope item; output is deduplicated, in item × validator order. Its `Records`, `Artifacts` and
+`Evidence` go into the run record. They are also passed to the agent as `InvestigateInput.Validations`,
+`ValidationArtifacts` and `ValidationEvidence`: the agent can read and cite them, but they are not reported as
+the agent's outputs.
+
 **Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
-(`system.md`, `task.md` template, `tools.json` schemas). `PromptDigest = sha256(system ‖ rendered task ‖ tools.json)`.
+(`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
+`PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`, so it stays
+embedded and replays exactly as recorded.
 
 The task lists:
 
@@ -412,6 +474,13 @@ tools work, and record/request/submit tools are refused.
 - Agent-requested validations are in `AgentOutcome.Validations`. Their evidence and artifacts are in the
   outcome's `Evidence` / `Artifacts`, alongside the transcript.
 
-**Live run.** One `claude -p` run on a groundtruth input is recorded in
-[docs/phase4/env-impact/runs/agent-live-1/](phase4/env-impact/runs/agent-live-1/README.md). It covers what
-the agent did, and its replay check.
+**Live runs.** Two `claude -p` runs on groundtruth inputs are recorded, each with what the agent did and
+its replay check:
+
+- [agent-live-1](phase4/env-impact/runs/agent-live-1/README.md): ingress-nginx, prompt v1;
+- [agent-live-2](phase4/env-impact/runs/agent-live-2/README.md): cert-manager, prompt v2, with coverage.
+
+**Reproducibility caveat.** A bundle's snapshot pins the HEAD commit of the git work tree containing the
+environment and the input path as supplied. The groundtruth environments sit inside this repository, so
+every commit, and every checkout location, gives a new bundle id. A recorded run then replays only at its
+commit and path: a replay elsewhere is refused for a prompt-digest mismatch, never silently accepted.

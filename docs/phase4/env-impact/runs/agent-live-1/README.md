@@ -31,6 +31,14 @@ RI_AGENT_REPLAY=docs/phase4/env-impact/runs/agent-live-1/transcript.jsonl RI_AGE
 one. The run record assembled from the outcome (plus the deterministic pass) passes
 `Investigation.ValidateAgainst(bundle)`.
 
+Re-verified after prompt v2 landed (prompt v2 is the default now, so pass
+`RI_AGENT_PROMPT=investigate-agent/v1`):
+
+- The replay must run at the run's commit (`c190bdd0`) and checkout path. The bundle's snapshot pins both,
+  because the groundtruth environment lives inside this repository.
+- There, with the v2 code, the transcript again replayed byte-identically.
+- At another commit or path, the replay is refused for a prompt-digest mismatch.
+
 ## Files
 
 - `task.md` — the rendered task message (27 in-scope items with their upstream citations, the render summary,
