@@ -80,6 +80,25 @@ and asserts every record conforms and the cluster is deleted.
   pass); 7 `not-run` `runtime:no-object`; 1 `not-run` `runtime:other-families`. Zero `pass` — consistent: the
   only exercised behavior degraded, and nothing else had an exercise proving health.
 
+### ingress-nginx shop-de (`ingress-nginx-1.11-1.12--shop-de`, controller-v1.11.5 → controller-v1.12.0, k8s 1.31) — 185 s
+
+- Run `completed` (budget 900 s), node pinned `kindest/node:v1.31.0`, cluster deleted (verified).
+- Phases: FROM applied 28; TO applied 47, re-created 7 hook Jobs; **1 apply error**:
+  `networking.k8s.io/v1/Ingress/storefront/storefront` denied by the new admission webhook
+  (`validate.nginx.ingress.kubernetes.io`: "annotation group ConfigurationSnippet contains risky annotation based
+  on ingress configuration"). All product workloads ready ⇒ upgrade completed (the Ingress is a consumer object,
+  not a product object).
+- Exercise `ingress-nginx/ingress-update`: 2 targets at FROM, both executed; at TO 1 executed, **1 refused** —
+  the same webhook denial on the storefront Ingress ⇒ `exercise-rejected` degradation (the 433574f7 rule doing
+  what it was written for).
+- **5 degradations**: upgrade window — `rejected` on the Ingress plus controller error logs naming it and (name
+  boundary matching) the storefront Deployment/Service; exercise window — `exercise-rejected`.
+- Outcomes over 27 in-scope items: 13 `error` `runtime:unreached` (behavior items with no cluster objects of
+  their own, but the family's exercise degraded its target at TO only — a plausible impact the graph does not
+  connect to any one item; never a fail, never a pass); 1 `not-run` `runtime:no-exercise` (its path objects are
+  Service/Deployment, the declared exercise targets Ingress — per-object scoping stays honest); 13 `not-run`
+  `runtime:no-object`. Zero `pass`, zero `fail` — the observed break stays inconclusive per item (R3).
+
 ## GLM handoff log
 
 - 2026-10-16 (glm-runtime, GLM-5.3): took over from ri-runtime during its usage-limit window, mid "real runs".
