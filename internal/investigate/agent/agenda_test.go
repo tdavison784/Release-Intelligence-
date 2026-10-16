@@ -363,6 +363,10 @@ func TestEnvironmentScopeItems(t *testing.T) {
 	if !strings.Contains(string(mustJSON(d)), f.rcLoose) {
 		t.Fatalf("get_change_item on the environment item: %v", d)
 	}
+	page := ok(t, s, investigate.ToolQueryDiff, map[string]any{"changeItem": f.envItem})
+	if cs := page["changes"].([]any); len(cs) != 1 || cs[0].(map[string]any)["id"] != f.rcLoose {
+		t.Fatalf("query_diff by the environment item: %v", page)
+	}
 	ok(t, s, investigate.ToolRecordAssertion, map[string]any{"changeItem": f.envItem, "stance": "raises-concern", "statement": "demo-config mode changes",
 		"renderedChanges": []string{f.rcLoose}, "citations": []map[string]any{{"artifact": f.toRender.ID, "quote": "mode: fast"}}})
 	r := ok(t, s, investigate.ToolRequestValidation, map[string]any{"changeItem": f.envItem, "kind": "render-diff"})

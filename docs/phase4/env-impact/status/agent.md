@@ -124,8 +124,8 @@ Resume from: this file + brief + `git log`.
   `Item()`. Tested with a fixture `scope:rendered-unexplained` item in `EnvironmentItems`: it is in the
   task, the agenda, `get_change_item`, assertions, `request_validation`, the submission requirement,
   coverage and the deterministic pass.
-  - `query_diff changeItem=<env item>` still depends on renderdiff's `QueryPage` fix (classify is making it):
-    merge `p4-env-impact` when it lands.
+  - `query_diff changeItem=<env item>`: works after merging `p4-env-impact` with renderdiff's `QueryPage` fix;
+    covered by the same test.
 - Live run 2 had already been done (under v2) when the "merge before live run 2" note arrived. Its
   bundle's in-scope items were all record items (16 in scope, none environment-scope), so it is unaffected
   by the env-item fix. A v3 live run was not requested; offered.
