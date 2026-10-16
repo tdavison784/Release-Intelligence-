@@ -417,3 +417,42 @@ func TestExerciseRefusedAtTO(t *testing.T) {
 	// the rendered item's family is not covered by the exercise
 	expect(t, e.validate(v, itemRendered), domain.ValidationNotRun, RuleNoExercise)
 }
+
+// An undecided record (not-run, error) echoes the rendered changes it was
+// asked about, next to the requested subjects (domain EchoRequested): the
+// request stays linkable and the audit keeps what was asked.
+func TestUndecidedRecordsEchoRequestedRenderedChanges(t *testing.T) {
+	cases := []struct {
+		name string
+		opts envOptions
+		item string
+		want domain.ValidationOutcomeKind
+	}{
+		{"not-run", envOptions{}, itemNoPath, domain.ValidationNotRun},
+		{"error", envOptions{twin: true}, itemBehaviour, domain.ValidationError},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			e := newEnv(t, c.opts)
+			v := e.validator()
+			var rc string
+			for _, p := range e.b.Renders {
+				for _, ch := range p.Changes {
+					rc = ch.ID
+				}
+			}
+			if rc == "" {
+				t.Fatal("fixture: no environment rendered change")
+			}
+			out, err := v.Validate(context.Background(), investigate.ValidationInput{Bundle: e.b, Graph: e.g, Traversal: e.tr, ChangeItem: c.item,
+				RenderedChanges: []string{rc}, Request: &domain.ValidationRequest{ID: "vrq-1"}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			r := out.Records[0]
+			if r.Outcome != c.want || r.Request != "vrq-1" || len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != rc || r.Detail == "" {
+				t.Fatalf("record = %+v", r)
+			}
+		})
+	}
+}

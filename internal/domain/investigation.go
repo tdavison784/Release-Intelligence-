@@ -1715,6 +1715,44 @@ type ValidationRecord struct {
 	CheckedAt     time.Time  `json:"checkedAt"`  // not part of the id
 }
 
+// EchoRequested makes an undecided record (outcome not-run or error) carry
+// the coverage it was asked about exactly as requested — the subjects, paths
+// and rendered changes of the request — next to whatever coverage the
+// validator named itself: the record stays linkable to its request and the
+// audit keeps what was asked (an undecided record never counts as coverage
+// for clearing, so this can only add gaps, never clear). A decisive record
+// is left unchanged: it speaks only for what it decided. Call it before
+// deriving the record id.
+// CONTRACT-CHANGE(fixes2): additive helper.
+func (v *ValidationRecord) EchoRequested(subjects, paths, renderedChanges []string) {
+	if v.Outcome != ValidationNotRun && v.Outcome != ValidationError {
+		return
+	}
+	v.Subjects = sortedUnion(v.Subjects, subjects)
+	v.Paths = sortedUnion(v.Paths, paths)
+	v.RenderedChanges = sortedUnion(v.RenderedChanges, renderedChanges)
+}
+
+func sortedUnion(a, b []string) []string {
+	m := map[string]bool{}
+	for _, xs := range [][]string{a, b} {
+		for _, x := range xs {
+			if x != "" {
+				m[x] = true
+			}
+		}
+	}
+	if len(m) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(m))
+	for x := range m {
+		out = append(out, x)
+	}
+	sort.Strings(out)
+	return out
+}
+
 // ValidationRecordID derives a validation record id.
 func ValidationRecordID(validator, changeItem string, subjects, paths, renderedChanges, inputs []string) string {
 	return ValidationRecordIDPrefix + ShortHash(validator, changeItem,
@@ -2729,11 +2767,13 @@ func (inv *Investigation) Validate() error {
 		}
 	}
 	vreqs := map[string]bool{}
+	reqByID := map[string]ValidationRequest{}
 	for _, r := range inv.ValidationRequests {
 		if err := r.Validate(); err != nil {
 			errs = append(errs, err)
 		}
 		vreqs[r.ID] = true
+		reqByID[r.ID] = r
 		for _, a := range r.Answers {
 			if as, ok := asserts[a]; !ok || as.ChangeItem != r.ChangeItem {
 				bad("validation request %s answers unknown assertion %s (or one about another item)", r.ID, a)
@@ -2748,6 +2788,14 @@ func (inv *Investigation) Validate() error {
 	for _, v := range inv.Validations {
 		if v.Request != "" && !vreqs[v.Request] {
 			bad("validation %s names unknown request %s", v.ID, v.Request)
+		}
+		// an undecided record echoes what it was asked about (EchoRequested)
+		if r, ok := reqByID[v.Request]; ok && (v.Outcome == ValidationNotRun || v.Outcome == ValidationError) {
+			for _, s := range r.Subjects {
+				if !contains(v.Subjects, s) {
+					bad("validation %s (%s) does not echo subject %s its request %s asked about", v.ID, v.Outcome, s, r.ID)
+				}
+			}
 		}
 	}
 

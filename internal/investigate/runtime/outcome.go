@@ -201,6 +201,7 @@ func (s *session) record(in investigate.ValidationInput, item domain.ChangeItem,
 			rec.Answers = []string{req.Hypothesis}
 		}
 	}
+	rec.EchoRequested(in.Subjects, in.Paths, in.RenderedChanges) // an undecided record carries what it was asked about
 	rec.ID = domain.ValidationRecordID(rec.Validator, rec.ChangeItem, rec.Subjects, rec.Paths, rec.RenderedChanges, rec.Inputs)
 	if err := rec.Validate(); err != nil {
 		return nil, fmt.Errorf("runtime: produced an invalid record: %w", err)
