@@ -12,9 +12,9 @@ import (
 )
 
 func TestPromptLoadsAndDigests(t *testing.T) {
-	p, err := LoadPrompt("")
+	p, err := LoadPrompt(promptV1)
 	must(t, err)
-	if p.Version != DefaultPromptVersion || len(p.Tools) != len(investigate.ToolNames) {
+	if p.Version != promptV1 || len(p.Tools) != len(investigate.ToolNames) {
 		t.Fatalf("prompt %s with %d tools", p.Version, len(p.Tools))
 	}
 	if _, err := LoadPrompt("investigate-agent/v0"); err == nil {

@@ -224,3 +224,40 @@ func TestProposedEdgeAndNodesExtendTheRunGraph(t *testing.T) {
 		t.Fatalf("run graph %s (builder %s) lacks the proposed edge/node: proposed=%t placeholder=%t", g.ID, g.Builder, proposed, placeholder)
 	}
 }
+
+// notesAgent adds an investigation-level note and a verified claim to the
+// concern agent's outcome; the runner must store both in the run record.
+type notesAgent struct{ st investigate.ArtifactStore }
+
+func (a *notesAgent) Investigate(ctx context.Context, in investigate.InvestigateInput) (*investigate.AgentOutcome, error) {
+	out, err := (&concernAgent{st: a.st}).Investigate(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	prov := out.Assertions[0].Provenance
+	note := domain.AgentNote{About: out.Assertions[0].ChangeItem, Statement: "raised in another item's session", Reason: "no item evidence",
+		StatementKind: domain.StatementUnverifiedProse, Provenance: prov}
+	note.ID = domain.AgentRecordID(domain.AgentNoteIDPrefix, note.About, note.Statement, prov.CallID)
+	claim := domain.SettingClaim{Kind: domain.ClaimAbsent, Setting: "controller.example", Input: "environment-files",
+		Verifier: "investigate.claim-check@v1", Checked: []string{in.Bundle.Manifest.Artifacts[0].ID}, Detail: "absent: occurs nowhere", Provenance: prov}
+	claim.ID = domain.SettingClaimID("", claim.Kind, claim.Setting, claim.Input, "", prov.CallID)
+	out.Notes, out.Claims = []domain.AgentNote{note}, []domain.SettingClaim{claim}
+	return out, nil
+}
+
+func TestAgentNotesAndClaimsReachTheRecord(t *testing.T) {
+	f := runtest.New(t)
+	f.Deps.Validators = func(*domain.ImpactReport) []investigate.Validator { return []investigate.Validator{passValidator{}} }
+	f.Deps.Investigator = &notesAgent{st: f.St}
+	req := f.Request()
+	req.Config.Validators = []string{"validate.render-diff@v1"}
+	req.Config.Agent.Enabled = true
+	res, err := runner(f, nil).Run(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inv, _ := f.St.GetInvestigation(context.Background(), res.Investigation)
+	if len(inv.AgentNotes) != 1 || len(inv.AgentClaims) != 1 || inv.AgentNotes[0].StatementKind != domain.StatementUnverifiedProse {
+		t.Fatalf("notes %+v claims %+v", inv.AgentNotes, inv.AgentClaims)
+	}
+}

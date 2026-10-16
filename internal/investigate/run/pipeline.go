@@ -602,6 +602,8 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 			inv.Agent = &run
 			inv.Hypotheses = out.Hypotheses
 			inv.Assertions = out.Assertions
+			inv.AgentNotes = out.Notes   // investigation-level agent remarks (AI), never item concerns
+			inv.AgentClaims = out.Claims // the agent's deterministically verified environment claims
 			inv.EvidenceRequests = out.EvidenceRequests
 			inv.ValidationRequests = out.ValidationRequests
 			inv.Validations = mergeValidations(inv.Validations, out.Validations)
@@ -629,6 +631,7 @@ func agentOutcome(inv *domain.Investigation) *investigate.AgentOutcome {
 	return &investigate.AgentOutcome{
 		Run: *inv.Agent, Hypotheses: inv.Hypotheses, Assertions: inv.Assertions,
 		EvidenceRequests: inv.EvidenceRequests, ValidationRequests: inv.ValidationRequests,
+		Notes: inv.AgentNotes, Claims: inv.AgentClaims,
 	}
 }
 

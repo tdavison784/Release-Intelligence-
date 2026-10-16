@@ -40,9 +40,9 @@ func TestItemAgendaOrder(t *testing.T) {
 }
 
 func TestPromptV4(t *testing.T) {
-	p, err := LoadPrompt("")
+	p, err := LoadPrompt(promptV4)
 	must(t, err)
-	if p.Version != promptV4 || !p.Features.PerItem || !p.Features.DepthRules || p.item == nil {
+	if p.Version != promptV4 || !p.Features.PerItem || !p.Features.DepthRules || p.Features.Claims || p.item == nil {
 		t.Fatalf("v4: %+v", p.Features)
 	}
 	f := newFixture(t, true)

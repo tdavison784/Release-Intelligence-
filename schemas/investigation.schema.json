@@ -38,7 +38,8 @@
         "sessionReason": {"type": "string"},
         "turns": {"type": "integer"},
         "toolCalls": {"type": "integer"},
-        "tokens": {"type": "integer"}
+        "tokens": {"type": "integer"},
+        "summaryKind": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -62,6 +63,8 @@
         "proposedEdge": {"$ref": "#/$defs/GraphEdge"},
         "hypothesis": {"type": "string"},
         "noValidationReason": {"type": "string"},
+        "statementKind": {"type": "string"},
+        "claims": {"type": "array", "items": {"type": "string"}},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
@@ -87,6 +90,7 @@
         "statement": {"type": "string"},
         "reason": {"type": "string"},
         "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "statementKind": {"type": "string"},
         "provenance": {"$ref": "#/$defs/Provenance"}
       },
       "additionalProperties": false
@@ -182,6 +186,7 @@
       },
       "additionalProperties": false
     },
+    "ClaimKind": {"type": "string", "enum": ["absent", "present", "value"]},
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
     "CoverageDisposition": {
       "type": "string",
@@ -374,6 +379,7 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "statementKind": {"type": "string"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
@@ -438,6 +444,7 @@
         "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/Hypothesis"}},
         "assertions": {"type": "array", "items": {"$ref": "#/$defs/AgentAssertion"}},
         "agentNotes": {"type": "array", "items": {"$ref": "#/$defs/AgentNote"}},
+        "agentClaims": {"type": "array", "items": {"$ref": "#/$defs/SettingClaim"}},
         "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
         "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
@@ -634,6 +641,24 @@
       "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "SettingClaim": {
+      "type": "object",
+      "required": ["id", "kind", "setting", "input", "verifier", "checked", "detail", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "kind": {"$ref": "#/$defs/ClaimKind"},
+        "setting": {"type": "string"},
+        "input": {"type": "string"},
+        "value": {"type": "string"},
+        "verifier": {"type": "string"},
+        "checked": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "detail": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
     "Stage": {
       "type": "string",
       "enum": [

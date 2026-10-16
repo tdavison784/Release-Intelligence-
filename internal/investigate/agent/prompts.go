@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Earlier versions (v1–v3) stay embedded so their transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v4"
+// none. Earlier versions (v1–v4) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v5"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -65,6 +65,10 @@ type Features struct {
 	// artifact retrieved in the item's own session, else it is an
 	// investigation-level note (session.go, focus mode).
 	PerItem bool `json:"perItem"`
+	// Claims: record_claim (structured, deterministically verified
+	// environment claims, claims.go); agent free text is labelled
+	// unverified AI prose.
+	Claims bool `json:"claims"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -129,8 +133,15 @@ func LoadPrompt(version string) (*Prompt, error) {
 			return nil, fmt.Errorf("agent: prompt %s: tools.json lacks tool %s", version, n)
 		}
 	}
-	if len(p.Tools) != len(investigate.ToolNames) {
-		return nil, fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", version, len(p.Tools), len(investigate.ToolNames))
+	want := len(investigate.ToolNames)
+	if p.Features.Claims {
+		if !have[investigate.ToolRecordClaim] {
+			return nil, fmt.Errorf("agent: prompt %s: feature claims needs tool %s", version, investigate.ToolRecordClaim)
+		}
+		want++
+	}
+	if len(p.Tools) != want {
+		return nil, fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", version, len(p.Tools), want)
 	}
 	if p.task, err = template.New("task").Option("missingkey=error").Parse(string(task)); err != nil {
 		return nil, fmt.Errorf("agent: prompt %s: task.md: %w", version, err)

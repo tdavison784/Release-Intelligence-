@@ -2,9 +2,9 @@
 
 Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/agent.md` (+ `_wave2-common.md`,
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
-store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
-(commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
-`git merge p4-env-impact`. State: **DONE (follow-ups 1–4 complete)** (2026-10-16).
+store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-ups
+1–4 merged through ea983257. State: **follow-up 5 (verified setting claims, prompt v5) complete** (2026-10-16,
+GLM handoff).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -183,6 +183,110 @@ Resume from: this file + brief + `git log`.
 - **For orchestrate2 (not my file)**: `run/pipeline.go` must copy `AgentOutcome.Notes` into
   `Investigation.AgentNotes`. Its default prompt (agent.DefaultPromptVersion) is now v4.
 
+## Follow-up 5 (commander decision: verified setting claims) — done (GLM handoff)
+
+- **Prompt v5** (meta feature `claims`; default now v5, v1–v4 frozen and byte-identical):
+  environment facts are structured, not prose. `record_claim` states "setting S is absent /
+  present / has value V in input X" (an environment file, an environment render, or
+  `environment-files` = all environment files) and the tool layer verifies it
+  deterministically before recording (`claims.go`, verifier `investigate.claim-check@v1`):
+  - the setting is searched as a dotted key path from a YAML root, as its last key anywhere,
+    and as a whole token in the text — so `absent` holds only when it occurs nowhere in any
+    form (a wrong or partial path is still caught by the last-key and token searches);
+  - `value` compares the decoded YAML scalar at every key match, canonically;
+  - a failed verification **rejects the claim with the contradicting line** (the live-run-4
+    failure mode — "the environment does not set X" while `values-prod.yaml:8` sets it — is
+    now a rejection, not prose);
+  - present/value claims cite the matching lines (≤5 evidence); `absent` cites none but lists
+    the artifacts `Checked`.
+- **Domain** (`SettingClaim` `clm-…`, AI provenance — the claim is the agent's, the check is
+  deterministic): `Investigation.AgentClaims` with `Validate` (derived id, kind/value shape,
+  verifier/checked/detail, present-value needs evidence, no duplicates) and `ValidateAgainst`
+  (item, evidence, artifacts resolve). `AgentAssertion` / `Hypothesis` / `AgentNote` /
+  `AgendaCoverage` gain `StatementKind` / `SummaryKind` (`unverified-ai-prose` for agent free
+  text under a claims prompt; runner-written summaries carry none) and `Claims` (checked ids).
+- **Tool layer**: `Tools.RecordClaim` (+ Dispatch, not in base `ToolNames`; prompts without the
+  feature reject it as an unknown tool). `record_assertion` / `submit_findings` accept `claims`
+  ids (`claimRefs`: recorded in this run, and about the record's item or no item). MCP serves
+  `record_claim` from the prompt's tools.json (v5 only). Schemas regenerated.
+- **Runner** (`run/pipeline.go`, orchestrate2's file, additive): copies `AgentOutcome.Notes`
+  → `Investigation.AgentNotes` (the follow-up-4 gap I had flagged) and `AgentOutcome.Claims`
+  → `Investigation.AgentClaims`; `agentOutcome()` reads both back.
+- **Live run 5** `runs/agent-live-5/` (obs-north again, claude-sonnet-5-5, v5; run during the GLM handoff, no
+  quota failure): 10 sessions, all closed by the model after spending their item budgets (status
+  `budget-exhausted`; the allowed closing submit each); 186 turns, 167 metered calls, 253 869 tokens (~2×
+  run 4). **20 `record_claim` calls: 13 verified + recorded, 1 verification rejection** (a false absence of
+  `arbitraryFSAccessThroughSMs` in the render, rejected with the contradicting line) **and 6 budget
+  refusals** (never verified; `errorClass: budget` in the transcript distinguishes them). The run-4 failure
+  mode is structurally fixed: run 5's first claim verifies
+  `prometheus.prometheusSpec.ignoreNamespaceSelectors = true` in `values-prod.yaml` — the fact run 4 stated
+  backwards in prose. 10 of 13 assertions name claim ids; every agent summary/statement is labelled
+  `unverified-ai-prose`. 4 validation requests (all `not-run`: no pin rules for these items), 0 answer links,
+  0 notes; dispositions 4 raises-concern / 4 examined-no-concern / 1 claims-mitigation / 1 explains, 16
+  beyond cap. Replay byte-identical (167 digests); the run record validates against the rebuilt bundle.
+- Tests (`claims_test.go`): every verification outcome + rejection (false absence with the
+  contradicting line, wrong kind, non-environment input, value on a token, unknown input,
+  value/kind shape), claims backing assertions/submissions (wrong item, unknown id), prose
+  labels, v5 per-item run with a rejected false-absence claim replayed byte for byte, v4
+  unchanged, `DefaultPromptVersion` = newest embedded (guard test).
+- Docs: `docs/INVESTIGATE.md` "Setting claims (prompt v5…)".
+
+## Merge review (commander request, 2026-10-16 GLM handoff)
+
+- **Queued work beyond follow-up 5: none** (brief complete; the follow-up-4 orchestrate2 note was done here
+  in 0576e618; remaining open questions are commander/user decisions).
+- **v1–v4 prompt files byte-identical to ea983257**: PASS — `git diff ea983257 -- …/prompts/investigate-agent/{v1,v2,v3,v4}/`
+  = 0 lines each; the only change under `prompts/` is the new `v5/` directory.
+- **Runs 1–4 replay under current code: REFUSED (prompt-digest mismatch), root cause external to this
+  branch.** Each replay driver refused: "the transcript was recorded under prompt sha256:X …, this session's
+  prompt is sha256:Y" — the *rendered task* differs because the rebuilt bundles differ from the recorded
+  ones (run 1 `bnd-d5289346bfdb`→`bnd-31638a3c8883`, run 2 `bnd-b44c21b921e1`→`bnd-a47aa06e6959` with the
+  agenda itself changed 14→16 items and the deterministic pass 49→55, run 3 `bnd-7cbbf08745dc`→
+  `bnd-071392e03fc2`, run 4 `bnd-e4e9c4a8f814`→`bnd-071392e03fc2`). Control experiment: `ea983257`'s own
+  code (git-archive export) under today's cache rebuilds run 4's case to the **same** `bnd-071392e03fc2`
+  with the identical digest mismatches — this branch changes nothing about bundle assembly or v1–v4 prompt
+  digests. The drift is the **shared `.ri` cache** (121 entries written since 14:00 today by other lanes —
+  runtime since 14:30, eval since 15:02 incl. live fetches on cache misses). Within today's cache state the
+  code is deterministic: runs 3/4/5 (same case) all rebuild to one id, and run 5 (recorded under this
+  branch + current cache) replays byte-identically.
+- **Fleet finding for the commander (not a lane gap):** stored runs replay only at their recording-time cache
+  state; the shared cache is live. This also affects the eval lane's stored runs (run 2's case now rebuilds
+  with a different agenda). Options — freeze/pin the cache for recorded runs, re-record at a frozen state, or
+  accept replay-at-commit-and-cache semantics — are the commander's. Sharp edge noted: the opt-in live test
+  PASSes on a refused replay (Mismatches stays empty; the refusal shows only in the run status), so replay
+  checks must grep for the refusal, not rely on the test exit.
+
+## GLM handoff log
+
+- 2026-10-16 (glm-agent, GLM-5.3): took over the lane mid-follow-up-5. Found the feature
+  (domain contract, claims.go, prompt v5, wiring, tests) implemented and green in the working
+  tree but uncommitted; nothing in it looked unfinished — build/vet/fresh tests passed and
+  schema regen produced no drift. Continued by: committing it in three `[glm-handoff]`
+  commits (domain contract; claims + v5 + tests; runner), writing the missing
+  `docs/INVESTIGATE.md` section (v5 + prose labels; dropped stale "the default" annotations
+  from v3/v4), and running live run 5 (obs-north, v5) + replay. The run completed on
+  claude-sonnet-5-5 with no quota failure (the commander's quota warning arrived mid-run; the
+  single in-flight attempt was left to finish, no retries were made and no model was
+  substituted). Run 5 artifacts + README committed under `runs/agent-live-5/`; docs live-runs
+  list updated. Full `go build ./... && go vet ./... && go test ./...` green on the branch;
+  gofmt clean. Cleanup: `bin/` removed, scratch outputs under `/tmp` deleted; no kind
+  clusters or servers were created by this handoff. Status entries above the handoff log were
+  written by ri-agent; this section is the GLM handoff record the handoff prompt requires.
+- 2026-10-16 (glm-agent): ran the commander's merge-review checks (section above). One process note: my
+  first replay sweep "failed" because I passed the transcript path relative to the repo root — the test's
+  cwd is the package dir, so the file wasn't found; re-run with absolute paths. The four subsequent PASSes
+  are *vacuous* (refused replays leave Mismatches empty); the real result is the refusal analysis above.
+- Uncertainties: (1) I inferred follow-up 5's scope from the in-flight diff and the
+  "commander decision 2026-10-16" comment in claims.go — COMMANDER.md's decision list (at
+  p4-env-impact @ ea983257 merge state) does not yet name it; if the commander's ask differed,
+  the delta is visible in these commits. (2) I chose obs-north for live run 5 to compare
+  against run 4's false-absence failure mode (the feature's motivating case); a different
+  input was not specified anywhere I could see. (3) Open observation for the commander (not
+  acted on): v5 sessions spend their whole item budget on the claim/verify loop (all 10
+  budget-exhausted, ~2× run 4's tokens; 6 claims refused unverified by the budget). If every
+  agenda item should get a chance to state its facts, either the item budget or the claim
+  cost needs a look — your call, generic lever, not tuned to a case.
+
 ## Decisions (with why)
 
 - **v4 uses `AgentConfig.ItemBudget` (a pointer)**, not `Budget`: the runner passes the investigation-wide
@@ -246,9 +350,19 @@ Resume from: this file + brief + `git log`.
   one usage line. **orchestrate2**: route the non-`mcp` case to your runner when merging.
 - `README.md`: one command line. `docs/INVESTIGATE.md`: my section only.
 - `internal/investigate/api.go`: the contract change below.
+- `internal/investigate/run/pipeline.go` (follow-up 5, additive): stores `AgentOutcome.Notes` →
+  `Investigation.AgentNotes` and `AgentOutcome.Claims` → `Investigation.AgentClaims` (the note copy was the
+  follow-up-4 gap flagged for orchestrate2; done from this lane as a two-line additive change, plus
+  `agentOutcome()` reading them back). `run/agent_test.go`: one test.
 
 ## Contract changes
 
+- `// CONTRACT-CHANGE(agent)` (follow-up 5): domain `SettingClaim` (+ prefix `clm-`, `ClaimKind` /
+  `ClaimKinds`, `SettingClaimID`, checks in `Validate`/`ValidateAgainst`, `Investigation.AgentClaims`),
+  `StatementUnverifiedProse`, `StatementKind` on `AgentAssertion` / `Hypothesis` / `AgentNote`,
+  `SummaryKind` on `AgendaCoverage`, `AgentAssertion.Claims` (+ check); investigate `ClaimInput`,
+  `Tools.RecordClaim` (not in `ToolNames`), `AgentOutcome.Claims`, `AssertionInput.Claims`,
+  `ItemSummary.Claims`. Schema enum `ClaimKinds`.
 - `// CONTRACT-CHANGE(agent)` (follow-up):
   - domain: `AgentRun.Coverage []AgendaCoverage`, `AgentRun.BudgetRule`, `AgendaCoverage`,
     `CoverageDisposition` (+ `CoverageDispositions`, schema enum) and the coverage checks in

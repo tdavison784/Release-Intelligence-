@@ -258,6 +258,10 @@ func (s *Session) outcome(ctx context.Context, st investigate.ArtifactStore, dri
 		fill(&n.Provenance)
 		out.Notes = append(out.Notes, n)
 	}
+	for _, c := range s.claims {
+		fill(&c.Provenance)
+		out.Claims = append(out.Claims, c)
+	}
 	out.ProposedNodes = append(out.ProposedNodes, s.propNodes...)
 	out.AnswerLinks = append(out.AnswerLinks, s.links...)
 	for _, id := range s.runEvIDs {
@@ -302,6 +306,11 @@ func validateOutcome(out *investigate.AgentOutcome) []error {
 	}
 	for _, r := range out.ValidationRequests {
 		if err := r.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	for _, c := range out.Claims {
+		if err := c.Validate(); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -376,6 +385,7 @@ func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain
 		case ok:
 			c.Disposition, c.Summary = sum.Disposition, sum.Summary
 			c.Assertion, c.Citations = s.closingIDs[e.ChangeItem], s.closingEv[e.ChangeItem]
+			c.SummaryKind = s.proseKind()
 		case s.cfg.Prompt.Features.PerItem && st == nil:
 			c.Disposition = domain.CoverNotExamined
 			c.Summary = fmt.Sprintf("beyond cap %d: no session (closed by the runner, not by the model)", s.cfg.ItemCap)
