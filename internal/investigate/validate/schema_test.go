@@ -15,10 +15,10 @@ func kubeConstraint(kind, constraint string, ev domain.EvidenceID) *domain.Compa
 func TestSchemaPlatformRange(t *testing.T) {
 	cases := []struct {
 		name, kube, kind string
-		to           bool
-		platform     string
-		want         domain.ValidationOutcomeKind
-		detail       string
+		to               bool
+		platform         string
+		want             domain.ValidationOutcomeKind
+		detail           string
 	}{
 		{"inside", "1.31", "supported", true, "kubernetes", domain.ValidationPass, "inside"},
 		{"below", "1.27", "supported", true, "kubernetes", domain.ValidationFail, "outside"},
