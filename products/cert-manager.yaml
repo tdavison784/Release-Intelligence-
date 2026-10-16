@@ -410,3 +410,25 @@ relationships:
   references:
   - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
     quote: If the issuer is cluster-scoped, it can be used from any namespace.
+
+# Object kinds the controller this product ships reconciles (docs/INVESTIGATE.md "Relationships":
+# the exposure of controller-behaviour changes). Release-level, from upstream documentation.
+reconciles:
+- id: certificates
+  kinds:
+  - {group: cert-manager.io, kind: Certificate}
+  - {group: cert-manager.io, kind: CertificateRequest}
+  summary: cert-manager turns every Certificate into a private key and CertificateRequests, stores the signed certificate in a Secret and renews it.
+  references:
+  - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/usage/certificate.md
+    quote: cert-manager uses this input to generate a private key
+  - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/usage/certificaterequest.md
+    quote: The `CertificateRequest` is a namespaced resource in cert-manager that is used
+- id: issuers
+  kinds:
+  - {group: cert-manager.io, kind: Issuer}
+  - {group: cert-manager.io, kind: ClusterIssuer}
+  summary: Issuers and ClusterIssuers are the certificate authorities cert-manager signs requests with; the controller keeps their Ready condition.
+  references:
+  - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/concepts/issuer.md
+    quote: '`Issuers`, and `ClusterIssuers`, are Kubernetes resources that represent'

@@ -434,3 +434,25 @@ configSources:
   references:
   - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
     quote: '## Extra arguments to pass to prometheusOperator'
+
+# Object kinds the controller this product ships reconciles (docs/INVESTIGATE.md "Relationships":
+# the exposure of controller-behaviour changes). Release-level, from upstream documentation.
+reconciles:
+- id: operator-resources
+  kinds:
+  - {group: monitoring.coreos.com, kind: Prometheus}
+  - {group: monitoring.coreos.com, kind: PrometheusAgent}
+  - {group: monitoring.coreos.com, kind: Alertmanager}
+  - {group: monitoring.coreos.com, kind: ThanosRuler}
+  - {group: monitoring.coreos.com, kind: ServiceMonitor}
+  - {group: monitoring.coreos.com, kind: PodMonitor}
+  - {group: monitoring.coreos.com, kind: Probe}
+  - {group: monitoring.coreos.com, kind: ScrapeConfig}
+  - {group: monitoring.coreos.com, kind: PrometheusRule}
+  - {group: monitoring.coreos.com, kind: AlertmanagerConfig}
+  summary: The Prometheus Operator reconciles its custom resources into Prometheus, Alertmanager and Thanos Ruler deployments and their configuration.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/README.md
+    quote: The Prometheus operator automatically detects changes in the Kubernetes API server to any of the above objects, and ensures that
+  - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/README.md
+    quote: provide easy to operate end-to-end Kubernetes cluster monitoring with [Prometheus](https://prometheus.io/) using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).

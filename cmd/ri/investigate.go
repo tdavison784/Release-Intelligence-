@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
@@ -22,6 +23,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/investigate/renderdiff"
 	runpkg "github.com/tdavison784/release-intelligence/internal/investigate/run"
+	rtval "github.com/tdavison784/release-intelligence/internal/investigate/runtime"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/investigate/validate"
 	"github.com/tdavison784/release-intelligence/internal/orchestrate"
@@ -36,6 +38,7 @@ type invFlags struct {
 	knowledge, minVerification                                            *string
 	render                                                                *bool
 	agent                                                                 *bool
+	runtime                                                               *bool // opt-in observed validator (nil = off; `ri eval -investigations -runtime` sets it)
 	driver, model, exchange, replay, script, claudeBin                    *string
 }
 
@@ -55,6 +58,7 @@ func addInvFlags(c *cli, fs interface {
 		knowledge:  fs.String("knowledge", "knowledge", "directory of verified knowledge (facts clear changes only when trusted)"),
 		render:     fs.Bool("render", true, "render both releases with the environment's configuration (the centerpiece evidence)"),
 		agent:      fs.Bool("agent", false, "run the investigation agent (a sanctioned LLM stage; never decides a class)"),
+		runtime:    fs.Bool("runtime", false, "also validate by an isolated upgrade in a throwaway kind cluster (observed level; needs docker, kind, kubectl; minutes per investigation)"),
 		driver:     fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted"),
 		model:      fs.String("agent-model", "", "model for the agent driver"),
 		exchange:   fs.String("agent-exchange", "", "exchange driver: directory for request/answer files"),
@@ -102,17 +106,27 @@ func (f invFlags) request() (investigate.Request, error) {
 		Agent: investigate.AgentConfig{Enabled: *f.agent, Driver: *f.driver, Model: *f.model,
 			PromptVersion: agent.DefaultPromptVersion, Budget: agent.Budget(domain.AgentBudget{})},
 	}
+	if f.runtime != nil && *f.runtime {
+		r.Config.Validators = append(r.Config.Validators, rtval.Name)
+	}
 	sort.Strings(r.Config.Validators)
 	return r, nil
 }
 
 // pipeline wires the real packages into a runpkg.Pipeline over the state dir.
 func (c *cli) pipeline(f invFlags) (*runpkg.Pipeline, *store.Store, error) {
+	return c.pipelineAt(f, c.g.state)
+}
+
+// pipelineAt is pipeline with the investigation store rooted at storeDir
+// (the upstream cache stays in the state dir); `ri eval -investigations`
+// keeps its runs out of the shared state this way.
+func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.Store, error) {
 	a, err := c.newApp()
 	if err != nil {
 		return nil, nil, err
 	}
-	st, err := store.New(c.g.state)
+	st, err := store.New(storeDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -127,14 +141,33 @@ func (c *cli) pipeline(f invFlags) (*runpkg.Pipeline, *store.Store, error) {
 			facts = ks.Facts
 		}
 	}
+	var rtv investigate.Validator // the observed validator, only when opted in
+	if f.runtime != nil && *f.runtime {
+		sets, err := catalog.LoadExercises(filepath.Join(c.g.products, "exercises"))
+		if err != nil {
+			return nil, nil, fmt.Errorf("--runtime: %w", err)
+		}
+		logf := func(string, ...any) {}
+		if c.g.verbose {
+			logf = func(f string, a ...any) { fmt.Fprintf(c.err, "  · "+f+"\n", a...) }
+		}
+		ar := rtval.NewAppRenderer(a)
+		ar.Repo = *f.repo // the snapshot no longer carries the checkout path (55ac1cfa)
+		rtv = rtval.New(rtval.WithStore(st), rtval.WithRenderer(ar),
+			rtval.WithExercises(rtval.FromSets(sets...)...), rtval.WithLogf(logf))
+	}
 	validators := func(rep *domain.ImpactReport) []investigate.Validator {
-		return []investigate.Validator{
+		vs := []investigate.Validator{
 			validate.JoinVerdicts(rep, validate.WithStore(st)),
 			validate.RenderDiff(validate.WithStore(st)),
 			validate.OverrideInspection(validate.WithStore(st), validate.WithFacts(facts...)),
 			validate.SchemaCompat(validate.WithStore(st)),
 			validate.StaticReference(validate.WithStore(st)),
 		}
+		if rtv != nil {
+			vs = append(vs, rtv)
+		}
+		return vs
 	}
 	opts := []agent.Option{agent.WithValidators(validators(nil)...)}
 	if *f.exchange != "" {
@@ -175,7 +208,7 @@ func (c *cli) pipeline(f invFlags) (*runpkg.Pipeline, *store.Store, error) {
 		Renderer:     renderdiff.New(a, st),
 		Assembler:    bundle.NewAssembler(st),
 		Graph:        relations.NewBuilder(st, relations.WithCatalog(a.Catalog)),
-		Exposure:     relations.NewExposure(),
+		Exposure:     relations.NewExposure(relations.WithReconcilesFrom(a.Catalog)),
 		Traverser:    relations.NewTraverser(),
 		Validators:   validators,
 		Investigator: agent.New(st, opts...),

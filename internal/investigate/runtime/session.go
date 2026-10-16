@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -145,6 +146,10 @@ type session struct {
 	exArt     domain.ArtifactRef
 	cancelled error
 	consumed  map[string]bool
+	// key digests Secret/ConfigMap data in this run's observations (random,
+	// never stored or returned).
+	key     []byte
+	exStart map[string]time.Time // version → when its exercises started
 }
 
 func (s *session) note(format string, args ...any) {
@@ -382,6 +387,11 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 	s.obs = map[string]*Observation{}
 	s.applyErr = map[string]map[string]string{}
 	s.exRuns = map[string]map[string]ExerciseRun{}
+	s.exStart = map[string]time.Time{}
+	s.key = make([]byte, 32)
+	if _, err := rand.Read(s.key); err != nil {
+		return fmt.Errorf("digest key: %w", err)
+	}
 	// FROM: the environment as it runs today.
 	start := s.v.clock.Now()
 	if err := s.apply(ctx, cl, PhaseFrom, s.from, nil); err != nil {
@@ -400,6 +410,9 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 		start = s.v.clock.Now()
 		settle := s.exerciseAll(ctx, cl, "from")
 		if err := s.settleAndObserve(ctx, ob, PhaseFromExercised, start, settle); err != nil {
+			return err
+		}
+		if err := s.checkReactions(ctx, cl, "from"); err != nil {
 			return err
 		}
 	}
@@ -421,9 +434,60 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 		if err := s.settleAndObserve(ctx, ob, PhaseToExercised, start, settle); err != nil {
 			return err
 		}
+		if err := s.checkReactions(ctx, cl, "to"); err != nil {
+			return err
+		}
 	}
 	s.run.Degradations = s.degradations()
+	s.nameConsumers()
 	return nil
+}
+
+// nameConsumers adds the consumers (graph successors) of an object whose
+// data changed, and whether any of them degraded, to the degradation.
+func (s *session) nameConsumers() {
+	degraded := map[string]bool{}
+	for _, d := range s.run.Degradations {
+		if !d.Inconclusive {
+			degraded[d.Object] = true
+		}
+	}
+	for i, d := range s.run.Degradations {
+		if !d.Inconclusive {
+			continue
+		}
+		consumers := s.consumersOf(d.Object)
+		var bad []string
+		for _, c := range consumers {
+			if degraded[c] {
+				bad = append(bad, c)
+			}
+		}
+		switch {
+		case len(consumers) == 0:
+			s.run.Degradations[i].Detail += "; no consumer of it is a cluster object, no degradation observed"
+		case len(bad) == 0:
+			s.run.Degradations[i].Detail += fmt.Sprintf("; consumers %s: no degradation observed", strings.Join(consumers, ", "))
+		default:
+			s.run.Degradations[i].Detail += fmt.Sprintf("; consumers %s, of which %s degraded", strings.Join(consumers, ", "), strings.Join(bad, ", "))
+		}
+	}
+}
+
+// consumersOf returns the live objects the graph says read an object.
+func (s *session) consumersOf(live string) []string {
+	if s.g == nil {
+		return nil
+	}
+	var out []string
+	for _, e := range s.g.Edges {
+		if s.resolveNode(e.From) == live {
+			if c := s.resolveNode(e.To); c != "" && c != live {
+				out = append(out, c)
+			}
+		}
+	}
+	return uniqStrings(out)
 }
 
 func (s *session) settleAndObserve(ctx context.Context, ob *observer, phase string, since time.Time, settle time.Duration) error {
@@ -845,7 +909,7 @@ func (s *session) resolveNode(id string) string {
 }
 
 func (s *session) observer(cl Cluster) *observer {
-	ob := &observer{cl: cl, interest: s.interest, markers: s.markers}
+	ob := &observer{cl: cl, interest: s.interest, markers: s.markers, key: s.key}
 	for _, set := range []*manifestSet{s.from, s.to} {
 		for _, m := range set.list() {
 			if m.Product && isWorkload(m.Ref) {
@@ -943,6 +1007,7 @@ func (s *session) exerciseAll(ctx context.Context, cl Cluster, version string) t
 		}
 	}
 	settle := time.Duration(0)
+	s.exStart[version] = s.v.clock.Now()
 	token := ClusterPrefix + version + "-" + domain.ShortHash(s.b.ID, version)[:8]
 	runs := map[string]ExerciseRun{}
 	for _, d := range s.exercises {
@@ -956,13 +1021,101 @@ func (s *session) exerciseAll(ctx context.Context, cl Cluster, version string) t
 		}
 		er.Settle = st.Seconds()
 		runs[d.Key()] = er
-		s.run.Exercises = append(s.run.Exercises, er)
 	}
 	s.exRuns[version] = runs
 	if settle == 0 {
 		settle = s.v.settle
 	}
 	return settle
+}
+
+// checkReactions observes, after the settle window, whether the controller
+// reacted to each exercised object as the exercise declares (a field that
+// changed, an event it recorded). An accepted update alone proves only that
+// the API server stored it.
+func (s *session) checkReactions(ctx context.Context, cl Cluster, version string) error {
+	since := s.exStart[version].Truncate(time.Second)
+	var events []map[string]any
+	fetched := false
+	for _, key := range sortedKeys(keysOf(s.exRuns[version])) {
+		er := s.exRuns[version][key]
+		var d DeclaredExercise
+		for _, x := range s.exercises {
+			if x.Key() == key {
+				d = x
+			}
+		}
+		rx := d.Exercise.Reaction
+		if rx != nil && len(er.Executed) > 0 {
+			reacted := map[string]bool{}
+			switch rx.Kind {
+			case "field-changed":
+				types := map[GVK]bool{}
+				for _, id := range er.Executed {
+					r, _ := ParseRef(id)
+					types[r.GVK()] = true
+				}
+				for g := range types {
+					items, err := cl.List(ctx, g)
+					if err != nil {
+						if ctx.Err() != nil {
+							return ctx.Err()
+						}
+						continue
+					}
+					for _, it := range items {
+						r, ok := refOf(it)
+						if !ok {
+							continue
+						}
+						r.Version = g.Version
+						id := r.String()
+						if before, done := er.before[id]; done && contains(er.Executed, id) {
+							if now := fieldValue(it, rx.Path); now != "" && now != before {
+								reacted[id] = true
+							}
+						}
+					}
+				}
+			case "event":
+				if !fetched {
+					var err error
+					if events, err = cl.List(ctx, GVK{Version: "v1", Kind: "Event"}); err != nil {
+						return fmt.Errorf("list events: %w", err)
+					}
+					fetched = true
+				}
+				for _, e := range events {
+					if reason, _ := e["reason"].(string); reason != rx.Reason {
+						continue
+					}
+					if t := eventTime(e); t.IsZero() || t.Before(since) {
+						continue
+					}
+					inv, _ := e["involvedObject"].(map[string]any)
+					if inv == nil {
+						inv, _ = e["regarding"].(map[string]any)
+					}
+					for _, id := range er.Executed {
+						r, _ := ParseRef(id)
+						if inv["kind"] == r.Kind && inv["name"] == r.Name && (inv["namespace"] == r.Namespace || (r.Namespace == "" && inv["namespace"] == nil)) {
+							reacted[id] = true
+						}
+					}
+				}
+			}
+			for _, id := range er.Executed {
+				if reacted[id] {
+					er.Reacted = append(er.Reacted, id)
+				} else {
+					er.Unanswered = append(er.Unanswered, id)
+				}
+			}
+		}
+		s.exRuns[version][key] = er
+		s.run.Exercises = append(s.run.Exercises, er)
+	}
+	return nil
 }
 
 // --- degradations ------------------------------------------------------------------------
@@ -984,9 +1137,17 @@ func (s *session) degradations() []Degradation {
 		out = append(out, degradations(id, "upgrade", before.Objects[id], after.Objects[id], opt)...)
 	}
 	// an exercise the TO version refuses on an object the FROM version
-	// accepted it on (an admission webhook denying the update)
+	// accepted it on (an admission webhook denying the update), or accepts
+	// without the reaction the FROM controller showed (inconclusive: a
+	// controller that stopped acting on the object, or a slow one)
 	for key, er := range s.exRuns["to"] {
 		from := s.exRuns["from"][key]
+		for _, id := range er.Unanswered {
+			if contains(from.Reacted, id) {
+				out = append(out, Degradation{Object: id, Window: "exercise", Signature: "exercise-unanswered:" + key, Inconclusive: true,
+					Detail: fmt.Sprintf("the controller did not react to the exercise %s at the TO version (no %s within the settle window); it did at the FROM version", key, er.Reaction)})
+			}
+		}
 		for _, id := range sortedKeys(keysOf(er.Failed)) {
 			if contains(from.Executed, id) {
 				out = append(out, Degradation{Object: id, Window: "exercise", Signature: "exercise-rejected:" + key,

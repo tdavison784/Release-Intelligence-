@@ -180,8 +180,19 @@ func TestRefsAndMarkers(t *testing.T) {
 	if !markerMatches(renderMarkerPrefix+sha256Hex(string(b))[:16]+">", "pw") {
 		t.Fatal("render marker")
 	}
-	if d := digestValue("secret"); strings.Contains(d, "secret") || !strings.HasPrefix(d, "sha256:") {
-		t.Fatalf("digest %s", d)
+	k1, k2 := []byte("run-key-one"), []byte("run-key-two")
+	d := digestValue(k1, "secret")
+	if strings.Contains(d, "secret") || !strings.HasPrefix(d, "hmac-sha256:") || len(d) != len("hmac-sha256:")+64 {
+		t.Fatalf("digest %s: a full-length keyed digest", d)
+	}
+	if digestValue(k1, "secret") != d || digestValue(k1, "other") == d {
+		t.Fatal("within a run, equal values digest equal and different values differ")
+	}
+	if digestValue(k2, "secret") == d {
+		t.Fatal("another run's key gives another digest: a recorded digest cannot be matched against a guessed value")
+	}
+	if strings.Contains(d, sha256Hex("secret")[:16]) {
+		t.Fatal("the digest is keyed, not a plain hash")
 	}
 }
 
@@ -218,8 +229,8 @@ func TestExercisePatch(t *testing.T) {
 func TestExerciseFamiliesMatchDomain(t *testing.T) {
 	d := renewExercise()
 	for _, f := range domain.ChangeItemFamilies {
-		if !d.covers(f) {
-			t.Fatalf("an exercise without families covers every family (%s)", f)
+		if d.covers(f) {
+			t.Fatalf("an exercise without families covers no family (%s)", f)
 		}
 	}
 	d = renewExercise("behavior")

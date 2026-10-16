@@ -25,9 +25,11 @@ func exSet(xs ...Exercise) *ExerciseSet {
 
 func TestExercisesValid(t *testing.T) {
 	ann := Exercise{ID: "touch", Summary: "update", Target: ObjectType{Group: "networking.k8s.io", Kind: "Ingress"},
-		Action: ActionAnnotate, Annotation: "ri.dev/runtime-exercise", References: exRef}
+		Action: ActionAnnotate, Annotation: "ri.dev/runtime-exercise", Families: []string{"behavior"}, References: exRef,
+		Reaction: &ExerciseReaction{Kind: ReactionEvent, Reason: "Sync"}}
 	rr := Exercise{ID: "restart", Summary: "restart", Target: ObjectType{Group: "apps", Kind: "Deployment"},
-		Action: ActionRolloutRestart, References: exRef}
+		Action: ActionRolloutRestart, Families: []string{"procedure"}, References: exRef,
+		Reaction: &ExerciseReaction{Kind: ReactionFieldChanged, Path: "status.observedGeneration"}}
 	if rep := ValidateExercises(exSet(validExercise(), ann, rr)); !rep.OK() {
 		t.Fatalf("valid exercises rejected: %v", rep.Errors())
 	}
@@ -60,11 +62,18 @@ func TestExercisesRejectBadDeclarations(t *testing.T) {
 		"stray condition": {exSet(mut(func(x *Exercise) {
 			x.Action, x.Annotation = ActionAnnotate, "a.io/b"
 		})), "only a status-condition exercise"},
-		"restart non-workload": {exSet(mut(func(x *Exercise) { x.Action, x.Condition = ActionRolloutRestart, nil })), "rollout-restart targets"},
-		"unknown family":       {exSet(mut(func(x *Exercise) { x.Families = []string{"behaviour"} })), "unknown change-item family"},
-		"settle too long":      {exSet(mut(func(x *Exercise) { x.SettleSeconds = 601 })), "settleSeconds"},
-		"no references":        {exSet(mut(func(x *Exercise) { x.References = nil })), "at least one upstream"},
-		"http reference":       {exSet(mut(func(x *Exercise) { x.References = []ConfigReference{{URL: "http://x.io/a", Quote: "q"}} })), "https URL"},
+		"restart non-workload":      {exSet(mut(func(x *Exercise) { x.Action, x.Condition = ActionRolloutRestart, nil })), "rollout-restart targets"},
+		"unknown family":            {exSet(mut(func(x *Exercise) { x.Families = []string{"behaviour"} })), "unknown change-item family"},
+		"no families":               {exSet(mut(func(x *Exercise) { x.Families = nil })), "at least one change-item family"},
+		"unknown reaction":          {exSet(mut(func(x *Exercise) { x.Reaction = &ExerciseReaction{Kind: "log"} })), "reaction.kind"},
+		"field reaction, no path":   {exSet(mut(func(x *Exercise) { x.Reaction = &ExerciseReaction{Kind: ReactionFieldChanged} })), "reaction.path"},
+		"event reaction, no reason": {exSet(mut(func(x *Exercise) { x.Reaction = &ExerciseReaction{Kind: ReactionEvent} })), "reaction.reason"},
+		"event reaction with path": {exSet(mut(func(x *Exercise) {
+			x.Reaction = &ExerciseReaction{Kind: ReactionEvent, Reason: "Sync", Path: "status.x"}
+		})), "not a field of an event reaction"},
+		"settle too long": {exSet(mut(func(x *Exercise) { x.SettleSeconds = 601 })), "settleSeconds"},
+		"no references":   {exSet(mut(func(x *Exercise) { x.References = nil })), "at least one upstream"},
+		"http reference":  {exSet(mut(func(x *Exercise) { x.References = []ConfigReference{{URL: "http://x.io/a", Quote: "q"}} })), "https URL"},
 		"eval reference": {exSet(mut(func(x *Exercise) {
 			x.References = []ConfigReference{{URL: "https://github.com/o/r/blob/main/eval/investigations/x/NOTES.md", Quote: "q"}}
 		})), "evaluation data"},
@@ -167,6 +176,9 @@ exercises:
 		"unknown field":    strings.Replace(doc, "families: [behavior]", "families: [behavior]\n    bogus: 1", 1),
 		"http reference":   strings.Replace(doc, "https://example.io", "http://example.io", 1),
 		"annotation on it": strings.Replace(doc, "families: [behavior]", "families: [behavior]\n    annotation: a.io/b", 1),
+		"no families":      strings.Replace(doc, "    families: [behavior]\n", "", 1),
+		"empty families":   strings.Replace(doc, "families: [behavior]", "families: []", 1),
+		"reaction no path": strings.Replace(doc, "families: [behavior]", "families: [behavior]\n    reaction: {kind: field-changed}", 1),
 	} {
 		if schemaCheck(schema, []byte(bad)) == nil {
 			t.Errorf("schema accepts an exercise with %s", name)
@@ -187,6 +199,7 @@ exercises:
     target: {kind: Cert}
     action: annotate
     annotation: a.io/b
+    families: [behavior]
     references: [{url: "https://example.io/a", quote: q}]
 `
 	write := func(dir, name, body string) {

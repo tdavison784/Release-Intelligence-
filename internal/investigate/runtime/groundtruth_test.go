@@ -128,7 +128,9 @@ func TestGroundtruthRuntime(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			v := New(WithStore(st), WithRenderer(NewAppRenderer(a)), WithExercises(FromSets(sets...)...), WithTimeout(budget),
+			ar := NewAppRenderer(a)
+			ar.Repo = envDir // the snapshot is checkout-independent and no longer names the checkout
+			v := New(WithStore(st), WithRenderer(ar), WithExercises(FromSets(sets...)...), WithTimeout(budget),
 				WithLogf(func(f string, args ...any) { t.Logf(f, args...) }))
 			run, err := v.Run(ctx, b, g)
 			if err != nil {

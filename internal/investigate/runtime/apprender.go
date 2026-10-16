@@ -18,6 +18,12 @@ import (
 // returns the raw output the normalized artifacts were derived from.
 type AppRenderer struct {
 	a *app.App
+	// Repo overrides where the environment repository is read from. The
+	// bundle's snapshot is checkout-independent by design (55ac1cfa) and no
+	// longer carries the checkout path, so the wiring that knows where the
+	// repo actually is passes it here; without it a re-render resolves the
+	// repo to "." and no render target is ever detected again.
+	Repo string
 	// KubeVersion overrides the render --kube-version (use the investigation
 	// config's when it set one; default: the snapshot's cluster version).
 	KubeVersion string
@@ -59,6 +65,9 @@ func (r *AppRenderer) pair(ctx context.Context, b *domain.EvidenceBundle, target
 		return p, nil
 	}
 	repo, values, kube := snapshotInputs(b.Snapshot)
+	if r.Repo != "" {
+		repo = r.Repo
+	}
 	if r.KubeVersion != "" {
 		kube = r.KubeVersion
 	}

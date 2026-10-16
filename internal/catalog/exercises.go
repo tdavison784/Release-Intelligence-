@@ -48,6 +48,25 @@ const (
 // ExerciseActions lists every action.
 var ExerciseActions = []ExerciseAction{ActionStatusCondition, ActionAnnotate, ActionRolloutRestart}
 
+// Reaction kinds: how the controller's response to an exercise is observed.
+const (
+	// ReactionFieldChanged: a field of the target (e.g. status.revision)
+	// has another value after the settle window than before the action.
+	ReactionFieldChanged = "field-changed"
+	// ReactionEvent: the controller recorded an event with this reason on
+	// the target during the settle window.
+	ReactionEvent = "event"
+)
+
+// ExerciseReaction is the observable signal that the controller acted on an
+// exercised object. Without it an exercise can reveal failures but can never
+// support a pass: an accepted update proves only that the API server stored it.
+type ExerciseReaction struct {
+	Kind   string `yaml:"kind" json:"kind"`
+	Path   string `yaml:"path,omitempty" json:"path,omitempty"`     // field-changed: dotted field path
+	Reason string `yaml:"reason,omitempty" json:"reason,omitempty"` // event: the event reason
+}
+
 // ExerciseCondition is the condition a status-condition exercise sets.
 type ExerciseCondition struct {
 	Type    string `yaml:"type" json:"type"`
@@ -69,10 +88,13 @@ type Exercise struct {
 	Condition  *ExerciseCondition `yaml:"condition,omitempty" json:"condition,omitempty"`
 	Annotation string             `yaml:"annotation,omitempty" json:"annotation,omitempty"`
 	// Families are the change-item families the exercise exercises
-	// (domain.ChangeItemFamily). Empty means every family. An item counts as
-	// exercised only when its family is listed and a target lies on its
-	// impact paths.
-	Families []string `yaml:"families,omitempty" json:"families,omitempty"`
+	// (domain.ChangeItemFamily); required — an exercise never covers a family
+	// it does not name. An item counts as exercised only when its family is
+	// listed and a target lies on its impact paths.
+	Families []string `yaml:"families" json:"families"`
+	// Reaction is the controller's observable response (cited in
+	// References); see ExerciseReaction.
+	Reaction *ExerciseReaction `yaml:"reaction,omitempty" json:"reaction,omitempty"`
 	// SettleSeconds is how long the controller gets to act before the
 	// observation (0 = the validator's default).
 	SettleSeconds int `yaml:"settleSeconds,omitempty" json:"settleSeconds,omitempty"`
@@ -221,6 +243,29 @@ func ValidateExercises(s *ExerciseSet) ValidationReport {
 		}
 		if x.Action != ActionAnnotate && x.Annotation != "" {
 			v.errf(p+".annotation", "only an annotate exercise has an annotation")
+		}
+		if len(x.Families) == 0 {
+			v.errf(p+".families", "at least one change-item family is required (an exercise covers only the families it names)")
+		}
+		if r := x.Reaction; r != nil {
+			switch r.Kind {
+			case ReactionFieldChanged:
+				if _, err := SplitFieldPath(r.Path); err != nil {
+					v.errf(p+".reaction.path", "%v", err)
+				}
+				if r.Reason != "" {
+					v.errf(p+".reaction.reason", "not a field of a field-changed reaction")
+				}
+			case ReactionEvent:
+				if strings.TrimSpace(r.Reason) == "" {
+					v.errf(p+".reaction.reason", "an event reaction needs the event reason")
+				}
+				if r.Path != "" {
+					v.errf(p+".reaction.path", "not a field of an event reaction")
+				}
+			default:
+				v.errf(p+".reaction.kind", "must be %s or %s, got %q", ReactionFieldChanged, ReactionEvent, r.Kind)
+			}
 		}
 		for j, f := range x.Families {
 			if !families[f] {

@@ -45,6 +45,11 @@ type ProductDefinition struct {
 	// relationship graph follows (relationships.go).
 	Relationships []Relationship `yaml:"relationships,omitempty" json:"relationships,omitempty"`
 
+	// Reconciles declare the object kinds the product's controller
+	// reconciles (reconciles.go): the exposure of controller-behaviour
+	// changes.
+	Reconciles []Reconcile `yaml:"reconciles,omitempty" json:"reconciles,omitempty"`
+
 	// Provenance documents how this definition was produced and validated.
 	Provenance *DefinitionProvenance `yaml:"provenance,omitempty" json:"provenance,omitempty"`
 

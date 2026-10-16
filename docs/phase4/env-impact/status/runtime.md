@@ -1,8 +1,8 @@
 # Status — lane `runtime` (Claude Opus 5.5, agent ri-runtime)
 
 Branch `p4ei/runtime`, worktree `.claude/worktrees/p4ei-runtime`. Brief: `briefs/runtime.md` (+ `_wave2-common.md`,
-`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE** (2026-10-16; real runs re-executed by GLM continuation
-`glm-runtime` during ri-runtime's usage-limit window — see "GLM handoff log").
+`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE — follow-up 1 complete** (2026-10-16, commander decisions on the three open questions + the
+independent-review queue; see "Follow-up 1"). Lane merged earlier as 34afd967 / 4090a4b7.
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -26,6 +26,45 @@ Resume from: this file + brief + `git log`.
 
 - Nothing. Real runs complete ("Real runs" below); lane done.
 
+## Follow-up 1 (commander decisions + review queue, 2026-10-16) — branch p4ei/runtime after merging p4-env-impact @ 43303f0b
+
+Owned now: `internal/investigate/{runtime,relations}`, `internal/catalog` (new construct), `cmd/ri/investigate.go`.
+
+| # | Item | Done |
+|---|---|---|
+| 1 | data change under a consumer with no consumer degrading is not a `fail` | degradations of signature `data:*` are `Inconclusive` and name their consumers (graph successors) and whether any degraded; an item whose only attributable degradations are inconclusive gets `error` / `runtime:inconclusive-change` ("… consumers X: no degradation observed"); it fails only through a concrete degradation (then listed as context). Docs: the brief's rule is replaced (commander decision). Tests: data-only ⇒ error; consumer crash-loops after its key rotated ⇒ fail naming it. |
+| 2 | exposure for controller-behaviour items | `reconciles:` construct (`internal/catalog/reconciles.go`, schema, tests; quotes verified verbatim) in `products/{ingress-nginx,cert-manager,prometheus-operator,kube-prometheus-stack}.yaml`; `relations.NewExposure(relations.WithReconcilesFrom(catalog))` roots every in-scope `controller-behaviour`/`unknown` item at every non-placeholder environment object of a reconciled kind (rule `exposure:product-reconciles`, after rendered-change and join-match roots); wired in `cmd/ri/investigate.go`. Roots, no new edge kind (no contract change): the paths from them follow established edges. Tests: render-decisive / out-of-scope / placeholder / other-product exclusions, catalog load. |
+| 3 | `--runtime` in `ri investigate` | the eval branch's wiring taken verbatim (`cmd/ri/investigate.go`, `investigate_test.go`, `AppRenderer.Repo` — the snapshot is checkout-independent since 55ac1cfa, so re-renders need the checkout path) so the two branches merge cleanly, plus the `--runtime` flag in `addInvFlags` (`ri investigate` and `ri worker`). README + docs. |
+| a | an accepted patch is not an exercise | catalog `reaction:` (`field-changed` path / `event` reason, cited): cert-manager renewal ⇒ `status.revision` changes (set on issuance); ingress-nginx update ⇒ the controller's `Sync` event; prometheus-operator exercises declare none (upstream documents no response to an update that leaves the generated config unchanged) ⇒ they reveal failures, never support a pass. `checkReactions` after each settle window records `Reacted`/`Unanswered` per target; an item's exercise counts only if the reaction was observed on its objects at both versions; reacted at FROM but not at TO ⇒ inconclusive `exercise-unanswered` difference. Tests: no reaction declared / none at either version / none at TO / both. |
+| b | health after the TO exercises | the pass and `no-baseline` check every observation present (from, from-exercised, to, to-exercised) and the record lists them. Test asserts the text. |
+| c | unsalted 64-bit data digests | `hmac-sha256:<64 hex>` under a random 32-byte per-run key, never stored or returned. Test: equal within a key, different across keys, not a plain hash. |
+| d | empty families covered every family | `families` required (Go validator + schema `minItems 1`); `covers` with none is false. Tests. |
+| e | unchecked subjects without a graph | rejected (`ErrRejected`), no cluster created. Test. |
+| — | local, fail-closed | an item reached **only** through `exposure:product-reconciles` roots never passes (`not-run` / `runtime:reconciled-only`): a healthy exercised run shows the controller still handles its objects, not that this particular change (e.g. a removed metric) was exercised. Test. Commander may relax. |
+
+Product-definition edits change definition digests: e2e goldens regenerated (3 `definitionDigest` lines, nothing
+else); the shared warm `.ri` store re-ingests those products once after merge. My real runs used a private copy of
+`.ri/store` + `.ri/cache` (render cache shared, content-addressed) so the shared store was not touched.
+
+### Follow-up 1 real runs — through the CLI (`ri -state <private copy> -offline investigate <product> <from> <to> --repo eval/investigations/<case>/env --kubernetes 1.31 --runtime`), final code bad9239c
+
+Whole pipeline (bundle, renders, graph with reconciles exposure, validators incl. runtime, agent off, classify); every
+cluster deleted (`kind get clusters` empty after each). Runtime records per item (outcome / rule):
+
+| case | runtime records | findings (all validators) |
+|---|---|---|
+| cert-manager payments-eu | 7 error unattributed, 6 not-run no-baseline, 19 no-exercise, 1 no-object, 13 other-families | 2 affected, 27 potentially-affected, 17 not-affected |
+| cert-manager payments-us | same shape (7 unattributed: leaf `tls.key` rotations under consumers, no consumer degraded) | 2 affected, 27 potentially-affected, 17 not-affected |
+| ingress-nginx shop-de | 14 error unattributed (the storefront Ingress rejected by the new webhook, reached by 14 behaviour items through `exposure:product-reconciles`), 13 no-object | 14 potentially-affected, 13 not-affected |
+| kube-prometheus-stack obs-north | 4 error unattributed (3 ServiceMonitors rejected: token Secret not found — now reached by the procedure item too), 1 no-baseline, 1 no-exercise, 20 no-object | 6 potentially-affected, 20 not-affected |
+
+Effects of follow-up 1, as intended: (1) the key rotations are no longer `fail` (payments-eu: CA + leaves,
+payments-us: leaves only — both inconclusive); (2) the reconciles exposure connects the behaviour items to the
+objects their controller acts on, so the ingress-nginx refusal and the kps rejections now reach the items that
+describe them — shared by several items, hence inconclusive (R3), never a fail; no runtime record is a `pass` (and
+none could be for reconciled-only exposure or for the reaction-less operator exercises). The `not-affected`
+findings come from the other validators (values/rendered items), not from runtime.
+
 ## Decisions (with why)
 
 - **Exercises live in `products/exercises/<product>.yaml` (kind `ProductExercises`), not inside
@@ -40,7 +79,10 @@ Resume from: this file + brief + `git log`.
 
 ## Files touched outside ownership
 
-- none. (`internal/catalog/exercises*.go`, `schemas/product-exercises.schema.json`, `products/exercises/` and
+- `products/{ingress-nginx,cert-manager,prometheus-operator,kube-prometheus-stack}.yaml` (`reconciles:`, follow-up 1
+  item 2, as instructed) and the three cert-manager e2e goldens (`definitionDigest` lines only).
+- `README.md` (one command line for `--runtime`).
+- none before follow-up 1. (`internal/catalog/exercises*.go`, `schemas/product-exercises.schema.json`, `products/exercises/` and
   `docs/INVESTIGATE.md` "Runtime validation" are in the brief's ownership.)
 
 ## Contract changes

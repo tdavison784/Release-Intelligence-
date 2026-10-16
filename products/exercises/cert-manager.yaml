@@ -19,9 +19,13 @@ exercises:
     reason: ManuallyTriggered
     message: Certificate re-issuance manually triggered
   families: [behavior, procedure, api-schema]
+  # the controller's response: a completed issuance sets status.revision to the new request's revision
+  reaction: {kind: field-changed, path: status.revision}
   settleSeconds: 45
   references:
   - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/reference/cmctl.md
     quote: '`cmctl` allows you to manually trigger a renewal of a specific certificate.'
   - url: https://github.com/cert-manager/cmctl/blob/8254a8a61bfaff5d13f48ceb68de76e8f5674536/pkg/renew/renew.go
     quote: 'apiutil.SetCertificateCondition(crt, crt.Generation, cmapi.CertificateConditionIssuing, cmmeta.ConditionTrue, "ManuallyTriggered", "Certificate re-issuance manually triggered")'
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+    quote: Upon issuance, this field will be set to the value of the annotation

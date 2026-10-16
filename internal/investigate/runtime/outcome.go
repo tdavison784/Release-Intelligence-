@@ -8,23 +8,26 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 )
 
 // Outcome rules (the provenance rule of each record).
 const (
-	RuleRunNotRun     = "runtime:run-not-run"    // a precondition of the whole run was missing
-	RuleRunError      = "runtime:run-error"      // the run broke
-	RuleNoObject      = "runtime:no-object"      // nothing on the item's paths is a cluster object
-	RuleDegraded      = "runtime:degraded"       // fail: a degradation only this item reaches
-	RuleUnattributed  = "runtime:unattributed"   // error: a degradation on the item's paths other items reach too
-	RuleOtherFamilies = "runtime:other-families" // not-run: degraded under an exercise declared for other families
-	RuleUnreached     = "runtime:unreached"      // error: no object on its paths, but its family's exercise degraded its targets
-	RuleSandbox       = "runtime:sandbox"        // error: the sandbox broke an object (image pull)
-	RuleUpgradeFailed = "runtime:upgrade-incomplete"
-	RuleNoBaseline    = "runtime:no-baseline" // not-run: an object on the paths was not observed healthy before
-	RuleNoExercise    = "runtime:no-exercise" // not-run: quiet window without the item's exercise
-	RuleExerciseNoRun = "runtime:exercise-not-run"
-	RuleQuiet         = "runtime:healthy-exercised" // pass
+	RuleRunNotRun      = "runtime:run-not-run"         // a precondition of the whole run was missing
+	RuleRunError       = "runtime:run-error"           // the run broke
+	RuleNoObject       = "runtime:no-object"           // nothing on the item's paths is a cluster object
+	RuleDegraded       = "runtime:degraded"            // fail: a degradation only this item reaches
+	RuleUnattributed   = "runtime:unattributed"        // error: a degradation on the item's paths other items reach too
+	RuleOtherFamilies  = "runtime:other-families"      // not-run: degraded under an exercise declared for other families
+	RuleInconclusive   = "runtime:inconclusive-change" // error: data changed under a consumer, no consumer degraded
+	RuleReconciledOnly = "runtime:reconciled-only"     // not-run: reached only as a reconciled kind, no item-specific link
+	RuleUnreached      = "runtime:unreached"           // error: no object on its paths, but its family's exercise degraded its targets
+	RuleSandbox        = "runtime:sandbox"             // error: the sandbox broke an object (image pull)
+	RuleUpgradeFailed  = "runtime:upgrade-incomplete"
+	RuleNoBaseline     = "runtime:no-baseline" // not-run: an object on the paths was not observed healthy before
+	RuleNoExercise     = "runtime:no-exercise" // not-run: quiet window without the item's exercise
+	RuleExerciseNoRun  = "runtime:exercise-not-run"
+	RuleQuiet          = "runtime:healthy-exercised" // pass
 )
 
 // coverage is what a record speaks for.
@@ -50,7 +53,10 @@ func coverageOf(in investigate.ValidationInput, item domain.ChangeItem) (coverag
 				}
 			}
 		}
-		if len(in.Subjects) > 0 && in.Graph != nil {
+		if len(in.Subjects) > 0 && in.Graph == nil {
+			return coverage{}, fmt.Errorf("runtime: %w: subjects requested without a graph to check them against", investigate.ErrRejected)
+		}
+		if len(in.Subjects) > 0 {
 			nodes := map[string]bool{}
 			for _, n := range in.Graph.Nodes {
 				nodes[n.ID] = true
@@ -279,6 +285,18 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 		}
 	}
 	correlated := s.correlated(item.ID)
+	var mineData []Degradation
+	{
+		var concrete []Degradation
+		for _, d := range mine {
+			if d.Inconclusive {
+				mineData = append(mineData, d)
+			} else {
+				concrete = append(concrete, d)
+			}
+		}
+		mine = concrete
+	}
 	if len(mine) > 0 {
 		var b strings.Builder
 		b.WriteString("Observed failure: after upgrading " + r.Product + " " + r.From + " → " + r.To + " in an isolated cluster installed from this environment's own renders, objects on this item's impact paths degraded, and nothing in the baseline explains it:")
@@ -295,6 +313,9 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 				rcs = append(rcs, rc.ID)
 			}
 		}
+		if len(mineData) > 0 {
+			fmt.Fprintf(&b, "\nAlso observed (not failures by themselves): %s.", summarize(mineData))
+		}
 		if len(shared)+len(foreign) > 0 {
 			fmt.Fprintf(&b, "\nAlso on its paths, not attributable to this item alone: %s.", summarize(append(shared, foreign...)))
 		}
@@ -309,6 +330,12 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 			"Inconclusive: objects on this item's impact paths degraded during the isolated upgrade, but other in-scope items reach the same objects, "+
 				"so the observation cannot be attributed to this item alone: %s.", summarize(shared))}
 	}
+	if len(mineData) > 0 {
+		return draft{outcome: domain.ValidationError, rule: RuleInconclusive, evidence: s.evidenceAll(mineData), detail: fmt.Sprintf(
+			"Inconclusive: on this item's impact paths the TO version behaved differently from the FROM version (data changed under a consumer, "+
+				"or the controller did not react to an exercise it reacted to before), and nothing in the baseline explains it, but no degradation was observed — "+
+				"a plausible impact, not a demonstrated failure, and never a clearance: %s.", summarize(mineData))}
+	}
 	if len(foreign) > 0 {
 		return draft{outcome: domain.ValidationNotRun, rule: RuleOtherFamilies, detail: fmt.Sprintf(
 			"Objects on this item's impact paths degraded only under exercises declared for other change families than %s (the degradation is attributed to the items those exercises test), "+
@@ -318,9 +345,14 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 		return draft{outcome: domain.ValidationError, rule: RuleUpgradeFailed, detail: fmt.Sprintf(
 			"The upgrade did not complete in the isolated cluster, so a healthy state of this item's objects proves nothing: %s.", strings.Join(r.UpgradeProblems, "; "))}
 	}
-	var unhealthy []string
+	var unhealthy, checked []string
+	for _, phase := range []string{PhaseFrom, PhaseFromExercised, PhaseTo, PhaseToExercised} {
+		if s.obs[phase] != nil {
+			checked = append(checked, phase)
+		}
+	}
 	for _, id := range reach {
-		for _, phase := range []string{PhaseFrom, PhaseTo} {
+		for _, phase := range checked {
 			st, ok := s.obs[phase].Objects[id]
 			if !ok {
 				unhealthy = append(unhealthy, fmt.Sprintf("%s was not observed at %s", id, phase))
@@ -340,8 +372,8 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 	}
 	if len(unhealthy) > 0 {
 		return draft{outcome: domain.ValidationNotRun, rule: RuleNoBaseline, detail: fmt.Sprintf(
-			"Objects on the item's impact paths were not observed healthy both before and after the upgrade (unsupported in an isolated cluster, or unhealthy already at the FROM version), so no runtime conclusion is possible: %s.",
-			strings.Join(unhealthy, "; "))}
+			"Objects on the item's impact paths were not observed healthy in every observation (%s) — unsupported in an isolated cluster, unhealthy already at the FROM version, or degraded by the exercises — so no runtime conclusion is possible: %s.",
+			strings.Join(checked, ", "), strings.Join(unhealthy, "; "))}
 	}
 	exs := s.applicable(item, reach)
 	if len(exs) == 0 {
@@ -362,6 +394,12 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 		return draft{outcome: domain.ValidationNotRun, rule: RuleExerciseNoRun, detail: fmt.Sprintf(
 			"The exercises declared for this item did not run on its objects at both versions, so the window was quiet and proves nothing: %s.", strings.Join(notRan, "; "))}
 	}
+	if reconciledOnly(in, item, cov) {
+		return draft{outcome: domain.ValidationNotRun, rule: RuleReconciledOnly, detail: fmt.Sprintf(
+			"The item reaches its objects only as kinds the product's controller reconciles (exposure %s), with no rendered change or join match of its own: "+
+				"the exercises (%s) ran and nothing degraded, but they do not show that this particular change was exercised, so the healthy run is not a pass.",
+			relations.RuleReconciledKind, strings.Join(ran, ", "))}
+	}
 	var rcs []string
 	for _, rc := range correlated {
 		if inReach[s.live(rc.Object)] {
@@ -369,8 +407,9 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 		}
 	}
 	return draft{outcome: domain.ValidationPass, rule: RuleQuiet, rcs: rcs, detail: fmt.Sprintf(
-		"Observed healthy: the upgrade completed and every object on the item's impact paths (%s) was healthy at the FROM and TO versions, "+
-			"and the exercises declared for it (%s) ran at both versions without degrading them.", plural(len(reach), "object", "objects"), strings.Join(ran, ", "))}
+		"Observed healthy: the upgrade completed; every object on the item's impact paths (%s) was healthy in each observation (%s); "+
+			"the exercises declared for it (%s) were applied at both versions, the controller showed the declared reaction to them at both, and nothing degraded.",
+		plural(len(reach), "object", "objects"), strings.Join(checked, ", "), strings.Join(ran, ", "))}
 }
 
 // unreached returns the exercise-window degradations on targets of the
@@ -397,6 +436,38 @@ func (s *session) unreached(item domain.ChangeItem) []Degradation {
 	return out
 }
 
+// reconciledOnly reports whether every root the coverage speaks for comes
+// from the product-reconciles exposure rule (no item-specific exposure).
+func reconciledOnly(in investigate.ValidationInput, item domain.ChangeItem, cov coverage) bool {
+	if in.Traversal == nil {
+		return false
+	}
+	nodes := map[string]bool{}
+	for _, n := range cov.subjects {
+		nodes[n] = true
+	}
+	want := map[string]bool{}
+	for _, p := range cov.paths {
+		want[p] = true
+	}
+	for _, p := range in.Traversal.PathsOf(item.ID) {
+		if want[p.ID] && len(p.Nodes) > 0 {
+			nodes[p.Nodes[0]] = true
+		}
+	}
+	found := false
+	for _, r := range in.Traversal.RootsOf(item.ID) {
+		if !nodes[r.Node] {
+			continue
+		}
+		if r.Rule != relations.RuleReconciledKind {
+			return false
+		}
+		found = true
+	}
+	return found
+}
+
 // ranOn reports whether an exercise was applied to a target within reach at
 // both versions.
 func (s *session) ranOn(d DeclaredExercise, reach []string) (bool, string) {
@@ -404,12 +475,19 @@ func (s *session) ranOn(d DeclaredExercise, reach []string) (bool, string) {
 	for _, id := range reach {
 		in[id] = true
 	}
-	ok := func(version string) bool {
-		er, found := s.exRuns[version][d.Key()]
-		if !found {
-			return false
+	if d.Exercise.Reaction == nil {
+		return false, "it declares no observable controller reaction, so it can reveal failures but never show that the controller acted"
+	}
+	applied := func(version string) bool {
+		for _, id := range s.exRuns[version][d.Key()].Executed {
+			if in[id] {
+				return true
+			}
 		}
-		for _, id := range er.Executed {
+		return false
+	}
+	reacted := func(version string) bool {
+		for _, id := range s.exRuns[version][d.Key()].Reacted {
 			if in[id] {
 				return true
 			}
@@ -417,11 +495,14 @@ func (s *session) ranOn(d DeclaredExercise, reach []string) (bool, string) {
 		return false
 	}
 	switch {
-	case !ok("from"):
+	case !applied("from"):
 		return false, "not applied to the item's objects at the FROM version"
-	case !ok("to"):
-		er := s.exRuns["to"][d.Key()]
-		return false, fmt.Sprintf("not applied to the item's objects at the TO version (failed: %v)", er.Failed)
+	case !applied("to"):
+		return false, fmt.Sprintf("not applied to the item's objects at the TO version (failed: %v)", s.exRuns["to"][d.Key()].Failed)
+	case !reacted("from"):
+		return false, "applied, but the controller showed no reaction (" + reactionText(d.Exercise) + ") on the item's objects at the FROM version"
+	case !reacted("to"):
+		return false, "applied, but the controller showed no reaction (" + reactionText(d.Exercise) + ") on the item's objects at the TO version"
 	}
 	return true, ""
 }

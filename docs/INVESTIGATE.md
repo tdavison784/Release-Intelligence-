@@ -294,7 +294,8 @@ nothing deterministic can confirm as affected, and which only a trusted pinned s
 
 **Observations are generic** (no product Go code), per object: existence and apply/admission errors, status
 conditions, readiness and pod problems (waiting reasons, restarts), generation vs observedGeneration,
-Secret/ConfigMap data **digests per key (never values)**, Warning events since the window started, and
+Secret/ConfigMap data **digests per key (never values)** — HMAC-SHA256 under a random per-run key that is never
+stored, so digests compare within a run and cannot be matched against a guessed value —, Warning events since the window started, and
 error-level log lines of the product's controller pods that name the object (`<ns>/<name>` with name
 boundaries). Observed objects are every applied object plus every Kubernetes object the relationship graph names
 (e.g. the Secret a Certificate's controller produces); graph keys whose name is a redaction marker are resolved
@@ -309,23 +310,38 @@ against live names by recomputing the marker.
   warnings/log lines already seen at FROM are explained.
 - **exercise window** — what the exercises did at TO (TO → TO-exercised) that **the same exercises did not do at
   FROM** (FROM → FROM-exercised). A renewal that rotates a certificate at both versions is explained; one that also
-  rotates the private key only at TO is a degradation (`data:tls.key` under the consuming Deployment).
+  rotates the private key only at TO is a difference (`data:tls.key` under the consuming Deployment).
+- **A data change is not a failure by itself** (commander decision 2026-10-16, replacing the brief's "referenced
+  data changed under a consumer ⇒ fail": MISSION's Affected needs evidence of an incompatible impact, and a `fail`
+  must name a concrete failure). Data differences are marked *inconclusive* and name the consumers (graph
+  successors) and whether any of them degraded. An item whose only degradations are such data changes gets
+  `error` / `runtime:inconclusive-change` ("data changed under consumer X; no degradation observed"): a plausible-impact
+  signal (R3), never a clearance. It fails only through a concrete degradation — e.g. the consumer itself becoming
+  not ready — which then lists the data change as context.
 - an exercise the TO version **refuses** on an object the FROM version accepted it on (an admission webhook
   denying the update) is a degradation of that object (`exercise-rejected:<exercise>`).
+- an exercise the TO controller accepts **without the declared reaction** it showed at FROM is an inconclusive
+  difference (`exercise-unanswered:<exercise>`: a controller that stopped acting on the object, or a slow one).
 - an image that cannot be pulled is the sandbox's problem (`Infrastructure`), never a failure.
 
 **Exercises** — `products/exercises/<product>.yaml` (kind `ProductExercises`, `internal/catalog/exercises.go`,
 schema `schemas/product-exercises.schema.json`): declared, upstream-documented triggers, each with a target kind,
 an action (`status-condition` through the status subresource, `annotate`, `rollout-restart`), the change-item
-`families` it exercises, an optional settle window and ≥1 https upstream reference with a verbatim quote (never
+`families` it exercises (**required**: an exercise covers only the families it names), the controller's observable
+**reaction** (`field-changed` + path, or `event` + reason), an optional settle window and ≥1 https upstream reference with a verbatim quote (never
 eval data). They live beside the product definitions, not inside them, so the definition digest that pins ingested
 releases is untouched. All files load catalog-wide (`catalog.LoadExercises` → `runtime.FromSets`); an exercise
-runs when the environment has an object of its target kind. Declared today: cert-manager `certificate-renewal`
-(Issuing=True, ManuallyTriggered — what `cmctl renew` does), ingress-nginx `ingress-update` (an Ingress update the
-admission webhook re-validates), prometheus-operator `servicemonitor-update` / `podmonitor-update` /
-`prometheusrule-update` (the operator re-reconciles and rejects invalid resources with an Event).
+runs when the environment has an object of its target kind. **An exercise counts as run on an object only when the
+controller showed the declared reaction there** (checked after the settle window): an accepted patch proves only that
+the API server stored it. An exercise without a declared reaction can reveal failures (a refusal, a rejection Event)
+but never supports a pass. Declared today: cert-manager `certificate-renewal` (Issuing=True, ManuallyTriggered —
+what `cmctl renew` does; reaction: `status.revision` changes, set on issuance), ingress-nginx `ingress-update` (an
+Ingress update the admission webhook re-validates; reaction: the controller's `Sync` event), prometheus-operator
+`servicemonitor-update` / `podmonitor-update` / `prometheusrule-update` (the operator re-reconciles and rejects
+invalid resources with an Event; **no reaction declared** — upstream documents none for an update that leaves the
+generated configuration unchanged — so they never support a pass).
 
-**Per item** (rule = provenance rule; coverage = the requested subjects/paths, or every root and path of the item):
+**Per item** (rule = provenance rule; coverage = the requested subjects/paths — subjects only with a graph to check them against, else the request is rejected — or every root and path of the item):
 
 | Outcome | Rule | When |
 |---|---|---|
@@ -334,23 +350,28 @@ admission webhook re-validates), prometheus-operator `servicemonitor-update` / `
 | `error` | `runtime:unreached` | nothing on the item's roots/paths is a cluster object, but an exercise declared for its family degraded its targets at TO only — a plausible impact the graph does not connect to any one item (never a fail, never a pass) |
 | `not-run` | `runtime:no-object` | nothing on the item's roots/paths is a Kubernetes object of the cluster (and nothing above) |
 | `fail` | `runtime:degraded` | a degradation on the item's paths that **only this in-scope item** reaches (for an exercise-window degradation: only this item among those whose exercise ran on their paths); names each concrete failure, cites the observation artifact and the item's rendered changes on the degraded objects |
+| `error` | `runtime:inconclusive-change` | its only (attributable) degradations are inconclusive differences — data changed under consumers with no consumer degrading, or an exercise left unanswered at TO |
 | `error` | `runtime:sandbox` | the sandbox could not run an object on the paths (image pull) |
 | `error` | `runtime:unattributed` | a degradation on its paths that other in-scope items reach too — inconclusive (R3), never a fail |
 | `not-run` | `runtime:other-families` | its objects degraded only under an exercise declared for other families |
 | `error` | `runtime:upgrade-incomplete` | the upgrade did not complete (a product object rejected, a product workload not ready) |
-| `not-run` | `runtime:no-baseline` | an object on its paths was not observed healthy at both FROM and TO (absent before, removed by the upgrade, not ready, unserved) |
+| `not-run` | `runtime:no-baseline` | an object on its paths was not observed healthy in every observation — FROM, after the FROM exercises, TO, after the TO exercises (absent before, removed by the upgrade, not ready, unserved) |
 | `not-run` | `runtime:no-exercise` | **no exercise declared for its family with a target on its paths: a quiet window is never a pass** |
-| `not-run` | `runtime:exercise-not-run` | its exercise did not run on its objects at both versions |
-| `pass` | `runtime:healthy-exercised` | the upgrade completed, every object on its paths was healthy before and after, and its exercise ran at both versions without degrading them; covers the item's rendered changes on those objects |
+| `not-run` | `runtime:exercise-not-run` | its exercise was not applied, or the controller showed no declared reaction, on its objects at both versions (or the exercise declares no reaction) |
+| `not-run` | `runtime:reconciled-only` | everything above held, but the item reaches its objects only through the `exposure:product-reconciles` rule (no rendered change or join match of its own): the exercises show the controller still handles its objects, not that this particular change was exercised |
+| `pass` | `runtime:healthy-exercised` | the upgrade completed, every object on its paths was healthy in each observation (the record lists them), and its exercise was applied with the controller's declared reaction observed at both versions, degrading nothing; covers the item's rendered changes on those objects |
 
 A runtime pass is level `observed`, so it `ClearsBehaviour()` (R2.4); classify still applies R2.1–R2.8. Records cite
 the applied render artifacts and the exercise declarations (`derived/runtime/<bundle>/exercises.json`) as inputs,
 and `run.json` (phases, apply errors, exercises, upgrade problems, degradations, cleanup) and `observations.json`
 (the four observations) as outputs (`validation-output` artifacts, returned in `ValidationOutput.Artifacts`).
 
-**Wiring** (lane orchestrate, behind `--runtime`): `runtime.New(runtime.WithStore(st),
-runtime.WithRenderer(runtime.NewAppRenderer(app)), runtime.WithExercises(runtime.FromSets(sets…)…))` with `sets`
-from `catalog.LoadExercises("products/exercises")`, and its name in `Config.Validators`. `Run(ctx, bundle, graph)`
+**Wiring** (`ri investigate --runtime`, `ri worker --runtime`, `ri eval -investigations -runtime`;
+`cmd/ri/investigate.go`): `runtime.New(runtime.WithStore(st), runtime.WithRenderer(ar),
+runtime.WithExercises(runtime.FromSets(sets…)…))` with `ar := runtime.NewAppRenderer(app)`, `ar.Repo` = the
+environment checkout (the snapshot is checkout-independent), `sets` from
+`catalog.LoadExercises("<products>/exercises")`, and `runtime.isolated-upgrade@v1` added to `Config.Validators`
+(so the option is part of the investigation id). `Run(ctx, bundle, graph)`
 performs the run explicitly (e.g. as its own activity, heartbeating); `Validate` reuses it per item, so an agent's
 `request_validation` of kind `runtime` is answered from the same run.
 
@@ -394,8 +415,20 @@ traversal incomplete, which blocks `not-affected` (fail closed).
 
 **Exposure** (`relations.NewExposure()`): the roots of an in-scope change item are the graph nodes of the
 environment rendered changes correlated to it (rule `exposure:rendered-change`), then the nodes the deterministic
-join's matches name (`exposure:join-match`; a subject is a node key, `Kind/name` or `namespace/Kind/name`). One
-root per (item, node); an item with no signal has no root.
+join's matches name (`exposure:join-match`; a subject is a node key, `Kind/name` or `namespace/Kind/name`), then —
+for a `controller-behaviour` or `unknown` item only, whose effect no render can show — every environment object
+(not a placeholder) of a kind the product's controller **reconciles** (`exposure:product-reconciles`, option
+`relations.WithReconcilesFrom(catalog)`). One root per (item, node), the first rule wins; an item with no signal
+has no root.
+
+**Reconciled kinds** — `reconciles:` in `products/<id>.yaml` (`internal/catalog/reconciles.go`, schema
+`product-definition.schema.json`): entries `{id, kinds: [{group, kind}], summary, references}`, each citing
+upstream documentation with a verbatim quote (https, never eval data; a kind is declared once per product).
+Declared: ingress-nginx (Ingress), cert-manager (Certificate, CertificateRequest, Issuer, ClusterIssuer),
+prometheus-operator and kube-prometheus-stack (the operator's ten custom resource kinds). Release-level facts —
+"the controller this product ships acts on every object of these kinds" — so a change compiled into the
+controller has an established exposure in every environment that declares such objects; the paths from those
+roots follow the ordinary edges (a Certificate's Secret, the Deployment mounting it).
 
 **Traversal** (`relations.NewTraverser()`, `graph.dfs@v1`): roots sorted by (item, node id); outgoing edges by
 (kind, to-node id, edge id); simple paths only; a maximal path is emitted when no outgoing edge leads off the
@@ -759,7 +792,9 @@ The environment is named like `ri impact` (`--repo`, `--values`, `--manifests`, 
 environment's configuration; `--knowledge DIR` supplies verified facts (a fact clears a change only when
 trusted). `--agent` runs the investigation agent (driver `--agent-driver claude-cli|exchange|replay`,
 `--agent-exchange DIR`, `--agent-replay FILE`, or `--agent-driver scripted --agent-script FILE`, a JSON list of tool calls played as the model); without it the agent stage records `not-run` and no
-run can become auto-approve-eligible. Everything lands in `<state>/investigations/`: the immutable bundle,
+run can become auto-approve-eligible. `--runtime` (off by default) adds the observed-level isolated-upgrade
+validator ("Runtime validation": a throwaway kind cluster per investigation, minutes, needs docker/kind/kubectl;
+`ri worker` takes the same flag). Everything lands in `<state>/investigations/`: the immutable bundle,
 content-addressed artifacts and the run record `runs/<inv-id>.json`, whose **hash-chained audit trail**
 has `started` / `completed` / `failed` / `retried` per stage (actor `system`), `requested` per agent
 request (actor `agent:<model>`) and `decided` for the review (`human:<name>` / `proxy:<model>`). The
