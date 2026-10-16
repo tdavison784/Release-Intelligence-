@@ -66,12 +66,35 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
   - Inline Argo/Flux-only values now count as `Supplied.Values`. Why: values visibility is about content
     presence, not file presence.
 
-## In progress
-- (nothing — between fixes)
+## In progress (exact next step)
+- Fix 3 (CRD description-only changes, EVAL-REPORT §5.1g) — code done, tests PARTLY done, NOT committed:
+  - `internal/render/diff.go`: new declared class `CRDDescriptionChanged` ("crd-description-changed",
+    listed in ChangeClasses; one class covers add/remove/reword like image-changed). The differ classifies
+    a `description` key inside a CustomResourceDefinition's `openAPIV3Schema` subtree as it (keyed()
+    intercept: kind == CustomResourceDefinition && pattern contains openAPIV3Schema && key ==
+    "description"). NOT added to RenderedClasses (auto-approval eligibility) — documentation is not an
+    effect.
+  - `internal/render/correlate.go`: `match()` returns "" for CRDDescriptionChanged before every rule —
+    schema documentation restates no behavioural change (kills the old mentions-field link on the word
+    "description").
+  - `internal/investigate/bundle/change.go` `anchorUnexplained`: description changes get NO scope entry →
+    they anchor no item (THE noise fix: 300 reworded descriptions no longer spawn 300
+    scope:rendered-unexplained items); they stay visible as plain rendered changes in the pair.
+  - `internal/investigate/validate/renderdiff.go`: `descriptionOnly` reads the class (imports render)
+    instead of parsing object/path strings; harmless→pass behaviour unchanged.
+  - `internal/investigate/bundle/scope.go`: `hasNonDescriptionPath` deleted — description paths can no
+    longer enter CorrelatedPaths (they don't correlate), and the suffix check would wrongly demote a legit
+    non-CRD path ending in "description"; `len(CorrelatedPaths) > 0` now.
+  - Tests updated: renderdiff_test (description fixture now requested-changes shape — that is the only
+    way an uncorrelated change reaches the validator; silence-never-clears-behaviour test uses a real
+    schema-type field mention), scope_test (dropped the now-impossible description-only CorrelatedPaths
+    subtest with a comment). render/validate/bundle packages green.
+  - NEXT: add the render-level tests for the class itself (diff_test: CRD description → class; non-CRD
+    description field stays field-changed; correlate_test: no link, not even mentions-field with the word
+    "description" in the text; a bundle/anchorUnexplained test proving no item for description-only pairs
+    if cheap), run FULL suite, commit fix 3, update this file.
 
 ## Not started
-- Fix 3 (CRD description-only rendered changes: declared generic render class + harmless deterministic
-  verdict, no noise flood, never clears behaviour).
 - Fix 4 (cert-manager traversal truncation at depth 8: diagnose, fix artefacts or raise the default with
   measured justification; truncation stays honest).
 
