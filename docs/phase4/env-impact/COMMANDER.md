@@ -48,12 +48,12 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
-| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | arm A scored (not merged yet); HOLDING arm B until commander says ARM B GO |
+| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | runs A, A′, A″, A‴, C scored; merge HELD: 58 MB of stored runs → slimming to compressed per-case artifacts on p4ei/eval2 (<10 MB); arm B HELD |
 | fixes | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2T (tab w1:t1B) left — Claude commander closes it on resume | MERGED 8c7d74f2 ([glm-handoff], glm-commander) + cleaned up |
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
-| values | ri-values | claude-opus-5-5 | .claude/worktrees/p4ei-values | pane w1:p31 | MERGED 65ee78a5 + 3b73d721 (renderer = env stacks); last: helmfile set typing |
+| values | — | claude-opus-5-5 | (removed) | (closed) | MERGED 65ee78a5 + 3b73d721 + cd3b863f + cleaned up |
 | reviewfilter | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 555b51bb + 99a25cbc + cleaned up: default view = 5 pin-source items |
 | knowledge | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED d432d5f6 + cleaned up: 110 review items (ingress-nginx 99, kps 11), nothing verified |
 | defaults | ri-defaults | claude-opus-5-5 | .claude/worktrees/p4ei-defaults | pane w1:p33 | started 18:20: ROOT CAUSE of unsafe eligibility — removed/changed values keys whose old default was in effect (join + correlation); Phase 3 eval regression check mandatory |
