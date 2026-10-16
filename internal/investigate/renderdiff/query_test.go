@@ -267,3 +267,36 @@ func TestParsePath(t *testing.T) {
 		}
 	}
 }
+
+// Regression (classify follow-up 2): query_diff by an ENVIRONMENT-scope item
+// (scope:rendered-unexplained anchored on an environment rendered change, in
+// EvidenceBundle.EnvironmentItems) is accepted and returns its rendered change.
+func TestQueryByEnvironmentScopeItem(t *testing.T) {
+	_, b := queryBundle(t)
+	if len(b.EnvironmentItems) == 0 {
+		t.Fatal("fixture: want environment-scope items")
+	}
+	for _, it := range b.EnvironmentItems {
+		if _, inRecord := b.Change.Item(it.ID); inRecord {
+			t.Fatalf("fixture: %s must live in EnvironmentItems only", it.ID)
+		}
+		p, err := QueryPage(b, investigate.DiffQuery{ChangeItem: it.ID})
+		if err != nil {
+			t.Fatalf("%s (%s): %v", it.ID, it.ScopeRule, err)
+		}
+		found := false
+		for _, c := range p.Changes {
+			if !contains(c.ChangeItems, it.ID) {
+				t.Fatalf("%s: returned %s not correlated to it", it.ID, c.ID)
+			}
+			found = found || c.ID == it.RenderedChange
+		}
+		if !found {
+			t.Fatalf("%s: its anchoring rendered change %s is not returned (%d changes)", it.ID, it.RenderedChange, len(p.Changes))
+		}
+	}
+	// An id that is no item at all is still rejected.
+	if _, err := QueryPage(b, investigate.DiffQuery{ChangeItem: "ci-nope"}); !errors.Is(err, investigate.ErrRejected) {
+		t.Fatalf("unknown item: %v", err)
+	}
+}
