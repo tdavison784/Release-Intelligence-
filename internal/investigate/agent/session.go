@@ -140,6 +140,9 @@ type Session struct {
 	closingIDs  map[string]string                  // item -> closing assertion id
 	closingEv   map[string][]domain.EvidenceID
 	links       []investigate.AnswerLink
+	examined    map[string]bool            // items retrieved with get_change_item
+	inspections map[string]int             // accepted query calls naming the item
+	citers      map[string]map[string]bool // citation key (artifact + quote) -> items whose records cite it
 }
 
 var (
@@ -160,7 +163,7 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		runEv: map[domain.EvidenceID]domain.Evidence{}, rcs: b.RenderedChanges(), items: map[string]domain.ChangeItem{},
 		nodes: map[string]domain.GraphNode{}, nodeKey: map[string]string{}, edges: map[string]domain.GraphEdge{},
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
-		onAgenda: map[string]bool{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
+		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}

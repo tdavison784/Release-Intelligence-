@@ -629,6 +629,9 @@ type AssertionInput struct {
 	Citations       []Citation    `json:"citations"`
 	Hypothesis      string        `json:"hypothesis,omitempty"`
 	ProposedEdge    *ProposedEdge `json:"proposedEdge,omitempty"`
+	// NoValidationReason: why no validation is requested for this concern
+	// (depth rules). CONTRACT-CHANGE(agent): additive.
+	NoValidationReason string `json:"noValidationReason,omitempty"`
 }
 
 // ProposedEdge is a relationship the agent believes exists.
@@ -675,6 +678,9 @@ type ItemSummary struct {
 	Disposition domain.CoverageDisposition `json:"disposition,omitempty"`
 	Summary     string                     `json:"summary"`
 	Citations   []Citation                 `json:"citations"`
+	// NoValidationReason: for a raises-concern closing entry, why no
+	// validation was requested (depth rules). CONTRACT-CHANGE(agent): additive.
+	NoValidationReason string `json:"noValidationReason,omitempty"`
 }
 
 // SubmitInput ends the agent run.

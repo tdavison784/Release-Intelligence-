@@ -168,6 +168,7 @@ func (s *Session) recordHypothesis(ctx context.Context, in investigate.Hypothesi
 	}
 	return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: cites}, commit: func() {
 		s.hyps = append(s.hyps, h)
+		s.cite(it.ID, evs)
 		for _, e := range evs {
 			s.addRunEvidence(e)
 		}
@@ -234,6 +235,15 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	if err != nil {
 		return nil, err
 	}
+	reason, err := s.noValidationReason(in.Stance == domain.StanceRaisesConcern, in.NoValidationReason)
+	if err != nil {
+		return nil, err
+	}
+	if in.Stance == domain.StanceExplains {
+		if err := s.depthExplains("record_assertion", it.ID, evs, nil); err != nil {
+			return nil, err
+		}
+	}
 	id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(in.Stance)+"\x00"+stmt, s.call.ID)
 	for i := range s.asserts {
 		if s.asserts[i].ID == id {
@@ -250,7 +260,7 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	}
 	cites := evidenceIDs(evs)
 	a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: in.Stance, Statement: stmt, Subjects: subjects, Paths: paths,
-		RenderedChanges: rcs, Citations: cites, ProposedEdge: edge, Hypothesis: in.Hypothesis,
+		RenderedChanges: rcs, Citations: cites, ProposedEdge: edge, Hypothesis: in.Hypothesis, NoValidationReason: reason,
 		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 	if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
@@ -261,6 +271,7 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	}
 	return &outcome{value: &a, view: view, commit: func() {
 		s.asserts = append(s.asserts, a)
+		s.cite(it.ID, evs)
 		for _, e := range evs {
 			s.addRunEvidence(e)
 		}
@@ -687,6 +698,12 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 	closingIDs := map[string]string{}
 	closingEv := map[string][]domain.EvidenceID{}
 	counts := map[string]int{}
+	type explainsEntry struct {
+		i    int
+		item string
+	}
+	var explainsEntries []explainsEntry
+	entryEv := map[string][]domain.Evidence{} // item -> the entry's checked citations
 	for i, sum := range in.Items {
 		it, err := s.item(sum.ChangeItem)
 		if err != nil {
@@ -731,12 +748,21 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 				}
 				closingEv[it.ID] = evidenceIDs(cs)
 				evs = append(evs, cs...)
+				entryEv[it.ID] = cs
 			}
 			continue
 		}
 		cs, err := s.citations(ctx, sum.Citations)
 		if err != nil {
 			return nil, fmt.Errorf("items[%d]: %w", i, err)
+		}
+		reason, err := s.noValidationReason(disp == domain.CoverRaisesConcern, sum.NoValidationReason)
+		if err != nil {
+			return nil, fmt.Errorf("items[%d]: %w", i, err)
+		}
+		entryEv[it.ID] = cs
+		if disp == domain.CoverExplains || disp == domain.CoverExaminedNoConcern {
+			explainsEntries = append(explainsEntries, explainsEntry{i: i, item: it.ID})
 		}
 		id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(stance)+"\x00"+stmt, s.call.ID)
 		ids = append(ids, id)
@@ -752,13 +778,34 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		if dup {
 			continue
 		}
-		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: stance, Statement: stmt, Citations: cites,
+		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: stance, Statement: stmt, Citations: cites, NoValidationReason: reason,
 			Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 		if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 			return nil, err
 		}
 		made = append(made, a)
 		evs = append(evs, cs...)
+	}
+	// Depth rules: D1 over the explains / examined-no-concern entries (the
+	// other entries of this call count as other items' citations), D2 over
+	// every raises-concern.
+	pending := map[string]map[string]bool{}
+	for item, cs := range entryEv {
+		for _, e := range cs {
+			k := citeKey(e)
+			if pending[k] == nil {
+				pending[k] = map[string]bool{}
+			}
+			pending[k][item] = true
+		}
+	}
+	for _, x := range explainsEntries {
+		if err := s.depthExplains(fmt.Sprintf("items[%d]", x.i), x.item, entryEv[x.item], pending); err != nil {
+			return nil, err
+		}
+	}
+	if err := s.depthConcerns(made); err != nil {
+		return nil, err
 	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
 	if agenda {
@@ -787,6 +834,9 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		}
 		for k, v := range closingEv {
 			s.closingEv[k] = v
+		}
+		for item, cs := range entryEv {
+			s.cite(item, cs)
 		}
 		s.submitted = true
 	}}, nil

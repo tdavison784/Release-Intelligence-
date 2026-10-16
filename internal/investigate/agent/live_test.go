@@ -194,21 +194,44 @@ func TestLiveAgentRun(t *testing.T) {
 	if len(out.Run.Coverage) > 0 {
 		var md strings.Builder
 		counts := map[domain.CoverageDisposition]int{}
-		fmt.Fprintf(&md, "| # | item | agenda rule | disposition | records | summary |\n|---|---|---|---|---|---|\n")
+		fmt.Fprintf(&md, "| # | item | agenda rule | disposition | examined | inspections | validation requests | records | summary |\n|---|---|---|---|---|---|---|---|---|\n")
 		for i, c := range out.Run.Coverage {
 			counts[c.Disposition]++
-			fmt.Fprintf(&md, "| %d | %s | %s | %s | %d | %s |\n", i+1, c.ChangeItem, c.PriorityRule, c.Disposition, len(c.Records), strings.ReplaceAll(clip(c.Summary, 220), "|", "\\|"))
+			fmt.Fprintf(&md, "| %d | %s | %s | %s | %v | %d | %d | %d | %s |\n", i+1, c.ChangeItem, c.PriorityRule, c.Disposition, c.Examined, c.Inspections,
+				c.ValidationRequests, len(c.Records), strings.ReplaceAll(clip(c.Summary, 220), "|", "\\|"))
 		}
 		fmt.Fprintf(&md, "\nTotals:")
 		for _, d := range domain.CoverageDispositions {
 			fmt.Fprintf(&md, " %s %d;", d, counts[d])
 		}
 		fmt.Fprintf(&md, " budget rule: %s\n", out.Run.BudgetRule)
+		tr, err := ParseTranscript(transcript)
+		must(t, err)
+		byTool := map[string]int{}
+		for _, c := range tr.Calls {
+			if c.OK {
+				byTool[c.Tool]++
+			} else {
+				byTool[c.Tool+" (rejected)"]++
+			}
+		}
+		fmt.Fprintf(&md, "\nTool calls: %d (%v)\n", len(tr.Calls), byTool)
+		fmt.Fprintf(&md, "\n## Validation requests (%d)\n\n", len(out.ValidationRequests))
+		for _, r := range out.ValidationRequests {
+			fmt.Fprintf(&md, "- %s %s %s subjects=%v answers=%v → %s %s %s\n", r.ID, r.ChangeItem, r.Kind, r.Subjects, r.Answers, r.Status, r.Result, clip(r.Resolution, 200))
+		}
+		for _, v := range out.Validations {
+			fmt.Fprintf(&md, "  - record %s %s %s answers=%v: %s\n", v.ID, v.Validator, v.Outcome, v.Answers, clip(v.Detail, 200))
+		}
+		fmt.Fprintf(&md, "\n## Answer links (%d)\n\n", len(out.AnswerLinks))
+		for _, l := range out.AnswerLinks {
+			fmt.Fprintf(&md, "- %s ← %v (request %s)\n", l.Validation, l.Assertions, l.Request)
+		}
 		write("coverage.md", []byte(md.String()))
-		t.Logf("coverage: %v", counts)
+		t.Logf("coverage: %v; tool calls %v; validation requests %d; answer links %d", counts, byTool, len(out.ValidationRequests), len(out.AnswerLinks))
 	}
 
-	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out, pre...)
+	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out, ApplyAnswerLinks(pre, out.AnswerLinks)...)
 	have := map[domain.EvidenceID]bool{}
 	for _, e := range run.Evidence {
 		have[e.ID] = true

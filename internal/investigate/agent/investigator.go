@@ -349,6 +349,12 @@ func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain
 			}
 		}
 		c.Records = uniqSorted(records[e.ChangeItem])
+		c.Examined, c.Inspections = s.examined[e.ChangeItem], s.inspections[e.ChangeItem]
+		for _, r := range s.valReqs {
+			if r.ChangeItem == e.ChangeItem {
+				c.ValidationRequests++
+			}
+		}
 		out = append(out, c)
 	}
 	return out

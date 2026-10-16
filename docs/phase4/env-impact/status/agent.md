@@ -4,7 +4,7 @@ Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/age
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
 store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
 (commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
-`git merge p4-env-impact`. State: **DONE (follow-ups 1 and 2 complete)** (2026-10-16).
+`git merge p4-env-impact`. State: **DONE (follow-ups 1–3 complete)** (2026-10-16).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -130,7 +130,36 @@ Resume from: this file + brief + `git log`.
   bundle's in-scope items were all record items (16 in scope, none environment-scope), so it is unaffected
   by the env-item fix. A v3 live run was not requested; offered.
 
+## Follow-up 3 (commander decision on question A) — done
+
+- **Depth rules in prompt v3** (meta feature `depthRules`; `depth.go`), enforced in the tool layer when a record
+  is made:
+  - D1: `explains` / `examined-no-concern` only after `get_change_item` on the item and with ≥1 citation
+    (artifact + normalised quote) no other item's records share — incl. the other entries of the same
+    submission;
+  - D2: `submit_findings` is rejected while a raises-concern on a controller-behaviour/unknown item has neither
+    a `request_validation` for the item nor a `noValidationReason`.
+
+  Coverage entries carry `examined` / `inspections` / `validationRequests`. Documented in
+  `docs/INVESTIGATE.md` (Investigation agent → Depth rules). Tests: `depth_test.go` (both rules, the
+  shared-quote-with-another-locator case, same-submission sharing, reasons, v2 unchanged).
+- **Live run 3** `runs/agent-live-3/` (kube-prometheus-stack obs-north, claude-sonnet-5-5, v3):
+  - submitted, 12 calls (2 rejected: a misattributed quote; a D1 rejection of an explanation of an unretrieved
+    item), 58k tokens;
+  - coverage 26/26 (10 raises-concern, 16 not-examined, 0 examined-no-concern);
+  - depth: 2 items examined;
+  - 1 validation request (override-inspection → not-run, no pin rule), 0 answer links;
+  - replay byte-identical; the run record validates.
+- Question B (bundle reproducibility) → orchestrate2, per the commander.
+
 ## Decisions (with why)
+
+- **D1 compares quotes, not evidence ids**: an evidence id includes the locator, so a reused quote under a
+  new locator would otherwise count as unique.
+- **D1/D2 are checked when a record is made** (no retroactive invalidation), so an accepted call stays
+  accepted and replays deterministically.
+- **D2 counts any recorded request for the item**, whatever its outcome: the rule demands that the agent ask,
+  not that the validator can decide.
 
 - **Answer links need the agent's request plus a coverage guard.** The agent can only weaken its own concern
   this way, and the classifier still decides whether the pass counts (behaviour items: pin or observed only).
@@ -195,6 +224,15 @@ Resume from: this file + brief + `git log`.
   uses it.
 
 ## Open questions / notes for the commander
+
+Follow-up 3 (live run 3; see its README):
+
+- The depth rules made coverage honest: `examined-no-concern` disappeared and unexamined items are
+  `not-examined`. They do not make the agent spend its budget (12 of 168 calls). A budget-floor rule
+  (k inspections per priority-0 item before the first submission, unless not-examined with a reason) is
+  the next generic lever — your call.
+- Concerns are exempt from D1 (fail-safe): 9 of 10 concerns in run 3 rest on one examined item, and one
+  blocked explanation was relabelled raises-concern. This inflates concerns, never clearances.
 
 Follow-up (live run 2):
 
