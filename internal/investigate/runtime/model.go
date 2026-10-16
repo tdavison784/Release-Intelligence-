@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -243,9 +244,11 @@ func isMarker(s string) bool {
 	return strings.HasPrefix(s, bundleMarkerPrefix) || strings.HasPrefix(s, renderMarkerPrefix)
 }
 
-// digestValue digests one Secret/ConfigMap value: observations record
-// digests, never values.
-func digestValue(v any) string {
+// digestValue digests one Secret/ConfigMap value with the run's key:
+// observations record keyed digests, never values. Only equality within a
+// run matters, so the key is random per run and never stored — a recorded
+// digest cannot be checked against a guessed value.
+func digestValue(key []byte, v any) string {
 	var b []byte
 	switch t := v.(type) {
 	case string:
@@ -253,6 +256,7 @@ func digestValue(v any) string {
 	default:
 		b, _ = json.Marshal(t)
 	}
-	sum := sha256.Sum256(b)
-	return "sha256:" + hex.EncodeToString(sum[:])[:16]
+	mac := hmac.New(sha256.New, key)
+	mac.Write(b)
+	return "hmac-sha256:" + hex.EncodeToString(mac.Sum(nil))
 }

@@ -109,6 +109,10 @@ type Degradation struct {
 	// Infrastructure marks a degradation of the sandbox, not of the
 	// environment (an image that could not be pulled): never a failure.
 	Infrastructure bool `json:"infrastructure,omitempty"`
+	// Inconclusive marks a difference that is not by itself a failure: data
+	// that changed under a consumer. It is a plausible impact (an error
+	// record), a failure only together with a degraded consumer.
+	Inconclusive bool `json:"inconclusive,omitempty"`
 }
 
 // compareOptions say what may be compared between two observations.
@@ -187,6 +191,7 @@ func degradations(key, window string, before, after ObjectState, o compareOption
 				what = "removed"
 			}
 			add("data:"+k, fmt.Sprintf("data key %q %s under a consumer (digest %s → %s; values are never recorded)", k, what, before.Data[k], after.Data[k]), false)
+			out[len(out)-1].Inconclusive = true
 		}
 	}
 	for _, w := range after.Warnings {
@@ -241,6 +246,8 @@ type observer struct {
 	markers []ObjectRef
 	// controllers are the product's workloads whose pods' logs are read.
 	controllers []ObjectRef
+	// key digests Secret/ConfigMap data (per run, never stored).
+	key []byte
 }
 
 // listAll lists every type of interest, by live id. Unserved types are
@@ -324,7 +331,7 @@ func (ob *observer) observe(ctx context.Context, phase string, since, now time.T
 		r, _ := ParseRef(id)
 		st := ObjectState{ApplyError: applyErrors[id], Unserved: unserved[r.GVK().String()]}
 		if obj, ok := objs[id]; ok {
-			st = stateOf(obj, pods, st)
+			st = stateOf(obj, pods, st, ob.key)
 			st.Warnings = warnings[r.Kind+"|"+r.Namespace+"|"+r.Name]
 			st.Logs = matchLogs(logs, r)
 		}
@@ -334,7 +341,7 @@ func (ob *observer) observe(ctx context.Context, phase string, since, now time.T
 }
 
 // stateOf extracts the generic state of a live object.
-func stateOf(obj map[string]any, pods []map[string]any, st ObjectState) ObjectState {
+func stateOf(obj map[string]any, pods []map[string]any, st ObjectState, key []byte) ObjectState {
 	st.Exists = true
 	meta, _ := obj["metadata"].(map[string]any)
 	status, _ := obj["status"].(map[string]any)
@@ -357,9 +364,9 @@ func stateOf(obj map[string]any, pods []map[string]any, st ObjectState) ObjectSt
 	r, _ := refOf(obj)
 	switch {
 	case r.Kind == "Secret" && r.Group == "":
-		st.Data = dataDigests(obj, "data", "stringData")
+		st.Data = dataDigests(key, obj, "data", "stringData")
 	case r.Kind == "ConfigMap" && r.Group == "":
-		st.Data = dataDigests(obj, "data", "binaryData")
+		st.Data = dataDigests(key, obj, "data", "binaryData")
 	}
 	ready, why := readiness(r, obj)
 	if ready != nil {
@@ -534,12 +541,12 @@ func selects(sel, labels map[string]string) bool {
 	return true
 }
 
-func dataDigests(obj map[string]any, fields ...string) map[string]string {
+func dataDigests(key []byte, obj map[string]any, fields ...string) map[string]string {
 	out := map[string]string{}
 	for _, f := range fields {
 		m, _ := obj[f].(map[string]any)
 		for k, v := range m {
-			out[k] = digestValue(v)
+			out[k] = digestValue(key, v)
 		}
 	}
 	if len(out) == 0 {

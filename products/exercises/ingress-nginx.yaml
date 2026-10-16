@@ -14,9 +14,13 @@ exercises:
   action: annotate
   annotation: ri.dev/runtime-exercise
   families: [behavior, procedure]
+  # the controller's response: its store records a Normal "Sync" event on an Ingress it accepted for sync
+  reaction: {kind: event, reason: Sync}
   settleSeconds: 30
   references:
   - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/deploy/index.md
     quote: to validate Ingress definitions.
   - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/cli-arguments.md
     quote: The address to start an admission controller on to validate incoming ingresses.
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/store/store.go
+    quote: recorder.Eventf(curIng, corev1.EventTypeNormal, "Sync", "Scheduled for sync")

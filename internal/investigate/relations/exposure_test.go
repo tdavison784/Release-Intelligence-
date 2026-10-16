@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
@@ -145,5 +146,77 @@ func TestConsumerPathCertificateSecretDeployment(t *testing.T) {
 	}
 	if res.Complete || res.CompleteFor("ci-B1") {
 		t.Error("an inferred edge on a path must leave the traversal incomplete (fail closed)")
+	}
+}
+
+// Controller-behaviour and unknown items — whose effect no render shows — are
+// rooted at every environment object of a kind the product's controller
+// reconciles; render-decisive and out-of-scope items are not, placeholders
+// (referenced, undeclared objects) never are, and another product's
+// declaration does not apply.
+func TestExposureReconciledKinds(t *testing.T) {
+	f := newFixture(t)
+	f.file("app/deploy.yaml", deployment)
+	f.file("app/svc.yaml", service)
+	f.file("app/ing.yaml", ingress)
+	beh := domain.ChangeItem{ID: "ci-beh", InScope: true, Manifestation: domain.ManifestControllerBehaviour}
+	unk := domain.ChangeItem{ID: "ci-unk", InScope: true, Manifestation: domain.ManifestUnknown}
+	ren := domain.ChangeItem{ID: "ci-ren", InScope: true, Manifestation: domain.ManifestRenderedConfig}
+	out := domain.ChangeItem{ID: "ci-out", InScope: false, Manifestation: domain.ManifestControllerBehaviour}
+	f.b.Change.Items = []domain.ChangeItem{beh, unk, ren, out}
+	g := f.build()
+	node := func(key string) string { return view{t, g}.mustNode(key).ID }
+	secret := view{t, g}.mustNode("core/v1/Secret/shop/web-tls")
+	if !secret.Placeholder {
+		t.Fatal("fixture: the referenced TLS Secret is a placeholder")
+	}
+	m := NewExposure(
+		WithReconciles("widget", catalog.ObjectType{Group: "networking.k8s.io", Kind: "Ingress"}, catalog.ObjectType{Kind: "Secret"}),
+		WithReconciles("other", catalog.ObjectType{Kind: "Service"}))
+	roots, err := m.Exposure(context.Background(), f.b, g, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]bool{}
+	for _, r := range roots {
+		got[r.ChangeItem+" "+r.Node] = true
+		if r.Rule != RuleReconciledKind || r.RenderedChange != "" || r.ImpactFinding != "" {
+			t.Errorf("unexpected root %+v", r)
+		}
+	}
+	ing := node("networking.k8s.io/v1/Ingress/shop/web")
+	want := map[string]bool{"ci-beh " + ing: true, "ci-unk " + ing: true}
+	if len(got) != len(want) {
+		t.Fatalf("roots %v, want %v", got, want)
+	}
+	for k := range want {
+		if !got[k] {
+			t.Fatalf("missing root %s in %v", k, got)
+		}
+	}
+	res := traverse(t, g, roots, domain.DefaultTraversalBound)
+	if len(res.PathsOf("ci-beh")) == 0 {
+		t.Fatal("a reconciled-kind root starts impact paths")
+	}
+	// without the declaration, nothing changes
+	if roots, _ := NewExposure().Exposure(context.Background(), f.b, g, nil); len(roots) != 0 {
+		t.Fatalf("roots without reconciles: %v", roots)
+	}
+}
+
+// Every checked-in product's reconciled kinds load through the catalog.
+func TestExposureReconcilesFromCatalog(t *testing.T) {
+	c, err := catalog.LoadDir(filepath.Join("..", "..", "..", "products"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := NewExposure(WithReconcilesFrom(c)).(exposure)
+	for _, p := range []string{"cert-manager", "ingress-nginx", "prometheus-operator", "kube-prometheus-stack"} {
+		if len(m.reconciles[p]) == 0 {
+			t.Errorf("%s declares no reconciled kinds", p)
+		}
+	}
+	if !m.reconciles["ingress-nginx"]["networking.k8s.io|Ingress"] || !m.reconciles["cert-manager"]["cert-manager.io|Certificate"] {
+		t.Fatalf("reconciles %v", m.reconciles)
 	}
 }

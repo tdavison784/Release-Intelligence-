@@ -9,6 +9,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 )
 
 func expect(t *testing.T, r domain.ValidationRecord, outcome domain.ValidationOutcomeKind, rule string, detail ...string) {
@@ -36,11 +37,14 @@ func (e *testEnv) assertDeleted(v *Validator) {
 
 // The behaviour change only manifests when the controller acts: the renewal
 // exercise rotates the key at v2 (not at v1) under the consuming Deployment.
-func TestBehaviourChangeUnderExerciseFails(t *testing.T) {
+// A data change under a consumer that does not degrade is inconclusive
+// (error), never a fail and never a clearance.
+func TestBehaviourChangeUnderExerciseIsInconclusiveWithoutConsumerDegradation(t *testing.T) {
 	e := newEnv(t, envOptions{})
 	v := e.validator()
 	r := e.validate(v, itemBehaviour)
-	expect(t, r, domain.ValidationFail, RuleDegraded, `data key "key" changed under a consumer`, "the same exercises at the FROM version did not do this", "core/v1/Secret/shop/w1-tls")
+	expect(t, r, domain.ValidationError, RuleInconclusive, `data key "key" changed under a consumer`, "the same exercises at the FROM version did not do this",
+		"core/v1/Secret/shop/w1-tls", "consumers apps/v1/Deployment/shop/app: no degradation observed")
 	if r.Level != domain.LevelObserved || r.Kind != domain.ValidationRuntime || len(r.Evidence) == 0 || len(r.Outputs) != 2 {
 		t.Fatalf("record shape: %+v", r)
 	}
@@ -55,6 +59,29 @@ func TestBehaviourChangeUnderExerciseFails(t *testing.T) {
 			t.Fatalf("crt rotation happens at both versions and must be explained by the baseline: %+v", d)
 		}
 	}
+}
+
+// When the consumer does degrade after the data changed under it, the item
+// fails, naming the consumer's failure and the data change.
+func TestBehaviourChangeBreakingTheConsumerFails(t *testing.T) {
+	e := newEnv(t, envOptions{})
+	e.drv.setup = func(c *fakeCluster) { c.appBreaksOnKey = true }
+	v := e.validator()
+	expect(t, e.validate(v, itemBehaviour), domain.ValidationFail, RuleDegraded,
+		"apps/v1/Deployment/shop/app", "CrashLoopBackOff", `Also observed (not failures by themselves)`, `data key "key" changed`)
+}
+
+// An item reached only as a kind the product's controller reconciles has no
+// item-specific exposure: a healthy exercised run is not a pass for it.
+func TestReconciledOnlyExposureNeverPasses(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never"})
+	for i := range e.tr.Roots {
+		if e.tr.Roots[i].ChangeItem == itemBehaviour {
+			e.tr.Roots[i].Rule = relations.RuleReconciledKind
+		}
+	}
+	v := e.validator()
+	expect(t, e.validate(v, itemBehaviour), domain.ValidationNotRun, RuleReconciledOnly, "not a pass")
 }
 
 // A pinned setting keeps the old behaviour: the exercise ran at both
@@ -200,7 +227,7 @@ func TestNewWarningsAndErrorLogsUnderExercise(t *testing.T) {
 func TestRedactedNodeKeyResolves(t *testing.T) {
 	e := newEnv(t, envOptions{secretMarker: true})
 	v := e.validator()
-	expect(t, e.validate(v, itemBehaviour), domain.ValidationFail, RuleDegraded, "core/v1/Secret/shop/w1-tls")
+	expect(t, e.validate(v, itemBehaviour), domain.ValidationError, RuleInconclusive, "core/v1/Secret/shop/w1-tls")
 }
 
 // --- preconditions: not-run with the reason, never a cluster ------------------------------
@@ -416,4 +443,59 @@ func TestExerciseRefusedAtTO(t *testing.T) {
 	expect(t, e.validate(v, itemNoPath), domain.ValidationError, RuleUnreached, "the relationship graph does not connect")
 	// the rendered item's family is not covered by the exercise
 	expect(t, e.validate(v, itemRendered), domain.ValidationNotRun, RuleNoExercise)
+}
+
+// (review a) An accepted patch is not an exercise: the controller must show
+// the declared reaction at both versions for the item to pass.
+func TestExerciseRequiresObservedReaction(t *testing.T) {
+	t.Run("no reaction declared", func(t *testing.T) {
+		e := newEnv(t, envOptions{rotation: "Never"})
+		e.exercises[0].Exercise.Reaction = nil
+		v := e.validator()
+		expect(t, e.validate(v, itemBehaviour), domain.ValidationNotRun, RuleExerciseNoRun, "declares no observable controller reaction")
+	})
+	t.Run("no reaction at either version", func(t *testing.T) {
+		e := newEnv(t, envOptions{rotation: "Never"})
+		e.drv.setup = func(c *fakeCluster) { c.ignoreAlways = true }
+		v := e.validator()
+		expect(t, e.validate(v, itemBehaviour), domain.ValidationNotRun, RuleExerciseNoRun, "no reaction (field status.revision changes)", "FROM version")
+	})
+	t.Run("reaction at FROM, none at TO", func(t *testing.T) {
+		e := newEnv(t, envOptions{rotation: "Never"})
+		e.drv.setup = func(c *fakeCluster) { c.ignoreAtV2 = true }
+		v := e.validator()
+		expect(t, e.validate(v, itemBehaviour), domain.ValidationError, RuleInconclusive, "did not react to the exercise gizmo/renew at the TO version")
+	})
+	t.Run("reaction at both", func(t *testing.T) {
+		e := newEnv(t, envOptions{rotation: "Never"})
+		v := e.validator()
+		expect(t, e.validate(v, itemBehaviour), domain.ValidationPass, RuleQuiet, "showed the declared reaction to them at both")
+		for _, x := range v.RunRecord(e.b.ID).Exercises {
+			if len(x.Reacted) != 1 || len(x.Unanswered) != 0 {
+				t.Fatalf("exercise run %+v", x)
+			}
+		}
+	})
+}
+
+// (review b) The pass states exactly the observations it checked, including
+// the ones after the exercises.
+func TestPassChecksHealthAfterExercises(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never"})
+	v := e.validator()
+	expect(t, e.validate(v, itemBehaviour), domain.ValidationPass, RuleQuiet, "healthy in each observation (from, from-exercised, to, to-exercised)")
+}
+
+// (review e) Requested subjects are checked against the graph; without a
+// graph they cannot be, and are rejected.
+func TestSubjectsWithoutGraphRejected(t *testing.T) {
+	e := newEnv(t, envOptions{})
+	v := e.validator()
+	_, err := v.Validate(context.Background(), investigate.ValidationInput{Bundle: e.b, Traversal: e.tr, ChangeItem: itemBehaviour, Subjects: []string{"gn-anything"}})
+	if !errors.Is(err, investigate.ErrRejected) {
+		t.Fatalf("got %v", err)
+	}
+	if e.drv.creates != 0 {
+		t.Fatal("a rejected request must not create a cluster")
+	}
 }

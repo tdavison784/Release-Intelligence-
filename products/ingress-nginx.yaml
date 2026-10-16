@@ -442,3 +442,16 @@ relationships:
   references:
   - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/nginx-configuration/annotations.md
     quote: This annotation expects the Secret name in the form "namespace/secretName".
+
+# Object kinds the controller this product ships reconciles (docs/INVESTIGATE.md "Relationships":
+# the exposure of controller-behaviour changes). Release-level, from upstream documentation.
+reconciles:
+- id: ingresses
+  kinds:
+  - {group: networking.k8s.io, kind: Ingress}
+  summary: The controller builds its NGINX model from every Ingress it serves and validates incoming Ingress objects in its admission webhook, so a change compiled into the controller reaches each Ingress.
+  references:
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/how-it-works.md
+    quote: we need to build a model using different objects from the cluster, in particular (in no special order) Ingresses, Services, Endpoints, Secrets, and Configmaps
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/how-it-works.md
+    quote: to ensure the validity of incoming ingress objects.

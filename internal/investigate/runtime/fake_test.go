@@ -136,8 +136,12 @@ type fakeCluster struct {
 	rejectAtV2     func(m Manifest) error // the v2 admission webhook's verdict
 	patchErr       error
 	patchRejectV2  error // the v2 admission webhook refuses the exercise's update
-	block          bool  // Apply blocks until the context ends
-	warnAtV2Renew  bool  // the v2 controller emits a warning event on renewal
+	appBreaksOnKey bool  // the consuming app crash-loops once its key rotated
+	ignoreAtV2     bool  // the v2 controller accepts the Issuing patch but never re-issues
+	ignoreAlways   bool  // no version re-issues
+	keyRotated     bool
+	block          bool // Apply blocks until the context ends
+	warnAtV2Renew  bool // the v2 controller emits a warning event on renewal
 	logAtV2Renew   bool
 	renewals       int
 	consumerFailed bool
@@ -341,6 +345,9 @@ func (c *fakeCluster) reconcile() {
 			if r.Name == "gizmo-controller" && ((ver == "v2" && c.crashAtV2) || (ver == "v1" && c.crashAtV1)) {
 				avail, waiting = 0, "CrashLoopBackOff"
 			}
+			if r.Name == "app" && c.appBreaksOnKey && c.keyRotated {
+				avail, waiting = 0, "CrashLoopBackOff"
+			}
 			if r.Name == "gizmo-controller" && ver == "v2" && c.pullFailAtV2 {
 				avail, waiting = 0, "ImagePullBackOff"
 			}
@@ -401,10 +408,11 @@ func (c *fakeCluster) react(ref ObjectRef, obj map[string]any) {
 		}
 		keep = append(keep, m)
 	}
-	if !issuing {
+	if !issuing || c.ignoreAlways || (c.ignoreAtV2 && c.version() == "v2") {
 		return
 	}
 	st["conditions"] = keep
+	st["revision"] = toInt(st["revision"]) + 1
 	c.renewals++
 	spec, _ := obj["spec"].(map[string]any)
 	sec := c.objs[ObjectRef{Version: "v1", Kind: "Secret", Namespace: ref.Namespace, Name: spec["secretName"].(string)}.String()]
@@ -416,6 +424,7 @@ func (c *fakeCluster) react(ref ObjectRef, obj map[string]any) {
 	data["crt"] = b64(fmt.Sprint("crt-", c.serial))
 	if c.version() == "v2" && spec["rotation"] != "Never" {
 		data["key"] = b64(fmt.Sprint("key-", c.serial))
+		c.keyRotated = true
 	}
 	if c.version() == "v2" && c.warnAtV2Renew {
 		c.events = append(c.events, map[string]any{"type": "Warning", "reason": "BadConfig", "message": "renewal used defaults",
@@ -549,6 +558,7 @@ func renewExercise(families ...string) DeclaredExercise {
 	return DeclaredExercise{Product: "gizmo", Digest: "sha256:x", Exercise: catalog.Exercise{ID: "renew", Summary: "re-issue every Widget",
 		Target: catalog.ObjectType{Group: "gizmo.io", Kind: "Widget"}, Action: catalog.ActionStatusCondition,
 		Condition: &catalog.ExerciseCondition{Type: "Issuing", Status: "True", Reason: "ManuallyTriggered"},
+		Reaction:  &catalog.ExerciseReaction{Kind: catalog.ReactionFieldChanged, Path: "status.revision"},
 		Families:  families, References: []catalog.ConfigReference{{URL: "https://example.io/gizmo/renew", Quote: "renew"}}}}
 }
 

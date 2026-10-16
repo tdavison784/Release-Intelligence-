@@ -22,11 +22,9 @@ type DeclaredExercise struct {
 // Key is "<product>/<id>".
 func (d DeclaredExercise) Key() string { return d.Product + "/" + d.Exercise.ID }
 
-// covers reports whether the exercise exercises items of a family.
+// covers reports whether the exercise exercises items of a family: only the
+// families it names (an exercise without families covers none).
 func (d DeclaredExercise) covers(f domain.ChangeItemFamily) bool {
-	if len(d.Exercise.Families) == 0 {
-		return true
-	}
 	for _, x := range d.Exercise.Families {
 		if x == string(f) {
 			return true
@@ -66,11 +64,54 @@ type ExerciseRun struct {
 	Executed []string          `json:"executed,omitempty"`
 	Failed   map[string]string `json:"failed,omitempty"`
 	Settle   float64           `json:"settleSeconds"`
+	// Reaction describes the declared controller response ("" = none
+	// declared: the exercise can reveal failures, never support a pass);
+	// Reacted are the executed targets where it was observed within the
+	// settle window, Unanswered those where it was not.
+	Reaction   string   `json:"reaction,omitempty"`
+	Reacted    []string `json:"reacted,omitempty"`
+	Unanswered []string `json:"unanswered,omitempty"`
+	// before holds the reaction field's value per target before the action.
+	before map[string]string
+}
+
+// reactionText describes a declared reaction.
+func reactionText(x catalog.Exercise) string {
+	r := x.Reaction
+	switch {
+	case r == nil:
+		return ""
+	case r.Kind == catalog.ReactionFieldChanged:
+		return "field " + r.Path + " changes"
+	default:
+		return "event " + r.Reason + " on the object"
+	}
+}
+
+// fieldValue returns the JSON of a field of an object ("" when absent).
+func fieldValue(obj map[string]any, path string) string {
+	keys, err := catalog.SplitFieldPath(path)
+	if err != nil {
+		return ""
+	}
+	var cur any = obj
+	for _, k := range keys {
+		m, ok := cur.(map[string]any)
+		if !ok {
+			return ""
+		}
+		cur = m[k]
+	}
+	if cur == nil {
+		return ""
+	}
+	b, _ := json.Marshal(cur)
+	return string(b)
 }
 
 // runExercise applies one exercise to every target among the live objects.
 func runExercise(ctx context.Context, cl Cluster, d DeclaredExercise, phase, token string, live map[string]map[string]any, now time.Time) ExerciseRun {
-	er := ExerciseRun{Exercise: d.Key(), Phase: phase, Action: string(d.Exercise.Action)}
+	er := ExerciseRun{Exercise: d.Key(), Phase: phase, Action: string(d.Exercise.Action), Reaction: reactionText(d.Exercise), before: map[string]string{}}
 	var ids []string
 	for id := range live {
 		if r, ok := ParseRef(id); ok && d.targets(r) {
@@ -81,6 +122,9 @@ func runExercise(ctx context.Context, cl Cluster, d DeclaredExercise, phase, tok
 	er.Targets = ids
 	for _, id := range ids {
 		r, _ := ParseRef(id)
+		if rx := d.Exercise.Reaction; rx != nil && rx.Kind == catalog.ReactionFieldChanged {
+			er.before[id] = fieldValue(live[id], rx.Path)
+		}
 		sub, patch, err := exercisePatch(d.Exercise, live[id], token, now)
 		if err == nil {
 			err = cl.Patch(ctx, r, sub, patch)

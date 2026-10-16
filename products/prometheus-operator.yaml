@@ -447,3 +447,23 @@ relationships:
     quote: Label selector to select the Kubernetes `Pod` objects to scrape metrics from.
   - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/podmonitor_types.go
     quote: By default, the pods are discovered in the same namespace as the `PodMonitor` object
+
+# Object kinds the controller this product ships reconciles (docs/INVESTIGATE.md "Relationships":
+# the exposure of controller-behaviour changes). Release-level, from upstream documentation.
+reconciles:
+- id: operator-resources
+  kinds:
+  - {group: monitoring.coreos.com, kind: Prometheus}
+  - {group: monitoring.coreos.com, kind: PrometheusAgent}
+  - {group: monitoring.coreos.com, kind: Alertmanager}
+  - {group: monitoring.coreos.com, kind: ThanosRuler}
+  - {group: monitoring.coreos.com, kind: ServiceMonitor}
+  - {group: monitoring.coreos.com, kind: PodMonitor}
+  - {group: monitoring.coreos.com, kind: Probe}
+  - {group: monitoring.coreos.com, kind: ScrapeConfig}
+  - {group: monitoring.coreos.com, kind: PrometheusRule}
+  - {group: monitoring.coreos.com, kind: AlertmanagerConfig}
+  summary: The Prometheus Operator reconciles its custom resources into Prometheus, Alertmanager and Thanos Ruler deployments and their configuration.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/README.md
+    quote: The Prometheus operator automatically detects changes in the Kubernetes API server to any of the above objects, and ensures that
