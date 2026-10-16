@@ -2,222 +2,298 @@ package orchestrate
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
 )
 
-const (
-	DefaultReviewTimeout = 72 * time.Hour
-	// MaxEvidenceRounds bounds request-more-evidence loops (bounded execution, P5).
-	MaxEvidenceRounds = 2
-)
-
-// TaskQueue is the default task queue; see docs/phase4/env-impact/TEMPORAL.md.
-const TaskQueue = "ri-investigation"
-
-// WorkflowID returns the content-derived workflow ID, so re-submitting the same
-// (dependency, versions, environment input) maps to the same execution.
-func WorkflowID(in InvestigationInput) string {
-	return "inv-" + IdempotencyKey("workflow", []ArtifactRef{
-		{Digest: in.Dependency}, {Digest: in.FromVersion}, {Digest: in.ToVersion},
-		{Digest: in.Environment}, in.EnvInputRef,
-	})[:24]
+// WorkflowID returns the content-derived workflow id of a request, so
+// re-submitting the same investigation attaches to the existing execution.
+// The investigation id (bundle id + config digest) is not known before the
+// evidence is collected, so the workflow id is derived from the request
+// instead; the investigation id is in the state query and the result. A
+// deliberate re-run adds a `-r<n>` suffix (rerun > 0).
+func WorkflowID(req investigate.Request, rerun int) string {
+	id := "invreq-" + domain.ShortHash(req.Product, req.From, req.To, req.Environment.Name,
+		domain.Digest(mustJSON(req.Environment)), req.Config.Digest())
+	if rerun > 0 {
+		id += "-r" + itoa(rerun)
+	}
+	return id
 }
 
-type runner struct {
+type wf struct {
 	ctx   workflow.Context
+	in    Input
 	state State
+	// digest is the run record digest after the last review decision.
+	digest string
 }
 
-func (r *runner) audit(stage, status, key, detail string) {
-	r.state.Audit = append(r.state.Audit, AuditEntry{
-		Seq: len(r.state.Audit) + 1, Stage: stage, Status: status,
-		At: workflow.Now(r.ctx), IdempotencyKey: key, Detail: detail,
+func (w *wf) audit(stage, status, key, detail string) {
+	w.state.Audit = append(w.state.Audit, AuditEntry{
+		Seq: len(w.state.Audit) + 1, Stage: stage, Status: status, At: workflow.Now(w.ctx), Key: key, Detail: detail,
 	})
 }
 
-// stage runs one activity with audit entries before and after.
-func (r *runner) stage(name string, inputs []ArtifactRef) (StageResult, error) {
-	key := IdempotencyKey(name, inputs)
-	r.state.CurrentStage = name
-	r.audit(name, "started", key, "")
-	var res StageResult
-	err := workflow.ExecuteActivity(r.ctx, "Run", StageRequest{
-		Stage: name, IdempotencyKey: key, Inputs: inputs, Round: r.state.Round,
-	}).Get(r.ctx, &res)
+func (w *wf) options(stage domain.Stage) workflow.Context {
+	p := run.PolicyOf(stage, w.in.Request.Config)
+	return workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: p.StartToClose,
+		HeartbeatTimeout:    p.Heartbeat,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval: p.Initial, BackoffCoefficient: p.Coefficient, MaximumInterval: p.Max,
+			MaximumAttempts: int32(p.MaxAttempts), NonRetryableErrorTypes: []string{ErrTypePermanent},
+		},
+	})
+}
+
+func (w *wf) upsert() {
+	if !w.in.SearchAttributes {
+		return
+	}
+	_ = workflow.UpsertTypedSearchAttributes(w.ctx,
+		temporal.NewSearchAttributeKeyKeyword(AttrDependency).ValueSet(w.in.Request.Product),
+		temporal.NewSearchAttributeKeyKeyword(AttrEnvironment).ValueSet(w.in.Request.Environment.Name),
+		temporal.NewSearchAttributeKeyKeyword(AttrClassification).ValueSet(string(w.state.Decision)),
+		temporal.NewSearchAttributeKeyKeyword(AttrReviewState).ValueSet(reviewAttr(w.state)),
+	)
+}
+
+func reviewAttr(s State) string {
+	switch {
+	case s.AwaitingReview:
+		return "waiting"
+	case s.Outcome == run.OutcomeReviewTimedOut:
+		return "timed-out"
+	case s.Review == "":
+		return "none"
+	}
+	return string(s.Review)
+}
+
+// stage runs one stage activity with workflow audit entries.
+func (w *wf) stage(s run.StageSpec, round int, refs run.Refs, extra []string) (run.StageOutput, error) {
+	in := run.StageInput{
+		Stage: s.Stage, Phase: s.Phase, Round: round, Request: w.in.Request, Definition: w.in.Definition,
+		Refs: refs, Extra: extra,
+	}
+	in.Key = run.Key(in)
+	w.state.CurrentStage = string(s.Stage)
+	w.audit(string(s.Stage), "started", in.Key, s.Phase)
+	var out run.StageOutput
+	err := workflow.ExecuteActivity(w.options(s.Stage), string(s.Stage), in).Get(w.ctx, &out)
 	if err != nil {
 		status := "failed"
 		if temporal.IsCanceledError(err) {
 			status = "cancelled"
 		}
-		r.audit(name, status, key, err.Error())
-		return res, err
+		w.audit(string(s.Stage), status, in.Key, err.Error())
+		return out, err
 	}
-	r.audit(name, "completed", key, res.Output.Digest)
-	return res, nil
+	w.audit(string(s.Stage), "completed", in.Key, out.Detail)
+	w.state.Investigation = out.Refs.Investigation
+	return out, nil
 }
 
-// InvestigationWorkflow runs the staged pipeline: collect change evidence, build env snapshot,
-// build graph + traverse, investigate, validate, classify, then await human review if the
-// (stub) deterministic policy requires it.
-func InvestigationWorkflow(ctx workflow.Context, in InvestigationInput) (InvestigationResult, error) {
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 2 * time.Minute,
-		HeartbeatTimeout:    30 * time.Second,
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:        time.Second,
-			BackoffCoefficient:     2,
-			MaximumInterval:        30 * time.Second,
-			MaximumAttempts:        4,
-			NonRetryableErrorTypes: []string{ErrTypeInvalidInput},
-		},
+func (w *wf) finalize(inv string, stage domain.Stage, event string, status domain.InvestigationStatus, detail string) (run.ReviewOutput, error) {
+	if inv == "" {
+		return run.ReviewOutput{}, nil // no record yet: the workflow history is the audit
 	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-	r := &runner{ctx: ctx}
-	if err := workflow.SetQueryHandler(ctx, QueryState, func() (State, error) { return r.state, nil }); err != nil {
-		return InvestigationResult{}, err
-	}
-	res := InvestigationResult{}
-	finish := func(outcome string) (InvestigationResult, error) {
-		res.Outcome, res.Classification = outcome, r.state.Classification
-		res.Rounds, res.Audit = r.state.Round, r.state.Audit
-		return res, nil
-	}
-	// cancelled records the cancellation on a context that survives it.
-	cancelled := func(err error) (InvestigationResult, error) {
-		dctx, _ := workflow.NewDisconnectedContext(ctx)
-		rr := &runner{ctx: dctx, state: r.state}
-		rr.audit(r.state.CurrentStage, "cancelled", "", "workflow cancelled")
-		r.state = rr.state
-		res.Outcome, res.Classification = OutcomeCancelled, r.state.Classification
-		res.Rounds, res.Audit = r.state.Round, r.state.Audit
-		return res, err
-	}
-	fail := func(err error) (InvestigationResult, error) {
-		if temporal.IsCanceledError(err) || errors.Is(err, workflow.ErrCanceled) {
-			return cancelled(temporal.NewCanceledError("cancelled in " + r.state.CurrentStage))
-		}
-		return res, err
-	}
-	keep := func(s StageResult) { res.Artifacts = append(res.Artifacts, s.Output) }
+	dctx, cancel := workflow.NewDisconnectedContext(w.ctx)
+	defer cancel()
+	dctx = workflow.WithActivityOptions(dctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3, NonRetryableErrorTypes: []string{ErrTypePermanent}},
+	})
+	var out run.ReviewOutput
+	err := workflow.ExecuteActivity(dctx, ActivityFinalize, run.FinalizeInput{
+		Investigation: inv, Stage: stage, Event: event, Status: status, Detail: detail,
+	}).Get(dctx, &out)
+	return out, err
+}
 
-	base := []ArtifactRef{in.EnvInputRef, {Digest: in.Dependency + "@" + in.FromVersion + ".." + in.ToVersion}}
-	change, err := r.stage(StageCollectChange, base)
-	if err != nil {
-		return fail(err)
+// InvestigationWorkflow runs RoundPlan's stages (DESIGN.md §5.1), then waits
+// for the human-review signal when the policy requires it. request-more-
+// evidence starts a new round (at most MaxEvidenceRounds); a review timeout
+// fails closed (nothing is approved); cancellation records a `cancelled`
+// audit event and returns a CanceledError.
+func InvestigationWorkflow(ctx workflow.Context, in Input) (Result, error) {
+	w := &wf{ctx: ctx, in: in}
+	if err := workflow.SetQueryHandler(ctx, QueryState, func() (State, error) { return w.state, nil }); err != nil {
+		return Result{}, err
 	}
-	keep(change)
-	snap, err := r.stage(StageEnvSnapshot, []ArtifactRef{in.EnvInputRef})
-	if err != nil {
-		return fail(err)
+	res := run.Result{}
+	done := func(outcome string) (Result, error) {
+		res.Outcome, w.state.Outcome = outcome, outcome
+		w.state.CurrentStage = string(domain.StageHumanReview)
+		w.upsert()
+		return Result{Result: res, Audit: w.state.Audit}, nil
 	}
-	keep(snap)
-	graph, err := r.stage(StageGraph, []ArtifactRef{change.Output, snap.Output})
-	if err != nil {
-		return fail(err)
-	}
-	keep(graph)
-
-	inputs := []ArtifactRef{change.Output, snap.Output, graph.Output}
-	var cls StageResult
-	for {
-		inv, err := r.stage(StageInvestigate, inputs)
-		if err != nil {
-			return fail(err)
-		}
-		keep(inv)
-		val, err := r.stage(StageValidate, []ArtifactRef{inv.Output})
-		if err != nil {
-			return fail(err)
-		}
-		keep(val)
-		cls, err = r.stage(StageClassify, []ArtifactRef{inv.Output, val.Output})
-		if err != nil {
-			return fail(err)
-		}
-		keep(cls)
-		r.state.Classification = cls.Classification
-		if !cls.NeedsReview {
-			return finish(OutcomeAutoCompleted)
-		}
-
-		d, outcome, err := r.awaitReview(in)
-		if err != nil {
-			return fail(err)
-		}
-		if outcome != "" {
-			return finish(outcome)
-		}
-		res.Reviewer = d.Reviewer
-		switch d.Decision {
-		case DecisionApprove:
-			return finish(OutcomeApproved)
-		case DecisionReject:
-			return finish(OutcomeRejected)
-		case DecisionMoreEvidence:
-			if r.state.Round >= MaxEvidenceRounds {
-				r.audit(StageReview, "failed", "", "evidence round limit reached")
-				return finish(OutcomeRejected)
+	fail := func(err error) (Result, error) {
+		if temporal.IsCanceledError(err) || errors.Is(err, workflow.ErrCanceled) || ctx.Err() != nil {
+			w.audit(w.state.CurrentStage, "cancelled", "", "workflow cancelled")
+			if _, ferr := w.finalize(res.Investigation, domain.StageHumanReview, "cancelled", domain.InvestigationCancelled, "workflow cancelled in "+w.state.CurrentStage); ferr != nil {
+				w.audit(w.state.CurrentStage, "failed", "", "could not record cancellation: "+ferr.Error())
 			}
-			r.state.Round++
-			// New round => new idempotency keys, so side effects are not deduped away.
-			inputs = append(inputs, ArtifactRef{Digest: fmt.Sprintf("round-%d:%s", r.state.Round, d.Note)})
-		default:
-			return res, temporal.NewNonRetryableApplicationError(
-				"unknown review decision "+d.Decision, ErrTypeInvalidInput, nil)
+			res.Outcome, w.state.Outcome = run.OutcomeCancelled, run.OutcomeCancelled
+			return Result{Result: res, Audit: w.state.Audit}, temporal.NewCanceledError("cancelled in " + w.state.CurrentStage)
+		}
+		w.audit(w.state.CurrentStage, "failed", "", err.Error())
+		if _, ferr := w.finalize(res.Investigation, domain.Stage(w.state.CurrentStage), "failed", domain.InvestigationFailed, err.Error()); ferr != nil {
+			w.audit(w.state.CurrentStage, "failed", "", "could not record failure: "+ferr.Error())
+		}
+		return Result{Result: res, Audit: w.state.Audit}, err
+	}
+	w.upsert()
+
+	var refs run.Refs
+	var extra []string
+	for round := 0; ; round++ {
+		w.state.Round, res.Rounds = round, round
+		var last run.StageOutput
+		for _, s := range run.RoundPlan(round == 0) {
+			out, err := w.stage(s, round, refs, extra)
+			if err != nil {
+				return fail(err)
+			}
+			refs, last = out.Refs, out
+			res.Investigation, res.Bundle, res.RecordDigest = refs.Investigation, refs.Bundle, out.Digest
+		}
+		res.Decision, res.Review = last.Outcome, last.Review
+		w.state.Decision, w.state.Review = last.Outcome, last.Review
+		w.upsert()
+		if last.Review == domain.ReviewNotRequired {
+			return done(run.OutcomeAutoCompleted)
+		}
+		dec, state, timedOut, err := w.awaitReview(res.Investigation, round)
+		if err != nil {
+			return fail(err)
+		}
+		if timedOut {
+			out, err := w.finalize(res.Investigation, domain.StageHumanReview, "timed-out", domain.InvestigationFailed,
+				"no decision before the review timeout; failing closed, nothing approved")
+			if err != nil {
+				return fail(err)
+			}
+			res.RecordDigest = out.Digest
+			return done(run.OutcomeReviewTimedOut)
+		}
+		res.Review, res.Reviewer, res.RecordDigest = state, dec.Reviewer, w.digest
+		w.state.Review = state
+		switch state {
+		case domain.ReviewApproved:
+			return done(run.OutcomeApproved)
+		case domain.ReviewRejected:
+			return done(run.OutcomeRejected)
+		case domain.ReviewMoreEvidenceWanted:
+			if round >= run.MaxEvidenceRounds {
+				w.audit(string(domain.StageHumanReview), "failed", "", "evidence round limit reached")
+				out, err := w.finalize(res.Investigation, domain.StageHumanReview, "exhausted", domain.InvestigationCompleted,
+					"evidence round limit reached; nothing approved")
+				if err != nil {
+					return fail(err)
+				}
+				res.RecordDigest = out.Digest
+				return done(run.OutcomeRejected)
+			}
+			extra = dec.Requests
+			// A new round: same change evidence, new snapshot/bundle (and therefore
+			// a new investigation record), new idempotency keys.
+			refs = run.Refs{Change: refs.Change, Previous: refs.Investigation}
 		}
 	}
 }
 
-// awaitReview blocks for a review signal, the timeout, or cancellation. A non-empty outcome
-// means the wait ended without a decision.
-func (r *runner) awaitReview(in InvestigationInput) (ReviewDecision, string, error) {
-	timeout := in.ReviewTimeout
+// awaitReview waits for a decision that settles the review. A proxy decision
+// is recorded and the wait continues; a decision the applier rejects is
+// logged and ignored. The timeout covers the whole wait.
+func (w *wf) awaitReview(inv string, round int) (investigate.ReviewDecision, domain.ReviewState, bool, error) {
+	timeout := w.in.ReviewTimeout
 	if timeout <= 0 {
 		timeout = DefaultReviewTimeout
 	}
-	r.state.CurrentStage = StageReview
-	r.state.AwaitingReview = true
-	defer func() { r.state.AwaitingReview = false }()
-	r.audit(StageReview, "waiting", "", "timeout "+timeout.String())
+	w.state.CurrentStage = string(domain.StageHumanReview)
+	w.state.AwaitingReview = true
+	w.upsert()
+	defer func() { w.state.AwaitingReview = false }()
+	w.audit(string(domain.StageHumanReview), "waiting", "", "timeout "+timeout.String())
 
-	var d ReviewDecision
-	ch := workflow.GetSignalChannel(r.ctx, SignalReview)
-	timerCtx, cancelTimer := workflow.WithCancel(r.ctx)
+	ch := workflow.GetSignalChannel(w.ctx, SignalReview)
+	timerCtx, cancelTimer := workflow.WithCancel(w.ctx)
 	defer cancelTimer()
 	timer := workflow.NewTimer(timerCtx, timeout)
-
-	got, timedOut := false, false
-	sel := workflow.NewSelector(r.ctx)
-	sel.AddReceive(ch, func(c workflow.ReceiveChannel, _ bool) { c.Receive(r.ctx, &d); got = true })
-	sel.AddFuture(timer, func(f workflow.Future) {
-		if err := f.Get(r.ctx, nil); err == nil {
-			timedOut = true
+	for {
+		var d investigate.ReviewDecision
+		got, timedOut := false, false
+		sel := workflow.NewSelector(w.ctx)
+		sel.AddReceive(ch, func(c workflow.ReceiveChannel, _ bool) { c.Receive(w.ctx, &d); got = true })
+		sel.AddFuture(timer, func(f workflow.Future) {
+			if f.Get(w.ctx, nil) == nil {
+				timedOut = true
+			}
+		})
+		sel.Select(w.ctx)
+		switch {
+		case w.ctx.Err() != nil:
+			return d, "", false, w.ctx.Err()
+		case timedOut:
+			w.audit(string(domain.StageHumanReview), "timed-out", "", "no decision; failing closed")
+			return d, "", true, nil
+		case !got:
+			continue
 		}
-	})
-	sel.Select(r.ctx)
-	switch {
-	case r.ctx.Err() != nil:
-		return d, "", r.ctx.Err()
-	case got:
-		r.audit(StageReview, "signal", "", d.Decision+" by "+d.Reviewer)
-		return d, "", nil
-	case timedOut:
-		r.audit(StageReview, "timed-out", "", "no decision; failing closed")
-		return d, OutcomeReviewTimedOut, nil
+		if d.At.IsZero() {
+			d.At = workflow.Now(w.ctx)
+		}
+		w.audit(string(domain.StageHumanReview), "signal", "", string(d.Action)+" by "+d.Reviewer+" ("+string(d.ReviewerKind)+")")
+		var out run.ReviewOutput
+		err := workflow.ExecuteActivity(w.reviewOptions(), ActivityReview, run.ReviewInput{Investigation: inv, Round: round, Decision: d}).Get(w.ctx, &out)
+		switch {
+		case err != nil && (temporal.IsCanceledError(err) || w.ctx.Err() != nil):
+			return d, "", false, err
+		case err != nil:
+			w.audit(string(domain.StageHumanReview), "failed", "", "decision not applied: "+err.Error())
+			continue
+		}
+		w.state.Review, w.digest = out.State, out.Digest
+		res := out.State
+		if res == domain.ReviewAwaiting {
+			w.audit(string(domain.StageHumanReview), "waiting", "", "decision recorded; still awaiting a human")
+			continue
+		}
+		return d, res, false, nil
 	}
-	return d, "", errors.New("review wait ended unexpectedly")
 }
 
-// Register wires the workflow and activities onto a worker (or test environment registry).
-func Register(w interface {
-	RegisterWorkflow(any)
+func (w *wf) reviewOptions() workflow.Context {
+	return workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3, NonRetryableErrorTypes: []string{ErrTypePermanent}},
+	})
+}
+
+type registrar interface {
+	RegisterWorkflowWithOptions(any, workflow.RegisterOptions)
 	RegisterActivityWithOptions(any, activity.RegisterOptions)
-}, a *Activities) {
-	w.RegisterWorkflow(InvestigationWorkflow)
-	w.RegisterActivityWithOptions(a.Run, registerRun)
+}
+
+// Register wires the workflow and every activity onto a worker (or a test
+// environment).
+func Register(r registrar, a *Activities) {
+	r.RegisterWorkflowWithOptions(InvestigationWorkflow, workflow.RegisterOptions{Name: WorkflowType})
+	for _, s := range domain.Stages {
+		if s == domain.StageHumanReview {
+			continue
+		}
+		r.RegisterActivityWithOptions(a.Stage(s), activity.RegisterOptions{Name: string(s)})
+	}
+	r.RegisterActivityWithOptions(a.Review, activity.RegisterOptions{Name: ActivityReview})
+	r.RegisterActivityWithOptions(a.Finalize, activity.RegisterOptions{Name: ActivityFinalize})
 }

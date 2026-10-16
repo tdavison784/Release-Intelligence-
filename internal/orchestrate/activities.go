@@ -2,99 +2,81 @@ package orchestrate
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"sync"
+	"time"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
 )
 
-// IdempotencyKey derives a stable key from a stage name and its input digests. Re-running a
-// stage with the same inputs yields the same key, so activities can dedupe side effects
-// (artifact writes, external calls) when Temporal retries or a workflow is re-submitted.
-func IdempotencyKey(stage string, inputs []ArtifactRef) string {
-	h := sha256.New()
-	h.Write([]byte(stage))
-	for _, in := range inputs {
-		h.Write([]byte{0})
-		h.Write([]byte(in.Digest))
+// Activities are the stage activities over a run.Pipeline: one activity per
+// domain.Stage (named by the stage), plus human-review and finalize.
+type Activities struct{ P *run.Pipeline }
+
+// toTemporal maps the retry class (DESIGN.md §5.2) to an application error:
+// permanent is non-retryable; transient (the default) is retried within the
+// stage's policy. Cancellation passes through.
+func toTemporal(ctx context.Context, err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case ctx.Err() != nil:
+		return ctx.Err()
+	case investigate.ClassOf(err) == investigate.Permanent:
+		return temporal.NewNonRetryableApplicationError(err.Error(), ErrTypePermanent, err)
 	}
-	return hex.EncodeToString(h.Sum(nil))
+	return temporal.NewApplicationError(err.Error(), ErrTypeTransient, err)
 }
 
-func digestOf(parts ...string) string {
-	h := sha256.New()
-	for _, p := range parts {
-		h.Write([]byte(p))
-		h.Write([]byte{0})
-	}
-	return "sha256:" + hex.EncodeToString(h.Sum(nil))
-}
-
-// Activities holds the stub stage implementations. The fields are test/behaviour knobs; in
-// wave 2 this struct receives the real collaborators (plain Go packages) as dependencies.
-type Activities struct {
-	// TransientFailures makes the named stage fail with a retryable error this many times
-	// before succeeding.
-	TransientFailures map[string]int
-	// PermanentFailure makes the named stage fail with a non-retryable error.
-	PermanentFailure map[string]bool
-	// Classification returned by the classify stage ("" => ClassPotentiallyAffected).
-	Classification string
-
-	mu       sync.Mutex
-	attempts map[string]int
-	seen     map[string]ArtifactRef // idempotency key -> output (dedupe)
-}
-
-// Run executes one stub stage.
-func (a *Activities) Run(ctx context.Context, req StageRequest) (StageResult, error) {
-	a.mu.Lock()
-	if a.attempts == nil {
-		a.attempts = map[string]int{}
-		a.seen = map[string]ArtifactRef{}
-	}
-	a.attempts[req.Stage]++
-	n := a.attempts[req.Stage]
-	prior, dup := a.seen[req.IdempotencyKey]
-	a.mu.Unlock()
-
-	if a.PermanentFailure[req.Stage] {
-		return StageResult{}, temporal.NewNonRetryableApplicationError(
-			"stage "+req.Stage+": unsupported input", ErrTypeInvalidInput, nil)
-	}
-	if n <= a.TransientFailures[req.Stage] {
-		return StageResult{}, temporal.NewApplicationError(
-			"stage "+req.Stage+": transient failure", ErrTypeTransient)
-	}
-	activity.RecordHeartbeat(ctx, req.Stage)
-
-	out := prior
-	if !dup {
-		out = ArtifactRef{Digest: digestOf(req.IdempotencyKey, req.Stage), URI: "artifact://" + req.Stage}
-		a.mu.Lock()
-		a.seen[req.IdempotencyKey] = out
-		a.mu.Unlock()
-	}
-	res := StageResult{Output: out}
-	if req.Stage == StageClassify {
-		res.Classification = a.Classification
-		if res.Classification == "" {
-			res.Classification = ClassPotentiallyAffected
+// heartbeating runs f while heartbeating, so a long single call into a port
+// (a render, a model session) still shows liveness and a lost worker is
+// detected within the heartbeat timeout.
+func heartbeating(ctx context.Context, f func(ctx context.Context) error) error {
+	hb := func(detail string) { activity.RecordHeartbeat(ctx, detail) }
+	ctx = run.WithHeartbeat(ctx, hb)
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		t := time.NewTicker(5 * time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-done:
+				return
+			case <-t.C:
+				hb("working")
+			}
 		}
-		// Fail closed: only a definite Not Affected skips human review.
-		res.NeedsReview = res.Classification != ClassNotAffected
+	}()
+	return f(ctx)
+}
+
+// Stage returns the activity function of one stage.
+func (a *Activities) Stage(stage domain.Stage) func(context.Context, run.StageInput) (run.StageOutput, error) {
+	return func(ctx context.Context, in run.StageInput) (run.StageOutput, error) {
+		in.Stage = stage
+		in.Attempt = int(activity.GetInfo(ctx).Attempt)
+		var out run.StageOutput
+		err := heartbeating(ctx, func(ctx context.Context) (err error) {
+			out, err = a.P.Run(ctx, in)
+			return err
+		})
+		return out, toTemporal(ctx, err)
 	}
-	return res, nil
 }
 
-// Attempts reports how many times a stage ran (for tests).
-func (a *Activities) Attempts(stage string) int {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	return a.attempts[stage]
+// Review applies a human-review decision (stage human-review).
+func (a *Activities) Review(ctx context.Context, in run.ReviewInput) (run.ReviewOutput, error) {
+	out, err := a.P.ApplyReview(ctx, in)
+	return out, toTemporal(ctx, err)
 }
 
-// registerRun registers Activities.Run under the stable activity name "Run".
-var registerRun = activity.RegisterOptions{Name: "Run"}
+// Finalize ends a run without a decision. It must succeed even when the
+// workflow was cancelled, so the workflow calls it on a disconnected context.
+func (a *Activities) Finalize(ctx context.Context, in run.FinalizeInput) (run.ReviewOutput, error) {
+	out, err := a.P.Finalize(ctx, in)
+	return out, toTemporal(ctx, err)
+}

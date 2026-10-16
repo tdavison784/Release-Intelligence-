@@ -1,4 +1,4 @@
-package run
+package run_test
 
 import (
 	"context"
@@ -8,23 +8,25 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run/runtest"
 )
 
-func (f *fixture) runner(src ReviewSource) *Runner {
-	return &Runner{P: New(f.Deps), Review: src, Sleep: func(time.Duration) {}}
+func runner(f *runtest.Fixture, src run.ReviewSource) *run.Runner {
+	return &run.Runner{P: run.New(f.Deps), Review: src, Sleep: func(time.Duration) {}}
 }
 
-func once(d *investigate.ReviewDecision) ReviewSource {
+func once(d *investigate.ReviewDecision) run.ReviewSource {
 	return func(context.Context, *domain.Investigation) (*investigate.ReviewDecision, error) { return d, nil }
 }
 
 func TestRunAwaitsReviewAndValidates(t *testing.T) {
-	f := newFixture(t)
-	res, err := f.runner(nil).Run(context.Background(), f.request())
+	f := runtest.New(t)
+	res, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Outcome != OutcomeAwaitingReview || res.Review != domain.ReviewAwaiting {
+	if res.Outcome != run.OutcomeAwaitingReview || res.Review != domain.ReviewAwaiting {
 		t.Fatalf("result = %+v", res)
 	}
 	inv, err := f.St.GetInvestigation(context.Background(), res.Investigation)
@@ -64,9 +66,9 @@ func TestReviewApproveRejectMoreEvidence(t *testing.T) {
 	for _, tc := range []struct {
 		action  investigate.ReviewAction
 		outcome string
-	}{{investigate.ReviewApprove, OutcomeApproved}, {investigate.ReviewReject, OutcomeRejected}} {
-		f := newFixture(t)
-		res, err := f.runner(once(human(tc.action))).Run(context.Background(), f.request())
+	}{{investigate.ReviewApprove, run.OutcomeApproved}, {investigate.ReviewReject, run.OutcomeRejected}} {
+		f := runtest.New(t)
+		res, err := runner(f, once(runtest.Human(tc.action))).Run(context.Background(), f.Request())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -81,55 +83,55 @@ func TestReviewApproveRejectMoreEvidence(t *testing.T) {
 }
 
 func TestMoreEvidenceIsBounded(t *testing.T) {
-	f := newFixture(t)
+	f := runtest.New(t)
 	n := 0
 	src := func(context.Context, *domain.Investigation) (*investigate.ReviewDecision, error) {
 		n++
-		d := human(investigate.ReviewRequestMoreEvidence)
+		d := runtest.Human(investigate.ReviewRequestMoreEvidence)
 		d.Requests = []string{"nonsense"}
 		return d, nil
 	}
-	res, err := f.runner(src).Run(context.Background(), f.request())
+	res, err := runner(f, src).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Outcome != OutcomeRejected || res.Rounds != MaxEvidenceRounds || n != MaxEvidenceRounds+1 {
+	if res.Outcome != run.OutcomeRejected || res.Rounds != run.MaxEvidenceRounds || n != run.MaxEvidenceRounds+1 {
 		t.Fatalf("result = %+v after %d reviews", res, n)
 	}
 }
 
 func TestProxyDecisionNeverApproves(t *testing.T) {
-	f := newFixture(t)
+	f := runtest.New(t)
 	calls := 0
 	src := func(context.Context, *domain.Investigation) (*investigate.ReviewDecision, error) {
 		calls++
 		if calls == 1 {
-			return &investigate.ReviewDecision{Action: investigate.ReviewApprove, Reviewer: "claude", ReviewerKind: domain.ReviewerProxy, At: fixedNow}, nil
+			return &investigate.ReviewDecision{Action: investigate.ReviewApprove, Reviewer: "claude", ReviewerKind: domain.ReviewerProxy, At: runtest.FixedNow}, nil
 		}
 		return nil, nil
 	}
-	res, err := f.runner(src).Run(context.Background(), f.request())
+	res, err := runner(f, src).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Outcome == OutcomeApproved || res.Review != domain.ReviewAwaiting {
+	if res.Outcome == run.OutcomeApproved || res.Review != domain.ReviewAwaiting {
 		t.Fatalf("a proxy decision settled the review: %+v", res)
 	}
 }
 
 func TestReviewTimeoutFailsClosed(t *testing.T) {
-	f := newFixture(t)
-	r := f.runner(func(ctx context.Context, _ *domain.Investigation) (*investigate.ReviewDecision, error) {
+	f := runtest.New(t)
+	r := runner(f, func(ctx context.Context, _ *domain.Investigation) (*investigate.ReviewDecision, error) {
 		<-ctx.Done()
 		return nil, ctx.Err()
 	})
 	r.ReviewTimeout = 20 * time.Millisecond
-	res, err := r.Run(context.Background(), f.request())
+	res, err := r.Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
 	inv, _ := f.St.GetInvestigation(context.Background(), res.Investigation)
-	if res.Outcome != OutcomeReviewTimedOut || inv.Review.State == domain.ReviewApproved || inv.Status != domain.InvestigationFailed {
+	if res.Outcome != run.OutcomeReviewTimedOut || inv.Review.State == domain.ReviewApproved || inv.Status != domain.InvestigationFailed {
 		t.Fatalf("result = %+v, status %s, review %s", res, inv.Status, inv.Review.State)
 	}
 	last := inv.Audit[len(inv.Audit)-1]
@@ -152,10 +154,10 @@ func (f *flakySnapshot) BuildSnapshot(ctx context.Context, in investigate.Enviro
 }
 
 func TestTransientRetryThenSuccessAndAudit(t *testing.T) {
-	f := newFixture(t)
+	f := runtest.New(t)
 	fl := &flakySnapshot{SnapshotBuilder: f.Deps.Snapshot, fail: 2}
 	f.Deps.Snapshot = fl
-	res, err := f.runner(nil).Run(context.Background(), f.request())
+	res, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,18 +183,18 @@ func TestTransientRetryThenSuccessAndAudit(t *testing.T) {
 }
 
 func TestTransientExhaustionFails(t *testing.T) {
-	f := newFixture(t)
-	f.Class.fail = 5 // classify allows one attempt
-	_, err := f.runner(nil).Run(context.Background(), f.request())
+	f := runtest.New(t)
+	f.Class.Fail = 5 // classify allows one attempt
+	_, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err == nil || investigate.ClassOf(err) != investigate.Transient {
 		t.Fatalf("err = %v", err)
 	}
 }
 
 func TestPermanentFailureIsNotRetried(t *testing.T) {
-	f := newFixture(t)
+	f := runtest.New(t)
 	f.Deps.Classifier = permanentClassifier{}
-	_, err := f.runner(nil).Run(context.Background(), f.request())
+	_, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err == nil || investigate.ClassOf(err) != investigate.Permanent {
 		t.Fatalf("err = %v", err)
 	}
@@ -205,17 +207,17 @@ func (permanentClassifier) Classify(context.Context, investigate.ClassifyInput) 
 }
 
 func TestResubmissionIsIdempotent(t *testing.T) {
-	f := newFixture(t)
-	a, err := f.runner(nil).Run(context.Background(), f.request())
+	f := runtest.New(t)
+	a, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
-	calls := f.Class.calls
-	b, err := f.runner(nil).Run(context.Background(), f.request())
+	calls := f.Class.Calls
+	b, err := runner(f, nil).Run(context.Background(), f.Request())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if a.Investigation != b.Investigation || a.RecordDigest != b.RecordDigest || f.Class.calls != calls {
-		t.Fatalf("resubmission recomputed: %+v vs %+v (classifier calls %d -> %d)", a, b, calls, f.Class.calls)
+	if a.Investigation != b.Investigation || a.RecordDigest != b.RecordDigest || f.Class.Calls != calls {
+		t.Fatalf("resubmission recomputed: %+v vs %+v (classifier calls %d -> %d)", a, b, calls, f.Class.Calls)
 	}
 }

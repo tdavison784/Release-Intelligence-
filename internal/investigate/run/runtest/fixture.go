@@ -1,4 +1,8 @@
-package run
+// Package runtest is the test support of the run and orchestrate packages:
+// a Deps over the REAL wave-1 packages (bundle, relations, store) with a
+// fixed one-change upstream and in-memory fakes of the validator, classifier
+// and review applier that the other lanes build. Not for production code.
+package runtest
 
 import (
 	"context"
@@ -13,11 +17,12 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/investigate/bundle"
 	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
-var fixedNow = time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
+var FixedNow = time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
 
 const notesURL = "https://github.com/acme/web/blob/main/notes.md"
 const notesRaw = "https://raw.githubusercontent.com/acme/web/main/notes.md"
@@ -53,35 +58,37 @@ func (upstream) Fetch(_ context.Context, u string) ([]byte, string, error) {
 	return nil, "", fmt.Errorf("fetch %s: 404", u)
 }
 
-// fakeValidator counts calls and returns no records.
-type fakeValidator struct {
+// Validator counts calls and returns no records.
+// Validator counts calls and returns no records.
+type Validator struct {
 	mu    sync.Mutex
-	calls int
+	Calls int
 }
 
-func (f *fakeValidator) Name() string                         { return "validate.fake@v1" }
-func (f *fakeValidator) Kind() domain.ValidationKind          { return domain.ValidationKind("static") }
-func (f *fakeValidator) Applies(domain.ChangeItemFamily) bool { return true }
-func (f *fakeValidator) Validate(context.Context, investigate.ValidationInput) (*investigate.ValidationOutput, error) {
+func (f *Validator) Name() string                         { return "validate.fake@v1" }
+func (f *Validator) Kind() domain.ValidationKind          { return domain.ValidationKind("static") }
+func (f *Validator) Applies(domain.ChangeItemFamily) bool { return true }
+func (f *Validator) Validate(context.Context, investigate.ValidationInput) (*investigate.ValidationOutput, error) {
 	f.mu.Lock()
-	f.calls++
+	f.Calls++
 	f.mu.Unlock()
 	return &investigate.ValidationOutput{}, nil
 }
 
-// fakeClassifier yields one insufficient-evidence finding per in-scope item.
-type fakeClassifier struct {
+// Classifier yields one insufficient-evidence finding per in-scope item.
+// Classifier yields one insufficient-evidence finding per in-scope item.
+type Classifier struct {
 	mu    sync.Mutex
-	calls int
-	fail  int // transient failures before success
+	Calls int
+	Fail  int // transient failures before success
 }
 
-func (f *fakeClassifier) Classify(_ context.Context, in investigate.ClassifyInput) (*investigate.Classification, error) {
+func (f *Classifier) Classify(_ context.Context, in investigate.ClassifyInput) (*investigate.Classification, error) {
 	f.mu.Lock()
-	f.calls++
-	n := f.calls
+	f.Calls++
+	n := f.Calls
 	f.mu.Unlock()
-	if n <= f.fail {
+	if n <= f.Fail {
 		return nil, fmt.Errorf("classifier unavailable (transient)")
 	}
 	var fs []domain.InvestigationFinding
@@ -104,11 +111,11 @@ func (f *fakeClassifier) Classify(_ context.Context, in investigate.ClassifyInpu
 		Policy: "classify.policy@v1", Outcome: domain.PolicyHumanReview, Reasons: []string{"fake"}}}, nil
 }
 
-// fakeReviewer follows the ReviewApplier contract: only a human decides; a
+// Reviewer follows the ReviewApplier contract: only a human decides; a
 // proxy decision is recorded and keeps the review pending.
-type fakeReviewer struct{}
+type Reviewer struct{}
 
-func (fakeReviewer) ApplyReview(inv *domain.Investigation, d investigate.ReviewDecision) error {
+func (Reviewer) ApplyReview(inv *domain.Investigation, d investigate.ReviewDecision) error {
 	if d.Reviewer == "" {
 		return fmt.Errorf("%w: reviewer required", investigate.ErrRejected)
 	}
@@ -133,15 +140,16 @@ func (fakeReviewer) ApplyReview(inv *domain.Investigation, d investigate.ReviewD
 }
 
 // fixture bundles a Deps over real stores and wave-1 packages.
-type fixture struct {
-	Deps  Deps
+// Fixture is a Deps over real stores and wave-1 packages.
+type Fixture struct {
+	Deps  run.Deps
 	St    *store.Store
-	Val   *fakeValidator
-	Class *fakeClassifier
+	Val   *Validator
+	Class *Classifier
 	Repo  string
 }
 
-func newFixture(t *testing.T) *fixture {
+func New(t *testing.T) *Fixture {
 	t.Helper()
 	st, err := store.New(t.TempDir())
 	if err != nil {
@@ -151,12 +159,12 @@ func newFixture(t *testing.T) *fixture {
 	if err := os.WriteFile(filepath.Join(repo, "values.yaml"), []byte("replicaCount: 2\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	ws, err := NewDirWorkspace(t.TempDir())
+	ws, err := run.NewDirWorkspace(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	val, cls := &fakeValidator{}, &fakeClassifier{}
-	return &fixture{St: st, Val: val, Class: cls, Repo: repo, Deps: Deps{
+	val, cls := &Validator{}, &Classifier{}
+	return &Fixture{St: st, Val: val, Class: cls, Repo: repo, Deps: run.Deps{
 		Artifacts: st, Records: st, Work: ws,
 		Change:     bundle.NewChangeCollectorOver(upstream{}, st),
 		Snapshot:   bundle.NewSnapshotBuilder(st),
@@ -165,12 +173,13 @@ func newFixture(t *testing.T) *fixture {
 		Exposure:   relations.NewExposure(),
 		Traverser:  relations.NewTraverser(),
 		Validators: func(*domain.ImpactReport) []investigate.Validator { return []investigate.Validator{val} },
-		Classifier: cls, Reviewer: fakeReviewer{},
-		Now: func() time.Time { return fixedNow },
+		Classifier: cls, Reviewer: Reviewer{},
+		Now: func() time.Time { return FixedNow },
 	}}
 }
 
-func (f *fixture) request() investigate.Request {
+// Request is a valid request over the fixture's environment repo.
+func (f *Fixture) Request() investigate.Request {
 	return investigate.Request{
 		Product: "acme", From: "v1.0.0", To: "v2.0.0",
 		Environment: investigate.EnvironmentInputs{Name: "shop-prod", Repo: f.Repo},
@@ -179,6 +188,7 @@ func (f *fixture) request() investigate.Request {
 	}
 }
 
-func human(action investigate.ReviewAction) *investigate.ReviewDecision {
-	return &investigate.ReviewDecision{Action: action, Reviewer: "alice", ReviewerKind: domain.ReviewerHuman, At: fixedNow, Note: "ok"}
+// Human is a human review decision.
+func Human(action investigate.ReviewAction) *investigate.ReviewDecision {
+	return &investigate.ReviewDecision{Action: action, Reviewer: "alice", ReviewerKind: domain.ReviewerHuman, At: FixedNow, Note: "ok"}
 }

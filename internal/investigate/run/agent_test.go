@@ -1,4 +1,4 @@
-package run
+package run_test
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run/runtest"
 )
 
 type scriptedAgent struct {
@@ -26,12 +28,12 @@ func (a *scriptedAgent) Investigate(_ context.Context, in investigate.Investigat
 }
 
 func TestAgentStageRunsOnceAndIsRecorded(t *testing.T) {
-	f := newFixture(t)
+	f := runtest.New(t)
 	ag := &scriptedAgent{st: f.St}
 	f.Deps.Investigator = ag
-	req := f.request()
+	req := f.Request()
 	req.Config.Agent.Enabled = true
-	res, err := f.runner(nil).Run(context.Background(), req)
+	res, err := runner(f, nil).Run(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +43,7 @@ func TestAgentStageRunsOnceAndIsRecorded(t *testing.T) {
 	}
 	// Re-running the stage with the same key must not call the (costly,
 	// non-idempotent) agent again.
-	if _, err := f.runner(nil).Run(context.Background(), req); err != nil {
+	if _, err := runner(f, nil).Run(context.Background(), req); err != nil {
 		t.Fatal(err)
 	}
 	if ag.calls != 1 {
@@ -66,7 +68,7 @@ func TestMergeProposedAddsOnlyInferredEdges(t *testing.T) {
 	}
 	e := domain.GraphEdge{Kind: domain.EdgeKinds[0], From: a.ID, To: "gn-unknown"}
 	as := []domain.AgentAssertion{{ID: "asr-1", ProposedEdge: &e}, {ID: "asr-2"}}
-	m, notes := MergeProposed(g, as)
+	m, notes := run.MergeProposed(g, as)
 	if len(notes) != 0 || len(m.Edges) != 1 || len(m.Nodes) != 3 {
 		t.Fatalf("merged = %+v notes %v", m, notes)
 	}
@@ -77,7 +79,7 @@ func TestMergeProposedAddsOnlyInferredEdges(t *testing.T) {
 	if m.ID == g.ID || m.Validate() != nil {
 		t.Fatalf("merged graph invalid or unchanged: %v", m.Validate())
 	}
-	if same, _ := MergeProposed(g, nil); same.ID != g.ID {
+	if same, _ := run.MergeProposed(g, nil); same.ID != g.ID {
 		t.Fatal("no proposals must keep the graph")
 	}
 }

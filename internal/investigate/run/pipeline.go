@@ -139,16 +139,28 @@ func (p *Pipeline) Run(ctx context.Context, in StageInput) (StageOutput, error) 
 	switch {
 	case res.create != nil:
 		inv := res.create
-		for _, e := range in.Refs.Pending {
-			inv.AppendAudit(e)
-		}
+		round := ""
 		if in.Round > 0 {
-			startedEv.Detail = strings.TrimSpace(fmt.Sprintf("round %d of %s %s", in.Round, in.Refs.Previous, startedEv.Detail))
+			round = fmt.Sprintf("round %d of %s", in.Round, in.Refs.Previous)
+		}
+		startedEv.Detail = strings.TrimSpace(round + " " + startedEv.Detail)
+		if old, err := p.d.Records.GetInvestigation(ctx, inv.ID); err == nil {
+			// The same bundle and configuration: attach to the existing record
+			// (a resubmission, or an evidence round that found nothing new) and
+			// re-run the later stages on it.
+			inv = old
+			done.Detail += "; bundle unchanged, existing record reused"
+		} else if !errors.Is(err, investigate.ErrNotFound) {
+			return StageOutput{}, err
+		} else {
+			for _, e := range in.Refs.Pending {
+				inv.AppendAudit(e)
+			}
 		}
 		inv.AppendAudit(startedEv)
 		inv.AppendAudit(done)
-		if err := p.existingOrPut(ctx, inv); err != nil {
-			return StageOutput{}, err
+		if err := p.d.Records.PutInvestigation(ctx, inv); err != nil {
+			return StageOutput{}, investigate.PermanentError(in.Stage, err)
 		}
 		out.Refs.Investigation, out.Refs.Bundle = inv.ID, inv.Bundle
 		out.Refs.Pending, out.Refs.Previous = nil, in.Refs.Previous
@@ -203,21 +215,6 @@ func (p *Pipeline) update(ctx context.Context, stage domain.Stage, id string, f 
 		return nil, investigate.PermanentError(stage, err)
 	}
 	return inv, nil
-}
-
-// existingOrPut stores a newly assembled run record, or attaches to the one
-// a resubmission of the same request already has (idempotent by id).
-func (p *Pipeline) existingOrPut(ctx context.Context, inv *domain.Investigation) error {
-	if old, err := p.d.Records.GetInvestigation(ctx, inv.ID); err == nil {
-		*inv = *old
-		return nil
-	} else if !errors.Is(err, investigate.ErrNotFound) {
-		return err
-	}
-	if err := p.d.Records.PutInvestigation(ctx, inv); err != nil {
-		return investigate.PermanentError(domain.StageAssemble, err)
-	}
-	return nil
 }
 
 func (p *Pipeline) exec(ctx context.Context, in StageInput) (*stageResult, error) {
@@ -340,8 +337,17 @@ func (p *Pipeline) assemble(ctx context.Context, in StageInput) (*stageResult, e
 	if err != nil {
 		return nil, err
 	}
-	if err := p.d.Records.PutBundle(ctx, b); err != nil {
-		return nil, investigate.PermanentError(in.Stage, err)
+	// A bundle is immutable and content-identified, but CreatedAt is wall
+	// clock: re-assembling the same inputs (a retry after the put succeeded,
+	// an evidence round that found nothing new) must attach to the stored one.
+	if old, err := p.d.Records.GetBundle(ctx, b.ID); err == nil {
+		b = old
+	} else if errors.Is(err, investigate.ErrNotFound) {
+		if err := p.d.Records.PutBundle(ctx, b); err != nil {
+			return nil, investigate.PermanentError(in.Stage, err)
+		}
+	} else {
+		return nil, err
 	}
 	inv := &domain.Investigation{
 		SchemaVersion: domain.InvestigationSchemaVersion,
