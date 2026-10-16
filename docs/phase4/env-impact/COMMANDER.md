@@ -45,7 +45,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | wave 1, working since 13:20 (CRITICAL PATH) |
 | validate | ri-validate | claude-opus-5-5 | .claude/worktrees/p4ei-validate | pane w1:p2J (tab w1:t13) | wave 1, working since 13:20 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
-| relations | ri-relations | claude-sonnet-5-5 | .claude/worktrees/p4ei-relations | pane w1:p2M (tab w1:t15) | MERGED 9c280dc4; follow-up: declarative `relationships:` catalog construct (rules from upstream API docs) — worktree kept |
+| relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -79,6 +79,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 9c280dc4 relations: graph builder (env resources + rendered objects; Argo/Flux/kustomize structure; placeholder nodes for missing objects), exposure mapper, deterministic bounded DFS (25-seed shuffle determinism, bounds, truncation, unresolved edges). Green. Worktree kept for the follow-up.
 - 2026-10-16 6e03b550 groundtruth follow-up: kube-prometheus-stack 89.2.4→90.2.0 pair (obs-north affected: identical diff, decided by the render namespace of the ServiceMonitors vs the token Secret; obs-south not-affected) + ingress-nginx shop-nl diff-visible-harmless trap. 8 cases total, all observed in kind. Green.
 - 2026-10-16 251d7cde bundle: store (atomic, digest-verified, immutable, audit-only-grows), change collector (§1.3 scope + §2.2.1 manifestation from declared tables, 9 ChangeSourceKinds with status), snapshot builder (RepoRef, Secret redaction before hashing), assembler; bundles for the 5 original cases Validate and are deterministic. Green. 84dcd9ad gofmt of investigation.go. Cleanup: agent exited, tab w1:t14 closed, worktree removed, branch deleted. Its render-link notes forwarded to renderdiff.
+- 2026-10-16 e993219a relations follow-up: declarative `relationships:` catalog construct (internal/catalog, schema, 19 bad-rule tests) + rules for cert-manager, ingress-nginx, prometheus-operator (ServiceMonitor/PodMonitor selectors incl. namespaceSelector) from upstream API docs; 3 bug fixes (cluster scope, group-less *Ref, placeholder status). cert-manager e2e goldens regenerated — verified by commander: definitionDigest lines only, nothing under eval/. Green. Cleanup: agent exited, tab w1:t15 closed, worktree removed, branch deleted.
 
 ## Open questions for the user
 
