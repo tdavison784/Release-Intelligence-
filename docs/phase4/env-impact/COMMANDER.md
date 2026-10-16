@@ -40,7 +40,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
 | contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
-| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E | working (kicked off 2026-10-16) |
+| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 5 cases merged (23f79063); follow-up: diff-visible pair + diff-visible-harmless trap; adopt FORMAT.md after contract merges; worktree kept until then |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
@@ -58,17 +58,22 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 orchestrate: go directive 1.24.7 → 1.26.0 accepted (Temporal SDK v1.50.0 requires it; no CI/Docker pins Go in this repo; toolchain go1.27.1). testify removed as a direct dep before merge (stdlib test idiom).
 - 2026-10-16 USER: every lane cleans up when complete to keep disk free — lanes delete kind clusters/bin/scratch output before LANE DONE; the commander removes the worktree + merged branch (`-d`) and closes the agent/tab right after each merge (FLEET.md, briefs/commander.md).
 - 2026-10-16 Pre-existing processes NOT from this fleet, left alone: `temporal server start-dev` (pid 46289, up 22 d) and `./bin/worker` (pid 80813, up 16 d) on :7233. Lanes needing a Temporal dev server use another port (`--port`).
+- 2026-10-16 GROUNDTRUTH FINDING: the decisive breaks in both pairs are controller-binary defaults, invisible (or only CRD description text) in the rendered diff. Passed to contract as a generic design input: classify each breaking item by where it manifests (rendered-config vs controller-behaviour vs unknown); render-diff silence is never sufficient for Not Affected; for controller-behaviour items the deterministic check is an explicit pinning override in env evidence.
+- 2026-10-16 ri-groundtruth killed and relaunched a hung Docker Desktop at lane start (hung since a disk-full event on 2026-10-07); healthy since.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
 
 - 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge. Cleanup: agent exited, tab w1:t11 closed, worktree removed, branch p4ei/orchestrate deleted (-d).
+- 2026-10-16 23f79063 groundtruth (ff91c6de..c5eedd71): 5 cases in eval/investigations — cert-manager 1.17.2→1.18.0 rotationPolicy pair (payments-eu affected / payments-us not), ingress-nginx 4.11.5→4.12.0 risk-level pair (shop-de affected / shop-fr not), shop-pl insufficient-evidence. All observed in kind v1.31. Green after merge. Worktree NOT removed: lane continues (follow-up).
 
 ## Open questions for the user
 
 (none yet)
 
 ## Next actions
+
+0. When groundtruth reports LANE DONE on the follow-up: review the new cases (diff-visible pair + trap), merge, keep the worktree only if FORMAT.md adoption is still pending.
 
 1. ~~Start wave 0 lanes~~ done 2026-10-16. Watch for LANE DONE (herdr agent list / read).
 2. ~~Start guard~~ done 2026-10-16 12:50. If it ever needs a restart: in pane w1:p1C, `cd ~/.claude/fleet-guard && python3 fleet_guard.py --commander-cwd /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p4-integration --commander-session <commander session id>` (NO --reset-state unless the state is stale). Log: `~/.claude/fleet-guard/events.jsonl`.
