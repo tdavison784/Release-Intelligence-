@@ -100,13 +100,37 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
     only when a correlated path did not end in `.description`). Why: description paths can no longer be
     correlated paths (they don't correlate), so the guard is dead — and it would wrongly demote real
     non-CRD paths ending in "description".
+- Fix 4 (cert-manager traversal truncation at depth 8, EVAL-REPORT §5.1f) COMPLETE, commit 6667a12e; full
+  build/vet/test green (42 pkgs).
+  - Diagnosis (measured, from the ALLOWED eval inputs env/ + a local diagnostic tool run writing only to
+    /tmp; expected/NOTES/observed never opened, eval never run): files-only graph = 24 nodes / depth 7 (no
+    truncation); with the environment renders the graph is 82 nodes / 97 edges, 0 self-edges, no cycle
+    inflation. The default bound truncated 22 of 77 paths at depth 8 — every one the same GENUINE chain:
+    CRD clusterissuers → serves-api → api-type → consumes-api → bootstrap ClusterIssuer selfsigned-bootstrap
+    → references → Certificate mesh-root-ca → produces → Secret → references → ClusterIssuer mesh-ca →
+    references → Certificate payments/*-tls → produces → Secret → references → Deployment → selects →
+    Service. True maximal depth from the real exposure roots: 9 edges (measured with a generous bound:
+    paths=77, depth=9, not truncated). Long chains are real GitOps/PKI topology, not artefacts; the single
+    inferred edge ("Secret produced in ns cert-manager but the cluster-scoped referrer names no namespace")
+    is honest conservatism, left as is. MaxPaths 500 / MaxNodes 5000 nowhere near (77 paths, 29 visited).
+  - Fix: `domain.DefaultTraversalBound` MaxDepth 8 → 12, with the measurement recorded in its doc comment
+    (internal/domain/investigation.go). 12 = measured 9 + 3 headroom; depth stays bounded because it is the
+    guard that keeps worst-case simple-path enumeration finite. Truncation behaviour itself unchanged: the
+    reason is recorded and complete=false blocks not-affected (regression-tested one edge past the bound).
+  - Tests: `TestDefaultDepthCoversRealChains` (chain exactly at the bound traverses completely) and
+    `TestDefaultDepthStillTruncatesHonestly` (chain one edge deeper → truncated, reason `max depth 12
+    reached`, never complete) — both synthetic, in traverse_test.go. sample-investigation.json regenerated
+    (embeds the bound; id changes with it).
+  - Verified end-to-end: the diagnostic run over the same env now reports depth 9, NOT truncated;
+    complete=false only for the 1 inferred edge (unchanged fail-closed inference). Findings shift as the
+    truncation stops blocking decisions (not-affected 0→17 on that run) — the eval lane re-scores properly;
+    no eval was run here.
 
 ## In progress (exact next step)
-- (nothing — between fixes)
+- (nothing — all four fixes done)
 
 ## Not started
-- Fix 4 (cert-manager traversal truncation at depth 8: diagnose, fix artefacts or raise the default with
-  measured justification; truncation stays honest).
+- (none)
 
 ## Decisions (with why)
 - Values sources ordered: Argo valueFiles list order, then by-name alphabetical, then helmfile list order
@@ -132,7 +156,22 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
 - none.
 
 ## Test status
-- Full `go build ./... && go vet ./... && go test ./...` green at fix-3 commit 635ca18e (42 pkgs).
+- Full `go build ./... && go vet ./... && go test ./...` green at fix-4 commit 6667a12e (42 pkgs).
+
+## LANE DONE:
+- All 4 fixes from EVAL-REPORT §5 (arm A routing) complete, each a generic correctness fix with its own
+  synthetic tests:
+  1. a638c39a layered Helm values merge (Helm -f order, Argo list-order precedence, effective keys,
+     fail-closed missing refs);
+  2. 175709ef run-record reproducibility (IdentifiedContent: stamps are provenance, never identity —
+     identical runs now give identical record digests);
+  3. 635ca18e CRD description text as the declared class crd-description-changed (no correlation, no item
+     anchoring, deterministic harmless verdict — docs are not effects);
+  4. 6667a12e default traversal depth 12, measured on the real cert-manager graph (9-edge genuine PKI
+     chains; no artefacts found; honest truncation regression-tested).
+- Full build/vet/test green at every fix commit (42 packages).
+- Files touched outside ownership: minimal test-assertion/golden fallout only (listed above).
+- No contract changes; no open questions; the eval was never run; forbidden eval paths never read.
 
 ## GLM handoff log
 - (session start) Resumed from brief + commander routing (commit 3729ab10); no prior lane status file
@@ -158,3 +197,13 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
   (cert-manager traversal truncation at depth 8) — start from internal/investigate/relations (traverse /
   max-depth constant) and measure graph sizes from the stored arm A runs at eval/investigations/results/A-*
   (reading stored results/graphs is allowed; expected.yaml/NOTES.md/observed/ never).
+- Fix 4 finished and committed (6667a12e): default traversal depth 8 → 12. Note for the record: the stored
+  arm A run artifacts are NOT committed on p4ei/eval (only env inputs + the forbidden dirs), so the
+  measurement came from the allowed inputs directly — a files-only graph build (24 nodes, depth 7, no
+  truncation) proved the renders carry the depth, then one local diagnostic `ri investigate` run over
+  env/ (state in /tmp, eval never invoked, forbidden dirs never read) reproduced the truncation exactly
+  (truncated at depth 8, 77 paths, 1 inferred edge) and gave the real graph (82 nodes/97 edges, longest
+  genuine chain 9 edges, 0 self-edges). Generous-bound replay of that exact graph + real roots: depth 9,
+  not truncated → the bound was simply too low; no artefacts to fix. Verified post-fix end-to-end: same
+  env now traverses to depth 9 untruncated; complete=false only for the honest inferred edge. All temp
+  measurement files deleted. LANE DONE.
