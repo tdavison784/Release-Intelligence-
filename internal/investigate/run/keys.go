@@ -56,21 +56,40 @@ func digestOf(v any) string {
 }
 
 // ContentDigest digests the run record's content: no audit trail, no
-// timestamps (CreatedAt, the impact report's stamps). It feeds idempotency keys, which must not change when a retry
+// timestamps (CreatedAt, the impact report's stamps, validators' CheckedAt). It feeds idempotency keys, which must not change when a retry
 // adds an audit event.
 func ContentDigest(inv *domain.Investigation) string {
 	c := *inv
 	c.Audit, c.CreatedAt, c.ReportStamps = nil, zeroTime, nil
+	c.Validations = untimed(inv.Validations)
 	return digestOf(c)
+}
+
+// untimed copies validation records with CheckedAt zeroed: when a validator
+// ran is provenance of the run (kept in the stored record), not identity —
+// like CreatedAt and audit times, it must not change the record digest, or
+// two identical runs would give different digests.
+func untimed(vs []domain.ValidationRecord) []domain.ValidationRecord {
+	if vs == nil {
+		return nil
+	}
+	out := make([]domain.ValidationRecord, len(vs))
+	for i, v := range vs {
+		v.CheckedAt = zeroTime
+		out[i] = v
+	}
+	return out
 }
 
 // Digest digests the run record including the audit sequence (stage, event,
 // actor, refs, detail — not times or the hash chain, which derive from
-// times, nor the impact report's wall-clock stamps). Same inputs, config and
-// scripted/replay agent ⇒ same digest, in-process or under Temporal.
+// times, nor the impact report's wall-clock stamps or the validators'
+// CheckedAt). Same inputs, config and scripted/replay agent ⇒ same digest,
+// in-process or under Temporal.
 func Digest(inv *domain.Investigation) string {
 	c := *inv
 	c.CreatedAt, c.ReportStamps = zeroTime, nil
+	c.Validations = untimed(inv.Validations)
 	c.Audit = make([]domain.AuditEvent, len(inv.Audit))
 	for i, e := range inv.Audit {
 		e.At, e.Prev = zeroTime, ""
