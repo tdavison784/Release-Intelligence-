@@ -22,7 +22,9 @@ func TestDecisionConjunction(t *testing.T) {
 		reason string
 	}{
 		{"agent not run", func(c *clean, in *investigate.ClassifyInput) { in.Agent = nil }, "agent stage did not run"},
-		{"agent budget exhausted", func(c *clean, in *investigate.ClassifyInput) { in.Agent = agentOutcome(domain.AgentBudgetExhausted, nil) }, "did not complete"},
+		{"agent budget exhausted", func(c *clean, in *investigate.ClassifyInput) {
+			in.Agent = agentOutcome(domain.AgentBudgetExhausted, nil)
+		}, "did not complete"},
 		{"agent failed", func(c *clean, in *investigate.ClassifyInput) { in.Agent = agentOutcome(domain.AgentFailed, nil) }, "did not complete"},
 		{"tier policy review", func(c *clean, in *investigate.ClassifyInput) {
 			in.Config.TierPolicy = "sha256:" + strings.Repeat("a", 64)
@@ -253,7 +255,7 @@ func TestReproducibility(t *testing.T) {
 
 	// Re-classification of the stored run (the §6 reproducibility metric).
 	re := investigate.ClassifyInput{Bundle: c.f.bundle(), Traversal: inv.Traversal, Validations: inv.Validations,
-		Agent: &investigate.AgentOutcome{Run: *inv.Agent, Hypotheses: inv.Hypotheses, Assertions: inv.Assertions, Artifacts: inv.Artifacts, Evidence: inv.Evidence},
+		Agent:  &investigate.AgentOutcome{Run: *inv.Agent, Hypotheses: inv.Hypotheses, Assertions: inv.Assertions, Artifacts: inv.Artifacts, Evidence: inv.Evidence},
 		Config: c.f.in(nil, nil).Config}
 	got, err := New().Classify(context.Background(), re)
 	if err != nil {
