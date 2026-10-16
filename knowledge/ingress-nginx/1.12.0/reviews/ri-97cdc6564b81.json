@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-97cdc6564b81",
+    "candidateId": "sc-ab2754bec80f",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"⚠️ Remove global-rate-limit feature (#11851) ⚠️ This removes the following configuration options: * `global-rate-limit-memcached-host` *…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed global-rate-limit configuration options and annotations are no longer honoured, so global rate limiting configured through them stops applying after the upgrade.",
+        "remediation": "Remove the global-rate-limit-* ConfigMap options and global-rate-limit* annotations, and set up rate limiting another way before upgrading.",
+        "severity": "high"
+      },
+      "statement": "ingress-nginx 1.12.0 removes the global-rate-limit feature. This removes the ConfigMap options global-rate-limit-memcached-host, -port, -connect-timeout, -max-idle-timeout, -pool-size and global-rate-limit-status-code, and the annotations global-rate-limit, global-rate-limit-window, global-rate-limit-key and global-rate-limit-ignored-cidrs, so these settings are no longer honoured."
+    },
+    "proposals": [
+      "sp-6ff2c45d7f36",
+      "sp-7605558a2910"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:43Z"
+  }
+}

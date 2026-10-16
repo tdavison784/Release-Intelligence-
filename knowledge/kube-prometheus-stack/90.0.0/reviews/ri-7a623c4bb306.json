@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7a623c4bb306",
+    "candidateId": "sc-b61cc4944b6b",
+    "product": "kube-prometheus-stack",
+    "release": "90.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The control-plane ServiceMonitors no longer use bearerTokenFile or tlsConfig.caFile. They take the bearer token from a Secret through `authorization` and the CA from the `kube-root-ca.crt` ConfigMap. By default the chart now renders a long-lived, non-expiring `kubernetes.io/service-account-token` Secret named `<prometheus service account>-token`.",
+        "remediation": "If you would rather manage the credential yourself, set prometheus.serviceAccount.createTokenSecret to false and set the `authorization` of each control-plane component.",
+        "severity": "medium"
+      },
+      "statement": "In 90.x the chart adds the value prometheus.serviceAccount.createTokenSecret (default true), which renders a non-expiring `<prometheus service account>-token` Secret. The control-plane ServiceMonitors now use that Secret through `authorization` and the `kube-root-ca.crt` ConfigMap instead of bearerTokenFile and tlsConfig.caFile."
+    },
+    "proposals": [
+      "sp-2225fabc874e",
+      "sp-32670d5f92a6"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:56Z"
+  }
+}

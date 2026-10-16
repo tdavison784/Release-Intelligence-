@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9bd7ddc651e9",
+    "candidateId": "sc-aa39860e68ae",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "ingress-nginx",
+        "path": "plugins",
+        "component": "controller"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "controller.config.plugins",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.plugins",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "ingress-nginx-controller"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `plugins` option and user-provided Lua plugins in /etc/nginx/lua/plugins are no longer supported, so configured plugins stop being honoured.",
+        "remediation": "Remove the plugins setting and move any custom Lua plugin functionality elsewhere before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The `plugins` ConfigMap option and support for user-provided Lua plugins in /etc/nginx/lua/plugins are removed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-05b99c98065e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f16d88f4f76cd2c1a2a69636f349da37adc3d9a50c57d0d4eae6946b8c84bacd",
+      "inputEvidence": [
+        "ev-05b99c98065e"
+      ],
+      "generatedAt": "2026-10-16T22:54:39Z",
+      "callId": "58f0f670-344e-4d44-b34a-0b7dc70f60c1"
+    }
+  }
+}

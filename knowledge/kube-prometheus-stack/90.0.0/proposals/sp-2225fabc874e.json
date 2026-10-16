@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2225fabc874e",
+    "candidateId": "sc-b61cc4944b6b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "kube-prometheus-stack",
+        "path": "prometheus.serviceAccount.createTokenSecret"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Control-plane ServiceMonitors now authenticate via a Secret through `authorization` and the kube-root-ca.crt ConfigMap, and the chart creates a long-lived, non-expiring kubernetes.io/service-account-token Secret named <prometheus service account>-token by default.",
+        "remediation": "Set prometheus.serviceAccount.createTokenSecret to false and configure `authorization` for each component if you prefer to manage the credential yourself."
+      },
+      "statement": "The chart adds prometheus.serviceAccount.createTokenSecret (default true), which renders a long-lived service-account-token Secret so the control-plane ServiceMonitors can use `authorization` and the kube-root-ca.crt ConfigMap instead of bearerTokenFile/caFile."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-75ebb2851d6e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:c9a09a0d666ecac6bc27842205370a369709afa8b50546d673b45c3ae2c929cc",
+      "inputEvidence": [
+        "ev-75ebb2851d6e"
+      ],
+      "generatedAt": "2026-10-16T22:54:55Z",
+      "callId": "964e3264-1e88-4157-a58d-4e27c7463027"
+    }
+  }
+}
