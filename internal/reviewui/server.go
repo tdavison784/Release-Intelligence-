@@ -289,7 +289,7 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		tr = triageItems(snap, s.opts.Scope)
 	}
 	form.Triage = tr != nil
-	needs := tr != nil && !form.All
+	needs := tr != nil && !form.All // default (blocking) or ?scope=other
 	var (
 		in     *knowledge.Inbox
 		hidden hiddenSummary
@@ -312,7 +312,11 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Enums: enums(), NeedsView: needs, Hidden: hidden,
 	}
 	if needs {
-		v.Tiles = needsTiles(in.Counts, hidden)
+		if form.Other {
+			v.Tiles = needsTiles(in.Counts, "Other open items", "other")
+		} else {
+			v.Tiles = needsTiles(in.Counts, "Blocking investigations", "")
+		}
 	}
 	// a Queue implementor that ignores Matches (zero) must not make the page
 	// claim truncation
@@ -332,8 +336,9 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	s.render(w, http.StatusOK, "inbox.html", v)
 }
 
-// needsReview builds the default inbox: only items that need a human decision
-// now, blocking-first. The queue is asked for every status with the user's
+// needsReview builds the default inbox: only the items that block
+// investigations (pin sources first), or with ?scope=other the other open
+// items. Counters cover just the listed set. The queue is asked for every status with the user's
 // other filters (so the counts and the hidden tally respect them); the
 // priority and blocking filters and the limit apply afterwards, so the counts
 // stay independent of them, as in the full view.
@@ -355,10 +360,15 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 			continue
 		}
 		it := row.Item
-		out.Counts.Pending++
 		if ok && t.Blocking {
 			hidden.Blocking++
+		} else {
+			hidden.Other++
 		}
+		if form.Other == (ok && t.Blocking) { // the default lists blockers only; ?scope=other the rest
+			continue
+		}
+		out.Counts.Pending++
 		if it.Routing.Priority == domain.PriorityHigh {
 			out.Counts.HighPriority++
 		}
@@ -372,9 +382,6 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 			out.Counts.ApplicabilityQuestions++
 		}
 		if prio != "" && it.Routing.Priority != prio {
-			continue
-		}
-		if form.Blocking && !t.Blocking {
 			continue
 		}
 		rows = append(rows, row)

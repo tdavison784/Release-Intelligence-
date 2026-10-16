@@ -183,7 +183,7 @@ func triageOne(it domain.ReviewItem, cand domain.SemanticCandidate, decs []domai
 		}
 	}
 	t := Triage{NeedsReview: true}
-	if scope.covers(it.Product, cand) && onlyProse(cand) {
+	if scope.covers(it.Product, cand) && controllerBehaviour(cand) {
 		t.Blocking, t.Why = true, blockingWhy
 		if validate.CanBePinSource(it.Proposed) {
 			t.PinSource, t.Why = true, pinSourceWhy
@@ -192,16 +192,33 @@ func triageOne(it domain.ReviewItem, cand domain.SemanticCandidate, decs []domai
 	return t
 }
 
-// onlyProse: every member is an upstream statement (no computed diff), the
-// shape DESIGN §2.2.1 manifests as controller-behaviour (manifest:declared-
-// behaviour) or unknown rather than rendered-config.
-func onlyProse(c domain.SemanticCandidate) bool {
+var reComputedRule = regexp.MustCompile(`computed artifact diff \(([a-z-]+:[a-z-]+)\)`)
+
+// controllerBehaviour reports whether the candidate manifests as controller
+// behaviour (DESIGN §2.2.1): every member is an upstream statement
+// (manifest:declared-behaviour), or a computed diff of rule crd:default-changed
+// (manifest:crd-default). The rules of computed members are read from the
+// "computed artifact diff (<rule>)" lines the candidate text records; any other
+// computed rule is decided by a render, not by a human-verified fact.
+func controllerBehaviour(c domain.SemanticCandidate) bool {
+	computed := 0
 	for _, m := range c.Members {
 		if m.Computed {
-			return false
+			computed++
 		}
 	}
-	return len(c.Members) > 0
+	if len(c.Members) == 0 {
+		return false
+	}
+	if computed == 0 {
+		return true
+	}
+	for _, m := range reComputedRule.FindAllStringSubmatch(c.Text, -1) {
+		if m[1] == "crd:default-changed" {
+			return true
+		}
+	}
+	return false
 }
 
 // trustedAspects reports whether f verifies every aspect at human or

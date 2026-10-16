@@ -18,10 +18,14 @@
   {{template "flashes" .Flashes}}
   {{if .Filter.Triage}}
   <section class="scopebar {{if .NeedsView}}needs{{else}}everything{{end}}" id="scopebar" aria-label="What this list shows">
-  {{if .NeedsView}}
-    <p><b>Needs review: {{.Counts.Pending}}</b> open question{{if ne .Counts.Pending 1}}s{{end}} waiting for a human decision{{if .Hidden.Blocking}}, <b>{{.Hidden.Blocking}}</b> blocking investigations (listed first){{end}}.
-    {{if .Hidden.Total}}Hidden from this view: {{.Hidden.Total}} ({{join ", " .Hidden.Lines}}).{{end}}</p>
-    <a class="btn ghost" id="showall" href="/?scope=all">Show all staged data</a>
+  {{if and .NeedsView (not .Filter.Other)}}
+    <p><b>Needs your review: {{.Counts.Pending}}</b> item{{if ne .Counts.Pending 1}}s{{end}} that block investigations (pin sources first). Nothing else is listed here.</p>
+    <span class="scopelinks"><a class="btn" id="showother" href="/?scope=other">Other open items ({{.Hidden.Other}})</a>
+    <a class="btn ghost" id="showall" href="/?scope=all">Show all staged data</a></span>
+  {{else if .NeedsView}}
+    <p><b>Other open items: {{.Counts.Pending}}</b> that need review but do not block investigations. {{if .Hidden.Total}}Not included: {{.Hidden.Total}} already handled ({{join ", " .Hidden.Lines}}).{{end}}</p>
+    <span class="scopelinks"><a class="btn" id="backtoneeds" href="/">Back to items that block investigations ({{.Hidden.Blocking}})</a>
+    <a class="btn ghost" id="showall" href="/?scope=all">Show all staged data</a></span>
   {{else}}
     <p><b>Showing all staged data</b>, including items that need no review (decided, proxy-staged, verified, superseded). Counts below are for this wider view.</p>
     <a class="btn" id="backtoneeds" href="/">Back to Needs review</a>
@@ -31,7 +35,7 @@
   <details class="filterbox" id="filterbox" {{if .Filter.Active}}open{{end}}>
     <summary>Filters{{if .Filter.Active}} <span class="badge accent">active</span>{{end}}</summary>
   <form class="filters" method="get" action="/" id="filters">
-    {{if .Filter.All}}<input type="hidden" name="scope" value="all">{{end}}
+    {{if .Filter.All}}<input type="hidden" name="scope" value="all">{{end}}{{if .Filter.Other}}<input type="hidden" name="scope" value="other">{{end}}
     {{if and .Filter.Triage (not .Filter.All)}}{{else}}<label>Status
       <select name="status">
         <option value="pending" {{if .Filter.HasStatus "pending"}}selected{{end}}>pending</option>
@@ -58,7 +62,7 @@
     <label>Evidence source <input name="source" value="{{.Filter.Source}}" placeholder="github.com/…" size="12"></label>
     <label>Reviewer <input name="reviewer" value="{{.Filter.Reviewer}}" size="8"></label>
     <button class="btn" type="submit">Filter</button>
-    {{if .Filter.Active}}<a class="btn ghost" href="{{if .Filter.All}}/?scope=all{{else}}/{{end}}">Reset</a>{{end}}
+    {{if .Filter.Active}}<a class="btn ghost" href="{{if .Filter.All}}/?scope=all{{else if .Filter.Other}}/?scope=other{{else}}/{{end}}">Reset</a>{{end}}
   </form>
   </details>
   <div class="toolbar">
@@ -81,7 +85,7 @@
             <span class="title">{{.Question}}</span>
             <span class="qtext">{{.Row.Title}}</span>
             {{if .Blocking}}<span class="blocks"><b>Blocks investigations.</b> {{.BlockWhy}}</span>{{end}}
-            {{if .HiddenText}}<span class="hiddennote">Not in Needs review: {{.HiddenText}}.</span>{{end}}
+            {{if .HiddenText}}<span class="hiddennote">Not on the review list: {{.HiddenText}}.</span>{{end}}
             <span class="why {{.WhyTone}}">{{.Why}}</span>
             <span class="sug"><b>Suggested:</b> {{.Suggested}}</span>
           </span>

@@ -33,6 +33,20 @@ func (q *triageQueue) Snapshot(ctx context.Context) (*knowledge.Snapshot, error)
 	return s, nil
 }
 
+// demoScope covers every product of the demo fixtures, so every open fixture
+// (all upstream prose) blocks investigations.
+func demoScope() BlockingScope {
+	var sc BlockingScope
+	q := NewDemoQueue()
+	for _, id := range q.ItemIDs() {
+		it, _ := q.ItemRecord(id)
+		if !slices.Contains(sc.Products, it.Product) {
+			sc.Products = append(sc.Products, it.Product)
+		}
+	}
+	return sc
+}
+
 func newTriageRig(t *testing.T, scope BlockingScope, edit func(*knowledge.Snapshot, *rig)) *rig {
 	t.Helper()
 	dq := NewDemoQueue()
@@ -94,7 +108,7 @@ func editHidden(s *knowledge.Snapshot, r *rig) {
 }
 
 func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
-	r := newTriageRig(t, BlockingScope{}, editHidden)
+	r := newTriageRig(t, demoScope(), editHidden)
 	st, body := r.get("/")
 	if st != 200 {
 		t.Fatal(st)
@@ -126,26 +140,28 @@ func TestNeedsReviewHidesEveryNonReviewCategory(t *testing.T) {
 	if len(ids) != want {
 		t.Errorf("cards = %d, want %d", len(ids), want)
 	}
-	contains(t, body, "Needs review: "+itoa(want), "Hidden from this view: "+itoa(len(r.q.ItemIDs())-want),
-		"acted on by an AI proxy", "already verified", "already decided", "parked", `href="/?scope=all"`, "Show all staged data")
+	contains(t, body, "Needs your review: "+itoa(want), `href="/?scope=other"`, "Other open items (0)", `href="/?scope=all"`, "Show all staged data")
 	lacks(t, body, "Showing all staged data")
+	_, other := r.get("/?scope=other")
+	contains(t, other, "Other open items: 0", "Not included: "+itoa(len(r.q.ItemIDs())-want)+" already handled",
+		"acted on by an AI proxy", "already verified", "already decided", "parked")
 	// the status filter does not exist in this view; counts reflect it
 	lacks(t, body, `<option value="decided"`, "Needs more evidence", ">Deferred<")
-	contains(t, body, "<b>"+itoa(want)+"</b><span>Needs review</span>")
+	contains(t, body, "<b>"+itoa(want)+"</b><span>Blocking investigations</span>")
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
 
 func TestShowAllStagedDataIsExplicitAndLabelsWhatItHides(t *testing.T) {
-	r := newTriageRig(t, BlockingScope{}, editHidden)
+	r := newTriageRig(t, demoScope(), editHidden)
 	_, all := r.get("/?scope=all&status=all")
 	if got := len(cardOrder(all)); got != len(r.q.ItemIDs()) {
 		t.Errorf("show-all with status all lists %d, want every item %d", got, len(r.q.ItemIDs()))
 	}
 	contains(t, all, "Showing all staged data", `href="/"`, "Back to Needs review",
-		"Not in Needs review: an AI proxy (claude-proxy) acted on it; that is not a human decision",
-		"Not in Needs review: already verified at human or deterministic level by fact",
-		"Not in Needs review: decided by morgan")
+		"Not on the review list: an AI proxy (claude-proxy) acted on it; that is not a human decision",
+		"Not on the review list: already verified at human or deterministic level by fact",
+		"Not on the review list: decided by morgan")
 	lacks(t, all, "Hidden from this view")
 	// the toggle survives filtering inside the wide view
 	_, filtered := r.get("/?scope=all&product=cert-manager")
@@ -153,13 +169,13 @@ func TestShowAllStagedDataIsExplicitAndLabelsWhatItHides(t *testing.T) {
 }
 
 func TestProxyDecisionNeverAppearsAsHuman(t *testing.T) {
-	r := newTriageRig(t, BlockingScope{}, editHidden)
+	r := newTriageRig(t, demoScope(), editHidden)
 	_, all := r.get("/?scope=all&status=all")
 	i := strings.Index(all, r.id(tRSA))
 	if i < 0 || !strings.Contains(all[i:i+3000], "AI proxy") || strings.Contains(all[i:i+3000], "decided by claude-proxy") {
 		t.Errorf("the proxy-acted item must be labelled proxy, never decided by a human")
 	}
-	if hum := triageOne(r.itemOf(tRSA), domain.SemanticCandidate{}, []domain.ReviewDecision{{Reviewer: "x", ReviewerKind: domain.ReviewerProxy}}, nil, BlockingScope{}); hum.Hidden != HiddenProxy {
+	if hum := triageOne(r.itemOf(tRSA), domain.SemanticCandidate{}, []domain.ReviewDecision{{Reviewer: "x", ReviewerKind: domain.ReviewerProxy}}, nil, demoScope()); hum.Hidden != HiddenProxy {
 		t.Errorf("proxy decision hidden as %q", hum.Hidden)
 	}
 }
@@ -226,11 +242,11 @@ func TestBlockingItemsComeFirstThenTheRest(t *testing.T) {
 			t.Errorf("%s listed under the blocking filter but is not blocking", id)
 		}
 	}
-	contains(t, only, "<b>"+itoa(len(ids))+"</b><span>Needs review</span>")
+	contains(t, only, "<b>"+itoa(len(ids))+"</b><span>Blocking investigations</span>")
 }
 
 func TestPriorityStaysInsideEachRankAndCountsIgnoreIt(t *testing.T) {
-	r := newTriageRig(t, BlockingScope{}, nil)
+	r := newTriageRig(t, demoScope(), nil)
 	_, body := r.get("/")
 	ids := cardOrder(body)
 	hi := map[string]bool{}
@@ -242,14 +258,14 @@ func TestPriorityStaysInsideEachRankAndCountsIgnoreIt(t *testing.T) {
 		t.Errorf("highest priority first expected, got %v", ids)
 	}
 	_, high := r.get("/?priority=high")
-	contains(t, high, "<b>2</b><span>High priority</span>", "<b>"+itoa(len(ids))+"</b><span>Needs review</span>")
+	contains(t, high, "<b>2</b><span>High priority</span>", "<b>"+itoa(len(ids))+"</b><span>Blocking investigations</span>")
 	if got := len(cardOrder(high)); got != 2 {
 		t.Errorf("priority=high lists %d", got)
 	}
 }
 
 func TestDecidingLeavesTheDefaultView(t *testing.T) {
-	r := newTriageRig(t, BlockingScope{}, nil)
+	r := newTriageRig(t, demoScope(), nil)
 	_, before := r.get("/")
 	n := len(cardOrder(before))
 	id := r.id(tRBAC)
@@ -262,9 +278,9 @@ func TestDecidingLeavesTheDefaultView(t *testing.T) {
 	if got := len(cardOrder(after)); got != n-1 || slices.Contains(cardOrder(after), id) {
 		t.Errorf("after deciding: %d cards (was %d), item still listed=%v", got, n, slices.Contains(cardOrder(after), id))
 	}
-	contains(t, after, "Needs review: "+itoa(n-1))
+	contains(t, after, "Needs your review: "+itoa(n-1))
 	_, all := r.get("/?scope=all&status=all")
-	contains(t, all, "Not in Needs review: decided by dana")
+	contains(t, all, "Not on the review list: decided by dana")
 	// the recorded decision is the Phase 3 contract: human, reviewer named
 	last := r.q.Decisions()[len(r.q.Decisions())-1]
 	if last.ReviewerKind != domain.ReviewerHuman || last.Reviewer != "dana" {
@@ -325,7 +341,7 @@ func TestWithoutASnapshotTheInboxListsEverythingAsBefore(t *testing.T) {
 			break
 		}
 	}
-	lacks(t, b.String(), "Show all staged data", "Needs review:")
+	lacks(t, b.String(), "Show all staged data", "Needs your review:")
 	contains(t, b.String(), "<span>Pending</span>")
 }
 
@@ -362,5 +378,46 @@ func TestCountNeedsReview(t *testing.T) {
 	needs, blocking := CountNeedsReview(snap, BlockingScope{})
 	if needs != 10 || blocking != 0 {
 		t.Errorf("needs=%d blocking=%d, want 10/0", needs, blocking)
+	}
+}
+
+func TestOtherOpenItemsAreASeparateLabelledView(t *testing.T) {
+	// nothing is scoped in: every open item is "other", the default view is empty
+	r := newTriageRig(t, BlockingScope{}, nil)
+	_, def := r.get("/")
+	if got := cardOrder(def); len(got) != 0 {
+		t.Errorf("default view lists %d items although none blocks", len(got))
+	}
+	contains(t, def, "Needs your review: 0", "Other open items (10)", `href="/?scope=other"`)
+	_, other := r.get("/?scope=other")
+	ids := cardOrder(other)
+	if len(ids) != 10 {
+		t.Fatalf("other view lists %d, want 10", len(ids))
+	}
+	contains(t, other, "Other open items: 10", "<b>10</b><span>Other open items</span>", "Back to items that block investigations (0)")
+	lacks(t, other, "Blocks investigations.")
+	// a blocker leaves "other" and fills the default view; the two never mix
+	r2 := newTriageRig(t, demoScope(), nil)
+	_, d2 := r2.get("/")
+	_, o2 := r2.get("/?scope=other")
+	if len(cardOrder(d2)) != 10 || len(cardOrder(o2)) != 0 {
+		t.Errorf("default %d, other %d", len(cardOrder(d2)), len(cardOrder(o2)))
+	}
+}
+
+func TestComputedCRDDefaultChangeCountsAsBlocking(t *testing.T) {
+	sc := BlockingScope{Products: []domain.ProductID{"p"}}
+	it := domain.ReviewItem{ID: "ri-z", CandidateID: "c", Product: "p", QuestionType: domain.QuestionApplicability, Status: domain.ReviewPending}
+	cand := func(rule string) domain.SemanticCandidate {
+		return domain.SemanticCandidate{Members: []domain.CandidateMember{{ChangeID: "chg-1", Computed: true}},
+			Text: "- computed artifact diff (" + rule + "): Default of CRD field changed"}
+	}
+	if got := triageOne(it, cand("crd:default-changed"), nil, nil, sc); !got.Blocking {
+		t.Errorf("crd:default-changed must block: %+v", got)
+	}
+	for _, rule := range []string{"values:default-changed", "crd:enum-changed", "images:removed"} {
+		if got := triageOne(it, cand(rule), nil, nil, sc); got.Blocking || !got.NeedsReview {
+			t.Errorf("%s is decided by a render, not blocking: %+v", rule, got)
+		}
 	}
 }

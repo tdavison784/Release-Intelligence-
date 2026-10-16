@@ -39,3 +39,13 @@ State: **DONE** (2026-10-16).
 
 ## Open questions
 - Default limit 200 truncates the 641 (notice shown); start with `-limit 700` to see all in one page.
+
+## Follow-up (commander request, 2026-10-16) — DONE
+- Default `/` = blocking items only (pin sources first); `/?scope=other` = "Other open items (N)"; `/?scope=all` unchanged.
+  Header counters cover the listed view. The old `blocking=yes` filter/tile is gone (the default is that filter).
+- Gap closed: `controllerBehaviour` also treats a computed `crd:default-changed` candidate as blocking; the rule is
+  derived from the "computed artifact diff (<rule>)" line in the candidate text (no contract change).
+- Startup line prints both counts. Real store: 21 block investigations, 620 other open (641 total open); the store
+  currently holds no crd:default-changed candidate, so the count did not move.
+- Screenshots replaced: `docs/phase4/env-impact/review-ui/01-default-blocking-only.png`, `02-other-open-items.png`.
+- Tests: other-view, crd-default rule, updated hidden-category/order/count tests; build/vet/test green.

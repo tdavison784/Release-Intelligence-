@@ -61,7 +61,7 @@ type filterForm struct {
 	// All is the explicit "Show all staged data" scope (?scope=all); Blocking
 	// narrows the default view to items that block investigations
 	// (?blocking=yes); Triage says the server can tell what needs review.
-	All, Blocking, Triage bool
+	All, Other, Blocking, Triage bool
 }
 
 func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, s) }
@@ -70,7 +70,7 @@ func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, 
 func (f filterForm) Active() bool {
 	if f.Triage && !f.All {
 		// the default view has no status filter: only the other filters count
-		return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" || f.Blocking
+		return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != ""
 	}
 	return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" ||
 		!(len(f.Status) == 1 && f.Status[0] == string(domain.ReviewPending))
@@ -84,7 +84,7 @@ func parseFilter(q url.Values, limit int) (knowledge.InboxFilter, filterForm) {
 		Source: g("source"), Reviewer: g("reviewer"), Priority: g("priority"),
 	}
 	form.All = g("scope") == "all"
-	form.Blocking = g("blocking") == "yes"
+	form.Other = g("scope") == "other"
 	f := knowledge.InboxFilter{
 		Product: domain.ProductID(form.Product), Release: form.Release, SubjectType: domain.SubjectFamily(form.Subject),
 		QuestionType: domain.QuestionType(form.Question), Severity: domain.ImpactSeverity(form.Severity),
@@ -158,7 +158,8 @@ func tiles(c knowledge.InboxCounts) []tile {
 type hiddenSummary struct {
 	Total    int
 	ByReason map[string]int
-	Blocking int
+	Blocking int // open items that block investigations (the default view)
+	Other    int // the other open items (?scope=other)
 }
 
 // Lines lists the reasons with counts, largest first, for the header note.
@@ -190,17 +191,20 @@ func (h hiddenSummary) Lines() []string {
 
 // needsTiles are the header counters of the default view; every one counts
 // only items that need review.
-func needsTiles(c knowledge.InboxCounts, h hiddenSummary) []tile {
+func needsTiles(c knowledge.InboxCounts, label, scope string) []tile {
 	href := func(kv ...string) string {
 		v := url.Values{}
 		for i := 0; i < len(kv); i += 2 {
 			v.Add(kv[i], kv[i+1])
 		}
+		if scope != "" {
+			v.Set("scope", scope)
+		}
 		return "/?" + v.Encode()
 	}
+	base := href()
 	return []tile{
-		{"Needs review", "/", "open questions waiting for a human decision", c.Pending, "accent"},
-		{"Blocking investigations", href("blocking", "yes"), "controller-behaviour changes of investigated products no human has verified yet", h.Blocking, "danger"},
+		{label, base, "open questions waiting for a human decision in this view", c.Pending, "accent"},
 		{"High priority", href("priority", "high"), "route priority high", c.HighPriority, "warn"},
 		{"Model disagreement", href("disagreement", "yes"), "proposals disagree on an aspect", c.ModelDisagreement, ""},
 		{"Needs semantic mapping", href("question", "semantic-mapping"), "what changed, exactly?", c.NeedsSemanticMapping, ""},

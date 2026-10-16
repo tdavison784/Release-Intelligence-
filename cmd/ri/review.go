@@ -65,7 +65,7 @@ func (c *cli) reviewServe(args []string) error {
 	if snap != nil {
 		if sn, err := snap(c.ctx); err == nil {
 			needs, blocking := reviewui.CountNeedsReview(sn, scope)
-			waiting = fmt.Sprintf("%d item(s) need review, %d of them block investigations", needs, blocking)
+			waiting = fmt.Sprintf("%d item(s) block investigations and need your review (listed); %d other open item(s) are one link away", blocking, needs-blocking)
 		}
 	}
 	ln, err := net.Listen("tcp", *addr)
@@ -74,7 +74,7 @@ func (c *cli) reviewServe(args []string) error {
 	}
 	fmt.Fprintf(c.out, "review UI on http://%s (%s; Ctrl-C to stop)\n", ln.Addr(), source)
 	if waiting != "" {
-		fmt.Fprintf(c.out, "%s; the page lists only those (\"Show all staged data\" reveals the rest)\n", waiting)
+		fmt.Fprintf(c.out, "%s\n", waiting)
 	}
 	srv := &http.Server{Handler: h, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
