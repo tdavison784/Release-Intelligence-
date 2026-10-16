@@ -66,10 +66,7 @@ type RepoDiscovery struct {
 // discoverRepo walks root and classifies every candidate file. It returns the
 // discovered values and manifest files (absolute-as-given paths, ready for the
 // loaders); inline values (Argo/Flux) and images (workflows, terraform,
-// kustomization) are recorded directly on the loader. Values files are
-// returned in application order: files an Argo CD Application lists in
-// helm.valueFiles first (list order — Helm's -f order), then the name-convention
-// discoveries, then helmfile-referenced files.
+// kustomization) are recorded directly on the loader.
 func (l *loader) discoverRepo(root string) (values, manifests []string, err error) {
 	fi, err := os.Stat(root)
 	if err != nil {
@@ -85,7 +82,7 @@ func (l *loader) discoverRepo(root string) (values, manifests []string, err erro
 	}
 	sort.Strings(vals)
 	sort.Strings(mans)
-	vals = l.orderValuesFiles(vals) // deduplicated, in application order
+	vals, _ = mergeFiles(vals, nil) // a file discovered twice (by name and by reference) is loaded once, at its last position
 	mans, _ = mergeFiles(mans, nil)
 	sort.SliceStable(l.env.Discovered, func(i, j int) bool {
 		a, b := l.env.Discovered[i], l.env.Discovered[j]
@@ -109,33 +106,6 @@ func (l *loader) discoverRepo(root string) (values, manifests []string, err erro
 	}
 	l.env.Discovered = deduped
 	return vals, mans, nil
-}
-
-// orderValuesFiles orders the deduplicated values inputs the way the
-// repository's configuration applies them: files Argo CD Applications list in
-// helm.valueFiles come first, in list order (Helm's -f order); the remaining
-// name-convention discoveries keep their deterministic alphabetical order;
-// helmfile-referenced files follow in their list order.
-func (l *loader) orderValuesFiles(vals []string) []string {
-	seen := map[string]bool{}
-	var out []string
-	add := func(p string) {
-		if p == "" || seen[p] {
-			return
-		}
-		seen[p] = true
-		out = append(out, p)
-	}
-	for _, p := range l.argoValueFiles {
-		add(p)
-	}
-	for _, v := range vals { // already sorted by the caller
-		add(v)
-	}
-	for _, p := range l.helmfileValues {
-		add(p)
-	}
-	return out
 }
 
 func (l *loader) walkRepoDir(root, dir string, depth int, vals, mans *[]string) error {
@@ -190,7 +160,7 @@ func (l *loader) classifyRepoFile(rel, path string, vals, mans *[]string) {
 	case base == "kustomization.yaml" || base == "kustomization.yml" || base == "Kustomization":
 		l.discKustomization(path, rel, mans)
 	case base == "helmfile.yaml" || base == "helmfile.yml":
-		l.discHelmfile(path, rel)
+		l.discHelmfile(path, rel, vals)
 	case isValuesName(base):
 		*vals = append(*vals, path)
 		l.env.Discovered = append(l.env.Discovered, RepoDiscovery{
@@ -266,7 +236,6 @@ func (l *loader) discByContent(path, rel string, mans *[]string) {
 		switch {
 		case kind == "Application" && group == "argoproj.io":
 			dk, detail = DiscArgoCD, fmt.Sprintf("Argo CD Application at L%d", d.startLine)
-			l.argoValueFilesOf(rel, d.node)
 		case kind == "HelmRelease" && group == "helm.toolkit.fluxcd.io":
 			dk, detail = DiscFlux, fmt.Sprintf("Flux HelmRelease at L%d", d.startLine)
 		}
@@ -278,52 +247,6 @@ func (l *loader) discByContent(path, rel string, mans *[]string) {
 			Evidence: []domain.EvidenceID{ev},
 		})
 		return
-	}
-}
-
-// argoValueFilesOf records the values files an Argo CD Application lists in
-// helm.valueFiles, in list order — the order Helm applies them (-f order), so
-// the layered merge can honour it. $<ref>/-prefixed entries resolve against
-// the repository root (the local checkout of the values source); plain
-// entries name paths in the source's own repository, which a local walk
-// cannot answer for (the render layer marks such targets incomplete). A
-// referenced file that exists joins the values inputs even when its name does
-// not follow the values convention; a referenced file that is missing is a
-// collection gap with its reason.
-func (l *loader) argoValueFilesOf(rel string, node *yaml.Node) {
-	var sources []*yaml.Node
-	if s := fieldOf(node, "spec", "source"); mappingOrSequence(s) != nil {
-		sources = append(sources, s)
-	}
-	sources = append(sources, itemsOf(fieldOf(node, "spec", "sources"))...)
-	for _, s := range sources {
-		for _, vf := range itemsOf(fieldOf(s, "helm", "valueFiles")) {
-			if vf.Kind != yaml.ScalarNode {
-				continue
-			}
-			ref := strings.TrimSpace(vf.Value)
-			if ref == "" || !strings.HasPrefix(ref, "$") {
-				continue
-			}
-			i := strings.IndexByte(ref, '/')
-			if i < 0 {
-				continue
-			}
-			p := filepath.Join(l.env.RepoRoot, ref[i+1:])
-			if fi, err := os.Stat(p); err != nil {
-				l.warnf(DimValues, "Argo CD Application in %s references values file %s, which is not present", rel, ref)
-				l.valuesNamed = true
-				continue
-			} else if fi.IsDir() {
-				continue
-			}
-			l.argoValueFiles = append(l.argoValueFiles, p)
-			l.env.Discovered = append(l.env.Discovered, RepoDiscovery{
-				Path: p, Kind: DiscValues,
-				Detail:   fmt.Sprintf("referenced by %s (L%d)", rel, vf.Line),
-				Evidence: []domain.EvidenceID{l.ev(rel, fmt.Sprintf("L%d", vf.Line), "valueFiles: "+ref)},
-			})
-		}
 	}
 }
 
@@ -499,7 +422,7 @@ func (l *loader) discKustomization(path, rel string, mans *[]string) {
 // discHelmfile inventories helmfile releases: chart + version become
 // installed-product guesses, referenced values files become values inputs.
 // Templating (go templates, environments) is NOT evaluated — documented gap.
-func (l *loader) discHelmfile(path, rel string) {
+func (l *loader) discHelmfile(path, rel string, vals *[]string) {
 	b, err := l.readFile(path)
 	if err != nil {
 		l.warnf("", "%s could not be read: %v", path, err)
@@ -538,16 +461,7 @@ func (l *loader) discHelmfile(path, rel string) {
 				continue
 			}
 			target := filepath.Join(filepath.Dir(path), v.Value)
-			fi, err := os.Stat(target)
-			if err != nil {
-				// A referenced values file that is genuinely missing is a
-				// collection gap (the layer cannot be applied), with the
-				// reason recorded — never a silent skip.
-				l.warnf(DimValues, "helmfile %s references values file %s, which is not present", rel, v.Value)
-				l.valuesNamed = true
-				continue
-			}
-			if fi.IsDir() {
+			if fi, err := os.Stat(target); err != nil || fi.IsDir() {
 				continue
 			}
 			switch strings.ToLower(filepath.Ext(target)) {
@@ -555,7 +469,7 @@ func (l *loader) discHelmfile(path, rel string) {
 			default:
 				continue
 			}
-			l.helmfileValues = append(l.helmfileValues, target)
+			*vals = append(*vals, target)
 			l.env.Discovered = append(l.env.Discovered, RepoDiscovery{
 				Path: target, Kind: DiscValues,
 				Detail:   fmt.Sprintf("referenced by %s (L%d)", rel, v.Line),

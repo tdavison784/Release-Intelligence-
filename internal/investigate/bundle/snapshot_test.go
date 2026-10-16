@@ -500,68 +500,6 @@ func TestSnapshotOwnProductsBranchStaysAGap(t *testing.T) {
 	}
 }
 
-// An environment that layers several values files for one release (the
-// normal Argo helm.valueFiles / Flux valuesFrom / helmfile shape) is fully
-// collected: the loader merges the layers, so the repository input is ok —
-// not a partial collection that would block every values item — and the
-// facts carry the merged keys applied in the Application's list order (the
-// later list entry wins even when an alphabetical walk would load it first).
-func TestSnapshotLayeredValuesFilesAreComplete(t *testing.T) {
-	root := t.TempDir()
-	write(t, root, "apps/cert-manager.yaml", argoValuesApp)
-	write(t, root, "platform/cert-manager/values.yaml", "replicaCount: 2\nwebhook:\n  timeoutSeconds: 10\n")
-	write(t, root, "platform/cert-manager/values-prod.yaml", "replicaCount: 3\nprometheus:\n  servicemonitor:\n    enabled: true\n")
-	st := newSt(t)
-	res, err := NewSnapshotBuilder(st).BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: root})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s, why := repoStatus(t, res); s != domain.CollectionOK {
-		t.Fatalf("layered values files: %s (%q), want ok", s, why)
-	}
-	facts, ok := findArtifact(res.Artifacts, res.Snapshot.Facts)
-	if !ok {
-		t.Fatal("facts artifact missing")
-	}
-	body := read(t, st, facts.Digest)
-	for _, want := range []string{
-		`"Path": "replicaCount"`, `"Value": "3"`, // the later list entry wins
-		`"Path": "webhook.timeoutSeconds"`,            // deep-merge keeps the base key
-		`"Path": "prometheus.servicemonitor.enabled"`, // the overlay adds its key
-		`values-prod.yaml`,                            // provenance of the effective value
-	} {
-		if !strings.Contains(body, want) {
-			t.Errorf("facts missing %s in merged values:\n%s", want, body)
-		}
-	}
-	if strings.Count(body, `"Path": "replicaCount"`) != 1 {
-		t.Errorf("replicaCount appears more than once in the effective values:\n%s", body)
-	}
-}
-
-// argoValuesApp: a multi-source Application whose second source only carries
-// values — the platform gitops shape. The valueFiles list order is Helm's -f
-// order: values.yaml applies before values-prod.yaml even though
-// "values-prod.yaml" sorts first alphabetically.
-const argoValuesApp = `apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: cert-manager
-spec:
-  destination:
-    namespace: cert-manager
-  sources:
-    - repoURL: https://charts.jetstack.io
-      chart: cert-manager
-      targetRevision: v1.17.0
-      helm:
-        valueFiles:
-          - $values/platform/cert-manager/values.yaml
-          - $values/platform/cert-manager/values-prod.yaml
-    - repoURL: https://git.example.com/platform/gitops.git
-      ref: values
-`
-
 func TestSplitWarnings(t *testing.T) {
 	ws := []string{
 		`detected-argo "cert-manager": version "main" is not a parsable version; kept as stated, it cannot be range-checked`,
