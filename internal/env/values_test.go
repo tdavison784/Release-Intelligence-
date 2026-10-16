@@ -291,7 +291,7 @@ fresh: {}
 	e := loadProduct(t, root, "cert-manager")
 	wantValues(t, effective(t, e), map[string]string{
 		"deep.a": "1", "deep.b": "2", "deep.nested.x": "1", "deep.nested.y": "2", // deep merge
-		"list":   "[3]", // a list replaces
+		"list":   "[3]",                   // a list replaces
 		"keep.a": "1", "keep": "<absent>", // {} does not delete
 		"drop": "null", "drop.a": "<absent>", // null deletes
 		"scalarToMap": "<absent>", "scalarToMap.k": `"v"`,
@@ -458,7 +458,7 @@ func TestReleasesAreNeverMergedAcrossEachOther(t *testing.T) {
 		// two clusters deploy cert-manager with their own values
 		"clusters/dev/cert-manager.yaml": argo("cert-manager-dev", `        valueFiles:
           - $values/clusters/dev/values.yaml`),
-		"clusters/dev/values.yaml":        "replicaCount: 1\ndevOnly: true\n",
+		"clusters/dev/values.yaml": "replicaCount: 1\ndevOnly: true\n",
 		"clusters/prod/cert-manager.yaml": argo("cert-manager-prod", `        valueFiles:
           - $values/clusters/prod/values.yaml`),
 		"clusters/prod/values.yaml": "replicaCount: 3\n",
