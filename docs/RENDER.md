@@ -95,7 +95,13 @@ accepts the `Pattern` form):
 
 - **Correlation** (`Correlate`): each rendered change is correlated with the edge's changelog entries
   (rules: subject, mentions-name/-permission/-object/-api-version/-field, values-default, artifact);
-  undocumented rendered changes are listed.
+  undocumented rendered changes are listed. `values-default` links a helm-values change either by the
+  new value its text states, or — for a removed / default-changed key — by its **source default
+  disappearing**: the rendered change's before holds, under a field named like the key's last segment,
+  the key's source default (or its redaction digest for a credential-named field) more often than its
+  after does, and the key's top-level section names the object (name, kind or a rendered path segment).
+  Booleans, null, empty values, strings under 4 characters, single-digit numbers and tiny maps/lists
+  never link (minimum specificity).
 - **Evidence** (`Pair.Evidence`): `EvidenceRenderedDiff` records citing the object, path, change,
   provenance and digests. Release-scope evidence may back knowledge; environment-scope evidence backs
   impact findings only, values hidden unless `--show-values`.
@@ -190,7 +196,8 @@ bounded R8 counterfactual, one render per change and per customer Helm deploymen
 | renders succeeded with complete values, nothing attributable | `impact:values-default-no-effect`, NOT AFFECTED, with a `render` check: `render.outcome: no-attributable-change`, `key`, `counterfactual: true`, citing the environment-render state records of the target and the counterfactual |
 | render unavailable (no `--render`, a failed pair, incomplete values, no Helm deployment, a counterfactual the chart cannot render) | `impact:values-default-unrendered`, NOT AFFECTED (product-owner choice), with a `render` check: `render.outcome: unavailable` and a `reason` |
 
-`impact:values-unset` now covers removed keys only. Without `--render`, an unset changed default or new key
+`impact:values-unset` now covers removed keys only (and only those whose source default is empty: a removed key
+left unset with a non-empty default is `impact:values-removed-default`, review-required — docs/IMPACT.md). Without `--render`, an unset changed default or new key
 is `values-default-unrendered` with reason "rendering was not requested (run ri impact with --render)".
 That renames the rule in knowledge-free reports; the class (not-affected) is unchanged, and the eval shows
 no regression against `eval/results`.

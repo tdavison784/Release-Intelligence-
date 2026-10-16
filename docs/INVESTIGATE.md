@@ -278,6 +278,24 @@ checked with `Investigation.ValidateAgainst`). Real bundles from the groundtruth
 relations, offline): `RI_VALIDATE_STATE=<warm .ri> go test ./internal/investigate/validate -run Groundtruth -v`
 (`RI_VALIDATE_VERBOSE=1` logs every record).
 
+## Removed and changed defaults the environment relied on
+
+A removed (or default-changed) values key the environment leaves **unset** is not "nothing takes effect on
+you" when the source chart's default for it was non-empty: that default was in effect for exactly this
+environment. Two generic rules keep such an item away from `not-affected` (lane `defaults`):
+
+- **Join** (`internal/impact`, `impact:values-removed-default`): a removed key left unset whose source
+  default (`upgrade.FromDefaults`, read from the values diff) is non-empty — or not recorded because a
+  section listing was truncated — is review-required, with the values files' absence of the key as the
+  environment chain. Never action-required from this rule; an empty default (`null`, `""`, `{}`, `[]`)
+  keeps `impact:values-unset`. Default-changed keys left unset stay with PO-3 (the counterfactual render
+  decides; `values-default-unrendered` is a gap for `validate.join`, never a clearing pass).
+- **Correlation** (`internal/render`, rule `values-default`): an environment rendered change whose before
+  holds the key's source default (by value or redaction digest, under a field named like the key, in an
+  object the key's top-level section names) and whose after no longer does is correlated to the key's
+  item. It is a strong correlation: `validate.render-diff` cannot pass the item on render silence, and the
+  change is no longer an unrelated `scope:rendered-unexplained` item.
+
 ## Runtime validation
 
 Package `internal/investigate/runtime` (MISSION §A5 last bullet, DESIGN §2.6 / §3.1 R1–R2). **Opt-in only**
