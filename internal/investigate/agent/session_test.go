@@ -24,7 +24,7 @@ func TestPromptLoadsAndDigests(t *testing.T) {
 		t.Fatal("a path-escaping prompt version loads")
 	}
 	f := newFixture(t)
-	task, err := p.RenderTask(f.input(investigate.AgentConfig{}), investigate.DefaultAgentBudget)
+	task, err := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1}), investigate.DefaultAgentBudget)
 	must(t, err)
 	for _, want := range []string{f.behaviour, f.values2, f.rcItem, f.rcLoose, "controller-behaviour", "manifest:declared-behaviour",
 		"https://example.com/demo/releases/v2.0.0", "argocd:apps/demo.yaml", "1 further change items are out of scope", "80 tool calls"} {
@@ -35,7 +35,7 @@ func TestPromptLoadsAndDigests(t *testing.T) {
 	if strings.Contains(task, f.outScope) {
 		t.Errorf("task lists the out-of-scope item")
 	}
-	again, _ := p.RenderTask(f.input(investigate.AgentConfig{}), investigate.DefaultAgentBudget)
+	again, _ := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1}), investigate.DefaultAgentBudget)
 	if again != task || p.Digest(task) != p.Digest(again) {
 		t.Fatal("task rendering is not deterministic")
 	}
@@ -229,7 +229,7 @@ func TestLiveObservationIsRejectedNotAnError(t *testing.T) {
 
 func TestReadOnlySessionRefusesRecords(t *testing.T) {
 	f := newFixture(t)
-	p, _ := LoadPrompt("")
+	p, _ := LoadPrompt(promptV1)
 	s, err := NewSession(SessionConfig{Bundle: f.b, Store: f.st, Graph: f.g, Traversal: f.trav, Budget: investigate.DefaultAgentBudget, Prompt: p, ReadOnly: true})
 	must(t, err)
 	s.SetCall(CallInfo{ID: "c"})
@@ -252,7 +252,7 @@ func TestToolCallBudget(t *testing.T) {
 		{Tool: investigate.ToolListRenders}, // the 4th call exhausts the budget
 		{Tool: investigate.ToolSubmitFindings, Args: map[string]any{"items": []any{}}},
 	}}), WithClock(fixedNow))
-	out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, Budget: b}))
+	out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverScripted, Budget: b}))
 	must(t, err)
 	if out.Run.Status != domain.AgentBudgetExhausted || out.Run.Reason != "budget:tool-calls" {
 		t.Fatalf("run: %+v", out.Run)
@@ -267,7 +267,7 @@ func TestToolCallBudget(t *testing.T) {
 
 func TestReadByteBudget(t *testing.T) {
 	f := newFixture(t)
-	s, _, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, Budget: domain.AgentBudget{MaxReadBytes: 300}}), nil, fixedNow)
+	s, _, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, PromptVersion: promptV1, Budget: domain.AgentBudget{MaxReadBytes: 300}}), nil, fixedNow)
 	must(t, err)
 	s.SetCall(CallInfo{ID: "c", Model: "m", ModelVersion: "v"})
 	if _, err := call(t, s, investigate.ToolReadArtifact, map[string]any{"artifact": f.notes.ID}); !errors.Is(err, investigate.ErrBudgetExhausted) {

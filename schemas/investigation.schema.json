@@ -18,6 +18,21 @@
         "inputEvidence": {"minItems": 1}
       }
     },
+    "AgendaCoverage": {
+      "type": "object",
+      "required": ["changeItem", "priority", "priorityRule", "disposition", "summary"],
+      "properties": {
+        "changeItem": {"type": "string"},
+        "priority": {"type": "integer"},
+        "priorityRule": {"type": "string"},
+        "disposition": {"$ref": "#/$defs/CoverageDisposition"},
+        "summary": {"type": "string"},
+        "assertion": {"type": "string"},
+        "records": {"type": "array", "items": {"type": "string"}},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
     "AgentAssertion": {
       "type": "object",
       "required": ["id", "changeItem", "stance", "statement", "citations", "provenance"],
@@ -68,7 +83,9 @@
         "turns": {"type": "integer"},
         "toolCalls": {"type": "integer"},
         "tokens": {"type": "integer"},
-        "transcript": {"type": "string"}
+        "transcript": {"type": "string"},
+        "coverage": {"type": "array", "items": {"$ref": "#/$defs/AgendaCoverage"}},
+        "budgetRule": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -142,6 +159,10 @@
       "additionalProperties": false
     },
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "CoverageDisposition": {
+      "type": "string",
+      "enum": ["raises-concern", "claims-mitigation", "explains", "examined-no-concern", "not-examined"]
+    },
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -706,6 +727,7 @@
         "subjects": {"type": "array", "items": {"type": "string"}},
         "inputs": {"type": "array", "items": {"type": "string"}},
         "hypothesis": {"type": "string"},
+        "answers": {"type": "array", "items": {"type": "string"}},
         "status": {"$ref": "#/$defs/RequestStatus"},
         "resolution": {"type": "string"},
         "result": {"type": "string"},

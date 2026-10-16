@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
@@ -42,6 +43,10 @@ type fixture struct {
 	deploy    string // node id of the controller Deployment
 	cfgMap    string // node id of a ConfigMap reached by an inferred edge
 	path      string // an impact path of the behaviour item
+	appFile   domain.ArtifactRef
+	appNode   string // the Argo CD Application node the env render target is declared in
+	valsNode  string // the values-source node of the values file
+	envItem   string // the environment-scope item (newFixture(t, true))
 }
 
 const (
@@ -73,7 +78,10 @@ data:
 var deployID = render.ObjectID{Group: "apps", Version: "v1", Kind: "Deployment", Namespace: "demo", Name: "demo-controller"}
 var cmID = render.ObjectID{Version: "v1", Kind: "ConfigMap", Namespace: "demo", Name: "demo-config"}
 
-func newFixture(t *testing.T) *fixture {
+// newFixture builds the fixture; with envItem, the uncorrelated environment
+// rendered change is anchored as an environment-scope item
+// (scope:rendered-unexplained; EvidenceBundle.EnvironmentItems).
+func newFixture(t *testing.T, envItem ...bool) *fixture {
 	t.Helper()
 	ctx := context.Background()
 	st, err := store.New(t.TempDir())
@@ -128,14 +136,17 @@ func newFixture(t *testing.T) *fixture {
 		MediaType: "application/yaml", URI: "apps/demo/values.yaml", Producer: "test.snapshot@v1", Tags: []string{"values", "demo"}}, []byte(valuesText))
 	f.secret = put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFile, Path: "env/apps/demo/secret.yaml", Origin: domain.OriginEnvironment,
 		MediaType: "application/yaml", URI: "apps/demo/secret.yaml", Producer: "test.snapshot@v1", Redacted: true, Tags: []string{"secret"}}, []byte(secretText))
+	f.appFile = put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFile, Path: "env/apps/demo.yaml", Origin: domain.OriginEnvironment,
+		MediaType: "application/yaml", URI: "apps/demo.yaml", Producer: "test.snapshot@v1", Tags: []string{"application"}},
+		[]byte("apiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata:\n  name: demo\n  namespace: argocd\n"))
 	facts := put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFacts, Path: "derived/env/facts.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:env@v1", Producer: "test.snapshot@v1"}, []byte(`{"name":"prod"}`))
 	f.envEv = domain.NewEvidence(domain.EvidenceLocalFile, "values", "apps/demo/values.yaml", "L2", "rotationPolicy: Never", f.values.Digest, time.Time{})
 	snap := domain.EnvironmentSnapshot{Environment: "prod", Repo: &domain.RepoRef{Path: "env", TreeDigest: domain.Digest([]byte("tree"))},
-		Inputs: []domain.SnapshotInput{{Kind: domain.InputGitOpsRepo, Path: "env", Status: domain.CollectionOK, Artifacts: []string{f.secret.ID, f.values.ID}}},
+		Inputs: []domain.SnapshotInput{{Kind: domain.InputGitOpsRepo, Path: "env", Status: domain.CollectionOK, Artifacts: []string{f.appFile.ID, f.secret.ID, f.values.ID}}},
 		Facts:  facts.ID, Producer: "test.snapshot@v1"}
 	snap.ID = snap.DerivedID()
-	snapRes := &investigate.SnapshotResult{Snapshot: snap, Artifacts: []domain.ArtifactRef{f.values, f.secret, facts}, Evidence: []domain.Evidence{f.envEv}}
+	snapRes := &investigate.SnapshotResult{Snapshot: snap, Artifacts: []domain.ArtifactRef{f.values, f.secret, f.appFile, facts}, Evidence: []domain.Evidence{f.envEv}}
 
 	deploy := func(arg string) render.Object {
 		return render.Object{ID: deployID, Body: map[string]any{"apiVersion": "apps/v1", "kind": "Deployment",
@@ -154,6 +165,7 @@ func newFixture(t *testing.T) *fixture {
 	diffRef := put(investigate.ArtifactSpec{Kind: domain.ArtifactRenderDiff, Path: "derived/render/env/argocd-demo/diff.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:renderdiff@v1", Producer: "test.render@v1"}, []byte(`{"changes":2}`))
 	target := "argocd:apps/demo.yaml"
+	var envItems []domain.ChangeItem
 	rcA := domain.RenderedChange{Class: "image-changed", Object: deployID.String(), Path: "spec.template.spec.containers[name=controller].image",
 		Before: `"demo/controller:v1"`, After: `"demo/controller:v2"`, ChangeItems: []string{f.behaviour}, Correlation: "subject"}
 	rcB := domain.RenderedChange{Class: "field-changed", Object: cmID.String(), Path: "data.mode", Before: `"fast"`, After: `"fast"`}
@@ -164,12 +176,20 @@ func newFixture(t *testing.T) *fixture {
 		snapRes.Evidence = append(snapRes.Evidence, e)
 	}
 	f.rcItem, f.rcLoose = rcA.ID, rcB.ID
+	if len(envItem) > 0 && envItem[0] {
+		it := domain.ChangeItem{ID: domain.ChangeItemID("", "", rcB.ID), RenderedChange: rcB.ID, Family: domain.FamilyRendered,
+			Title: "field-changed: " + rcB.Object + " " + rcB.Path, Evidence: rcB.Evidence, Manifestation: domain.ManifestRenderedConfig,
+			ManifestationRule: "manifest:rendered-anchor", InScope: true, ScopeRule: domain.ScopeRenderedUnexplained}
+		rcB.ChangeItems, rcB.Correlation = []string{it.ID}, "rendered-unexplained"
+		f.envItem = it.ID
+		envItems = append(envItems, it)
+	}
 	changes := []domain.RenderedChange{rcA, rcB}
 	if changes[0].ID > changes[1].ID {
 		changes[0], changes[1] = changes[1], changes[0]
 	}
 	pair := domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, From: fromRef.ID, To: f.toRender.ID, Diff: diffRef.ID, Status: domain.CollectionOK, Changes: changes}
-	renders := &investigate.RenderResult{Pairs: []domain.ManifestPair{pair}, Artifacts: []domain.ArtifactRef{fromRef, f.toRender, diffRef}}
+	renders := &investigate.RenderResult{Pairs: []domain.ManifestPair{pair}, Artifacts: []domain.ArtifactRef{fromRef, f.toRender, diffRef}, Items: envItems}
 
 	b, err := bundle.NewAssembler(st).Assemble(ctx, change, snapRes, renders)
 	must(t, err)
@@ -183,10 +203,16 @@ func newFixture(t *testing.T) *fixture {
 	f.deploy, f.cfgMap = dn.ID, cn.ID
 	e := domain.GraphEdge{Kind: domain.EdgeReferences, From: dn.ID, To: cn.ID, Status: domain.EdgeInferred, Rule: "test:name-match", Detail: "env[0].valueFrom", Reason: "matched by name only"}
 	e.ID = domain.EdgeID(e.Kind, e.From, e.To, e.Detail)
-	g := domain.RelationshipGraph{Bundle: b.ID, Builder: "test.graph@v1", Nodes: []domain.GraphNode{dn, cn}, Edges: []domain.GraphEdge{e}}
-	if g.Nodes[0].ID > g.Nodes[1].ID {
-		g.Nodes[0], g.Nodes[1] = g.Nodes[1], g.Nodes[0]
-	}
+	an := domain.GraphNode{ID: domain.NodeID(domain.NodeGitOpsApplication, "argoproj.io/v1alpha1/Application/argocd/demo"), Kind: domain.NodeGitOpsApplication,
+		Key: "argoproj.io/v1alpha1/Application/argocd/demo", Artifacts: []string{f.appFile.ID}}
+	vn := domain.GraphNode{ID: domain.NodeID(domain.NodeValuesSource, "env/apps/demo/values.yaml"), Kind: domain.NodeValuesSource, Key: "env/apps/demo/values.yaml",
+		Artifacts: []string{f.values.ID}}
+	f.appNode, f.valsNode = an.ID, vn.ID
+	ve := domain.GraphEdge{Kind: domain.EdgeConfigures, From: vn.ID, To: an.ID, Status: domain.EdgeEstablished, Rule: "test:values-file", Detail: "helm.valueFiles", Artifacts: []string{f.appFile.ID}}
+	ve.ID = domain.EdgeID(ve.Kind, ve.From, ve.To, ve.Detail)
+	g := domain.RelationshipGraph{Bundle: b.ID, Builder: "test.graph@v1", Nodes: []domain.GraphNode{dn, cn, an, vn}, Edges: []domain.GraphEdge{e, ve}}
+	sort.Slice(g.Nodes, func(i, j int) bool { return g.Nodes[i].ID < g.Nodes[j].ID })
+	sort.Slice(g.Edges, func(i, j int) bool { return g.Edges[i].ID < g.Edges[j].ID })
 	g.ID = g.DerivedID()
 	must(t, g.Validate())
 	f.g = &g
@@ -207,12 +233,15 @@ func (f *fixture) input(cfg investigate.AgentConfig) investigate.InvestigateInpu
 
 func (f *fixture) session(t *testing.T, validators ...investigate.Validator) (*Session, investigate.AgentSession) {
 	t.Helper()
-	s, as, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, PromptVersion: DefaultPromptVersion,
+	s, as, err := Prepare(f.st, f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, PromptVersion: promptV1,
 		Budget: investigate.DefaultAgentBudget}), validators, fixedNow)
 	must(t, err)
 	s.SetCall(CallInfo{ID: "call-1", Model: "test-model", ModelVersion: "test-model-2026", Provider: "test"})
 	return s, as
 }
+
+// promptV1 pins the tests of v1 behaviour (its transcripts must keep replaying).
+const promptV1 = "investigate-agent/v1"
 
 func fixedNow() time.Time { return time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC) }
 
@@ -239,6 +268,14 @@ func (v *fakeOverride) Applies(fam domain.ChangeItemFamily) bool { return fam ==
 func (v *fakeOverride) Validate(ctx context.Context, in investigate.ValidationInput) (*investigate.ValidationOutput, error) {
 	v.calls++
 	inputs := []string{v.f.values.ID}
+	if len(in.Subjects) == 0 && len(in.Paths) == 0 && in.Traversal != nil { // item-wide, as the real validators do
+		for _, r := range in.Traversal.RootsOf(in.ChangeItem) {
+			in.Subjects = append(in.Subjects, r.Node)
+		}
+		for _, p := range in.Traversal.PathsOf(in.ChangeItem) {
+			in.Paths = append(in.Paths, p.ID)
+		}
+	}
 	rec := domain.ValidationRecord{Validator: v.Name(), Kind: v.Kind(), Level: domain.LevelDeterministic, ChangeItem: in.ChangeItem,
 		Subjects: in.Subjects, Paths: in.Paths, RenderedChanges: in.RenderedChanges, Property: "the environment pins controller.rotationPolicy",
 		Inputs: inputs, Outcome: domain.ValidationPass, Evidence: []domain.EvidenceID{v.f.envEv.ID},

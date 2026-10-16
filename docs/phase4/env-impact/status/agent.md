@@ -2,7 +2,9 @@
 
 Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/agent.md` (+ `_wave2-common.md`,
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
-store, renderdiff incl. the §1.3 amendment, validate, relations). State: **DONE** (2026-10-16).
+store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
+(commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
+`git merge p4-env-impact`. State: **DONE (follow-ups 1 and 2 complete)** (2026-10-16).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -63,7 +65,86 @@ Resume from: this file + brief + `git log`.
   did. The case's expected.yaml / NOTES.md / observed/ were never opened.
 - Docs: `docs/INVESTIGATE.md` "Investigation agent"; README command line for `ri investigate mcp`.
 
+## Follow-up (commander review of ed7a0acd) — done
+
+- **Prompt v2 + agenda** (`agenda.go`, `prompts/investigate-agent/v2/` incl. `meta.json`). The task lists the
+  agenda in priority order. `submit_findings` needs a disposition for every agenda item (raises-concern /
+  claims-mitigation / explains / examined-no-concern / not-examined) and is rejected while any is missing.
+  It is accepted once after budget exhaustion. Coverage: `AgentRun.Coverage` with rule, disposition, closing
+  assertion, records and citations; a run with no submission reports each item `not-examined` with how the
+  run ended.
+  - Agenda: every in-scope item with no failing validation.
+  - Priority: controller-behaviour/unknown and rendered-unexplained, then items with a pass, then the rest.
+  - Budget: `agenda@v1` formula in `AgentRun.BudgetRule`.
+  - `examined-no-concern` is recorded as an `explains` assertion (never a mitigation; DESIGN §3.3
+    unchanged).
+- **Subject resolution (v2)** (`subjects.go`): node id → node key → rendered change → environment file →
+  `Kind/[ns/]name` → values key (files that set it, else the product's values files, "not set") → rendered
+  setting (token in a complete env render). Unresolvable or >20 matches → rejected with the accepted forms.
+  The resolution is returned in the `request_validation` result; rendered changes named as subjects join the
+  request.
+- **Deterministic-pass outputs**: `InvestigateInput.ValidationArtifacts` / `ValidationEvidence` (readable,
+  citable, resolved; not reported as the agent's), `agent.DeterministicPass(ctx, validators, input)` for
+  the runner (orchestrate2).
+- **v1 preserved**: features come from v2's `meta.json` (part of v2's digest; v1 has none); the v1 tests are
+  pinned to v1. Run 1 replayed byte-identically with the new code at its commit and path.
+- `DefaultPromptVersion` = `investigate-agent/v2`.
+- **Live run 2** `runs/agent-live-2/` (cert-manager payments-eu, claude-sonnet-5-5, v2):
+  - submitted, 6 turns / 5 calls / 33k tokens;
+  - **coverage 14/14** (4 raises-concern, 2 explains, 8 examined-no-concern, 0 not-examined);
+  - no validation requests;
+  - depth was thin (4 inspection calls) — see open questions;
+  - the replay reproduced the transcript and coverage byte for byte; the run record validates.
+- Tests: `agenda_test.go`:
+  - v2 prompt/digest, agenda rules, budget formula, caps;
+  - submit rejections (missing item, disposition, unknown disposition, uncited examined-no-concern, empty
+    reason), coverage + contract mutations, closing submit after exhaustion, coverage without submission;
+  - every subject form + rejection + v1 unchanged;
+  - deterministic pass + served pass artifacts, v2 replay.
+- Domain: coverage checks in `Investigation.Validate` (unique items, agenda rule, summary, known disposition,
+  the closing assertion of the matching stance, none for not-examined) and `ValidateAgainst` (in-scope
+  items, citations resolve); schemas regenerated.
+
+## Follow-up 2 (commander notes after classify merged) — done
+
+- **Answer links (prompt v3, now the default; v2 frozen by live run 2).** `request_validation` takes
+  `answers` (assertion ids). It also links `raises-concern` / `claims-mitigation` assertions recorded with the
+  request's hypothesis. A link is written into the record's `Answers` under a deterministic guard:
+  - same item;
+  - the record covers every subject, path and rendered change the assertion names;
+  - an assertion naming none needs an item-wide record (every root and path).
+
+  A named assertion the request cannot cover is rejected up front. `ValidationRequest.Answers` persists
+  the ask. A link to an existing (deterministic-pass) record goes into `AgentOutcome.AnswerLinks`, and
+  the runner applies it with `agent.ApplyAnswerLinks` before classify (orchestrate2).
+  - Tested against the real classifier: a linked pass lifts the concern; the same pass without the link
+    leaves it open; a pass-record link lifts it only after `ApplyAnswerLinks`; plus every guard rejection.
+- **Environment-scope items**: every item iteration in the agent package (task, agenda, session item index,
+  deterministic pass, live harness) and my domain coverage check now use `EvidenceBundle.Items()` /
+  `Item()`. Tested with a fixture `scope:rendered-unexplained` item in `EnvironmentItems`: it is in the
+  task, the agenda, `get_change_item`, assertions, `request_validation`, the submission requirement,
+  coverage and the deterministic pass.
+  - `query_diff changeItem=<env item>`: works after merging `p4-env-impact` with renderdiff's `QueryPage` fix;
+    covered by the same test.
+- Live run 2 had already been done (under v2) when the "merge before live run 2" note arrived. Its
+  bundle's in-scope items were all record items (16 in scope, none environment-scope), so it is unaffected
+  by the env-item fix. A v3 live run was not requested; offered.
+
 ## Decisions (with why)
+
+- **Answer links need the agent's request plus a coverage guard.** The agent can only weaken its own concern
+  this way, and the classifier still decides whether the pass counts (behaviour items: pin or observed only).
+  Linking by subject overlap alone would let a validation of a different property answer a concern nobody
+  asked it about.
+
+- **"Decided" = a failing validation only** (agenda exclusion): R1 makes such an item affected whatever the
+  agent records. A pass decides nothing alone (R2 needs every concern answered), so items with passes stay on
+  the agenda — a concern there is what blocks an unsafe clear.
+- **The agenda budget only raises** (max with configured/defaults, with caps) and is recorded per run; v1
+  sessions are never scaled (their transcripts must replay).
+- **The closing submit is allowed after exhaustion** (not counted or metered), so coverage is always
+  reported; the run status stays `budget-exhausted`.
+- **v2 behaviour switches come from `meta.json`**, so v1's digest and behaviour are byte-identical.
 
 - **Parent-hosted session + byte bridge** for claude-cli: the MCP server process is only a pipe to the
   investigator's in-process session. Validators, budgets, records and the transcript then live in one place,
@@ -100,11 +181,36 @@ Resume from: this file + brief + `git log`.
 
 ## Contract changes
 
+- `// CONTRACT-CHANGE(agent)` (follow-up):
+  - domain: `AgentRun.Coverage []AgendaCoverage`, `AgentRun.BudgetRule`, `AgendaCoverage`,
+    `CoverageDisposition` (+ `CoverageDispositions`, schema enum) and the coverage checks in
+    `Validate`/`ValidateAgainst`;
+  - investigate: `ItemSummary.Disposition`, `InvestigateInput.ValidationArtifacts` / `ValidationEvidence`.
+- `// CONTRACT-CHANGE(agent)` (follow-up 2): domain `ValidationRequest.Answers` (+ `Validate` check);
+  investigate `ValidationRequestInput.Answers`, `AgentOutcome.AnswerLinks`, `AnswerLink`.
+
+
 - `// CONTRACT-CHANGE(agent)` `AgentOutcome.ProposedNodes []domain.GraphNode`: placeholder nodes for proposed
   edges whose ends are not in the graph (a node id cannot be turned back into kind + key). `agent.MergeGraph`
   uses it.
 
 ## Open questions / notes for the commander
+
+Follow-up (live run 2):
+
+- **A. Coverage ≠ depth.** v2 got 14/14 closed with 4 inspection calls; 8 `examined-no-concern` rest on one
+  grep and two reads. Safe (never lowers a class), but the coverage metric overstates examination. Proposed
+  generic v3 rules (tool-layer enforced):
+  - `examined-no-concern`/`explains` only after `get_change_item` on that item, with a citation not shared
+    with another item;
+  - a `request_validation` (or stated reason) for every `raises-concern` on a controller-behaviour item.
+  Not done: v2 is frozen by its live run; your call.
+- **B. Bundle reproducibility** (for the bundle owner, now renderdiff): snapshot ids pin the enclosing git
+  HEAD and the absolute input path, and environment evidence URIs are absolute local paths. Groundtruth
+  bundle ids therefore change with every commit and checkout, and recorded runs replay only at their commit
+  and path (refused elsewhere — never silent).
+
+Original delivery:
 
 1. **Prompt v1 coverage** (live run): the agent used 12 of 80 calls and examined 3 of 27 items. A v2 could
    require a summary or skip-reason per in-scope item and push more of the budget. That is generic, but
@@ -119,6 +225,8 @@ Resume from: this file + brief + `git log`.
 
 ## Tests
 
-- `go build ./... && go vet ./... && go test ./...` green after merging p4-env-impact (see final commit).
-- Live: `TestLiveAgentRun` (opt-in) ran once with claude-sonnet-5-5 and once as a replay; both passed.
+- `go build ./... && go vet ./... && go test ./...` green after merging p4-env-impact (see final commit);
+  after the follow-up: 40 packages ok, 0 fail.
+- Live: `TestLiveAgentRun` (opt-in): run 1 (v1) + replay, run 2 (v2) + replay, run-1 replay re-verified at
+  c190bdd0 with the v2 code; all passed.
 - Cleanup: no kind clusters or servers; `bin/` removed; the smoke run lives in the session scratchpad only.

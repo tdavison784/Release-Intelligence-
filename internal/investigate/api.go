@@ -282,7 +282,15 @@ type InvestigateInput struct {
 	Report    *domain.ImpactReport      `json:"report,omitempty"`
 	// Validations already run (the deterministic pass before the agent).
 	Validations []domain.ValidationRecord `json:"validations,omitempty"`
-	Config      AgentConfig               `json:"config"`
+	// ValidationArtifacts and ValidationEvidence are the deterministic
+	// pass's outputs (ValidationOutput.Artifacts / .Evidence): the agent can
+	// read and cite them, and the evidence its records cite resolves. The
+	// runner stores them in the run record (Investigation.Artifacts /
+	// .Evidence) — they are not part of the AgentOutcome.
+	// CONTRACT-CHANGE(agent): additive.
+	ValidationArtifacts []domain.ArtifactRef `json:"validationArtifacts,omitempty"`
+	ValidationEvidence  []domain.Evidence    `json:"validationEvidence,omitempty"`
+	Config              AgentConfig          `json:"config"`
 }
 
 // AgentOutcome is what the agent stage recorded. Validations requested by
@@ -304,6 +312,21 @@ type AgentOutcome struct {
 	// CONTRACT-CHANGE(agent): additive; a node id alone cannot be turned
 	// back into the kind and key a placeholder node needs.
 	ProposedNodes []domain.GraphNode `json:"proposedNodes,omitempty"`
+	// AnswerLinks are the assertion ids the tool layer linked to validation
+	// records (record Answers). The agent's own records already carry them;
+	// a link to a record of the deterministic pass (a requested validation
+	// that duplicated one) must be applied by the runner before classify —
+	// agent.ApplyAnswerLinks. CONTRACT-CHANGE(agent): additive.
+	AnswerLinks []AnswerLink `json:"answerLinks,omitempty"`
+}
+
+// AnswerLink links agent assertions to the validation record that answers
+// them, through the validation request that asked for it.
+// CONTRACT-CHANGE(agent): additive.
+type AnswerLink struct {
+	Validation string   `json:"validation"`
+	Request    string   `json:"request"`
+	Assertions []string `json:"assertions"`
 }
 
 // Investigator runs the agent stage (MISSION §A4; lane agent): it serves
@@ -604,14 +627,24 @@ type ValidationRequestInput struct {
 	RenderedChanges []string              `json:"renderedChanges,omitempty"`
 	Inputs          []string              `json:"inputs,omitempty"`
 	Hypothesis      string                `json:"hypothesis,omitempty"`
+	// Answers names the agent's raises-concern / claims-mitigation
+	// assertions this validation is requested to answer (prompt versions
+	// with feature answerLinks). CONTRACT-CHANGE(agent): additive.
+	Answers []string `json:"answers,omitempty"`
 }
 
 // ItemSummary is the agent's closing summary for one change item. It is
 // recorded as an `explains` assertion; it never sets a class.
 type ItemSummary struct {
-	ChangeItem string     `json:"changeItem"`
-	Summary    string     `json:"summary"`
-	Citations  []Citation `json:"citations"`
+	ChangeItem string `json:"changeItem"`
+	// Disposition closes an agenda item (prompt versions with an agenda):
+	// raises-concern / claims-mitigation / explains / examined-no-concern
+	// (citing what was inspected) / not-examined (Summary = the reason).
+	// Empty = explains (prompt v1).
+	// CONTRACT-CHANGE(agent): additive.
+	Disposition domain.CoverageDisposition `json:"disposition,omitempty"`
+	Summary     string                     `json:"summary"`
+	Citations   []Citation                 `json:"citations"`
 }
 
 // SubmitInput ends the agent run.

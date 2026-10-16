@@ -54,7 +54,7 @@ func runScripted(t *testing.T, f *fixture, steps []Step) (*investigate.AgentOutc
 	d := &Scripted{Model: "test-model", ModelVersion: "test-model-2026", Provider: "test", Turns: 5, Tokens: 1000, Steps: steps}
 	inv := New(f.st, WithDriver(DriverScripted, d), WithValidators(&fakeOverride{f: f}), WithClock(fixedNow))
 	out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: DriverScripted, Model: "test-model",
-		PromptVersion: DefaultPromptVersion, Budget: investigate.DefaultAgentBudget}))
+		PromptVersion: promptV1, Budget: investigate.DefaultAgentBudget}))
 	must(t, err)
 	for i, r := range d.Results {
 		if r.Err != nil {
@@ -68,7 +68,7 @@ func runScripted(t *testing.T, f *fixture, steps []Step) (*investigate.AgentOutc
 // write from the agent outcome, so the contract's own checks judge it.
 func runRecord(t *testing.T, f *fixture, out *investigate.AgentOutcome, pre ...domain.ValidationRecord) *domain.Investigation {
 	t.Helper()
-	cfg := investigate.Config{Policy: "classify.policy@v1", Bound: domain.DefaultTraversalBound, Agent: investigate.AgentConfig{Enabled: true}}
+	cfg := investigate.Config{Policy: "classify.policy@v1", Bound: domain.DefaultTraversalBound, Agent: investigate.AgentConfig{PromptVersion: promptV1, Enabled: true}}
 	g := MergeGraph(f.g, out)
 	if err := g.Validate(); err != nil {
 		t.Fatalf("merged graph: %v", err)
@@ -86,7 +86,7 @@ func TestInvestigatorRecordsEverythingWithProvenance(t *testing.T) {
 	f := newFixture(t)
 	out, _ := runScripted(t, f, fullScript(f))
 	r := out.Run
-	if r.Status != domain.AgentSubmitted || r.Reason != "" || r.Model != "test-model" || r.PromptVersion != DefaultPromptVersion || r.Transcript == "" || r.ToolCalls != 9 {
+	if r.Status != domain.AgentSubmitted || r.Reason != "" || r.Model != "test-model" || r.PromptVersion != promptV1 || r.Transcript == "" || r.ToolCalls != 9 {
 		t.Fatalf("run: %+v", r)
 	}
 	if len(out.Hypotheses) != 1 || len(out.Assertions) != 4 || len(out.ValidationRequests) != 1 || len(out.EvidenceRequests) != 1 || len(out.Validations) != 1 || len(out.ProposedNodes) != 1 {
@@ -125,12 +125,12 @@ func TestInvestigatorRecordsEverythingWithProvenance(t *testing.T) {
 func TestNotEnabledSendsNothing(t *testing.T) {
 	f := newFixture(t)
 	d := &Scripted{}
-	out, err := New(f.st, WithDriver(DriverScripted, d)).Investigate(context.Background(), f.input(investigate.AgentConfig{Driver: DriverScripted}))
+	out, err := New(f.st, WithDriver(DriverScripted, d)).Investigate(context.Background(), f.input(investigate.AgentConfig{PromptVersion: promptV1, Driver: DriverScripted}))
 	must(t, err)
 	if out.Run.Status != domain.AgentNotRun || !strings.Contains(out.Run.Reason, "opt-in") || d.Results != nil {
 		t.Fatalf("disabled agent: %+v", out.Run)
 	}
-	if _, err := New(f.st).Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: "telepathy"})); investigate.ClassOf(err) != investigate.Permanent {
+	if _, err := New(f.st).Investigate(context.Background(), f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: "telepathy"})); investigate.ClassOf(err) != investigate.Permanent {
 		t.Fatalf("unknown driver: %v", err)
 	}
 }
@@ -146,7 +146,7 @@ func TestReplayReproducesResultDigests(t *testing.T) {
 	rep := &Replay{Transcript: original}
 	inv := New(f.st, WithDriver(DriverReplay, rep), WithValidators(&fakeOverride{f: f}), WithClock(func() time.Time { return fixedNow().Add(time.Hour) }))
 	again, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: DriverReplay, Model: "test-model",
-		PromptVersion: DefaultPromptVersion, Budget: investigate.DefaultAgentBudget}))
+		PromptVersion: promptV1, Budget: investigate.DefaultAgentBudget}))
 	must(t, err)
 	if len(rep.Mismatches) != 0 {
 		t.Fatalf("replay mismatches: %+v", rep.Mismatches)
@@ -187,7 +187,7 @@ func TestReplayReproducesResultDigests(t *testing.T) {
 	}
 	rep2 := &Replay{Transcript: append(bytes.Join(lines, []byte("\n")), '\n')}
 	bad, err := New(f.st, WithDriver(DriverReplay, rep2), WithValidators(&fakeOverride{f: f})).Investigate(context.Background(),
-		f.input(investigate.AgentConfig{Enabled: true, Driver: DriverReplay, Model: "test-model", Budget: investigate.DefaultAgentBudget}))
+		f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverReplay, Model: "test-model", Budget: investigate.DefaultAgentBudget}))
 	must(t, err)
 	if len(rep2.Mismatches) != 1 || bad.Run.Status != domain.AgentFailed || !strings.Contains(bad.Run.Reason, "1 of 9 results differ") {
 		t.Fatalf("tampered replay: %+v %+v", rep2.Mismatches, bad.Run)
@@ -287,7 +287,7 @@ func TestSocketBridge(t *testing.T) {
 func TestExchangeDriver(t *testing.T) {
 	f := newFixture(t)
 	dir := t.TempDir()
-	cfg := investigate.AgentConfig{Enabled: true, Driver: DriverExchange, Model: "any-model", Budget: investigate.DefaultAgentBudget}
+	cfg := investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverExchange, Model: "any-model", Budget: investigate.DefaultAgentBudget}
 	inv := New(f.st, WithDriver(DriverExchange, &Exchange{Dir: dir}), WithClock(fixedNow))
 	answer := func(output string) {
 		reqs, _ := filepath.Glob(filepath.Join(dir, "*.request.json"))
