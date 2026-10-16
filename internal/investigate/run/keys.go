@@ -25,7 +25,7 @@ func Key(in StageInput) string {
 	case domain.StageCollectChange:
 		return investigate.ChangeKey(r.Product, r.From, r.To, in.Definition)
 	case domain.StageBuildSnapshot:
-		return investigate.SnapshotKey(r.Environment) + ":" + domain.ShortHash(strings.Join(in.Extra, "\n"), itoa(in.Round))
+		return investigate.SnapshotKey(r.Environment) + ":" + domain.ShortHash(r.Product) + ":" + domain.ShortHash(strings.Join(in.Extra, "\n"), itoa(in.Round))
 	case domain.StageAssemble:
 		return "bundle:" + domain.ShortHash(rf.Change, rf.Snapshot, cfg, itoa(in.Round))
 	case domain.StageBuildGraph:
