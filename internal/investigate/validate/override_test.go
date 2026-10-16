@@ -390,3 +390,12 @@ func TestOverrideRequestAnswersHypothesis(t *testing.T) {
 	req.Result = r.ID
 	conform(t, investigate.ValidationInput{Bundle: b, ChangeItem: o.item, Request: req}, out)
 }
+
+func TestOverrideRenderedUnexplainedHasNoRule(t *testing.T) {
+	f := newFx(t)
+	item, _ := f.unexplained("field-changed", deployKey, "spec.replicas")
+	f.pair("argocd:apps/gizmo.yaml", controller(), controller())
+	b := f.bundle()
+	r := one(t, run(t, OverrideInspection(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+	wantOutcome(t, r, domain.ValidationNotRun, "no declarative pin rule")
+}

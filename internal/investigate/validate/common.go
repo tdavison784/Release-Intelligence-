@@ -314,8 +314,12 @@ const scopeRenderedUnexplained = "scope:rendered-unexplained"
 
 // breaking reports whether an item is breaking in the sense of DESIGN.md §1.3
 // (declared, computed-breaking or rendered-structural).
+// Category and rendered-unexplained items never are: they are affected only
+// through a validation that names a concrete failure.
 func breaking(it domain.ChangeItem) bool {
 	switch it.ScopeRule {
+	case "scope:category", scopeRenderedUnexplained:
+		return false
 	case "scope:breaking", "scope:computed-breaking", "scope:rendered-structural":
 		return true
 	}

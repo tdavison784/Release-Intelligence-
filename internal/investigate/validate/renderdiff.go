@@ -40,7 +40,19 @@ type renderDiff struct{ base }
 // set DESIGN.md §2.2.1 uses for manifest:rendered-correlated). Text mentions
 // (mentions-*) say the change text talks about the object, not that the
 // rendered change is the item's effect.
-var strongCorrelations = map[string]bool{"subject": true, "values-default": true, "artifact": true}
+// release-anchor (renderdiff) ties an environment change to the release-scope
+// rendered change an item is anchored on. Correlation may list several
+// rules, comma-separated; one strong rule suffices.
+var strongCorrelations = map[string]bool{"subject": true, "values-default": true, "artifact": true, "release-anchor": true}
+
+func strongCorrelation(rules string) bool {
+	for _, r := range strings.Split(rules, ",") {
+		if strongCorrelations[strings.TrimSpace(r)] {
+			return true
+		}
+	}
+	return false
+}
 
 func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInput) (*investigate.ValidationOutput, error) {
 	item, err := prepare(ctx, in)
@@ -75,7 +87,9 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 				}
 				continue
 			}
-			if contains(c.ChangeItems, item.ID) {
+			// an item anchored on this environment change (scope
+			// rendered-unexplained) is that change, correlated or not
+			if contains(c.ChangeItems, item.ID) || c.ID == item.RenderedChange {
 				correlated = append(correlated, hit{p, c})
 			}
 		}
@@ -91,7 +105,7 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 		switch {
 		case descriptionOnly(h.rc):
 			harmless = append(harmless, h)
-		case strongCorrelations[h.rc.Correlation] || (item.RenderedChange != "" && contains(h.rc.ChangeItems, item.ID)):
+		case strongCorrelation(h.rc.Correlation) || (item.RenderedChange != "" && (contains(h.rc.ChangeItems, item.ID) || h.rc.ID == item.RenderedChange)):
 			effects = append(effects, h)
 		default:
 			weak = append(weak, h)
@@ -151,7 +165,7 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 		var why string
 		switch {
 		case len(effects) > 0:
-			why = fmt.Sprintf("the item is not breaking (%s), but its effect reaches the rendered deployment; a render cannot say whether that is harmless", item.ScopeRule)
+			why = fmt.Sprintf("the item is not breaking (%s), but its effect reaches the rendered deployment; a render cannot say whether that is harmless, nor name a concrete failure", item.ScopeRule)
 		default:
 			why = "rendered changes are correlated to the item only by a text mention, which does not show they are its effect (nor that they are harmless)"
 		}
@@ -173,7 +187,9 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 		if a, ok := b.Manifest.Lookup(p.Diff); ok {
 			n := 0
 			for _, c := range p.Changes {
-				if contains(c.ChangeItems, item.ID) {
+				// an item anchored on this environment change (scope
+			// rendered-unexplained) is that change, correlated or not
+			if contains(c.ChangeItems, item.ID) || c.ID == item.RenderedChange {
 					n++
 				}
 			}

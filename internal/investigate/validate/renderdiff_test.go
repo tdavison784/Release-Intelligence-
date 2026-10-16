@@ -160,3 +160,34 @@ func TestRenderDiffRequestedChanges(t *testing.T) {
 		t.Fatalf("a path without traversal is rejected, got %v", err)
 	}
 }
+
+func TestRenderDiffMultiRuleCorrelation(t *testing.T) {
+	f, item := renderFx(t)
+	f.pair("argocd:apps/a.yaml", controller("--mode=safe"), controller("--mode=fast"),
+		rc("container-arg-changed", deployKey, "spec.template.spec.containers[name=controller].args", `"--mode=safe"`, `"--mode=fast"`, "mentions-field,values-default", item))
+	b := f.bundle()
+	wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationFail, "")
+}
+
+// scope:rendered-unexplained (DESIGN §1.3 amendment): pass only when the
+// environment render positively shows the change does not land; never fail
+// without a concrete failure; otherwise not-run.
+func TestRenderDiffRenderedUnexplained(t *testing.T) {
+	t.Run("does not reach the environment", func(t *testing.T) {
+		f := newFx(t)
+		item, _ := f.unexplained("rbac-permission-added", "rbac.authorization.k8s.io/v1/ClusterRole//gizmo", "rules")
+		f.pair("argocd:apps/a.yaml", controller(), controller())
+		b := f.bundle()
+		r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+		wantOutcome(t, r, domain.ValidationPass, "nothing in it is attributable")
+	})
+	t.Run("reaches the environment", func(t *testing.T) {
+		f := newFx(t)
+		item, _ := f.unexplained("rbac-permission-added", "rbac.authorization.k8s.io/v1/ClusterRole//gizmo", "rules")
+		f.pair("argocd:apps/a.yaml", controller(), controller(),
+			rc("rbac-permission-added", "rbac.authorization.k8s.io/v1/ClusterRole//gizmo", "rules", "", `"secrets/get"`, "release-anchor", item))
+		b := f.bundle()
+		r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+		wantOutcome(t, r, domain.ValidationNotRun, "concrete failure")
+	})
+}

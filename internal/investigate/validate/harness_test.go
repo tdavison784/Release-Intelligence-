@@ -54,6 +54,7 @@ type fx struct {
 	arts   []domain.ArtifactRef
 	ev     []domain.Evidence
 	pairs  []domain.ManifestPair
+	rel    []domain.ManifestPair
 	files  []string
 	inputs []domain.SnapshotInput
 	kube   string
@@ -160,6 +161,28 @@ func (f *fx) pair(target, from, to string, changes ...domain.RenderedChange) []s
 	return ids
 }
 
+// unexplained adds a release-scope (chart-default) rendered change nothing
+// upstream explains and the scope:rendered-unexplained item anchored on it.
+func (f *fx) unexplained(class, object, path string) (item, releaseRC string) {
+	c := domain.RenderedChange{Class: class, Object: object, Path: path}
+	c.ID = domain.RenderedChangeID(domain.RenderRelease, "chart-defaults", object, path, class)
+	it := domain.ChangeItem{RenderedChange: c.ID, Family: domain.FamilyRendered, Title: "unexplained " + class + " " + object,
+		Evidence: []domain.EvidenceID{f.up.ID}, InScope: true, ScopeRule: scopeRenderedUnexplained,
+		Manifestation: domain.ManifestRenderedConfig, ManifestationRule: "manifest:rendered-anchor"}
+	it.ID = domain.ChangeItemID("", "", c.ID)
+	c.ChangeItems, c.Correlation = []string{it.ID}, "rendered-anchor"
+	if len(f.rel) == 0 {
+		fa := f.put(domain.ArtifactRenderedManifests, domain.OriginDerived, "derived/render/release/from.yaml", "a: 1")
+		ta := f.put(domain.ArtifactRenderedManifests, domain.OriginDerived, "derived/render/release/to.yaml", "a: 2")
+		da := f.put(domain.ArtifactRenderDiff, domain.OriginDerived, "derived/render/release/diff.json", "{}")
+		f.rel = []domain.ManifestPair{{Scope: domain.RenderRelease, Target: "chart-defaults", From: fa.ID, To: ta.ID, Diff: da.ID, Status: domain.CollectionOK}}
+	}
+	f.rel[0].Changes = append(f.rel[0].Changes, c)
+	sort.Slice(f.rel[0].Changes, func(i, j int) bool { return f.rel[0].Changes[i].ID < f.rel[0].Changes[j].ID })
+	f.items = append(f.items, it)
+	return it.ID, c.ID
+}
+
 // brokenPair adds an incomplete environment render pair.
 func (f *fx) brokenPair(target, reason string) {
 	f.pairs = append(f.pairs, domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, Status: domain.CollectionPartial, Reason: reason})
@@ -183,7 +206,7 @@ func (f *fx) bundle() *domain.EvidenceBundle {
 		sources = append(sources, s)
 	}
 	cr := domain.ChangeEvidenceRecord{Product: f.edge.Product, From: f.edge.From, To: f.edge.To, Edge: edgeArt.ID,
-		Items: f.items, Sources: sources, Producer: "test.change@v1"}
+		Items: f.items, Sources: sources, Renders: f.rel, Producer: "test.change@v1"}
 	cr.ID = cr.DerivedID()
 	inputs := append([]domain.SnapshotInput{{Kind: domain.InputGitOpsRepo, Path: "./gitops", Status: domain.CollectionOK, Artifacts: f.files}}, f.inputs...)
 	if f.kube != "" {

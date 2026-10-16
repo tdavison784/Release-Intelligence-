@@ -125,3 +125,25 @@ func TestReferenceUndecided(t *testing.T) {
 		})
 	}
 }
+
+func TestReferenceNeverPassesRenderedUnexplained(t *testing.T) {
+	f := newFx(t)
+	item, _ := f.unexplained("field-changed", secretKey, "type")
+	f.pair("argocd:apps/gizmo.yaml", controller(), controller())
+	b := f.bundle()
+	g, tr, _ := refGraph(t, b, item, domain.EdgeEstablished, false)
+	r := one(t, run(t, StaticReference(), investigate.ValidationInput{Bundle: b, Graph: g, Traversal: tr, ChangeItem: item}))
+	wantOutcome(t, r, domain.ValidationNotRun, "does not show the unexplained rendered change harmless")
+}
+
+func TestReferenceRootOnlyPathIsNotPassed(t *testing.T) {
+	f, item := refFx(t)
+	b := f.bundle()
+	g := newGraph(t, b)
+	n := g.node(domain.NodeConfigObject, secretKey, false)
+	g.root(item, n)
+	g.path(item, n)
+	gr, tr := g.done()
+	r := one(t, run(t, StaticReference(), investigate.ValidationInput{Bundle: b, Graph: gr, Traversal: tr, ChangeItem: item}))
+	wantOutcome(t, r, domain.ValidationNotRun, "no reference on it")
+}
