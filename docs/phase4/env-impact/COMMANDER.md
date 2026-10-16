@@ -43,7 +43,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
-| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N | wave 2, working since 13:55 |
+| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd; follow-up: deterministic per-item agenda + prompt v2, subject resolution, live run 2 on another product |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | ri-classify | claude-opus-5-5 | .claude/worktrees/p4ei-classify | pane w1:p2P (tab w1:t17) | wave 2, working since 14:15 |
 | orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | wave 2, working since 14:15 |
@@ -73,6 +73,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Milestone-1 third product = kube-prometheus-stack (chart-level, diff-visible break; groundtruth's choice), replacing argo-cd from DESIGN §1 (argo-cd would need Argo CD + git source in kind).
 - 2026-10-16 Commander owns eval/investigations/FORMAT.md now (contract lane gone); groundtruth adds renderedChanges labelling as an additive CONTRACT-CHANGE section.
 - 2026-10-16 DESIGN §1.3 amendment (adf4fe08, commander): `scope:rendered-unexplained` (in scope; every rendered change nothing upstream explains, release or env scope, becomes its own item, treated like scope:category) and `scope:routine-self-artifact` (out of scope, correlated). Why: diffs are the centerpiece + Principle 3; an unexplained change to the customer's rendered deployment must be investigated, not only block approval. Generic rule, not tuned to a case.
+- 2026-10-16 Agent coverage must not depend on model diligence: deterministic agenda of undecided in-scope items, a mandatory per-item entry (incl. examined-no-concern / not-examined), submission rejected while any item lacks one; examined-no-concern never lowers a class. Prompt v2; v1 kept for replay. Live run 2 on a different product to keep the prompt generic.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -89,6 +90,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 e9566913 validate: JoinVerdicts, RenderDiff, OverrideInspection (PinnedSetting; pin rules only from join pinned verdicts and deterministic/human facts), SchemaCompat, StaticReference; 112 tests; real-bundle run over all 8 inputs conforms. Gaps (a) bundle to store fact artifacts and (b) not-applicable pairs exempt from the approval block → queued to renderdiff. Cleanup done (tab w1:t13).
 - 2026-10-16 6f3ef2e4 (commander) TestEvalRenderCases offline by default: it went online on cache misses and hung in GitHub rate-limit backoff past the 10-min test timeout, blocking the merge check. Live with RI_RENDER_EVAL_LIVE=1.
 - 2026-10-16 31fa8c2b renderdiff follow-up: §1.3 amendment implemented (render.SelfArtifactBump; unexplained items at release + env scope), shared render path convention, DetectTargets skips layered values files (no golden changes), not-applicable pairs never block approval, bundle.WithKnowledge stores attached facts as artifacts (cert-manager 18/bundle; ingress-nginx and kps 0 — no facts in knowledge/). 0 uncorrelated rendered changes on all 8 envs. a0da019f gofmt validate. Green (-count=1). Cleanup done (tab w1:t12). WAVE 1 COMPLETE.
+- 2026-10-16 ed7a0acd agent: Tools with id/citation/verbatim-quote validation before recording, budgets, JSONL transcript; drivers claude-cli/exchange/replay/scripted; `ri investigate mcp`; 31 rejection tests; replay byte-identical. Live run 1 (shop-de, sonnet, prompt v1): 12/80 tool calls, but only 3/27 in-scope items examined; 2 validation requests refused (values key as subject). Green.
 
 ## Open questions for the user
 
