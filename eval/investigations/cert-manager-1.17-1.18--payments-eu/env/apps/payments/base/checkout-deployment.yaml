@@ -1,0 +1,39 @@
+# checkout calls ledger over mutual TLS: it presents its own certificate and
+# verifies ledger against the CA certificate in its own Secret (ca.crt).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  labels:
+    app: checkout
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout
+  template:
+    metadata:
+      labels:
+        app: checkout
+    spec:
+      containers:
+        - name: checkout
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                curl -sS --max-time 5 \
+                  --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key \
+                  https://ledger.payments.svc/ || echo "ledger call failed"
+                sleep 30
+              done
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: checkout-tls

@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: checkout-tls
+  labels:
+    app.kubernetes.io/part-of: payments-mesh
+spec:
+  secretName: checkout-tls
+  commonName: checkout.payments.svc
+  dnsNames:
+    - checkout.payments.svc
+  duration: 720h
+  renewBefore: 240h
+  usages:
+    - client auth
+    - server auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: mesh-ca

@@ -1,0 +1,37 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: cert-manager-1.17-1.18--payments-eu
+pair: cert-manager-1.17-1.18--mesh-ca
+product: cert-manager
+chart:
+  repo: https://charts.jetstack.io
+  name: cert-manager
+from:
+  version: v1.17.2
+  chartVersion: v1.17.2
+to:
+  version: v1.18.0
+  chartVersion: v1.18.0
+environment:
+  id: payments-prod-eu
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  description: >-
+    Production cluster of the payments platform, managed by Argo CD from this repository
+    (app-of-apps rooted at clusters/prod). cert-manager is installed from the upstream Helm chart
+    with the values in platform/cert-manager/values.yaml. The platform runs its own internal PKI
+    (platform/pki) whose CA issuer signs the certificates the payments services use for mutual TLS
+    with each other (apps/payments). The repository is the complete declaration of what runs in
+    the cluster; nothing is applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: Certificate.spec.privateKey.rotationPolicy default changed from Never to Always
+    subject: spec.privateKey.rotationPolicy
+    source: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md#L109-L148
+  - id: B2
+    title: Certificate.spec.revisionHistoryLimit default changed from unset (no limit) to 1
+    subject: spec.revisionHistoryLimit
+    source: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md#L151-L160
+withheld: []
