@@ -1,7 +1,7 @@
 # Status — lane `groundtruth` (Phase 4 env-impact)
 
 Agent: ri-groundtruth (Claude Opus 5.5). Branch `p4ei/groundtruth`. Brief: `briefs/groundtruth.md`.
-Last updated: 2026-10-16 ~13:30 CDT.
+Last updated: 2026-10-16 ~14:15 CDT (follow-up wave in progress).
 
 ## Finding for the commander / contract lane (read this first)
 
@@ -149,7 +149,21 @@ insufficient-evidence case.
 
 ## In progress / next step
 
-- Lane complete (LANE DONE sent).
+First 5 cases merged by the commander into p4-env-impact (23f79063). Do NOT merge p4-env-impact
+until told (FORMAT.md + EdgeKind adoption comes later).
+
+Follow-up requested by the commander (2026-10-16):
+1. Diff-visible pair — chosen: **kube-prometheus-stack 89.2.4 → 90.2.0** (chart-only change, same
+   operator v0.93.1): control-plane ServiceMonitors switch from `bearerTokenFile` to
+   `authorization` from a chart-created token Secret in the release namespace (PR #7238). With
+   `prometheus.prometheusSpec.ignoreNamespaceSelectors: true` the kubelet/control-plane
+   ServiceMonitors render into kube-system (apiserver: default), where that Secret does not exist ⇒
+   operator rejects them (resource_selector.go L237, L150-L155) ⇒ kubelet/cAdvisor scraping stops.
+   Pair: env sets ignoreNamespaceSelectors (affected) vs not (not-affected, same diff shape).
+   Next: write env fixtures, run in kind, expected + NOTES.
+2. Diff-visible-but-harmless trap: ingress-nginx 4.11.5 → 4.12.0 with OpenTelemetry enabled
+   (init container + module volume vanish from the rendered Deployment; #12024 says OTel keeps
+   working) + the `--enable-metrics=false` arg removal (#12153; chart compensates).
 - When the commander says so: `git merge p4-env-impact`, adopt FORMAT.md (rename fields/relations if
   it differs from the draft above), keep the expectations unchanged.
 
