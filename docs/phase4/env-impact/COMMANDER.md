@@ -82,7 +82,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 1. Wave 1 running (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
 2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.
-3. Wave 2 briefs (agent Opus, classify Opus, orchestrate Sonnet — DESIGN §7 Wave 2) once bundle + renderdiff (agent) / validate (classify) are merged; orchestrate after all of wave 1. Write them while wave 1 runs.
+3. Wave 2 briefs WRITTEN (briefs/_wave2-common.md, agent.md (Opus), classify.md (Opus), orchestrate2.md (Sonnet; lane name `orchestrate2`, branch p4ei/orchestrate2)). Start agent once bundle + renderdiff are merged; classify once validate is merged; orchestrate2 after all of wave 1. GLM commander may start them (as glm-<lane>) per protocol.
 4. Wave 3: eval (Opus) after everything.
 
 ## GLM commander log
