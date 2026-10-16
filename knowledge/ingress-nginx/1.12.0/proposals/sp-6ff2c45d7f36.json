@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6ff2c45d7f36",
+    "candidateId": "sc-ab2754bec80f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-memcached-host",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-memcached-port",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-memcached-connect-timeout",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-memcached-max-idle-timeout",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-memcached-pool-size",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "data.global-rate-limit-status-code",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "ingress-nginx-controller"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-memcached-host",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-memcached-port",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-memcached-connect-timeout",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-memcached-max-idle-timeout",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-memcached-pool-size",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.global-rate-limit-status-code",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the full annotation keys (prefix) of the removed global-rate-limit, global-rate-limit-window, global-rate-limit-key and global-rate-limit-ignored-cidrs Ingress annotations, and whether any Ingress sets them"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed global-rate-limit configuration options and annotations are no longer honoured, so global rate limiting configured through them stops applying after the upgrade.",
+        "remediation": "Remove the global-rate-limit-* ConfigMap options and global-rate-limit* annotations, and set up rate limiting another way before upgrading.",
+        "severity": "high"
+      },
+      "statement": "ingress-nginx 1.12.0 removes the global-rate-limit feature. This removes the ConfigMap options global-rate-limit-memcached-host, -port, -connect-timeout, -max-idle-timeout, -pool-size and global-rate-limit-status-code, and the annotations global-rate-limit, global-rate-limit-window, global-rate-limit-key and global-rate-limit-ignored-cidrs, so these settings are no longer honoured."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: bundles several changes: the feature removal covers six controller configuration options and four Ingress annotations, and no single subject family identity covers the whole global-rate-limit feature",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0923c76c3795"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0036c0af5090a147a65ab04c3e5a1125bd11d3a3ac6d5052a50cd3311d170f67",
+      "inputEvidence": [
+        "ev-0923c76c3795"
+      ],
+      "generatedAt": "2026-10-16T22:54:43Z",
+      "callId": "74e21f3d-b8a8-47fe-909e-1a787ce74d1e"
+    }
+  }
+}

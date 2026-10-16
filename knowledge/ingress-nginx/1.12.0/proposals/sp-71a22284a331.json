@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-71a22284a331",
+    "candidateId": "sc-298dac696f1a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "ingress-nginx",
+        "name": "--enable-metrics"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"true\"",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "--enable-metrics is now disabled by default, so controller metrics are no longer exposed unless the flag is set explicitly.",
+        "remediation": "Set --enable-metrics explicitly (for example via controller.extraArgs) if metrics are needed."
+      },
+      "statement": "The default of the controller CLI flag --enable-metrics changed to disabled, so metrics are off unless the flag is set explicitly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-66c015b6a2c7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:697a13ec1c630bc39b01bde5c0f26785e41ebcb0f88bb3c380edbb4880915e60",
+      "inputEvidence": [
+        "ev-66c015b6a2c7"
+      ],
+      "generatedAt": "2026-10-16T22:54:30Z",
+      "callId": "4d92d662-e9fe-4668-b1df-1ace6eb92409"
+    }
+  }
+}

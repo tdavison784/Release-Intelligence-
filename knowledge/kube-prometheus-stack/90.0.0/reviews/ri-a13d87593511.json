@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a13d87593511",
+    "candidateId": "sc-b61cc4944b6b",
+    "product": "kube-prometheus-stack",
+    "release": "90.0.0",
+    "questionType": "applicability",
+    "question": "For \"From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "set"
+        }
+      },
+      "statement": "The chart adds prometheus.serviceAccount.createTokenSecret (default true), which renders a long-lived service-account-token Secret so the control-plane ServiceMonitors can use `authorization` and the kube-root-ca.crt ConfigMap instead of bearerTokenFile/caFile."
+    },
+    "proposals": [
+      "sp-2225fabc874e",
+      "sp-32670d5f92a6"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:56Z"
+  }
+}
