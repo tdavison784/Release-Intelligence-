@@ -27,7 +27,9 @@ func TestImpactRepoCommand(t *testing.T) {
 		"Cluster Kubernetes 1.28 is below the supported range 1.29–1.33",
 		"customer-repo/clusters/prod/values-cert-manager.yaml",
 		"is not built with kustomize",
-		"repo mode found 2 values files",
+		// values are per release: four releases deploy cert-manager in the
+		// fixture (Argo CD, Flux, helmfile, a dev values file), never merged
+		"4 releases deploy cert-manager with different effective values",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in:\n%s", want, out)

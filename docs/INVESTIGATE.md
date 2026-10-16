@@ -70,6 +70,25 @@ different commit or a dirty tree yields a different one.
 an artifact version bump (rule `artifact`) carry no change id; the collector attributes them to the
 computed image items of that repository.
 
+## Environment values (per release)
+
+Lane `values`. The snapshot (`bundle.SnapshotBuilder`) loads the environment with
+`env.Inputs.Product` = the product under investigation, so the values that decide a `values`/`image`
+item are those of the **release(s) deploying that product** — each release's stack applied as Argo CD,
+Flux or helmfile applies it, merged with Helm semantics, with per-key provenance (docs/IMPACT.md
+"Values are per release"). Consequences for collection status (R2.1):
+
+- the `gitops-repo` input is no longer `partial` merely because the repository holds several values
+  files: a product whose release references them all, and reads them all, is complete;
+- it is `partial`, with the reason, when the product's stack has an unreadable layer, when several
+  releases deploy the product with different effective values (each keeps its own keys; nothing is
+  merged across them), or when a values file no release references cannot be attributed by name;
+- another product's releases (their files, their cluster-only `valuesFrom`) are not this product's gap.
+
+The facts artifact (`environment-facts`) carries every release (`ValuesReleases`: layers in
+application order, what was applied or ignored and why, effective keys, health) and the scope
+(`ValuesScope`).
+
 ## Render diffs
 
 The centerpiece evidence: the product's from and to releases rendered with the environment's own

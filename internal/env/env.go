@@ -85,6 +85,9 @@ type Inputs struct {
 	// KubernetesVersion is the cluster version ("1.31" or "1.31.5").
 	KubernetesVersion string
 	// ValuesFiles are Helm values files, in the order -f would apply them.
+	// They are layered last on top of each values stack of the product's
+	// release(s) — an explicit values file wins per key — and form a release
+	// of their own when no release of the product is found (see Product).
 	ValuesFiles []string
 	// Manifests are files or directories of Kubernetes manifests
 	// (multi-document YAML streams).
@@ -109,9 +112,17 @@ type Inputs struct {
 	// discovered by convention — values files, k8s-shaped manifests, Argo CD
 	// Applications, Flux HelmReleases, kustomizations, workflow/terraform
 	// image references. Explicit flags COMPOSE with discovery: discovered
-	// files are loaded first, explicit entries after them (so an explicit
-	// values file wins per-key), and a file named by both is loaded once.
+	// files are loaded first, explicit entries after them, and a file named
+	// by both is loaded once. Values are per release (values.go): each
+	// release's stack is applied as its tool applies it, and explicit values
+	// files are layered on top of it (so an explicit values file wins
+	// per-key over everything the release itself applies).
 	Repo string
+	// Product is the product under investigation: ValuesKeys and the values
+	// dimension are scoped to the release(s) that deploy it (its id, or a
+	// chart ProductHints name for it). "" scopes them to every release found
+	// (several distinct ones make the values dimension partial).
+	Product string
 	// Inventory is a declared product inventory file (YAML list of {product,
 	// version, note?}). In repo mode <Repo>/inventory.yaml is picked up when
 	// Inventory is empty.
@@ -166,6 +177,9 @@ type ValuesKey struct {
 	Value    string // JSON-encoded leaf
 	Line     int    // 1-based line of the key in its file
 	Evidence []domain.EvidenceID
+	// Release is the id of the release (ValuesRelease) whose effective
+	// values hold this key ("" for a values file no release is known for).
+	Release string `json:",omitempty"`
 }
 
 // APIVersionUse is one distinct apiVersion (+kind) that manifests use.
@@ -261,7 +275,12 @@ type ImageUse struct {
 type Environment struct {
 	Kubernetes *KubernetesVersion
 
+	// ValuesKeys are the effective values of the product's release(s)
+	// (ValuesScope says which); ValuesReleases are every release's values
+	// stack, effective values and health.
 	ValuesKeys       []ValuesKey
+	ValuesReleases   []ValuesRelease `json:",omitempty"`
+	ValuesScope      *ValuesScope    `json:",omitempty"`
 	APIVersions      []APIVersionUse
 	CRDs             []InstalledCRD
 	ManifestFields   []ManifestField
@@ -365,6 +384,13 @@ type loader struct {
 	// (PO-7a addendum 6): they reach the loader, so the dimension is not
 	// absent — but they are render output, so it is partial, never supplied.
 	renderedCRDs int
+	// values: parsed values files, and the release definitions the inputs
+	// hold (values.go builds a stack per release once everything is loaded)
+	valuesCache map[string]*parsedValues
+	argoDocs    []doc
+	fluxDocs    []doc
+	cfgDocs     []doc // ConfigMaps (Flux valuesFrom)
+	helmfiles   []helmfileDoc
 }
 
 // warnf records a warning on the Environment and attributes it to the input
@@ -410,7 +436,7 @@ func Load(in Inputs) (*Environment, error) {
 	l := &loader{
 		env: &Environment{}, evidence: map[domain.EvidenceID]bool{},
 		files: map[string]string{}, warned: map[string]bool{}, dimWarnings: map[string][]string{},
-		gvk: map[gvkKey]*gvkStage{},
+		gvk: map[gvkKey]*gvkStage{}, valuesCache: map[string]*parsedValues{},
 	}
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
@@ -424,9 +450,6 @@ func Load(in Inputs) (*Environment, error) {
 			return nil, err
 		}
 		discVals, discMans = vals, mans
-		if len(discVals) > 1 {
-			l.warnf(DimValues, "repo mode found %d values files; all are applied, the last one wins per key", len(discVals))
-		}
 		if len(discVals)+len(discMans) == 0 {
 			l.warnf("", "repo mode found no values or manifest files in %s", in.Repo)
 		}
@@ -441,12 +464,19 @@ func Load(in Inputs) (*Environment, error) {
 	for _, input := range in.Manifests {
 		l.warnEmptyInput(input, DimManifests)
 	}
+	explicitVals, err := mergeFiles(nil, in.ValuesFiles)
+	if err != nil {
+		return nil, err
+	}
 	vals, err := mergeFiles(discVals, in.ValuesFiles)
 	if err != nil {
 		return nil, err
 	}
-	if err := l.loadValuesFiles(vals); err != nil {
-		return nil, err
+	// parse every values file up front (file and evidence order as before);
+	// the per-release stacks are built once the release definitions in the
+	// manifests are loaded
+	for _, f := range vals {
+		l.parseValuesFile(f)
 	}
 	crds, err := mergeFiles(nil, in.CRDs)
 	if err != nil {
@@ -474,6 +504,7 @@ func Load(in Inputs) (*Environment, error) {
 	for _, ref := range in.Images {
 		l.addImageAt(ref, "list", "", 0)
 	}
+	l.loadValues(strings.TrimSpace(in.Product), in.ProductHints, discVals, explicitVals)
 
 	sort.Slice(l.env.APIVersions, func(i, j int) bool {
 		a, b := l.env.APIVersions[i], l.env.APIVersions[j]
@@ -501,7 +532,6 @@ func Load(in Inputs) (*Environment, error) {
 
 	// Supplied reflects anything that reached the loader: explicit inputs or
 	// repo-discovered files (the impact layer reads it for visibility rules).
-	l.env.Supplied.Values = len(in.ValuesFiles) > 0 || len(discVals) > 0
 	l.env.Supplied.Manifests = len(in.Manifests) > 0 || len(discMans) > 0
 	l.env.Supplied.CRDs = len(in.CRDs) > 0
 	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
@@ -514,7 +544,7 @@ func Load(in Inputs) (*Environment, error) {
 	// explicit inputs or repo-discovered files (vals/mans already merged).
 	supplied := map[string]bool{
 		DimKubernetes: strings.TrimSpace(in.KubernetesVersion) != "",
-		DimValues:     len(vals) > 0 || len(in.ValuesFiles) > 0,
+		DimValues:     l.env.Supplied.Values || len(in.ValuesFiles) > 0,
 		DimManifests:  len(mans) > 0 || len(in.Manifests) > 0,
 		DimCRDs:       len(crds) > 0 || len(in.CRDs) > 0 || l.renderedCRDs > 0,
 		DimImages:     len(in.Images) > 0 || len(l.env.Images) > 0,
@@ -622,70 +652,6 @@ func expand(path string) ([]string, error) {
 	return out, nil
 }
 
-// loadValuesFiles parses Helm values files (already expanded and
-// deduplicated, discovered ones first and explicit ones last).
-func (l *loader) loadValuesFiles(files []string) error {
-	for _, f := range files {
-		b, err := l.readFile(f)
-		if err != nil {
-			return fmt.Errorf("env: %w", err)
-		}
-		if len(bytes.TrimSpace(b)) == 0 {
-			continue
-		}
-		flat, err := normalize.FlattenValues(b)
-		if err != nil {
-			l.warnf(DimValues, "%s was not parsed as a Helm values mapping: %v", f, err)
-			continue
-		}
-		// yaml.Unmarshal decodes only a stream's FIRST document and silently
-		// drops the rest; a Helm values file must be a single document, so
-		// make any extra ones an explicit, dimension-degrading warning.
-		if n := countDocs(b); n > 1 {
-			l.warnf(DimValues, "%s holds %d YAML documents; a Helm values file is one document — the rest was ignored", f, n)
-		}
-		for _, kv := range flat {
-			if !l.addValuesKey(ValuesKey{
-				Path: kv.Path, Value: kv.Value, Line: kv.Line,
-				Evidence: []domain.EvidenceID{l.ev(f, fmt.Sprintf("$.%s (L%d)", kv.Path, kv.Line), kv.Path+": "+kv.Value)},
-			}) {
-				l.warnf(DimValues, "more than %d values keys; the rest of %s was ignored", maxValuesKeys, f)
-				break
-			}
-		}
-		// images set through the usual chart conventions
-		byPath := make(map[string]normalize.FlattenedValue, len(flat))
-		for _, kv := range flat {
-			byPath[kv.Path] = kv
-		}
-		for _, kv := range flat {
-			base := lastSegment(kv.Path)
-			if base != "repository" && base != "hub" && base != "image" {
-				continue
-			}
-			ref := strings.Trim(strings.Trim(kv.Value, `"`), `'`)
-			if !strings.Contains(ref, "/") {
-				continue // a bare name or a non-reference value
-			}
-			tag := ""
-			if base != "image" {
-				if sib, ok := byPath[siblingPath(kv.Path, "tag")]; ok {
-					tag = strings.Trim(strings.Trim(sib.Value, `"`), `'`)
-				}
-			}
-			full := ref
-			if tag != "" && base != "image" {
-				full = ref + ":" + tag
-			}
-			if _, err := normalize.ParseImageRef(full); err != nil {
-				continue
-			}
-			l.addImageAt(full, "values", f, kv.Line)
-		}
-	}
-	return nil
-}
-
 // addValuesKey appends a values key under the global cap; false when the cap
 // is hit.
 func (l *loader) addValuesKey(vk ValuesKey) bool {
@@ -701,6 +667,7 @@ type doc struct {
 	node      *yaml.Node // resolved root node (nil: empty document)
 	file      string
 	startLine int // 1-based line of the document's first content in the file
+	index     int // 0-based index among the file's non-empty documents
 }
 
 // loadFiles parses already-expanded manifest/CRD files. Only CRD documents
@@ -731,11 +698,14 @@ func (l *loader) loadFiles(files []string, crdOnly bool) error {
 		case perr != nil:
 			l.warnf(dim, "%s: parsing stopped after %d document(s): %v", f, len(docs), perr)
 		}
+		nonEmpty := 0
 		for i, d := range docs {
 			d.file = f
 			if d.node == nil {
 				continue
 			}
+			d.index = nonEmpty
+			nonEmpty++
 			if l.env.ManifestDocCount >= maxManifestDocs {
 				l.warnf(dim, "more than %d manifest documents; the rest was ignored", maxManifestDocs)
 				return nil

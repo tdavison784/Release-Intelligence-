@@ -91,8 +91,9 @@ spec:
 	}
 }
 
-// Inline helm values of a values-only source are still the customer's values.
-func TestArgoValuesOnlySourceKeepsItsInlineValues(t *testing.T) {
+// A values-only source (ref, no chart, no path) renders nothing: Argo CD
+// applies its helm block to no chart, so those values reach no release.
+func TestArgoValuesOnlySourceInlineValuesReachNoRelease(t *testing.T) {
 	e := loadFiles(t, map[string]string{"apps/a.yaml": `apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -109,14 +110,14 @@ spec:
         valuesObject:
           replicaCount: 3
 `})
-	found := false
-	for _, k := range e.ValuesKeys {
-		if k.Path == "replicaCount" && k.Value == "3" {
-			found = true
-		}
+	if len(e.ValuesKeys) != 0 {
+		t.Fatalf("inline values of a values-only source were applied: %+v", e.ValuesKeys)
 	}
-	if !found {
-		t.Fatalf("inline values of the values-only source were dropped: %+v", e.ValuesKeys)
+	if len(e.ValuesReleases) != 1 || e.ValuesReleases[0].Chart != "cert-manager" || len(e.ValuesReleases[0].Layers) != 0 {
+		t.Fatalf("releases = %+v, want the chart source with an empty stack", e.ValuesReleases)
+	}
+	if !e.Supplied.Values || e.Health(DimValues) != HealthOK {
+		t.Errorf("a release with an empty, fully read stack sets no keys: supplied=%v health=%s", e.Supplied.Values, e.Health(DimValues))
 	}
 }
 

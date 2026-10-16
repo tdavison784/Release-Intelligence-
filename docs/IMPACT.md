@@ -389,22 +389,53 @@ convention:
 |---|---|---|
 | `values.yaml`, `values-prod.yaml`, `prod-values.yaml` (by name) | `values` | Helm values file |
 | YAML whose documents have `apiVersion`+`kind` | `manifests` | loaded like `--manifests`; a file is skipped silently when no document is k8s-shaped (compose files, CI configs, chart templates) |
-| document with kind `Application` in `argoproj.io` | `argocd` | loaded as a manifest; chart identity, `targetRevision` and inline Helm values become installed-product facts and values keys |
-| document with kind `HelmRelease` in `helm.toolkit.fluxcd.io` | `flux` | loaded as a manifest; chart + version range + `.spec.values` likewise; `valuesFrom` (cluster objects) is a warning |
+| document with kind `Application` in `argoproj.io` | `argocd` | loaded as a manifest; chart identity and `targetRevision` become installed-product facts; each Helm source is a values **release** (below); files its `helm.valueFiles` reference are classified `values` ("referenced by …") |
+| document with kind `HelmRelease` in `helm.toolkit.fluxcd.io` | `flux` | loaded as a manifest; chart + version range likewise; a values release (below) |
 | `kustomization.yaml` | `kustomization` | referenced `resources`/`bases`/patches files are inventoried as plain manifests **without applying patches or transformers** (warning); `images:` overrides become pinned image references |
-| `helmfile.yaml` | `helmfile` | `releases:` chart+version become installed-product guesses; referenced values files become values inputs; templating (go templates, environments) is not evaluated (warning) |
+| `helmfile.yaml` | `helmfile` | `releases:` chart+version become installed-product guesses and values releases (below); templating (go templates, environments) is not evaluated (warning) |
 | `.github/workflows/*.yaml` | `workflow` | scalar `image:` references |
 | `*.tf` | `terraform` | literal `image = "…"` assignments only; HCL structure, variables and templating are not evaluated |
 
 Every classification is recorded on `Environment.Discovered` (path, kind,
 detail, evidence at the file:line that grounded it) and every ambiguity is a
-warning in the report: two values files are both applied (with a warning),
-not silently ranked.
+warning in the report.
 
-**Precedence.** Explicit flags compose with discovery: discovered files are
-loaded first, the explicit `--values`/`--manifests`/`--crds` entries after
-them — so in an ordered application (Helm values) an explicit file wins
-per-key over a discovered one. A file reached through both routes is loaded
+**Values are per release** (`internal/env/values.go`). A release is a
+deployment target: an Argo CD Application's Helm source, a Flux
+HelmRelease, a helmfile release, a repo values file no release references
+(rendered on its own, as `ri render` does), or the explicit `--values`
+files. Each gets its own ordered stack, applied exactly as its tool applies
+it, and its own effective values (`Environment.ValuesReleases`):
+
+| Tool | Stack, lowest precedence first | Source |
+|---|---|---|
+| Argo CD | `helm.valueFiles` in **declared** order (`$ref/path` from the repo root; a plain path relative to the chart root — readable only for a git source in this repo), then `helm.valuesObject` — or `helm.values` when no `valuesObject` is set (it is then ignored, and recorded so) —, then `helm.parameters` (`--set` typing; `forceString` ⇒ string) | Argo CD *Helm Value Precedence*: "parameters > valuesObject > values > valueFiles"; "valuesObject trumps values - therefore values will be ignored" |
+| Flux | `spec.valuesFrom` in order (a ConfigMap the inputs define is read; a Secret or an object no input defines is a gap), then `spec.values`, then `valuesFrom` entries with `targetPath` | Flux HelmRelease docs: "merged in the order given"; inline values overwrite them; "When targetPath is set, it will overwrite everything before, including inline values" |
+| helmfile | release `values:` in order (files relative to the helmfile, inline maps), then `set:` | helmfile passes them as `--values …` then `--set` |
+| `--values` | in the order given, layered **last** on top of each stack of the product (so an explicit file wins per key over everything the release applies); with no release of the product they form a release of their own | `Inputs.Repo` / `Inputs.ValuesFiles` doc |
+
+Layers merge with Helm's semantics: mappings deep-merge; lists and scalars
+replace the subtree; an empty map `{}` deletes nothing (Helm keeps the keys);
+`null` deletes the key (kept as the fact "unset"). Every effective key cites
+the file (or inline block) and line of the layer that set it.
+
+**Never merged across releases.** `ri impact` scopes values to the product
+(`Inputs.Product`): only releases installing one of its charts count. When
+several releases of the product have different effective values (two
+clusters, dev/prod), each keeps its own keys (`ValuesKey.Release`), and the
+values dimension is `partial` with the reason — never one collapsed value no
+release has; a `values-pinned` verdict needs the key pinned in every
+release. A values file no release references whose name does not attribute
+it to exactly one release (the product, or one other release / catalog
+product) keeps the dimension `partial`. A release's values are complete
+(`ok`) only when its whole stack was read: an unreadable layer (remote or
+missing value file, cluster-only `valuesFrom`, templated helmfile values,
+list-index `--set` syntax, `fileParameters`, encrypted `secrets`) is a gap
+with the reason. A values change that matches no key against `partial`
+values is UNKNOWN, never not-affected.
+
+**Precedence of other inputs.** Explicit `--manifests`/`--crds` entries are
+loaded after discovered ones; a file reached through both routes is loaded
 once. `--kubernetes` has no repository source and remains flag-only.
 
 ## The join (`internal/impact`)

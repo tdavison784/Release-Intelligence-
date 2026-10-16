@@ -82,6 +82,9 @@ type ProductInstance struct {
 type ProductHint struct {
 	ID           string
 	Repositories []string
+	// Charts are the Helm chart names the product publishes: a release
+	// installing one of them deploys the product (values scoping, values.go).
+	Charts []string
 }
 
 // HintsFromCatalog derives hints from every container-image artifact of the
@@ -94,6 +97,13 @@ func HintsFromCatalog(cat *catalog.Catalog) []ProductHint {
 	for _, d := range cat.List() {
 		h := ProductHint{ID: d.ID}
 		for _, a := range d.Artifacts {
+			if a.Type == domain.ArtifactHelmChart {
+				h.Charts = appendUniqueString(h.Charts, a.Name)
+				for _, ch := range a.Channels {
+					h.Charts = appendUniqueString(h.Charts, ch.Chart)
+				}
+				continue
+			}
 			if a.Type != domain.ArtifactContainerImage {
 				continue
 			}
@@ -571,4 +581,16 @@ func (e *Environment) ProductsStatus() DimensionStatus {
 		s.Warnings = e.dimWarnings[DimProducts]
 	}
 	return s
+}
+
+func appendUniqueString(xs []string, s string) []string {
+	if s == "" {
+		return xs
+	}
+	for _, x := range xs {
+		if x == s {
+			return xs
+		}
+	}
+	return append(xs, s)
 }

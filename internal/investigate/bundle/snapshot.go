@@ -57,6 +57,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 	ei := env.Inputs{
 		Repo: in.Repo, ValuesFiles: in.ValuesFiles, Manifests: in.Manifests, CRDs: in.CRDs, Images: in.Images,
 		Inventory: in.Inventory, KubernetesVersion: in.KubernetesVersion, ProductHints: b.hints,
+		Product: in.Product, // values are per release: those deploying the product decide
 	}
 	if ei.Empty() {
 		return nil, errors.New("snapshot: no environment input was given (repo, values, manifests, crds, images, inventory or kubernetes version)")
