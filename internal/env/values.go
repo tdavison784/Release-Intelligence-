@@ -294,7 +294,7 @@ func (l *loader) setLayer(file, source string, line int, sets []setEntry) stackL
 			continue
 		}
 		path := joinKeySegments(segs)
-		enc := setValueJSON(e.value, e.forceString)
+		enc := SetValueJSON(e.value, e.forceString)
 		s.entries = append(s.entries, ValuesKey{
 			Path: path, Value: enc, Line: e.line,
 			Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s (L%d)", e.locator, e.line), path+": "+enc)},
@@ -346,10 +346,10 @@ func joinKeySegments(segs []string) string {
 	return p
 }
 
-// setValueJSON encodes a --set value the way Helm's strvals types it
+// SetValueJSON encodes a --set value the way Helm's strvals types it
 // (typedVal): true/false/null case-insensitively, "0", integers that do not
 // start with 0; anything else (floats included) is a string.
-func setValueJSON(v string, forceString bool) string {
+func SetValueJSON(v string, forceString bool) string {
 	if !forceString {
 		switch {
 		case strings.EqualFold(v, "true"):

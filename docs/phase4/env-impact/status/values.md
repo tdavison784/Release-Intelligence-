@@ -5,7 +5,8 @@ layered-values merge (a638c39a, reverted in 73bb58ba).
 
 ## State
 
-**Done.** `go build ./... && go vet ./... && go test ./...` green. No kind clusters, servers, `bin/` or
+**Follow-up done** (commander review of 65ee78a5: render divergences + review-UI flag text; branch merged
+`p4-env-impact` @ 20e958b8 first, fast-forward). First round: **done.** `go build ./... && go vet ./... && go test ./...` green. No kind clusters, servers, `bin/` or
 scratch output created.
 
 ## What was built
@@ -115,13 +116,45 @@ repo) — formerly `absent`, and its no-match values changes are now UNKNOWN, no
   several values files; another product's cluster-only valuesFrom is not this product's gap; two
   differing releases ⇒ partial with the reason.
 
+## Follow-up (commander, after merge 65ee78a5)
+
+Ownership extended to `internal/render/source.go` for this, plus the review-UI flag text.
+
+- `render.argoTargets` now layers exactly like `env.argoReleases`:
+  - `valuesObject` set ⇒ `helm.values` is not applied; a DetectTargets note records it ("helm.values is
+    ignored — valuesObject is set …").
+  - plain `valueFiles` paths resolve relative to the source `path` in the scanned repo; a plain path of a
+    Helm-repository chart source stays incomplete ("resolves inside the chart package"). `$ref/…` as
+    before, plus (as in env) an undeclared ref, a remote URL, a path escaping the repo and a missing file
+    (with the `ignoreMissingValueFiles` caveat) ⇒ incomplete; `fileParameters` ⇒ incomplete.
+  - a git `path` source that is not a kustomization is a Helm target when it has `helm:` settings or a
+    `Chart.yaml` in the repo and its path base names the product (formerly skipped — so the values
+    fix is reachable). Same rule as env.
+  - parameters: `env.SetValueJSON` (exported from env; one implementation) gives Helm strvals typing
+    for `--set-json`: `"1.5"` and `"0123"` stay strings (render's old `encodeSetValue` turned `1.5` into a
+    number), bools/null case-insensitive; a parameter without a value is `""` (was `"<nil>"`).
+    `encodeSetValue` removed.
+- Tests: `internal/render/argo_values_test.go` — `TestArgoRenderAndEnvStacksAgree` (multi-source chart:
+  declared-order `$values` files, values+valuesObject, typed/escaped/null parameters, `{}` and list
+  replace; git path source with a plain valueFile + `values`): the render target's effective values
+  (its `-f` layers merged and `--set-json` applied by an independent re-implementation of Helm's
+  `mergeMaps`/set in the test) equal the env release with the same id, and both are complete. A
+  mutation check (re-applying `helm.values`) makes it fail. `TestArgoUnreadableValueFileAgrees`: a
+  chart-source plain path is incomplete in both.
+- `TestDetectTargetsCustomerRepo` expectation: the fixture's Argo target has 1 layer (valuesObject), was 2
+  (values + valuesObject), and the "ignored" note is present.
+- Review UI (`internal/reviewui/english.go`): `flagText` — a CLI-flag subject whose stored name already
+  carries dashes is shown as stored (`--enable-metrics`, `-v`), a bare name gets `--`; never
+  `----enable-metrics`. Tests in `english_test.go`.
+- Goldens: **none changed** (no golden covers an Application with both values blocks, plain
+  valueFiles or a git-path Helm source). Docs: `docs/RENDER.md` target table.
+- Residual (not asked): helmfile `set` values in render are still encoded from the YAML-typed value
+  (`encode`), env uses the scalar text with strvals typing — they differ only for floats written with
+  trailing zeros / leading-zero numbers / mixed-case bools.
+
 ## Open questions / findings for the commander
 
-1. `internal/render/source.go` (not this lane's) diverges from Argo CD in two places: it applies both
-   `helm.values` and `helm.valuesObject` (Argo ignores `values` when `valuesObject` is set), and it
-   treats every plain `valueFiles` path as unreadable (Argo resolves it relative to the chart root, so a
-   git `path` source in the repo is readable). Render pairs and env values can therefore disagree for
-   such Applications. Suggest a small render fix reusing the same rules.
+1. ~~render divergences~~ — fixed in the follow-up above.
 2. Ambiguous releases are a gap in the five-class join (fail-closed). If per-release verdicts are wanted
    ("each is evaluated"), the join would run once per `ValuesScope.Releases` entry and combine
    worst-case — a larger change to `internal/impact`.

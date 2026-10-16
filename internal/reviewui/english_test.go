@@ -593,6 +593,8 @@ func TestSentences(t *testing.T) {
 		{&domain.Subject{Family: domain.SubjectCRDField, Path: "spec.x"}, "the resource field `spec.x`"},
 		{&domain.Subject{Family: domain.SubjectCLIFlag, Component: "controller", Name: "foo"}, "the controller flag `--foo`"},
 		{&domain.Subject{Family: domain.SubjectCLIFlag, Name: "foo"}, "the flag `--foo`"},
+		{&domain.Subject{Family: domain.SubjectCLIFlag, Name: "--enable-metrics"}, "the flag `--enable-metrics`"}, // stored with its dashes
+		{&domain.Subject{Family: domain.SubjectCLIFlag, Component: "controller", Name: "-v"}, "the controller flag `-v`"},
 		{&domain.Subject{Family: domain.SubjectHelmValue, Path: "crds.enabled"}, "the Helm value `crds.enabled`"},
 		{&domain.Subject{Family: domain.SubjectConfigKey, Path: "server.rbac.policy.default"}, "the config key `server.rbac.policy.default`"},
 		{&domain.Subject{Family: domain.SubjectProductRelationship, Product: "cert-manager", Name: "gateway-api"},

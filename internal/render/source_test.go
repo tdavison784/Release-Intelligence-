@@ -27,9 +27,16 @@ func TestDetectTargetsCustomerRepo(t *testing.T) {
 	for _, n := range notes {
 		t.Logf("note: %s", n)
 	}
+	// the Application sets helm.values AND helm.valuesObject: Argo CD applies
+	// valuesObject only ("valuesObject trumps values"), so one layer, and a
+	// note says values was ignored
 	argo := byKind[TargetArgoCD]
-	if len(argo) != 1 || argo[0].ReleaseName != "cert-manager" || argo[0].Namespace != "cert-manager" || len(argo[0].Values) != 2 || !argo[0].ValuesComplete {
+	if len(argo) != 1 || argo[0].ReleaseName != "cert-manager" || argo[0].Namespace != "cert-manager" || len(argo[0].Values) != 1 ||
+		!strings.HasSuffix(argo[0].Values[0].Origin, ".helm.valuesObject") || !argo[0].ValuesComplete {
 		t.Errorf("argo target: %+v", argo)
+	}
+	if !strings.Contains(strings.Join(notes, "\n"), "helm.values is ignored") {
+		t.Errorf("no note that helm.values is ignored: %v", notes)
 	}
 	flux := byKind[TargetFlux]
 	if len(flux) != 1 || flux[0].ValuesComplete || !strings.Contains(flux[0].IncompleteReason, "valuesFrom") || flux[0].Namespace != "flux-system" {
