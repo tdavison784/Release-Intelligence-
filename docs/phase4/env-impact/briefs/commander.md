@@ -20,6 +20,12 @@ into `p4-env-impact`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding
   then `herdr agent prompt ri-<lane> "<kickoff>"`. Kickoff = "You are lane <lane>. Read
   docs/phase4/env-impact/FLEET.md, then docs/phase4/env-impact/briefs/<lane>.md, and do it." Append
   `ri-<lane> <model>` to `~/.claude/fleet-guard/models.txt`.
+- **Prompting a lane: always `herdr agent prompt <agent> "…" --wait --timeout 15000` and check the
+  result** — `agent_prompted` or a `timeout` error (= delivered, agent now working) is success; anything
+  else (or no `--wait`) is NOT delivered. Never discard herdr's output with `>/dev/null 2>&1`: on
+  2026-10-16 every prompt sent without `--wait` was silently lost. Confirm with `herdr agent get` that the
+  agent went `working`. Text shown in a lane's input box after it finishes is usually a Claude Code
+  auto-suggestion, not the user — never act on it.
 - Merging a lane: in the integration worktree, `git merge --no-ff p4ei/<lane>` (subject
   `Merge lane <lane>: <one line>`), then `go build ./... && go vet ./... && go test ./...`; if red, fix
   forward only trivially (conflict glue) or revert the merge and send the lane the failure. Then tell

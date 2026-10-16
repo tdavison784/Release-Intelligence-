@@ -39,7 +39,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
-| contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
+| contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F (tab w1:t0) | DESIGN.md reviewed 13:15: merge-ready after the 'manifestation' fix (R2.4 hole: render silence must not clear controller-behaviour items); fixing |
 | groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 5 cases merged (23f79063); follow-up: diff-visible pair + diff-visible-harmless trap; adopt FORMAT.md after contract merges; worktree kept until then |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
@@ -60,6 +60,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Pre-existing processes NOT from this fleet, left alone: `temporal server start-dev` (pid 46289, up 22 d) and `./bin/worker` (pid 80813, up 16 d) on :7233. Lanes needing a Temporal dev server use another port (`--port`).
 - 2026-10-16 GROUNDTRUTH FINDING: the decisive breaks in both pairs are controller-binary defaults, invisible (or only CRD description text) in the rendered diff. Passed to contract as a generic design input: classify each breaking item by where it manifests (rendered-config vs controller-behaviour vs unknown); render-diff silence is never sufficient for Not Affected; for controller-behaviour items the deterministic check is an explicit pinning override in env evidence.
 - 2026-10-16 ri-groundtruth killed and relaunched a hung Docker Desktop at lane start (hung since a disk-full event on 2026-10-07); healthy since.
+- 2026-10-16 DELIVERY BUG: every commander prompt sent without `--wait` (output discarded) was lost — incl. the diffs clarification to contract (it found it in MISSION.md anyway), the controller-default input, the cleanup note, and groundtruth's follow-up. Resent with `--wait` and verified. Rule added to briefs/commander.md.
+- 2026-10-16 Auto-approve eligibility requires the agent stage completed (contract question; commander: keep — it is completeness, not model confidence).
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -69,7 +71,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Open questions for the user
 
-(none yet)
+- (asked 2026-10-16) Is it OK that the opt-in agent stage sends environment configuration (Secret values redacted) to the model provider? Default until answered: opt-in, redacted; milestone-1 runs use only synthetic fixture environments.
 
 ## Next actions
 
