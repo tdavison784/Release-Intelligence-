@@ -411,6 +411,7 @@
         "id",
         "changeItem",
         "class",
+        "manifestation",
         "rule",
         "reasoning",
         "environment",
@@ -422,6 +423,7 @@
         "id": {"type": "string"},
         "changeItem": {"type": "string", "pattern": "^ci-"},
         "class": {"$ref": "#/$defs/FindingClass"},
+        "manifestation": {"$ref": "#/$defs/Manifestation"},
         "rule": {"type": "string"},
         "reasoning": {"type": "string"},
         "environment": {"type": "string"},
@@ -452,7 +454,25 @@
       "type": "string",
       "enum": ["running", "awaiting-review", "completed", "failed", "cancelled"]
     },
+    "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "PinKind": {
+      "type": "string",
+      "enum": ["values-key", "field", "annotation", "flag", "env-var", "config-key"]
+    },
+    "PinnedSetting": {
+      "type": "object",
+      "required": ["kind", "subject", "path", "value", "evidence"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/PinKind"},
+        "subject": {"type": "string"},
+        "path": {"type": "string"},
+        "value": {"type": "string"},
+        "renderedObject": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
     "PolicyDecision": {
       "type": "object",
       "required": ["policy", "outcome", "reasons"],
@@ -669,6 +689,7 @@
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
         "answers": {"type": "array", "items": {"type": "string"}},
         "request": {"type": "string"},
+        "pin": {"$ref": "#/$defs/PinnedSetting"},
         "impactFinding": {"type": "string"},
         "provenance": {"$ref": "#/$defs/DeterministicProvenance"},
         "checkedAt": {"type": "string", "format": "date-time"}

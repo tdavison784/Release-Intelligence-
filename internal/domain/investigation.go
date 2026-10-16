@@ -308,6 +308,35 @@ var ChangeItemFamilies = []ChangeItemFamily{
 	FamilyValues, FamilyAPISchema, FamilyImage, FamilyCompatibility, FamilyRendered, FamilyBehavior, FamilyProcedure,
 }
 
+// Manifestation says where a change item takes effect, which decides whether
+// a silent render can clear it (DESIGN.md §2.2.1). Derived deterministically
+// at collection time from existing evidence by a declared rule
+// (ChangeItem.ManifestationRule), never by product-specific code.
+type Manifestation string
+
+const (
+	// ManifestRenderedConfig: the change takes effect in declared
+	// configuration — chart templates/values, CRD schema structure, image
+	// references, platform version bounds. Configuration evidence (the
+	// render diff, the manifests, the cluster version) is decisive.
+	ManifestRenderedConfig Manifestation = "rendered-config"
+	// ManifestControllerBehaviour: the change is runtime/default semantics
+	// of the shipped software (a default compiled into the controller or
+	// webhook binary, server-side defaulting). In a render it appears at most
+	// as description text: render silence is NOT decisive.
+	ManifestControllerBehaviour Manifestation = "controller-behaviour"
+	// ManifestUnknown: no rule decided; treated as controller-behaviour
+	// (fail closed).
+	ManifestUnknown Manifestation = "unknown"
+)
+
+// Manifestations lists every manifestation.
+var Manifestations = []Manifestation{ManifestRenderedConfig, ManifestControllerBehaviour, ManifestUnknown}
+
+// RenderDecisive reports whether a complete render showing nothing
+// attributable can count as evidence that the item does not apply.
+func (m Manifestation) RenderDecisive() bool { return m == ManifestRenderedConfig }
+
 // ChangeItem is one structured breaking-change item. It REFERENCES the
 // upgrade edge (ChangeID / Platform) instead of copying it; Title and the
 // flags are copies so the record renders standalone.
@@ -329,6 +358,11 @@ type ChangeItem struct {
 	// Evidence is the upstream chain (resolves in the bundle evidence pool).
 	Evidence  []EvidenceID `json:"evidence"`
 	Artifacts []string     `json:"artifacts,omitempty"`
+	// Manifestation says where the item takes effect; ManifestationRule is
+	// the declared rule that decided it (DESIGN.md §2.2.1), e.g.
+	// "manifest:computed-values", "manifest:declared-behaviour".
+	Manifestation     Manifestation `json:"manifestation"`
+	ManifestationRule string        `json:"manifestationRule"`
 	// InScope says whether the investigation must classify the item; the
 	// rule that decided it is ScopeRule (DESIGN.md §1.3), e.g.
 	// "scope:breaking", "scope:routine-excluded".
@@ -376,7 +410,7 @@ type ChangeEvidenceRecord struct {
 func (r ChangeEvidenceRecord) DerivedID() string {
 	parts := []string{string(r.Product.ID), r.From.Tag, r.To.Tag, r.Edge}
 	for _, it := range r.Items {
-		parts = append(parts, it.ID, fmt.Sprint(it.InScope))
+		parts = append(parts, it.ID, fmt.Sprint(it.InScope), string(it.Manifestation), it.ManifestationRule)
 	}
 	for _, s := range r.Sources {
 		parts = append(parts, string(s.Source), string(s.Status), strings.Join(s.Artifacts, ","))
@@ -467,6 +501,12 @@ func (r ChangeEvidenceRecord) Validate() error {
 		}
 		if strings.TrimSpace(it.Title) == "" || it.ScopeRule == "" {
 			bad("item %s: title and scopeRule are required", it.ID)
+		}
+		if !oneOf(it.Manifestation, Manifestations) {
+			bad("item %s: unknown manifestation %q", it.ID, it.Manifestation)
+		}
+		if !strings.HasPrefix(it.ManifestationRule, "manifest:") {
+			bad("item %s: manifestationRule must name the declared rule (manifest:...)", it.ID)
 		}
 		if len(it.Evidence) == 0 {
 			bad("item %s: upstream evidence is required", it.ID)
@@ -1465,6 +1505,41 @@ var ValidationOutcomeKinds = []ValidationOutcomeKind{ValidationPass, ValidationF
 // Decisive reports whether the outcome decides the property.
 func (o ValidationOutcomeKind) Decisive() bool { return o == ValidationPass || o == ValidationFail }
 
+// PinKind is what kind of explicit environment setting pins a behaviour.
+type PinKind string
+
+const (
+	PinValuesKey  PinKind = "values-key" // a Helm values key the environment sets
+	PinField      PinKind = "field"      // a field of a manifest / custom resource
+	PinAnnotation PinKind = "annotation" // an annotation on an object
+	PinFlag       PinKind = "flag"       // a controller command-line flag (container args)
+	PinEnvVar     PinKind = "env-var"    // a controller environment variable
+	PinConfigKey  PinKind = "config-key" // a key of a controller ConfigMap / config file
+)
+
+// PinKinds lists every kind.
+var PinKinds = []PinKind{PinValuesKey, PinField, PinAnnotation, PinFlag, PinEnvVar, PinConfigKey}
+
+// PinnedSetting is an explicit setting in the environment that pins the old
+// (safe) behaviour of a change item, established from environment evidence.
+// It is what lets a controller-behaviour item be not-affected (DESIGN.md §3.1
+// R2.4): the render can show WHERE the setting lands (RenderedChanges /
+// RenderedObject), but only the explicit setting proves the behaviour.
+type PinnedSetting struct {
+	Kind PinKind `json:"kind"`
+	// Subject is where the setting is made: an object id
+	// (<group>/<version>/<kind>/<namespace>/<name>) or an environment file path.
+	Subject string `json:"subject"`
+	Path    string `json:"path"`  // key / field path / annotation / flag / variable name
+	Value   string `json:"value"` // the pinned value as written (JSON-encoded scalar)
+	// RenderedObject is the rendered object the setting lands in, when the
+	// render shows it (e.g. the controller Deployment's args, its ConfigMap).
+	RenderedObject string `json:"renderedObject,omitempty"`
+	// Evidence cites the environment evidence (local-file, input or an
+	// environment-scope render) that states the setting.
+	Evidence []EvidenceID `json:"evidence"`
+}
+
 // ValidationRecord is one deterministic (or observed) validation of a
 // change item against environment subjects. It is the ONLY thing that can
 // lower a finding toward not-affected or establish affected (DESIGN.md §3).
@@ -1497,6 +1572,10 @@ type ValidationRecord struct {
 	Answers []string `json:"answers,omitempty"`
 	// Request is the validation request that triggered the run, if any.
 	Request string `json:"request,omitempty"`
+	// Pin is the explicit environment setting an override-inspection pass
+	// established (required for that pass to clear a controller-behaviour
+	// item; DESIGN.md §3.1 R2.4).
+	Pin *PinnedSetting `json:"pin,omitempty"`
 	// ImpactFinding is set when the record wraps a verdict of the
 	// deterministic ImpactReport (e.g. a not-affected render check).
 	ImpactFinding string     `json:"impactFinding,omitempty"`
@@ -1555,7 +1634,25 @@ func (v ValidationRecord) Validate() error {
 	if v.Provenance.Producer != v.Validator {
 		bad("provenance producer %q must equal validator %q", v.Provenance.Producer, v.Validator)
 	}
+	if p := v.Pin; p != nil {
+		if v.Kind != ValidationOverrideInspection || v.Outcome != ValidationPass {
+			bad("a pinned setting is established only by a passing override-inspection")
+		}
+		if !oneOf(p.Kind, PinKinds) || p.Subject == "" || p.Path == "" || p.Value == "" {
+			bad("pin needs a known kind, subject, path and value")
+		}
+		if len(p.Evidence) == 0 {
+			bad("pin must cite the environment evidence that states the setting")
+		}
+	}
 	return errors.Join(errs...)
+}
+
+// ClearsBehaviour reports whether a passing record may clear a change item
+// whose manifestation is not rendered-config: an observed outcome, or an
+// override inspection that established an explicit pinned setting.
+func (v ValidationRecord) ClearsBehaviour() bool {
+	return v.Outcome == ValidationPass && (v.Level == LevelObserved || (v.Kind == ValidationOverrideInspection && v.Pin != nil))
 }
 
 // --- agent records (§A4, P3) --------------------------------------------------------------
@@ -1852,9 +1949,12 @@ type ApprovalEligibility struct {
 // requires.
 type InvestigationFinding struct {
 	ID          string       `json:"id"` // InvestigationFindingID(environment, changeItem, class, rule)
-	ChangeItem  string       `json:"changeItem"`
-	Class       FindingClass `json:"class"`
-	Rule        string       `json:"rule"`        // policy rule that decided the class, e.g. "classify:validated-clear"
+	ChangeItem string       `json:"changeItem"`
+	Class      FindingClass `json:"class"`
+	// Manifestation is copied from the change item (checked against the
+	// bundle); it decides which validations can clear the item.
+	Manifestation Manifestation `json:"manifestation"`
+	Rule          string        `json:"rule"` // policy rule that decided the class, e.g. "classify:validated-clear"
 	Reasoning   string       `json:"reasoning"`   // deterministic explanation of the class
 	Environment string       `json:"environment"` // snapshot environment name
 	Components  []string     `json:"components,omitempty"`
@@ -1898,6 +1998,9 @@ func (f InvestigationFinding) Validate() error {
 	}
 	if !oneOf(f.Class, FindingClasses) {
 		bad("unknown class %q", f.Class)
+	}
+	if !oneOf(f.Manifestation, Manifestations) {
+		bad("unknown manifestation %q", f.Manifestation)
 	}
 	if !strings.HasPrefix(f.ChangeItem, ChangeItemIDPrefix) || f.Rule == "" || f.Environment == "" {
 		bad("changeItem, rule and environment are required")
@@ -2395,10 +2498,21 @@ func (inv *Investigation) validateFindingRefs(f InvestigationFinding, paths map[
 	}
 	covered := map[string]bool{}
 	answered := map[string]bool{}
+	clearing := 0
 	for _, id := range f.Validations {
 		v := vals[id]
 		if v.Outcome != ValidationPass {
 			bad("not-affected cites validation %s whose outcome is %s", id, v.Outcome)
+		}
+		// R2.4: for an item whose effect is not in rendered configuration, a
+		// render that shows nothing proves nothing; only an established pin or
+		// an observed outcome covers paths, roots, rendered changes or concerns.
+		if !f.Manifestation.RenderDecisive() && !v.ClearsBehaviour() {
+			continue
+		}
+		clearing++
+		for _, a := range v.Answers {
+			answered[a] = true
 		}
 		for _, p := range v.Paths {
 			covered[p] = true
@@ -2409,8 +2523,12 @@ func (inv *Investigation) validateFindingRefs(f InvestigationFinding, paths map[
 		for _, r := range v.Subjects {
 			covered["root:"+r] = true
 		}
-		for _, a := range v.Answers {
-			answered[a] = true
+	}
+	if clearing == 0 {
+		if f.Manifestation.RenderDecisive() {
+			bad("not-affected requires at least one passing validation")
+		} else {
+			bad("item manifests as %s: not-affected requires an override inspection that establishes a pinned setting, or an observed validation (render silence is not decisive)", f.Manifestation)
 		}
 	}
 	for _, p := range inv.Traversal.PathsOf(f.ChangeItem) {
@@ -2601,13 +2719,45 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		art("validation "+v.ID, v.Inputs...)
 		art("validation "+v.ID, v.Outputs...)
 		rendered("validation "+v.ID, v.RenderedChanges)
+		if p := v.Pin; p != nil {
+			if p.RenderedObject != "" {
+				found := false
+				for _, rc := range rcs {
+					found = found || rc.Object == p.RenderedObject
+				}
+				for _, pr := range b.Renders {
+					if pr.Status == CollectionOK {
+						found = true // the object may be in the render without having changed
+					}
+				}
+				if !found {
+					bad("validation %s: pin lands in %s but no complete environment render exists", v.ID, p.RenderedObject)
+				}
+			}
+			for _, id := range p.Evidence {
+				e, ok := ev[id]
+				if !ok {
+					bad("validation %s: pin evidence %s does not resolve", v.ID, id)
+					continue
+				}
+				envKind := e.Kind == EvidenceLocalFile || e.Kind == EvidenceInput || (e.Render != nil && e.Render.Scope == RenderEnvironment)
+				if !envKind {
+					bad("validation %s: pin evidence %s is %s evidence; a pinned setting is established from the environment", v.ID, id, e.Kind)
+				}
+			}
+		}
 	}
 	for _, f := range inv.Findings {
 		item("finding "+f.ID, f.ChangeItem)
 		evid("finding "+f.ID, f.Evidence)
 		art("finding "+f.ID, f.Artifacts...)
-		if it, ok := b.Change.Item(f.ChangeItem); ok && !it.InScope {
-			bad("finding %s classifies out-of-scope item %s", f.ID, f.ChangeItem)
+		if it, ok := b.Change.Item(f.ChangeItem); ok {
+			if !it.InScope {
+				bad("finding %s classifies out-of-scope item %s", f.ID, f.ChangeItem)
+			}
+			if f.Manifestation != it.Manifestation {
+				bad("finding %s: manifestation %s, but the change item manifests as %s", f.ID, f.Manifestation, it.Manifestation)
+			}
 		}
 		rendered("finding "+f.ID, f.RenderedChanges)
 		// The rendered diff is the primary exposure evidence: a finding lists

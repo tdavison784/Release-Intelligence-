@@ -79,7 +79,16 @@
     },
     "ChangeItem": {
       "type": "object",
-      "required": ["id", "family", "title", "evidence", "inScope", "scopeRule"],
+      "required": [
+        "id",
+        "family",
+        "title",
+        "evidence",
+        "manifestation",
+        "manifestationRule",
+        "inScope",
+        "scopeRule"
+      ],
       "properties": {
         "id": {"type": "string"},
         "changeId": {"type": "string"},
@@ -92,6 +101,8 @@
         "subjects": {"type": "array", "items": {"type": "string"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1},
         "artifacts": {"type": "array", "items": {"type": "string"}},
+        "manifestation": {"$ref": "#/$defs/Manifestation"},
+        "manifestationRule": {"type": "string", "pattern": "^manifest:"},
         "inScope": {"type": "boolean"},
         "scopeRule": {"type": "string"}
       },
@@ -255,6 +266,7 @@
       },
       "additionalProperties": false
     },
+    "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
     "ProductID": {"type": "string"},
     "ProductRef": {
       "type": "object",

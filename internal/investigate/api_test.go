@@ -75,7 +75,7 @@ func TestToolNamesUnique(t *testing.T) {
 		}
 		seen[n] = true
 	}
-	if len(ToolNames) != 12 {
+	if len(ToolNames) != 13 {
 		t.Fatalf("tool surface changed: %v", ToolNames)
 	}
 }

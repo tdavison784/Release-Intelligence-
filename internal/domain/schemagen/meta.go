@@ -144,6 +144,8 @@ var enums = []enumSet{
 	enumOf(domain.InvestigationStatuses...),
 	enumOf(domain.AgentRunStatuses...),
 	enumOf(domain.Stages...),
+	enumOf(domain.Manifestations...),
+	enumOf(domain.PinKinds...),
 }
 
 // notSerialised names typed-constant sets that never appear in the JSON
@@ -219,6 +221,8 @@ var fieldPatches = map[string]obj{
 	"EvidenceRequest.provenance":      o("$ref", "#/$defs/"+defAI),
 	"ValidationRequest.provenance":    o("$ref", "#/$defs/"+defAI),
 	"ChangeItem.evidence":             o("minItems", 1),
+	"ChangeItem.manifestationRule":    o("pattern", "^manifest:"),
+	"PinnedSetting.evidence":          o("minItems", 1),
 	"ArtifactRef.digest":              o("pattern", "^sha256:[0-9a-f]{64}$"),
 	"ArtifactRef.id":                  o("pattern", "^"+domain.ArtifactIDPrefix),
 	"ChangeEvidenceRecord.sources":    o("minItems", len(domain.ChangeSourceKinds), "maxItems", len(domain.ChangeSourceKinds)),

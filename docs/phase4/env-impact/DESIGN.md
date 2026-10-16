@@ -271,6 +271,31 @@ Family decides the deciding inputs and validators:
 | `compatibility` | cluster-version, inventory | schema-compat (version range) |
 | `behavior`, `procedure` | (none decides alone) | static-reference on consumers; otherwise no validator applies ⇒ never `not-affected` without one |
 
+#### §2.2.1 Manifestation — where an item takes effect (decides whether render silence can clear it)
+
+Generic design input from the groundtruth lane's `kind` runs: a whole class of breaking changes is a
+**behaviour default compiled into the new controller/operator binary** (or applied server-side). In the
+environment's rendered from/to diff it appears at most as CRD description text, or not at all. A complete
+render that shows nothing attributable is therefore decisive only for changes that take effect in
+rendered configuration. Every `ChangeItem` carries `Manifestation` + `ManifestationRule`, derived by the
+collector (lane bundle) from existing evidence with the first matching declared rule — never product Go
+code:
+
+| Rule | Manifestation | Items |
+|---|---|---|
+| `manifest:rendered-anchor` | `rendered-config` | anchored on a release-scope rendered change |
+| `manifest:computed-values` | `rendered-config` | computed `values:*` diffs (chart keys and defaults; PO-3 counterfactual renders decide unset keys) |
+| `manifest:computed-image` | `rendered-config` | computed image / artifact diffs |
+| `manifest:computed-compat` | `rendered-config` | compatibility items (decided by the cluster version / inventory) |
+| `manifest:computed-crd-structure` | `rendered-config` | `crd:removed`, `crd:version-*`, `crd:fields-removed`, `crd:field-type-changed`, `crd:field-required`, `crd:enum-changed` (schema structure, decided against the manifests) |
+| `manifest:crd-default` | `controller-behaviour` | `crd:default-changed` (server-side defaulting of objects that leave the field unset; consumers' renders are silent) |
+| `manifest:rendered-correlated` | `rendered-config` | a declared/heuristic change with ≥1 release-scope rendered change correlated by rule `subject`, `values-default` or `artifact` on a path that is not description text (`…description`) |
+| `manifest:declared-behaviour` | `controller-behaviour` | every other declared/heuristic (note-derived) change, including families `behavior` and `procedure` |
+| `manifest:unknown` | `unknown` | nothing matched — treated as `controller-behaviour` (fail closed) |
+
+`Manifestation.RenderDecisive()` is true only for `rendered-config`. Findings copy the item's
+manifestation (checked against the bundle).
+
 ### §2.3 Artifacts, manifest, bundle on disk (P1 deliverable)
 
 ```
@@ -376,6 +401,14 @@ Inputs, Outputs, Outcome, Detail, Evidence, Answers, Request, ImpactFinding, Pro
   fact and its verification. Consensus and proxy facts are never wrapped as `pass`.
 - `Answers` lists agent assertion/hypothesis ids the run tested: a passing validation that answers a
   `raises-concern` assertion is the only way to lift that concern's block.
+- `Pin *PinnedSetting{Kind: values-key|field|annotation|flag|env-var|config-key, Subject, Path, Value,
+  RenderedObject, Evidence}`: an **override-inspection pass** that establishes, from environment evidence
+  (`local-file`, `input` or an environment-scope render — checked by `ValidateAgainst`), an explicit
+  setting that pins the old/safe behaviour. `RenderedObject` (with `RenderedChanges`) uses the render to
+  show where the setting lands (the controller Deployment's args, its ConfigMap). `Validate` allows a pin
+  only on a passing override inspection and requires its evidence. `ClearsBehaviour()` = an observed pass,
+  or an override-inspection pass with a pin — the only validations that can clear a non-`rendered-config`
+  item.
 
 ### §2.7 Agent records (§A4)
 
@@ -448,7 +481,12 @@ here wrapped as a `fail`, §2.6.)
    edge reachable from *c*'s roots).
 4. **Paths**: every path of *c* is covered by a passing validation (`Paths`); with no paths, every root of
    *c* is (`Subjects`); with no roots, at least one passing validation of *c* exists (e.g. a wrapped
-   join `not-affected`, or a complete render showing nothing attributable).
+   join `not-affected`, or — for a `rendered-config` item only — a complete render showing nothing
+   attributable).
+   **For a `controller-behaviour` or `unknown` item only clearing validations count** — for coverage
+   here, for R2.2 and for R2.6: an override inspection that established a `PinnedSetting` (the explicit
+   value/field/annotation/flag pinning the old behaviour, with the render showing where it lands), or an
+   observed-level validation. A render that shows nothing never satisfies R2.4 for such an item.
 5. **No contradiction**: no validation of *c* with outcome `fail` or `error`.
 6. **No open concern**: every `raises-concern` assertion about *c* is answered by a passing validation.
 7. **No assumption**: the finding rests on no `claims-mitigation`/`explains` assertion that no validation
@@ -473,7 +511,13 @@ Ordering of concern (for "raise"): `affected` > `potentially-affected` > `insuff
 
 Missing context (R2.1), incomplete traversal (R2.3), an unanswered concern (R2.6) or an unsupported
 assumption (R2.7) each prevent `not-affected`. "No match" is never `not-affected` by itself (R2.4 needs a
-passing validation even with no roots). An incomplete render never decides anything (§2.4).
+passing validation even with no roots). An incomplete render never decides anything (§2.4). Render
+silence never clears a behaviour change (§2.2.1, R2.4).
+
+For a `controller-behaviour`/`unknown` item that ends in R3 or R4, `NextSteps` names the setting to look
+for (the flag / values key / field / annotation the upstream text says restores the old behaviour, from
+the item's evidence; or "observe the behaviour after upgrade in an isolated cluster" when upstream names
+none) — produced by the classifier from the item's upstream evidence and any agent hypotheses.
 
 ### §3.3 What the agent can and cannot do
 
@@ -529,6 +573,8 @@ is untouched.
 | affected cites a failing det/observed validation | yes | — | R1 |
 | action-required join ⇒ affected | yes | — | R1 via wrap |
 | not-affected: no gaps/assumptions, validations, basis, complete traversal, paths/roots/rendered changes covered, no fail/error, concerns answered | yes | — | R2 |
+| behaviour/unknown items: only pinned-setting or observed passes cover (R2.4); finding manifestation = item manifestation; pin only on a passing override inspection, cited from environment evidence | yes (pin evidence kind against bundle) | manifestation enum, rule pattern, pin evidence minItems | R2.4 |
+| R3/R4 NextSteps naming the deciding setting for behaviour items | — | — | classifier |
 | finding lists exactly its correlated env rendered changes | yes (against bundle) | — | — |
 | insufficient: gaps + next steps; potentially: next steps | yes | — | R3/R4 |
 | one finding per in-scope item; none for out-of-scope | yes (against bundle) | — | — |
@@ -547,6 +593,7 @@ Diff tools first — the rendered diff is the agent's primary evidence:
 
 | Tool | Purpose |
 |---|---|
+| `get_change_item` | the item (family, manifestation + rule, scope) with its **upstream change text and sources**: the edge `Change` (title, detail, subjects, references) or compatibility change, the upstream evidence records (URI, locator, excerpt), the source artifacts, migration notes, the correlated release- and environment-scope rendered changes and the join findings — so the agent can name the setting that decides the item |
 | `list_renders` | every render pair: scope, target, status/reason, change counts by class, uncorrelated count |
 | `query_diff` | filter rendered changes (scope, target, change item, uncorrelated, classes, kinds, namespaces, path prefix) |
 | `get_rendered_object` | one object/field from the from or to render (redacted), with its artifact for citation |
@@ -606,11 +653,13 @@ on a stored run must reproduce its findings byte for byte (the `reproducibility`
 
 ### §4.6 Task framing (prompt content requirements, not wording)
 
-The task lists the in-scope items (id, title, family, upstream citations), the render summary, the
+The task lists the in-scope items (id, title, family, manifestation, upstream citations), the render summary, the
 correlated and uncorrelated rendered changes, the roots and unresolved edges, the deterministic
 validations already run, and the policy summary of §3.3 — so the agent knows its job is to find
 consumers and mechanisms the deterministic layers missed, to request validations, and that it cannot
-clear anything itself. The prompt is generic (FLEET.md: never tuned to a case; agent lanes do not read
+clear anything itself. For `controller-behaviour`/`unknown` items it is told that render silence proves
+nothing: its job is to read the upstream text (`get_change_item`), name the setting that pins the old
+behaviour, look for it in the environment and the renders, and request an override inspection. The prompt is generic (FLEET.md: never tuned to a case; agent lanes do not read
 `eval/investigations/*/expected.yaml`).
 
 ---
@@ -705,6 +754,9 @@ scored as the system saying `insufficient-evidence` and counted as `itemMatchMis
 | `humanReviewRate`, `autoApprovalEligibilityRate` | reported, not gated (P6 "measure") |
 | `pipelineFailures` | runs that errored (not classified) |
 
+**Per manifestation**: every metric is also reported per item `Manifestation` (render-decisive vs
+behaviour), so render-only blind spots are visible.
+
 **Per verification level**: every metric is also reported per finding `Basis` (`deterministic`,
 `observed`, none) and per expected `verification` (`observed`, `render`, `upstream-only`); review
 outcomes per reviewer kind (`human`, `proxy` — always labelled).
@@ -736,7 +788,7 @@ writes its own in-memory fakes of the ports it consumes.
   `investigate.RecordStore` (§2.3 layout, atomic writes, digest-verified reads, bundle immutability,
   audit-only-grows check); `bundle.NewChangeCollector(app *app.App, st investigate.ArtifactStore)
   investigate.ChangeCollector` (over `app.Upgrade` + release-scope `app.RenderDiffEdge` chart-default
-  pair; §1.3 scope rules; every `ChangeSourceKind` stated); `bundle.NewSnapshotBuilder(st)
+  pair; §1.3 scope rules; §2.2.1 manifestation rules; every `ChangeSourceKind` stated); `bundle.NewSnapshotBuilder(st)
   investigate.SnapshotBuilder` (over `env.Load`, `RepoRef` incl. git commit/dirty/tree digest,
   redaction §2.3); `bundle.NewAssembler(st) investigate.BundleAssembler`.
 - Done: a bundle for each groundtruth case's `input.yaml` that `Validate`s; determinism test (two runs →
@@ -759,8 +811,9 @@ writes its own in-memory fakes of the ports it consumes.
 - Owns `internal/investigate/validate/`.
 - Implements `investigate.Validator`s: `validate.JoinVerdicts(report)` (wraps decisive join verdicts,
   §2.6), `validate.RenderDiff()` (env-scope: no attributable change for the item's subjects / fail when a
-  breaking item's change reaches them), `validate.OverrideInspection()` (values/overlay pins
-  neutralising the item, via `impact` set/unset evaluators and the renders), `validate.SchemaCompat()`
+  breaking item's change reaches them), `validate.OverrideInspection()` (values/overlay/flag/annotation
+  settings neutralising the item, via `impact` set/unset evaluators and the renders; a pass records the
+  `PinnedSetting` it established, citing environment evidence — required to clear behaviour items), `validate.SchemaCompat()`
   (CRD GVK/version/field rules against manifests and rendered CRDs; kube-version ranges),
   `validate.StaticReference()` (references resolve / dangle on graph + rendered objects). Each returns
   `not-run` with a reason when it cannot decide.
@@ -779,7 +832,7 @@ writes its own in-memory fakes of the ports it consumes.
 
 **`agent`** (Opus) — after bundle + renderdiff.
 - Owns `internal/investigate/agent/` (incl. embedded prompts), `cmd/ri/investigate_mcp.go`.
-- Implements `investigate.Tools` (validation of ids/citations, budgets, transcript), MCP stdio server
+- Implements `investigate.Tools` (incl. `get_change_item`; validation of ids/citations, budgets, transcript), MCP stdio server
   `ri investigate mcp`, drivers `claude-cli` / `exchange` / `replay` / `scripted` (`investigate.AgentDriver`),
   `agent.New(...) investigate.Investigator`.
 - Done: scripted-driver tests for every rejection path; a replay reproduces result digests; one live
@@ -787,8 +840,8 @@ writes its own in-memory fakes of the ports it consumes.
 
 **`classify`** (Opus) — after validate.
 - Owns `internal/investigate/classify/`.
-- Implements `classify.New() investigate.Classifier` (§3 exactly, incl. R2.1 per-family collection and
-  the tier-policy conjunction) and `investigate.ReviewApplier`.
+- Implements `classify.New() investigate.Classifier` (§3 exactly, incl. R2.1 per-family collection, R2.4
+  manifestation, NextSteps naming the deciding setting, and the tier-policy conjunction) and `investigate.ReviewApplier`.
 - Done: a test per rule and per §3.3 row; every output `ValidateAgainst`s its bundle; reproducibility test.
 
 **`orchestrate`** (Sonnet) — after wave 1.

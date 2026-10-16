@@ -346,6 +346,7 @@ type ReviewApplier interface {
 // Tool names as exposed over MCP (`ri investigate mcp`). The diff tools come
 // first: the rendered diff is the agent's primary evidence.
 const (
+	ToolGetChangeItem     = "get_change_item"
 	ToolListRenders       = "list_renders"
 	ToolQueryDiff         = "query_diff"
 	ToolGetRenderedObject = "get_rendered_object"
@@ -362,9 +363,34 @@ const (
 
 // ToolNames lists every tool in a stable order.
 var ToolNames = []string{
-	ToolListRenders, ToolQueryDiff, ToolGetRenderedObject,
+	ToolGetChangeItem, ToolListRenders, ToolQueryDiff, ToolGetRenderedObject,
 	ToolSearchManifest, ToolReadArtifact, ToolExpandGraph, ToolListPaths, ToolRequestEvidence,
 	ToolRequestValidation, ToolRecordHypothesis, ToolRecordAssertion, ToolSubmitFindings,
+}
+
+// ChangeItemDetail is everything upstream says about one change item, next
+// to what the renders show for it — so the agent can name the setting that
+// decides the item (for a controller-behaviour item: the flag, values key,
+// field or annotation that pins the old behaviour).
+type ChangeItemDetail struct {
+	Item domain.ChangeItem `json:"item"`
+	// Change is the referenced UpgradeEdge change (nil for compatibility and
+	// rendered-anchored items): title, detail (the upstream text), category,
+	// subjects, references.
+	Change *domain.Change `json:"change,omitempty"`
+	// Compatibility is the referenced compatibility change, for platform items.
+	Compatibility *domain.CompatibilityChange `json:"compatibility,omitempty"`
+	// Evidence are the upstream records (URI, locator, verbatim excerpt) of
+	// the item; Sources the artifacts holding the full upstream documents
+	// (read them with read_artifact).
+	Evidence       []domain.Evidence    `json:"evidence"`
+	Sources        []domain.ArtifactRef `json:"sources,omitempty"`
+	MigrationNotes []domain.Evidence    `json:"migrationNotes,omitempty"`
+	// RenderedChanges are the release- and environment-scope rendered
+	// changes correlated to the item.
+	RenderedChanges []domain.RenderedChange `json:"renderedChanges,omitempty"`
+	// ImpactFindings are the deterministic join's findings for the change.
+	ImpactFindings []domain.ImpactFindingRef `json:"impactFindings,omitempty"`
 }
 
 // RenderSummary describes one render pair of the bundle.
@@ -553,6 +579,7 @@ type SubmitInput struct {
 // uncited claims or quotes that do not occur are rejected with ErrRejected
 // and nothing is recorded.
 type Tools interface {
+	GetChangeItem(ctx context.Context, id string) (*ChangeItemDetail, error)
 	ListRenders(ctx context.Context) ([]RenderSummary, error)
 	QueryDiff(ctx context.Context, q DiffQuery) ([]domain.RenderedChange, error)
 	GetRenderedObject(ctx context.Context, r ObjectRequest) (*ObjectResult, error)

@@ -32,6 +32,19 @@ State: **DONE** (2026-10-16). Resume from: this file + `docs/phase4/env-impact/D
   not-affected must show each harmless; uncorrelated changes / no complete render block auto-approval);
   graph/DFS kept light (lane `relations`).
 
+- **Commander review fix (manifestation)** — generic input from groundtruth's kind runs: behaviour
+  defaults compiled into the new controller binary are invisible (or description-only) in the render.
+  Every `ChangeItem` now has `Manifestation` (`rendered-config` | `controller-behaviour` | `unknown`) +
+  `ManifestationRule` (declared rules `manifest:*`, DESIGN §2.2.1; derived by lane bundle from change
+  kind / computed-vs-declared / release-render correlation, never product code). Findings copy it
+  (checked against the bundle). For behaviour/unknown items R2.4 accepts only an override-inspection pass
+  carrying a `PinnedSetting` (explicit value/field/annotation/flag/env-var/config-key, cited from
+  environment evidence, with the render showing where it lands) or an observed validation — render
+  silence never clears them; R3/R4 NextSteps name the setting to look for. New agent tool
+  `get_change_item` (upstream change text, evidence, sources, correlated rendered changes, join
+  findings). Tests: `TestManifestationRules` (10 cases); schemas regenerated (enums, rule pattern, pin
+  evidence minItems); samples refreshed.
+
 ## In progress / next step
 
 - Nothing. Commander: review DESIGN.md (gap-map honesty, §3 fail-closed policy, §3.5 ACTION REQUIRED
@@ -76,13 +89,12 @@ n/a (this lane defines the contract). After merge, changes go through the comman
 
 ## Open questions
 
-1. **User**: the agent stage sends environment configuration (values, manifests; Secret values redacted)
-   to the model provider. DESIGN makes it opt-in per run (`--agent`). Acceptable?
-2. **Commander**: auto-approval eligibility requires the agent stage to have completed (DESIGN §0
-   conflict 2: the agent can only block, so this only makes approval rarer). Confirm.
-3. **Commander**: I never received the product-owner clarification as a message in my pane; I read it
-   from `MISSION.md`/`COMMANDER.md` on `p4-env-impact` and redesigned around it before finishing.
-   This branch is not merged with `p4-env-impact` (FLEET: only on the commander's instruction).
+1. **User** (with the commander; not blocking): the agent stage sends environment configuration to the
+   model provider — designed opt-in per run (`--agent`) with Secret values redacted.
+2. ~~Auto-approval requires the agent stage completed~~ — **confirmed by the commander** (completeness,
+   not model confidence); kept as designed.
+3. Earlier commander notes did not reach this pane (delivery bug, fixed per the commander). This branch is
+   not merged with `p4-env-impact` (FLEET: only on the commander's instruction).
 
 ## Tests
 

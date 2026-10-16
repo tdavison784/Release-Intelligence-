@@ -72,9 +72,12 @@ func newInvFixture(t *testing.T) *invFixture {
 	envEv := NewEvidence(EvidenceLocalFile, "", "apps/web/certificate.yaml", "$.spec", "secretName: web-tls", certArt.Digest, fixNow)
 
 	items := []ChangeItem{
-		{ChangeID: "chg-a", Family: FamilyAPISchema, Title: "Certificate privateKey.rotationPolicy default changes to Always", Breaking: true, Evidence: []EvidenceID{upEv.ID}, InScope: true, ScopeRule: "scope:breaking"},
-		{ChangeID: "chg-b", Family: FamilyValues, Title: "ACME HTTP01 ingress pathType defaults to Exact", Breaking: true, Evidence: []EvidenceID{upEvB.ID}, InScope: true, ScopeRule: "scope:breaking"},
-		{ChangeID: "chg-c", Family: FamilyBehavior, Title: "Bump Go to 1.24", Evidence: []EvidenceID{upEv.ID}, InScope: false, ScopeRule: "scope:routine-excluded"},
+		{ChangeID: "chg-a", Family: FamilyAPISchema, Title: "Certificate privateKey.rotationPolicy default changes to Always", Breaking: true, Evidence: []EvidenceID{upEv.ID}, InScope: true, ScopeRule: "scope:breaking",
+			Manifestation: ManifestControllerBehaviour, ManifestationRule: "manifest:declared-behaviour"},
+		{ChangeID: "chg-b", Family: FamilyValues, Title: "ACME HTTP01 ingress pathType defaults to Exact", Breaking: true, Evidence: []EvidenceID{upEvB.ID}, InScope: true, ScopeRule: "scope:breaking",
+			Manifestation: ManifestControllerBehaviour, ManifestationRule: "manifest:declared-behaviour"},
+		{ChangeID: "chg-c", Family: FamilyBehavior, Title: "Bump Go to 1.24", Evidence: []EvidenceID{upEv.ID}, InScope: false, ScopeRule: "scope:routine-excluded",
+			Manifestation: ManifestUnknown, ManifestationRule: "manifest:unknown"},
 	}
 	for i := range items {
 		items[i].ID = ChangeItemID(items[i].ChangeID, items[i].Platform, items[i].RenderedChange)
@@ -207,12 +210,14 @@ func newInvFixture(t *testing.T) *invFixture {
 		ChangeItem: itemB, Subjects: []string{nDeploy.ID}, Paths: []string{pB.ID},
 		Property: "the values pin acmesolver pathType to Prefix", Inputs: []string{valuesArt.ID}, Outcome: ValidationPass,
 		Evidence: []EvidenceID{envEv.ID}, Answers: []string{concern.ID}, Request: vreq.ID,
+		Pin: &PinnedSetting{Kind: PinValuesKey, Subject: "env/apps/cert-manager/values.yaml", Path: "acmesolver.http01.pathType",
+			Value: `"Prefix"`, Evidence: []EvidenceID{envEv.ID}},
 		Provenance: computed("validate.override@v1"), CheckedAt: fixNow}
 	vB.ID = ValidationRecordID(vB.Validator, vB.ChangeItem, vB.Subjects, vB.Paths, vB.RenderedChanges, vB.Inputs)
 	vreq.Result = vB.ID
 
 	// Findings.
-	fA := InvestigationFinding{ChangeItem: itemA, Class: FindingAffected, Rule: "classify:validated-exposure",
+	fA := InvestigationFinding{ChangeItem: itemA, Class: FindingAffected, Manifestation: ManifestControllerBehaviour, Rule: "classify:validated-exposure",
 		Reasoning: "render-diff demonstrates the default reaches Certificate web-tls", Environment: "prod-eu",
 		Components: []string{nCert.ID, nDeploy.ID}, RenderedChanges: []string{rcA.ID}, Paths: []string{pA.ID}, Validations: []string{vA.ID},
 		Assertions:     []string{explain.ID},
@@ -221,7 +226,7 @@ func newInvFixture(t *testing.T) *invFixture {
 		Basis: LevelDeterministic, Approval: ApprovalEligibility{RequiresHumanReview: true, Blockers: []string{"class affected"}},
 		Provenance: computed("classify.policy@v1")}
 	fA.ID = InvestigationFindingID(fA.Environment, fA.ChangeItem, fA.Class, fA.Rule)
-	fB := InvestigationFinding{ChangeItem: itemB, Class: FindingNotAffected, Rule: "classify:validated-clear",
+	fB := InvestigationFinding{ChangeItem: itemB, Class: FindingNotAffected, Manifestation: ManifestControllerBehaviour, Rule: "classify:validated-clear",
 		Reasoning: "the values override pins pathType; validated", Environment: "prod-eu",
 		Paths: []string{pB.ID}, Validations: []string{vB.ID}, Assertions: []string{concern.ID},
 		Evidence: []EvidenceID{upEvB.ID}, Basis: LevelDeterministic,
@@ -1067,4 +1072,94 @@ func TestRenderedChangeRules(t *testing.T) {
 	tr.Roots = append([]ExposureRoot(nil), tr.Roots...)
 	tr.Roots[0].ImpactFinding = "imp-a"
 	wantInvErr(t, tr.Validate(), "at most one of renderedChange and impactFinding")
+}
+
+// TestManifestationRules pins the commander's fix: a change item whose
+// effect is a behaviour of the shipped software is never cleared by a
+// render that shows nothing; only an established pinned setting or an
+// observed outcome clears it.
+func TestManifestationRules(t *testing.T) {
+	recCases := map[string]struct {
+		mut  func(r *ChangeEvidenceRecord)
+		want string
+	}{
+		"manifestation": {func(r *ChangeEvidenceRecord) { r.Items[0].Manifestation = "somewhere" }, "unknown manifestation"},
+		"rule":          {func(r *ChangeEvidenceRecord) { r.Items[0].ManifestationRule = "" }, "manifestationRule must name the declared rule"},
+	}
+	for name, c := range recCases {
+		t.Run(name, func(t *testing.T) {
+			r := newInvFixture(t).b.Change
+			r.Items = append([]ChangeItem(nil), r.Items...)
+			c.mut(&r)
+			wantInvErr(t, r.Validate(), c.want)
+		})
+	}
+
+	t.Run("pin only on passing override inspection", func(t *testing.T) {
+		v := newInvFixture(t).inv.Validations[1]
+		v.Kind = ValidationRenderDiff
+		wantInvErr(t, v.Validate(), "established only by a passing override-inspection")
+	})
+	t.Run("pin cites evidence", func(t *testing.T) {
+		v := newInvFixture(t).inv.Validations[1]
+		p := *v.Pin
+		p.Evidence = nil
+		v.Pin = &p
+		wantInvErr(t, v.Validate(), "pin must cite the environment evidence")
+	})
+	t.Run("pin shape", func(t *testing.T) {
+		v := newInvFixture(t).inv.Validations[1]
+		p := *v.Pin
+		p.Kind = "hunch"
+		v.Pin = &p
+		wantInvErr(t, v.Validate(), "pin needs a known kind")
+	})
+
+	t.Run("render silence never clears behaviour", func(t *testing.T) {
+		fx := newInvFixture(t)
+		fx.inv.Validations[1].Pin = nil // a plain pass: "nothing attributable"
+		err := fx.inv.Validate()
+		wantInvErr(t, err, "render silence is not decisive")
+		wantInvErr(t, err, "is not answered by a passing validation")
+	})
+	t.Run("unknown is treated as behaviour", func(t *testing.T) {
+		fx := newInvFixture(t)
+		fx.inv.Validations[1].Pin = nil
+		f := &fx.inv.Findings[1]
+		f.Manifestation = ManifestUnknown
+		wantInvErr(t, fx.inv.Validate(), "item manifests as unknown")
+	})
+	t.Run("observed outcome clears behaviour", func(t *testing.T) {
+		fx := newInvFixture(t)
+		v := &fx.inv.Validations[1]
+		v.Pin, v.Kind, v.Level = nil, ValidationRuntime, LevelObserved
+		fx.inv.Findings[1].Basis = LevelObserved
+		fx.inv.ValidationRequests[0].Kind = ValidationRuntime
+		r := &fx.inv.ValidationRequests[0]
+		r.ID = AgentRecordID(ValidationRequestIDPrefix, r.ChangeItem, string(r.Kind)+"\x00"+strings.Join(r.Subjects, ","), "session-1")
+		v.Request = r.ID
+		if err := fx.inv.Validate(); err != nil {
+			t.Fatalf("an observed pass clears a behaviour item: %v", err)
+		}
+	})
+	t.Run("render silence clears rendered config", func(t *testing.T) {
+		fx := newInvFixture(t)
+		fx.inv.Validations[1].Pin = nil
+		fx.inv.Findings[1].Manifestation = ManifestRenderedConfig
+		if err := fx.inv.Validate(); err != nil {
+			t.Fatalf("a plain pass clears a rendered-config item: %v", err)
+		}
+	})
+	t.Run("finding manifestation from the item", func(t *testing.T) {
+		fx := newInvFixture(t)
+		fx.inv.Findings[0].Manifestation = ManifestRenderedConfig
+		wantInvErr(t, fx.inv.ValidateAgainst(fx.b), "but the change item manifests as controller-behaviour")
+	})
+	t.Run("pin evidence is environment evidence", func(t *testing.T) {
+		fx := newInvFixture(t)
+		p := *fx.inv.Validations[1].Pin
+		p.Evidence = fx.b.Change.Items[1].Evidence // upstream release-note evidence
+		fx.inv.Validations[1].Pin = &p
+		wantInvErr(t, fx.inv.ValidateAgainst(fx.b), "a pinned setting is established from the environment")
+	})
 }
