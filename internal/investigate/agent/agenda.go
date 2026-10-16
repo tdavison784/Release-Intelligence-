@@ -155,3 +155,72 @@ func DeterministicPass(ctx context.Context, validators []investigate.Validator, 
 	}
 	return out, nil
 }
+
+// ItemAgenda is the agenda in per-item session order (prompt feature
+// perItem; commander decision 2026-10-16): manifestation
+// controller-behaviour/unknown first, then scope:rendered-unexplained, then
+// the rest; ties by item id. The membership and rules are Agenda's.
+func ItemAgenda(b *domain.EvidenceBundle, validations []domain.ValidationRecord) []domain.AgendaCoverage {
+	out := Agenda(b, validations)
+	tier := func(e domain.AgendaCoverage) int {
+		switch e.PriorityRule {
+		case AgendaBehaviour:
+			return 0
+		case AgendaRenderedUnexplained:
+			return 1
+		}
+		return 2
+	}
+	for i := range out {
+		out[i].Priority = tier(out[i])
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Priority != out[j].Priority {
+			return out[i].Priority < out[j].Priority
+		}
+		return out[i].ChangeItem < out[j].ChangeItem
+	})
+	return out
+}
+
+// DefaultItemCap bounds the per-item sessions of one investigation.
+const DefaultItemCap = 10
+
+// ItemBudgetRule names the per-item session budget, item@v1: the configured
+// AgentConfig.ItemBudget, its unset fields taken from the item defaults
+// (16 tool calls, 14 turns, 150 000 tokens, 1 MiB returned, 360 s). The
+// investigation-wide AgentConfig.Budget is for one long session and does not
+// apply to per-item sessions.
+const ItemBudgetRule = "item@v1"
+
+// ItemDefaultBudget is the default per-item session budget.
+var ItemDefaultBudget = domain.AgentBudget{MaxTurns: 14, MaxToolCalls: 16, MaxTokens: 150_000, MaxReadBytes: 1 << 20, MaxSeconds: 360}
+
+// ItemBudget returns the budget of one per-item session and states the rule.
+func ItemBudget(configured *domain.AgentBudget, cap, agenda int) (domain.AgentBudget, string) {
+	b := ItemDefaultBudget
+	if c := configured; c != nil {
+		if c.MaxTurns > 0 {
+			b.MaxTurns = c.MaxTurns
+		}
+		if c.MaxToolCalls > 0 {
+			b.MaxToolCalls = c.MaxToolCalls
+		}
+		if c.MaxTokens > 0 {
+			b.MaxTokens = c.MaxTokens
+		}
+		if c.MaxReadBytes > 0 {
+			b.MaxReadBytes = c.MaxReadBytes
+		}
+		if c.MaxSeconds > 0 {
+			b.MaxSeconds = c.MaxSeconds
+		}
+	}
+	sessions := agenda
+	if sessions > cap {
+		sessions = cap
+	}
+	rule := fmt.Sprintf("%s: per item %d calls, %d turns, %d tokens, %d bytes, %d s (item defaults 16/14/150000/1MiB/360 s unless AgentConfig.ItemBudget sets them); cap %d items: %d of %d agenda items get a session",
+		ItemBudgetRule, b.MaxToolCalls, b.MaxTurns, b.MaxTokens, b.MaxReadBytes, b.MaxSeconds, cap, sessions, agenda)
+	return b, rule
+}

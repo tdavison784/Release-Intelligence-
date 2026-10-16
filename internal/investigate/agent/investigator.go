@@ -87,20 +87,31 @@ func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, vali
 	}
 	budget := Budget(in.Config.Budget)
 	var agenda []domain.AgendaCoverage
-	var budgetRule string
-	if p.Features.Agenda {
+	var budgetRule, task, digest string
+	itemCap := 0
+	switch {
+	case p.Features.PerItem:
+		// Per-item sessions: the session-level task and digest are set per
+		// item (BeginItem); the run's digest is the digest of the item digests.
+		agenda = ItemAgenda(in.Bundle, in.Validations)
+		if itemCap = in.Config.MaxItems; itemCap <= 0 {
+			itemCap = DefaultItemCap
+		}
+		budget, budgetRule = ItemBudget(in.Config.ItemBudget, itemCap, len(agenda))
+	case p.Features.Agenda:
 		agenda = Agenda(in.Bundle, in.Validations)
 		budget, budgetRule = AgendaBudget(in.Config.Budget, len(agenda))
 	}
-	task, err := p.renderTask(in, budget, agenda)
-	if err != nil {
-		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
+	if !p.Features.PerItem {
+		if task, err = p.renderTask(in, budget, agenda); err != nil {
+			return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
+		}
+		digest = p.Digest(task)
 	}
-	digest := p.Digest(task)
 	s, err := NewSession(SessionConfig{Bundle: in.Bundle, Store: st, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
 		Validations: in.Validations, ValidationArtifacts: in.ValidationArtifacts, ValidationEvidence: in.ValidationEvidence,
 		Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now,
-		Agenda: agenda, BudgetRule: budgetRule})
+		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap})
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
@@ -130,6 +141,9 @@ func (i *Investigator) Investigate(ctx context.Context, in investigate.Investiga
 	s, as, err := Prepare(i.st, in, i.validators, i.now)
 	if err != nil {
 		return nil, err
+	}
+	if s.cfg.Prompt.Features.PerItem {
+		return i.investigateItems(ctx, in, driver, s, as)
 	}
 	runCtx, cancel := context.WithTimeout(ctx, time.Duration(as.Budget.MaxSeconds)*time.Second)
 	defer cancel()
@@ -183,6 +197,10 @@ func runStatus(dr investigate.DriverResult, s *Session) (domain.AgentRunStatus, 
 // and returns the agent stage's outcome.
 func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, driver string, dr investigate.DriverResult) (*investigate.AgentOutcome, error) {
 	status, reason := runStatus(dr, s)
+	return s.outcome(ctx, st, driver, dr, status, reason)
+}
+
+func (s *Session) outcome(ctx context.Context, st investigate.ArtifactStore, driver string, dr investigate.DriverResult, status domain.AgentRunStatus, reason string) (*investigate.AgentOutcome, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	model := dr.Model
@@ -197,6 +215,17 @@ func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, dri
 		version = unreportedModelInfo
 	}
 	fill := func(p *domain.Provenance) {
+		if c, ok := s.callInfo[p.CallID]; ok { // per-item sessions: the model of that session's call
+			if p.Model == "" && c.Model != "" {
+				p.Model = c.Model
+			}
+			if p.ModelVersion == "" && c.ModelVersion != "" {
+				p.ModelVersion = c.ModelVersion
+			}
+			if p.Provider == "" {
+				p.Provider = c.Provider
+			}
+		}
 		if p.Model == "" {
 			p.Model = model
 		}
@@ -225,6 +254,10 @@ func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, dri
 		out.ValidationRequests = append(out.ValidationRequests, r)
 	}
 	out.Validations = append(out.Validations, s.vals...)
+	for _, n := range s.notes {
+		fill(&n.Provenance)
+		out.Notes = append(out.Notes, n)
+	}
 	out.ProposedNodes = append(out.ProposedNodes, s.propNodes...)
 	out.AnswerLinks = append(out.AnswerLinks, s.links...)
 	for _, id := range s.runEvIDs {
@@ -246,7 +279,7 @@ func (s *Session) Outcome(ctx context.Context, st investigate.ArtifactStore, dri
 	out.Artifacts = append([]domain.ArtifactRef{ref}, s.runArts...)
 	out.Run = domain.AgentRun{Status: status, Reason: reason, Model: model, Provider: dr.Provider, PromptVersion: s.cfg.Prompt.Version,
 		PromptDigest: s.cfg.PromptDigest, CallID: dr.CallID, Budget: s.cfg.Budget, Turns: dr.Turns, ToolCalls: s.toolCalls,
-		Tokens: dr.Tokens, Transcript: ref.ID, Coverage: s.coverage(status, reason), BudgetRule: s.cfg.BudgetRule}
+		Tokens: dr.Tokens, Transcript: ref.ID, Coverage: s.coverage(status, reason), BudgetRule: s.cfg.BudgetRule, ItemCap: s.cfg.ItemCap}
 	return out, nil
 }
 
@@ -338,15 +371,30 @@ func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain
 	out := make([]domain.AgendaCoverage, 0, len(s.cfg.Agenda))
 	for _, e := range s.cfg.Agenda {
 		c := e
-		if sum, ok := s.closing[e.ChangeItem]; ok {
+		st := s.itemStats[e.ChangeItem]
+		switch sum, ok := s.closing[e.ChangeItem]; {
+		case ok:
 			c.Disposition, c.Summary = sum.Disposition, sum.Summary
 			c.Assertion, c.Citations = s.closingIDs[e.ChangeItem], s.closingEv[e.ChangeItem]
-		} else {
+		case s.cfg.Prompt.Features.PerItem && st == nil:
+			c.Disposition = domain.CoverNotExamined
+			c.Summary = fmt.Sprintf("beyond cap %d: no session (closed by the runner, not by the model)", s.cfg.ItemCap)
+		case st != nil:
+			c.Disposition = domain.CoverNotExamined
+			c.Summary = "no closing entry: the item's session ended " + string(st.Status)
+			if st.Reason != "" {
+				c.Summary += " (" + st.Reason + ")"
+			}
+		default:
 			c.Disposition = domain.CoverNotExamined
 			c.Summary = "no closing entry: the run ended " + string(status)
 			if reason != "" {
 				c.Summary += " (" + reason + ")"
 			}
+		}
+		if st != nil {
+			c.CallID, c.SessionStatus, c.SessionReason = st.CallID, st.Status, st.Reason
+			c.Turns, c.ToolCalls, c.Tokens = st.Turns, st.ToolCalls, st.Tokens
 		}
 		c.Records = uniqSorted(records[e.ChangeItem])
 		c.Examined, c.Inspections = s.examined[e.ChangeItem], s.inspections[e.ChangeItem]
@@ -378,4 +426,84 @@ func ApplyAnswerLinks(records []domain.ValidationRecord, links []investigate.Ans
 		out[i] = r
 	}
 	return out
+}
+
+// investigateItems runs one short, focused session per agenda item in
+// ItemAgenda order, up to the item cap (DESIGN-facing: docs/INVESTIGATE.md
+// "Per-item sessions"). Items beyond the cap get no session; the runner (this
+// function, never the model) closes them not-examined.
+func (i *Investigator) investigateItems(ctx context.Context, in investigate.InvestigateInput, driver investigate.AgentDriver, s *Session, base investigate.AgentSession) (*investigate.AgentOutcome, error) {
+	p, agenda, cap := s.cfg.Prompt, s.cfg.Agenda, s.cfg.ItemCap
+	n := len(agenda)
+	if n > cap {
+		n = cap
+	}
+	var digests []string
+	agg := investigate.DriverResult{Provider: ""}
+	for k := 0; k < n; k++ {
+		e := agenda[k]
+		task, err := p.renderItemTask(in, e, k+1, n, cap, base.Budget)
+		if err != nil {
+			return nil, investigate.PermanentError(domain.StageInvestigate, err)
+		}
+		digest := p.Digest(task)
+		digests = append(digests, digest)
+		s.BeginItem(e.ChangeItem, base.Budget, digest)
+		as := base
+		as.Task, as.PromptDigest, as.ChangeItem = task, digest, e.ChangeItem
+		runCtx, cancel := context.WithTimeout(ctx, time.Duration(base.Budget.MaxSeconds)*time.Second)
+		dr, err := driver.Run(runCtx, as, s)
+		cancel()
+		if err != nil {
+			switch {
+			case ctx.Err() != nil:
+				return nil, ctx.Err()
+			case errors.Is(runCtx.Err(), context.DeadlineExceeded):
+				dr = &investigate.DriverResult{Stop: "budget:seconds", Model: in.Config.Model}
+				s.RecordEnvelope(in.Config.Driver, *dr, nil)
+			default:
+				return nil, err
+			}
+		}
+		s.EndItem(*dr)
+		if agg.Model == "" {
+			agg.Model, agg.Provider, agg.CallID = dr.Model, dr.Provider, dr.CallID
+		}
+		if dr.ModelVersion != "" && !contains(strings.Split(agg.ModelVersion, ","), dr.ModelVersion) {
+			agg.ModelVersion = strings.Trim(agg.ModelVersion+","+dr.ModelVersion, ",")
+		}
+		agg.Turns += dr.Turns
+		agg.Tokens += dr.Tokens
+	}
+	s.mu.Lock()
+	s.cfg.PromptDigest = domain.Digest([]byte(strings.Join(digests, "\n")))
+	s.mu.Unlock()
+	status, reason := s.aggregateStatus()
+	return s.outcome(ctx, i.st, in.Config.Driver, agg, status, reason)
+}
+
+// aggregateStatus is the worst per-item session status (failed >
+// budget-exhausted > submitted), with the reasons of the non-submitted ones.
+func (s *Session) aggregateStatus() (domain.AgentRunStatus, string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rank := map[domain.AgentRunStatus]int{domain.AgentSubmitted: 0, domain.AgentBudgetExhausted: 1, domain.AgentFailed: 2}
+	status := domain.AgentSubmitted
+	var reasons []string
+	for _, item := range s.sessions {
+		st := s.itemStats[item]
+		if st == nil {
+			continue
+		}
+		if rank[st.Status] > rank[status] {
+			status = st.Status
+		}
+		if st.Status != domain.AgentSubmitted {
+			reasons = append(reasons, item+": "+st.Reason)
+		}
+	}
+	if len(s.sessions) == 0 {
+		return domain.AgentSubmitted, ""
+	}
+	return status, strings.Join(reasons, "; ")
 }

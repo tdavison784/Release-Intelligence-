@@ -4,7 +4,7 @@ Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/age
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
 store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-up
 (commander review: prompt v2 + agenda, subject resolution, pass outputs, live run 2) on the same branch after
-`git merge p4-env-impact`. State: **DONE (follow-ups 1–3 complete)** (2026-10-16).
+`git merge p4-env-impact`. State: **DONE (follow-ups 1–4 complete)** (2026-10-16).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -152,7 +152,46 @@ Resume from: this file + brief + `git log`.
   - replay byte-identical; the run record validates.
 - Question B (bundle reproducibility) → orchestrate2, per the commander.
 
+## Follow-up 4 (commander decision: structural per-item sessions) — done
+
+- **Prompt v4** (meta `perItem`; `item.md`; default now v4, v1–v3 frozen and byte-identical):
+  - `agent.ItemAgenda` order: behaviour/unknown → rendered-unexplained → rest, ties by id;
+  - one driver session per item with its own task, `item@v1` budget (`AgentConfig.ItemBudget`, else 16 calls /
+    14 turns / 150k tokens / 1 MiB / 360 s), prompt digest and call id;
+  - cap `AgentConfig.MaxItems` (default 10) → `AgentRun.ItemCap`; beyond-cap items are closed by the runner;
+  - one-entry `submit_findings` for the session's item; D1/D2 apply.
+- **Concerns need item evidence**: a raises-concern is an item concern only in its item's session and citing
+  an artifact retrieved there (read_artifact, get_rendered_object, grep hits, the item's sources via
+  get_change_item, the renders behind query_diff results). Otherwise it becomes an `AgentNote` (AI, labelled,
+  `Investigation.AgentNotes`; never reaches classify). A closing concern without item evidence → the item is
+  closed not-examined, naming the note.
+- **Aggregate + per-item reporting**:
+  - status = worst session; reason lists the non-submitted items;
+  - totals for turns, tool calls and tokens; run digest = digest of the item digests;
+  - coverage per item: session status, reason, call id, turns, tool calls, tokens;
+  - the transcript is segmented per item, and replay walks the segments.
+- Tests: `peritem_test.go` (order, v4 task, sessions + notes + classifier blindness to notes, cap + submission
+  scope, independent budgets, byte-identical per-item replay); fake-CLI per-item test (one CLI session per
+  item). v1–v3 tasks/digests verified byte-identical against the previous commit. Run 3 replays byte-identically
+  with the v4 agent code at its commit.
+- **Live run 4** `runs/agent-live-4/` (obs-north again, v4):
+  - 10 sessions, all submitted; 72 calls, 124k tokens;
+  - 10/10 sessions examined their item (5–10 calls each);
+  - 4 concerns, 5 examined-no-concern, 1 explains, 16 beyond cap;
+  - 4 validation requests (all not-run), 3 answer links, 0 notes;
+  - replay byte-identical. The v3 vs v4 table is in its README.
+- **For orchestrate2 (not my file)**: `run/pipeline.go` must copy `AgentOutcome.Notes` into
+  `Investigation.AgentNotes`. Its default prompt (agent.DefaultPromptVersion) is now v4.
+
 ## Decisions (with why)
+
+- **v4 uses `AgentConfig.ItemBudget` (a pointer)**, not `Budget`: the runner passes the investigation-wide
+  defaults (80 calls, 1200 s) as `Budget`, which would make every item session large; a pointer keeps existing
+  config digests and investigation ids unchanged.
+- **Retrieved = content returned in the session** (not ids listed): a reference list (search terms without
+  grep) does not count; the renders behind query_diff results and the item's upstream sources do.
+- **Scripted steps are consumed across sessions** (up to each accepted submit), so a flat script also drives
+  per-item runs; `ByItem` gives each session its own steps.
 
 - **D1 compares quotes, not evidence ids**: an evidence id includes the locator, so a reused quote under a
   new locator would otherwise count as unique.
@@ -215,6 +254,10 @@ Resume from: this file + brief + `git log`.
     `CoverageDisposition` (+ `CoverageDispositions`, schema enum) and the coverage checks in
     `Validate`/`ValidateAgainst`;
   - investigate: `ItemSummary.Disposition`, `InvestigateInput.ValidationArtifacts` / `ValidationEvidence`.
+- `// CONTRACT-CHANGE(agent)` (follow-up 4): domain `AgentNote` (+ prefix `ntn-`, `Investigation.AgentNotes`,
+  checks in `Validate`/`ValidateAgainst`), `AgendaCoverage` session fields, `AgentRun.ItemCap`; investigate
+  `AgentConfig.MaxItems` / `ItemBudget`, `AgentSession.ChangeItem`, `AgentOutcome.Notes`. Follow-up 3:
+  `AgentAssertion.NoValidationReason`, coverage depth fields, `NoValidationReason` inputs.
 - `// CONTRACT-CHANGE(agent)` (follow-up 2): domain `ValidationRequest.Answers` (+ `Validate` check);
   investigate `ValidationRequestInput.Answers`, `AgentOutcome.AnswerLinks`, `AnswerLink`.
 
@@ -224,6 +267,15 @@ Resume from: this file + brief + `git log`.
   uses it.
 
 ## Open questions / notes for the commander
+
+Follow-up 4 (live run 4; see its README):
+
+- Per-item sessions bought depth (10/10 sessions examined vs 2/26 items in run 3), at 2.2× the tokens; the cap
+  (10) now decides coverage — a cost trade-off for you.
+- Prose is not checked, only citations: session 1's summary says the environment does not set
+  `ignoreNamespaceSelectors`, but `values-prod.yaml:8` sets it to true (still closed raises-concern, fail-safe).
+  A generic remedy: a structured "absent" claim checked by a recorded grep. Your call.
+- Every requested validation was not-run, so the answer links lifted nothing: a validator-coverage question.
 
 Follow-up 3 (live run 3; see its README):
 

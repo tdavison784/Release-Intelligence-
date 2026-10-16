@@ -482,6 +482,47 @@ Coverage entries report depth per item:
 
 The rules never change a class: they decide only which agent records are accepted.
 
+**Per-item sessions (prompt `investigate-agent/v4`, the default; commander decision 2026-10-16).** In live run 3,
+depth was a choice the model declined: 12 of 168 calls. A budget floor could be met with useless calls, so v4
+changes the structure instead.
+
+The Investigator runs **one short, focused session per agenda item**, in `agent.ItemAgenda` order:
+
+1. manifestation `controller-behaviour` / `unknown`;
+2. `scope:rendered-unexplained`;
+3. the rest.
+
+Ties go by item id. Each session has:
+
+- its own task: only that item, plus pointers to its upstream sources, correlated rendered changes, roots,
+  paths and validations (`prompts/investigate-agent/v4/item.md`);
+- its own budget, `item@v1`: `AgentConfig.ItemBudget`, else 16 calls, 14 turns, 150 000 tokens, 1 MiB, 360 s;
+- its own prompt digest and call id.
+
+The tools are unchanged and still bundle-scoped.
+
+- **Cap:** `AgentConfig.MaxItems` (default 10), recorded as `AgentRun.ItemCap`, bounds cost. Agenda items beyond
+  it are closed `not-examined: beyond cap N` by the runner, never by the model.
+- **Closing:** each session must close its item with exactly one disposition (`submit_findings` with one entry,
+  for that item). D1 and D2 still apply.
+- **Concerns need the item's own evidence.** A `raises-concern` counts as an item concern only when it is about
+  the session's item and cites at least one artifact retrieved in that session. "Retrieved" means:
+  `read_artifact`; `get_rendered_object`; `search_manifest` hits with grep lines; the item's upstream sources
+  via `get_change_item`; the renders behind `query_diff` results.
+
+  Otherwise it is recorded as an `AgentNote`: investigation-level, AI, labelled with the reason
+  (`AgentOutcome.Notes` → `Investigation.AgentNotes`). A closing `raises-concern` without item evidence closes
+  the item `not-examined`, naming the note. A note never reaches the classifier, so unexamined items keep their
+  deterministic class.
+- **Aggregate outcome.**
+  - `AgentRun.Status` is the worst session status (failed > budget-exhausted > submitted).
+  - `Reason` lists the non-submitted items.
+  - `Turns`, `ToolCalls` and `Tokens` are totals.
+  - `PromptDigest` is sha256 of the item digests in order.
+  - Coverage carries each item's session status, reason, call id, turns, tool calls and tokens.
+- **Transcript:** one `item` line per session (item, prompt digest, budget), then its calls and envelope. Replay
+  walks the segments in order and must reproduce each byte for byte.
+
 **Environment-scope items.** Items anchored on environment-only rendered changes
 (`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
 iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
@@ -496,8 +537,8 @@ the agent's outputs.
 **Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
-agenda and subject resolution; v3 adds answer links and the depth rules. Every version stays embedded and replays
-exactly as recorded.
+agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`).
+Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:
 
@@ -529,7 +570,9 @@ its replay check:
 - [agent-live-1](phase4/env-impact/runs/agent-live-1/README.md): ingress-nginx, prompt v1;
 - [agent-live-2](phase4/env-impact/runs/agent-live-2/README.md): cert-manager, prompt v2, with coverage;
 - [agent-live-3](phase4/env-impact/runs/agent-live-3/README.md): kube-prometheus-stack, prompt v3: coverage,
-  depth, validation requests and answer links.
+  depth, validation requests and answer links;
+- [agent-live-4](phase4/env-impact/runs/agent-live-4/README.md): the same input under v4 (per-item sessions), for
+  a v3 vs v4 comparison of depth.
 
 **Reproducibility caveat.** A bundle's snapshot pins the HEAD commit of the git work tree containing the
 environment and the input path as supplied. The groundtruth environments sit inside this repository, so

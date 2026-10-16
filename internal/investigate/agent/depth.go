@@ -90,7 +90,7 @@ func (s *Session) depthConcerns(made []domain.AgentAssertion) error {
 	var open []string
 	for _, a := range append(append([]domain.AgentAssertion(nil), s.asserts...), made...) {
 		it, ok := s.items[a.ChangeItem]
-		if !ok || a.Stance != domain.StanceRaisesConcern || it.Manifestation == domain.ManifestRenderedConfig {
+		if !ok || a.Stance != domain.StanceRaisesConcern || it.Manifestation == domain.ManifestRenderedConfig || (s.focus != "" && a.ChangeItem != s.focus) {
 			continue
 		}
 		if !requested[a.ChangeItem] && strings.TrimSpace(a.NoValidationReason) == "" {
