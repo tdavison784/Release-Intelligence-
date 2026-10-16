@@ -116,7 +116,7 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
   follow-up.
 
 ## Slim storage + branch p4ei/eval2 (2026-10-16, commander request before merge)
-- `p4ei/eval` (ebfff797) left untouched. New branch `p4ei/eval2` from `p4-env-impact` (f467a54d): the 11 lane
+- `p4ei/eval` (ebfff797) left untouched. New branch `p4ei/eval2` from `p4-env-impact` (c9ba21e9): the 11 lane
   files + compressed results, so the 58 MB of uncompressed records never land in history.
 - Layout: per run plain `run.json`, `score.json`, `gates.json` (new, derived from score/run), `report.txt`;
   per-case records in one deterministic `cases.tar.gz`. `-rescore`/replay read it transparently (legacy
