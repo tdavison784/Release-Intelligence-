@@ -153,6 +153,25 @@ func identityFromSchemaChange(c domain.Change) (id crdIdentity, ok bool) {
 	return id, id.Group != ""
 }
 
+// CRDIdentity returns the API identity a computed crd:* change names: the
+// CRD resource name, group, version and kind, as the join scopes it
+// (crd:removed / crd:added subjects are CRD names; schema changes carry it in
+// their title and detail). ok is false when no API group is recoverable.
+// Exported for the Phase 4 schema-compat validator
+// (internal/investigate/validate), so it scopes exactly like the join.
+func CRDIdentity(c domain.Change) (name, group, version, kind string, ok bool) {
+	id, ok := identityFromSchemaChange(c)
+	if !ok && len(c.Subjects) == 1 {
+		if id, ok = parseCRDNameVersion(c.Subjects[0]); !ok {
+			id.Name, id.Group, ok = parseCRDName(c.Subjects[0])
+		}
+	}
+	if ok && id.Kind == "" {
+		id.Kind = kindFromCRDTitle(c.Title)
+	}
+	return id.Name, id.Group, id.Version, id.Kind, ok
+}
+
 // groupOfCRDName derives the API group from a CRD resource name
 // ("certificates.cert-manager.io" → "cert-manager.io").
 func groupOfCRDName(name string) string {
