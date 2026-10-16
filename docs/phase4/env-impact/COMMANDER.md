@@ -40,7 +40,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
 | contract | — | claude-opus-5-5 | (removed) | (closed) | MERGED 861e847d + cleaned up |
-| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 5 cases merged (23f79063); follow-up: diff-visible pair + diff-visible-harmless trap; adopt FORMAT.md after contract merges; worktree kept until then |
+| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 8 cases merged (6e03b550); final step: adopt FORMAT.md + EdgeKind names, renderedChanges labels on first five; then merge + cleanup |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | wave 1, working since 13:20 (CRITICAL PATH) |
 | validate | ri-validate | claude-opus-5-5 | .claude/worktrees/p4ei-validate | pane w1:p2J (tab w1:t13) | wave 1, working since 13:20 |
@@ -67,6 +67,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 DELIVERY BUG: every commander prompt sent without `--wait` (output discarded) was lost — incl. the diffs clarification to contract (it found it in MISSION.md anyway), the controller-default input, the cleanup note, and groundtruth's follow-up. Resent with `--wait` and verified. Rule added to briefs/commander.md.
 - 2026-10-16 Auto-approve eligibility requires the agent stage completed (contract question; commander: keep — it is completeness, not model confidence).
 - 2026-10-16 relations: the declarative `relationships:` catalog construct is NOT deferred — without it cert-manager Certificate→Secret stays inferred, traversal is never complete, and R2.3 could never clear any cert-manager environment. Rules authored from upstream API docs only (cited per rule).
+- 2026-10-16 Milestone-1 third product = kube-prometheus-stack (chart-level, diff-visible break; groundtruth's choice), replacing argo-cd from DESIGN §1 (argo-cd would need Argo CD + git source in kind).
+- 2026-10-16 Commander owns eval/investigations/FORMAT.md now (contract lane gone); groundtruth adds renderedChanges labelling as an additive CONTRACT-CHANGE section.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -75,6 +77,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 23f79063 groundtruth (ff91c6de..c5eedd71): 5 cases in eval/investigations — cert-manager 1.17.2→1.18.0 rotationPolicy pair (payments-eu affected / payments-us not), ingress-nginx 4.11.5→4.12.0 risk-level pair (shop-de affected / shop-fr not), shop-pl insufficient-evidence. All observed in kind v1.31. Green after merge. Worktree NOT removed: lane continues (follow-up).
 - 2026-10-16 861e847d contract (3757157d..ae2e4ab2): DESIGN.md (gap map, scope cert-manager + ingress-nginx (+argo-cd), contracts, manifestation rule §2.2.1, fail-closed four-class policy §3, agent §4, Temporal boundary §5, eval §6, lane plan §7), internal/domain/investigation.go, internal/investigate/api.go, schemas, eval/investigations/{FORMAT.md,gates.yaml} (gates now FROZEN). Green after merge. Cleanup: agent exited, tab w1:t0 closed, worktree removed, branch deleted.
 - 2026-10-16 9c280dc4 relations: graph builder (env resources + rendered objects; Argo/Flux/kustomize structure; placeholder nodes for missing objects), exposure mapper, deterministic bounded DFS (25-seed shuffle determinism, bounds, truncation, unresolved edges). Green. Worktree kept for the follow-up.
+- 2026-10-16 6e03b550 groundtruth follow-up: kube-prometheus-stack 89.2.4→90.2.0 pair (obs-north affected: identical diff, decided by the render namespace of the ServiceMonitors vs the token Secret; obs-south not-affected) + ingress-nginx shop-nl diff-visible-harmless trap. 8 cases total, all observed in kind. Green.
 
 ## Open questions for the user
 
