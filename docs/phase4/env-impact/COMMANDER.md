@@ -48,7 +48,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
-| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | runs A, A′, A″, A‴, C scored; merge HELD: 58 MB of stored runs → slimming to compressed per-case artifacts on p4ei/eval2 (<10 MB); arm B HELD |
+| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval (branch p4ei/eval2) | pane w1:p2S (tab w1:t1A) | MERGED cf2b0f29 (harness + 9 stored runs, 7.7 MB compressed); next: A + C after defaults; B HELD. Old branch p4ei/eval (58 MB uncompressed history, superseded) kept unmerged pending user decision |
 | fixes | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2T (tab w1:t1B) left — Claude commander closes it on resume | MERGED 8c7d74f2 ([glm-handoff], glm-commander) + cleaned up |
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
