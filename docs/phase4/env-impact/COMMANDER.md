@@ -53,6 +53,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
+| reviewfilter | ri-reviewfilter | claude-sonnet-5-5 | .claude/worktrees/p4ei-reviewfilter | pane w1:p20 | started 17:45 (user request: review UI shows only what needs review) |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -134,13 +135,13 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In order:
-
-1. **agent** (ri-agent, working): prompt v5 = structured, tool-verified environment claims; pipeline copies AgentNotes; list of validator/pin-rule gaps behind every not-run answer. On LANE DONE: review (replay of runs 1–4 still byte-identical, v4 frozen), merge, then route the listed validator gaps (validate package is unowned now — a new small lane or the eval lane must NOT fix them). Keep the ri-agent worktree only if more agent work is queued; else clean up.
-2. **eval** (ri-eval, idle by instruction): arm A DONE (see merge log). Merge p4ei/eval's harness + arm A results when convenient (review EVAL-REPORT.md). Then re-score arm A after **fixes** merges (new run id; keep the first). Arm B (+agent) runs only when (a) agent v5 is merged AND (b) a Claude window is available — it calls `claude -p` with claude-sonnet-5-5. **A GLM commander must NOT start arm B and must not let it run with a GLM model** (that would change the model under test). Tell ri-eval when B may start. Arm C waits for runtime.
-3. **fixes** (ri-fixes, working): on LANE DONE review that each fix is generic with its own test and justified by semantics, never by a score; merge; tell ri-eval to re-run arm A.
-4. **runtime** (ri-runtime, working): on LANE DONE review that a quiet window never passes and every kind cluster is deleted (`kind get clusters`), merge, clean up, tell ri-eval arm C may run (Claude window not needed for C unless combined with the agent).
-5. After eval's report: commander reviews EVAL-REPORT.md, then the user decides on push/PR (nothing pushed yet).
+1. **Unsafe eligibility (top priority)**: read ri-eval's `runs/unsafe-eligibility-diagnostic.md` (pipeline output only) + the independent Opus review of the GLM merges; route the root cause (likely RenderDiff/OverrideInspection passing an exposed rendered-config item, or fix-3 F3) to its owner. Arm B stays HELD until fixed and arm A re-scored safe (unsafeEligibilityRate 0).
+2. **fixes2** (ri-fixes): F1–F5 on fix 3 + not-run coverage echo → review, merge, clean up.
+3. **runtime** (ri-runtime): data-change ⇒ inconclusive, `reconciles:` exposure, `--runtime` in ri investigate → review, merge, clean up.
+4. **reviewfilter** (ri-reviewfilter): on LANE DONE give the user the start command + item count so they can verify the controller-default facts.
+5. **eval** (ri-eval): merge harness + stored runs A, A′, C after review of EVAL-REPORT.md; after 1–3 merge, re-score A (new run id); then ARM B GO (Claude window, claude-sonnet-5-5, prompt v5) — only the Claude commander sends it; then C and B+C; final report.
+6. Ledger proposal (proposals/2026-10-16-window-ledger.md): commander review + user sign-off; adopt after phase 4 eval, not mid-endgame.
+7. Then the user decides on push/PR (nothing pushed yet).
 
 ## GLM commander log
 
