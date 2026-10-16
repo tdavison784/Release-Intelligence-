@@ -41,12 +41,15 @@ func (a *Assembler) Assemble(ctx context.Context, change *investigate.ChangeResu
 	refs = append(refs, snap.Artifacts...)
 	var envRenders []domain.ManifestPair
 	var renderEvidence []domain.Evidence
+	var envItems []domain.ChangeItem
 	if renders != nil {
 		refs = append(refs, renders.Artifacts...)
 		envRenders = append(envRenders, renders.Pairs...)
 		renderEvidence = renders.Evidence
+		envItems = append(envItems, renders.Items...)
 	}
 	sort.SliceStable(envRenders, func(i, j int) bool { return envRenders[i].Target < envRenders[j].Target })
+	sort.SliceStable(envItems, func(i, j int) bool { return envItems[i].ID < envItems[j].ID })
 
 	byID, byPath := map[string]domain.ArtifactRef{}, map[string]domain.ArtifactRef{}
 	for _, r := range refs {
@@ -89,7 +92,7 @@ func (a *Assembler) Assemble(ctx context.Context, change *investigate.ChangeResu
 
 	b := &domain.EvidenceBundle{
 		SchemaVersion: domain.EvidenceBundleSchemaVersion,
-		Change:        change.Record, Snapshot: snap.Snapshot, Renders: envRenders,
+		Change:        change.Record, Snapshot: snap.Snapshot, Renders: envRenders, EnvironmentItems: envItems,
 		Manifest: m, Evidence: evidence, Producer: AssemblerProducer, CreatedAt: a.now().UTC().Truncate(time.Second),
 	}
 	b.ID = domain.BundleID(b.Change.ID, b.Snapshot.ID, b.Manifest.Digest(), b.Renders)

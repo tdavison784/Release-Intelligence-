@@ -375,6 +375,40 @@ func ChangeItemID(changeID, platform, renderedChange string) string {
 	return ChangeItemIDPrefix + ShortHash(changeID, platform, renderedChange)
 }
 
+// Scope rules of items anchored on a rendered change (DESIGN.md §1.3, incl.
+// the commander amendment of 2026-10-16).
+// CONTRACT-CHANGE(renderdiff): the two amendment rules are new; additive.
+const (
+	ScopeRenderedStructural = "scope:rendered-structural"
+	// ScopeRenderedUnexplained: a rendered change (release or environment
+	// scope) nothing upstream explains is its own in-scope item.
+	ScopeRenderedUnexplained = "scope:rendered-unexplained"
+	// ScopeRoutineSelfArtifact: a rendered change that is only the version
+	// bump of an artifact the product definition itself publishes is an
+	// out-of-scope item, so the change is correlated.
+	ScopeRoutineSelfArtifact = "scope:routine-self-artifact"
+)
+
+// renderedScopeErrors checks the amendment rules' shape: anchored on a
+// rendered change, family rendered, manifestation rendered-config;
+// rendered-unexplained in scope, routine-self-artifact out of scope.
+func (it ChangeItem) renderedScopeErrors() []string {
+	if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
+		return nil
+	}
+	var out []string
+	if it.RenderedChange == "" {
+		out = append(out, it.ScopeRule+" requires a rendered-change anchor")
+	}
+	if it.Family != FamilyRendered || it.Manifestation != ManifestRenderedConfig {
+		out = append(out, it.ScopeRule+" requires family rendered and manifestation rendered-config")
+	}
+	if it.InScope != (it.ScopeRule == ScopeRenderedUnexplained) {
+		out = append(out, fmt.Sprintf("%s requires inScope=%v", it.ScopeRule, it.ScopeRule == ScopeRenderedUnexplained))
+	}
+	return out
+}
+
 func (it ChangeItem) anchors() int {
 	n := 0
 	for _, a := range []string{it.ChangeID, it.Platform, it.RenderedChange} {
@@ -495,6 +529,9 @@ func (r ChangeEvidenceRecord) Validate() error {
 			if it.Family != FamilyRendered {
 				bad("item %s: a rendered-change item has family rendered", it.ID)
 			}
+		}
+		for _, e := range it.renderedScopeErrors() {
+			bad("item %s: %s", it.ID, e)
 		}
 		if !oneOf(it.Family, ChangeItemFamilies) {
 			bad("item %s: unknown family %q", it.ID, it.Family)
@@ -790,8 +827,14 @@ type EvidenceBundle struct {
 	Snapshot      EnvironmentSnapshot  `json:"snapshot"`
 	// Renders are environment-scope before/after renders (the customer's
 	// configuration at from and to); they depend on change AND environment.
-	Renders  []ManifestPair `json:"renders,omitempty"`
-	Manifest BundleManifest `json:"manifest"`
+	Renders []ManifestPair `json:"renders,omitempty"`
+	// EnvironmentItems are change items anchored on environment-scope
+	// rendered changes nothing else explains (scope:rendered-unexplained,
+	// scope:routine-self-artifact; DESIGN.md §1.3 amendment). They depend on
+	// the environment, so they live in the bundle, not in the change record.
+	// CONTRACT-CHANGE(renderdiff): additive.
+	EnvironmentItems []ChangeItem   `json:"environmentItems,omitempty"`
+	Manifest         BundleManifest `json:"manifest"`
 	// Evidence is the pool every id cited by Change, Snapshot and the
 	// manifest resolves in: the edge's upstream records and the
 	// environment's local-file/input records.
@@ -807,6 +850,34 @@ func BundleID(changeID, snapshotID, manifestDigest string, renders []ManifestPai
 		parts = append(parts, p.key()...)
 	}
 	return BundleIDPrefix + ShortHash(parts...)
+}
+
+// Items returns every change item of the bundle: the change record's, then
+// the environment-scope items.
+func (b *EvidenceBundle) Items() []ChangeItem {
+	out := make([]ChangeItem, 0, len(b.Change.Items)+len(b.EnvironmentItems))
+	return append(append(out, b.Change.Items...), b.EnvironmentItems...)
+}
+
+// Item returns the change item (record or environment scope) with the id.
+func (b *EvidenceBundle) Item(id string) (ChangeItem, bool) {
+	for _, it := range b.Items() {
+		if it.ID == id {
+			return it, true
+		}
+	}
+	return ChangeItem{}, false
+}
+
+// InScope returns the ids of the in-scope items (record, then environment).
+func (b *EvidenceBundle) InScope() []string {
+	var out []string
+	for _, it := range b.Items() {
+		if it.InScope {
+			out = append(out, it.ID)
+		}
+	}
+	return out
 }
 
 // RenderedChanges indexes every rendered change of the bundle (release and
@@ -893,7 +964,7 @@ func (b *EvidenceBundle) Validate() error {
 	if b.Snapshot.Live != nil {
 		art("snapshot.live", b.Snapshot.Live.Artifact, ArtifactLiveObservation)
 	}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		for _, id := range it.Evidence {
 			if !ev[id] {
 				bad("item %s: evidence %s does not resolve", it.ID, id)
@@ -938,6 +1009,35 @@ func (b *EvidenceBundle) Validate() error {
 	items := map[string]bool{}
 	for _, it := range b.Change.Items {
 		items[it.ID] = true
+	}
+	envChanges := map[string]RenderedChange{}
+	for _, p := range b.Renders {
+		for _, c := range p.Changes {
+			envChanges[c.ID] = c
+		}
+	}
+	for _, it := range b.EnvironmentItems {
+		if items[it.ID] {
+			bad("environment item %s: duplicate item id", it.ID)
+		}
+		items[it.ID] = true
+		if it.ID != ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange) || it.anchors() != 1 || it.RenderedChange == "" {
+			bad("environment item %s: must be anchored on exactly one rendered change, id derived from it", it.ID)
+		}
+		if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
+			bad("environment item %s: scope rule %q; environment items are %s or %s", it.ID, it.ScopeRule, ScopeRenderedUnexplained, ScopeRoutineSelfArtifact)
+		}
+		for _, e := range it.renderedScopeErrors() {
+			bad("environment item %s: %s", it.ID, e)
+		}
+		if strings.TrimSpace(it.Title) == "" || !strings.HasPrefix(it.ManifestationRule, "manifest:") || len(it.Evidence) == 0 {
+			bad("environment item %s: title, manifestationRule and evidence are required", it.ID)
+		}
+		if c, ok := envChanges[it.RenderedChange]; !ok {
+			bad("environment item %s: rendered change %s is not an environment-scope rendered change of this bundle", it.ID, it.RenderedChange)
+		} else if !contains(c.ChangeItems, it.ID) {
+			bad("environment item %s: its rendered change %s is not correlated to it", it.ID, it.RenderedChange)
+		}
 	}
 	for _, ps := range [][]ManifestPair{b.Change.Renders, b.Renders} {
 		for _, p := range ps {
@@ -2648,7 +2748,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		arts[a.ID] = true
 	}
 	items := map[string]bool{}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() {
 		items[it.ID] = true
 	}
 	evid := func(what string, ids []EvidenceID) {
@@ -2751,7 +2851,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		item("finding "+f.ID, f.ChangeItem)
 		evid("finding "+f.ID, f.Evidence)
 		art("finding "+f.ID, f.Artifacts...)
-		if it, ok := b.Change.Item(f.ChangeItem); ok {
+		if it, ok := b.Item(f.ChangeItem); ok {
 			if !it.InScope {
 				bad("finding %s classifies out-of-scope item %s", f.ID, f.ChangeItem)
 			}
@@ -2777,10 +2877,21 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		if len(b.Renders) == 0 {
 			bad("automated approval requires a complete environment render: absence of change is only evidence from a render")
 		}
+		// CONTRACT-CHANGE(renderdiff): a not-applicable pair (a version-
+		// independent target, e.g. a consumer overlay that neither pins nor
+		// runs the product) is not a gap; at least one pair must be complete.
+		complete := false
 		for _, p := range b.Renders {
-			if p.Status != CollectionOK {
+			switch p.Status {
+			case CollectionOK:
+				complete = true
+			case CollectionNotApplicable:
+			default:
 				bad("automated approval requires every environment render to be complete (%s is %s)", p.Target, p.Status)
 			}
+		}
+		if len(b.Renders) > 0 && !complete {
+			bad("automated approval requires a complete environment render: every environment render is not-applicable")
 		}
 	}
 	if len(inv.Findings) > 0 {
@@ -2788,7 +2899,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		for _, f := range inv.Findings {
 			got[f.ChangeItem] = true
 		}
-		for _, id := range b.Change.InScope() {
+		for _, id := range b.InScope() {
 			if !got[id] {
 				bad("in-scope change item %s has no finding", id)
 			}

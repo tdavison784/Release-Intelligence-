@@ -144,13 +144,28 @@ func DetectTargets(o TargetOptions) (targets []Target, notes []string) {
 		targets = append(targets, t)
 	}
 	referenced := map[string]bool{}
+	// layeredBy: repo-local values files an Argo CD / Flux target already
+	// layers (valueFiles), so they are not rendered again on their own — that
+	// configuration is not deployed anywhere.
+	layeredBy := map[string]string{}
+	layer := func(ts []Target) {
+		for _, t := range ts {
+			for _, l := range t.Values {
+				if _, ok := layeredBy[filepath.Clean(l.Origin)]; !ok {
+					layeredBy[filepath.Clean(l.Origin)] = t.ID
+				}
+			}
+		}
+	}
 	for _, f := range o.Files.ArgoCD {
 		ts, n := argoTargets(o, f)
 		targets, notes = append(targets, ts...), append(notes, n...)
+		layer(ts)
 	}
 	for _, f := range o.Files.Flux {
 		ts, n := fluxTargets(o, f)
 		targets, notes = append(targets, ts...), append(notes, n...)
+		layer(ts)
 	}
 	for _, f := range o.Files.Helmfile {
 		ts, refs, n := helmfileTargets(o, f)
@@ -164,6 +179,9 @@ func DetectTargets(o TargetOptions) (targets []Target, notes []string) {
 			switch {
 			case referenced[filepath.Clean(f)]:
 				continue // rendered as part of the Helmfile release
+			case layeredBy[filepath.Clean(f)] != "":
+				notes = append(notes, fmt.Sprintf("values file %s: rendered as a values layer of %s, not on its own", f, layeredBy[filepath.Clean(f)]))
+				continue
 			case !o.mentions(filepath.Base(f)) && !o.mentions(filepath.Base(filepath.Dir(f))):
 				notes = append(notes, fmt.Sprintf("values file %s: skipped (its name does not name %s; pass it with --values to render it)", f, o.Product))
 				continue
