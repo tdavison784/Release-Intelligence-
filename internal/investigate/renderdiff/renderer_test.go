@@ -94,7 +94,7 @@ func TestCompletePairIndexesCorrelatedChanges(t *testing.T) {
 	if un := b.Uncorrelated(); len(un) == 0 {
 		t.Errorf("expected uncorrelated changes (image bump, ConfigMap)")
 	}
-	assertResolves(t, f, b)
+	assertResolves(t, f.st, b)
 	if len(res.Notes) == 0 || strings.Contains(strings.Join(res.Notes, "\n"), f.repo) {
 		t.Errorf("notes not carried or not repo-relative: %v", res.Notes)
 	}
@@ -105,7 +105,7 @@ func TestCompletePairIndexesCorrelatedChanges(t *testing.T) {
 // locator naming its entry, the entry is in the stored diff, and its object
 // (and path, when the object exists on that side) reads from the stored
 // render with text that occurs in the bytes.
-func assertResolves(t *testing.T, f *fixture, b *domain.EvidenceBundle) {
+func assertResolves(t *testing.T, st *memStore, b *domain.EvidenceBundle) {
 	t.Helper()
 	ev := b.EvidenceByID()
 	for _, p := range b.Renders {
@@ -114,7 +114,7 @@ func assertResolves(t *testing.T, f *fixture, b *domain.EvidenceBundle) {
 		}
 		diffRef, _ := b.Manifest.Lookup(p.Diff)
 		var doc DiffDocument
-		raw := f.st.text(t, diffRef.Digest)
+		raw := st.text(t, diffRef.Digest)
 		if err := json.Unmarshal([]byte(raw), &doc); err != nil {
 			t.Fatal(err)
 		}
@@ -133,7 +133,7 @@ func assertResolves(t *testing.T, f *fixture, b *domain.EvidenceBundle) {
 			if strings.HasSuffix(c.Class, "-removed") {
 				side = "from"
 			}
-			obj, err := Object(context.Background(), b, f.st, investigate.ObjectRequest{Target: p.Target, Side: side, Object: c.Object, Path: c.Path})
+			obj, err := Object(context.Background(), b, st, investigate.ObjectRequest{Target: p.Target, Side: side, Object: c.Object, Path: c.Path})
 			if err != nil {
 				t.Errorf("%s: object %s %s: %v", c.ID, c.Object, c.Path, err)
 				continue
@@ -144,7 +144,7 @@ func assertResolves(t *testing.T, f *fixture, b *domain.EvidenceBundle) {
 				}
 				continue
 			}
-			if !investigate.QuoteOccurs(f.st.text(t, obj.Artifact.Digest), obj.YAML) {
+			if !investigate.QuoteOccurs(st.text(t, obj.Artifact.Digest), obj.YAML) {
 				t.Errorf("%s: object text does not occur in the artifact:\n%s", c.ID, obj.YAML)
 			}
 		}
