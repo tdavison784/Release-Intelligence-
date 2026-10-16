@@ -1,0 +1,396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/evidence-bundle/v1alpha1.json",
+  "title": "EvidenceBundle",
+  "description": "A reproducible, change- and environment-scoped evidence bundle (Phase 4 P1): the structured breaking-change evidence record, the environment snapshot, environment-scope renders, the searchable manifest of content-addressed artifacts and the evidence pool every cited id resolves in. Immutable once written (docs/phase4/env-impact/DESIGN.md §2).",
+  "$ref": "#/$defs/EvidenceBundle",
+  "$defs": {
+    "ArtifactKind": {
+      "type": "string",
+      "enum": [
+        "upgrade-edge",
+        "upstream-document",
+        "source-diff",
+        "chart-archive",
+        "chart-values",
+        "crd",
+        "rendered-manifests",
+        "render-diff",
+        "environment-file",
+        "environment-facts",
+        "inventory",
+        "live-observation",
+        "impact-report",
+        "knowledge-fact",
+        "graph",
+        "validation-output",
+        "agent-transcript"
+      ]
+    },
+    "ArtifactOrigin": {"type": "string", "enum": ["upstream", "environment", "derived"]},
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["id", "kind", "mediaType", "digest", "size", "path", "origin", "uri", "producer"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^art-"},
+        "kind": {"$ref": "#/$defs/ArtifactKind"},
+        "mediaType": {"type": "string"},
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "size": {"type": "integer"},
+        "path": {"type": "string"},
+        "origin": {"$ref": "#/$defs/ArtifactOrigin"},
+        "uri": {"type": "string"},
+        "producer": {"type": "string"},
+        "redacted": {"type": "boolean"},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "changeItems": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "BundleManifest": {
+      "type": "object",
+      "required": ["artifacts"],
+      "properties": {
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}}
+      },
+      "additionalProperties": false
+    },
+    "ChangeEvidenceRecord": {
+      "type": "object",
+      "required": ["id", "product", "from", "to", "edge", "items", "sources", "producer"],
+      "properties": {
+        "id": {"type": "string"},
+        "product": {"$ref": "#/$defs/ProductRef"},
+        "from": {"$ref": "#/$defs/Version"},
+        "to": {"$ref": "#/$defs/Version"},
+        "edge": {"type": "string"},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/ChangeItem"}},
+        "migrationNotes": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "renders": {"type": "array", "items": {"$ref": "#/$defs/ManifestPair"}},
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ChangeSourceStatus"},
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "producer": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ChangeItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "family",
+        "title",
+        "evidence",
+        "manifestation",
+        "manifestationRule",
+        "inScope",
+        "scopeRule"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "changeId": {"type": "string"},
+        "platform": {"type": "string"},
+        "renderedChange": {"type": "string"},
+        "family": {"$ref": "#/$defs/ChangeItemFamily"},
+        "title": {"type": "string"},
+        "breaking": {"type": "boolean"},
+        "actionRequired": {"type": "boolean"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1},
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "manifestation": {"$ref": "#/$defs/Manifestation"},
+        "manifestationRule": {"type": "string", "pattern": "^manifest:"},
+        "inScope": {"type": "boolean"},
+        "scopeRule": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ChangeItemFamily": {
+      "type": "string",
+      "enum": ["values", "api-schema", "image", "compatibility", "rendered", "behavior", "procedure"]
+    },
+    "ChangeSourceKind": {
+      "type": "string",
+      "enum": [
+        "release-notes",
+        "migration-guide",
+        "source-diff",
+        "api-schema",
+        "chart",
+        "kustomize",
+        "rendered-manifests",
+        "compatibility",
+        "advisories"
+      ]
+    },
+    "ChangeSourceStatus": {
+      "type": "object",
+      "required": ["source", "status"],
+      "properties": {
+        "source": {"$ref": "#/$defs/ChangeSourceKind"},
+        "status": {"$ref": "#/$defs/CollectionStatus"},
+        "reason": {"type": "string"},
+        "artifacts": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "CollectionStatus": {"type": "string", "enum": ["ok", "partial", "unavailable", "not-applicable"]},
+    "EnvironmentSnapshot": {
+      "type": "object",
+      "required": ["id", "environment", "inputs", "facts", "producer", "collectedAt"],
+      "properties": {
+        "id": {"type": "string"},
+        "environment": {"type": "string"},
+        "repo": {"$ref": "#/$defs/RepoRef"},
+        "kubernetesVersion": {"type": "string"},
+        "inputs": {"type": "array", "items": {"$ref": "#/$defs/SnapshotInput"}},
+        "facts": {"type": "string"},
+        "live": {"$ref": "#/$defs/LiveObservation"},
+        "producer": {"type": "string"},
+        "collectedAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
+      "required": ["id", "kind", "uri"],
+      "properties": {
+        "id": {"$ref": "#/$defs/EvidenceID"},
+        "kind": {"$ref": "#/$defs/EvidenceKind"},
+        "sourceId": {
+          "type": "string",
+          "description": "Id of the product-definition source or artifact that produced the evidence."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Location a human or a later run can open to check the claim."
+        },
+        "locator": {
+          "type": "string",
+          "description": "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\")."
+        },
+        "excerpt": {"type": "string", "description": "Short verbatim excerpt of the source, truncated."},
+        "contentDigest": {
+          "type": "string",
+          "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
+        },
+        "representation": {
+          "$ref": "#/$defs/Representation",
+          "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
+        },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched (UTC)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceBundle": {
+      "type": "object",
+      "description": "A reproducible, change- and environment-scoped evidence bundle (Phase 4 P1): the structured breaking-change evidence record, the environment snapshot, environment-scope renders, the searchable manifest of content-addressed artifacts and the evidence pool every cited id resolves in. Immutable once written (docs/phase4/env-impact/DESIGN.md §2).",
+      "required": [
+        "schemaVersion",
+        "id",
+        "change",
+        "snapshot",
+        "manifest",
+        "evidence",
+        "producer",
+        "createdAt"
+      ],
+      "properties": {
+        "schemaVersion": {"type": "string", "const": "ri.dev/evidence-bundle/v1alpha1"},
+        "id": {"type": "string", "pattern": "^bnd-"},
+        "change": {"$ref": "#/$defs/ChangeEvidenceRecord"},
+        "snapshot": {"$ref": "#/$defs/EnvironmentSnapshot"},
+        "renders": {"type": "array", "items": {"$ref": "#/$defs/ManifestPair"}},
+        "manifest": {"$ref": "#/$defs/BundleManifest"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "producer": {"type": "string"},
+        "createdAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "EvidenceKind": {
+      "type": "string",
+      "enum": [
+        "document",
+        "git-ref",
+        "registry",
+        "release-asset",
+        "structured",
+        "advisory",
+        "repo-file",
+        "local-file",
+        "input",
+        "rendered-diff",
+        "rendered",
+        "linked-pr",
+        "linked-commit"
+      ]
+    },
+    "LiveObservation": {
+      "type": "object",
+      "required": ["observedAt", "context", "kinds", "artifact"],
+      "properties": {
+        "observedAt": {"type": "string", "format": "date-time"},
+        "context": {"type": "string"},
+        "namespaces": {"type": "array", "items": {"type": "string"}},
+        "kinds": {"type": "array", "items": {"type": "string"}},
+        "artifact": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ManifestPair": {
+      "type": "object",
+      "required": ["scope", "target", "status"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "target": {"type": "string"},
+        "from": {"type": "string"},
+        "to": {"type": "string"},
+        "diff": {"type": "string"},
+        "status": {"$ref": "#/$defs/CollectionStatus"},
+        "reason": {"type": "string"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/RenderedChange"}}
+      },
+      "additionalProperties": false
+    },
+    "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
+    "ProductID": {"type": "string"},
+    "ProductRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/ProductID"},
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "RenderedChange": {
+      "type": "object",
+      "required": ["id", "class", "object"],
+      "properties": {
+        "id": {"type": "string"},
+        "class": {"type": "string"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"},
+        "sensitive": {"type": "boolean"},
+        "changeItems": {"type": "array", "items": {"type": "string"}},
+        "correlation": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "RepoRef": {
+      "type": "object",
+      "required": ["path", "treeDigest"],
+      "properties": {
+        "path": {"type": "string"},
+        "url": {"type": "string"},
+        "commit": {"type": "string"},
+        "dirty": {"type": "boolean"},
+        "treeDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Representation": {
+      "type": "string",
+      "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
+      "enum": [
+        "source-tree",
+        "published-chart-tgz",
+        "published-oci-chart",
+        "release-asset",
+        "http-document",
+        "registry-manifest"
+      ]
+    },
+    "SnapshotInput": {
+      "type": "object",
+      "required": ["kind", "status"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/SnapshotInputKind"},
+        "path": {"type": "string"},
+        "value": {"type": "string"},
+        "status": {"$ref": "#/$defs/CollectionStatus"},
+        "reason": {"type": "string"},
+        "artifacts": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "SnapshotInputKind": {
+      "type": "string",
+      "enum": [
+        "gitops-repo",
+        "values",
+        "manifests",
+        "crds",
+        "images",
+        "inventory",
+        "cluster-version",
+        "live-cluster"
+      ]
+    },
+    "Version": {
+      "type": "object",
+      "description": "A release version of a product.",
+      "required": ["tag", "version"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Identifier exactly as published by the canonical release channel, e.g. \"v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

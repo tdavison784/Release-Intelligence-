@@ -1,0 +1,717 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/investigation/v1alpha1.json",
+  "title": "Investigation",
+  "description": "The run record of one environment-aware breaking-change investigation (Phase 4): the bundle it investigated, the bounded DFS traversal, agent hypotheses/assertions/requests (AI provenance, never validation results), deterministic or observed validation records, the four-class findings computed by the deterministic policy, the approval decision, the human review and a hash-chained append-only audit trail (docs/phase4/env-impact/DESIGN.md §2–§5).",
+  "$ref": "#/$defs/Investigation",
+  "$defs": {
+    "AIProvenance": {
+      "description": "Provenance of AI output: method is \"ai\" and model, modelVersion, promptVersion, promptDigest, inputEvidence (at least one evidence id) and generatedAt are required, so every enrichment can be traced to the model that answered, the exact prompt and the evidence it was given.",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "required": ["model", "modelVersion", "promptVersion", "promptDigest", "inputEvidence", "generatedAt"],
+      "properties": {
+        "method": {"const": "ai"},
+        "model": {"minLength": 1},
+        "modelVersion": {"minLength": 1},
+        "promptVersion": {"minLength": 1},
+        "promptDigest": {"minLength": 1},
+        "inputEvidence": {"minItems": 1}
+      }
+    },
+    "AgentAssertion": {
+      "type": "object",
+      "required": ["id", "changeItem", "stance", "statement", "citations", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "stance": {"$ref": "#/$defs/AssertionStance"},
+        "statement": {"type": "string"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "paths": {"type": "array", "items": {"type": "string"}},
+        "renderedChanges": {"type": "array", "items": {"type": "string"}},
+        "citations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "proposedEdge": {"$ref": "#/$defs/GraphEdge"},
+        "hypothesis": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "AgentBudget": {
+      "type": "object",
+      "required": ["maxTurns", "maxToolCalls", "maxTokens", "maxReadBytes", "maxSeconds"],
+      "properties": {
+        "maxTurns": {"type": "integer"},
+        "maxToolCalls": {"type": "integer"},
+        "maxTokens": {"type": "integer"},
+        "maxReadBytes": {"type": "integer"},
+        "maxSeconds": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "AgentRun": {
+      "type": "object",
+      "required": ["status", "budget", "turns", "toolCalls", "tokens"],
+      "properties": {
+        "status": {"$ref": "#/$defs/AgentRunStatus"},
+        "reason": {"type": "string"},
+        "model": {"type": "string"},
+        "provider": {"type": "string"},
+        "promptVersion": {"type": "string"},
+        "promptDigest": {"type": "string"},
+        "callId": {"type": "string"},
+        "budget": {"$ref": "#/$defs/AgentBudget"},
+        "turns": {"type": "integer"},
+        "toolCalls": {"type": "integer"},
+        "tokens": {"type": "integer"},
+        "transcript": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "AgentRunStatus": {"type": "string", "enum": ["not-run", "submitted", "budget-exhausted", "failed"]},
+    "ApprovalEligibility": {
+      "type": "object",
+      "required": ["eligible", "requiresHumanReview"],
+      "properties": {
+        "eligible": {"type": "boolean"},
+        "requiresHumanReview": {"type": "boolean"},
+        "blockers": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "ArtifactKind": {
+      "type": "string",
+      "enum": [
+        "upgrade-edge",
+        "upstream-document",
+        "source-diff",
+        "chart-archive",
+        "chart-values",
+        "crd",
+        "rendered-manifests",
+        "render-diff",
+        "environment-file",
+        "environment-facts",
+        "inventory",
+        "live-observation",
+        "impact-report",
+        "knowledge-fact",
+        "graph",
+        "validation-output",
+        "agent-transcript"
+      ]
+    },
+    "ArtifactOrigin": {"type": "string", "enum": ["upstream", "environment", "derived"]},
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["id", "kind", "mediaType", "digest", "size", "path", "origin", "uri", "producer"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^art-"},
+        "kind": {"$ref": "#/$defs/ArtifactKind"},
+        "mediaType": {"type": "string"},
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "size": {"type": "integer"},
+        "path": {"type": "string"},
+        "origin": {"$ref": "#/$defs/ArtifactOrigin"},
+        "uri": {"type": "string"},
+        "producer": {"type": "string"},
+        "redacted": {"type": "boolean"},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "changeItems": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "AssertionStance": {"type": "string", "enum": ["raises-concern", "explains", "claims-mitigation"]},
+    "AuditEvent": {
+      "type": "object",
+      "required": ["seq", "at", "stage", "event", "actor"],
+      "properties": {
+        "seq": {"type": "integer"},
+        "at": {"type": "string", "format": "date-time"},
+        "stage": {"$ref": "#/$defs/Stage"},
+        "event": {"type": "string"},
+        "actor": {"type": "string"},
+        "refs": {"type": "array", "items": {"type": "string"}},
+        "detail": {"type": "string"},
+        "prev": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "DeterministicProvenance": {
+      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "properties": {
+        "method": {"enum": ["declared", "computed", "heuristic"]}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["model"]},
+          {"required": ["promptDigest"]},
+          {"required": ["inputEvidence"]},
+          {"required": ["generatedAt"]},
+          {"required": ["modelVersion"]},
+          {"required": ["promptVersion"]}
+        ]
+      }
+    },
+    "EdgeKind": {
+      "type": "string",
+      "enum": [
+        "deploys",
+        "renders-to",
+        "configures",
+        "overrides",
+        "references",
+        "selects",
+        "serves-api",
+        "consumes-api",
+        "produces",
+        "depends-on"
+      ]
+    },
+    "EdgeStatus": {"type": "string", "enum": ["established", "inferred", "missing"]},
+    "Evidence": {
+      "type": "object",
+      "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
+      "required": ["id", "kind", "uri"],
+      "properties": {
+        "id": {"$ref": "#/$defs/EvidenceID"},
+        "kind": {"$ref": "#/$defs/EvidenceKind"},
+        "sourceId": {
+          "type": "string",
+          "description": "Id of the product-definition source or artifact that produced the evidence."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Location a human or a later run can open to check the claim."
+        },
+        "locator": {
+          "type": "string",
+          "description": "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\")."
+        },
+        "excerpt": {"type": "string", "description": "Short verbatim excerpt of the source, truncated."},
+        "contentDigest": {
+          "type": "string",
+          "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
+        },
+        "representation": {
+          "$ref": "#/$defs/Representation",
+          "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
+        },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched (UTC)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceGap": {
+      "type": "object",
+      "required": ["kind", "subject", "detail"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/GapKind"},
+        "subject": {"type": "string"},
+        "detail": {"type": "string"},
+        "unknownReason": {"$ref": "#/$defs/UnknownReason"}
+      },
+      "additionalProperties": false
+    },
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "EvidenceKind": {
+      "type": "string",
+      "enum": [
+        "document",
+        "git-ref",
+        "registry",
+        "release-asset",
+        "structured",
+        "advisory",
+        "repo-file",
+        "local-file",
+        "input",
+        "rendered-diff",
+        "rendered",
+        "linked-pr",
+        "linked-commit"
+      ]
+    },
+    "EvidenceRequest": {
+      "type": "object",
+      "required": ["id", "kind", "target", "reason", "status", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "kind": {"$ref": "#/$defs/EvidenceRequestKind"},
+        "target": {"type": "string"},
+        "reason": {"type": "string"},
+        "status": {"$ref": "#/$defs/RequestStatus"},
+        "resolution": {"type": "string"},
+        "fulfilled": {"type": "array", "items": {"type": "string"}},
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "EvidenceRequestKind": {"type": "string", "enum": ["artifact", "source", "environment-input", "live-observation"]},
+    "ExposureRoot": {
+      "type": "object",
+      "required": ["changeItem", "node", "rule"],
+      "properties": {
+        "changeItem": {"type": "string"},
+        "node": {"type": "string"},
+        "rule": {"type": "string"},
+        "renderedChange": {"type": "string"},
+        "impactFinding": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "FindingClass": {
+      "type": "string",
+      "enum": ["affected", "not-affected", "potentially-affected", "insufficient-evidence"]
+    },
+    "GapKind": {
+      "type": "string",
+      "enum": ["collection", "traversal", "relationship", "validation", "agent", "exposure"]
+    },
+    "GraphEdge": {
+      "type": "object",
+      "required": ["id", "kind", "from", "to", "status", "rule"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"$ref": "#/$defs/EdgeKind"},
+        "from": {"type": "string"},
+        "to": {"type": "string"},
+        "status": {"$ref": "#/$defs/EdgeStatus"},
+        "rule": {"type": "string"},
+        "detail": {"type": "string"},
+        "reason": {"type": "string"},
+        "mitigates": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "assertion": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "HumanReview": {
+      "type": "object",
+      "required": ["state"],
+      "properties": {
+        "state": {"$ref": "#/$defs/ReviewState"},
+        "reviewer": {"type": "string"},
+        "reviewerKind": {"$ref": "#/$defs/ReviewerKind"},
+        "decidedAt": {"type": "string", "format": "date-time"},
+        "note": {"type": "string"},
+        "proxyProvenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
+    "Hypothesis": {
+      "type": "object",
+      "required": ["id", "changeItem", "statement", "citations", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "statement": {"type": "string"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "citations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "ImpactClass": {
+      "type": "string",
+      "enum": ["action-required", "review-required", "informational", "not-affected", "unknown"]
+    },
+    "ImpactFindingRef": {
+      "type": "object",
+      "required": ["id", "classification", "rule"],
+      "properties": {
+        "id": {"type": "string"},
+        "classification": {"$ref": "#/$defs/ImpactClass"},
+        "rule": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ImpactPath": {
+      "type": "object",
+      "required": ["id", "changeItem", "nodes", "status"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "nodes": {"type": "array", "items": {"type": "string"}},
+        "edges": {"type": "array", "items": {"type": "string"}},
+        "status": {"$ref": "#/$defs/EdgeStatus"},
+        "mitigations": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "Investigation": {
+      "type": "object",
+      "description": "The run record of one environment-aware breaking-change investigation (Phase 4): the bundle it investigated, the bounded DFS traversal, agent hypotheses/assertions/requests (AI provenance, never validation results), deterministic or observed validation records, the four-class findings computed by the deterministic policy, the approval decision, the human review and a hash-chained append-only audit trail (docs/phase4/env-impact/DESIGN.md §2–§5).",
+      "required": [
+        "schemaVersion",
+        "id",
+        "bundle",
+        "snapshot",
+        "changeRecord",
+        "environment",
+        "config",
+        "status",
+        "review",
+        "audit",
+        "createdAt"
+      ],
+      "properties": {
+        "schemaVersion": {"type": "string", "const": "ri.dev/investigation/v1alpha1"},
+        "id": {"type": "string", "pattern": "^inv-"},
+        "bundle": {"type": "string"},
+        "snapshot": {"type": "string"},
+        "changeRecord": {"type": "string"},
+        "environment": {"type": "string"},
+        "config": {"type": "string"},
+        "status": {"$ref": "#/$defs/InvestigationStatus"},
+        "impactReport": {"type": "string"},
+        "graph": {"type": "string"},
+        "traversal": {"$ref": "#/$defs/TraversalResult"},
+        "agent": {"$ref": "#/$defs/AgentRun"},
+        "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/Hypothesis"}},
+        "assertions": {"type": "array", "items": {"$ref": "#/$defs/AgentAssertion"}},
+        "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
+        "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
+        "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/InvestigationFinding"}},
+        "decision": {"$ref": "#/$defs/PolicyDecision"},
+        "review": {"$ref": "#/$defs/HumanReview"},
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "audit": {"type": "array", "items": {"$ref": "#/$defs/AuditEvent"}},
+        "createdAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "InvestigationFinding": {
+      "type": "object",
+      "required": [
+        "id",
+        "changeItem",
+        "class",
+        "manifestation",
+        "rule",
+        "reasoning",
+        "environment",
+        "evidence",
+        "approval",
+        "provenance"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string", "pattern": "^ci-"},
+        "class": {"$ref": "#/$defs/FindingClass"},
+        "manifestation": {"$ref": "#/$defs/Manifestation"},
+        "rule": {"type": "string"},
+        "reasoning": {"type": "string"},
+        "environment": {"type": "string"},
+        "components": {"type": "array", "items": {"type": "string"}},
+        "renderedChanges": {"type": "array", "items": {"type": "string"}},
+        "paths": {"type": "array", "items": {"type": "string"}},
+        "validations": {"type": "array", "items": {"type": "string"}},
+        "assertions": {"type": "array", "items": {"type": "string"}},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "impactFindings": {"type": "array", "items": {"$ref": "#/$defs/ImpactFindingRef"}},
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "gaps": {"type": "array", "items": {"$ref": "#/$defs/EvidenceGap"}},
+        "remediation": {"type": "string"},
+        "nextSteps": {"type": "array", "items": {"type": "string"}},
+        "basis": {"$ref": "#/$defs/ValidationLevel"},
+        "approval": {"$ref": "#/$defs/ApprovalEligibility"},
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "InvestigationStatus": {
+      "type": "string",
+      "enum": ["running", "awaiting-review", "completed", "failed", "cancelled"]
+    },
+    "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
+    "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "PinKind": {
+      "type": "string",
+      "enum": ["values-key", "field", "annotation", "flag", "env-var", "config-key"]
+    },
+    "PinnedSetting": {
+      "type": "object",
+      "required": ["kind", "subject", "path", "value", "evidence"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/PinKind"},
+        "subject": {"type": "string"},
+        "path": {"type": "string"},
+        "value": {"type": "string"},
+        "renderedObject": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
+    "PolicyDecision": {
+      "type": "object",
+      "required": ["policy", "outcome", "reasons"],
+      "properties": {
+        "policy": {"type": "string"},
+        "outcome": {"$ref": "#/$defs/PolicyOutcome"},
+        "reasons": {"type": "array", "items": {"type": "string"}},
+        "autoApprovalEnabled": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "PolicyOutcome": {"type": "string", "enum": ["auto-approve-eligible", "human-review-required"]},
+    "Provenance": {
+      "type": "object",
+      "description": "How a Change, note classification, compatibility constraint or Enrichment was produced. This is the generic shape; documents use DeterministicProvenance where only deterministic methods are allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and AIProvenance for Enrichment.provenance.",
+      "required": ["method", "producer", "confidence"],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method",
+          "description": "How the knowledge was derived. declared: upstream stated it explicitly in a structured or labelled way (an item under a \"Breaking Changes\" heading, a release-note YAML with \"action required\", a published support matrix). computed: deterministic computation over source data (a diff of two values.yaml files or two CRD sets). heuristic: deterministic but pattern-based interpretation (keyword matching such as \"deprecated\" inside a bug-fix bullet); treat with more caution than declared or computed. ai: produced by a language model; only valid on Enrichments."
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Component and version that produced the record, e.g. \"normalize.notes@v1\"."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Identifier of the rule that fired, e.g. \"section:/breaking/i\"."
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence",
+          "description": "Coarse confidence in the classification."
+        },
+        "model": {
+          "type": "string",
+          "description": "AI only: identifier of the model that answered, as reported by the API response or the exchange response file (never assumed from the request)."
+        },
+        "modelVersion": {
+          "type": "string",
+          "description": "AI only: the most precise version identifier of that model reported with the answer (a pinned snapshot id when the provider reports no separate version)."
+        },
+        "promptVersion": {
+          "type": "string",
+          "description": "AI only: version of the prompt templates, e.g. \"enrich/v1\"; promptDigest pins the exact rendered prompt."
+        },
+        "promptDigest": {
+          "type": "string",
+          "description": "AI only: digest of the exact prompt, so the generation can be reproduced or audited."
+        },
+        "inputEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "description": "AI only: ids of the Evidence records the model was given as input."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "AI only: when the output was generated."
+        },
+        "callId": {"type": "string"},
+        "provider": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "Representation": {
+      "type": "string",
+      "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
+      "enum": [
+        "source-tree",
+        "published-chart-tgz",
+        "published-oci-chart",
+        "release-asset",
+        "http-document",
+        "registry-manifest"
+      ]
+    },
+    "RequestStatus": {"type": "string", "enum": ["open", "fulfilled", "unavailable", "rejected"]},
+    "ReviewState": {
+      "type": "string",
+      "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
+    },
+    "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "Stage": {
+      "type": "string",
+      "enum": [
+        "collect-change-evidence",
+        "build-snapshot",
+        "assemble-bundle",
+        "build-graph",
+        "traverse",
+        "investigate",
+        "validate",
+        "classify",
+        "human-review"
+      ]
+    },
+    "TraversalBound": {
+      "type": "object",
+      "required": ["maxDepth", "maxPaths", "maxNodes"],
+      "properties": {
+        "maxDepth": {"type": "integer"},
+        "maxPaths": {"type": "integer"},
+        "maxNodes": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "TraversalResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "graph",
+        "algorithm",
+        "bound",
+        "roots",
+        "depthReached",
+        "visited",
+        "paths",
+        "complete"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "graph": {"type": "string"},
+        "algorithm": {"type": "string"},
+        "bound": {"$ref": "#/$defs/TraversalBound"},
+        "roots": {"type": "array", "items": {"$ref": "#/$defs/ExposureRoot"}},
+        "depthReached": {"type": "integer"},
+        "visited": {"type": "array", "items": {"type": "string"}},
+        "paths": {"type": "array", "items": {"$ref": "#/$defs/ImpactPath"}},
+        "unresolved": {"type": "array", "items": {"type": "string"}},
+        "truncated": {"type": "boolean"},
+        "truncationReason": {"type": "string"},
+        "complete": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "UnknownReason": {
+      "type": "string",
+      "enum": [
+        "release-knowledge-gap",
+        "environment-visibility-gap",
+        "cross-product-context-gap",
+        "runtime-behavior-gap",
+        "evidence-gap",
+        "semantic-ambiguity"
+      ]
+    },
+    "ValidationKind": {
+      "type": "string",
+      "enum": ["override-inspection", "render-diff", "schema-compat", "static-reference", "runtime"]
+    },
+    "ValidationLevel": {"type": "string", "enum": ["deterministic", "observed"]},
+    "ValidationOutcomeKind": {"type": "string", "enum": ["pass", "fail", "error", "not-run"]},
+    "ValidationRecord": {
+      "type": "object",
+      "required": [
+        "id",
+        "validator",
+        "kind",
+        "level",
+        "changeItem",
+        "property",
+        "inputs",
+        "outcome",
+        "provenance",
+        "checkedAt"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "validator": {"type": "string"},
+        "kind": {"$ref": "#/$defs/ValidationKind"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "changeItem": {"type": "string", "pattern": "^ci-"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "paths": {"type": "array", "items": {"type": "string"}},
+        "renderedChanges": {"type": "array", "items": {"type": "string"}},
+        "property": {"type": "string"},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "outcome": {"$ref": "#/$defs/ValidationOutcomeKind"},
+        "detail": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "answers": {"type": "array", "items": {"type": "string"}},
+        "request": {"type": "string"},
+        "pin": {"$ref": "#/$defs/PinnedSetting"},
+        "impactFinding": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"},
+        "checkedAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "ValidationRequest": {
+      "type": "object",
+      "required": ["id", "changeItem", "kind", "status", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "kind": {"$ref": "#/$defs/ValidationKind"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "hypothesis": {"type": "string"},
+        "status": {"$ref": "#/$defs/RequestStatus"},
+        "resolution": {"type": "string"},
+        "result": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

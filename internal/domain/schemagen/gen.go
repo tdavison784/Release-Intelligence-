@@ -26,6 +26,9 @@ var targets = []target{
 	{"release.schema.json", "https://ri.dev/schemas/release/v1alpha1.json", reflect.TypeOf(domain.Release{})},
 	{"impact-report.schema.json", "https://ri.dev/schemas/impact-report/v1alpha1.json", reflect.TypeOf(domain.ImpactReport{})},
 	{"knowledge-record.schema.json", "https://ri.dev/schemas/knowledge-record/v1alpha1.json", reflect.TypeOf(domain.KnowledgeRecord{})},
+	{"evidence-bundle.schema.json", "https://ri.dev/schemas/evidence-bundle/v1alpha1.json", reflect.TypeOf(domain.EvidenceBundle{})},
+	{"investigation.schema.json", "https://ri.dev/schemas/investigation/v1alpha1.json", reflect.TypeOf(domain.Investigation{})},
+	{"investigation-graph.schema.json", "https://ri.dev/schemas/investigation-graph/v1alpha1.json", reflect.TypeOf(domain.RelationshipGraph{})},
 }
 
 var timeType = reflect.TypeOf(time.Time{})
