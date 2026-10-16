@@ -50,7 +50,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
 | eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | arm A scored (not merged yet); HOLDING arm B until commander says ARM B GO |
 | fixes | ri-fixes → glm-fixes (pane w1:p2W) | claude-opus-5-5 / glm-5.3 | .claude/worktrees/p4ei-fixes | tab w1:t1B | glm-fixes working since 15:24 (ri-fixes had only read docs; no status file yet): layered values, record digests, CRD-description noise, depth-8 truncation |
-| runtime | ri-runtime → glm-runtime (pane w1:p2Y) | claude-opus-5-5 / glm-5.3 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | glm-runtime continuing since 15:26 (ri-runtime paused mid-wrap-up: final test suite, status file, cleanup, LANE DONE pending) |
+| runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
@@ -112,6 +112,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 ea983257 agent v4: per-item sessions (cap 10, priority order), concerns need item-session evidence. Live run 4 (same obs-north input as run 3): 72 tool calls, 10/10 sessions examined, 4 validation requests / 3 answer links (all not-run → nothing lifted), 0 cross-item concerns, 124k tokens. Found: closing prose can state false environment facts (fail-safe, misleads reviewers) → v5 structured verified claims. Green.
 - 2026-10-16 EVAL ARM A (deterministic only, results/A-20261016T201359Z-294a49e7a9 on p4ei/eval, not merged yet): PASS falsePositiveRate 1/20, citationResolution 1954/1954, reproducibility 8/8, pipelineFailures 0; FAIL affectedDetection 1/3, affectedConfirmation 0/3, notAffectedConfirmation 0/20, exposureRecall 2/7, evidenceCoverage 6/71, unresolvedRate 15/23, observedAgreement 0/21; INSUFFICIENT-DATA falseNegativeRate 0/3 (minSample 4), unsafeEligibilityRate 0/0. Safe but not useful: each pair's two envs get identical results. Routed generic defects to new lane fixes; one-note-three-items granularity = known limitation; shop-nl B1 FP stays (ACTION REQUIRED contract).
 
+- 2026-10-16 34afd967 runtime ([glm-handoff] merge by glm-commander; lane branch f79540c4, green in its worktree before merge, integration green after): `internal/investigate/runtime` isolated-upgrade validator (level `observed`, opt-in `--runtime`), declarative `exercises:` construct (`products/exercises/{cert-manager,ingress-nginx,prometheus-operator}.yaml`, citations to upstream docs), fake-driver unit tests for every outcome path incl. quiet-window-without-exercise-never-pass and cleanup-on-every-exit-path. Real runs re-executed by glm-runtime on final code: cert-manager payments-eu 215 s (exercise-window `tls.key` rotation ⇒ 1 fail, 6 no-baseline, 3 no-exercise, 7 no-object, 1 other-families, zero pass); ingress-nginx shop-de 185 s (new admission webhook refuses a FROM-valid annotation ⇒ 13 `runtime:unreached`, R3 inconclusive, never fail/pass); kube-prometheus-stack obs-north 181 s (operator rejects 3 ServiceMonitors, token Secret not found ⇒ 3 fails). Every `ri-runtime-*` kind cluster deleted and verified; `kind get clusters` empty at merge time. Cleanup: glm-runtime had exited itself; its pane w1:p2Y closed; worktree removed; branch `-d`. **ri-runtime's pane w1:p2R (tab w1:t19) deliberately left** — GLM commander may not close ri-* panes; Claude commander: on resume just `/exit` ri-runtime and close its tab (its worktree is gone; lane is fully merged). Known gap (relations-lane scope, noted in status): the kps procedure item describing the ServiceMonitor auth change has no graph paths to the degraded ServiceMonitors; the rendered items carry the fails. **Arm C is now unblocked** (tell ri-eval when convenient).
+
 ## Open questions for the user
 
 - (raised 2026-10-16) FINDING: on the real bundles, the knowledge facts behind controller-behaviour items (the cert-manager / ingress-nginx defaults) are only consensus-verified, so OverrideInspection cannot clear them and those environments can at best be potentially-affected — fail-closed and honest, but it caps notAffectedConfirmation. Two routes: (1) a human verifies those facts in the existing review UI (`ri review serve`), which makes them trusted pin sources; (2) a later runtime/observed validator (isolated kind upgrade) — MISSION §A5 last bullet. Commander recommendation: (1) for milestone 1, (2) as a follow-up wave.
@@ -151,4 +153,14 @@ Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In
     leaf-only rotation no workload impact; kps re-run same results. One open question the lane flagged:
     whether data changes under a consumer count as fail (brief rule applied: yes) — will be in its
     status file for review at LANE DONE.
+- **2026-10-16 15:45 (glm-commander): MERGED lane runtime as 34afd967 and cleaned it up** (first
+  `[glm-handoff]` merge). Full build/vet/test green in the lane worktree before merging and on
+  integration after. glm-runtime had exited itself after LANE DONE; closed its pane w1:p2Y, removed the
+  worktree, `git branch -d p4ei/runtime`, `kind get clusters` empty. ri-runtime's pane deliberately left
+  (protocol forbids GLM from closing ri-* panes) — Claude commander closes tab w1:t19 on resume. Arm C
+  unblocked; I did not message ri-eval (Claude agent — forbidden); telling it is in Next actions' hands.
+  glm-agent sent a guardrail note (no model substitution for live run 5 on quota failure; single
+  attempt rides; defers to Claude lane after 17:30 if quota-blocked). glm-agent committed the
+  reconstructed v5 work (169fe259…1ecb6fd6, green) — merge will follow its LANE DONE + replay check.
+  glm-fixes still working (no output yet beyond reading brief/report).
 
