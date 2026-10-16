@@ -1,0 +1,665 @@
+package agent
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/investigate"
+)
+
+const (
+	maxLocator = 300
+	maxTarget  = 2000
+	maxDetail  = 500
+)
+
+// recordView is what the model receives for a recorded hypothesis or
+// assertion: the id to refer to it by, and the evidence its citations became.
+type recordView struct {
+	ID           string              `json:"id"`
+	ChangeItem   string              `json:"changeItem"`
+	Stance       string              `json:"stance,omitempty"`
+	Citations    []domain.EvidenceID `json:"citations"`
+	ProposedEdge string              `json:"proposedEdge,omitempty"`
+	Existing     bool                `json:"existing,omitempty"` // the same record was already made in this call
+}
+
+// requestView is what the model receives for a request.
+type requestView struct {
+	ID         string               `json:"id"`
+	Status     domain.RequestStatus `json:"status"`
+	Resolution string               `json:"resolution,omitempty"`
+	Result     string               `json:"result,omitempty"`
+}
+
+// validationResult is request_validation's result: the request and, when a
+// validator ran, the record it produced.
+type validationResult struct {
+	Request    *domain.ValidationRequest `json:"-"`
+	Validation *domain.ValidationRecord  `json:"-"`
+}
+
+type validationView struct {
+	Request    requestView              `json:"request"`
+	Validation *domain.ValidationRecord `json:"validation,omitempty"`
+}
+
+// --- citations (DESIGN.md §4.4) ---------------------------------------------------------
+
+// citations checks every citation — the artifact exists in the manifest or
+// the run, the quote occurs in its bytes (whitespace-normalised) — and turns
+// each into an evidence record (kind by origin, URI from the artifact,
+// contentDigest = the artifact digest). Any failure rejects the whole call.
+func (s *Session) citations(ctx context.Context, cs []investigate.Citation) ([]domain.Evidence, error) {
+	if len(cs) == 0 {
+		return nil, rejectf("at least one citation is required: an uncited claim is not recorded")
+	}
+	if len(cs) > MaxCitations {
+		return nil, rejectf("%d citations (max %d)", len(cs), MaxCitations)
+	}
+	out := make([]domain.Evidence, 0, len(cs))
+	for i, c := range cs {
+		a, ok := s.artifact(c.Artifact)
+		if !ok {
+			return nil, rejectf("citation %d: unknown artifact %q", i+1, c.Artifact)
+		}
+		if trimmed(c.Quote) == "" {
+			return nil, rejectf("citation %d: the quote is empty", i+1)
+		}
+		if len(c.Quote) > MaxQuote || len(c.Locator) > maxLocator {
+			return nil, rejectf("citation %d: quote (max %d bytes) or locator (max %d) too long", i+1, MaxQuote, maxLocator)
+		}
+		text, err := s.textOf(ctx, a)
+		if err != nil {
+			return nil, err
+		}
+		if !investigate.QuoteOccurs(text, c.Quote) {
+			return nil, rejectf("citation %d: the quote does not occur in artifact %s (%s); copy it verbatim from the artifact", i+1, a.ID, a.Path)
+		}
+		out = append(out, domain.NewEvidence(evidenceKind(a), a.ID, a.URI, c.Locator, c.Quote, a.Digest, time.Time{}))
+	}
+	return out, nil
+}
+
+// evidenceKind classifies citation evidence by the cited artifact.
+func evidenceKind(a domain.ArtifactRef) domain.EvidenceKind {
+	switch a.Origin {
+	case domain.OriginEnvironment:
+		return domain.EvidenceLocalFile
+	case domain.OriginUpstream:
+		switch a.Kind {
+		case domain.ArtifactChartValues, domain.ArtifactCRDDefinition:
+			return domain.EvidenceStructured
+		}
+		return domain.EvidenceDocument
+	}
+	switch a.Kind {
+	case domain.ArtifactRenderedManifests:
+		return domain.EvidenceRendered
+	case domain.ArtifactRenderDiff:
+		return domain.EvidenceRenderedDiff
+	}
+	return domain.EvidenceStructured
+}
+
+func evidenceIDs(es []domain.Evidence) []domain.EvidenceID {
+	var out []domain.EvidenceID
+	seen := map[domain.EvidenceID]bool{}
+	for _, e := range es {
+		if !seen[e.ID] {
+			seen[e.ID] = true
+			out = append(out, e.ID)
+		}
+	}
+	return out
+}
+
+func (s *Session) statement(what, v string) (string, error) {
+	v = trimmed(v)
+	if v == "" {
+		return "", rejectf("%s is required", what)
+	}
+	if len(v) > MaxStatement {
+		return "", rejectf("%s is %d bytes (max %d)", what, len(v), MaxStatement)
+	}
+	return v, nil
+}
+
+// --- record_hypothesis ------------------------------------------------------------------
+
+func (s *Session) recordHypothesis(ctx context.Context, in investigate.HypothesisInput) (*outcome, error) {
+	if err := s.writable(); err != nil {
+		return nil, err
+	}
+	it, err := s.item(in.ChangeItem)
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := s.statement("statement", in.Statement)
+	if err != nil {
+		return nil, err
+	}
+	subjects, err := s.nodeIDs("subject", in.Subjects)
+	if err != nil {
+		return nil, err
+	}
+	evs, err := s.citations(ctx, in.Citations)
+	if err != nil {
+		return nil, err
+	}
+	id := domain.AgentRecordID(domain.HypothesisIDPrefix, it.ID, stmt, s.call.ID)
+	for i := range s.hyps {
+		if s.hyps[i].ID == id {
+			h := s.hyps[i]
+			return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: h.Citations, Existing: true}}, nil
+		}
+	}
+	cites := evidenceIDs(evs)
+	h := domain.Hypothesis{ID: id, ChangeItem: it.ID, Statement: stmt, Subjects: subjects, Citations: cites,
+		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
+	if err := invalid(func() error { c := h; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
+		return nil, err
+	}
+	return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: cites}, commit: func() {
+		s.hyps = append(s.hyps, h)
+		for _, e := range evs {
+			s.addRunEvidence(e)
+		}
+	}}, nil
+}
+
+// placeholder fills the model fields the claude-cli driver reports only when
+// the session ends, so a record can be validated when it is made; the real
+// values replace them before the outcome is returned (Investigator).
+func placeholder(p domain.Provenance) domain.Provenance {
+	if p.Model == "" {
+		p.Model = unreportedModelInfo
+	}
+	if p.ModelVersion == "" {
+		p.ModelVersion = unreportedModelInfo
+	}
+	return p
+}
+
+func invalid(err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("agent: invalid record: %w", err)
+}
+
+// --- record_assertion -------------------------------------------------------------------
+
+func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionInput) (*outcome, error) {
+	if err := s.writable(); err != nil {
+		return nil, err
+	}
+	it, err := s.item(in.ChangeItem)
+	if err != nil {
+		return nil, err
+	}
+	switch in.Stance {
+	case domain.StanceRaisesConcern, domain.StanceExplains, domain.StanceClaimsMitigation:
+	default:
+		return nil, rejectf("stance %q: want raises-concern, explains or claims-mitigation", in.Stance)
+	}
+	stmt, err := s.statement("statement", in.Statement)
+	if err != nil {
+		return nil, err
+	}
+	subjects, err := s.nodeIDs("subject", in.Subjects)
+	if err != nil {
+		return nil, err
+	}
+	paths := uniqSorted(in.Paths)
+	for _, p := range paths {
+		if _, ok := s.paths[p]; !ok {
+			return nil, rejectf("unknown impact path %q", p)
+		}
+	}
+	rcs, err := s.renderedIDs(in.RenderedChanges)
+	if err != nil {
+		return nil, err
+	}
+	if in.Hypothesis != "" && !s.hasHypothesis(in.Hypothesis) {
+		return nil, rejectf("unknown hypothesis %q (record it with record_hypothesis first)", in.Hypothesis)
+	}
+	evs, err := s.citations(ctx, in.Citations)
+	if err != nil {
+		return nil, err
+	}
+	id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(in.Stance)+"\x00"+stmt, s.call.ID)
+	for i := range s.asserts {
+		if s.asserts[i].ID == id {
+			a := s.asserts[i]
+			return &outcome{value: &a, view: recordView{ID: id, ChangeItem: it.ID, Stance: string(a.Stance), Citations: a.Citations, Existing: true}}, nil
+		}
+	}
+	var edge *domain.GraphEdge
+	var newNodes []domain.GraphNode
+	if in.ProposedEdge != nil {
+		if edge, newNodes, err = s.proposedEdge(*in.ProposedEdge, id); err != nil {
+			return nil, err
+		}
+	}
+	cites := evidenceIDs(evs)
+	a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: in.Stance, Statement: stmt, Subjects: subjects, Paths: paths,
+		RenderedChanges: rcs, Citations: cites, ProposedEdge: edge, Hypothesis: in.Hypothesis,
+		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
+	if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
+		return nil, err
+	}
+	view := recordView{ID: id, ChangeItem: it.ID, Stance: string(a.Stance), Citations: cites}
+	if edge != nil {
+		view.ProposedEdge = edge.ID
+	}
+	return &outcome{value: &a, view: view, commit: func() {
+		s.asserts = append(s.asserts, a)
+		for _, e := range evs {
+			s.addRunEvidence(e)
+		}
+		for _, n := range newNodes {
+			s.nodes[n.ID] = n
+			if _, ok := s.nodeKey[n.Key]; !ok {
+				s.nodeKey[n.Key] = n.ID
+			}
+			s.propNodes = append(s.propNodes, n)
+		}
+		if edge != nil {
+			if _, ok := s.edges[edge.ID]; !ok {
+				s.edges[edge.ID] = *edge
+			}
+		}
+	}}, nil
+}
+
+func (s *Session) hasHypothesis(id string) bool {
+	for _, h := range s.hyps {
+		if h.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// proposedEdge builds the inferred edge an assertion proposes. An end is a
+// node id, a node key, or "<node kind>:<key>" — a placeholder node when the
+// graph has no such node.
+func (s *Session) proposedEdge(pe investigate.ProposedEdge, assertion string) (*domain.GraphEdge, []domain.GraphNode, error) {
+	if s.cfg.Graph == nil {
+		return nil, nil, rejectf("proposedEdge: this investigation has no relationship graph")
+	}
+	if !edgeKindKnown(pe.Kind) {
+		return nil, nil, rejectf("proposedEdge: unknown edge kind %q", pe.Kind)
+	}
+	reason := trimmed(pe.Reason)
+	if reason == "" {
+		return nil, nil, rejectf("proposedEdge: a reason is required (a proposed edge is inferred)")
+	}
+	if len(pe.Detail) > maxDetail || len(reason) > MaxStatement {
+		return nil, nil, rejectf("proposedEdge: detail (max %d bytes) or reason too long", maxDetail)
+	}
+	var created []domain.GraphNode
+	end := func(what, ref string) (string, error) {
+		if id, ok := s.node(ref); ok {
+			return id, nil
+		}
+		kind, key, ok := strings.Cut(ref, ":")
+		if ok && key != "" && nodeKindKnown(domain.NodeKind(kind)) {
+			id := domain.NodeID(domain.NodeKind(kind), key)
+			if _, exists := s.nodes[id]; exists {
+				return id, nil
+			}
+			for _, n := range created {
+				if n.ID == id {
+					return id, nil
+				}
+			}
+			created = append(created, domain.GraphNode{ID: id, Kind: domain.NodeKind(kind), Key: key, Placeholder: true})
+			return id, nil
+		}
+		return "", rejectf("proposedEdge.%s %q: not a node id or key of the graph, nor <node kind>:<key>", what, ref)
+	}
+	from, err := end("from", pe.From)
+	if err != nil {
+		return nil, nil, err
+	}
+	to, err := end("to", pe.To)
+	if err != nil {
+		return nil, nil, err
+	}
+	if from == to {
+		return nil, nil, rejectf("proposedEdge: from and to are the same node")
+	}
+	id := domain.EdgeID(pe.Kind, from, to, pe.Detail)
+	for _, e := range s.cfg.Graph.Edges {
+		if e.ID == id {
+			return nil, nil, rejectf("proposedEdge: the graph already has this edge (%s, status %s)", id, e.Status)
+		}
+	}
+	return &domain.GraphEdge{ID: id, Kind: pe.Kind, From: from, To: to, Status: domain.EdgeInferred, Rule: ProposedEdgeRule,
+		Detail: pe.Detail, Reason: reason, Assertion: assertion}, created, nil
+}
+
+func nodeKindKnown(k domain.NodeKind) bool {
+	for _, x := range domain.NodeKinds {
+		if x == k {
+			return true
+		}
+	}
+	return false
+}
+
+// --- request_evidence -------------------------------------------------------------------
+
+func (s *Session) requestEvidence(in investigate.EvidenceRequestInput) (*outcome, error) {
+	if err := s.writable(); err != nil {
+		return nil, err
+	}
+	var inputs []domain.EvidenceID
+	if in.ChangeItem != "" {
+		it, err := s.item(in.ChangeItem)
+		if err != nil {
+			return nil, err
+		}
+		inputs = it.Evidence
+	} else if inputs = s.taskEvidence(); len(inputs) == 0 {
+		return nil, rejectf("changeItem is required")
+	}
+	target, reason := trimmed(in.Target), trimmed(in.Reason)
+	if target == "" || reason == "" {
+		return nil, rejectf("target and reason are required")
+	}
+	if len(target) > maxTarget || len(reason) > MaxStatement {
+		return nil, rejectf("target (max %d bytes) or reason too long", maxTarget)
+	}
+	status, resolution := domain.RequestOpen, ""
+	switch in.Kind {
+	case domain.RequestLiveObservation:
+		status, resolution = domain.RequestRejected, "live-cluster observation is disabled in milestone 1 (DESIGN.md §1.2)"
+	case domain.RequestSource:
+		if _, ok := s.cfg.Bundle.Change.SourceStatus(domain.ChangeSourceKind(target)); !ok {
+			return nil, rejectf("target %q is not a change source kind (%s)", target, sourceKinds())
+		}
+	case domain.RequestArtifact, domain.RequestEnvironmentInput:
+		for _, a := range s.allArtifacts() {
+			if a.ID == target || a.Path == target || a.URI == target {
+				return nil, rejectf("%s is already in the investigation as artifact %s: read it with read_artifact", target, a.ID)
+			}
+		}
+	default:
+		return nil, rejectf("kind %q: want artifact, source, environment-input or live-observation", in.Kind)
+	}
+	id := domain.AgentRecordID(domain.EvidenceRequestIDPrefix, in.ChangeItem, string(in.Kind)+"\x00"+target, s.call.ID)
+	for i := range s.evReqs {
+		if s.evReqs[i].ID == id {
+			r := s.evReqs[i]
+			return &outcome{value: &r, view: requestView{ID: id, Status: r.Status, Resolution: r.Resolution}}, nil
+		}
+	}
+	r := domain.EvidenceRequest{ID: id, ChangeItem: in.ChangeItem, Kind: in.Kind, Target: target, Reason: reason, Status: status,
+		Resolution: resolution, Provenance: s.aiProvenance(inputs)}
+	if err := invalid(func() error { c := r; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
+		return nil, err
+	}
+	view := requestView{ID: id, Status: status, Resolution: resolution}
+	if status == domain.RequestOpen {
+		view.Resolution = "recorded for the next collection round; nothing is fetched during this session"
+	}
+	return &outcome{value: &r, view: view, commit: func() { s.evReqs = append(s.evReqs, r) }}, nil
+}
+
+func sourceKinds() string {
+	var out []string
+	for _, k := range domain.ChangeSourceKinds {
+		out = append(out, string(k))
+	}
+	return strings.Join(out, ", ")
+}
+
+// --- request_validation -----------------------------------------------------------------
+
+func (s *Session) requestValidation(ctx context.Context, in investigate.ValidationRequestInput) (*outcome, error) {
+	if err := s.writable(); err != nil {
+		return nil, err
+	}
+	it, err := s.item(in.ChangeItem)
+	if err != nil {
+		return nil, err
+	}
+	if !it.InScope {
+		return nil, rejectf("change item %s is out of scope (%s): it is not classified, so it is not validated", it.ID, it.ScopeRule)
+	}
+	known := false
+	for _, k := range domain.ValidationKinds {
+		known = known || k == in.Kind
+	}
+	if !known {
+		return nil, rejectf("kind %q: want override-inspection, render-diff, schema-compat, static-reference or runtime", in.Kind)
+	}
+	subjects, err := s.nodeIDs("subject", in.Subjects)
+	if err != nil {
+		return nil, err
+	}
+	paths := uniqSorted(in.Paths)
+	for _, p := range paths {
+		pp, ok := s.paths[p]
+		if !ok {
+			return nil, rejectf("unknown impact path %q", p)
+		}
+		if pp.ChangeItem != it.ID {
+			return nil, rejectf("impact path %s belongs to change item %s, not %s", p, pp.ChangeItem, it.ID)
+		}
+	}
+	rcs, err := s.renderedIDs(in.RenderedChanges)
+	if err != nil {
+		return nil, err
+	}
+	inputs := uniqSorted(in.Inputs)
+	for _, a := range inputs {
+		if _, ok := s.artifact(a); !ok {
+			return nil, rejectf("unknown input artifact %q", a)
+		}
+	}
+	if in.Hypothesis != "" && !s.hasHypothesis(in.Hypothesis) {
+		return nil, rejectf("unknown hypothesis %q (record it with record_hypothesis first)", in.Hypothesis)
+	}
+	id := domain.AgentRecordID(domain.ValidationRequestIDPrefix, it.ID, string(in.Kind)+"\x00"+strings.Join(subjects, ","), s.call.ID)
+	for i := range s.valReqs {
+		if s.valReqs[i].ID == id {
+			r := s.valReqs[i]
+			res := validationResult{Request: &r}
+			if v, ok := s.valIDs[r.Result]; ok {
+				res.Validation = &v
+			}
+			return &outcome{value: res, view: validationView{Request: requestView{ID: id, Status: r.Status, Resolution: r.Resolution, Result: r.Result}, Validation: res.Validation}}, nil
+		}
+	}
+	evIn := append([]domain.EvidenceID(nil), it.Evidence...)
+	for _, rc := range rcs {
+		evIn = append(evIn, s.rcs[rc].Evidence...)
+	}
+	req := domain.ValidationRequest{ID: id, ChangeItem: it.ID, Kind: in.Kind, Subjects: subjects, Inputs: inputs,
+		Hypothesis: in.Hypothesis, Status: domain.RequestOpen, Provenance: s.aiProvenance(evIn)}
+
+	var applicable []investigate.Validator
+	var configured []string
+	for _, v := range s.cfg.Validators {
+		configured = append(configured, fmt.Sprintf("%s (%s)", v.Name(), v.Kind()))
+		if v.Kind() == in.Kind && v.Applies(it.Family) {
+			applicable = append(applicable, v)
+		}
+	}
+	sort.Slice(applicable, func(i, j int) bool { return applicable[i].Name() < applicable[j].Name() })
+	sort.Strings(configured)
+
+	var (
+		fresh    []domain.ValidationRecord
+		existing *domain.ValidationRecord
+		arts     []domain.ArtifactRef
+		evs      []domain.Evidence
+		problems []string
+	)
+	for _, v := range applicable {
+		r := req
+		out, err := v.Validate(ctx, investigate.ValidationInput{Bundle: s.cfg.Bundle, Graph: s.cfg.Graph, Traversal: s.cfg.Traversal,
+			Report: s.cfg.Report, ChangeItem: it.ID, Subjects: subjects, Paths: paths, RenderedChanges: rcs, Request: &r})
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			problems = append(problems, fmt.Sprintf("validator %s failed: %v", v.Name(), err))
+			continue
+		}
+		if out == nil {
+			continue
+		}
+		for _, rec := range out.Records {
+			if rec.Request == "" {
+				rec.Request = id
+			}
+			switch {
+			case rec.ChangeItem != it.ID || rec.Request != id:
+				problems = append(problems, fmt.Sprintf("validator %s returned a record for another item or request (%s)", v.Name(), rec.ID))
+				continue
+			case rec.Provenance.Method == domain.MethodAI:
+				problems = append(problems, fmt.Sprintf("validator %s returned an AI record (%s); a validation is never AI output", v.Name(), rec.ID))
+				continue
+			}
+			if err := rec.Validate(); err != nil {
+				problems = append(problems, fmt.Sprintf("validator %s returned an invalid record: %v", v.Name(), err))
+				continue
+			}
+			if prev, ok := s.valIDs[rec.ID]; ok {
+				if existing == nil {
+					p := prev
+					existing = &p
+				}
+				continue
+			}
+			dup := false
+			for _, f := range fresh {
+				dup = dup || f.ID == rec.ID
+			}
+			if !dup {
+				fresh = append(fresh, rec)
+			}
+		}
+		for _, a := range out.Artifacts {
+			if err := a.Validate(); err != nil {
+				problems = append(problems, fmt.Sprintf("validator %s returned an invalid artifact: %v", v.Name(), err))
+				continue
+			}
+			arts = append(arts, a)
+		}
+		evs = append(evs, out.Evidence...)
+	}
+	res := validationResult{Request: &req}
+	switch {
+	case len(applicable) == 0:
+		req.Status = domain.RequestUnavailable
+		cfg := "none"
+		if len(configured) > 0 {
+			cfg = strings.Join(configured, ", ")
+		}
+		req.Resolution = fmt.Sprintf("no %s validator applies to family %s (configured: %s)", in.Kind, it.Family, cfg)
+	case len(fresh) > 0:
+		req.Status, req.Result = domain.RequestFulfilled, fresh[0].ID
+		res.Validation = &fresh[0]
+	case existing != nil:
+		req.Status = domain.RequestRejected
+		req.Resolution = fmt.Sprintf("already validated: %s by %s (outcome %s); the same validation is not recorded twice", existing.ID, existing.Validator, existing.Outcome)
+		res.Validation = existing
+	default:
+		req.Status = domain.RequestUnavailable
+		req.Resolution = "the validator produced no record"
+		if len(problems) > 0 {
+			req.Resolution = strings.Join(problems, "; ")
+		}
+	}
+	if err := invalid(func() error { c := req; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
+		return nil, err
+	}
+	view := validationView{Request: requestView{ID: id, Status: req.Status, Resolution: req.Resolution, Result: req.Result}, Validation: res.Validation}
+	return &outcome{value: res, view: view, commit: func() {
+		s.valReqs = append(s.valReqs, req)
+		for _, v := range fresh {
+			s.vals = append(s.vals, v)
+			s.valIDs[v.ID] = v
+		}
+		for _, a := range arts {
+			s.addRunArtifact(a)
+		}
+		for _, e := range evs {
+			s.addRunEvidence(e)
+		}
+	}}, nil
+}
+
+// --- submit_findings --------------------------------------------------------------------
+
+type submitView struct {
+	Submitted  bool     `json:"submitted"`
+	Assertions []string `json:"assertions"`
+	Note       string   `json:"note"`
+}
+
+func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput) (*outcome, error) {
+	if err := s.writable(); err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{}
+	var made []domain.AgentAssertion
+	var evs []domain.Evidence
+	ids := []string{}
+	for i, sum := range in.Items {
+		it, err := s.item(sum.ChangeItem)
+		if err != nil {
+			return nil, fmt.Errorf("items[%d]: %w", i, err)
+		}
+		if !it.InScope {
+			return nil, rejectf("items[%d]: change item %s is out of scope (%s)", i, it.ID, it.ScopeRule)
+		}
+		if seen[it.ID] {
+			return nil, rejectf("items[%d]: change item %s is summarised twice", i, it.ID)
+		}
+		seen[it.ID] = true
+		stmt, err := s.statement(fmt.Sprintf("items[%d].summary", i), sum.Summary)
+		if err != nil {
+			return nil, err
+		}
+		cs, err := s.citations(ctx, sum.Citations)
+		if err != nil {
+			return nil, fmt.Errorf("items[%d]: %w", i, err)
+		}
+		id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(domain.StanceExplains)+"\x00"+stmt, s.call.ID)
+		ids = append(ids, id)
+		dup := false
+		for _, a := range s.asserts {
+			dup = dup || a.ID == id
+		}
+		if dup {
+			continue
+		}
+		cites := evidenceIDs(cs)
+		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: domain.StanceExplains, Statement: stmt, Citations: cites,
+			Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
+		if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
+			return nil, err
+		}
+		made = append(made, a)
+		evs = append(evs, cs...)
+	}
+	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
+	return &outcome{value: nil, view: view, commit: func() {
+		s.asserts = append(s.asserts, made...)
+		for _, e := range evs {
+			s.addRunEvidence(e)
+		}
+		s.submitted = true
+	}}, nil
+}

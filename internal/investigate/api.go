@@ -290,6 +290,13 @@ type AgentOutcome struct {
 	Validations        []domain.ValidationRecord  `json:"validations,omitempty"`
 	Artifacts          []domain.ArtifactRef       `json:"artifacts,omitempty"`
 	Evidence           []domain.Evidence          `json:"evidence,omitempty"`
+	// ProposedNodes are the placeholder nodes the agent's proposed edges
+	// need (an end the graph does not have, named by kind and key), so the
+	// re-traversal over the graph plus the proposed edges (DESIGN.md §5.1)
+	// can build them; agent.MergeGraph does.
+	// CONTRACT-CHANGE(agent): additive; a node id alone cannot be turned
+	// back into the kind and key a placeholder node needs.
+	ProposedNodes []domain.GraphNode `json:"proposedNodes,omitempty"`
 }
 
 // Investigator runs the agent stage (MISSION §A4; lane agent): it serves
