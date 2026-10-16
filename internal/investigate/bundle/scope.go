@@ -25,6 +25,7 @@ const (
 	// DESIGN.md §1.3 amendment (2026-10-16).
 	ScopeRenderedUnexplained = domain.ScopeRenderedUnexplained
 	ScopeRoutineSelfArtifact = domain.ScopeRoutineSelfArtifact
+	ScopeDocumentation       = domain.ScopeDocumentation
 	ScopeCategory            = "scope:category"
 	ScopeNotBreaking         = "scope:not-breaking"
 )
@@ -104,16 +105,37 @@ type changeFacts struct {
 	// self-artifact; "" = structural).
 	RenderedAnchored bool
 	RenderedScope    string
-	// CorrelatedPaths are the paths of the release-scope rendered changes
+	// Correlated are the release-scope rendered changes (path and class)
 	// correlated to the item by rule subject, values-default or artifact.
-	CorrelatedPaths []string
+	Correlated []correlatedChange
 }
 
-func factsOf(c domain.Change, correlatedPaths []string) changeFacts {
+// correlatedChange is one release-scope rendered change correlated to an
+// item: where it lands and its render class.
+type correlatedChange struct {
+	Path  string
+	Class render.ChangeClass
+}
+
+func factsOf(c domain.Change, correlated []correlatedChange) changeFacts {
 	return changeFacts{
 		Category: c.Category, Breaking: c.Breaking, ActionRequired: c.ActionRequired, Routine: c.Routine,
-		Computed: c.Provenance.Method == domain.MethodComputed, Rule: c.Provenance.Rule, CorrelatedPaths: correlatedPaths,
+		Computed: c.Provenance.Method == domain.MethodComputed, Rule: c.Provenance.Rule, Correlated: correlated,
 	}
+}
+
+// correlatedConfig reports whether any correlated rendered change is
+// rendered configuration — not schema documentation text
+// (render.CRDDescriptionChanged), which configures nothing: an item whose
+// only rendered trace is the reworded description of its field still takes
+// effect in the controller (DESIGN.md §2.2.1, manifest:rendered-correlated).
+func correlatedConfig(cs []correlatedChange) bool {
+	for _, c := range cs {
+		if c.Class != render.CRDDescriptionChanged {
+			return true
+		}
+	}
+	return false
 }
 
 // scopeOf applies the §1.3 rules, first match wins.
@@ -125,6 +147,8 @@ func scopeOf(f changeFacts) (bool, string) {
 		return true, ScopeBreaking
 	case f.RenderedAnchored && f.RenderedScope == ScopeRoutineSelfArtifact:
 		return false, ScopeRoutineSelfArtifact
+	case f.RenderedAnchored && f.RenderedScope == ScopeDocumentation:
+		return false, ScopeDocumentation
 	case f.RenderedAnchored && f.RenderedScope == ScopeRenderedUnexplained:
 		return true, ScopeRenderedUnexplained
 	case f.RenderedAnchored:
@@ -155,7 +179,7 @@ func manifestationOf(f changeFacts) (domain.Manifestation, string) {
 		return domain.ManifestRenderedConfig, ManifestRuleComputedCRDStruct
 	case f.Computed && f.Rule == "crd:default-changed":
 		return domain.ManifestControllerBehaviour, ManifestRuleCRDDefault
-	case !f.Computed && len(f.CorrelatedPaths) > 0:
+	case !f.Computed && correlatedConfig(f.Correlated):
 		return domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated
 	case !f.Computed:
 		return domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour

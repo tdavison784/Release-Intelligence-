@@ -438,6 +438,7 @@
         "config": {"type": "string"},
         "status": {"$ref": "#/$defs/InvestigationStatus"},
         "impactReport": {"type": "string"},
+        "reportStamps": {"$ref": "#/$defs/ReportStamps"},
         "graph": {"type": "string"},
         "traversal": {"$ref": "#/$defs/TraversalResult"},
         "agent": {"$ref": "#/$defs/AgentRun"},
@@ -623,6 +624,14 @@
       "additionalProperties": false
     },
     "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "ReportStamps": {
+      "type": "object",
+      "properties": {
+        "generatedAt": {"type": "string", "format": "date-time"},
+        "retrievedAt": {"type": "object", "additionalProperties": {"type": "string", "format": "date-time"}}
+      },
+      "additionalProperties": false
+    },
     "Representation": {
       "type": "string",
       "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",

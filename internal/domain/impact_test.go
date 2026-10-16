@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
@@ -95,5 +96,38 @@ func TestImpactReportIdentifiedContent(t *testing.T) {
 	var zero ImpactReport
 	if z := zero.IdentifiedContent(); z.Evidence != nil || z.EnvironmentEvidence != nil {
 		t.Fatal("a report without evidence must not gain empty slices")
+	}
+}
+
+// The run's wall-clock stamps leave the identified content but are not
+// dropped: Stamps keeps them (report GeneratedAt and each evidence
+// RetrievedAt, by id) and WithStamps restores the original exactly. The
+// enrichment's AI GeneratedAt (the model answer's own time) stays in the
+// identified content, which therefore still validates (AI provenance needs
+// it).
+func TestImpactReportStampsRoundTrip(t *testing.T) {
+	gen, got := time.Date(2026, 10, 16, 9, 0, 0, 0, time.UTC), time.Date(2026, 10, 16, 9, 0, 1, 0, time.UTC)
+	answered := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
+	up := NewEvidence(EvidenceDocument, "notes", "https://example/notes.md", "L1", "upstream", "sha256:u", got)
+	local := NewEvidence(EvidenceLocalFile, "", "values.yaml", "L1", "a: 1", "sha256:l", time.Time{})
+	rep := &ImpactReport{GeneratedAt: gen, Evidence: []Evidence{up}, EnvironmentEvidence: []Evidence{local},
+		Enrichments: []Enrichment{{ID: "enr-1", Provenance: Provenance{Method: MethodAI, GeneratedAt: &answered}}}}
+	id := rep.IdentifiedContent()
+	s := rep.Stamps()
+	if !id.GeneratedAt.IsZero() || !id.Evidence[0].RetrievedAt.IsZero() {
+		t.Fatalf("stamps left in the identified content: %+v", id)
+	}
+	if !s.GeneratedAt.Equal(gen) || len(s.RetrievedAt) != 1 || !s.RetrievedAt[up.ID].Equal(got) {
+		t.Fatalf("stamps = %+v", s)
+	}
+	if g := id.Enrichments[0].Provenance.GeneratedAt; g == nil || !g.Equal(answered) {
+		t.Fatalf("the enrichment's AI generatedAt must stay in the identified content: %v", g)
+	}
+	back := id.WithStamps(s)
+	if !reflect.DeepEqual(&back, rep) {
+		t.Fatalf("WithStamps(Stamps()) is not the original:\n%+v\n%+v", back, *rep)
+	}
+	if !rep.Evidence[0].RetrievedAt.Equal(got) {
+		t.Fatal("the caller's report was mutated")
 	}
 }

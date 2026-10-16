@@ -239,12 +239,16 @@ func (ix *indexer) pair(ctx context.Context, st investigate.ArtifactStore, p *re
 
 // anchoredItem is the environment item of a rendered change nothing else
 // explains (DESIGN §1.3 amendment): scope:routine-self-artifact (out of
-// scope) for a self-artifact version bump, else scope:rendered-unexplained
+// scope) for a self-artifact version bump, scope:documentation (out of
+// scope) for CRD schema documentation text, else scope:rendered-unexplained
 // (in scope). Its upstream evidence is the rendered change's own record.
 func anchoredItem(rc domain.RenderedChange, scope string) domain.ChangeItem {
 	title := fmt.Sprintf("%s: %s %s (not explained by any upstream change)", rc.Class, rc.Object, rc.Path)
-	if scope == domain.ScopeRoutineSelfArtifact {
+	switch scope {
+	case domain.ScopeRoutineSelfArtifact:
 		title = fmt.Sprintf("%s: %s %s (version bump of the product's own image)", rc.Class, rc.Object, rc.Path)
+	case domain.ScopeDocumentation:
+		title = fmt.Sprintf("%s: %s %s (schema documentation text; no change names the field it documents)", rc.Class, rc.Object, rc.Path)
 	}
 	return domain.ChangeItem{ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
 		Title: strings.Join(strings.Fields(title), " "), Subjects: []string{rc.Object}, Evidence: rc.Evidence,
@@ -302,10 +306,15 @@ func (ix *indexer) entries(p *render.Pair, target string, indexed bool) []DiffEn
 			}
 		}
 		if len(e.ChangeItems) == 0 && indexed {
-			// nothing explains it: it anchors its own environment item
+			// nothing explains it: it anchors its own environment item —
+			// out of scope when it is only schema documentation or the
+			// product's own image bump, else in scope (unexplained)
 			e.anchor = domain.ScopeRenderedUnexplained
 			if _, ok := render.SelfArtifactBump(c, ix.edge); ok {
 				e.anchor = domain.ScopeRoutineSelfArtifact
+			}
+			if c.Class == render.CRDDescriptionChanged {
+				e.anchor = domain.ScopeDocumentation
 			}
 			e.ChangeItems, rules = []string{domain.ChangeItemID("", "", e.ID)}, []string{RuleRenderedAnchor}
 		}

@@ -167,6 +167,8 @@ func (o *output) add(d draft) domain.ValidationRecord {
 			r.Answers = []string{req.Hypothesis}
 		}
 	}
+	// an undecided record carries exactly what it was asked about
+	r.EchoRequested(o.in.Subjects, o.in.Paths, o.in.RenderedChanges)
 	r.ID = domain.ValidationRecordID(r.Validator, r.ChangeItem, r.Subjects, r.Paths, r.RenderedChanges, r.Inputs)
 	if o.ids[r.ID] {
 		o.errors = append(o.errors, fmt.Errorf("validate: %s produced two records with id %s", o.base.name, r.ID))
@@ -187,7 +189,9 @@ func (o *output) result() (*investigate.ValidationOutput, error) {
 }
 
 // notRun records an undecided outcome. The record carries the coverage the
-// validator was asked about, so the classifier sees what stayed undecided.
+// validator was asked about (add echoes the request's subjects, paths and
+// rendered changes), so the classifier and the audit see what stayed
+// undecided.
 func (o *output) notRun(cov coverage, rule, property, detail string, inputs ...string) {
 	o.add(draft{rule: rule, outcome: domain.ValidationNotRun, property: property, detail: detail,
 		subjects: cov.subjects, paths: cov.paths, inputs: inputs})

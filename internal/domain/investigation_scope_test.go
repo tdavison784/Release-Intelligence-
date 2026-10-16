@@ -19,6 +19,11 @@ func envItemFixture(t *testing.T, scope string) (*invFixture, *ChangeItem) {
 	p := &b.Renders[0]
 	rc := RenderedChange{Class: "field-removed", Object: "core/v1/ConfigMap/cert-manager/cm", Path: "data.x", Before: `"1"`,
 		Evidence: p.Changes[0].Evidence}
+	if scope == ScopeDocumentation {
+		rc = RenderedChange{Class: RenderedClassDocumentation, Object: "apiextensions.k8s.io/v1/CustomResourceDefinition//widgets.example.io",
+			Path: "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Before: `"a"`, After: `"b"`,
+			Evidence: p.Changes[0].Evidence}
+	}
 	rc.ID = RenderedChangeID(RenderEnvironment, p.Target, rc.Object, rc.Path, rc.Class)
 	it := ChangeItem{RenderedChange: rc.ID, Family: FamilyRendered, Title: "field-removed ConfigMap/cm data.x (not explained by any change)",
 		Evidence: rc.Evidence, Manifestation: ManifestRenderedConfig, ManifestationRule: "manifest:rendered-anchor",
@@ -41,7 +46,7 @@ func sortRendered(cs []RenderedChange) {
 }
 
 func TestEnvironmentItemsValidate(t *testing.T) {
-	for _, scope := range []string{ScopeRenderedUnexplained, ScopeRoutineSelfArtifact} {
+	for _, scope := range []string{ScopeRenderedUnexplained, ScopeRoutineSelfArtifact, ScopeDocumentation} {
 		fx, it := envItemFixture(t, scope)
 		if err := fx.b.Validate(); err != nil {
 			t.Fatalf("%s: %v", scope, err)
@@ -100,6 +105,9 @@ func TestRecordRenderedScopeRules(t *testing.T) {
 		"self-artifact out of scope": {func(it *ChangeItem) {
 			it.ScopeRule, it.InScope = ScopeRoutineSelfArtifact, true
 		}, "scope:routine-self-artifact requires inScope=false"},
+		"documentation out of scope": {func(it *ChangeItem) {
+			it.ScopeRule, it.InScope = ScopeDocumentation, true
+		}, "scope:documentation requires inScope=false"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -108,6 +116,22 @@ func TestRecordRenderedScopeRules(t *testing.T) {
 			c.mut(&r.Items[0])
 			wantInvErr(t, r.Validate(), c.want)
 		})
+	}
+}
+
+// scope:documentation is only for schema documentation text: a real
+// configuration change can never be filed away as documentation.
+func TestDocumentationScopeOnlyForDescriptionText(t *testing.T) {
+	fx, it := envItemFixture(t, ScopeDocumentation)
+	for i := range fx.b.Renders[0].Changes {
+		if c := &fx.b.Renders[0].Changes[i]; c.ID == it.RenderedChange {
+			c.Class = "field-removed"
+		}
+	}
+	wantInvErr(t, fx.b.Validate(), "scope:documentation is only for a crd-description-changed rendered change")
+	fx, _ = envItemFixture(t, ScopeDocumentation)
+	if err := fx.inv.ValidateAgainst(fx.b); err != nil && strings.Contains(err.Error(), "has no finding") {
+		t.Errorf("an out-of-scope documentation item needs no finding: %v", err)
 	}
 }
 

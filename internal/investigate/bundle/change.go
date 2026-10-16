@@ -309,15 +309,16 @@ type itemBuilder struct {
 	byChange map[string]*domain.ChangeItem // change id → item
 	facts    map[string]changeFacts        // item id → facts
 	list     []*domain.ChangeItem
-	// corr: change id → paths of correlated release-scope rendered changes
+	// corr: change id → the correlated release-scope rendered changes (path
+	// and class)
 	// (rule subject, values-default or artifact), for manifest:rendered-correlated.
-	corr map[string][]string
+	corr map[string][]correlatedChange
 }
 
 func (b *itemBuilder) fromEdge() {
 	b.byChange = map[string]*domain.ChangeItem{}
 	b.facts = map[string]changeFacts{}
-	b.corr = map[string][]string{}
+	b.corr = map[string][]correlatedChange{}
 	for _, ch := range b.edge.Changes {
 		if ch.Routine {
 			continue // routine maintenance churn is summarised in the edge, not itemised
@@ -420,7 +421,7 @@ func (b *itemBuilder) finish() {
 	for _, it := range b.list {
 		f := b.facts[it.ID]
 		if it.ChangeID != "" {
-			f.CorrelatedPaths = b.corr[it.ChangeID]
+			f.Correlated = b.corr[it.ChangeID]
 		}
 		b.facts[it.ID] = f
 		it.Family = familyOf(f)
@@ -434,19 +435,18 @@ func (b *itemBuilder) finish() {
 // match wins): a class the default tier policy blocks is
 // scope:rendered-structural; the version bump of an image the product
 // definition publishes is scope:routine-self-artifact (out of scope, so the
-// change is correlated); anything else is scope:rendered-unexplained. CRD
-// description text is documentation — it stays an unanchored rendered change
-// (visible in the pair), never an item: reworded docs are noise to every
-// downstream consumer, not an unexplained behavioural change.
+// change is correlated); CRD schema documentation text no change documents
+// is scope:documentation (out of scope, so the change is correlated — never
+// an in-scope item of its own: documentation configures nothing); anything
+// else is scope:rendered-unexplained.
 func (b *itemBuilder) anchorUnexplained(mp *domain.ManifestPair, pair *render.Pair) {
 	scope := map[string]string{}
 	if pair != nil && pair.Diff != nil {
 		for _, c := range pair.Diff.Changes {
-			if c.Class == render.CRDDescriptionChanged {
-				continue
-			}
 			id := domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), render.RenderedPath(c), string(c.Class))
 			switch _, self := render.SelfArtifactBump(c, b.edge); {
+			case c.Class == render.CRDDescriptionChanged:
+				scope[id] = ScopeDocumentation
 			case isStructuralRender(c):
 				scope[id] = ScopeRenderedStructural
 			case self:
@@ -464,8 +464,11 @@ func (b *itemBuilder) anchorUnexplained(mp *domain.ManifestPair, pair *render.Pa
 		}
 		f := changeFacts{RenderedAnchored: true, RenderedScope: scope[rc.ID]}
 		why := "not mentioned by any change"
-		if f.RenderedScope == ScopeRoutineSelfArtifact {
+		switch f.RenderedScope {
+		case ScopeRoutineSelfArtifact:
 			why = "version bump of the product's own image"
+		case ScopeDocumentation:
+			why = "schema documentation text; no change names the field it documents"
 		}
 		it := &domain.ChangeItem{
 			ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
@@ -581,8 +584,8 @@ func (c *ChangeCollector) releasePair(ctx context.Context, put putFunc, pool map
 		}
 		byID[id] = rc
 		for _, cid := range l.changeIDs {
-			if l.pathRule {
-				b.corr[cid] = append(b.corr[cid], ch.Path)
+			if l.pathRule[cid] {
+				b.corr[cid] = append(b.corr[cid], correlatedChange{Path: ch.Path, Class: ch.Class})
 			}
 		}
 	}
@@ -602,14 +605,18 @@ type correlated struct {
 	items     []string
 	changeIDs []string
 	rule      string
-	pathRule  bool // a rule that counts for manifest:rendered-correlated
+	// pathRule: the change ids linked by a rule that counts for
+	// manifest:rendered-correlated — per link, never per rendered change: a
+	// subject match of one change does not make another change that merely
+	// mentions the same object render-decided.
+	pathRule map[string]bool
 }
 
 // correlatedOf maps a render correlation to change items. Links to routine
 // changes (which have no item) are dropped; an "artifact" link, which names
 // no change, attaches to the computed image items of that repository.
 func correlatedOf(cc render.Correlated, b *itemBuilder) correlated {
-	var out correlated
+	out := correlated{pathRule: map[string]bool{}}
 	for _, l := range cc.Links {
 		if l.ChangeID != "" {
 			it, ok := b.byChange[l.ChangeID]
@@ -622,7 +629,7 @@ func correlatedOf(cc render.Correlated, b *itemBuilder) correlated {
 				out.rule = l.Rule
 			}
 			if l.Rule == "subject" || l.Rule == "values-default" || l.Rule == "artifact" {
-				out.pathRule = true
+				out.pathRule[l.ChangeID] = true
 			}
 			continue
 		}
@@ -641,7 +648,7 @@ func correlatedOf(cc render.Correlated, b *itemBuilder) correlated {
 				if out.rule == "" {
 					out.rule = "artifact"
 				}
-				out.pathRule = true
+				out.pathRule[it.ChangeID] = true
 			}
 		}
 	}

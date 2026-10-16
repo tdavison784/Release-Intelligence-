@@ -389,13 +389,25 @@ const (
 	// bump of an artifact the product definition itself publishes is an
 	// out-of-scope item, so the change is correlated.
 	ScopeRoutineSelfArtifact = "scope:routine-self-artifact"
+	// ScopeDocumentation: a crd-description-changed rendered change (CRD
+	// schema documentation text) that no change item correlates is an
+	// out-of-scope item, so the change is correlated (never "uncorrelated")
+	// and never an in-scope item of its own: documentation configures
+	// nothing (DESIGN.md §1.3).
+	// CONTRACT-CHANGE(fixes2): additive, mirrors ScopeRoutineSelfArtifact.
+	ScopeDocumentation = "scope:documentation"
+	// RenderedClassDocumentation is the render class ScopeDocumentation
+	// items anchor on (render.CRDDescriptionChanged; domain cannot import
+	// render).
+	RenderedClassDocumentation = "crd-description-changed"
 )
 
 // renderedScopeErrors checks the amendment rules' shape: anchored on a
 // rendered change, family rendered, manifestation rendered-config;
-// rendered-unexplained in scope, routine-self-artifact out of scope.
+// rendered-unexplained in scope, routine-self-artifact and documentation out
+// of scope.
 func (it ChangeItem) renderedScopeErrors() []string {
-	if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
+	if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact && it.ScopeRule != ScopeDocumentation {
 		return nil
 	}
 	var out []string
@@ -507,9 +519,11 @@ func (r ChangeEvidenceRecord) Validate() error {
 		bad("producer is required")
 	}
 	releaseChanges := map[string]bool{}
+	releaseClass := map[string]string{}
 	for _, p := range r.Renders {
 		for _, c := range p.Changes {
 			releaseChanges[c.ID] = true
+			releaseClass[c.ID] = c.Class
 		}
 	}
 	seen := map[string]bool{}
@@ -530,6 +544,9 @@ func (r ChangeEvidenceRecord) Validate() error {
 			}
 			if it.Family != FamilyRendered {
 				bad("item %s: a rendered-change item has family rendered", it.ID)
+			}
+			if it.ScopeRule == ScopeDocumentation && releaseChanges[it.RenderedChange] && releaseClass[it.RenderedChange] != RenderedClassDocumentation {
+				bad("item %s: %s is only for a %s rendered change, not %q", it.ID, ScopeDocumentation, RenderedClassDocumentation, releaseClass[it.RenderedChange])
 			}
 		}
 		for _, e := range it.renderedScopeErrors() {
@@ -1026,8 +1043,8 @@ func (b *EvidenceBundle) Validate() error {
 		if it.ID != ChangeItemID(it.ChangeID, it.Platform, it.RenderedChange) || it.anchors() != 1 || it.RenderedChange == "" {
 			bad("environment item %s: must be anchored on exactly one rendered change, id derived from it", it.ID)
 		}
-		if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact {
-			bad("environment item %s: scope rule %q; environment items are %s or %s", it.ID, it.ScopeRule, ScopeRenderedUnexplained, ScopeRoutineSelfArtifact)
+		if it.ScopeRule != ScopeRenderedUnexplained && it.ScopeRule != ScopeRoutineSelfArtifact && it.ScopeRule != ScopeDocumentation {
+			bad("environment item %s: scope rule %q; environment items are %s, %s or %s", it.ID, it.ScopeRule, ScopeRenderedUnexplained, ScopeRoutineSelfArtifact, ScopeDocumentation)
 		}
 		for _, e := range it.renderedScopeErrors() {
 			bad("environment item %s: %s", it.ID, e)
@@ -1039,6 +1056,8 @@ func (b *EvidenceBundle) Validate() error {
 			bad("environment item %s: rendered change %s is not an environment-scope rendered change of this bundle", it.ID, it.RenderedChange)
 		} else if !contains(c.ChangeItems, it.ID) {
 			bad("environment item %s: its rendered change %s is not correlated to it", it.ID, it.RenderedChange)
+		} else if it.ScopeRule == ScopeDocumentation && c.Class != RenderedClassDocumentation {
+			bad("environment item %s: %s is only for a %s rendered change, not %q", it.ID, ScopeDocumentation, RenderedClassDocumentation, c.Class)
 		}
 	}
 	for _, ps := range [][]ManifestPair{b.Change.Renders, b.Renders} {
@@ -1694,6 +1713,44 @@ type ValidationRecord struct {
 	ImpactFinding string     `json:"impactFinding,omitempty"`
 	Provenance    Provenance `json:"provenance"` // never method ai
 	CheckedAt     time.Time  `json:"checkedAt"`  // not part of the id
+}
+
+// EchoRequested makes an undecided record (outcome not-run or error) carry
+// the coverage it was asked about exactly as requested — the subjects, paths
+// and rendered changes of the request — next to whatever coverage the
+// validator named itself: the record stays linkable to its request and the
+// audit keeps what was asked (an undecided record never counts as coverage
+// for clearing, so this can only add gaps, never clear). A decisive record
+// is left unchanged: it speaks only for what it decided. Call it before
+// deriving the record id.
+// CONTRACT-CHANGE(fixes2): additive helper.
+func (v *ValidationRecord) EchoRequested(subjects, paths, renderedChanges []string) {
+	if v.Outcome != ValidationNotRun && v.Outcome != ValidationError {
+		return
+	}
+	v.Subjects = sortedUnion(v.Subjects, subjects)
+	v.Paths = sortedUnion(v.Paths, paths)
+	v.RenderedChanges = sortedUnion(v.RenderedChanges, renderedChanges)
+}
+
+func sortedUnion(a, b []string) []string {
+	m := map[string]bool{}
+	for _, xs := range [][]string{a, b} {
+		for _, x := range xs {
+			if x != "" {
+				m[x] = true
+			}
+		}
+	}
+	if len(m) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(m))
+	for x := range m {
+		out = append(out, x)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // ValidationRecordID derives a validation record id.
@@ -2548,7 +2605,15 @@ type Investigation struct {
 	Status       InvestigationStatus `json:"status"`
 	// ImpactReport is the artifact id of the deterministic ImpactReport the
 	// investigation builds on; Graph the RelationshipGraph artifact.
-	ImpactReport string           `json:"impactReport,omitempty"`
+	ImpactReport string `json:"impactReport,omitempty"`
+	// ReportStamps are the wall-clock stamps of that report (when the join
+	// generated it, when each evidence record was retrieved): the artifact
+	// holds the report's identified content without them
+	// (ImpactReport.IdentifiedContent), and they are kept here as provenance
+	// of the run — excluded from the run record's identity and digests like
+	// CreatedAt and audit times (timestamps are never identity, §2.1).
+	// CONTRACT-CHANGE(fixes2): additive.
+	ReportStamps *ReportStamps    `json:"reportStamps,omitempty"`
 	Graph        string           `json:"graph,omitempty"`
 	Traversal    *TraversalResult `json:"traversal,omitempty"`
 	Agent        *AgentRun        `json:"agent,omitempty"`
@@ -2600,6 +2665,9 @@ func (inv *Investigation) Validate() error {
 	if !strings.HasPrefix(inv.Bundle, BundleIDPrefix) || !strings.HasPrefix(inv.Snapshot, SnapshotIDPrefix) ||
 		!strings.HasPrefix(inv.ChangeRecord, ChangeRecordIDPrefix) || inv.Environment == "" || !isDigest(inv.Config) {
 		bad("bundle, snapshot, changeRecord, environment and config (a digest) are required")
+	}
+	if inv.ReportStamps != nil && inv.ImpactReport == "" {
+		bad("reportStamps are the provenance of an impact report artifact, and there is none")
 	}
 	if !oneOf(inv.Status, InvestigationStatuses) {
 		bad("unknown status %q", inv.Status)
@@ -2710,11 +2778,13 @@ func (inv *Investigation) Validate() error {
 		}
 	}
 	vreqs := map[string]bool{}
+	reqByID := map[string]ValidationRequest{}
 	for _, r := range inv.ValidationRequests {
 		if err := r.Validate(); err != nil {
 			errs = append(errs, err)
 		}
 		vreqs[r.ID] = true
+		reqByID[r.ID] = r
 		for _, a := range r.Answers {
 			if as, ok := asserts[a]; !ok || as.ChangeItem != r.ChangeItem {
 				bad("validation request %s answers unknown assertion %s (or one about another item)", r.ID, a)
@@ -2729,6 +2799,14 @@ func (inv *Investigation) Validate() error {
 	for _, v := range inv.Validations {
 		if v.Request != "" && !vreqs[v.Request] {
 			bad("validation %s names unknown request %s", v.ID, v.Request)
+		}
+		// an undecided record echoes what it was asked about (EchoRequested)
+		if r, ok := reqByID[v.Request]; ok && (v.Outcome == ValidationNotRun || v.Outcome == ValidationError) {
+			for _, s := range r.Subjects {
+				if !contains(v.Subjects, s) {
+					bad("validation %s (%s) does not echo subject %s its request %s asked about", v.ID, v.Outcome, s, r.ID)
+				}
+			}
 		}
 	}
 

@@ -33,7 +33,9 @@ item, anchored on it (DESIGN §1.3, first match wins): a class the default tier 
 RBAC permission, removed resource, API-version or CRD storage/served move) is in scope
 (`scope:rendered-structural`); the version bump of an image the product definition itself publishes
 (`render.SelfArtifactBump`: same repository, exactly the edge artifact's from/to tags) is out of scope
-(`scope:routine-self-artifact`) — so it is correlated, never "uncorrelated"; anything else is in scope
+(`scope:routine-self-artifact`) — so it is correlated, never "uncorrelated"; CRD schema documentation
+text (class `crd-description-changed`) that no change documents is out of scope (`scope:documentation`,
+see "CRD schema documentation" under Render diffs); anything else is in scope
 (`scope:rendered-unexplained`, manifestation `rendered-config`).
 
 **Knowledge facts.** `bundle.NewChangeCollector(app, st, bundle.WithKnowledge(ks.Facts...))` (the facts
@@ -63,7 +65,13 @@ verbatim.
 **Reproducibility.** The bundle id is derived from content only. Wall-clock fields (`generatedAt`,
 `retrievedAt`) are zeroed in the stored edge copy and `CreatedAt` is not part of the id, so two runs over
 the same upstream evidence, repository state and renders yield the same bundle id; a changed file, a
-different commit or a dirty tree yields a different one.
+different commit or a dirty tree yields a different one. The run record follows the same rule: the stored
+impact report is its identified content (`ImpactReport.IdentifiedContent`, no `generatedAt` /
+`retrievedAt`). The stamps are kept on the record as `reportStamps` (report `generatedAt`, `retrievedAt` per
+evidence id). They are excluded from the record digests together with `createdAt`, audit times and every
+validation's `checkedAt`, so two identical runs give the same record digest (measured: 8/8 eval inputs). An
+enrichment's AI `generatedAt` is the model answer's own time, replayed unchanged from the answer cache, and
+stays in the report.
 
 **Known gaps (milestone 1).** Live-cluster observation is not implemented (a `live` request records an
 `unavailable` input). Routine changes are summarised in the edge, not itemised. Render rules that name
@@ -140,9 +148,26 @@ Sensitive changes record no values.
   group, kind, object name and path with the release name normalized);
 - otherwise `rendered-anchor` → the change's **own environment item** (`RenderResult.Items` →
   `EvidenceBundle.EnvironmentItems`, anchored on the environment-scope rendered change):
-  `scope:routine-self-artifact` (out of scope) for a self-artifact version bump, else
-  `scope:rendered-unexplained` (in scope, so it gets a finding: the deployment changes and nothing
-  upstream explains it — exactly what the investigation must look at).
+  `scope:routine-self-artifact` (out of scope) for a self-artifact version bump, `scope:documentation`
+  (out of scope) for CRD schema documentation text, else `scope:rendered-unexplained` (in scope, so it
+  gets a finding: the deployment changes and nothing upstream explains it — exactly what the
+  investigation must look at).
+
+**CRD schema documentation** (lane fixes2). The `description` keyword of a CRD's OpenAPI schema — text
+or absent on both sides, not a property *named* `description` (that is a field, and keeps the field-*
+classes) — renders as the class `crd-description-changed`. It documents the API and configures nothing:
+
+- it correlates only by `documents-field`: to a change whose text names the property it documents
+  (`render.DocumentedField`, through `items` / `additionalProperties`; an identifier of 6+ characters,
+  the `mentions-field` bar). The word "description" never links anything. So the reworded docs of the
+  field a release note changes stay part of that note's exposure (its roots and paths);
+- such a link never makes the item render-decided: `manifest:rendered-correlated` needs a correlated
+  change of another class (DESIGN §2.2.1). A behaviour default whose only rendered trace is its field's
+  documentation stays `controller-behaviour`, and RenderDiff passes the description as harmless without
+  ever clearing the item;
+- documentation no change names becomes an out-of-scope `scope:documentation` item at both render
+  scopes. It is accounted for (never "uncorrelated", so it does not block approval) and is never an
+  item to review. The bundle rejects `scope:documentation` on any other class.
 
 `EvidenceBundle.Items()` / `Item()` / `InScope()` cover record and environment items alike. With every
 change anchored, `Uncorrelated()` is empty for a renderdiff-built bundle; it still blocks automated
@@ -170,7 +195,11 @@ bundle, the traversal and the deterministic join into `ValidationRecord`s. Every
 `deterministic` and states its outcome relative to the **safety property** of (item, subjects): `pass` =
 demonstrably not reached / not broken, `fail` = demonstrably reached **and** breaking, `error` = the validator
 broke, `not-run` = it could not decide, with the reason. **A validator that cannot decide never passes.** No
-validator calls a model; agent assertions are never inputs.
+validator calls a model; agent assertions are never inputs. An undecided record (`not-run`, `error`) echoes
+the coverage it was asked about exactly as requested — subjects, paths, rendered changes — next to its own
+coverage (`ValidationRecord.EchoRequested`, used here and by the runtime validator). The request stays
+linkable to its record, and the audit keeps what was asked. The run record rejects an undecided record that
+does not cover its request's subjects. Undecided records never count as clearing coverage.
 
 | Constructor | Name | Kind | Applies | Decides |
 |---|---|---|---|---|

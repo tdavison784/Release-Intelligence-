@@ -405,3 +405,88 @@ func storedText(t *testing.T, st investigate.ArtifactStore, digest string) strin
 	must(t, err)
 	return string(b)
 }
+
+// crdStream is a rendered CRD whose spec fields `targets` and `windowSize`
+// carry documentation text.
+func crdStream(targetsDoc, windowDoc string) string {
+	return `---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: widgets.acme.example.org
+spec:
+  group: acme.example.org
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                targets:
+                  type: string
+                  description: ` + targetsDoc + `
+                windowSize:
+                  type: integer
+                  description: ` + windowDoc + `
+`
+}
+
+// Environment scope: CRD schema documentation text the environment's render
+// rewords is never an in-scope item of its own. The documentation of a field
+// a change names links to that change (documents-field: exposure is never
+// dropped); any other documentation anchors an OUT-OF-SCOPE
+// scope:documentation item, so it is accounted for (not "uncorrelated") and
+// nothing in it needs review.
+func TestEnvironmentCRDDescriptionIsNeverInScopeNoise(t *testing.T) {
+	f := newFixture(t)
+	f.r.engine.Helm = &fakeHelm{streams: map[string]string{
+		"1.0.0": crdStream("old targets text", "old window text"),
+		"2.0.0": crdStream("new targets text", "new window text")}}
+	f.targets = []render.Target{helmTarget("argocd:"+f.repo+"/app.yaml#0", render.TargetArgoCD, f.repo+"/values.yaml", "replicaCount: 2\n")}
+	res := renderOK(t, f)
+	items := map[string]domain.ChangeItem{}
+	for _, it := range res.Items {
+		items[it.ID] = it
+	}
+	var n int
+	for _, c := range res.Pairs[0].Changes {
+		if c.Class != string(render.CRDDescriptionChanged) {
+			t.Fatalf("only documentation changed, got %s %s", c.Class, c.Path)
+		}
+		n++
+		switch {
+		case strings.Contains(c.Path, ".targets."):
+			if want := []string{domain.ChangeItemID("chg-b", "", "")}; !reflect.DeepEqual(c.ChangeItems, want) || c.Correlation != "documents-field" {
+				t.Errorf("documentation of a named field: items %v rule %q, want %v documents-field", c.ChangeItems, c.Correlation, want)
+			}
+		case strings.Contains(c.Path, ".windowSize."):
+			it, ok := items[domain.ChangeItemID("", "", c.ID)]
+			if !ok || !reflect.DeepEqual(c.ChangeItems, []string{it.ID}) || c.Correlation != RuleRenderedAnchor ||
+				it.ScopeRule != domain.ScopeDocumentation || it.InScope {
+				t.Errorf("unexplained documentation: change %+v item %+v", c, it)
+			}
+		}
+	}
+	if n != 2 {
+		t.Fatalf("description changes = %d, want 2", n)
+	}
+	for _, it := range res.Items {
+		if it.InScope {
+			t.Errorf("documentation produced an in-scope item: %+v", it)
+		}
+	}
+	b := f.bundle(t, res)
+	if u := b.Uncorrelated(); len(u) != 0 {
+		t.Errorf("documentation left uncorrelated: %v", u)
+	}
+	if err := b.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

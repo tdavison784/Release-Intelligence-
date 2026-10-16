@@ -227,6 +227,8 @@ func TestResubmissionIsIdempotent(t *testing.T) {
 // run) produce the same impact-report artifact and the same run-record
 // digest: stamps are provenance of the run, not identity of the report, so
 // re-running the same investigation is a no-op instead of a new record.
+// Each run record still keeps its own stamps (ReportStamps: provenance
+// outside the identity), so nothing is dropped.
 func TestRunRecordDigestIgnoresReportTimestamps(t *testing.T) {
 	var artifacts, records []string
 	first := runtest.New(t)
@@ -261,6 +263,11 @@ func TestRunRecordDigestIgnoresReportTimestamps(t *testing.T) {
 			}
 		}
 		records = append(records, res.RecordDigest)
+		// the stamps are kept as provenance of the run, not dropped
+		up := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://example/notes.md", "L1", "upstream", "sha256:u", fetched)
+		if s := inv.ReportStamps; s == nil || !s.GeneratedAt.Equal(gen) || !s.RetrievedAt[up.ID].Equal(fetched) {
+			t.Fatalf("run record report stamps = %+v, want generatedAt %s and retrievedAt %s for %s", s, gen, fetched, up.ID)
+		}
 	}
 	if len(artifacts) != 2 || artifacts[0] != artifacts[1] {
 		t.Fatalf("impact report artifacts differ between identical runs: %v", artifacts)
