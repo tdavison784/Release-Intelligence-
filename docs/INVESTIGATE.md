@@ -562,3 +562,9 @@ Both paths call the same `run.Pipeline`, so for the same inputs, configuration a
 agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
 its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
 first result without repeating side effects, in particular without calling the agent again.
+
+**Snapshot identity.** A repository input is identified by the content of the environment directory (tree digest of its collected files and
+their repo-relative paths): the same content in another checkout, path or commit is the same snapshot and bundle (same ids, same bytes). The
+enclosing commit, dirty flag, remote and checkout path are provenance recorded in the `build-snapshot` audit event, not in the bundle.
+A loader warning that a non-semver version (a branch) was found counts as a collection gap only when it concerns the product under
+investigation; for another product's deployment it is recorded as a `note:` on the repo input.

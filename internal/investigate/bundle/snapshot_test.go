@@ -1,9 +1,11 @@
 package bundle
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/tdavison784/release-intelligence/internal/env"
 	"io"
 	"os"
 	"os/exec"
@@ -181,19 +183,23 @@ func TestSnapshotGitCommitAndDirty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r := clean.Snapshot.Repo; len(r.Commit) != 40 || r.Dirty {
+	// The enclosing commit is provenance, outside the identified snapshot.
+	if r := clean.Snapshot.Repo; r.Commit != "" || r.Dirty || r.Path != "." {
 		t.Fatalf("clean repo ref = %+v", r)
+	}
+	if p := clean.Provenance; p == nil || len(p.Commit) != 40 || p.Dirty {
+		t.Fatalf("clean provenance = %+v", p)
 	}
 	write(t, repo, "apps/shop/deploy.yaml", "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: shop\n  namespace: shop\nspec:\n  replicas: 5\n")
 	dirty, err := NewSnapshotBuilder(newSt(t)).BuildSnapshot(context.Background(), in)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r := dirty.Snapshot.Repo; !r.Dirty || r.Commit != clean.Snapshot.Repo.Commit {
-		t.Fatalf("dirty repo ref = %+v", r)
+	if p := dirty.Provenance; p == nil || !p.Dirty || p.Commit != clean.Provenance.Commit {
+		t.Fatalf("dirty provenance = %+v", p)
 	}
 	if dirty.Snapshot.ID == clean.Snapshot.ID {
-		t.Fatal("dirty state must change the snapshot id")
+		t.Fatal("changed content must change the snapshot id")
 	}
 }
 
@@ -333,5 +339,178 @@ func TestSnapshotRealKustomize(t *testing.T) {
 	}
 	if st, why := repoStatus(t, res); st != domain.CollectionPartial || !strings.Contains(why, "cannot be built") {
 		t.Fatalf("broken kustomization: %s (%s)", st, why)
+	}
+}
+
+// Principle 6: the same environment content in another checkout, at another
+// path and another commit, is the same snapshot: same id, same bundle id and
+// bytes. Paths and evidence URIs are repo-relative; the checkout is provenance.
+func TestSnapshotAndBundleIdenticalAcrossCheckouts(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git is not installed")
+	}
+	ctx := context.Background()
+	build := func(commitMsg string) (*investigate.SnapshotResult, *domain.EvidenceBundle) {
+		repo := testRepo(t)
+		for _, args := range [][]string{{"init", "-q"}, {"add", "."}, {"commit", "-q", "-m", commitMsg}} {
+			cmd := exec.Command("git", append([]string{"-C", repo, "-c", "user.email=t@example.com", "-c", "user.name=t", "-c", "commit.gpgsign=false"}, args...)...)
+			if out, err := cmd.CombinedOutput(); err != nil {
+				t.Fatalf("git %v: %v\n%s", args, err, out)
+			}
+		}
+		st := newSt(t)
+		change, err := NewChangeCollectorOver(&fakeUpstream{edge: fixtureEdge(), pair: fixturePair()}, st).CollectChange(ctx,
+			investigate.ChangeRequest{Product: "acme", From: "v1.0.0", To: "v2.0.0", Render: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		snap, err := NewSnapshotBuilder(st).BuildSnapshot(ctx, investigate.EnvironmentInputs{Name: "shop-prod", Repo: repo, Product: "acme"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := NewAssembler(st).Assemble(ctx, change, snap, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, e := range b.Evidence {
+			if strings.Contains(e.URI, repo) || strings.HasPrefix(e.URI, "/") && !strings.HasPrefix(e.URI, "/acme") {
+				t.Errorf("evidence %s has a checkout-specific URI %q", e.ID, e.URI)
+			}
+		}
+		for _, a := range b.Manifest.Artifacts {
+			if strings.Contains(a.URI, repo) {
+				t.Errorf("artifact %s has a checkout-specific URI %q", a.Path, a.URI)
+			}
+		}
+		raw, _ := json.Marshal(b)
+		if strings.Contains(string(raw), repo) {
+			t.Errorf("the bundle mentions the checkout path %s", repo)
+		}
+		return snap, b
+	}
+	s1, b1 := build("first commit")
+	s2, b2 := build("another commit, another checkout")
+	if s1.Provenance.Commit == s2.Provenance.Commit || s1.Provenance.Path == s2.Provenance.Path {
+		t.Fatal("the test needs two different checkouts and commits")
+	}
+	if s1.Snapshot.ID != s2.Snapshot.ID || b1.ID != b2.ID {
+		t.Fatalf("same content, different identity: snapshot %s/%s bundle %s/%s", s1.Snapshot.ID, s2.Snapshot.ID, b1.ID, b2.ID)
+	}
+	j1, _ := json.Marshal(b1)
+	j2, _ := json.Marshal(b2)
+	if !bytes.Equal(j1, j2) {
+		t.Fatal("same content, different bundle bytes")
+	}
+}
+
+const argoCertManager = `apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  sources:
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.17.2
+      helm:
+        valueFiles:
+          - $values/platform/cert-manager/values.yaml
+    - repoURL: https://git.example.com/platform/gitops.git
+      targetRevision: main
+      ref: values
+`
+
+const argoOther = `apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    targetRevision: main
+`
+
+func argoRepo(t *testing.T, files map[string]string) string {
+	root := t.TempDir()
+	for p, body := range files {
+		write(t, root, p, body)
+	}
+	return root
+}
+
+func unparsableWarnings(t *testing.T, repo string) []string {
+	t.Helper()
+	e, err := env.Load(env.Inputs{Repo: repo})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out []string
+	for _, w := range e.Warnings {
+		if strings.Contains(w, "not a parsable version") {
+			out = append(out, w)
+		}
+	}
+	return out
+}
+
+// A non-semver targetRevision on an Application that does not deploy the
+// product is a recorded note, not a gap.
+func TestSnapshotOtherProductsBranchIsANoteNotAGap(t *testing.T) {
+	repo := argoRepo(t, map[string]string{"apps/ingress.yaml": argoOther, "platform/cert-manager/values.yaml": "replicaCount: 2\n"})
+	ws := unparsableWarnings(t, repo)
+	if len(ws) == 0 {
+		t.Skip("the env loader raised no unparsable-version warning for the fixture")
+	}
+	res, err := NewSnapshotBuilder(newSt(t)).BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: repo, Product: "cert-manager"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, why := repoStatus(t, res)
+	if st != domain.CollectionOK || !strings.Contains(why, "note:") {
+		t.Fatalf("other product's branch: %s (%q), want ok with a note", st, why)
+	}
+}
+
+// The product's own deployment tracking a branch leaves its deployed version
+// unknown: the gap stays (and without a product everything is a gap).
+func TestSnapshotOwnProductsBranchStaysAGap(t *testing.T) {
+	repo := argoRepo(t, map[string]string{"apps/ingress.yaml": argoOther})
+	if len(unparsableWarnings(t, repo)) == 0 {
+		t.Skip("the env loader raised no unparsable-version warning for the fixture")
+	}
+	for _, product := range []string{"ingress-nginx", ""} {
+		res, err := NewSnapshotBuilder(newSt(t)).BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: repo, Product: product})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st, why := repoStatus(t, res); st != domain.CollectionPartial || !strings.Contains(why, "not a parsable version") {
+			t.Fatalf("product %q: %s (%q), want partial", product, st, why)
+		}
+	}
+}
+
+func TestSplitWarnings(t *testing.T) {
+	ws := []string{
+		`detected-argo "cert-manager": version "main" is not a parsable version; kept as stated, it cannot be range-checked`,
+		`detected-argo "prod": version "main" is not a parsable version; kept as stated, it cannot be range-checked`,
+		`kustomization x references y, which is not present`,
+	}
+	gaps, notes := splitWarnings(ws, "cert-manager")
+	if len(gaps) != 2 || len(notes) != 1 || !strings.Contains(notes[0], `"prod"`) {
+		t.Fatalf("gaps %v notes %v", gaps, notes)
+	}
+	if gaps, notes := splitWarnings(ws, ""); len(gaps) != 3 || len(notes) != 0 {
+		t.Fatalf("no product must fail closed: gaps %v notes %v", gaps, notes)
 	}
 }

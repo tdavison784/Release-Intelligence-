@@ -18,6 +18,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/agent"
 )
 
 // Deps are the collaborators of a Pipeline. Every field except Investigator
@@ -288,6 +289,7 @@ func withExtra(env investigate.EnvironmentInputs, extra []string) (investigate.E
 
 func (p *Pipeline) snapshot(ctx context.Context, in StageInput) (*stageResult, error) {
 	envIn, unfulfilled := withExtra(in.Request.Environment, in.Extra)
+	envIn.Product = in.Request.Product
 	res, err := p.d.Snapshot.BuildSnapshot(ctx, envIn)
 	if err != nil {
 		return nil, err
@@ -299,6 +301,10 @@ func (p *Pipeline) snapshot(ctx context.Context, in StageInput) (*stageResult, e
 	refs := in.Refs
 	refs.Snapshot = d
 	detail := res.Snapshot.ID
+	if pv := res.Provenance; pv != nil {
+		// Where the repository came from is provenance: it is not in the bundle.
+		detail += fmt.Sprintf("; repo %s commit %s dirty=%t", pv.Path, orDash(pv.Commit), pv.Dirty)
+	}
 	if len(unfulfilled) > 0 {
 		detail += "; not fulfillable automatically: " + strings.Join(unfulfilled, ", ")
 	}
@@ -584,6 +590,10 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 			inv.EvidenceRequests = out.EvidenceRequests
 			inv.ValidationRequests = out.ValidationRequests
 			inv.Validations = mergeValidations(inv.Validations, out.Validations)
+			// A concern answered by a validation of the deterministic pass (a requested
+			// validation that duplicated one) is linked here, before classify, so a
+			// passing validation lifts it (DESIGN.md §3.1 R2.6).
+			inv.Validations = agent.ApplyAnswerLinks(inv.Validations, out.AnswerLinks)
 			inv.Artifacts = mergeArtifacts(inv.Artifacts, out.Artifacts...)
 			inv.Evidence = mergeEvidence(inv.Evidence, out.Evidence)
 			// §5.4: one `requested` event per agent request, actor agent:<model>.
@@ -748,4 +758,11 @@ func Trunc(s string) string {
 		return s
 	}
 	return s[:max] + "… (" + fmt.Sprint(len(s)-max) + " more bytes)"
+}
+
+func orDash(s string) string {
+	if s == "" {
+		return "-"
+	}
+	return s
 }

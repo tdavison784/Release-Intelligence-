@@ -36,6 +36,11 @@ type EnvironmentInputs struct {
 	Images            []string `json:"images,omitempty"`
 	Inventory         string   `json:"inventory,omitempty"`
 	KubernetesVersion string   `json:"kubernetesVersion,omitempty"`
+	// Product is the product under investigation. It lets the snapshot tell a
+	// loader warning about the product's own deployment (an evidence gap) from
+	// one about another product's (a recorded note).
+	// CONTRACT-CHANGE(orchestrate2): additive.
+	Product string `json:"product,omitempty"`
 	// Live enables the read-only live-cluster observation (off by default;
 	// DESIGN.md §1.2).
 	Live *LiveOptions `json:"live,omitempty"`
@@ -172,6 +177,31 @@ type SnapshotResult struct {
 	Snapshot  domain.EnvironmentSnapshot `json:"snapshot"`
 	Artifacts []domain.ArtifactRef       `json:"artifacts"`
 	Evidence  []domain.Evidence          `json:"evidence"`
+	// Provenance says where the repository input came from (checkout path,
+	// enclosing commit, dirty flag, remote). It is NOT part of the snapshot or
+	// the bundle: the same environment content in another checkout or at
+	// another commit has the same snapshot id and bytes (Principle 6); the
+	// run records the provenance in its audit trail.
+	// CONTRACT-CHANGE(orchestrate2): additive.
+	Provenance *RepoProvenance `json:"provenance,omitempty"`
+	// Local are the on-disk locations of the inputs for the stages that read
+	// the checkout (the environment renderer). Not stored in the bundle.
+	// CONTRACT-CHANGE(orchestrate2): additive.
+	Local *LocalInputs `json:"local,omitempty"`
+}
+
+// RepoProvenance is where a repository input was read from.
+type RepoProvenance struct {
+	Path   string `json:"path"`
+	Commit string `json:"commit,omitempty"`
+	Dirty  bool   `json:"dirty,omitempty"`
+	URL    string `json:"url,omitempty"`
+}
+
+// LocalInputs are the absolute locations of a snapshot's inputs.
+type LocalInputs struct {
+	Repo        string   `json:"repo,omitempty"`
+	ValuesFiles []string `json:"valuesFiles,omitempty"`
 }
 
 // SnapshotBuilder builds the environment snapshot (MISSION §A2; lane

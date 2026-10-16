@@ -55,7 +55,8 @@ type inputs struct {
 	kube   string
 }
 
-func inputsOf(s domain.EnvironmentSnapshot, cfg investigate.Config) inputs {
+func inputsOf(snap *investigate.SnapshotResult, cfg investigate.Config) inputs {
+	s := snap.Snapshot
 	var in inputs
 	if s.Repo != nil {
 		in.repo = s.Repo.Path
@@ -75,6 +76,17 @@ func inputsOf(s domain.EnvironmentSnapshot, cfg investigate.Config) inputs {
 			if in.kube == "" {
 				in.kube = x.Value
 			}
+		}
+	}
+	// The snapshot identifies inputs by content and repo-relative paths; the
+	// checkout the renders read is the snapshot result's local locations.
+	// CONTRACT-CHANGE(orchestrate2): bundle follow-up (reproducible snapshot ids).
+	if l := snap.Local; l != nil {
+		if l.Repo != "" {
+			in.repo = l.Repo
+		}
+		if len(l.ValuesFiles) > 0 {
+			in.values = append([]string(nil), l.ValuesFiles...)
 		}
 	}
 	if s.KubernetesVersion != "" {
@@ -107,7 +119,7 @@ func (r *Renderer) RenderEnvironment(ctx context.Context, change *investigate.Ch
 	if err != nil {
 		return nil, err
 	}
-	in := inputsOf(snap.Snapshot, cfg)
+	in := inputsOf(snap, cfg)
 	if in.repo == "" && len(in.values) == 0 {
 		out.Notes = append(out.Notes, "the snapshot names no repository and no values files: there is no deployment to render")
 		return out, nil

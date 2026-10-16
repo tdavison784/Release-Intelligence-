@@ -112,3 +112,25 @@ record inv-63b726e47824: status completed, review approved by tommy (human), 55 
   (The first attempt of this run failed `validate` permanently on the environment items — the bug fixed above — and its `failed` events
   are kept in the append-only trail of the same record, the retry shows the resubmission attaching to it.)
 - Tests: `go build ./... && go vet ./... && go test ./...` green. Cleanup: dev server/worker stopped, scratch under the scratchpad only.
+
+## Follow-up 3: answer links, product-scoped loader warnings, reproducible snapshot ids (LANE DONE)
+1. **Answer links:** the investigate stage applies `agent.ApplyAnswerLinks` to the run's validation records (deterministic-pass records
+   included) before classify. `TestAnswerLinkReachesClassifyAndRecord`: with the link the classifier input and the stored record show the
+   passing record answering the concern; without it they do not.
+2. **Loader warnings (decision applied, not a blanket waiver):** `EnvironmentInputs.Product` (CONTRACT-CHANGE, additive; the snapshot stage
+   fills it from the request, and it is in the snapshot idempotency key). A `"<product>": version "x" is not a parsable version` warning is
+   a gap when `<product>` is the product under investigation (or no product is given: fail closed); otherwise it is recorded as
+   `note: …` in the repo input's reason and the input stays `ok`. Tests both directions + `TestSplitWarnings`.
+   **Observation on the groundtruth env:** for `payments-prod-eu` the `detected-argo "cert-manager"` warning comes from the Application's
+   *values* source (`ref: values`, `targetRevision: main`); the chart itself is pinned (`targetRevision: v1.17.2`). The loader attributes
+   that `main` to the product, so the gap stays by the rule although the deployed chart version is known. That is an env-loader
+   attribution question (`internal/env/inventory.go`), not changed here.
+3. **Reproducible ids:** the repo input is `Path: "."`; inputs use logical `env/<rel>` paths; `RepoRef` keeps only the tree digest
+   (content + repo-relative paths); commit, dirty flag, remote and checkout path are provenance (`SnapshotResult.Provenance`, recorded in the
+   `build-snapshot` audit detail, never in the bundle). Evidence URIs, artifact URIs, the facts JSON and warnings are made repo-relative
+   (evidence ids are re-derived from the new URI and remapped in the facts). `SnapshotResult.Local` carries the absolute checkout for the
+   environment renderer (not stored; `renderdiff.inputsOf` prefers it: one small edit outside bundle).
+   `TestSnapshotAndBundleIdenticalAcrossCheckouts`: two checkouts at different paths and commits ⇒ same snapshot id, bundle id and bytes, and
+   no checkout path anywhere in the bundle JSON. Explicit inputs OUTSIDE a repo keep their absolute paths in the facts (not relocatable).
+- Contract changes (all additive): `EnvironmentInputs.Product`, `SnapshotResult.Provenance`, `SnapshotResult.Local`.
+- Tests: `go build ./... && go vet ./... && go test ./...` green; groundtruth suites (bundle, renderdiff, validate, classify) pass offline against the warm cache.

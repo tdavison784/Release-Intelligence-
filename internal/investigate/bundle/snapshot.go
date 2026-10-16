@@ -67,6 +67,10 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 	}
 
 	e.Warnings = resolveBuilt(ctx, in.Repo, e.Warnings, b.kbuild)
+	norm := newNormalizer(in.Repo)
+	e.Warnings = norm.lines(e.Warnings)
+	idMap := norm.evidence(e.Evidence)
+	gapWarnings, notes := splitWarnings(e.Warnings, in.Product)
 
 	// 1. Files → artifacts (redacted before hashing).
 	type collected struct {
@@ -104,8 +108,8 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 			kind = domain.ArtifactInventory
 		}
 		ref, perr := b.st.Put(ctx, investigate.ArtifactSpec{
-			Kind: kind, Path: path, Origin: domain.OriginEnvironment, MediaType: mediaTypeOf(f.Path), URI: f.Path,
-			Producer: SnapshotProducer, Redacted: redactedFile, Tags: envFileTags(f.Path),
+			Kind: kind, Path: path, Origin: domain.OriginEnvironment, MediaType: mediaTypeOf(f.Path), URI: norm.path(f.Path),
+			Producer: SnapshotProducer, Redacted: redactedFile, Tags: envFileTags(norm.path(f.Path)),
 		}, data)
 		if perr != nil {
 			return nil, fmt.Errorf("snapshot: %w", perr)
@@ -120,6 +124,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 	if err != nil {
 		return nil, fmt.Errorf("snapshot: facts: %w", err)
 	}
+	facts = norm.facts(facts, idMap)
 	factsRef, err := b.st.Put(ctx, investigate.ArtifactSpec{
 		Kind: domain.ArtifactEnvironmentFacts, Path: "derived/snapshot/environment-facts.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:" + SnapshotProducer, Producer: SnapshotProducer, Redacted: true,
@@ -134,7 +139,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 	problems := map[string]string{} // file path → why it is not fully collected
 	for _, c := range files {
 		if c.problem != "" {
-			problems[c.file.Path] = c.problem
+			problems[c.file.Path] = norm.text(c.problem)
 		}
 	}
 	statusOf := func(dim string) (domain.CollectionStatus, string) {
@@ -144,7 +149,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 			}
 			switch s.Health {
 			case env.HealthPartial:
-				return domain.CollectionPartial, firstN(s.Warnings, 3, "the loader reported problems")
+				return domain.CollectionPartial, norm.text(firstN(s.Warnings, 3, "the loader reported problems"))
 			case env.HealthAbsent:
 				return domain.CollectionUnavailable, "the loader found nothing usable in this input"
 			}
@@ -158,7 +163,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 				continue
 			}
 			if c.problem != "" {
-				probs = append(probs, c.problem)
+				probs = append(probs, norm.text(c.problem))
 				continue
 			}
 			ids = append(ids, c.ref.ID)
@@ -178,19 +183,24 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 				si.Status, si.Reason = domain.CollectionPartial, "no file of this input was collected"
 			}
 		}
+		si.Path = norm.input(path)
 		inputs = append(inputs, si)
 	}
 	if in.Repo != "" {
-		si := domain.SnapshotInput{Kind: domain.InputGitOpsRepo, Path: in.Repo, Status: domain.CollectionOK}
+		si := domain.SnapshotInput{Kind: domain.InputGitOpsRepo, Path: ".", Status: domain.CollectionOK}
 		si.Artifacts, _ = artifactsUnder(in.Repo)
-		if len(e.Warnings) > 0 {
-			si.Status, si.Reason = domain.CollectionPartial, fmt.Sprintf("%d loader warning(s): %s", len(e.Warnings), firstN(e.Warnings, 3, ""))
+		if len(gapWarnings) > 0 {
+			si.Status, si.Reason = domain.CollectionPartial, fmt.Sprintf("%d loader warning(s): %s", len(gapWarnings), firstN(gapWarnings, 3, ""))
 		}
 		if _, probs := artifactsUnder(in.Repo); probs != "" {
 			si.Status, si.Reason = domain.CollectionPartial, joinReason(si.Reason, probs)
 		}
 		if len(si.Artifacts) == 0 {
 			si.Status, si.Reason = domain.CollectionPartial, joinReason(si.Reason, "no values or manifest file was found in the repository")
+		}
+		if len(notes) > 0 && si.Status == domain.CollectionOK {
+			// Recorded, not a gap: it concerns an input that does not decide the item's family.
+			si.Reason = "note: " + firstN(notes, 3, "")
 		}
 		inputs = append(inputs, si)
 	}
@@ -204,7 +214,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 		add(domain.InputCRDs, p, "", env.DimCRDs)
 	}
 	for _, p := range in.Images {
-		si := domain.SnapshotInput{Kind: domain.InputImages, Path: p}
+		si := domain.SnapshotInput{Kind: domain.InputImages, Path: norm.input(p)}
 		si.Status, si.Reason = statusOf(env.DimImages)
 		si.Artifacts, _ = artifactsUnder(p) // an image reference, not a file, has none
 		inputs = append(inputs, si)
@@ -232,6 +242,7 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 		Environment: in.Name, KubernetesVersion: strings.TrimSpace(in.KubernetesVersion), Inputs: inputs,
 		Facts: factsRef.ID, Producer: SnapshotProducer, CollectedAt: b.now().UTC().Truncate(time.Second),
 	}
+	var prov *investigate.RepoProvenance
 	if in.Repo != "" {
 		var fd []fileDigest
 		for _, c := range files {
@@ -240,6 +251,11 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 			}
 		}
 		snap.Repo = repoRef(ctx, in.Repo, fd)
+		prov = &investigate.RepoProvenance{Path: in.Repo, Commit: snap.Repo.Commit, Dirty: snap.Repo.Dirty, URL: snap.Repo.URL}
+		// The enclosing commit, the dirty flag, the remote and the checkout path are
+		// provenance, not identity: the same environment content in another checkout
+		// or at another commit is the same snapshot (Principle 6).
+		snap.Repo.Path, snap.Repo.Commit, snap.Repo.Dirty, snap.Repo.URL = ".", "", false, ""
 	}
 	snap.ID = snap.DerivedID()
 	if err := snap.Validate(); err != nil {
@@ -248,7 +264,11 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 
 	evidence := redactEvidence(e.Evidence)
 	sort.Slice(allRefs, func(i, j int) bool { return allRefs[i].Path < allRefs[j].Path })
-	return &investigate.SnapshotResult{Snapshot: snap, Artifacts: dedupeRefs(allRefs), Evidence: evidence}, nil
+	local := &investigate.LocalInputs{Repo: in.Repo}
+	for _, p := range in.ValuesFiles {
+		local.ValuesFiles = append(local.ValuesFiles, p)
+	}
+	return &investigate.SnapshotResult{Snapshot: snap, Artifacts: dedupeRefs(allRefs), Evidence: evidence, Provenance: prov, Local: local}, nil
 }
 
 // logicalPath maps an environment file to its logical bundle path: relative
