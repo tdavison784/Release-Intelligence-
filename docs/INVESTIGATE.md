@@ -658,6 +658,10 @@ structured and checked:
 - Everything the agent writes in free text (assertion / hypothesis / note statements,
   summaries) is labelled `unverified-ai-prose` (`StatementKind` / `SummaryKind`); summaries the
   runner writes (beyond-cap, failed sessions) carry no label.
+- The rendered investigation text (`classify.WriteText`):
+  - shows such statements as `(AI: <model>, unverified prose)`, with the verified claim ids they rest on;
+  - lists the run's verified environment claims (✓) and the agent's investigation-level notes in their own
+    sections.
 
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.

@@ -3,8 +3,9 @@
 Branch `p4ei/agent`, worktree `.claude/worktrees/p4ei-agent`. Brief: `briefs/agent.md` (+ `_wave2-common.md`,
 `_wave1-common.md`, DESIGN §4 / §7 "agent"). Merged `p4-env-impact` @ 31fa8c2b (wave 1 complete: bundle,
 store, renderdiff incl. the §1.3 amendment, validate, relations); first delivery MERGED as ed7a0acd; follow-ups
-1–4 merged through ea983257. State: **follow-up 5 (verified setting claims, prompt v5) complete** (2026-10-16,
-GLM handoff).
+1–4 merged through ea983257; follow-up 5 (verified setting claims, prompt v5) merged as caf4be01 (GLM handoff).
+Worktree and branch re-created from `p4-env-impact` @ de2b5110 for the follow-up-5 review fixes. State: **DONE**
+(2026-10-16).
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -231,6 +232,59 @@ Resume from: this file + brief + `git log`.
   unchanged, `DefaultPromptVersion` = newest embedded (guard test).
 - Docs: `docs/INVESTIGATE.md` "Setting claims (prompt v5…)".
 
+## Follow-up 5 review (ri-agent, Opus, after the GLM handoff) — done
+
+Reviewed glm-agent's follow-up-5 work (merged as caf4be01).
+
+- **Sound:** the committed code is my in-flight work unchanged; prompt v1–v4 files are byte-identical; the runner
+  copies `Notes`/`Claims`; the cache-drift root cause of the runs 1–4 replay refusals is control-proven.
+- **Gaps, fixed on `p4ei/agent`:**
+  1. **Rendered text did not label prose** (ask 1, "records *and rendered text*"). `classify/text.go`
+     (additive hunk, outside ownership):
+     - assertions with `StatementKind: unverified-ai-prose` render as `(AI: <model>, unverified prose)`, and the
+       claim ids they rest on are listed;
+     - new investigation-level sections list the verified environment claims (✓, verifier, detail) and the
+       agent notes (AI, never item concerns).
+
+     Only records carrying the new fields render differently. Test: `TestRenderedTextLabelsProseAndShowsClaims`.
+  2. **The live harness passed a refused replay** (glm-agent's sharp edge). It now fails when the replay is
+     refused (`replay:` in the run reason), not only on digest mismatches.
+  3. **Per-item runs wrote an empty `task.md`** (runs 4 and 5). The harness now writes `tasks/NN-<item>.md` per
+     session and checks each against the transcript's item digest.
+     - Run 5's 10 tasks were recovered by re-rendering at its commit (caf4be01); all 10 reproduce the recorded
+       digests (checked twice: by the harness and by an independent sha256 over system ‖ task ‖ tools ‖ meta).
+     - Run 4's cannot be recovered (cache drift); its README says so.
+     - The empty files are removed.
+  4. **The status file's "all not-run: no pin rules" was inaccurate** → the per-request table below.
+- **Replay at HEAD:** run 5 is now refused as well, because three merges after it changed deterministic inputs
+  (6667a12e traversal depth 12, 635ca18e CRD-description class, a638c39a layered values). At its own commit, with
+  today's agent and text code, run 5 replays byte-identically (167 digests). As for runs 1–4: replay-at-commit
+  (and cache state) semantics.
+- `internal/env/installed.go` is not gofmt-clean on `p4-env-impact` (not mine; left as is).
+
+## Not-run causes of every agent-requested validation (ask 3; for the commander to route)
+
+| run | request → record | validator | item (kind) | cause (record detail) | route |
+|---|---|---|---|---|---|
+| 1 | override-inspection → duplicate of the deterministic pass's not-run record | override-inspection | ingress-nginx annotation validation (behaviour) | the pass record's detail was not stored with run 1 (the harness then dropped pass outputs) | — (re-check when run 1's case is re-recorded) |
+| 3 | vr-99475deee0c2 | override-inspection | ci-194d5b487655, kps 90.x upgrade-guide item (behaviour) | "no declarative pin rule names a setting that pins the old behaviour … no verified fact is attached to the item" | **knowledge**: no trusted (deterministic/human) fact for the deciding settings (`prometheus.serviceAccount.createTokenSecret`, per-component `authorization`, `ignoreNamespaceSelectors`) → human verification in `ri review serve` (the commander's route 1 from the fact-verification finding) |
+| 4 | vr-99475deee0c2 | override-inspection | ci-194d5b487655 (behaviour) | same | knowledge (as above) |
+| 4 | vr-411bb29f72a8 | render-diff | ci-1871449ec07f coredns ServiceMonitor (rendered-unexplained) | "not breaking (scope:rendered-unexplained) but its effect reaches the rendered deployment; a render cannot say whether that is harmless, nor name a concrete failure" | **validate**: no validator decides a rendered-unexplained field change; the concrete check here is a reference check (next rows) |
+| 4 | vr-2344d971f40f, vr-b92fd5b84a43 | static-reference | ci-555bf9fefdf5 apiserver SM, ci-903ca29715e3 kubelet SM (rendered-unexplained) | "the item has no impact paths to check" | **relations**: no declarative relationship rule for prometheus-operator `ServiceMonitor`/`PodMonitor` `spec.endpoints[].authorization.credentials` (and `basicAuth`, `tlsConfig.ca`/`cert`/`keySecret`) → Secret/ConfigMap in the monitor's namespace, so the roots have no paths and StaticReference refuses a vacuous root-only path; with the rule, StaticReference could resolve or fail the reference (the namespace question all these concerns raise) |
+| 5 | vr-7284dc09a946 | override-inspection | ci-194d5b487655 (behaviour) | no pin rule / no verified fact | knowledge (as above) |
+| 5 | vr-7a5986311b44 | static-reference | ci-1871449ec07f (rendered-unexplained) | "the item has no impact paths to check" | relations (as above) |
+| 5 | vr-bb6fd596b1b2, vr-43480c3c41d2 | override-inspection | ci-1e94c8421137 scheduler SM, ci-aaeb79bed47e operator flag (rendered-unexplained) | no pin rule / no verified fact | the agent asked the wrong validator for a rendered item; nothing to route beyond the rows above (prompt v6 could say override inspection is for controller-behaviour items) |
+
+**Why run 5 made no answer links** although two requests named their concern (`asr-bd1aad833da5` → vr-7a5986311b44,
+`asr-372ac68467bf` → vr-43480c3c41d2):
+
+- Both assertions name a rendered change, and the requests carried it.
+- But the validators' not-run records come back with `renderedChanges: null`, so the coverage guard correctly
+  refused the links: the record does not cover what the assertion names.
+- No class could have changed (not-run lifts nothing), but the link would have recorded which question the
+  validation answered. **Route: validate** — echo the requested coverage (subjects, paths, rendered changes) on
+  every record, including not-run.
+
 ## Merge review (commander request, 2026-10-16 GLM handoff)
 
 - **Queued work beyond follow-up 5: none** (brief complete; the follow-up-4 orchestrate2 note was done here
@@ -345,6 +399,11 @@ Resume from: this file + brief + `git log`.
 - Prompt v1 stays frozen after the live run (a change = v2 + new digest); observations are below.
 
 ## Files touched outside ownership
+
+- `internal/investigate/classify/text.go` (follow-up 5 review, additive): prose labels, claim ids, the claims and
+  notes sections; shown only for records that carry the new fields.
+- `internal/investigate/run/pipeline.go` (follow-up 5, assigned to this lane by the commander): notes and claims
+  into the run record.
 
 - `cmd/ri/main.go`: one `case "investigate"` (routes `mcp` to `c.investigateMCP`, else a usage error) and
   one usage line. **orchestrate2**: route the non-`mcp` case to your runner when merging.
