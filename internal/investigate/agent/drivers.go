@@ -73,10 +73,16 @@ type StepResult struct {
 // inspection.
 type Scripted struct {
 	Model, ModelVersion, Provider string
-	Steps                         []Step
-	Turns, Tokens                 int
-	Stop                          string // overrides the computed stop when set
-	Results                       []StepResult
+	// Steps are consumed in order across runs: each run (one per-item
+	// session, or the single session) plays steps up to and including an
+	// accepted submit_findings. ByItem, when set, gives each per-item
+	// session its own steps instead.
+	Steps         []Step
+	ByItem        map[string][]Step
+	Turns, Tokens int
+	Stop          string // overrides the computed stop when set
+	Results       []StepResult
+	next          int
 }
 
 func (d *Scripted) Run(ctx context.Context, as investigate.AgentSession, tools investigate.Tools) (*investigate.DriverResult, error) {
@@ -96,7 +102,14 @@ func (d *Scripted) Run(ctx context.Context, as investigate.AgentSession, tools i
 	}
 	dr := &investigate.DriverResult{Model: model, ModelVersion: version, Provider: provider, Turns: d.Turns, Tokens: d.Tokens}
 	stop := ""
-	for _, st := range d.Steps {
+	steps := d.Steps[d.next:]
+	if d.ByItem != nil {
+		steps = d.ByItem[as.ChangeItem]
+	}
+	for _, st := range steps {
+		if d.ByItem == nil {
+			d.next++
+		}
 		call := st.Call
 		if call == "" {
 			call = "scripted-call-1"
@@ -120,8 +133,11 @@ func (d *Scripted) Run(ctx context.Context, as investigate.AgentSession, tools i
 		}
 		res, err := s.Dispatch(ctx, st.Tool, args)
 		d.Results = append(d.Results, StepResult{Tool: st.Tool, Result: res, Err: err})
-		if reason, ok := stopAfter(err, s); ok {
+		if reason, ok := stopAfter(err, s); ok && !(err != nil && st.Tool == investigate.ToolSubmitFindings) {
 			stop = reason
+			break
+		}
+		if st.Tool == investigate.ToolSubmitFindings && err == nil {
 			break
 		}
 	}
@@ -141,11 +157,22 @@ func (d *Scripted) Run(ctx context.Context, as investigate.AgentSession, tools i
 
 // --- replay (reproducibility) ---------------------------------------------------------------
 
-// Transcript is a parsed agent transcript.
+// Transcript is a parsed agent transcript. Calls and Envelope cover the
+// whole run (the last envelope); Segments split it per session: one per
+// per-item session ("item" lines), or a single segment otherwise.
 type Transcript struct {
 	Header   map[string]json.RawMessage
 	Calls    []TranscriptCall
 	Envelope *TranscriptEnvelope
+	Segments []TranscriptSegment
+}
+
+// TranscriptSegment is one driver session of the transcript.
+type TranscriptSegment struct {
+	Item         string // "" for a single-session run
+	PromptDigest string
+	Calls        []TranscriptCall
+	Envelope     *TranscriptEnvelope
 }
 
 // TranscriptEnvelope is the transcript's closing line.
@@ -159,6 +186,12 @@ type TranscriptEnvelope struct {
 // ParseTranscript reads an agent-transcript JSONL document.
 func ParseTranscript(b []byte) (*Transcript, error) {
 	t := &Transcript{}
+	seg := func() *TranscriptSegment {
+		if len(t.Segments) == 0 {
+			t.Segments = append(t.Segments, TranscriptSegment{})
+		}
+		return &t.Segments[len(t.Segments)-1]
+	}
 	sc := bufio.NewScanner(bytes.NewReader(b))
 	sc.Buffer(make([]byte, 1<<20), 64<<20)
 	n := 0
@@ -179,18 +212,32 @@ func ParseTranscript(b []byte) (*Transcript, error) {
 			if err := json.Unmarshal(line, &t.Header); err != nil {
 				return nil, fmt.Errorf("agent: transcript line %d: %w", n, err)
 			}
+		case "item":
+			var it struct {
+				Item         string `json:"item"`
+				PromptDigest string `json:"promptDigest"`
+			}
+			if err := json.Unmarshal(line, &it); err != nil {
+				return nil, fmt.Errorf("agent: transcript line %d: %w", n, err)
+			}
+			if len(t.Segments) == 1 && t.Segments[0].Item == "" && len(t.Segments[0].Calls) == 0 && t.Segments[0].Envelope == nil {
+				t.Segments = t.Segments[:0]
+			}
+			t.Segments = append(t.Segments, TranscriptSegment{Item: it.Item, PromptDigest: it.PromptDigest})
 		case "call":
 			var c TranscriptCall
 			if err := json.Unmarshal(line, &c); err != nil {
 				return nil, fmt.Errorf("agent: transcript line %d: %w", n, err)
 			}
 			t.Calls = append(t.Calls, c)
+			seg().Calls = append(seg().Calls, c)
 		case "envelope":
 			var e TranscriptEnvelope
 			if err := json.Unmarshal(line, &e); err != nil {
 				return nil, fmt.Errorf("agent: transcript line %d: %w", n, err)
 			}
 			t.Envelope = &e
+			seg().Envelope = &e
 		default:
 			return nil, fmt.Errorf("agent: transcript line %d: unknown type %q", n, kind.Type)
 		}
@@ -200,6 +247,9 @@ func ParseTranscript(b []byte) (*Transcript, error) {
 	}
 	if t.Header == nil {
 		return nil, errors.New("agent: transcript has no session line")
+	}
+	if len(t.Segments) == 1 && t.Segments[0].Item == "" {
+		t.Segments[0].PromptDigest = t.PromptDigest()
 	}
 	return t, nil
 }
@@ -228,6 +278,8 @@ type Mismatch struct {
 type Replay struct {
 	Transcript []byte
 	Mismatches []Mismatch
+	parsed     *Transcript
+	next       int // next segment (per-item sessions)
 }
 
 func (d *Replay) Run(ctx context.Context, as investigate.AgentSession, tools investigate.Tools) (*investigate.DriverResult, error) {
@@ -235,17 +287,29 @@ func (d *Replay) Run(ctx context.Context, as investigate.AgentSession, tools inv
 	if err != nil {
 		return nil, err
 	}
-	t, err := ParseTranscript(d.Transcript)
-	if err != nil {
-		return nil, investigate.PermanentError(domain.StageInvestigate, err)
+	if d.parsed == nil {
+		t, err := ParseTranscript(d.Transcript)
+		if err != nil {
+			return nil, investigate.PermanentError(domain.StageInvestigate, err)
+		}
+		d.parsed, d.next, d.Mismatches = t, 0, nil
 	}
-	if t.PromptDigest() != as.PromptDigest {
-		dr := &investigate.DriverResult{Stop: fmt.Sprintf("error:replay: the transcript was recorded under prompt %s, this session's prompt is %s", t.PromptDigest(), as.PromptDigest)}
+	t := d.parsed
+	if d.next >= len(t.Segments) {
+		dr := &investigate.DriverResult{Stop: fmt.Sprintf("error:replay: the transcript has no session %d (item %s)", d.next+1, as.ChangeItem)}
 		s.RecordEnvelope(DriverReplay, *dr, nil)
 		return dr, nil
 	}
-	d.Mismatches = nil
-	for _, c := range t.Calls {
+	sg := t.Segments[d.next]
+	d.next++
+	if sg.Item != as.ChangeItem || sg.PromptDigest != as.PromptDigest {
+		dr := &investigate.DriverResult{Stop: fmt.Sprintf("error:replay: the transcript was recorded under prompt %s (item %q), this session's prompt is %s (item %q)",
+			sg.PromptDigest, sg.Item, as.PromptDigest, as.ChangeItem)}
+		s.RecordEnvelope(DriverReplay, *dr, nil)
+		return dr, nil
+	}
+	first := len(d.Mismatches)
+	for _, c := range sg.Calls {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
@@ -261,12 +325,12 @@ func (d *Replay) Run(ctx context.Context, as investigate.AgentSession, tools inv
 	}
 	dr := investigate.DriverResult{Stop: "error:replay: the transcript has no envelope line"}
 	driver, envelope := DriverReplay, json.RawMessage(nil)
-	if t.Envelope != nil {
-		dr, driver, envelope = t.Envelope.Result, t.Envelope.Driver, t.Envelope.Envelope
+	if sg.Envelope != nil {
+		dr, driver, envelope = sg.Envelope.Result, sg.Envelope.Driver, sg.Envelope.Envelope
 	}
-	if n := len(d.Mismatches); n > 0 {
-		m := d.Mismatches[0]
-		dr.Stop = fmt.Sprintf("error:replay: %d of %d results differ from the recording (first: call %d %s: recorded %s, got %s)", n, len(t.Calls), m.Seq, m.Tool, m.Want, m.Got)
+	if n := len(d.Mismatches) - first; n > 0 {
+		m := d.Mismatches[first]
+		dr.Stop = fmt.Sprintf("error:replay: %d of %d results differ from the recording (first: call %d %s: recorded %s, got %s)", n, len(sg.Calls), m.Seq, m.Tool, m.Want, m.Got)
 	}
 	s.RecordEnvelope(driver, dr, envelope)
 	return &dr, nil

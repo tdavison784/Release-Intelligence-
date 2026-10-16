@@ -17,6 +17,27 @@ const (
 	maxDetail  = 500
 )
 
+// noteView is what the model receives when a concern is recorded as an
+// investigation-level note.
+type noteView struct {
+	Note       string `json:"note"`
+	RecordedAs string `json:"recordedAs"`
+	Reason     string `json:"reason"`
+	Dropped    string `json:"dropped,omitempty"`
+}
+
+func (s *Session) addNote(n domain.AgentNote, evs []domain.Evidence) {
+	for _, x := range s.notes {
+		if x.ID == n.ID {
+			return
+		}
+	}
+	s.notes = append(s.notes, n)
+	for _, e := range evs {
+		s.addRunEvidence(e)
+	}
+}
+
 // recordView is what the model receives for a recorded hypothesis or
 // assertion: the id to refer to it by, and the evidence its citations became.
 type recordView struct {
@@ -242,6 +263,19 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	if in.Stance == domain.StanceExplains {
 		if err := s.depthExplains("record_assertion", it.ID, evs, nil); err != nil {
 			return nil, err
+		}
+	}
+	if in.Stance == domain.StanceRaisesConcern {
+		if ok, why := s.itemEvidence(it.ID, evs); !ok {
+			n, err := s.note(it.ID, stmt, why, evs)
+			if err != nil {
+				return nil, err
+			}
+			view := noteView{Note: n.ID, RecordedAs: "investigation-level note (AI), not an item concern", Reason: why}
+			if in.ProposedEdge != nil {
+				view.Dropped = "the proposed edge was not recorded: it needs an item concern"
+			}
+			return &outcome{value: (*domain.AgentAssertion)(nil), view: view, commit: func() { s.addNote(n, evs) }}, nil
 		}
 	}
 	id := domain.AgentRecordID(domain.AssertionIDPrefix, it.ID, string(in.Stance)+"\x00"+stmt, s.call.ID)
@@ -690,6 +724,11 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		return nil, err
 	}
 	agenda := s.cfg.Prompt.Features.Agenda
+	perItem := s.cfg.Prompt.Features.PerItem
+	if perItem && (len(in.Items) != 1 || in.Items[0].ChangeItem != s.focus) {
+		return nil, rejectf("this session closes exactly one item, %s: submit_findings needs one entry for it", s.focus)
+	}
+	var notes []domain.AgentNote
 	seen := map[string]bool{}
 	var made []domain.AgentAssertion
 	var evs []domain.Evidence
@@ -760,6 +799,22 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		if err != nil {
 			return nil, fmt.Errorf("items[%d]: %w", i, err)
 		}
+		if disp == domain.CoverRaisesConcern {
+			if ok, why := s.itemEvidence(it.ID, cs); !ok {
+				n, err := s.note(it.ID, stmt, why, cs)
+				if err != nil {
+					return nil, err
+				}
+				notes = append(notes, n)
+				counts[string(disp)]--
+				counts[string(domain.CoverNotExamined)]++
+				sum.Disposition, sum.Summary = domain.CoverNotExamined, "concern recorded as investigation-level note "+n.ID+" ("+why+"): "+stmt
+				closing[it.ID] = sum
+				closingEv[it.ID] = evidenceIDs(cs)
+				evs = append(evs, cs...)
+				continue
+			}
+		}
 		entryEv[it.ID] = cs
 		if disp == domain.CoverExplains || disp == domain.CoverExaminedNoConcern {
 			explainsEntries = append(explainsEntries, explainsEntry{i: i, item: it.ID})
@@ -808,7 +863,7 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		return nil, err
 	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
-	if agenda {
+	if agenda && !perItem {
 		var missing []string
 		for _, e := range s.cfg.Agenda {
 			if !seen[e.ChangeItem] {
@@ -837,6 +892,9 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		}
 		for item, cs := range entryEv {
 			s.cite(item, cs)
+		}
+		for _, n := range notes {
+			s.addNote(n, nil)
 		}
 		s.submitted = true
 	}}, nil

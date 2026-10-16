@@ -32,7 +32,13 @@
         "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
         "examined": {"type": "boolean"},
         "inspections": {"type": "integer"},
-        "validationRequests": {"type": "integer"}
+        "validationRequests": {"type": "integer"},
+        "callId": {"type": "string"},
+        "sessionStatus": {"$ref": "#/$defs/AgentRunStatus"},
+        "sessionReason": {"type": "string"},
+        "turns": {"type": "integer"},
+        "toolCalls": {"type": "integer"},
+        "tokens": {"type": "integer"}
       },
       "additionalProperties": false
     },
@@ -72,6 +78,19 @@
       },
       "additionalProperties": false
     },
+    "AgentNote": {
+      "type": "object",
+      "required": ["id", "statement", "reason", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "about": {"type": "string"},
+        "statement": {"type": "string"},
+        "reason": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
     "AgentRun": {
       "type": "object",
       "required": ["status", "budget", "turns", "toolCalls", "tokens"],
@@ -89,7 +108,8 @@
         "tokens": {"type": "integer"},
         "transcript": {"type": "string"},
         "coverage": {"type": "array", "items": {"$ref": "#/$defs/AgendaCoverage"}},
-        "budgetRule": {"type": "string"}
+        "budgetRule": {"type": "string"},
+        "itemCap": {"type": "integer"}
       },
       "additionalProperties": false
     },
@@ -417,6 +437,7 @@
         "agent": {"$ref": "#/$defs/AgentRun"},
         "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/Hypothesis"}},
         "assertions": {"type": "array", "items": {"$ref": "#/$defs/AgentAssertion"}},
+        "agentNotes": {"type": "array", "items": {"$ref": "#/$defs/AgentNote"}},
         "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
         "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},

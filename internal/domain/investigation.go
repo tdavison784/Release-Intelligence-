@@ -55,6 +55,7 @@ const (
 	ValidationRequestIDPrefix    = "vrq-"
 	InvestigationFindingIDPrefix = "inf-"
 	InvestigationIDPrefix        = "inv-"
+	AgentNoteIDPrefix            = "ntn-" // CONTRACT-CHANGE(agent): investigation-level agent notes
 )
 
 // --- collection status ------------------------------------------------------------------
@@ -2297,6 +2298,10 @@ type AgentRun struct {
 	// coverage must not depend on the model's diligence).
 	Coverage   []AgendaCoverage `json:"coverage,omitempty"`
 	BudgetRule string           `json:"budgetRule,omitempty"`
+	// ItemCap is the per-investigation cap on per-item sessions (prompt
+	// feature perItem); agenda items beyond it are closed not-examined by the
+	// runner. CONTRACT-CHANGE(agent): additive.
+	ItemCap int `json:"itemCap,omitempty"`
 }
 
 // CoverageDisposition is how the agent closed an agenda item.
@@ -2346,6 +2351,42 @@ type AgendaCoverage struct {
 	Examined           bool `json:"examined,omitempty"`
 	Inspections        int  `json:"inspections,omitempty"`
 	ValidationRequests int  `json:"validationRequests,omitempty"`
+	// Per-item sessions (prompt feature perItem): the item's own session —
+	// its call id, status and reason, and what it cost.
+	// CONTRACT-CHANGE(agent): additive.
+	CallID        string         `json:"callId,omitempty"`
+	SessionStatus AgentRunStatus `json:"sessionStatus,omitempty"`
+	SessionReason string         `json:"sessionReason,omitempty"`
+	Turns         int            `json:"turns,omitempty"`
+	ToolCalls     int            `json:"toolCalls,omitempty"`
+	Tokens        int            `json:"tokens,omitempty"`
+}
+
+// AgentNote is an investigation-level remark of the agent: a concern that
+// could not be attributed to an item's own evidence (it cites no artifact
+// retrieved in that item's session, or was raised in another item's
+// session). It is AI output, labelled, and never an item concern: it
+// cannot block or change any class. CONTRACT-CHANGE(agent): additive.
+type AgentNote struct {
+	ID string `json:"id"` // AgentRecordID(AgentNoteIDPrefix, about, statement, callId)
+	// About is the change item the agent meant, when it named one.
+	About      string       `json:"about,omitempty"`
+	Statement  string       `json:"statement"`
+	Reason     string       `json:"reason"` // why it is a note, not an item concern
+	Citations  []EvidenceID `json:"citations,omitempty"`
+	Provenance Provenance   `json:"provenance"` // method ai
+}
+
+// Validate checks the note.
+func (n AgentNote) Validate() error {
+	errs := validateAI("agent note "+n.ID, n.Provenance)
+	if n.ID != AgentRecordID(AgentNoteIDPrefix, n.About, n.Statement, n.Provenance.CallID) {
+		errs = append(errs, fmt.Errorf("agent note %s: id is not derived", n.ID))
+	}
+	if strings.TrimSpace(n.Statement) == "" || strings.TrimSpace(n.Reason) == "" {
+		errs = append(errs, fmt.Errorf("agent note %s: statement and reason are required", n.ID))
+	}
+	return errors.Join(errs...)
 }
 
 // closingStance is the assertion stance a disposition is recorded with.
@@ -2412,12 +2453,15 @@ type Investigation struct {
 	Status       InvestigationStatus `json:"status"`
 	// ImpactReport is the artifact id of the deterministic ImpactReport the
 	// investigation builds on; Graph the RelationshipGraph artifact.
-	ImpactReport       string                 `json:"impactReport,omitempty"`
-	Graph              string                 `json:"graph,omitempty"`
-	Traversal          *TraversalResult       `json:"traversal,omitempty"`
-	Agent              *AgentRun              `json:"agent,omitempty"`
-	Hypotheses         []Hypothesis           `json:"hypotheses,omitempty"`
-	Assertions         []AgentAssertion       `json:"assertions,omitempty"`
+	ImpactReport string           `json:"impactReport,omitempty"`
+	Graph        string           `json:"graph,omitempty"`
+	Traversal    *TraversalResult `json:"traversal,omitempty"`
+	Agent        *AgentRun        `json:"agent,omitempty"`
+	Hypotheses   []Hypothesis     `json:"hypotheses,omitempty"`
+	Assertions   []AgentAssertion `json:"assertions,omitempty"`
+	// AgentNotes: investigation-level agent remarks (AI), never item concerns.
+	// CONTRACT-CHANGE(agent): additive.
+	AgentNotes         []AgentNote            `json:"agentNotes,omitempty"`
 	EvidenceRequests   []EvidenceRequest      `json:"evidenceRequests,omitempty"`
 	ValidationRequests []ValidationRequest    `json:"validationRequests,omitempty"`
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
@@ -2509,6 +2553,16 @@ func (inv *Investigation) Validate() error {
 			}
 		}
 		asserts[a.ID] = a
+	}
+	notes := map[string]bool{}
+	for _, n := range inv.AgentNotes {
+		if err := n.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if notes[n.ID] {
+			bad("duplicate agent note %s", n.ID)
+		}
+		notes[n.ID] = true
 	}
 	for _, r := range inv.EvidenceRequests {
 		if err := r.Validate(); err != nil {
@@ -2918,6 +2972,10 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		evid("assertion "+a.ID, a.Citations)
 		evid("assertion "+a.ID+" provenance", a.Provenance.InputEvidence)
 		rendered("assertion "+a.ID, a.RenderedChanges)
+	}
+	for _, n := range inv.AgentNotes {
+		item("agent note "+n.ID, n.About)
+		evid("agent note "+n.ID, n.Citations)
 	}
 	for _, r := range inv.EvidenceRequests {
 		item("evidence request "+r.ID, r.ChangeItem)

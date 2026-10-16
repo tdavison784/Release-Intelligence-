@@ -87,6 +87,15 @@ type AgentConfig struct {
 	Model         string             `json:"model,omitempty"`
 	PromptVersion string             `json:"promptVersion"` // e.g. "investigate-agent/v1"
 	Budget        domain.AgentBudget `json:"budget"`
+	// MaxItems caps the per-item sessions of prompt versions with per-item
+	// sessions (0 = agent's default, 10); recorded in AgentRun.ItemCap.
+	// CONTRACT-CHANGE(agent): additive.
+	MaxItems int `json:"maxItems,omitempty"`
+	// ItemBudget is the budget of each per-item session (nil = the agent's
+	// item defaults); Budget is for single-session prompt versions.
+	// CONTRACT-CHANGE(agent): additive (a pointer, so existing config
+	// digests are unchanged).
+	ItemBudget *domain.AgentBudget `json:"itemBudget,omitempty"`
 }
 
 // DefaultAgentBudget is the first-milestone budget (DESIGN.md §4.3).
@@ -348,6 +357,10 @@ type AgentOutcome struct {
 	// that duplicated one) must be applied by the runner before classify —
 	// agent.ApplyAnswerLinks. CONTRACT-CHANGE(agent): additive.
 	AnswerLinks []AnswerLink `json:"answerLinks,omitempty"`
+	// Notes are investigation-level agent remarks (concerns without the
+	// item's own evidence); the runner stores them in
+	// Investigation.AgentNotes. CONTRACT-CHANGE(agent): additive.
+	Notes []domain.AgentNote `json:"notes,omitempty"`
 }
 
 // AnswerLink links agent assertions to the validation record that answers
@@ -723,6 +736,9 @@ type AgentSession struct {
 	// MCPConfig is the path of the MCP config that starts
 	// `ri investigate mcp` for this investigation (claude-cli driver).
 	MCPConfig string `json:"mcpConfig,omitempty"`
+	// ChangeItem is the item a per-item session is about ("" = the whole
+	// agenda). CONTRACT-CHANGE(agent): additive.
+	ChangeItem string `json:"changeItem,omitempty"`
 }
 
 // DriverResult is what the driver reports about the model side.

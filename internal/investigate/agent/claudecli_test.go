@@ -49,7 +49,7 @@ func fakeBridge() int {
 
 func fakeClaude() int {
 	args := os.Args[1:]
-	_, _ = io.ReadAll(os.Stdin)
+	task, _ := io.ReadAll(os.Stdin)
 	mode := os.Getenv("AGENT_TEST_MODE")
 	if mode == "no-envelope" {
 		fmt.Fprintln(os.Stderr, "fake claude: not logged in")
@@ -112,9 +112,20 @@ func fakeClaude() int {
 	_ = json.Unmarshal([]byte(os.Getenv("AGENT_TEST_ASSERT")), &assertion)
 	rpc("tools/call", map[string]any{"name": "record_assertion", "arguments": assertion})
 	subtype := "success"
-	if mode == "max-turns" {
+	switch mode {
+	case "max-turns":
 		subtype = "error_max_turns"
-	} else {
+	case "per-item": // close the session's item, read from its task ("## <id> — <title>")
+		item := ""
+		for _, l := range strings.Split(string(task), "\n") {
+			if strings.HasPrefix(l, "## ci-") {
+				item = strings.Fields(l)[1]
+				break
+			}
+		}
+		rpc("tools/call", map[string]any{"name": "submit_findings", "arguments": map[string]any{"items": []any{
+			map[string]any{"changeItem": item, "disposition": "not-examined", "summary": "fake CLI session for " + item}}}})
+	default:
 		rpc("tools/call", map[string]any{"name": "submit_findings", "arguments": map[string]any{"items": []any{}}})
 	}
 	in.Close()
@@ -176,5 +187,34 @@ func TestClaudeCLIDriver(t *testing.T) {
 		f.input(investigate.AgentConfig{PromptVersion: promptV1, Enabled: true, Driver: DriverClaudeCLI}))
 	if investigate.ClassOf(err) != investigate.Permanent {
 		t.Fatalf("missing CLI: %v", err)
+	}
+}
+
+func TestClaudeCLIPerItemSessions(t *testing.T) {
+	f := newFixture(t, true)
+	exe, err := os.Executable()
+	must(t, err)
+	t.Setenv("AGENT_HELPER", "claude")
+	t.Setenv("AGENT_TEST_MODE", "per-item")
+	t.Setenv("AGENT_TEST_ASSERT", "{}") // the fake's assertion call is rejected (no arguments); nothing recorded
+	inv := New(f.st, WithDriver(DriverClaudeCLI, &ClaudeCLI{Binary: exe, RIBinary: exe}), WithClock(fixedNow))
+	out, err := inv.Investigate(context.Background(), f.input(investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI,
+		Model: "claude-sonnet-5-5", PromptVersion: "investigate-agent/v4"}))
+	must(t, err)
+	if out.Run.Status != domain.AgentSubmitted || len(out.Run.Coverage) != 3 || out.Run.Tokens != 180 || out.Run.Turns != 9 {
+		t.Fatalf("run: %+v", out.Run)
+	}
+	ids := map[string]bool{}
+	for _, c := range out.Run.Coverage {
+		if c.SessionStatus != domain.AgentSubmitted || c.CallID == "" || !strings.Contains(c.Summary, c.ChangeItem) {
+			t.Fatalf("coverage: %+v", c)
+		}
+		ids[c.CallID] = true
+	}
+	if len(ids) != 3 {
+		t.Fatalf("each item gets its own CLI session: %v", ids)
+	}
+	if err := runRecord(t, f, out).ValidateAgainst(f.b); err != nil {
+		t.Fatal(err)
 	}
 }

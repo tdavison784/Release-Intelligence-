@@ -104,7 +104,11 @@ func (s *Session) getChangeItem(ctx context.Context, id string) (*outcome, error
 			}
 		}
 	}
-	return &outcome{value: d, commit: func() { s.examined[it.ID] = true; s.inspections[it.ID]++ }}, nil
+	var srcs []string
+	for _, a := range d.Sources {
+		srcs = append(srcs, a.ID)
+	}
+	return &outcome{value: d, commit: s.retrieve(func() { s.examined[it.ID] = true; s.inspections[it.ID]++ }, srcs...)}, nil
 }
 
 // inspected counts an accepted query call that names a change item.
@@ -133,7 +137,11 @@ func (s *Session) queryDiff(q investigate.DiffQuery) (*outcome, error) {
 	if page.Changes == nil {
 		page.Changes = []domain.RenderedChange{}
 	}
-	return &outcome{value: page.Changes, view: page, commit: s.inspected(q.ChangeItem)}, nil
+	var arts []string
+	for _, c := range page.Changes {
+		arts = append(arts, s.rcArts[c.ID]...)
+	}
+	return &outcome{value: page.Changes, view: page, commit: s.retrieve(s.inspected(q.ChangeItem), arts...)}, nil
 }
 
 func (s *Session) getRenderedObject(ctx context.Context, r investigate.ObjectRequest) (*outcome, error) {
@@ -141,7 +149,7 @@ func (s *Session) getRenderedObject(ctx context.Context, r investigate.ObjectReq
 	if err != nil {
 		return nil, err
 	}
-	return &outcome{value: res}, nil
+	return &outcome{value: res, commit: s.retrieve(nil, res.Artifact.ID)}, nil
 }
 
 // --- search_manifest -------------------------------------------------------------------
@@ -228,7 +236,13 @@ func (s *Session) searchManifest(ctx context.Context, q investigate.SearchQuery)
 		}
 		hits = append(hits, hit)
 	}
-	return &outcome{value: hits, commit: s.inspected(q.ChangeItem)}, nil
+	var grepped []string
+	for _, h := range hits {
+		if len(h.Lines) > 0 { // content was returned, not only a reference
+			grepped = append(grepped, h.Artifact.ID)
+		}
+	}
+	return &outcome{value: hits, commit: s.retrieve(s.inspected(q.ChangeItem), grepped...)}, nil
 }
 
 func matchesTerms(a domain.ArtifactRef, terms []string) bool {
@@ -345,7 +359,7 @@ func (s *Session) readArtifact(ctx context.Context, r investigate.ReadRequest) (
 		res.Truncated = true
 	}
 	res.ToLine, res.Text = end, b.String()
-	return &outcome{value: res}, nil
+	return &outcome{value: res, commit: s.retrieve(nil, a.ID)}, nil
 }
 
 // yamlSpan resolves a YAML path to the line span of its node in the

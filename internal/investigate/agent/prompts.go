@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Earlier versions (v1, v2) stay embedded so their transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v3"
+// none. Earlier versions (v1–v3) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v4"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -28,6 +28,7 @@ type Prompt struct {
 	Version string
 	System  string
 	task    *template.Template
+	item    *template.Template // per-item task (feature perItem)
 	// ToolsJSON is the tool schema list exactly as embedded; it is part of
 	// the prompt digest.
 	ToolsJSON []byte
@@ -59,6 +60,11 @@ type Features struct {
 	// raises-concern on a controller-behaviour/unknown item needs a
 	// validation request for the item or a stated reason (depth.go).
 	DepthRules bool `json:"depthRules"`
+	// PerItem: one focused session per agenda item (item.md task), each with
+	// its own budget and one closing disposition; a raises-concern needs an
+	// artifact retrieved in the item's own session, else it is an
+	// investigation-level note (session.go, focus mode).
+	PerItem bool `json:"perItem"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -98,6 +104,11 @@ func LoadPrompt(version string) (*Prompt, error) {
 		return nil, err
 	}
 	p := &Prompt{Version: version, System: string(sys), ToolsJSON: tools}
+	if b, err := promptFS.ReadFile(dir + "item.md"); err == nil {
+		if p.item, err = template.New("item").Option("missingkey=error").Parse(string(b)); err != nil {
+			return nil, fmt.Errorf("agent: prompt %s: item.md: %w", version, err)
+		}
+	}
 	if meta, err := promptFS.ReadFile(dir + "meta.json"); err == nil {
 		p.MetaJSON = meta
 		dec := json.NewDecoder(bytes.NewReader(meta))
@@ -182,9 +193,31 @@ func (p *Prompt) RenderTask(in investigate.InvestigateInput, budget domain.Agent
 }
 
 func (p *Prompt) renderTask(in investigate.InvestigateInput, budget domain.AgentBudget, agenda []domain.AgendaCoverage) (string, error) {
+	d, err := p.renderTaskData(in, budget)
+	if err != nil {
+		return "", err
+	}
+	b := in.Bundle
+	titles := map[string]string{}
+	for _, it := range b.Items() {
+		titles[it.ID] = it.Title
+	}
+	for i, e := range agenda {
+		d.Agenda = append(d.Agenda, fmt.Sprintf("%d. %s [%s] %s", i+1, e.ChangeItem, e.PriorityRule, clip(titles[e.ChangeItem], 120)))
+	}
+	var out bytes.Buffer
+	if err := p.task.Execute(&out, d); err != nil {
+		return "", fmt.Errorf("agent: render task: %w", err)
+	}
+	return out.String(), nil
+}
+
+// renderTaskData computes the task's data (shared by the whole-agenda task
+// and the per-item task).
+func (p *Prompt) renderTaskData(in investigate.InvestigateInput, budget domain.AgentBudget) (*taskData, error) {
 	b := in.Bundle
 	if b == nil {
-		return "", fmt.Errorf("agent: no bundle")
+		return nil, fmt.Errorf("agent: no bundle")
 	}
 	d := taskData{
 		Product: string(b.Change.Product.ID), From: b.Change.From.Tag, To: b.Change.To.Tag,
@@ -316,18 +349,7 @@ func (p *Prompt) renderTask(in investigate.InvestigateInput, budget domain.Agent
 			d.Unresolved = append(d.Unresolved, fmt.Sprintf("%s %s %s → %s (%s): %s", e.ID, e.Kind, keys[e.From], keys[e.To], e.Status, clip(e.Reason, taskExcerpt)))
 		}
 	}
-	titles := map[string]string{}
-	for _, it := range b.Items() {
-		titles[it.ID] = it.Title
-	}
-	for i, e := range agenda {
-		d.Agenda = append(d.Agenda, fmt.Sprintf("%d. %s [%s] %s", i+1, e.ChangeItem, e.PriorityRule, clip(titles[e.ChangeItem], 120)))
-	}
-	var out bytes.Buffer
-	if err := p.task.Execute(&out, d); err != nil {
-		return "", fmt.Errorf("agent: render task: %w", err)
-	}
-	return out.String(), nil
+	return &d, nil
 }
 
 func changeLine(c domain.RenderedChange) string {
@@ -352,4 +374,80 @@ func clip(s string, n int) string {
 		n--
 	}
 	return s[:n] + "…"
+}
+
+// itemTaskData is the per-item task's input: one item and pointers to its
+// evidence, diffs and relations (the tools fetch the content).
+type itemTaskData struct {
+	Product, From, To, Environment, KubernetesVersion, Bundle string
+	Position, Total, Cap                                      int
+	Rule                                                      string
+	Item                                                      taskItem
+	Sources                                                   []string
+	Release                                                   []string
+	RootNodes                                                 []string
+	PathLines                                                 []string
+	Renders                                                   []string
+	Budget                                                    string
+}
+
+// renderItemTask renders the task of one per-item session.
+func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget) (string, error) {
+	if p.item == nil {
+		return "", fmt.Errorf("agent: prompt %s has no per-item task", p.Version)
+	}
+	b := in.Bundle
+	full, err := p.renderTaskData(in, budget)
+	if err != nil {
+		return "", err
+	}
+	d := itemTaskData{Product: full.Product, From: full.From, To: full.To, Environment: full.Environment, KubernetesVersion: full.KubernetesVersion,
+		Bundle: b.ID, Position: position, Total: total, Cap: cap, Rule: e.PriorityRule, Renders: full.Renders,
+		Budget: fmt.Sprintf("%d tool calls, %d KiB returned, %d turns, %d s", budget.MaxToolCalls, budget.MaxReadBytes>>10, budget.MaxTurns, budget.MaxSeconds)}
+	for _, ti := range full.Items {
+		if ti.ID == e.ChangeItem {
+			d.Item = ti
+		}
+	}
+	it, _ := b.Item(e.ChangeItem)
+	if d.Item.ID == "" {
+		return "", fmt.Errorf("agent: agenda item %s is not an in-scope item of the bundle", e.ChangeItem)
+	}
+	uris := map[string]bool{}
+	for _, id := range it.Evidence {
+		if ev, ok := b.EvidenceByID()[id]; ok {
+			uris[ev.URI] = true
+		}
+	}
+	for _, a := range b.Manifest.Artifacts {
+		if a.Origin == domain.OriginUpstream && (contains(a.ChangeItems, it.ID) || uris[a.URI] || contains(it.Artifacts, a.ID)) {
+			d.Sources = append(d.Sources, fmt.Sprintf("%s %s", a.ID, a.Path))
+		}
+	}
+	for _, pr := range b.Change.Renders {
+		for _, c := range pr.Changes {
+			if contains(c.ChangeItems, it.ID) || c.ID == it.RenderedChange {
+				d.Release = append(d.Release, changeLine(c))
+			}
+		}
+	}
+	if t := in.Traversal; t != nil {
+		keys := map[string]string{}
+		if in.Graph != nil {
+			for _, n := range in.Graph.Nodes {
+				keys[n.ID] = n.Key
+			}
+		}
+		for _, r := range t.RootsOf(it.ID) {
+			d.RootNodes = append(d.RootNodes, fmt.Sprintf("%s %s", r.Node, keys[r.Node]))
+		}
+		for _, pth := range t.PathsOf(it.ID) {
+			d.PathLines = append(d.PathLines, fmt.Sprintf("%s (%s, %d nodes)", pth.ID, pth.Status, len(pth.Nodes)))
+		}
+	}
+	var out bytes.Buffer
+	if err := p.item.Execute(&out, d); err != nil {
+		return "", fmt.Errorf("agent: render item task: %w", err)
+	}
+	return out.String(), nil
 }

@@ -82,8 +82,10 @@ type SessionConfig struct {
 	// formula that scaled Budget to it.
 	Agenda     []domain.AgendaCoverage
 	BudgetRule string
-	Budget     domain.AgentBudget
-	Prompt     *Prompt
+	// ItemCap is the per-item session cap (prompt feature perItem).
+	ItemCap int
+	Budget  domain.AgentBudget
+	Prompt  *Prompt
 	// PromptDigest pins the rendered prompt the session serves.
 	PromptDigest string
 	// Model is the requested model (the transcript header names it).
@@ -143,6 +145,26 @@ type Session struct {
 	examined    map[string]bool            // items retrieved with get_change_item
 	inspections map[string]int             // accepted query calls naming the item
 	citers      map[string]map[string]bool // citation key (artifact + quote) -> items whose records cite it
+
+	// Per-item sessions (prompt feature perItem): the focus item, its own
+	// counters, the artifacts retrieved in its session, its stats.
+	focus     string
+	itemCalls int
+	itemRead  int64
+	retrieved map[string]bool
+	notes     []domain.AgentNote
+	itemStats map[string]*itemStat
+	callInfo  map[string]CallInfo // model info reported per call (per item session)
+	rcArts    map[string][]string // rendered change -> the render artifacts of its pair
+	sessions  []string            // items given a session, in order
+}
+
+// itemStat is what one per-item session cost and how it ended.
+type itemStat struct {
+	CallID, Reason string
+	Status         domain.AgentRunStatus
+	Turns, Tokens  int
+	ToolCalls      int
 }
 
 var (
@@ -163,7 +185,8 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		runEv: map[domain.EvidenceID]domain.Evidence{}, rcs: b.RenderedChanges(), items: map[string]domain.ChangeItem{},
 		nodes: map[string]domain.GraphNode{}, nodeKey: map[string]string{}, edges: map[string]domain.GraphEdge{},
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
-		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
+		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
+		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -183,6 +206,17 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	}
 	for _, e := range cfg.Agenda {
 		s.onAgenda[e.ChangeItem] = true
+	}
+	for _, ps := range [][]domain.ManifestPair{b.Renders, b.Change.Renders} {
+		for _, p := range ps {
+			for _, c := range p.Changes {
+				for _, a := range []string{p.Diff, p.From, p.To} {
+					if a != "" {
+						s.rcArts[c.ID] = append(s.rcArts[c.ID], a)
+					}
+				}
+			}
+		}
 	}
 	for _, it := range b.Items() {
 		s.items[it.ID] = it
@@ -216,6 +250,9 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 			items = append(items, e.ChangeItem)
 		}
 		header["agenda"], header["budgetRule"] = items, cfg.BudgetRule
+	}
+	if cfg.Prompt.Features.PerItem {
+		header["itemCap"] = cfg.ItemCap
 	}
 	s.writeLine(header)
 	return s, nil
@@ -347,7 +384,12 @@ func (s *Session) invoke(ctx context.Context, tool string, args json.RawMessage,
 		err = fmt.Errorf("%w: %s", investigate.ErrBudgetExhausted, s.exhausted)
 	default:
 		s.toolCalls++
-		if max := s.cfg.Budget.MaxToolCalls; max > 0 && s.toolCalls > max {
+		s.itemCalls++
+		calls := s.toolCalls
+		if s.focus != "" {
+			calls = s.itemCalls // a per-item session has its own budget
+		}
+		if max := s.cfg.Budget.MaxToolCalls; max > 0 && calls > max {
 			s.exhausted = "budget:tool-calls"
 			err = fmt.Errorf("%w: %s (%d calls)", investigate.ErrBudgetExhausted, s.exhausted, max)
 			break
@@ -367,13 +409,18 @@ func (s *Session) invoke(ctx context.Context, tool string, args json.RawMessage,
 			err = fmt.Errorf("agent: encode %s result: %w", tool, err)
 			break
 		}
-		if max := s.cfg.Budget.MaxReadBytes; max > 0 && s.readBytes+int64(len(res)) > max {
+		read := s.readBytes
+		if s.focus != "" {
+			read = s.itemRead
+		}
+		if max := s.cfg.Budget.MaxReadBytes; max > 0 && read+int64(len(res)) > max {
 			s.exhausted = "budget:read-bytes"
-			err = fmt.Errorf("%w: %s (%d of %d bytes returned; this result is %d bytes)", investigate.ErrBudgetExhausted, s.exhausted, s.readBytes, max, len(res))
+			err = fmt.Errorf("%w: %s (%d of %d bytes returned; this result is %d bytes)", investigate.ErrBudgetExhausted, s.exhausted, read, max, len(res))
 			res = nil
 			break
 		}
 		s.readBytes += int64(len(res))
+		s.itemRead += int64(len(res))
 		if out.commit != nil {
 			out.commit()
 		}
@@ -853,3 +900,75 @@ func contains(xs []string, s string) bool {
 }
 
 func trimmed(s string) string { return strings.TrimSpace(s) }
+
+// --- per-item sessions (prompt feature perItem) -------------------------------------------
+
+// BeginItem starts the session of one agenda item: its budget and prompt
+// digest, fresh per-session counters, a transcript "item" line.
+func (s *Session) BeginItem(item string, budget domain.AgentBudget, promptDigest string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.focus, s.cfg.Budget, s.cfg.PromptDigest = item, budget, promptDigest
+	s.exhausted, s.submitted, s.itemCalls, s.itemRead = "", false, 0, 0
+	s.retrieved = map[string]bool{}
+	s.sessions = append(s.sessions, item)
+	s.writeLine(map[string]any{"type": "item", "item": item, "promptDigest": promptDigest, "budget": budget})
+}
+
+// EndItem records how the focus item's session ended.
+func (s *Session) EndItem(dr investigate.DriverResult) {
+	status, reason := runStatus(dr, s)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.itemStats[s.focus] = &itemStat{CallID: dr.CallID, Status: status, Reason: reason, Turns: dr.Turns, Tokens: dr.Tokens, ToolCalls: s.itemCalls}
+	if dr.CallID != "" {
+		s.callInfo[dr.CallID] = CallInfo{ID: dr.CallID, Model: dr.Model, ModelVersion: dr.ModelVersion, Provider: dr.Provider}
+	}
+}
+
+// retrieve returns a commit that records artifacts as retrieved in the
+// focus item's session (composed with another commit).
+func (s *Session) retrieve(then func(), ids ...string) func() {
+	if !s.cfg.Prompt.Features.PerItem || s.focus == "" {
+		return then
+	}
+	return func() {
+		for _, id := range ids {
+			if id != "" {
+				s.retrieved[id] = true
+			}
+		}
+		if then != nil {
+			then()
+		}
+	}
+}
+
+// itemEvidence reports whether a raises-concern about item may stand as an
+// item concern (rule: it is about the session's item and cites an artifact
+// retrieved in that session), and why not.
+func (s *Session) itemEvidence(item string, evs []domain.Evidence) (bool, string) {
+	if !s.cfg.Prompt.Features.PerItem {
+		return true, ""
+	}
+	if item != s.focus {
+		return false, fmt.Sprintf("raised in the session of %s, not of %s", s.focus, item)
+	}
+	for _, e := range evs {
+		if s.retrieved[e.SourceID] {
+			return true, ""
+		}
+	}
+	return false, "it cites no artifact retrieved for the item in its own session"
+}
+
+// note builds an investigation-level note from a concern without item evidence.
+func (s *Session) note(about, statement, reason string, evs []domain.Evidence) (domain.AgentNote, error) {
+	cites := evidenceIDs(evs)
+	n := domain.AgentNote{ID: domain.AgentRecordID(domain.AgentNoteIDPrefix, about, statement, s.call.ID), About: about, Statement: statement,
+		Reason: reason, Citations: cites, Provenance: s.aiProvenance(cites)}
+	if len(n.Provenance.InputEvidence) == 0 {
+		n.Provenance.InputEvidence = s.taskEvidence()
+	}
+	return n, invalid(func() error { c := n; c.Provenance = placeholder(c.Provenance); return c.Validate() }())
+}

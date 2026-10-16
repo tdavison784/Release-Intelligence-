@@ -194,11 +194,15 @@ func TestLiveAgentRun(t *testing.T) {
 	if len(out.Run.Coverage) > 0 {
 		var md strings.Builder
 		counts := map[domain.CoverageDisposition]int{}
-		fmt.Fprintf(&md, "| # | item | agenda rule | disposition | examined | inspections | validation requests | records | summary |\n|---|---|---|---|---|---|---|---|---|\n")
+		fmt.Fprintf(&md, "| # | item | agenda rule | disposition | examined | inspections | validation requests | records | session | tool calls | turns | tokens | summary |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n")
 		for i, c := range out.Run.Coverage {
 			counts[c.Disposition]++
-			fmt.Fprintf(&md, "| %d | %s | %s | %s | %v | %d | %d | %d | %s |\n", i+1, c.ChangeItem, c.PriorityRule, c.Disposition, c.Examined, c.Inspections,
-				c.ValidationRequests, len(c.Records), strings.ReplaceAll(clip(c.Summary, 220), "|", "\\|"))
+			session := "—"
+			if c.SessionStatus != "" {
+				session = string(c.SessionStatus)
+			}
+			fmt.Fprintf(&md, "| %d | %s | %s | %s | %v | %d | %d | %d | %s | %d | %d | %d | %s |\n", i+1, c.ChangeItem, c.PriorityRule, c.Disposition, c.Examined, c.Inspections,
+				c.ValidationRequests, len(c.Records), session, c.ToolCalls, c.Turns, c.Tokens, strings.ReplaceAll(clip(c.Summary, 220), "|", "\\|"))
 		}
 		fmt.Fprintf(&md, "\nTotals:")
 		for _, d := range domain.CoverageDispositions {
@@ -226,6 +230,10 @@ func TestLiveAgentRun(t *testing.T) {
 		fmt.Fprintf(&md, "\n## Answer links (%d)\n\n", len(out.AnswerLinks))
 		for _, l := range out.AnswerLinks {
 			fmt.Fprintf(&md, "- %s ← %v (request %s)\n", l.Validation, l.Assertions, l.Request)
+		}
+		fmt.Fprintf(&md, "\n## Investigation-level notes (%d, AI; never item concerns)\n\n", len(out.Notes))
+		for _, n := range out.Notes {
+			fmt.Fprintf(&md, "- %s about %s (%s): %s\n", n.ID, n.About, n.Reason, clip(n.Statement, 240))
 		}
 		write("coverage.md", []byte(md.String()))
 		t.Logf("coverage: %v; tool calls %v; validation requests %d; answer links %d", counts, byTool, len(out.ValidationRequests), len(out.AnswerLinks))
