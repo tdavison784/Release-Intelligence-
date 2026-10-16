@@ -36,6 +36,19 @@ func TestRenderDiffNoRenderIsNotRun(t *testing.T) {
 	wantOutcome(t, r, domain.ValidationNotRun, "no environment render")
 }
 
+func TestRenderDiffIgnoresNotApplicableTargets(t *testing.T) {
+	f, item := renderFx(t)
+	f.pair("argocd:apps/a.yaml", controller(), controller())
+	f.naPair("kustomize:apps/other/overlays/prod")
+	b := f.bundle()
+	wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationPass, "")
+
+	f2, item2 := renderFx(t)
+	f2.naPair("kustomize:apps/other/overlays/prod")
+	b2 := f2.bundle()
+	wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b2, ChangeItem: item2})), domain.ValidationNotRun, "no environment render")
+}
+
 func TestRenderDiffIncompleteIsNotRun(t *testing.T) {
 	f, item := renderFx(t)
 	f.pair("argocd:apps/a.yaml", controller(), controller())

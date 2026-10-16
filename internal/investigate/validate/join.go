@@ -180,7 +180,8 @@ func findingsFor(rep *domain.ImpactReport, item domain.ChangeItem) []domain.Impa
 	return out
 }
 
-func platformFinding(f domain.ImpactFinding, platform string) bool {
+func platformFinding(f domain.ImpactFinding, anchor string) bool {
+	platform, _, _ := strings.Cut(anchor, "/")
 	for _, c := range f.Checks {
 		if c.Dimension == domain.DimensionCluster && strings.EqualFold(c.Platform, platform) {
 			return true

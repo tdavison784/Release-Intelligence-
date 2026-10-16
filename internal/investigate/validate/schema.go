@@ -69,7 +69,9 @@ func (v *schemaCompat) Validate(ctx context.Context, in investigate.ValidationIn
 
 func (v *schemaCompat) platform(in investigate.ValidationInput, item domain.ChangeItem, cov coverage, edge *domain.UpgradeEdge, out *output) {
 	b := in.Bundle
-	platform := item.Platform
+	// the bundle anchors "<platform>" or, when several constraints of one
+	// platform moved, "<platform>/<kind>"
+	platform, wantKind, _ := strings.Cut(item.Platform, "/")
 	if platform == "" {
 		for _, s := range item.Subjects {
 			if p, _, ok := strings.Cut(s, "/"); ok {
@@ -81,9 +83,14 @@ func (v *schemaCompat) platform(in investigate.ValidationInput, item domain.Chan
 	property := fmt.Sprintf("The environment's %s version is inside the target release's supported range", upgrade.PlatformName(platform))
 	var cc *domain.CompatibilityChange
 	for i := range edge.Compatibility {
-		if strings.EqualFold(edge.Compatibility[i].Platform, platform) {
-			cc = &edge.Compatibility[i]
+		c := &edge.Compatibility[i]
+		if !strings.EqualFold(c.Platform, platform) {
+			continue
 		}
+		if wantKind != "" && !(c.To != nil && c.To.Kind == wantKind) && !(c.From != nil && c.From.Kind == wantKind) {
+			continue
+		}
+		cc = c
 	}
 	switch {
 	case platform == "":

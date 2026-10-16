@@ -183,6 +183,12 @@ func (f *fx) unexplained(class, object, path string) (item, releaseRC string) {
 	return it.ID, c.ID
 }
 
+// naPair adds a not-applicable environment pair (a target that does not
+// deploy the product).
+func (f *fx) naPair(target string) {
+	f.pairs = append(f.pairs, domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, Status: domain.CollectionNotApplicable, Reason: "the target does not deploy the product"})
+}
+
 // brokenPair adds an incomplete environment render pair.
 func (f *fx) brokenPair(target, reason string) {
 	f.pairs = append(f.pairs, domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, Status: domain.CollectionPartial, Reason: reason})

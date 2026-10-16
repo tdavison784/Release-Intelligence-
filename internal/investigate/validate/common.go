@@ -326,10 +326,17 @@ func breaking(it domain.ChangeItem) bool {
 	return it.Breaking || it.ActionRequired
 }
 
-// envPairs returns the environment-scope render pairs; complete reports
-// whether there is at least one and every one is complete (status ok).
+// envPairs returns the environment-scope render pairs of the product: a
+// not-applicable pair (a target that does not deploy the product, e.g. an
+// overlay of another application) is no render of it and is left out.
+// complete reports whether there is at least one pair and every one is
+// complete (status ok).
 func envPairs(b *domain.EvidenceBundle) (pairs []domain.ManifestPair, complete bool) {
-	pairs = b.Renders
+	for _, p := range b.Renders {
+		if p.Status != domain.CollectionNotApplicable {
+			pairs = append(pairs, p)
+		}
+	}
 	complete = len(pairs) > 0
 	for _, p := range pairs {
 		if p.Status != domain.CollectionOK {

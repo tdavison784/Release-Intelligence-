@@ -45,6 +45,20 @@ func TestSchemaPlatformRange(t *testing.T) {
 	}
 }
 
+func TestSchemaPlatformKindAnchor(t *testing.T) {
+	f := newFx(t)
+	f.kube = "1.27"
+	f.platformItem(domain.CompatibilityChange{Platform: "kubernetes", Summary: "tested range moved",
+		From: kubeConstraint("tested", ">=1.20.0-0", f.up.ID), To: kubeConstraint("tested", ">=1.29.0-0", f.up.ID)})
+	item := f.platformItem(domain.CompatibilityChange{Platform: "kubernetes", Summary: "chart kubeVersion moved",
+		From: kubeConstraint("chart-kubeVersion", ">=1.20.0-0", f.up.ID), To: kubeConstraint("chart-kubeVersion", ">=1.29.0-0", f.up.ID)})
+	f.items[len(f.items)-1].Platform = "kubernetes/chart-kubeVersion"
+	f.items[len(f.items)-1].ID = domain.ChangeItemID("", "kubernetes/chart-kubeVersion", "")
+	item = f.items[len(f.items)-1].ID
+	b := f.bundle()
+	wantOutcome(t, one(t, run(t, SchemaCompat(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationFail, "chart-kubeVersion")
+}
+
 func TestSchemaNoStoreIsNotRun(t *testing.T) {
 	f := newFx(t)
 	item := f.platformItem(domain.CompatibilityChange{Platform: "kubernetes", Summary: "x"})
