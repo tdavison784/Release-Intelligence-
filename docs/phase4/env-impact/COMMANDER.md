@@ -42,7 +42,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | contract | — | claude-opus-5-5 | (removed) | (closed) | MERGED 861e847d + cleaned up |
 | groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
-| renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | MERGED 5521569a; follow-up: DESIGN §1.3 amendment (rendered-unexplained / routine-self-artifact items), shared path helper, DetectTargets fix; now also owns internal/investigate/bundle |
+| renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
 | agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N | wave 2, working since 13:55 |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | ri-classify | claude-opus-5-5 | .claude/worktrees/p4ei-classify | pane w1:p2P (tab w1:t17) | wave 2, working since 14:15 |
@@ -88,6 +88,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 5521569a renderdiff: ManifestPairs per target, renders + diffs as artifacts, RenderedChange correlation, Query/Object/Summaries; all 8 envs assemble. Coverage table showed unexplained rendered changes (cert-manager 13/49, kps 5/5, shop-nl 4/11) had NO change item → DESIGN amendment adf4fe08. Green. Worktree kept for the follow-up.
 - 2026-10-16 e9566913 validate: JoinVerdicts, RenderDiff, OverrideInspection (PinnedSetting; pin rules only from join pinned verdicts and deterministic/human facts), SchemaCompat, StaticReference; 112 tests; real-bundle run over all 8 inputs conforms. Gaps (a) bundle to store fact artifacts and (b) not-applicable pairs exempt from the approval block → queued to renderdiff. Cleanup done (tab w1:t13).
 - 2026-10-16 6f3ef2e4 (commander) TestEvalRenderCases offline by default: it went online on cache misses and hung in GitHub rate-limit backoff past the 10-min test timeout, blocking the merge check. Live with RI_RENDER_EVAL_LIVE=1.
+- 2026-10-16 31fa8c2b renderdiff follow-up: §1.3 amendment implemented (render.SelfArtifactBump; unexplained items at release + env scope), shared render path convention, DetectTargets skips layered values files (no golden changes), not-applicable pairs never block approval, bundle.WithKnowledge stores attached facts as artifacts (cert-manager 18/bundle; ingress-nginx and kps 0 — no facts in knowledge/). 0 uncorrelated rendered changes on all 8 envs. a0da019f gofmt validate. Green (-count=1). Cleanup done (tab w1:t12). WAVE 1 COMPLETE.
 
 ## Open questions for the user
 
@@ -97,7 +98,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-1. Wave 1 running (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
+1. ~~Wave 1~~ COMPLETE 2026-10-16 14:20 (all merged + cleaned up). Old text for reference: (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
 2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.
 3. Wave 2 briefs WRITTEN (briefs/_wave2-common.md, agent.md (Opus), classify.md (Opus), orchestrate2.md (Sonnet; lane name `orchestrate2`, branch p4ei/orchestrate2)). agent STARTED 13:55; classify + orchestrate2 STARTED 14:15; classify once validate is merged; orchestrate2 after all of wave 1. GLM commander may start them (as glm-<lane>) per protocol.
 4. Wave 3: eval (Opus) after everything.
