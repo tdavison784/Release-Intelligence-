@@ -1,0 +1,211 @@
+# GROUND TRUTH — authored blind by the groundtruth lane from upstream sources and an observed
+# upgrade in an isolated kind cluster (see NOTES.md). Pipeline and agent lanes must not read this
+# file (docs/phase4/env-impact/FLEET.md, "Evaluation integrity").
+case: kube-prometheus-stack-89-90--obs-south
+authoredAt: "2026-10-16"
+authoredBy: groundtruth lane (Claude Opus 5.5), blind
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # "observation: chart 89.2.4" vs "observation: chart 90.2.0"
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L5-L10
+        quote: "The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns, kube-dns) no longer reference credentials on the scraper's filesystem. ... The bearer token now comes from a Secret through `authorization`"
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L14-L19
+        quote: "The Secret must exist in the namespace of the ServiceMonitor: that is the release namespace, or `kube-system` (`default` for kube-apiserver) when `prometheus.prometheusSpec.ignoreNamespaceSelectors` is enabled — in the latter case the chart-created Secret is in the wrong namespace and you have to supply your own."
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/templates/exporters/kubelet/servicemonitor.yaml#L5-L10
+        quote: "{{- if .Values.prometheus.prometheusSpec.ignoreNamespaceSelectors }} namespace: {{ .Values.kubelet.namespace }}"
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/templates/prometheus/serviceaccount-token-secret.yaml#L1-L6
+        quote: "namespace: {{ template \"kube-prometheus-stack.namespace\" . }}"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.93.1/pkg/prometheus/resource_selector.go#L237-L239
+        quote: "if err := rs.store.AddSafeAuthorizationCredentials(ctx, sm.GetNamespace(), endpoint.Authorization); err != nil {"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.93.1/pkg/prometheus/resource_selector.go#L150-L155
+        quote: '"%q was rejected due to invalid configuration: %v"'
+      - url: https://github.com/prometheus-community/helm-charts/pull/7238
+        quote: "[kube-prometheus-stack] Add secret-based auth to control-plane ServiceMonitors"
+    components:
+      - ref: {file: env/apps/checkout/base/prometheusrule.yaml, kind: PrometheusRule, namespace: checkout, name: checkout-alerts}
+        classification: not-affected
+        reason: >-
+          CheckoutMemoryNearLimit keeps both inputs: the kubelet ServiceMonitor renders into
+          monitoring next to the token Secret, the operator accepts it, and cAdvisor series keep
+          arriving (observed). The rendered diff is the same as in obs-north.
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            field: "spec.sources[0].helm.valueFiles"
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-kubelet}
+            field: endpoints[].authorization # namespace: monitoring (release namespace): ignoreNamespaceSelectors is not set
+            relation: references
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
+            relation: configures # Prometheus scrape jobs serviceMonitor/monitoring/kube-prometheus-stack-kubelet/0..2 (kubelet, cAdvisor, probes)
+          - ref: {file: env/apps/checkout/base/prometheusrule.yaml, kind: PrometheusRule, namespace: checkout, name: checkout-alerts}
+            field: spec.groups[checkout.rules].rules[CheckoutMemoryNearLimit].expr
+        mitigation: 
+          kind: feature-unused
+          detail: >-
+            prometheus.prometheusSpec.ignoreNamespaceSelectors is not set in either value file, so the
+            control-plane ServiceMonitors render into the release namespace (monitoring), where the chart
+            creates the token Secret they reference
+        requiredEvidence:
+          - {file: env/platform/monitoring/values-prod.yaml, object: values, field: prometheus.prometheusSpec.ignoreNamespaceSelectors}
+          - {file: env/platform/monitoring/values.yaml, object: values, field: prometheus.prometheusSpec}
+          - {file: env/apps/checkout/base/prometheusrule.yaml, object: PrometheusRule/checkout/checkout-alerts, field: "spec.groups[0].rules[0].expr"}
+      - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-kubelet}
+        classification: not-affected
+        reason: >-
+          Renders into monitoring, the namespace of the token Secret; accepted by the operator and still scraped after the upgrade (observed: job up).
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            field: "spec.sources[0].helm.valueFiles" # values.yaml, values-prod.yaml
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-kubelet}
+            field: metadata.namespace # monitoring (release namespace): ignoreNamespaceSelectors is not set
+            relation: references # endpoints[].authorization.credentials -> Secret kube-prometheus-stack-prometheus-token, looked up in the ServiceMonitor's namespace
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
+            relation: configures # Prometheus scrape job serviceMonitor/<ns>/kube-prometheus-stack-kubelet
+        mitigation: 
+          kind: feature-unused
+          detail: >-
+            prometheus.prometheusSpec.ignoreNamespaceSelectors is not set in either value file, so the
+            control-plane ServiceMonitors render into the release namespace (monitoring), where the chart
+            creates the token Secret they reference
+        requiredEvidence:
+          - {file: env/platform/monitoring/values-prod.yaml, object: values, field: prometheus.prometheusSpec.ignoreNamespaceSelectors}
+      - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-apiserver}
+        classification: not-affected
+        reason: >-
+          Renders into monitoring, the namespace of the token Secret; accepted by the operator and still scraped after the upgrade (observed: job up).
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            field: "spec.sources[0].helm.valueFiles" # values.yaml, values-prod.yaml
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-apiserver}
+            field: metadata.namespace # monitoring (release namespace): ignoreNamespaceSelectors is not set
+            relation: references # endpoints[].authorization.credentials -> Secret kube-prometheus-stack-prometheus-token, looked up in the ServiceMonitor's namespace
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
+            relation: configures # Prometheus scrape job serviceMonitor/<ns>/kube-prometheus-stack-apiserver
+        mitigation: 
+          kind: feature-unused
+          detail: >-
+            prometheus.prometheusSpec.ignoreNamespaceSelectors is not set in either value file, so the
+            control-plane ServiceMonitors render into the release namespace (monitoring), where the chart
+            creates the token Secret they reference
+        requiredEvidence:
+          - {file: env/platform/monitoring/values-prod.yaml, object: values, field: prometheus.prometheusSpec.ignoreNamespaceSelectors}
+      - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-coredns}
+        classification: not-affected
+        reason: >-
+          Renders into monitoring, the namespace of the token Secret; accepted by the operator and still scraped after the upgrade (observed: job up).
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            field: "spec.sources[0].helm.valueFiles" # values.yaml, values-prod.yaml
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-coredns}
+            field: metadata.namespace # monitoring (release namespace): ignoreNamespaceSelectors is not set
+            relation: references # endpoints[].authorization.credentials -> Secret kube-prometheus-stack-prometheus-token, looked up in the ServiceMonitor's namespace
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
+            relation: configures # Prometheus scrape job serviceMonitor/<ns>/kube-prometheus-stack-coredns
+        mitigation: 
+          kind: feature-unused
+          detail: >-
+            prometheus.prometheusSpec.ignoreNamespaceSelectors is not set in either value file, so the
+            control-plane ServiceMonitors render into the release namespace (monitoring), where the chart
+            creates the token Secret they reference
+        requiredEvidence:
+          - {file: env/platform/monitoring/values-prod.yaml, object: values, field: prometheus.prometheusSpec.ignoreNamespaceSelectors}
+    remediation: none required for this item.
+    match:
+      - subject: kubelet.serviceMonitor.authorization
+      - subject: prometheus.serviceAccount.createTokenSecret
+      - text: '(?i)bearerTokenFile|authorization|token secret|createTokenSecret'
+
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L43-L46
+        quote: "`prometheusOperator.secretFieldSelector` no longer excludes `kubernetes.io/service-account-token`, so that changes to that Secret trigger a reconciliation."
+    components:
+      - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Deployment, namespace: monitoring, name: kube-prometheus-stack-operator}
+        classification: not-affected
+        reason: >-
+          The operator's --secret-field-selector arg loses `type!=kubernetes.io/service-account-token`
+          (visible in the rendered diff). The operator now also watches token Secrets; nothing in the
+          environment depends on that exclusion (no custom secretFieldSelector, no tooling relying on the
+          operator ignoring token Secrets). Observed: the operator runs and reconciles normally after the
+          upgrade and all ServiceMonitors are accepted.
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/kube-prometheus-stack.yaml, kind: Deployment, namespace: monitoring, name: kube-prometheus-stack-operator}
+            field: spec.template.spec.containers[0].args[--secret-field-selector]
+        mitigation: {kind: feature-unused, detail: "the environment sets no prometheusOperator.secretFieldSelector and nothing depends on token Secrets being ignored"}
+        requiredEvidence:
+          - {file: env/platform/monitoring/values.yaml, object: values, field: prometheusOperator}
+    match:
+      - subject: prometheusOperator.secretFieldSelector
+      - text: '(?i)secret-?field-?selector'
+
+  - item: B3
+    classification: not-affected
+    verification: render
+    observed:
+      - observed/render.diff
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md#L48-L59
+        quote: "Removed values, all replaced by the `authorization` and `tlsConfig` blocks of the same component"
+    components:
+      - ref: {file: env/platform/monitoring/values.yaml, kind: values, name: values.yaml}
+        classification: not-affected
+        reason: >-
+          Neither value file sets any of the removed keys (serviceMonitor.bearerTokenFile,
+          kubelet.serviceMonitor.insecureSkipVerify, kubeApiServer.tlsConfig.caSecret, the etcd /
+          controller-manager / scheduler / kube-proxy TLS keys); etcd, controller-manager, scheduler and
+          kube-proxy monitoring is disabled altogether. No environment setting is silently dropped.
+        impactPath:
+          - ref: {file: env/clusters/prod/kube-prometheus-stack.yaml, kind: Application, namespace: argocd, name: kube-prometheus-stack}
+            relation: deploys
+          - ref: {file: env/platform/monitoring/values.yaml, kind: values, name: values.yaml}
+        mitigation: {kind: feature-unused, detail: "none of the removed values is set"}
+        requiredEvidence:
+          - {file: env/platform/monitoring/values.yaml, object: values, field: kubelet}
+          - {file: env/platform/monitoring/values-prod.yaml, object: values, field: (whole file)}
+    match:
+      - subject: kubelet.serviceMonitor.insecureSkipVerify
+      - text: '(?i)removed values|insecureSkipVerify|caSecret'
+
+# Every environment-relevant hunk of observed/render.diff, labelled. Chart/app version labels and
+# image tags are release noise and not listed. The namespace each ServiceMonitor renders into is
+# NOT inside any hunk (it does not change between versions) — it is in the unchanged context of the
+# rendered objects, which is exactly what decides the impact.
+renderedChanges:
+  - diff: observed/render.diff#L62-L84
+    object: Secret/monitoring/kube-prometheus-stack-prometheus-token
+    change: new kubernetes.io/service-account-token Secret for the Prometheus service account
+    item: B1
+    impact: harmless # by itself
+  - diff: observed/render.diff#L681-L693
+    object: ServiceMonitor/monitoring/kube-prometheus-stack-coredns
+    change: bearerTokenFile -> authorization (Secret kube-prometheus-stack-prometheus-token)
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L694-L734
+    object: ServiceMonitor/monitoring/kube-prometheus-stack-apiserver
+    change: bearerTokenFile -> authorization; tlsConfig.caFile -> tlsConfig.ca (ConfigMap kube-root-ca.crt)
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L747-L803
+    object: ServiceMonitor/monitoring/kube-prometheus-stack-kubelet
+    change: bearerTokenFile -> authorization; tlsConfig.caFile -> tlsConfig.ca, on all three endpoints
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L247-L248
+    object: Deployment/monitoring/kube-prometheus-stack-operator
+    change: --secret-field-selector no longer excludes kubernetes.io/service-account-token
+    item: B2
+    impact: harmless
