@@ -32,6 +32,7 @@ func (c *cli) reviewServe(args []string) error {
 	dir := fs.String("knowledge", "", "knowledge store directory (the learning-loop store)")
 	limit := fs.Int("limit", 0, "cap the inbox rows (default 200; try -limit 3 with -demo to see the truncation notice)")
 	reviewer := fs.String("reviewer", "", "pre-fill the reviewer name")
+	invDir := fs.String("investigations", "eval/investigations", "investigation case directory: its products' items that block investigations are listed first")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -42,23 +43,39 @@ func (c *cli) reviewServe(args []string) error {
 	if *demo == (*dir != "") {
 		return fmt.Errorf("%w: choose exactly one of -demo or -knowledge DIR", app.ErrUsage)
 	}
-	var q knowledge.Queue
+	var (
+		q    knowledge.Queue
+		snap func(context.Context) (*knowledge.Snapshot, error)
+	)
 	source := "demo fixtures; nothing is persisted"
 	if *dir != "" {
 		if st, err := os.Stat(*dir); err == nil && !st.IsDir() { // a missing directory is an empty store
 			return fmt.Errorf("-knowledge %s: not a directory", *dir)
 		}
-		q = knowledge.NewQueue(knowledge.NewFileStore(*dir), nil)
+		st := knowledge.NewFileStore(*dir)
+		q = knowledge.NewQueue(st, nil)
+		snap = func(ctx context.Context) (*knowledge.Snapshot, error) { return st.Load(ctx, knowledge.Query{}) }
 		source = "knowledge store " + *dir
 	} else {
 		q = reviewui.NewDemoQueue()
 	}
-	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer, Demo: *demo, InboxLimit: *limit})
+	scope := reviewui.ScopeFromInvestigations(*invDir, c.g.products)
+	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer, Demo: *demo, InboxLimit: *limit, Snapshot: snap, Scope: scope})
+	var waiting string
+	if snap != nil {
+		if sn, err := snap(c.ctx); err == nil {
+			needs, blocking := reviewui.CountNeedsReview(sn, scope)
+			waiting = fmt.Sprintf("%d item(s) need review, %d of them block investigations", needs, blocking)
+		}
+	}
 	ln, err := net.Listen("tcp", *addr)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(c.out, "review UI on http://%s (%s; Ctrl-C to stop)\n", ln.Addr(), source)
+	if waiting != "" {
+		fmt.Fprintf(c.out, "%s; the page lists only those (\"Show all staged data\" reveals the rest)\n", waiting)
+	}
 	srv := &http.Server{Handler: h, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		<-c.ctx.Done()

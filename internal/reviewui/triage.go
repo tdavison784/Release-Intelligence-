@@ -229,3 +229,17 @@ func trustedAspects(f domain.VerifiedFact, aspects []domain.Aspect) bool {
 type SnapshotSource interface {
 	Snapshot(ctx context.Context) (*knowledge.Snapshot, error)
 }
+
+// CountNeedsReview returns how many items the default view lists and how many
+// of those block investigations (what `ri review serve` prints at start).
+func CountNeedsReview(snap *knowledge.Snapshot, scope BlockingScope) (needs, blocking int) {
+	for _, t := range triageItems(snap, scope) {
+		if t.NeedsReview {
+			needs++
+			if t.Blocking {
+				blocking++
+			}
+		}
+	}
+	return needs, blocking
+}
