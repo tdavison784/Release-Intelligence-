@@ -231,6 +231,31 @@ Resume from: this file + brief + `git log`.
   unchanged, `DefaultPromptVersion` = newest embedded (guard test).
 - Docs: `docs/INVESTIGATE.md` "Setting claims (prompt v5…)".
 
+## Merge review (commander request, 2026-10-16 GLM handoff)
+
+- **Queued work beyond follow-up 5: none** (brief complete; the follow-up-4 orchestrate2 note was done here
+  in 0576e618; remaining open questions are commander/user decisions).
+- **v1–v4 prompt files byte-identical to ea983257**: PASS — `git diff ea983257 -- …/prompts/investigate-agent/{v1,v2,v3,v4}/`
+  = 0 lines each; the only change under `prompts/` is the new `v5/` directory.
+- **Runs 1–4 replay under current code: REFUSED (prompt-digest mismatch), root cause external to this
+  branch.** Each replay driver refused: "the transcript was recorded under prompt sha256:X …, this session's
+  prompt is sha256:Y" — the *rendered task* differs because the rebuilt bundles differ from the recorded
+  ones (run 1 `bnd-d5289346bfdb`→`bnd-31638a3c8883`, run 2 `bnd-b44c21b921e1`→`bnd-a47aa06e6959` with the
+  agenda itself changed 14→16 items and the deterministic pass 49→55, run 3 `bnd-7cbbf08745dc`→
+  `bnd-071392e03fc2`, run 4 `bnd-e4e9c4a8f814`→`bnd-071392e03fc2`). Control experiment: `ea983257`'s own
+  code (git-archive export) under today's cache rebuilds run 4's case to the **same** `bnd-071392e03fc2`
+  with the identical digest mismatches — this branch changes nothing about bundle assembly or v1–v4 prompt
+  digests. The drift is the **shared `.ri` cache** (121 entries written since 14:00 today by other lanes —
+  runtime since 14:30, eval since 15:02 incl. live fetches on cache misses). Within today's cache state the
+  code is deterministic: runs 3/4/5 (same case) all rebuild to one id, and run 5 (recorded under this
+  branch + current cache) replays byte-identically.
+- **Fleet finding for the commander (not a lane gap):** stored runs replay only at their recording-time cache
+  state; the shared cache is live. This also affects the eval lane's stored runs (run 2's case now rebuilds
+  with a different agenda). Options — freeze/pin the cache for recorded runs, re-record at a frozen state, or
+  accept replay-at-commit-and-cache semantics — are the commander's. Sharp edge noted: the opt-in live test
+  PASSes on a refused replay (Mismatches stays empty; the refusal shows only in the run status), so replay
+  checks must grep for the refusal, not rely on the test exit.
+
 ## GLM handoff log
 
 - 2026-10-16 (glm-agent, GLM-5.3): took over the lane mid-follow-up-5. Found the feature
@@ -247,6 +272,10 @@ Resume from: this file + brief + `git log`.
   gofmt clean. Cleanup: `bin/` removed, scratch outputs under `/tmp` deleted; no kind
   clusters or servers were created by this handoff. Status entries above the handoff log were
   written by ri-agent; this section is the GLM handoff record the handoff prompt requires.
+- 2026-10-16 (glm-agent): ran the commander's merge-review checks (section above). One process note: my
+  first replay sweep "failed" because I passed the transcript path relative to the repo root — the test's
+  cwd is the package dir, so the file wasn't found; re-run with absolute paths. The four subsequent PASSes
+  are *vacuous* (refused replays leave Mismatches empty); the real result is the refusal analysis above.
 - Uncertainties: (1) I inferred follow-up 5's scope from the in-flight diff and the
   "commander decision 2026-10-16" comment in claims.go — COMMANDER.md's decision list (at
   p4-env-impact @ ea983257 merge state) does not yet name it; if the commander's ask differed,
