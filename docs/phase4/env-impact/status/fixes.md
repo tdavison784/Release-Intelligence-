@@ -125,6 +125,13 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
     complete=false only for the 1 inferred edge (unchanged fail-closed inference). Findings shift as the
     truncation stops blocking decisions (not-affected 0→17 on that run) — the eval lane re-scores properly;
     no eval was run here.
+    **CORRECTION (lane fixes2, review finding F5):** the "not-affected 0→17" is NOT a fix-4 effect. On the
+    same payments-eu inputs, 16 of those 17 not-affected findings were in-scope `scope:rendered-unexplained`
+    items that fix 3 created, one per reworded CRD description (28 in total: 16 not-affected, 12
+    potentially-affected). Only 1 of the 17 was a real item clearing. Fix 4's actual effect was the
+    traversal no longer truncating (depth 9 < 12). Fixes2 makes description text out-of-scope
+    documentation (`scope:documentation`), so those items no longer exist — see `status/fixes2.md`
+    "Diagnostics".
 
 ## In progress (exact next step)
 - (nothing — all four fixes done)
