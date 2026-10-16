@@ -38,10 +38,10 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
-| contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | — | starting |
-| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | — | starting |
-| orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | — | starting |
-| guard | ri-guard | claude-sonnet-5-5 | ~/.claude/fleet-guard (no git) | w1:tN | starting |
+| contract | ri-contract | claude-opus-5-5 | .claude/worktrees/p4ei-contract | pane w1:p2F | working (kicked off 2026-10-16) |
+| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E | working (kicked off 2026-10-16) |
+| orchestrate | ri-orchestrate | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate | pane w1:p2G | working (kicked off 2026-10-16) |
+| guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | working (kicked off 2026-10-16) |
 
 ## Decisions
 
@@ -52,6 +52,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Temporal Go SDK pre-approved as a dependency, confined to `internal/orchestrate`.
 - 2026-10-16 Known outcomes for AC5 come from real upgrades in throwaway `kind` clusters where
   feasible (render-level otherwise, labelled).
+- 2026-10-16 ri-guard runs with shell cwd in p4-integration (already trusted) instead of ~/.claude/fleet-guard: Claude Code showed a folder-trust dialog there that the commander must not answer for the user.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -64,7 +65,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-1. Start wave 0 lanes (contract, groundtruth, orchestrate, guard). 
+1. ~~Start wave 0 lanes~~ done 2026-10-16. Watch for LANE DONE (herdr agent list / read).
 2. When guard reports LANE DONE: review the diff vs `fleet_guard.v2.py`, copy STATUS-guard.md to
    `status/guard.md`, start the guard in tab ri-guard with `--reset-state` and the README command.
 3. When contract reports LANE DONE: review DESIGN.md critically (gap map honesty, fail-closed policy,
