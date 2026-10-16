@@ -367,7 +367,12 @@ func (p *Pipeline) assemble(ctx context.Context, in StageInput) (*stageResult, e
 		case rerr != nil:
 			detail += "; no impact report: " + rerr.Error()
 		case rep != nil:
-			ref, err := p.putJSON(ctx, domain.ArtifactImpactReport, "derived/impact/report.json", rep)
+			// The stored artifact is the report's identified content: the
+			// wall-clock stamps (GeneratedAt, evidence RetrievedAt) are
+			// provenance of the run, recorded by the run record's CreatedAt
+			// and audit trail — they must not change the artifact digest, or
+			// two identical runs would produce different record digests.
+			ref, err := p.putJSON(ctx, domain.ArtifactImpactReport, "derived/impact/report.json", rep.IdentifiedContent())
 			if err != nil {
 				return nil, err
 			}

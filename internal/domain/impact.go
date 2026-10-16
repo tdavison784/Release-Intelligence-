@@ -469,6 +469,37 @@ type ImpactReport struct {
 	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
 }
 
+// IdentifiedContent returns the report's identified content: a copy with the
+// wall-clock stamps zeroed — GeneratedAt and every evidence RetrievedAt.
+// Stored report artifacts (and their digests) are built from this, the way
+// the bundle assembler pins its clock (Principle 6): identical inputs yield
+// byte-identical content, so two identical runs produce the same record
+// digest. When a run generated or fetched anything is provenance of the run,
+// kept where time belongs — the run record's CreatedAt and its audit trail —
+// not identity of the report. Evidence ids do not cover RetrievedAt, so
+// every finding reference resolves in the copy exactly as in the original.
+func (r *ImpactReport) IdentifiedContent() ImpactReport {
+	c := *r
+	c.GeneratedAt = time.Time{}
+	c.Evidence = zeroRetrievedAt(r.Evidence)
+	c.EnvironmentEvidence = zeroRetrievedAt(r.EnvironmentEvidence)
+	return c
+}
+
+// zeroRetrievedAt copies es with every RetrievedAt zeroed (a fresh slice:
+// the caller's evidence stays untouched).
+func zeroRetrievedAt(es []Evidence) []Evidence {
+	if es == nil {
+		return nil
+	}
+	out := make([]Evidence, len(es))
+	for i, e := range es {
+		e.RetrievedAt = time.Time{}
+		out[i] = e
+	}
+	return out
+}
+
 // Validate enforces the invariants of an impact report and the action
 // classification contract (docs/ACTION_CLASSIFICATION.md): every finding's
 // evidence resolves within the document, findings are deterministic and
