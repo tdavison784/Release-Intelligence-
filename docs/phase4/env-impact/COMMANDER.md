@@ -40,9 +40,10 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | Lane | Agent | Model | Worktree | Tab | State |
 |---|---|---|---|---|---|
 | contract | — | claude-opus-5-5 | (removed) | (closed) | MERGED 861e847d + cleaned up |
-| groundtruth | ri-groundtruth | claude-opus-5-5 | .claude/worktrees/p4ei-groundtruth | pane w1:p2E (tab w1:tZ) | 8 cases merged (6e03b550); final step: adopt FORMAT.md + EdgeKind names, renderedChanges labels on first five; then merge + cleanup |
+| groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
-| renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | wave 1, working since 13:20 (CRITICAL PATH) |
+| renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | MERGED 5521569a; follow-up: DESIGN §1.3 amendment (rendered-unexplained / routine-self-artifact items), shared path helper, DetectTargets fix; now also owns internal/investigate/bundle |
+| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N | wave 2, working since 13:55 |
 | validate | ri-validate | claude-opus-5-5 | .claude/worktrees/p4ei-validate | pane w1:p2J (tab w1:t13) | wave 1, working since 13:20 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -69,6 +70,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 relations: the declarative `relationships:` catalog construct is NOT deferred — without it cert-manager Certificate→Secret stays inferred, traversal is never complete, and R2.3 could never clear any cert-manager environment. Rules authored from upstream API docs only (cited per rule).
 - 2026-10-16 Milestone-1 third product = kube-prometheus-stack (chart-level, diff-visible break; groundtruth's choice), replacing argo-cd from DESIGN §1 (argo-cd would need Argo CD + git source in kind).
 - 2026-10-16 Commander owns eval/investigations/FORMAT.md now (contract lane gone); groundtruth adds renderedChanges labelling as an additive CONTRACT-CHANGE section.
+- 2026-10-16 DESIGN §1.3 amendment (adf4fe08, commander): `scope:rendered-unexplained` (in scope; every rendered change nothing upstream explains, release or env scope, becomes its own item, treated like scope:category) and `scope:routine-self-artifact` (out of scope, correlated). Why: diffs are the centerpiece + Principle 3; an unexplained change to the customer's rendered deployment must be investigated, not only block approval. Generic rule, not tuned to a case.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -80,6 +82,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 6e03b550 groundtruth follow-up: kube-prometheus-stack 89.2.4→90.2.0 pair (obs-north affected: identical diff, decided by the render namespace of the ServiceMonitors vs the token Secret; obs-south not-affected) + ingress-nginx shop-nl diff-visible-harmless trap. 8 cases total, all observed in kind. Green.
 - 2026-10-16 251d7cde bundle: store (atomic, digest-verified, immutable, audit-only-grows), change collector (§1.3 scope + §2.2.1 manifestation from declared tables, 9 ChangeSourceKinds with status), snapshot builder (RepoRef, Secret redaction before hashing), assembler; bundles for the 5 original cases Validate and are deterministic. Green. 84dcd9ad gofmt of investigation.go. Cleanup: agent exited, tab w1:t14 closed, worktree removed, branch deleted. Its render-link notes forwarded to renderdiff.
 - 2026-10-16 e993219a relations follow-up: declarative `relationships:` catalog construct (internal/catalog, schema, 19 bad-rule tests) + rules for cert-manager, ingress-nginx, prometheus-operator (ServiceMonitor/PodMonitor selectors incl. namespaceSelector) from upstream API docs; 3 bug fixes (cluster scope, group-less *Ref, placeholder status). cert-manager e2e goldens regenerated — verified by commander: definitionDigest lines only, nothing under eval/. Green. Cleanup: agent exited, tab w1:t15 closed, worktree removed, branch deleted.
+- 2026-10-16 d2bdd171 groundtruth final: FORMAT.md + EdgeKind names in all 8 cases, renderedChanges labels, README no longer leaks expected classes. Commander verified (without reading contents) that classification/match/acceptable fields are byte-identical to 6e03b550 after the lane's truncation slip; FORMAT.md change +42/-0. Green. Cleanup done (tab w1:tZ).
+- 2026-10-16 5521569a renderdiff: ManifestPairs per target, renders + diffs as artifacts, RenderedChange correlation, Query/Object/Summaries; all 8 envs assemble. Coverage table showed unexplained rendered changes (cert-manager 13/49, kps 5/5, shop-nl 4/11) had NO change item → DESIGN amendment adf4fe08. Green. Worktree kept for the follow-up.
 
 ## Open questions for the user
 
@@ -89,7 +93,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 1. Wave 1 running (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
 2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.
-3. Wave 2 briefs WRITTEN (briefs/_wave2-common.md, agent.md (Opus), classify.md (Opus), orchestrate2.md (Sonnet; lane name `orchestrate2`, branch p4ei/orchestrate2)). Start agent once bundle + renderdiff are merged; classify once validate is merged; orchestrate2 after all of wave 1. GLM commander may start them (as glm-<lane>) per protocol.
+3. Wave 2 briefs WRITTEN (briefs/_wave2-common.md, agent.md (Opus), classify.md (Opus), orchestrate2.md (Sonnet; lane name `orchestrate2`, branch p4ei/orchestrate2)). agent STARTED 13:55; classify once validate is merged; orchestrate2 after all of wave 1. GLM commander may start them (as glm-<lane>) per protocol.
 4. Wave 3: eval (Opus) after everything.
 
 ## GLM commander log
