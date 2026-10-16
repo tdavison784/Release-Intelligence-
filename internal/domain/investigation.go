@@ -56,6 +56,7 @@ const (
 	InvestigationFindingIDPrefix = "inf-"
 	InvestigationIDPrefix        = "inv-"
 	AgentNoteIDPrefix            = "ntn-" // CONTRACT-CHANGE(agent): investigation-level agent notes
+	SettingClaimIDPrefix         = "clm-" // CONTRACT-CHANGE(agent): verified environment claims
 )
 
 // --- collection status ------------------------------------------------------------------
@@ -1762,12 +1763,13 @@ func (v ValidationRecord) ClearsBehaviour() bool {
 // item. Its standing is derived from ValidationRecords that answer it, never
 // set by the agent.
 type Hypothesis struct {
-	ID         string       `json:"id"` // AgentRecordID(HypothesisIDPrefix, ...)
-	ChangeItem string       `json:"changeItem"`
-	Statement  string       `json:"statement"`
-	Subjects   []string     `json:"subjects,omitempty"` // graph node ids
-	Citations  []EvidenceID `json:"citations"`
-	Provenance Provenance   `json:"provenance"` // method ai
+	ID            string       `json:"id"` // AgentRecordID(HypothesisIDPrefix, ...)
+	ChangeItem    string       `json:"changeItem"`
+	Statement     string       `json:"statement"`
+	Subjects      []string     `json:"subjects,omitempty"` // graph node ids
+	Citations     []EvidenceID `json:"citations"`
+	StatementKind string       `json:"statementKind,omitempty"` // see AgentAssertion; CONTRACT-CHANGE(agent)
+	Provenance    Provenance   `json:"provenance"`              // method ai
 }
 
 // AssertionStance is what an agent assertion does to a finding (DESIGN.md
@@ -1812,8 +1814,86 @@ type AgentAssertion struct {
 	// validation of a raises-concern (prompt depth rules: a concern on a
 	// controller-behaviour/unknown item needs a request or a reason).
 	// CONTRACT-CHANGE(agent): additive.
-	NoValidationReason string     `json:"noValidationReason,omitempty"`
-	Provenance         Provenance `json:"provenance"` // method ai
+	NoValidationReason string `json:"noValidationReason,omitempty"`
+	// StatementKind labels the statement: "unverified-ai-prose" (prompt
+	// feature claims) for free text no tool checked; facts about the
+	// environment are stated as Claims (verified SettingClaim ids).
+	// CONTRACT-CHANGE(agent): additive.
+	StatementKind string     `json:"statementKind,omitempty"`
+	Claims        []string   `json:"claims,omitempty"`
+	Provenance    Provenance `json:"provenance"` // method ai
+}
+
+// StatementUnverifiedProse labels agent free text no tool verified.
+// CONTRACT-CHANGE(agent): additive.
+const StatementUnverifiedProse = "unverified-ai-prose"
+
+// ClaimKind is what a setting claim states. CONTRACT-CHANGE(agent): additive.
+type ClaimKind string
+
+const (
+	ClaimAbsent  ClaimKind = "absent"  // the setting does not occur in the input
+	ClaimPresent ClaimKind = "present" // the setting occurs in the input
+	ClaimValue   ClaimKind = "value"   // the setting has the value in the input
+)
+
+// ClaimKinds lists every kind.
+var ClaimKinds = []ClaimKind{ClaimAbsent, ClaimPresent, ClaimValue}
+
+// SettingClaim is a fact about the environment the agent stated in
+// structured form ("setting S is absent / present / has value V in input X")
+// and the tool layer verified deterministically before recording it. The
+// claim is the agent's (AI provenance); the verification is a deterministic
+// check over the bundle's artifacts. It supports the agent's records; it is
+// never a validation and never a policy input.
+// CONTRACT-CHANGE(agent): additive.
+type SettingClaim struct {
+	ID         string    `json:"id"` // AgentRecordID(SettingClaimIDPrefix, changeItem, kind‖setting‖input‖value, callId)
+	ChangeItem string    `json:"changeItem,omitempty"`
+	Kind       ClaimKind `json:"kind"`
+	// Setting is a dotted key path (controller.metrics.enabled) or a token
+	// as written in the input (a flag, annotation key, env var name).
+	Setting string `json:"setting"`
+	// Input is what was checked: an artifact id, or "environment-files"
+	// (every environment-origin text artifact of the bundle).
+	Input string `json:"input"`
+	Value string `json:"value,omitempty"` // JSON-encoded scalar (kind value)
+	// The deterministic check: the verifier, the artifacts read and, for
+	// present/value, the evidence of the matching lines.
+	Verifier   string       `json:"verifier"`
+	Checked    []string     `json:"checked"`
+	Evidence   []EvidenceID `json:"evidence,omitempty"`
+	Detail     string       `json:"detail"`
+	Provenance Provenance   `json:"provenance"` // method ai (the claim is the agent's)
+}
+
+// SettingClaimID derives a claim id.
+func SettingClaimID(changeItem string, kind ClaimKind, setting, input, value, callID string) string {
+	return AgentRecordID(SettingClaimIDPrefix, changeItem, string(kind)+"\x00"+setting+"\x00"+input+"\x00"+value, callID)
+}
+
+// Validate checks the claim's shape.
+func (c SettingClaim) Validate() error {
+	errs := validateAI("setting claim "+c.ID, c.Provenance)
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("setting claim %s: %s", c.ID, fmt.Sprintf(format, args...)))
+	}
+	if c.ID != SettingClaimID(c.ChangeItem, c.Kind, c.Setting, c.Input, c.Value, c.Provenance.CallID) {
+		bad("id is not derived")
+	}
+	if !oneOf(c.Kind, ClaimKinds) || strings.TrimSpace(c.Setting) == "" || c.Input == "" {
+		bad("a known kind, a setting and an input are required")
+	}
+	if (c.Kind == ClaimValue) != (c.Value != "") {
+		bad("a value is set exactly for kind value")
+	}
+	if !strings.Contains(c.Verifier, "@v") || len(c.Checked) == 0 || strings.TrimSpace(c.Detail) == "" {
+		bad("verifier, checked artifacts and detail are required")
+	}
+	if c.Kind != ClaimAbsent && len(c.Evidence) == 0 {
+		bad("a present/value claim cites the matching evidence")
+	}
+	return errors.Join(errs...)
 }
 
 // AgentRecordID derives the id of an agent record (hypothesis, assertion,
@@ -2360,6 +2440,9 @@ type AgendaCoverage struct {
 	Turns         int            `json:"turns,omitempty"`
 	ToolCalls     int            `json:"toolCalls,omitempty"`
 	Tokens        int            `json:"tokens,omitempty"`
+	// SummaryKind labels an agent-written Summary ("unverified-ai-prose");
+	// empty for runner-written summaries. CONTRACT-CHANGE(agent): additive.
+	SummaryKind string `json:"summaryKind,omitempty"`
 }
 
 // AgentNote is an investigation-level remark of the agent: a concern that
@@ -2370,11 +2453,12 @@ type AgendaCoverage struct {
 type AgentNote struct {
 	ID string `json:"id"` // AgentRecordID(AgentNoteIDPrefix, about, statement, callId)
 	// About is the change item the agent meant, when it named one.
-	About      string       `json:"about,omitempty"`
-	Statement  string       `json:"statement"`
-	Reason     string       `json:"reason"` // why it is a note, not an item concern
-	Citations  []EvidenceID `json:"citations,omitempty"`
-	Provenance Provenance   `json:"provenance"` // method ai
+	About         string       `json:"about,omitempty"`
+	Statement     string       `json:"statement"`
+	Reason        string       `json:"reason"` // why it is a note, not an item concern
+	Citations     []EvidenceID `json:"citations,omitempty"`
+	StatementKind string       `json:"statementKind,omitempty"` // see AgentAssertion
+	Provenance    Provenance   `json:"provenance"`              // method ai
 }
 
 // Validate checks the note.
@@ -2461,7 +2545,10 @@ type Investigation struct {
 	Assertions   []AgentAssertion `json:"assertions,omitempty"`
 	// AgentNotes: investigation-level agent remarks (AI), never item concerns.
 	// CONTRACT-CHANGE(agent): additive.
-	AgentNotes         []AgentNote            `json:"agentNotes,omitempty"`
+	AgentNotes []AgentNote `json:"agentNotes,omitempty"`
+	// AgentClaims: the agent's verified environment claims.
+	// CONTRACT-CHANGE(agent): additive.
+	AgentClaims        []SettingClaim         `json:"agentClaims,omitempty"`
 	EvidenceRequests   []EvidenceRequest      `json:"evidenceRequests,omitempty"`
 	ValidationRequests []ValidationRequest    `json:"validationRequests,omitempty"`
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
@@ -2553,6 +2640,23 @@ func (inv *Investigation) Validate() error {
 			}
 		}
 		asserts[a.ID] = a
+	}
+	claims := map[string]bool{}
+	for _, c := range inv.AgentClaims {
+		if err := c.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if claims[c.ID] {
+			bad("duplicate setting claim %s", c.ID)
+		}
+		claims[c.ID] = true
+	}
+	for _, a := range inv.Assertions {
+		for _, c := range a.Claims {
+			if !claims[c] {
+				bad("assertion %s names unknown setting claim %s", a.ID, c)
+			}
+		}
 	}
 	notes := map[string]bool{}
 	for _, n := range inv.AgentNotes {
@@ -2976,6 +3080,11 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	for _, n := range inv.AgentNotes {
 		item("agent note "+n.ID, n.About)
 		evid("agent note "+n.ID, n.Citations)
+	}
+	for _, c := range inv.AgentClaims {
+		item("setting claim "+c.ID, c.ChangeItem)
+		evid("setting claim "+c.ID, c.Evidence)
+		art("setting claim "+c.ID, c.Checked...)
 	}
 	for _, r := range inv.EvidenceRequests {
 		item("evidence request "+r.ID, r.ChangeItem)

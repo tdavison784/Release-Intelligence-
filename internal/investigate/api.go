@@ -361,6 +361,9 @@ type AgentOutcome struct {
 	// item's own evidence); the runner stores them in
 	// Investigation.AgentNotes. CONTRACT-CHANGE(agent): additive.
 	Notes []domain.AgentNote `json:"notes,omitempty"`
+	// Claims are the agent's verified setting claims; the runner stores them
+	// in Investigation.AgentClaims. CONTRACT-CHANGE(agent): additive.
+	Claims []domain.SettingClaim `json:"claims,omitempty"`
 }
 
 // AnswerLink links agent assertions to the validation record that answers
@@ -466,6 +469,10 @@ const (
 	ToolRecordHypothesis  = "record_hypothesis"
 	ToolRecordAssertion   = "record_assertion"
 	ToolSubmitFindings    = "submit_findings"
+	// ToolRecordClaim records a structured, deterministically verified
+	// environment claim (prompt versions with feature claims).
+	// CONTRACT-CHANGE(agent): additive; not in ToolNames (the base surface).
+	ToolRecordClaim = "record_claim"
 )
 
 // ToolNames lists every tool in a stable order.
@@ -642,6 +649,9 @@ type AssertionInput struct {
 	Citations       []Citation    `json:"citations"`
 	Hypothesis      string        `json:"hypothesis,omitempty"`
 	ProposedEdge    *ProposedEdge `json:"proposedEdge,omitempty"`
+	// Claims names verified setting claims (record_claim) the assertion
+	// rests on. CONTRACT-CHANGE(agent): additive.
+	Claims []string `json:"claims,omitempty"`
 	// NoValidationReason: why no validation is requested for this concern
 	// (depth rules). CONTRACT-CHANGE(agent): additive.
 	NoValidationReason string `json:"noValidationReason,omitempty"`
@@ -694,6 +704,23 @@ type ItemSummary struct {
 	// NoValidationReason: for a raises-concern closing entry, why no
 	// validation was requested (depth rules). CONTRACT-CHANGE(agent): additive.
 	NoValidationReason string `json:"noValidationReason,omitempty"`
+	// Claims names verified setting claims the summary rests on.
+	// CONTRACT-CHANGE(agent): additive.
+	Claims []string `json:"claims,omitempty"`
+}
+
+// ClaimInput states a fact about the environment in structured form; the
+// tool layer verifies it against the bundle's artifacts before recording it
+// (a failed verification rejects the claim with the contradicting citation).
+// CONTRACT-CHANGE(agent): additive.
+type ClaimInput struct {
+	ChangeItem string           `json:"changeItem,omitempty"`
+	Kind       domain.ClaimKind `json:"kind"`    // absent | present | value
+	Setting    string           `json:"setting"` // dotted key path, or a token (flag, annotation key, env var)
+	// Input: an artifact id or path (an environment file, or an environment
+	// render), or "environment-files" (every environment file).
+	Input string `json:"input"`
+	Value string `json:"value,omitempty"` // kind value: the expected value (a JSON or YAML scalar)
 }
 
 // SubmitInput ends the agent run.
@@ -722,6 +749,9 @@ type Tools interface {
 	RequestValidation(ctx context.Context, in ValidationRequestInput) (*domain.ValidationRequest, *domain.ValidationRecord, error)
 	RecordHypothesis(ctx context.Context, in HypothesisInput) (*domain.Hypothesis, error)
 	RecordAssertion(ctx context.Context, in AssertionInput) (*domain.AgentAssertion, error)
+	// RecordClaim verifies and records a setting claim.
+	// CONTRACT-CHANGE(agent): additive.
+	RecordClaim(ctx context.Context, in ClaimInput) (*domain.SettingClaim, error)
 	SubmitFindings(ctx context.Context, in SubmitInput) error
 }
 
