@@ -1,7 +1,7 @@
 # Status — lane `groundtruth` (Phase 4 env-impact)
 
 Agent: ri-groundtruth (Claude Opus 5.5). Branch `p4ei/groundtruth`. Brief: `briefs/groundtruth.md`.
-Last updated: 2026-10-16 (session start).
+Last updated: 2026-10-16 ~13:00 CDT.
 
 ## Draft case format (for the `contract` lane to converge on in `eval/investigations/FORMAT.md`)
 
@@ -89,20 +89,45 @@ Relation vocabulary is whatever DESIGN.md's `GraphEdge` kinds end up being; unti
 verbs (deploys, renders-to, configures, overrides, references, issues-secret, mounts, selects,
 consumed-by) and will rename on adoption of FORMAT.md.
 
+## Case plan
+
+| Case | Pair | Item(s) | Env difference | State |
+|---|---|---|---|---|
+| cert-manager-1.17-1.18--payments-eu | mesh-ca | B1 rotationPolicy default, B2 revisionHistoryLimit default | root CA has no rotationPolicy | env + observed run done; expected/NOTES pending |
+| cert-manager-1.17-1.18--payments-us | mesh-ca | same | prod overlay patches root CA `rotationPolicy: Never` | env done; observed run in progress |
+| ingress-nginx-1.11-1.12--shop-de | risk-level | annotations-risk-level default Critical→High (#11819) | storefront overlay adds configuration-snippet | env done; observed run in progress |
+| ingress-nginx-1.11-1.12--shop-fr | risk-level | same | values-prod.yaml sets annotations-risk-level: Critical | env done; run pending |
+| (stretch) insufficient-evidence case | — | ingress-nginx risk level | controller values live in a repo that is not provided | planned |
+
 ## Done
 
 - Read FLEET.md, MISSION.md, brief, eval/FORMAT.md, Phase 3 groundtruth brief.
 - Draft format above.
+- Upstream research pair 1 + pair 2 (sources in scratch; citations go to NOTES.md).
+- Docker Desktop was wedged (backend up 9 days, hit "no space left on device" on 2026-10-07; daemon
+  did not answer `_ping`). Restarted it (killed the wedged processes, relaunched); now healthy.
+- payments-eu observed run: on 1.17.2 re-issuing the root CA kept its key; on 1.18.0 it rotated, and
+  checkout→ledger mTLS failed (`curl: (60)`) once ledger's leaf was re-issued under the new CA key.
 
 ## In progress / next step
 
-- Upstream research for pair 1 (cert-manager 1.17→1.18 rotationPolicy default) and pair 2
-  (ingress-nginx 1.11→1.12 security defaults / annotations-risk-level).
+- Wait for payments-us and shop-de runs; run shop-fr (`<case>/observed/run.sh <case> ri-groundtruth-<x> <charts-dir>`;
+  charts are `helm pull`ed from the upstream repos into a scratch dir).
+- Then write expected.yaml + NOTES.md per case, README index, insufficient-evidence case.
 
 ## Decisions
 
 - Inputs and expectations in separate files (`input.yaml` vs `expected.yaml`) so pipeline lanes can
   read inputs without seeing ground truth (FLEET.md evaluation integrity).
+- Case ids use neutral environment slugs (`--payments-eu`, `--shop-fr`), never `--affected`: the id is an
+  input and must not leak the expected class. Fixture comments read like an operator's, never mention
+  the upgrade.
+- Each pair's two environments differ only in the one setting that decides impact (`diff -r` of the
+  two env/ trees shows just that plus names), so the pair isolates the mechanism.
+- Argo CD is not run in kind: each Application is resolved by hand into the equivalent
+  `helm upgrade --install` / `kubectl apply -k`, documented in each run.sh.
+- Renewals are forced the way `cmctl renew` does (status condition Issuing=True, ManuallyTriggered)
+  to stand in for the scheduled renewBefore window.
 
 ## Files touched outside ownership
 
