@@ -149,7 +149,7 @@ insufficient-evidence case.
 
 ## In progress / next step
 
-- Final `go build ./... && go vet ./... && go test ./...`, commit, LANE DONE.
+- Lane complete (LANE DONE sent).
 - When the commander says so: `git merge p4-env-impact`, adopt FORMAT.md (rename fields/relations if
   it differs from the draft above), keep the expectations unchanged.
 
@@ -203,4 +203,6 @@ insufficient-evidence case.
 
 ## Test status
 
-(see final section once run)
+2026-10-16 on 1b14540f: `go build ./... && go vet ./... && go test ./...` green (35 packages ok, no
+FAIL; this lane changes no Go code). All case YAML parses; every env overlay renders with
+`kubectl kustomize`. No kind clusters left behind.
