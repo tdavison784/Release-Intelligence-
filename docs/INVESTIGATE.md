@@ -463,6 +463,25 @@ Some requests duplicate a record the deterministic pass already made. That recor
 validation answered. The validator decides the outcome, and the classifier decides whether that pass counts:
 for a controller-behaviour item, only a pinned setting or an observed outcome does.
 
+**Depth rules (prompt v3; commander decision 2026-10-16).** The agenda makes the agent close every item, but
+coverage alone does not make it examine each one. Live run 2 closed 14/14 items after 4 inspection calls. So v3
+enforces a depth floor in the tool layer (`internal/investigate/agent/depth.go`), checked when a record is made:
+
+| Rule | Requirement |
+|---|---|
+| `depth:examined-after-get-change-item` | an `explains` assertion, or an `explains` / `examined-no-concern` closing entry, only for an item retrieved with `get_change_item` earlier in the session |
+| `depth:unshared-citation` | such a record needs at least one citation that no record about another item cites; this includes the other entries of the same `submit_findings`. A citation is the artifact plus the whitespace-normalised quote, so a changed locator does not make a shared quote unique |
+| `depth:behaviour-concern-validated-or-reasoned` | `submit_findings` is rejected while a `raises-concern` on a `controller-behaviour` / `unknown` item has neither a recorded `request_validation` for that item nor a `noValidationReason` (`AgentAssertion.NoValidationReason`) |
+
+Coverage entries report depth per item:
+
+- `examined`: `get_change_item` was called on the item;
+- `inspections`: accepted `get_change_item`, `query_diff`, `search_manifest` and `list_paths` calls naming the
+  item;
+- `validationRequests`: recorded requests for the item.
+
+The rules never change a class: they decide only which agent records are accepted.
+
 **Environment-scope items.** Items anchored on environment-only rendered changes
 (`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
 iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
@@ -477,7 +496,8 @@ the agent's outputs.
 **Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
-agenda and subject resolution; v3 adds answer links. Every version stays embedded and replays exactly as recorded.
+agenda and subject resolution; v3 adds answer links and the depth rules. Every version stays embedded and replays
+exactly as recorded.
 
 The task lists:
 
@@ -507,7 +527,9 @@ tools work, and record/request/submit tools are refused.
 its replay check:
 
 - [agent-live-1](phase4/env-impact/runs/agent-live-1/README.md): ingress-nginx, prompt v1;
-- [agent-live-2](phase4/env-impact/runs/agent-live-2/README.md): cert-manager, prompt v2, with coverage.
+- [agent-live-2](phase4/env-impact/runs/agent-live-2/README.md): cert-manager, prompt v2, with coverage;
+- [agent-live-3](phase4/env-impact/runs/agent-live-3/README.md): kube-prometheus-stack, prompt v3: coverage,
+  depth, validation requests and answer links.
 
 **Reproducibility caveat.** A bundle's snapshot pins the HEAD commit of the git work tree containing the
 environment and the input path as supplied. The groundtruth environments sit inside this repository, so
