@@ -370,7 +370,7 @@ func (l *loader) parametersToValues(file, locatorPrefix string, parameters *yaml
 			}
 			entries = append(entries, ValuesKey{
 				Path: m, Value: kv.Value, Line: item.Line,
-				Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), m + ": " + kv.Value)},
+				Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), m+": "+kv.Value)},
 			})
 		}
 		l.values.apply(file, entries, containers)
