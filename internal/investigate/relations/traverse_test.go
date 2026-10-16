@@ -403,3 +403,44 @@ func BenchmarkTraverseDefaultBound(b *testing.B) {
 		}
 	}
 }
+
+// chain builds nodes n0..n<steps+1> with edges n0→n1→…: a straight chain of
+// the given edge count.
+func chain(t testing.TB, steps int) (*domain.RelationshipGraph, map[string]string) {
+	t.Helper()
+	var names []string
+	for i := 0; i <= steps; i++ {
+		names = append(names, fmt.Sprintf("n%d", i))
+	}
+	var edges []te
+	for i := 0; i < steps; i++ {
+		edges = append(edges, te{from: names[i], to: names[i+1]})
+	}
+	return graphOf(t, names, edges)
+}
+
+// The default depth must cover the chains real GitOps environments produce:
+// a straight relationship chain as deep as the bound still traverses
+// completely (the measured deepest real chain is 9 edges — cert-manager's
+// two-tier internal PKI plus the workload→service tail).
+func TestDefaultDepthCoversRealChains(t *testing.T) {
+	g, ids := chain(t, domain.DefaultTraversalBound.MaxDepth)
+	res := traverse(t, g, rootsOf(ids, "ci-1", "n0"), domain.DefaultTraversalBound)
+	if res.Truncated || res.DepthReached != domain.DefaultTraversalBound.MaxDepth || !res.Complete {
+		t.Fatalf("a chain within the bound must traverse completely: truncated=%v reason=%q depth=%d complete=%v",
+			res.Truncated, res.TruncationReason, res.DepthReached, res.Complete)
+	}
+}
+
+// The bound stays a bound: one edge deeper than the default truncates
+// honestly — reason recorded, never complete, so not-affected stays blocked.
+func TestDefaultDepthStillTruncatesHonestly(t *testing.T) {
+	g, ids := chain(t, domain.DefaultTraversalBound.MaxDepth+1)
+	res := traverse(t, g, rootsOf(ids, "ci-1", "n0"), domain.DefaultTraversalBound)
+	if !res.Truncated || res.Complete {
+		t.Fatalf("a chain past the bound must truncate and never be complete: %+v", res)
+	}
+	if res.TruncationReason != fmt.Sprintf("max depth %d reached", domain.DefaultTraversalBound.MaxDepth) {
+		t.Fatalf("reason = %q", res.TruncationReason)
+	}
+}
