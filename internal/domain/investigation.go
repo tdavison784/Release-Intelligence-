@@ -2605,7 +2605,15 @@ type Investigation struct {
 	Status       InvestigationStatus `json:"status"`
 	// ImpactReport is the artifact id of the deterministic ImpactReport the
 	// investigation builds on; Graph the RelationshipGraph artifact.
-	ImpactReport string           `json:"impactReport,omitempty"`
+	ImpactReport string `json:"impactReport,omitempty"`
+	// ReportStamps are the wall-clock stamps of that report (when the join
+	// generated it, when each evidence record was retrieved): the artifact
+	// holds the report's identified content without them
+	// (ImpactReport.IdentifiedContent), and they are kept here as provenance
+	// of the run — excluded from the run record's identity and digests like
+	// CreatedAt and audit times (timestamps are never identity, §2.1).
+	// CONTRACT-CHANGE(fixes2): additive.
+	ReportStamps *ReportStamps    `json:"reportStamps,omitempty"`
 	Graph        string           `json:"graph,omitempty"`
 	Traversal    *TraversalResult `json:"traversal,omitempty"`
 	Agent        *AgentRun        `json:"agent,omitempty"`
@@ -2657,6 +2665,9 @@ func (inv *Investigation) Validate() error {
 	if !strings.HasPrefix(inv.Bundle, BundleIDPrefix) || !strings.HasPrefix(inv.Snapshot, SnapshotIDPrefix) ||
 		!strings.HasPrefix(inv.ChangeRecord, ChangeRecordIDPrefix) || inv.Environment == "" || !isDigest(inv.Config) {
 		bad("bundle, snapshot, changeRecord, environment and config (a digest) are required")
+	}
+	if inv.ReportStamps != nil && inv.ImpactReport == "" {
+		bad("reportStamps are the provenance of an impact report artifact, and there is none")
 	}
 	if !oneOf(inv.Status, InvestigationStatuses) {
 		bad("unknown status %q", inv.Status)

@@ -470,20 +470,78 @@ type ImpactReport struct {
 }
 
 // IdentifiedContent returns the report's identified content: a copy with the
-// wall-clock stamps zeroed — GeneratedAt and every evidence RetrievedAt.
-// Stored report artifacts (and their digests) are built from this, the way
-// the bundle assembler pins its clock (Principle 6): identical inputs yield
-// byte-identical content, so two identical runs produce the same record
-// digest. When a run generated or fetched anything is provenance of the run,
-// kept where time belongs — the run record's CreatedAt and its audit trail —
-// not identity of the report. Evidence ids do not cover RetrievedAt, so
-// every finding reference resolves in the copy exactly as in the original.
+// run's wall-clock stamps taken out — GeneratedAt and every evidence
+// RetrievedAt. Stored report artifacts (and their digests) are built from
+// this, the way the bundle assembler pins its clock (Principle 6): identical
+// inputs yield byte-identical content, so two identical runs produce the same
+// record digest. The stamps are not dropped: Stamps returns them, and the run
+// record keeps them as provenance outside its identified content
+// (Investigation.ReportStamps, excluded from the record digests like
+// CreatedAt); WithStamps puts them back. Evidence ids do not cover
+// RetrievedAt, so every finding reference resolves in the copy exactly as in
+// the original.
+//
+// Enrichments[].Provenance.GeneratedAt is NOT a run stamp and stays: it is
+// when the model produced that answer — part of the AI output's provenance,
+// which must be complete (Provenance.Validate requires it) — and a replayed
+// answer (the LLM answer cache) carries its original time, so it does not
+// vary between identical runs.
 func (r *ImpactReport) IdentifiedContent() ImpactReport {
 	c := *r
 	c.GeneratedAt = time.Time{}
 	c.Evidence = zeroRetrievedAt(r.Evidence)
 	c.EnvironmentEvidence = zeroRetrievedAt(r.EnvironmentEvidence)
 	return c
+}
+
+// ReportStamps are the wall-clock stamps IdentifiedContent takes out of an
+// impact report: when the join generated it and when each evidence record
+// (upstream and environment chain) was retrieved, by evidence id. They are
+// provenance of the run, never identity.
+// CONTRACT-CHANGE(fixes2): additive; kept on Investigation.ReportStamps.
+type ReportStamps struct {
+	GeneratedAt time.Time                `json:"generatedAt,omitzero"`
+	RetrievedAt map[EvidenceID]time.Time `json:"retrievedAt,omitempty"`
+}
+
+// Stamps returns the report's wall-clock stamps (see ReportStamps).
+func (r *ImpactReport) Stamps() ReportStamps {
+	s := ReportStamps{GeneratedAt: r.GeneratedAt}
+	for _, es := range [][]Evidence{r.Evidence, r.EnvironmentEvidence} {
+		for _, e := range es {
+			if e.RetrievedAt.IsZero() {
+				continue
+			}
+			if s.RetrievedAt == nil {
+				s.RetrievedAt = map[EvidenceID]time.Time{}
+			}
+			s.RetrievedAt[e.ID] = e.RetrievedAt
+		}
+	}
+	return s
+}
+
+// WithStamps returns a copy of identified content with the stamps put back
+// (fresh evidence slices): IdentifiedContent followed by WithStamps(Stamps())
+// is the original report.
+func (r *ImpactReport) WithStamps(s ReportStamps) ImpactReport {
+	c := *r
+	c.GeneratedAt = s.GeneratedAt
+	c.Evidence = withRetrievedAt(r.Evidence, s.RetrievedAt)
+	c.EnvironmentEvidence = withRetrievedAt(r.EnvironmentEvidence, s.RetrievedAt)
+	return c
+}
+
+func withRetrievedAt(es []Evidence, at map[EvidenceID]time.Time) []Evidence {
+	if es == nil {
+		return nil
+	}
+	out := make([]Evidence, len(es))
+	for i, e := range es {
+		e.RetrievedAt = at[e.ID]
+		out[i] = e
+	}
+	return out
 }
 
 // zeroRetrievedAt copies es with every RetrievedAt zeroed (a fresh slice:

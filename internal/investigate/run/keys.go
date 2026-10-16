@@ -56,21 +56,21 @@ func digestOf(v any) string {
 }
 
 // ContentDigest digests the run record's content: no audit trail, no
-// timestamps. It feeds idempotency keys, which must not change when a retry
+// timestamps (CreatedAt, the impact report's stamps). It feeds idempotency keys, which must not change when a retry
 // adds an audit event.
 func ContentDigest(inv *domain.Investigation) string {
 	c := *inv
-	c.Audit, c.CreatedAt = nil, zeroTime
+	c.Audit, c.CreatedAt, c.ReportStamps = nil, zeroTime, nil
 	return digestOf(c)
 }
 
 // Digest digests the run record including the audit sequence (stage, event,
 // actor, refs, detail — not times or the hash chain, which derive from
-// times). Same inputs, config and scripted/replay agent ⇒ same digest,
-// in-process or under Temporal.
+// times, nor the impact report's wall-clock stamps). Same inputs, config and
+// scripted/replay agent ⇒ same digest, in-process or under Temporal.
 func Digest(inv *domain.Investigation) string {
 	c := *inv
-	c.CreatedAt = zeroTime
+	c.CreatedAt, c.ReportStamps = zeroTime, nil
 	c.Audit = make([]domain.AuditEvent, len(inv.Audit))
 	for i, e := range inv.Audit {
 		e.At, e.Prev = zeroTime, ""
