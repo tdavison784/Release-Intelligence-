@@ -24,7 +24,7 @@ func TestPromptLoadsAndDigests(t *testing.T) {
 		t.Fatal("a path-escaping prompt version loads")
 	}
 	f := newFixture(t)
-	task, err := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1, }), investigate.DefaultAgentBudget)
+	task, err := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1}), investigate.DefaultAgentBudget)
 	must(t, err)
 	for _, want := range []string{f.behaviour, f.values2, f.rcItem, f.rcLoose, "controller-behaviour", "manifest:declared-behaviour",
 		"https://example.com/demo/releases/v2.0.0", "argocd:apps/demo.yaml", "1 further change items are out of scope", "80 tool calls"} {
@@ -35,7 +35,7 @@ func TestPromptLoadsAndDigests(t *testing.T) {
 	if strings.Contains(task, f.outScope) {
 		t.Errorf("task lists the out-of-scope item")
 	}
-	again, _ := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1, }), investigate.DefaultAgentBudget)
+	again, _ := p.RenderTask(f.input(investigate.AgentConfig{PromptVersion: promptV1}), investigate.DefaultAgentBudget)
 	if again != task || p.Digest(task) != p.Digest(again) {
 		t.Fatal("task rendering is not deterministic")
 	}
