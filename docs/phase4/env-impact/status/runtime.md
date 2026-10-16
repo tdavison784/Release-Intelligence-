@@ -1,7 +1,8 @@
 # Status — lane `runtime` (Claude Opus 5.5, agent ri-runtime)
 
 Branch `p4ei/runtime`, worktree `.claude/worktrees/p4ei-runtime`. Brief: `briefs/runtime.md` (+ `_wave2-common.md`,
-`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **IN PROGRESS** (2026-10-16).
+`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE** (2026-10-16; real runs re-executed by GLM continuation
+`glm-runtime` during ri-runtime's usage-limit window — see "GLM handoff log").
 Resume from: this file + brief + `git log`.
 
 ## Done
@@ -23,8 +24,7 @@ Resume from: this file + brief + `git log`.
 
 ## In progress / next step
 
-- Real runs re-started 2026-10-16 by GLM continuation (see "GLM handoff log"): all three products sequentially
-  with the current code, then the "Real runs" table below, cleanup, LANE DONE.
+- Nothing. Real runs complete ("Real runs" below); lane done.
 
 ## Decisions (with why)
 
@@ -99,6 +99,38 @@ and asserts every record conforms and the cluster is deleted.
   Service/Deployment, the declared exercise targets Ingress — per-object scoping stays honest); 13 `not-run`
   `runtime:no-object`. Zero `pass`, zero `fail` — the observed break stays inconclusive per item (R3).
 
+### kube-prometheus-stack obs-north (`kube-prometheus-stack-89-90--obs-north`, chart 89.2.4 → 90.2.0, k8s 1.31) — 181 s
+
+- Run `completed` (budget 1500 s), node pinned `kindest/node:v1.31.0`, cluster deleted (verified).
+- Phases: FROM applied 85; TO applied 164, re-created 7 hook Jobs; zero apply errors, nothing unserved, all
+  workloads ready — upgrade completed.
+- Exercises: `prometheusrule-update` on 31 PrometheusRules and `servicemonitor-update` on 8 ServiceMonitors, at
+  FROM and at TO, all executed, none refused at either version (`podmonitor-update` not selected — no PodMonitor
+  in this environment).
+- **3 degradations**, upgrade window `warning:InvalidConfiguration`: the operator rejects
+  `default/kube-prometheus-stack-apiserver`, `kube-system/kube-prometheus-stack-coredns` and
+  `kube-system/kube-prometheus-stack-kubelet` — `endpoints[0].authorization` cannot get the Bearer token:
+  Secret `kube-prometheus-stack-prometheus-token` not found (the release adds that Secret in the chart's
+  namespace; the Prometheus server looks for it in `monitoring`). No such warnings at FROM.
+- Outcomes over 26 in-scope items: **3 `fail`** `runtime:degraded` (three rendered ServiceMonitor field-changed
+  items, each uniquely reaching one rejected ServiceMonitor); 1 `not-run` `runtime:no-baseline` (the
+  release-added token Secret — cannot exist at FROM); 1 `not-run` `runtime:no-exercise` (operator Deployment
+  container-arg change, family rendered); 21 `not-run` `runtime:no-object`. Zero `pass`.
+- Noted for the commander (graph fact, not this lane's to fix): the `procedure` item that describes the
+  89→90 control-plane ServiceMonitor auth change itself has **no impact paths** to those ServiceMonitors
+  (`runtime:no-object`), while the three rendered field-changed items on the same ServiceMonitors do connect
+  and fail. Attribution of the observed break rides on the rendered items; the relations lane may want to know.
+
+### Cross-run summary
+
+Three products, three `completed` runs, 181–215 s each (budget 15–25 min), every cluster deleted and verified
+absent, node image pinned per environment, zero harness failures. Every run observed real, product-generic
+behaviour: cert-manager — renewal rotates `tls.key` at TO only (1 fail); ingress-nginx — the new admission
+webhook rejects a FROM-valid Ingress annotation and refuses the same exercise (break observed, held
+inconclusive per item by `runtime:unreached`); kube-prometheus-stack — the operator rejects three control-plane
+ServiceMonitors over the token Secret (3 fails). No run produced a `pass`: each product's exercised behavior
+degraded or the items lacked a declared exercise — the "quiet window is never a pass" rule held everywhere.
+
 ## GLM handoff log
 
 - 2026-10-16 (glm-runtime, GLM-5.3): took over from ri-runtime during its usage-limit window, mid "real runs".
@@ -113,3 +145,13 @@ and asserts every record conforms and the cluster is deleted.
   Uncertain: whether the shared warm `.ri` cache holds everything the two new cases need offline; if a case
   skips with "change evidence not available offline" I will warm the cache with `GITHUB_TOKEN=$(gh auth token)`
   and re-run it.
+- 2026-10-16 (glm-runtime): all three runs **PASS** (cert-manager 215 s, ingress-nginx 185 s, kube-prometheus-
+  stack 181 s; details in "Real runs"). The offline-cache worry was unfounded — no case skipped; no cache
+  warming needed. Each run's cluster was deleted and verified absent by the harness (`assertNoRuntimeClusters`).
+  No code changes were needed; 433574f7's refused-exercise rule fired as designed in the ingress-nginx run.
+  One observation surfaced for the commander (graph connectivity, see kube-prometheus-stack section): the
+  procedure item describing the very change that degraded the ServiceMonitors has no impact paths to them;
+  the three rendered ServiceMonitor items carry the fails. Cleanup done: `.glm-scratch/` removed, `kind get
+  clusters` empty, no bin/ or other large untracked output, `git status --ignored` clean apart from `.lane-lead`.
+  Uncertainties for the returning Claude lead: none blocking — the lane is done per its brief; the graph note
+  above is a cross-lane observation, not a defect in this lane's scope.
