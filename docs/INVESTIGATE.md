@@ -349,10 +349,10 @@ generated configuration unchanged — so they never support a pass).
 | `error` | `runtime:run-error` | the run broke (cluster creation, no baseline, timeout, cluster not deleted) |
 | `error` | `runtime:unreached` | nothing on the item's roots/paths is a cluster object, but an exercise declared for its family degraded its targets at TO only — a plausible impact the graph does not connect to any one item (never a fail, never a pass) |
 | `not-run` | `runtime:no-object` | nothing on the item's roots/paths is a Kubernetes object of the cluster (and nothing above) |
-| `fail` | `runtime:degraded` | a degradation on the item's paths that **only this in-scope item** reaches (for an exercise-window degradation: only this item among those whose exercise ran on their paths); names each concrete failure, cites the observation artifact and the item's rendered changes on the degraded objects |
+| `fail` | `runtime:degraded` | a concrete degradation on the item's paths **attributed to it** (`attribution:own-rendered-change` or `attribution:unique-path`, below); names each concrete failure, cites the observation artifact and the item's rendered changes on the degraded objects |
 | `error` | `runtime:inconclusive-change` | its only (attributable) degradations are inconclusive differences — data changed under consumers with no consumer degrading, or an exercise left unanswered at TO |
 | `error` | `runtime:sandbox` | the sandbox could not run an object on the paths (image pull) |
-| `error` | `runtime:unattributed` | a degradation on its paths that other in-scope items reach too — inconclusive (R3), never a fail |
+| `error` | `runtime:unattributed` | a degradation on its paths not attributed to it (`attribution:shared-own-change`, `shared-path` or `reconciled-only`) — inconclusive (R3), never a fail |
 | `not-run` | `runtime:other-families` | its objects degraded only under an exercise declared for other families |
 | `error` | `runtime:upgrade-incomplete` | the upgrade did not complete (a product object rejected, a product workload not ready) |
 | `not-run` | `runtime:no-baseline` | an object on its paths was not observed healthy in every observation — FROM, after the FROM exercises, TO, after the TO exercises (absent before, removed by the upgrade, not ready, unserved) |
@@ -360,6 +360,26 @@ generated configuration unchanged — so they never support a pass).
 | `not-run` | `runtime:exercise-not-run` | its exercise was not applied, or the controller showed no declared reaction, on its objects at both versions (or the exercise declares no reaction) |
 | `not-run` | `runtime:reconciled-only` | everything above held, but the item reaches its objects only through the `exposure:product-reconciles` rule (no rendered change or join match of its own): the exercises show the controller still handles its objects, not that this particular change was exercised |
 | `pass` | `runtime:healthy-exercised` | the upgrade completed, every object on its paths was healthy in each observation (the record lists them), and its exercise was applied with the controller's declared reaction observed at both versions, degrading nothing; covers the item's rendered changes on those objects |
+
+**Attribution precedence** (generic; the rule id is recorded on **every** record after `+` in its provenance rule,
+e.g. `runtime:degraded+attribution:own-rendered-change`; `runtime.OutcomeRule` / `runtime.AttributionRule` split it).
+For each degradation on an item's objects, among the in-scope items that reach the object (for an exercise-window
+degradation: whose exercise ran on their paths):
+
+1. `attribution:own-rendered-change` — the item has its **own rendered change** (environment or release scope,
+   correlated to it) on the degraded object, the degradation concerns that object (rejected, refused exercise,
+   deleted, not ready, not reconciled, a failure condition, a warning event — not a data change, restarts or a log
+   line), and no other reaching item has one ⇒ `fail` for it. With **two or more** such items: all
+   `attribution:shared-own-change` (inconclusive, the items named — no guessing); every other reaching item:
+   `attribution:shared-path` naming the item it is attributed to.
+2. otherwise, items reaching the object through **relationship paths** (roots from a rendered change or a join match):
+   the only one ⇒ `attribution:unique-path` (`fail`, or `inconclusive-change` for a data-only difference); several ⇒
+   `attribution:shared-path` (inconclusive).
+3. items reaching it **only as a reconciled kind** (`exposure:product-reconciles` roots) ⇒ `attribution:reconciled-only`,
+   always inconclusive.
+
+Also: `attribution:other-families`, `attribution:unreached`, `attribution:sandbox`, and `attribution:none` (no
+degradation on the item's objects, e.g. every pass).
 
 A runtime pass is level `observed`, so it `ClearsBehaviour()` (R2.4); classify still applies R2.1–R2.8. Records cite
 the applied render artifacts and the exercise declarations (`derived/runtime/<bundle>/exercises.json`) as inputs,

@@ -14,8 +14,11 @@ import (
 
 func expect(t *testing.T, r domain.ValidationRecord, outcome domain.ValidationOutcomeKind, rule string, detail ...string) {
 	t.Helper()
-	if r.Outcome != outcome || r.Provenance.Rule != rule {
+	if r.Outcome != outcome || OutcomeRule(r.Provenance.Rule) != rule {
 		t.Fatalf("got %s/%s, want %s/%s: %s", r.Outcome, r.Provenance.Rule, outcome, rule, r.Detail)
+	}
+	if AttributionRule(r.Provenance.Rule) == "" {
+		t.Fatalf("record %s carries no attribution rule: %q", r.ID, r.Provenance.Rule)
 	}
 	for _, d := range detail {
 		if !strings.Contains(r.Detail, d) {
@@ -142,7 +145,7 @@ func TestSharedDegradationIsInconclusive(t *testing.T) {
 	e := newEnv(t, envOptions{twin: true})
 	v := e.validator()
 	for _, it := range []string{itemBehaviour, itemTwin} {
-		expect(t, e.validate(v, it), domain.ValidationError, RuleUnattributed, "cannot be attributed to this item alone", "reached by 2 in-scope items")
+		expect(t, e.validate(v, it), domain.ValidationError, RuleUnattributed, "not attributable to this item", "reached through relationship paths by 2 in-scope items")
 	}
 }
 
@@ -498,4 +501,102 @@ func TestSubjectsWithoutGraphRejected(t *testing.T) {
 	if e.drv.creates != 0 {
 		t.Fatal("a rejected request must not create a cluster")
 	}
+}
+
+func expectAttr(t *testing.T, r domain.ValidationRecord, attr string) {
+	t.Helper()
+	if got := AttributionRule(r.Provenance.Rule); got != attr {
+		t.Fatalf("attribution %s, want %s (rule %q): %s", got, attr, r.Provenance.Rule, r.Detail)
+	}
+}
+
+// rejectWidgetAtV2: the new admission webhook rejects the consumer's Widget on
+// the reconcile pass — a degradation that concerns the Widget object itself.
+func rejectWidgetAtV2(c *fakeCluster) {
+	c.rejectAtV2 = func(m Manifest) error {
+		if m.Ref.Kind == "Widget" {
+			return errors.New(`admission webhook "validate.gizmo.io" denied the request: spec.rotation is no longer supported`)
+		}
+		return nil
+	}
+}
+
+// Precedence (1): of two items reaching the rejected Widget, the one whose
+// own rendered change is on it fails, citing the change; the other shares.
+func TestAttributionOwnRenderedChangeWins(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never", twin: true, ownWidget: []string{itemBehaviour}})
+	e.drv.setup = rejectWidgetAtV2
+	v := e.validator()
+	r := e.validate(v, itemBehaviour)
+	expect(t, r, domain.ValidationFail, RuleDegraded, "apply rejected", "its own rendered change", "Attribution: attribution:own-rendered-change")
+	expectAttr(t, r, AttrOwnChange)
+	if len(r.RenderedChanges) != 1 {
+		t.Fatalf("the fail names its rendered change: %v", r.RenderedChanges)
+	}
+	tw := e.validate(v, itemTwin)
+	expect(t, tw, domain.ValidationError, RuleUnattributed, "attributed to "+itemBehaviour)
+	expectAttr(t, tw, AttrSharedPath)
+}
+
+// Two items with their own rendered change on the degraded object: both
+// inconclusive, the shared attribution named — no guessing.
+func TestAttributionTwoOwnChangesShare(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never", twin: true, ownWidget: []string{itemBehaviour, itemTwin}})
+	e.drv.setup = rejectWidgetAtV2
+	v := e.validator()
+	for _, it := range []string{itemBehaviour, itemTwin} {
+		r := e.validate(v, it)
+		expect(t, r, domain.ValidationError, RuleUnattributed, "2 in-scope items have their own rendered change on this object", "not guessed")
+		expectAttr(t, r, AttrSharedOwnChange)
+	}
+}
+
+// Precedence (2): no own change, several items through relationship paths.
+func TestAttributionSharedPaths(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never", twin: true})
+	e.drv.setup = rejectWidgetAtV2
+	v := e.validator()
+	for _, it := range []string{itemBehaviour, itemTwin} {
+		r := e.validate(v, it)
+		expect(t, r, domain.ValidationError, RuleUnattributed, "reached through relationship paths by 2 in-scope items")
+		expectAttr(t, r, AttrSharedPath)
+	}
+}
+
+// Precedence (3): an item reaching the object only as a reconciled kind never
+// owns it; the item with a specific path is the unique one.
+func TestAttributionReconciledOnlyNeverOwns(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never", twin: true, twinReconciled: true})
+	e.drv.setup = rejectWidgetAtV2
+	v := e.validator()
+	r := e.validate(v, itemBehaviour)
+	expect(t, r, domain.ValidationFail, RuleDegraded, "apply rejected")
+	expectAttr(t, r, AttrUniquePath)
+	tw := e.validate(v, itemTwin)
+	expect(t, tw, domain.ValidationError, RuleUnattributed, "only as a kind the product's controller reconciles")
+	expectAttr(t, tw, AttrReconciledOnly)
+}
+
+// An own rendered change does not turn a data-only difference into a fail:
+// only degradations that concern the object itself are owned that way.
+func TestAttributionOwnChangeNeedsAnObjectDegradation(t *testing.T) {
+	for sig, want := range map[string]bool{"rejected": true, "exercise-rejected:x/y": true, "deleted": true, "not-ready": true, "not-reconciled": true,
+		"condition:Ready": true, "warning:Rejected": true, "data:tls.key": false, "restarts": false, "log:E# x": false, "rejectedx": false} {
+		if got := concernsObject(Degradation{Signature: sig, Inconclusive: strings.HasPrefix(sig, "data:")}); got != want {
+			t.Errorf("%s: %v", sig, got)
+		}
+	}
+	e := newEnv(t, envOptions{twin: true, ownWidget: []string{itemBehaviour}})
+	v := e.validator()
+	r := e.validate(v, itemBehaviour)
+	expect(t, r, domain.ValidationError, RuleUnattributed, `data key "key" changed`)
+	expectAttr(t, r, AttrSharedPath)
+}
+
+// Every record names its attribution; a pass has none.
+func TestAttributionNoneOnPass(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never"})
+	v := e.validator()
+	expectAttr(t, e.validate(v, itemBehaviour), AttrNone)
+	expectAttr(t, e.validate(v, itemNoPath), AttrNone)
 }

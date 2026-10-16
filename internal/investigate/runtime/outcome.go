@@ -30,6 +30,154 @@ const (
 	RuleQuiet          = "runtime:healthy-exercised" // pass
 )
 
+// Attribution rules: how the degradations on an item's objects were
+// attributed to it (recorded on every record after "+" in the provenance
+// rule, e.g. "runtime:degraded+attribution:own-rendered-change"). Precedence
+// for a degradation several in-scope items reach: (1) the item whose own
+// rendered change is on the degraded object, when the degradation concerns
+// that object (rejected, refused exercise, deleted, not ready, not
+// reconciled, a failure condition, a warning event); (2) otherwise items
+// reaching the object through relationship paths share it; (3) items
+// reaching it only as a kind the product reconciles never own it.
+const (
+	AttrNone            = "attribution:none"                // no degradation on the item's objects
+	AttrOwnChange       = "attribution:own-rendered-change" // its own rendered change is on the degraded object
+	AttrUniquePath      = "attribution:unique-path"         // the only in-scope item whose specific paths reach the object
+	AttrSharedOwnChange = "attribution:shared-own-change"   // several items have their own rendered change on it: no guessing
+	AttrSharedPath      = "attribution:shared-path"         // reached through paths by several items, or owned by another item's change
+	AttrReconciledOnly  = "attribution:reconciled-only"     // reached only as a reconciled kind
+	AttrOtherFamilies   = "attribution:other-families"      // degraded under an exercise declared for other families
+	AttrUnreached       = "attribution:unreached"           // no object on its paths; its family's exercise targets degraded
+	AttrSandbox         = "attribution:sandbox"             // a sandbox problem (image pull)
+)
+
+// concernsObject reports whether a degradation is about the object itself —
+// what an own rendered change on that object can explain.
+func concernsObject(d Degradation) bool {
+	if d.Inconclusive || d.Infrastructure {
+		return false
+	}
+	for _, p := range []string{"rejected", "exercise-rejected:", "deleted", "not-ready", "not-reconciled", "condition:", "warning:"} {
+		if d.Signature == p || strings.HasPrefix(d.Signature, p) && strings.HasSuffix(p, ":") {
+			return true
+		}
+	}
+	return false
+}
+
+// ownChanges returns the rendered changes (environment or release scope)
+// correlated to the item whose object is the live object.
+func (s *session) ownChanges(item, live string) []string {
+	var out []string
+	for _, ps := range [][]domain.ManifestPair{s.b.Change.Renders, s.b.Renders} {
+		for _, p := range ps {
+			for _, c := range p.Changes {
+				if contains(c.ChangeItems, item) && s.live(c.Object) == live {
+					out = append(out, c.ID)
+				}
+			}
+		}
+	}
+	return uniqStrings(out)
+}
+
+// specificReach is the item's reach through roots that are not the
+// product-reconciles exposure (a rendered change, a join match).
+func (s *session) specificReach(in investigate.ValidationInput, item domain.ChangeItem) []string {
+	if in.Traversal == nil {
+		return nil
+	}
+	specific := map[string]bool{}
+	for _, r := range in.Traversal.RootsOf(item.ID) {
+		if r.Rule != relations.RuleReconciledKind {
+			specific[r.Node] = true
+		}
+	}
+	var nodes []string
+	for n := range specific {
+		nodes = append(nodes, n)
+	}
+	for _, p := range in.Traversal.PathsOf(item.ID) {
+		if len(p.Nodes) > 0 && specific[p.Nodes[0]] {
+			nodes = append(nodes, p.Nodes...)
+		}
+	}
+	return s.reach(uniqStrings(nodes))
+}
+
+// attributed is one degradation as attributed to one item.
+type attributed struct {
+	d    Degradation
+	rule string
+	rcs  []string // the item's own rendered changes on the object (own-change attribution)
+}
+
+// attribute decides how one degradation on the item's objects relates to it.
+func (s *session) attribute(in investigate.ValidationInput, item domain.ChangeItem, d Degradation) attributed {
+	if d.Infrastructure {
+		return attributed{d: d, rule: AttrSandbox}
+	}
+	cands := s.candidates(in, d)
+	if !contains(cands, item.ID) {
+		return attributed{d: d, rule: AttrOtherFamilies}
+	}
+	var own []string
+	if concernsObject(d) {
+		for _, c := range cands {
+			if len(s.ownChanges(c, d.Object)) > 0 {
+				own = append(own, c)
+			}
+		}
+	}
+	switch {
+	case len(own) == 1 && own[0] == item.ID:
+		d.Detail += fmt.Sprintf(" [its own rendered change %s is on this object]", strings.Join(s.ownChanges(item.ID, d.Object), ", "))
+		return attributed{d: d, rule: AttrOwnChange, rcs: s.ownChanges(item.ID, d.Object)}
+	case len(own) == 1:
+		d.Detail += fmt.Sprintf(" [attributed to %s, whose own rendered change is on this object]", own[0])
+		return attributed{d: d, rule: AttrSharedPath}
+	case len(own) > 1:
+		d.Detail += fmt.Sprintf(" [%d in-scope items have their own rendered change on this object: %s — not guessed]", len(own), strings.Join(own, ", "))
+		return attributed{d: d, rule: AttrSharedOwnChange}
+	}
+	var specific []string
+	for _, c := range cands {
+		it, _ := in.Bundle.Item(c)
+		if contains(s.specificReach(in, it), d.Object) {
+			specific = append(specific, c)
+		}
+	}
+	switch {
+	case !contains(specific, item.ID):
+		d.Detail += " [reached by this item only as a kind the product's controller reconciles]"
+		return attributed{d: d, rule: AttrReconciledOnly}
+	case len(specific) == 1:
+		return attributed{d: d, rule: AttrUniquePath}
+	}
+	d.Detail += fmt.Sprintf(" [reached through relationship paths by %d in-scope items: %s]", len(specific), strings.Join(specific, ", "))
+	return attributed{d: d, rule: AttrSharedPath}
+}
+
+func degradationsOf(as []attributed) []Degradation {
+	var out []Degradation
+	for _, a := range as {
+		out = append(out, a.d)
+	}
+	return out
+}
+
+// strongest returns the first attribution rule of the list present in as.
+func strongest(as []attributed, order ...string) string {
+	for _, r := range order {
+		for _, a := range as {
+			if a.rule == r {
+				return r
+			}
+		}
+	}
+	return AttrNone
+}
+
 // coverage is what a record speaks for.
 type coverage struct {
 	subjects, paths []string
@@ -166,11 +314,12 @@ func (s *session) candidates(in investigate.ValidationInput, d Degradation) []st
 
 // draft is a record under construction.
 type draft struct {
-	outcome  domain.ValidationOutcomeKind
-	rule     string
-	detail   string
-	rcs      []string
-	evidence []domain.Evidence
+	outcome     domain.ValidationOutcomeKind
+	rule        string
+	attribution string // "" = AttrNone
+	detail      string
+	rcs         []string
+	evidence    []domain.Evidence
 }
 
 // record derives the item's validation record from the run.
@@ -189,7 +338,7 @@ func (s *session) record(in investigate.ValidationInput, item domain.ChangeItem,
 			r.Product, r.From, r.To),
 		Outcome: d.outcome,
 		Detail:  strings.TrimSpace(d.detail + s.footer()),
-		Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: Name, Rule: d.rule,
+		Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: Name, Rule: d.rule + "+" + attributionOr(d.attribution),
 			Confidence: domain.ConfidenceHigh},
 		CheckedAt: s.v.clock.Now().UTC().Truncate(time.Second),
 	}
@@ -216,6 +365,37 @@ func (s *session) record(in investigate.ValidationInput, item domain.ChangeItem,
 		out.Evidence = append(out.Evidence, evs[id])
 	}
 	return out, nil
+}
+
+func attributionOr(a string) string {
+	if a == "" {
+		return AttrNone
+	}
+	return a
+}
+
+// OutcomeRule and AttributionRule split a record's provenance rule.
+func OutcomeRule(rule string) string {
+	o, _, _ := strings.Cut(rule, "+")
+	return o
+}
+
+// AttributionRule returns the attribution part of a record's provenance rule.
+func AttributionRule(rule string) string {
+	_, a, _ := strings.Cut(rule, "+")
+	return a
+}
+
+// inBundle keeps the rendered change ids the bundle indexes.
+func (s *session) inBundle(ids []string) []string {
+	all := s.b.RenderedChanges()
+	var out []string
+	for _, id := range uniqStrings(ids) {
+		if _, ok := all[id]; ok {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 // footer summarises the run on every record.
@@ -252,7 +432,7 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 	reach := s.reach(nodesOf(in, cov))
 	if len(reach) == 0 {
 		if ds := s.unreached(item); len(ds) > 0 {
-			return draft{outcome: domain.ValidationError, rule: RuleUnreached, evidence: s.evidenceAll(ds), detail: fmt.Sprintf(
+			return draft{outcome: domain.ValidationError, rule: RuleUnreached, attribution: AttrUnreached, evidence: s.evidenceAll(ds), detail: fmt.Sprintf(
 				"Inconclusive: no object on this item's impact paths, but the exercises declared for its family (%s) degraded their targets at the TO version, "+
 					"which they did not at the FROM version — a plausible impact the relationship graph does not connect to this item, or to any one item: %s.",
 				item.Family, summarize(ds))}
@@ -266,80 +446,75 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 	for _, id := range reach {
 		inReach[id] = true
 	}
-	var mine, shared, foreign, sandbox []Degradation
+	var mine, mineData, shared, foreign, sandbox []attributed
 	for _, d := range r.Degradations {
 		if !inReach[d.Object] {
 			continue
 		}
-		cands := s.candidates(in, d)
-		switch {
-		case d.Infrastructure:
-			sandbox = append(sandbox, d)
-		case len(cands) == 1 && cands[0] == item.ID:
-			mine = append(mine, d)
-		case contains(cands, item.ID):
-			d.Detail += fmt.Sprintf(" [reached by %d in-scope items: %s]", len(cands), strings.Join(cands, ", "))
-			shared = append(shared, d)
-		default:
-			foreign = append(foreign, d)
-		}
-	}
-	correlated := s.correlated(item.ID)
-	var mineData []Degradation
-	{
-		var concrete []Degradation
-		for _, d := range mine {
-			if d.Inconclusive {
-				mineData = append(mineData, d)
+		a := s.attribute(in, item, d)
+		switch a.rule {
+		case AttrSandbox:
+			sandbox = append(sandbox, a)
+		case AttrOtherFamilies:
+			foreign = append(foreign, a)
+		case AttrOwnChange, AttrUniquePath:
+			if a.d.Inconclusive {
+				mineData = append(mineData, a)
 			} else {
-				concrete = append(concrete, d)
+				mine = append(mine, a)
 			}
+		default:
+			shared = append(shared, a)
 		}
-		mine = concrete
 	}
 	if len(mine) > 0 {
 		var b strings.Builder
 		b.WriteString("Observed failure: after upgrading " + r.Product + " " + r.From + " → " + r.To + " in an isolated cluster installed from this environment's own renders, objects on this item's impact paths degraded, and nothing in the baseline explains it:")
 		var rcs []string
 		var evs []domain.Evidence
-		degraded := map[string]bool{}
-		for _, d := range mine {
-			fmt.Fprintf(&b, "\n- %s (%s window): %s", d.Object, d.Window, d.Detail)
-			evs = append(evs, s.evidence(d))
-			degraded[d.Object] = true
+		for _, a := range mine {
+			fmt.Fprintf(&b, "\n- %s (%s window, %s): %s", a.d.Object, a.d.Window, a.rule, a.d.Detail)
+			evs = append(evs, s.evidence(a.d))
+			rcs = append(rcs, a.rcs...)
 		}
-		for _, rc := range correlated {
-			if degraded[s.live(rc.Object)] {
-				rcs = append(rcs, rc.ID)
+		if len(rcs) == 0 { // unique path: cite the item's rendered changes on the degraded objects, if any
+			for _, a := range mine {
+				rcs = append(rcs, s.ownChanges(item.ID, a.d.Object)...)
 			}
 		}
 		if len(mineData) > 0 {
-			fmt.Fprintf(&b, "\nAlso observed (not failures by themselves): %s.", summarize(mineData))
+			fmt.Fprintf(&b, "\nAlso observed (not failures by themselves): %s.", summarize(degradationsOf(mineData)))
 		}
 		if len(shared)+len(foreign) > 0 {
-			fmt.Fprintf(&b, "\nAlso on its paths, not attributable to this item alone: %s.", summarize(append(shared, foreign...)))
+			fmt.Fprintf(&b, "\nAlso on its paths, not attributed to this item: %s.", summarize(degradationsOf(append(shared, foreign...))))
 		}
-		return draft{outcome: domain.ValidationFail, rule: RuleDegraded, detail: b.String(), rcs: rcs, evidence: evs}
+		attr := strongest(mine, AttrOwnChange, AttrUniquePath)
+		fmt.Fprintf(&b, "\nAttribution: %s.", attr)
+		return draft{outcome: domain.ValidationFail, rule: RuleDegraded, attribution: attr, detail: b.String(), rcs: s.inBundle(rcs), evidence: evs}
 	}
 	if len(sandbox) > 0 {
-		return draft{outcome: domain.ValidationError, rule: RuleSandbox, evidence: s.evidenceAll(sandbox), detail: fmt.Sprintf(
-			"The isolated cluster could not run objects on the item's paths (a sandbox problem, not an observation about the environment): %s.", summarize(sandbox))}
+		return draft{outcome: domain.ValidationError, rule: RuleSandbox, attribution: AttrSandbox, evidence: s.evidenceAll(degradationsOf(sandbox)), detail: fmt.Sprintf(
+			"The isolated cluster could not run objects on the item's paths (a sandbox problem, not an observation about the environment): %s.", summarize(degradationsOf(sandbox)))}
 	}
 	if len(shared) > 0 {
-		return draft{outcome: domain.ValidationError, rule: RuleUnattributed, evidence: s.evidenceAll(shared), detail: fmt.Sprintf(
-			"Inconclusive: objects on this item's impact paths degraded during the isolated upgrade, but other in-scope items reach the same objects, "+
-				"so the observation cannot be attributed to this item alone: %s.", summarize(shared))}
+		attr := strongest(shared, AttrSharedOwnChange, AttrSharedPath, AttrReconciledOnly)
+		return draft{outcome: domain.ValidationError, rule: RuleUnattributed, attribution: attr, evidence: s.evidenceAll(degradationsOf(shared)), detail: fmt.Sprintf(
+			"Inconclusive: objects on this item's impact paths degraded during the isolated upgrade, but the observation is not attributable to this item "+
+				"(%s; precedence: an item's own rendered change on the degraded object, then relationship paths, never reconciled kinds alone): %s.",
+			attr, summarize(degradationsOf(shared)))}
 	}
 	if len(mineData) > 0 {
-		return draft{outcome: domain.ValidationError, rule: RuleInconclusive, evidence: s.evidenceAll(mineData), detail: fmt.Sprintf(
+		attr := strongest(mineData, AttrOwnChange, AttrUniquePath)
+		mineData := degradationsOf(mineData)
+		return draft{outcome: domain.ValidationError, rule: RuleInconclusive, attribution: attr, evidence: s.evidenceAll(mineData), detail: fmt.Sprintf(
 			"Inconclusive: on this item's impact paths the TO version behaved differently from the FROM version (data changed under a consumer, "+
 				"or the controller did not react to an exercise it reacted to before), and nothing in the baseline explains it, but no degradation was observed — "+
 				"a plausible impact, not a demonstrated failure, and never a clearance: %s.", summarize(mineData))}
 	}
 	if len(foreign) > 0 {
-		return draft{outcome: domain.ValidationNotRun, rule: RuleOtherFamilies, detail: fmt.Sprintf(
+		return draft{outcome: domain.ValidationNotRun, rule: RuleOtherFamilies, attribution: AttrOtherFamilies, detail: fmt.Sprintf(
 			"Objects on this item's impact paths degraded only under exercises declared for other change families than %s (the degradation is attributed to the items those exercises test), "+
-				"so the run says nothing about this item and its objects were not healthy throughout: %s.", item.Family, summarize(foreign))}
+				"so the run says nothing about this item and its objects were not healthy throughout: %s.", item.Family, summarize(degradationsOf(foreign)))}
 	}
 	if !r.UpgradeCompleted {
 		return draft{outcome: domain.ValidationError, rule: RuleUpgradeFailed, detail: fmt.Sprintf(
@@ -401,7 +576,7 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 			relations.RuleReconciledKind, strings.Join(ran, ", "))}
 	}
 	var rcs []string
-	for _, rc := range correlated {
+	for _, rc := range s.correlated(item.ID) {
 		if inReach[s.live(rc.Object)] {
 			rcs = append(rcs, rc.ID)
 		}
