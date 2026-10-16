@@ -45,7 +45,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | renderdiff | ri-renderdiff | claude-opus-5-5 | .claude/worktrees/p4ei-renderdiff | pane w1:p2H (tab w1:t12) | wave 1, working since 13:20 (CRITICAL PATH) |
 | validate | ri-validate | claude-opus-5-5 | .claude/worktrees/p4ei-validate | pane w1:p2J (tab w1:t13) | wave 1, working since 13:20 |
 | bundle | ri-bundle | claude-sonnet-5-5 | .claude/worktrees/p4ei-bundle | pane w1:p2K (tab w1:t14) | wave 1, working since 13:20 |
-| relations | ri-relations | claude-sonnet-5-5 | .claude/worktrees/p4ei-relations | pane w1:p2M (tab w1:t15) | wave 1, working since 13:20 |
+| relations | ri-relations | claude-sonnet-5-5 | .claude/worktrees/p4ei-relations | pane w1:p2M (tab w1:t15) | MERGED 9c280dc4; follow-up: declarative `relationships:` catalog construct (rules from upstream API docs) — worktree kept |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -66,6 +66,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 ri-groundtruth killed and relaunched a hung Docker Desktop at lane start (hung since a disk-full event on 2026-10-07); healthy since.
 - 2026-10-16 DELIVERY BUG: every commander prompt sent without `--wait` (output discarded) was lost — incl. the diffs clarification to contract (it found it in MISSION.md anyway), the controller-default input, the cleanup note, and groundtruth's follow-up. Resent with `--wait` and verified. Rule added to briefs/commander.md.
 - 2026-10-16 Auto-approve eligibility requires the agent stage completed (contract question; commander: keep — it is completeness, not model confidence).
+- 2026-10-16 relations: the declarative `relationships:` catalog construct is NOT deferred — without it cert-manager Certificate→Secret stays inferred, traversal is never complete, and R2.3 could never clear any cert-manager environment. Rules authored from upstream API docs only (cited per rule).
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -73,6 +74,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 79aa8627 orchestrate (e07fec3b + d241ed5f): Temporal SDK v1.50.0 spike, InvestigationWorkflow skeleton, 12 testsuite tests, TEMPORAL.md. Integration build/vet/test green after merge. Cleanup: agent exited, tab w1:t11 closed, worktree removed, branch p4ei/orchestrate deleted (-d).
 - 2026-10-16 23f79063 groundtruth (ff91c6de..c5eedd71): 5 cases in eval/investigations — cert-manager 1.17.2→1.18.0 rotationPolicy pair (payments-eu affected / payments-us not), ingress-nginx 4.11.5→4.12.0 risk-level pair (shop-de affected / shop-fr not), shop-pl insufficient-evidence. All observed in kind v1.31. Green after merge. Worktree NOT removed: lane continues (follow-up).
 - 2026-10-16 861e847d contract (3757157d..ae2e4ab2): DESIGN.md (gap map, scope cert-manager + ingress-nginx (+argo-cd), contracts, manifestation rule §2.2.1, fail-closed four-class policy §3, agent §4, Temporal boundary §5, eval §6, lane plan §7), internal/domain/investigation.go, internal/investigate/api.go, schemas, eval/investigations/{FORMAT.md,gates.yaml} (gates now FROZEN). Green after merge. Cleanup: agent exited, tab w1:t0 closed, worktree removed, branch deleted.
+- 2026-10-16 9c280dc4 relations: graph builder (env resources + rendered objects; Argo/Flux/kustomize structure; placeholder nodes for missing objects), exposure mapper, deterministic bounded DFS (25-seed shuffle determinism, bounds, truncation, unresolved edges). Green. Worktree kept for the follow-up.
 
 ## Open questions for the user
 
