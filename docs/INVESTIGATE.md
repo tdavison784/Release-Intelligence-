@@ -311,3 +311,107 @@ reading its CA Secret stays `inferred`: the issuer does not state the cluster re
 Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
 Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
 `scope: cluster` and CRDs in the snapshot.
+
+## Investigation agent
+
+The agent stage (DESIGN.md §4; code `internal/investigate/agent`, CLI `ri investigate mcp`). It is
+**opt-in** (`AgentConfig.Enabled`, `--agent`). When it is on, environment configuration from the bundle is
+sent to the configured model provider. Kubernetes `Secret` values and credential-named values are redacted
+at collection, before anything is hashed or served (see "Evidence bundle"), and sensitive rendered values
+are never recorded. Whether provider data sharing beyond that is acceptable is still an open question for
+the user, so keep the stage off for real customer environments until it is answered. When the stage is off,
+the run records `agent: not-run` and nothing is sent anywhere.
+
+**What the agent can do.** It works through 13 tools, all scoped to one investigation. It never receives
+the bundle itself, only the manifest it can search.
+
+| Tool | |
+|---|---|
+| `list_renders`, `query_diff`, `get_rendered_object` | the rendered diffs: the primary evidence (lane renderdiff's query engine) |
+| `get_change_item` | one item with its upstream change text, evidence, source documents, correlated rendered changes and join findings |
+| `search_manifest`, `read_artifact` | artifacts by terms/kind/item plus a bounded RE2 grep; line windows (≤400 lines / 64 KiB) or one YAML node |
+| `expand_graph`, `list_paths` | the relationship graph (depth ≤3) and impact paths |
+| `record_hypothesis`, `record_assertion` | `raises-concern` / `explains` / `claims-mitigation`, optionally a proposed (always inferred) edge |
+| `request_evidence` | recorded for the next collection round; live-cluster reads are rejected in milestone 1 |
+| `request_validation` | runs the configured deterministic validators of that kind now; the validator's record is the result |
+| `submit_findings` | one closing summary per item (recorded as `explains`); ends the run |
+
+**What it cannot do.** Classify. Every agent record carries AI provenance (`investigate.agent@v1`, model and
+version as reported, prompt version and digest, input evidence, call id). The deterministic policy
+(DESIGN §3.3) only lets such records raise concern. Validations come from validators, never from the agent.
+
+**Validation of every call.** Before anything is recorded, the tool layer checks each call:
+
+- Arguments are decoded strictly; unknown fields are rejected.
+- Every id must exist in this run: change items, artifacts, rendered changes, nodes (id or object key),
+  impact paths, hypotheses.
+- Every hypothesis, assertion and summary needs at least one citation `{artifact, locator, quote}`. The quote
+  must occur verbatim in the artifact's bytes (`investigate.QuoteOccurs`, whitespace-insensitive). Each
+  citation then becomes a `domain.Evidence` (kind by origin, `contentDigest` = artifact digest) in the run
+  pool.
+
+A failed check returns `ErrRejected` to the model as a tool error, and nothing is recorded. Every call,
+accepted or not, still counts against the budget and goes into the transcript.
+
+**Budgets** (`DefaultAgentBudget`; unset fields take the default): 40 turns, 80 tool calls, 600 000 tokens,
+4 MiB returned, 1200 s.
+
+- The tool layer counts tool calls and returned bytes. Once a budget is spent, every further call gets
+  `ErrBudgetExhausted`.
+- The driver checks turns, tokens and wall clock. Tokens are the envelope's input, cache-write and output
+  tokens; cache reads are reported but not counted. The CLI can overshoot `--max-turns`, so turns are also
+  checked after the fact. An accepted submission is allowed one closing turn.
+
+Exhaustion is an outcome (`budget-exhausted`). It keeps every record made so far and makes automated
+approval ineligible.
+
+**Drivers** (`AgentConfig.Driver`):
+
+| Driver | How |
+|---|---|
+| `claude-cli` | `claude -p --session-id <uuid> --mcp-config <tmp>/mcp.json --strict-mcp-config --tools "" --allowedTools mcp__ri --permission-mode dontAsk --max-turns N --system-prompt … --setting-sources "" --no-session-persistence --output-format json`, in a neutral temporary directory. The MCP config starts `ri investigate mcp --attach <socket> --token <t>`, a byte bridge back to the in-process session, so validation, budgets and the transcript live in one place. The session id is chosen up front and becomes every record's call id; model and version are read from the envelope's `modelUsage`. No API key: the CLI must be logged in. |
+| `exchange` | the `-llm-exchange` directory protocol, one request file per tool round (`{"calls":[{"tool","arguments"}]}`). An unanswered round ends the run as `failed: exchange-pending: <request file>`; re-running replays the answered rounds (deterministic results, same digests) and continues. A response without a `callId` uses `exchange:<request digest>`. |
+| `replay` | re-issues a recorded transcript's calls under their recorded call ids and compares every result digest. Any mismatch, or a different prompt digest, fails the run with the first difference named. |
+| `scripted` | a fixed list of calls (tests). |
+
+**Transcript** (`agent-transcript` artifact, `derived/agent/<tag>/transcript.jsonl`, format
+`ri.dev/agent-transcript/v1`). It has three kinds of line:
+
+- a `session` line: bundle, prompt version and digest, model, budget;
+- one `call` line per tool call: call id, tool, canonical arguments, ok/error, `resultDigest` (sha256 of the
+  exact bytes returned to the model), counters;
+- an `envelope` line: the driver result and the provider envelope.
+
+Results carry no wall-clock fields (`checkedAt`, `generatedAt`, … are stripped), so a replay reproduces the
+transcript byte for byte.
+
+**Prompts** are embedded, versioned files: `internal/investigate/agent/prompts/investigate-agent/v1/`
+(`system.md`, `task.md` template, `tools.json` schemas). `PromptDigest = sha256(system ‖ rendered task ‖ tools.json)`.
+
+The task lists:
+
+- the in-scope items: id, title, family, manifestation, upstream citations, correlated rendered changes;
+- the render summary;
+- the uncorrelated rendered changes and unresolved edges;
+- the deterministic validations already run.
+
+The system prompt states what the agent's records can and cannot do. It also tells the agent that, for
+`controller-behaviour` and `unknown` items, render silence proves nothing: it should name the setting that
+pins the old behaviour and request an override inspection. A prompt change is a new version. The prompts
+are generic: never tuned to a case.
+
+**`ri investigate mcp --run <inv-id>`** serves a stored investigation read-only to any MCP client: the query
+tools work, and record/request/submit tools are refused.
+
+**Wiring (for the runner).**
+
+- Create the stage with `agent.New(store, agent.WithValidators(...), agent.WithDriver(name, d))`;
+  `claude-cli` is registered by default.
+- `agent.MergeGraph(graph, outcome)` adds the agent's proposed edges (inferred) and placeholder nodes
+  (`AgentOutcome.ProposedNodes`) for the post-agent re-traversal (DESIGN §5.1).
+- Agent-requested validations are in `AgentOutcome.Validations`. Their evidence and artifacts are in the
+  outcome's `Evidence` / `Artifacts`, alongside the transcript.
+
+**Live run.** One `claude -p` run on a groundtruth input is recorded in
+[docs/phase4/env-impact/runs/agent-live-1/](phase4/env-impact/runs/agent-live-1/README.md). It covers what
+the agent did, and its replay check.

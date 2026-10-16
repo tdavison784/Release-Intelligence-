@@ -119,6 +119,8 @@ func TestLiveAgentRun(t *testing.T) {
 	// validator over every in-scope item.
 	validators := liveValidators(st, rep, facts)
 	var pre []domain.ValidationRecord
+	var preArts []domain.ArtifactRef
+	var preEv []domain.Evidence
 	seen := map[string]bool{}
 	for _, it := range b.Change.Items {
 		if !it.InScope {
@@ -136,6 +138,8 @@ func TestLiveAgentRun(t *testing.T) {
 					pre = append(pre, r)
 				}
 			}
+			preArts = append(preArts, vo.Artifacts...)
+			preEv = append(preEv, vo.Evidence...)
 		}
 	}
 
@@ -158,9 +162,26 @@ func TestLiveAgentRun(t *testing.T) {
 	write := func(name string, b []byte) { must(t, os.WriteFile(filepath.Join(outDir, name), b, 0o644)) }
 	write("task.md", []byte(as.Task))
 
-	inv := New(st, WithDriver(DriverClaudeCLI, &ClaudeCLI{RIBinary: riBin, Stderr: os.Stderr}), WithValidators(validators...))
+	var driver investigate.AgentDriver = &ClaudeCLI{RIBinary: riBin, Stderr: os.Stderr}
+	var replay *Replay
+	if p := os.Getenv("RI_AGENT_REPLAY"); p != "" {
+		// Re-issue a recorded live run against the rebuilt bundle: no model call.
+		rec, err := os.ReadFile(p)
+		must(t, err)
+		replay = &Replay{Transcript: rec}
+		driver = replay
+	}
+	inv := New(st, WithDriver(DriverClaudeCLI, driver), WithValidators(validators...))
 	out, err := inv.Investigate(ctx, input)
 	must(t, err)
+	if replay != nil {
+		if len(replay.Mismatches) > 0 {
+			t.Fatalf("replay of %s: %d results differ: %+v", os.Getenv("RI_AGENT_REPLAY"), len(replay.Mismatches), replay.Mismatches)
+		}
+		t.Logf("replay: every one of the recorded results reproduced (status %s)", out.Run.Status)
+		outDir = filepath.Join(outDir, "replay")
+		must(t, os.MkdirAll(outDir, 0o755))
+	}
 
 	rc, err := st.Open(ctx, out.Artifacts[0].Digest)
 	must(t, err)
@@ -174,7 +195,7 @@ func TestLiveAgentRun(t *testing.T) {
 	}
 	sum := map[string]any{"case": in.ID, "bundle": b.ID, "promptVersion": as.PromptVersion, "promptDigest": as.PromptDigest, "model": model,
 		"budget": budget, "renders": renderdiff.Summaries(b), "uncorrelated": len(b.Uncorrelated()), "graph": map[string]int{"nodes": len(g.Nodes), "edges": len(g.Edges)},
-		"traversal": map[string]any{"roots": len(trav.Roots), "paths": len(trav.Paths), "unresolved": len(trav.Unresolved), "complete": trav.Complete},
+		"traversal":    map[string]any{"roots": len(trav.Roots), "paths": len(trav.Paths), "unresolved": len(trav.Unresolved), "complete": trav.Complete},
 		"impactReport": rep != nil, "validators": len(validators), "deterministicPass": len(pre)}
 	var items []item
 	for _, it := range b.Change.Items {
@@ -187,6 +208,17 @@ func TestLiveAgentRun(t *testing.T) {
 	write("bundle-summary.json", append(sb, '\n'))
 
 	run := runRecord(t, &fixture{st: st, b: b, g: g, trav: trav}, out, pre...)
+	have := map[domain.EvidenceID]bool{}
+	for _, e := range run.Evidence {
+		have[e.ID] = true
+	}
+	for _, e := range preEv {
+		if !have[e.ID] {
+			have[e.ID] = true
+			run.Evidence = append(run.Evidence, e)
+		}
+	}
+	run.Artifacts = append(run.Artifacts, preArts...)
 	if err := run.ValidateAgainst(b); err != nil {
 		t.Errorf("run record: %v", err)
 	}
