@@ -1,7 +1,7 @@
 # Status — lane `groundtruth` (Phase 4 env-impact)
 
 Agent: ri-groundtruth (Claude Opus 5.5). Branch `p4ei/groundtruth`. Brief: `briefs/groundtruth.md`.
-Last updated: 2026-10-16 ~13:45 CDT local / 18:45Z (follow-up wave complete).
+Last updated: 2026-10-16 (final wave: FORMAT.md adoption complete).
 
 ## Finding for the commander / contract lane (read this first)
 
@@ -28,107 +28,20 @@ No action requested from me; recording it so the contract lane can make sure its
 does not pass vacuously for prose/default-only items. I did not add a diff-visible pair (see
 "Possible follow-up").
 
-## Case format (draft, for `eval/investigations/FORMAT.md`; the contract lane owns the file)
+## Case format
 
-Goal of the split: everything a system under test may read is in `input.yaml` + `env/`; everything it
-is scored against is in `expected.yaml` (and NOTES.md / observed/, which explain it), which
-pipeline/agent lanes must never read (FLEET.md).
+Adopted `eval/investigations/FORMAT.md` (contract lane → commander) in all 8 cases (final wave,
+after `git merge p4-env-impact` @ 6e03b550). The earlier draft that lived here is superseded.
 
-```
-eval/investigations/
-  README.md                       # index of cases
-  <case-id>/
-    input.yaml                    # INPUTS ONLY: upgrade + environment + breaking items in scope
-    env/                          # the GitOps repository fixture (a plain directory = repo root)
-    expected.yaml                 # GROUND TRUTH (blind; only the groundtruth lane writes it)
-    NOTES.md                      # upstream citations (URL + line ranges / quotes) + observed outcome
-    observed/                     # run.sh (reproducible), run.log, render.diff — raw, never edited by hand
-```
-
-Case ids: `<product>-<fromMinor>-<toMinor>--<neutral-env-slug>` (e.g. `--payments-eu`). Never encode
-the expected class in an id, file name or fixture comment: the id is an input.
-
-### input.yaml (readable by every lane)
-
-```yaml
-id: cert-manager-1.17-1.18--payments-eu
-pair: cert-manager-1.17-1.18--mesh-ca   # group id shared by the environments of one upgrade+topic
-product: cert-manager                   # products/<id>.yaml
-chart: {repo: https://charts.jetstack.io, name: cert-manager}
-from: {version: v1.17.2, chartVersion: v1.17.2}
-to:   {version: v1.18.0, chartVersion: v1.18.0}
-environment:
-  id: payments-prod-eu
-  root: env/
-  entrypoints: [clusters/prod/kustomization.yaml]  # where a GitOps controller starts
-  description: >-                                  # what an operator would say; no impact hints
-    ...
-  complete: true                                   # the repo declares everything that runs (or not)
-scope:                                             # upstream items this case examines
-  - id: B1
-    title: Certificate.spec.privateKey.rotationPolicy default changed from Never to Always
-    subject: spec.privateKey.rotationPolicy        # same notion as eval/cases matchers
-    source: <upstream URL, pinned to a commit where possible>
-withheld:                                          # inputs deliberately absent (insufficient-evidence cases)
-  - ref: https://git.example.com/platform/ingress-values.git (shop/common.yaml, shop/prod-pl.yaml)
-    description: as an operator would describe the gap; no expected class
-```
-
-### expected.yaml (ground truth — pipeline/agent lanes must not read)
-
-```yaml
-case: <id>
-authoredAt: "2026-10-16"
-authoredBy: groundtruth lane (model), blind
-items:
-  - item: B1                                 # input.yaml scope id
-    classification: affected                 # affected | not-affected | potentially-affected | insufficient-evidence
-                                             # = strongest over components (affected > potentially >
-                                             #   insufficient > not-affected)
-    acceptable: [potentially-affected]       # optional; only where MISSION's definitions genuinely
-                                             #   overlap (NOTES.md must justify); scorers count a match
-                                             #   on classification OR acceptable as correct
-    verification: observed                   # observed (kind upgrade) | observed-alternatives (the
-                                             #   deciding input is withheld; each possible value was
-                                             #   observed in a sibling case) | render | upstream-only
-    observed: [observed/run.log]             # raw evidence, relative to the case dir
-    citations: [{url, quote}]                # url pinned (commit/tag) with #Lx-Ly where possible
-    components:                              # one per environment object the item reaches
-      - ref: {file: env/..., kind, namespace, name}     # object declared in the repo, or
-             # {renderedFrom: env/<file declaring the release>, kind, namespace, name} for objects
-             # that only exist after rendering a chart (e.g. the controller ConfigMap)
-        classification: affected
-        reason: >- …                         # in terms of the fixture
-        impactPath:                          # ordered hops, exposed component → … → consumer
-          - {ref: {...}, field: <path>, relation: deploys|configures|issues|signs|routes-to|calls|...}
-        mitigation: null | {kind: override|feature-unused|relationship-absent, ref?, field?, value?, detail?}
-        evidenceGaps: [ ... ]                # insufficient-evidence only: what is missing
-        requiredEvidence:                    # facts a correct finding must cite (evidence coverage)
-          - {file: env/..., object: Kind/ns/name, field: <path>}
-    remediation: >- …                        # or the next investigation step
-    match:                                   # how a system finding is recognised as being about this item
-      - subject: spec.privateKey.rotationPolicy
-      - text: '(?i)rotation ?policy'
-```
-
-**Addition (follow-up wave): `renderedChanges`** — for diff-centric cases, expected.yaml labels every
-environment-relevant hunk of `observed/render.diff` (the environment's own FROM/TO render):
-
-```yaml
-renderedChanges:
-  - diff: observed/render.diff#L747-L803        # hunk line range
-    object: ServiceMonitor/kube-system/kube-prometheus-stack-kubelet
-    change: bearerTokenFile -> authorization (...)
-    item: B1                                   # scope id, or null for an out-of-scope chart change
-    impact: breaking | harmless
-```
-
-Present in kube-prometheus-stack-89-90--obs-north/-south and ingress-nginx-1.11-1.12--shop-nl. It lets
-the eval lane score per-rendered-change verdicts (the contract's "a finding lists exactly its item's
-correlated env rendered changes"). Release noise (image tags, chart labels) is not listed.
-
-Relation vocabulary is plain verbs until DESIGN.md's `GraphEdge` kinds are final; I will rename on
-adoption of FORMAT.md. Edges point from provider to consumer (same direction the contract lane chose).
+- Relations use the contract's `EdgeKind`s (internal/domain/investigation.go:1021-1030):
+  `issues` → `produces` (with the produced Secret as its own hop), `signs` → `references`
+  (Secret → ClusterIssuer → leaf Certificate), mounts → `references`, `routes-to`/`calls` → the path
+  ends at the consuming object (OTel export → `depends-on`), ServiceMonitor → Prometheus `configures`,
+  Prometheus → PrometheusRule `depends-on`. Every path's last hop carries no relation.
+- Citations carry `lines:`; values-file refs are file-only; `requiredEvidence` has no `object: values`;
+  `input.yaml` has `kubernetes: "1.31"` (the version every observed run used).
+- `README.md` index no longer states any expected class or mechanism (FORMAT.md: index lists case,
+  pair, product, from→to, verification).
 
 ## Cases
 
@@ -200,11 +113,18 @@ Follow-up requested by the commander (2026-10-16) — DONE (see "Follow-up wave 
 - When the commander says so: `git merge p4-env-impact`, adopt FORMAT.md (rename fields/relations if
   it differs from the draft above), keep the expectations unchanged.
 
-## Possible follow-up (not started; commander's call)
+## Final wave (2026-10-16)
 
-- Add `renderedChanges` labels to the first five cases (their env diffs are small; the decisive
-  changes are absent from them, which the labels would make explicit).
-- An argo-cd 2.14→3.0 case (needs Argo CD + a git source in kind; heavier).
+- `git merge p4-env-impact` (fast-forward to 6e03b550).
+- FORMAT.md + EdgeKind adoption across all 8 cases (see "Case format").
+- `renderedChanges` added to the first five cases from their own `observed/render.diff`
+  (cert-manager: 6 groups, all harmless by themselves — the B1/B2 defaults appear only as CRD
+  documentation text; shop-de/fr: 2 groups, none touching B1–B4; shop-pl: `[]`, no render possible
+  without the withheld values). No new kind runs.
+- Re-verified with a FORMAT validator (scratch; checks required keys, class/verification/EdgeKind/
+  mitigation vocabularies, item = strongest component class, refs/evidence/observed files exist,
+  render.diff line ranges in bounds, regexes compile): 8 cases, no errors. 37 kustomizations render.
+- Expectations unchanged in substance: no classification, component, mitigation or match was altered.
 
 ## Decisions
 
@@ -233,11 +153,18 @@ Follow-up requested by the commander (2026-10-16) — DONE (see "Follow-up wave 
 
 ## Files touched outside ownership
 
-(none)
+- `eval/investigations/FORMAT.md` (commander-owned): one additive CONTRACT-CHANGE section, as instructed.
 
 ## Contract changes
 
-(none; format draft above is a proposal for the contract lane's FORMAT.md)
+- `eval/investigations/FORMAT.md`: appended section "Additive fields used by the dataset", marked
+  `<!-- CONTRACT-CHANGE(groundtruth) -->` (format only; nothing relaxed, no scoring changed):
+  `renderedChanges` (per-hunk labels of `observed/render.diff`: diff range(s), object, change, item or
+  null, impact breaking|harmless of the rendered change by itself; `[]` when no render is possible),
+  `ref.renderedFrom`, file-only values refs, `requiredEvidence` without `object`,
+  `acceptable` (informational — the scored label stays `classification`), `evidenceGaps`,
+  `remediation`, `verification: observed-alternatives` (reported separately like upstream-only), and
+  the `withheld[]` entry shape.
 
 ## Open questions
 
@@ -252,6 +179,7 @@ Follow-up requested by the commander (2026-10-16) — DONE (see "Follow-up wave 
 
 ## Test status
 
-2026-10-16 (follow-up wave, on 892a549c): `go build ./... && go vet ./... && go test ./...` green (32
-packages ok, 3 without tests, no FAIL; this lane changes no Go code). All case YAML parses; every env
-overlay renders. No kind clusters left behind.
+2026-10-16 final wave (after merging p4-env-impact @ 6e03b550): `go build ./... && go vet ./... &&
+go test ./...` green — 35 packages ok, 4 without tests, no FAIL (incl. internal/investigate/relations,
+which reads the env/ fixtures). FORMAT validator: 8 cases, no errors. 37 kustomizations render.
+No kind clusters exist.
