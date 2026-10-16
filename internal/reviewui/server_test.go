@@ -182,7 +182,7 @@ func TestInboxSaysWhenTheListIsTruncated(t *testing.T) {
 	if err != nil || full.Matches < 3 {
 		t.Fatalf("fixtures: %d pending matches (%v); want ≥3 so the limit actually truncates", full.Matches, err)
 	}
-	resp, err := http.Get(srv.URL + "/")
+	resp, err := http.Get(srv.URL + "/?scope=all")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,7 +237,7 @@ func TestInboxHandlesHundredsOfItems(t *testing.T) {
 	srv := httptest.NewServer(NewServer(&bigQueue{DemoQueue: NewDemoQueue(), n: 400}, Options{Now: func() time.Time { return now }, Logf: t.Logf}))
 	t.Cleanup(srv.Close)
 	started := time.Now()
-	resp, err := http.Get(srv.URL + "/")
+	resp, err := http.Get(srv.URL + "/?scope=all")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -704,7 +704,7 @@ func TestInboxLimitShowsTheTruncationNotice(t *testing.T) {
 	srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, Logf: t.Logf, Demo: true, InboxLimit: 3}))
 	defer srv.Close()
 	r := &rig{t: t, q: q, srv: srv, c: newRig(t).c}
-	_, body := r.get("/")
+	_, body := r.getAll("/")
 	contains(t, body, "Showing the first 3 of 10 matching items", "Select all 3 shown")
 }
 
@@ -756,10 +756,15 @@ func TestProxyDecidedItemsLeavePendingAndAreMarked(t *testing.T) {
 	_, decided := r.getAll("/?status=decided")
 	contains(t, decided, "Default of --max-concurrent-challenges")
 	_, page := r.getAll("/items/" + id)
-	contains(t, page, "opus-proxy", "(proxy)", "no further decision can be added")
-	// and a human cannot re-decide it from the UI
+	contains(t, page, "opus-proxy", "(proxy)")
+	lacks(t, page, "no further decision can be added")
+	// a proxy is not human verification: a human can still decide it, once
+	r.get("/items/" + id)
+	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 303 {
+		t.Errorf("human decision on a proxy-decided item: %d", st)
+	}
 	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 409 {
-		t.Errorf("%d", st)
+		t.Errorf("second decision: %d", st)
 	}
 }
 

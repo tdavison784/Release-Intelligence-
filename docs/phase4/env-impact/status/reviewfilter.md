@@ -39,3 +39,25 @@ State: **DONE** (2026-10-16).
 
 ## Open questions
 - Default limit 200 truncates the 641 (notice shown); start with `-limit 700` to see all in one page.
+
+## Follow-up (commander request, 2026-10-16) — DONE
+- Default `/` = blocking items only (pin sources first); `/?scope=other` = "Other open items (N)"; `/?scope=all` unchanged.
+  Header counters cover the listed view. The old `blocking=yes` filter/tile is gone (the default is that filter).
+- Gap closed: `controllerBehaviour` also treats a computed `crd:default-changed` candidate as blocking; the rule is
+  derived from the "computed artifact diff (<rule>)" line in the candidate text (no contract change).
+- Startup line prints both counts. Real store: 21 block investigations, 620 other open (641 total open); the store
+  currently holds no crd:default-changed candidate, so the count did not move.
+- Screenshots replaced: `docs/phase4/env-impact/review-ui/01-default-blocking-only.png`, `02-other-open-items.png`.
+- Tests: other-view, crd-default rule, updated hidden-category/order/count tests; build/vet/test green.
+
+## Follow-up 2 (commander, proxy + pin sources + narrowing) — DONE
+- Proxy rule fixed: a proxy decision / proxy- or consensus-level fact does not close a blocking item (human decision or
+  human/deterministic fact only); proxy-acted non-blockers stay hidden. A human can decide a proxy-decided item (`decidable`).
+- rotationPolicy (cert-manager 1.18.0): fact vf-9b9cfa5c9f5f is active, consensus-level (subject deterministic, rest
+  consensus), auto-approved; its 3 review items are *superseded* (pipeline supersedes questions when a fact is
+  auto-approved) and there is no audit item, so no item exists to show. Not a proxy-hiding problem. `ri review
+  open-audits` opens audit items for it and 2 revisionHistoryLimit facts (dry run lists 3; not applied to the store).
+- Version ranges: scope reads from/to of each investigation input; items outside (from, to] do not block.
+- Views: default = pin sources; `?scope=blocking`; `?scope=other`; `?scope=all`.
+- Screenshots (taken on a scratch copy of the store after `open-audits -apply`): `review-ui/01-default-pin-sources.png`,
+  `02-other-blocking-items.png`.

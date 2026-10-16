@@ -17,50 +17,58 @@ lines of vanilla JS, vendored inside the binary — no CDN, no npm, no third-par
 authentication (a non-goal): it binds to localhost and refuses cross-origin POSTs; do not expose it.
 Without JavaScript the inbox lists the items, each links to its page, and every decision is a plain form.
 
-## Needs review: the default view
+## Needs your verification: the default view
 
-The product owner verifies knowledge facts here, so `/` lists **only what needs a human decision now**. Start it
-and read the waiting count off the first lines it prints:
+The product owner verifies knowledge facts here, so `/` lists **only the items whose human verification would let an
+investigation clear an environment**: pin-source candidates (`validate.CanBePinSource` on the proposed answer, the
+derivation the OverrideInspection pin rules use) of the investigated upgrades. Start it and read the counts off the
+lines it prints:
 
 ```
 ri review serve -knowledge knowledge/ -reviewer <your name>
 # review UI on http://127.0.0.1:8484 (knowledge store knowledge/; Ctrl-C to stop)
-# 641 item(s) need review, 21 of them block investigations; the page lists only those ("Show all staged data" reveals the rest)
+# 2 pin-source item(s) need your verification (listed); 206 other blocking and 631 other open item(s) are one link away
+# 3 pin-source fact(s) hold only consensus/proxy verification and have no review item: run `ri review open-audits -knowledge knowledge/ -apply` to open them
 ```
 
-An item **needs review** when its status is pending, no decision of any kind is recorded on it, no active fact
-already holds the aspects it asks about at `human` or `deterministic` level, and (for a fact-review audit item)
-the audited fact is still active. Everything else is hidden from the default list **and from its counters**:
-already decided, parked (deferred / needs evidence: a decision parked them), acted on by an AI proxy (a proxy
-decision is never shown as human), already verified, superseded or retracted. Consensus-only and proxy-staged
-facts, model proposals and demo fixtures are not review items, so they never appear; a consensus-only fact does
-not hide its item either (only human or deterministic verification does).
+Four views, one link apart, never mixed (header counters cover only the listed view):
 
-**Order.** Blocking-first, by a computed signal, not a product list. An item *blocks investigations* when its
-product is investigated (a product in `eval/investigations/*/input.yaml`, or an upstream repository one of those
-products' definitions reads, e.g. the operator a chart bundles) and its candidate is only upstream prose, which
-manifests as controller behaviour (DESIGN §2.2.1 `manifest:declared-behaviour`): no render can clear it, so
-investigations need a verified fact. Among those, items whose proposed assertion would give OverrideInspection a
-pin source once verified (`validate.CanBePinSource`, the same derivation the pin rules use) come first, with the
-sentence *"Verifying this lets investigations clear environments that pin the old default."*; other blockers say
-*"Investigations of this product cannot rely on this behaviour change until a human verifies it."*. Inside each
-group the usual priority order holds. The header has a **Blocking investigations** counter that filters to them.
-`-investigations DIR` (default `eval/investigations`) and the global `-products DIR` say where to read the scope;
-missing directories just mean nothing is ranked as blocking. Known gap: a computed `crd:default-changed` item is
-also controller behaviour but is not flagged (the rule is not recorded on the candidate).
+| View | URL | Lists |
+|---|---|---|
+| **Needs your verification** (default) | `/` | open pin-source items, per product in the bar |
+| **Other blocking items (N)** | `/?scope=blocking` | open items that block investigations but are not pin sources |
+| **Other open items (N)** | `/?scope=other` | the remaining open items |
+| **Show all staged data** | `/?scope=all` | the full inbox with every filter, incl. decided / proxy / verified / superseded rows, each labelled why it is not on the review list |
 
-**Show all staged data** (`/?scope=all`, the button in the grey bar) is the one explicit way to see the rest. It is
-the pre-existing inbox with all its filters (status, …), each row it would hide says why ("Not in Needs review: …"),
-and a bar says the view is wider. *Back to Needs review* returns. Decisions are unchanged: the reviewer is
-recorded with `reviewerKind: human`, labels and reasons as before; a decided item leaves the default view at once.
-Without a snapshot source (a custom `knowledge.Queue` and no `Options.Snapshot`) the inbox lists everything as
-before. An item the snapshot does not know is shown, never hidden. Tests: `triage_test.go`.
+An item is **open** when no human decision is recorded on it, no active fact already holds the aspects it asks about
+at `human` or `deterministic` level, it is not superseded, and (for a fact-review audit item) the audited fact is
+still active. **A proxy decision never closes an item that blocks investigations** (a proxy is never human; proxy- and
+consensus-level facts never pin): such an item stays listed, says an AI proxy already acted on it, and a human can
+still decide it (the decision upgrades the verification). Proxy-acted items that do not block stay hidden (under *Show
+all*). Consensus-only facts, proxies' proposals and demo fixtures are not review items and never appear.
+
+**Blocking** is computed, not a product list: the item's product is investigated (a product in
+`eval/investigations/*/input.yaml`, or an upstream repository one of those products' definitions reads), its release
+lies in (from, to] of an investigated upgrade of that product (an unparsable release is never excluded), and its
+candidate manifests as controller behaviour (DESIGN §2.2.1): only upstream prose (`manifest:declared-behaviour`), or a
+computed `crd:default-changed` diff (`manifest:crd-default`, read from the "computed artifact diff (<rule>)" line the
+candidate text records). `-investigations DIR` (default `eval/investigations`) and the global `-products DIR` say where
+the scope is read; without them nothing blocks and everything open is under "Other open items".
+
+**Facts with no item.** When consensus auto-approves a fact, its questions are superseded and only some facts are sampled
+into audit, so a pin-source fact can sit at consensus level with nothing a human can decide. `ri review open-audits
+-knowledge DIR` lists them (dry run) and with `-apply` opens the missing fact-review items (writes review items into the
+store; idempotent); the startup line says how many are waiting.
+
+Decisions are unchanged: reviewer recorded with `reviewerKind: human`, labels and reasons as before; a decided item leaves
+the lists at once. Without a snapshot source (a custom `knowledge.Queue` and no `Options.Snapshot`) the inbox lists
+everything as before. An item the snapshot does not know is shown, never hidden. Tests: `triage_test.go`.
 
 ## Pages
 
 | Route | What |
 |---|---|
-| `GET /` | inbox (default: Needs review; `?scope=all` = all staged data): the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, **route priority**, model, model agreement, evidence source, reviewer; `?priority=high|normal|low`). A red **High priority N** chip in the header (pending items of priority high; independent of the status and priority filters) links to `?status=pending&priority=high` |
+| `GET /` | inbox (default: pin-source items to verify; `?scope=blocking` other blockers; `?scope=other` other open items; `?scope=all` all staged data): the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, **route priority**, model, model agreement, evidence source, reviewer; `?priority=high|normal|low`). A red **High priority N** chip in the header (pending items of priority high; independent of the status and priority filters) links to `?status=pending&priority=high` |
 | `GET /items/{id}` | the item page (deep link): everything of G8 |
 | `GET /items/{id}/detail` | the same detail as an HTML fragment (inline expansion) |
 | `POST /items/{id}/decision` | one decision: `accept`, `reject`, `correct`, `need-more-evidence`, `defer` |

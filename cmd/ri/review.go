@@ -16,8 +16,11 @@ import (
 
 // review dispatches `ri review <subcommand>`.
 func (c *cli) review(args []string) error {
+	if len(args) > 0 && args[0] == "open-audits" {
+		return c.reviewOpenAudits(args[1:])
+	}
 	if len(args) == 0 || args[0] != "serve" {
-		return fmt.Errorf("%w: usage: ri review serve [-addr host:port] [-demo | -knowledge DIR]", app.ErrUsage)
+		return fmt.Errorf("%w: usage: ri review serve [-addr host:port] [-demo | -knowledge DIR] | ri review open-audits -knowledge DIR [-apply]", app.ErrUsage)
 	}
 	return c.reviewServe(args[1:])
 }
@@ -64,8 +67,11 @@ func (c *cli) reviewServe(args []string) error {
 	var waiting string
 	if snap != nil {
 		if sn, err := snap(c.ctx); err == nil {
-			needs, blocking := reviewui.CountNeedsReview(sn, scope)
-			waiting = fmt.Sprintf("%d item(s) need review, %d of them block investigations", needs, blocking)
+			pins, blocking, others := reviewui.CountViews(sn, scope)
+			waiting = fmt.Sprintf("%d pin-source item(s) need your verification (listed); %d other blocking and %d other open item(s) are one link away", pins, blocking, others)
+			if n := len(reviewui.UnreviewedPinFacts(sn, scope)); n > 0 {
+				waiting += fmt.Sprintf("\n%d pin-source fact(s) hold only consensus/proxy verification and have no review item: run `ri review open-audits -knowledge %s -apply` to open them", n, *dir)
+			}
 		}
 	}
 	ln, err := net.Listen("tcp", *addr)
@@ -74,7 +80,7 @@ func (c *cli) reviewServe(args []string) error {
 	}
 	fmt.Fprintf(c.out, "review UI on http://%s (%s; Ctrl-C to stop)\n", ln.Addr(), source)
 	if waiting != "" {
-		fmt.Fprintf(c.out, "%s; the page lists only those (\"Show all staged data\" reveals the rest)\n", waiting)
+		fmt.Fprintf(c.out, "%s\n", waiting)
 	}
 	srv := &http.Server{Handler: h, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
@@ -86,5 +92,39 @@ func (c *cli) reviewServe(args []string) error {
 	if err := srv.Serve(ln); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
+	return nil
+}
+
+// reviewOpenAudits opens fact-review items for the pin-source facts that
+// investigations need but no human can decide yet (consensus auto-approval
+// left them without a review item). Dry run unless -apply: it writes review
+// items into the knowledge store.
+func (c *cli) reviewOpenAudits(args []string) error {
+	fs := c.flags("review open-audits", "")
+	dir := fs.String("knowledge", knowledge.DefaultDir, "knowledge store directory")
+	invDir := fs.String("investigations", "eval/investigations", "investigation case directory (the investigated products and upgrades)")
+	apply := fs.Bool("apply", false, "write the review items (default: list what would be opened)")
+	if _, err := parse(fs, args); err != nil {
+		return err
+	}
+	st := knowledge.NewFileStore(*dir)
+	snap, err := st.Load(c.ctx, knowledge.Query{})
+	if err != nil {
+		return err
+	}
+	facts := reviewui.UnreviewedPinFacts(snap, reviewui.ScopeFromInvestigations(*invDir, c.g.products))
+	for _, f := range facts {
+		fmt.Fprintf(c.out, "%s %s %s: %s\n", f.ID, f.Product, f.Release, f.Assertion.Statement)
+		if *apply {
+			if _, err := knowledge.OpenFactReview(c.ctx, st, f.ID, time.Now()); err != nil {
+				return err
+			}
+		}
+	}
+	verb := "would open"
+	if *apply {
+		verb = "opened"
+	}
+	fmt.Fprintf(c.out, "%s %d fact-review item(s)\n", verb, len(facts))
 	return nil
 }

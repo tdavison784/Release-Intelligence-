@@ -251,7 +251,30 @@ func (s *server) renderedDelta(ctx context.Context, id string, rc *knowledge.Rev
 	return deltaFromContext(rc.Render)
 }
 
-// eligible reports whether an item can still be decided.
+// decidable reports whether a human can still decide the item: it is open, or
+// a proxy settled it (a proxy decision is never human verification, so the
+// item stays open for a human; any human decision closes it).
+func decidable(rc *knowledge.ReviewContext) bool {
+	if eligible(rc.Item.Status) {
+		return true
+	}
+	if rc.Item.Status != domain.ReviewDecided {
+		return false
+	}
+	proxy := false
+	for _, d := range rc.RelatedDecisions {
+		if d.ReviewItemID != rc.Item.ID {
+			continue
+		}
+		if d.ReviewerKind == domain.ReviewerHuman {
+			return false
+		}
+		proxy = true
+	}
+	return proxy
+}
+
+// eligible reports whether an item's status is open for decisions.
 func eligible(st domain.ReviewStatus) bool {
 	return st == domain.ReviewPending || st == domain.ReviewNeedsEvidence || st == domain.ReviewDeferred
 }
@@ -289,7 +312,7 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		tr = triageItems(snap, s.opts.Scope)
 	}
 	form.Triage = tr != nil
-	needs := tr != nil && !form.All
+	needs := tr != nil && !form.All // default (blocking) or ?scope=other
 	var (
 		in     *knowledge.Inbox
 		hidden hiddenSummary
@@ -312,7 +335,14 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Enums: enums(), NeedsView: needs, Hidden: hidden,
 	}
 	if needs {
-		v.Tiles = needsTiles(in.Counts, hidden)
+		switch form.View {
+		case "blocking":
+			v.Tiles = needsTiles(in.Counts, "Other blocking items", "blocking")
+		case "other":
+			v.Tiles = needsTiles(in.Counts, "Other open items", "other")
+		default:
+			v.Tiles = needsTiles(in.Counts, "Needs your verification", "")
+		}
 	}
 	// a Queue implementor that ignores Matches (zero) must not make the page
 	// claim truncation
@@ -332,8 +362,10 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	s.render(w, http.StatusOK, "inbox.html", v)
 }
 
-// needsReview builds the default inbox: only items that need a human decision
-// now, blocking-first. The queue is asked for every status with the user's
+// needsReview builds one of the three needs-review views: the pin-source items
+// whose human verification would let an investigation clear an environment
+// (default), ?scope=blocking the other blocking items, ?scope=other the
+// remaining open items. Counters cover just the listed set. The queue is asked for every status with the user's
 // other filters (so the counts and the hidden tally respect them); the
 // priority and blocking filters and the limit apply afterwards, so the counts
 // stay independent of them, as in the full view.
@@ -345,7 +377,7 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 		return nil, hiddenSummary{}, err
 	}
 	out := &knowledge.Inbox{}
-	hidden := hiddenSummary{ByReason: map[string]int{}}
+	hidden := hiddenSummary{ByReason: map[string]int{}, Products: map[string]int{}}
 	var rows []knowledge.InboxRow
 	for _, row := range all.Items {
 		t, ok := tr[row.Item.ID]
@@ -355,10 +387,24 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 			continue
 		}
 		it := row.Item
-		out.Counts.Pending++
-		if ok && t.Blocking {
+		// the sub-view the item belongs to: pin sources (default), other
+		// blockers, the rest; the three never mix
+		view := "other"
+		switch {
+		case ok && t.PinSource:
+			view = ""
+			hidden.Pin++
+		case ok && t.Blocking:
+			view = "blocking"
 			hidden.Blocking++
+		default:
+			hidden.Other++
 		}
+		if view != form.View {
+			continue
+		}
+		hidden.Products[string(it.Product)]++
+		out.Counts.Pending++
 		if it.Routing.Priority == domain.PriorityHigh {
 			out.Counts.HighPriority++
 		}
@@ -372,9 +418,6 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 			out.Counts.ApplicabilityQuestions++
 		}
 		if prio != "" && it.Routing.Priority != prio {
-			continue
-		}
-		if form.Blocking && !t.Blocking {
 			continue
 		}
 		rows = append(rows, row)

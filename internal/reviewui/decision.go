@@ -201,7 +201,7 @@ func (s *server) decide(w http.ResponseWriter, r *http.Request) {
 		refuse(http.StatusUnprocessableEntity, "Reviewer name is required: every decision is attributed.")
 		return
 	}
-	if !eligible(rc.Item.Status) {
+	if !decidable(rc) {
 		refuse(http.StatusConflict, fmt.Sprintf("This item is already %s; a decision cannot be added.", rc.Item.Status))
 		return
 	}
