@@ -133,3 +133,45 @@ chart diff, source commit), the reasoning in terms of the fixture, and the obser
 run, versions, the relevant output excerpts (raw files under `observed/`). If a runtime check was
 impossible: why, and the render-level fallback used (labelled `verification: render`). Never an invented
 outcome.
+
+<!-- CONTRACT-CHANGE(groundtruth) -->
+## Additive fields used by the dataset (groundtruth lane, 2026-10-16)
+
+Format only. Nothing above is relaxed: every field here is optional, and none changes how
+`classification`, `match`, `components` or `requiredEvidence` are scored.
+
+### `expected.yaml` → `renderedChanges` (rendered-diff ground truth)
+
+Labels the environment's own FROM/TO render (`observed/render.diff`: the release rendered with the
+environment's values at `from` and at `to`; Kustomize output that is identical in both versions has no
+diff). Every non-noise hunk is listed; release noise (chart/app version labels, image tags) is not.
+
+```yaml
+renderedChanges:
+  - diff: observed/render.diff#L747-L803          # one hunk range, or a list of ranges for one logical change
+    object: ServiceMonitor/kube-system/example     # Kind/namespace/name (or a short description for a group)
+    change: bearerTokenFile -> authorization (...)  # what the hunk does, in one line
+    item: B1                                       # the expected item it belongs to, or null (not in scope)
+    impact: breaking | harmless                     # effect of applying THIS rendered change by itself
+```
+
+- `impact` describes the rendered change alone. An item can be `affected` although every hunk is
+  `harmless` (its behaviour change has no rendered counterpart, e.g. a default compiled into a
+  controller), and `not-affected` although its hunks look alarming (the environment neutralises them).
+  Scorers can therefore check per rendered change whether a finding correlated it to the right item
+  and judged its effect, and can detect "no breaking rendered change ⇒ not affected" reasoning.
+- `renderedChanges: []` with a comment means no render could be produced from the inputs (e.g. a
+  withheld values file).
+
+### Other optional fields
+
+| Field | Meaning | Scoring |
+|---|---|---|
+| `components[].ref.renderedFrom` | the env file declaring the release that renders this object (for objects that exist only after rendering, e.g. a chart's ConfigMap); used instead of `file` | matched on kind + namespace + name, like any `ref` |
+| `ref: {file: <values file>}` (no kind) | a whole Helm values file (mitigation refs, file-level components) | `ref.file` → `environment-file` artifact, as above |
+| `requiredEvidence[]` without `object` | a values-file field (`{file, field}`) | satisfied by evidence citing that path (and field) |
+| `items[].acceptable: [<class>]` | another class the definitions genuinely allow for this input (justified in NOTES.md) | informational: the scored label is `classification`; scorers may report "acceptable alternative" separately |
+| `components[].evidenceGaps: [...]` | for `insufficient-evidence`: what is missing | informational (expected content of `EvidenceGap`s) |
+| `items[].remediation` | the remediation or next investigation step a correct finding would give | informational |
+| `verification: observed-alternatives` | the deciding input is withheld; each possible value of it was observed in a sibling case (listed in `observed`) | reported separately, like `upstream-only` (not counted as `observed`) |
+| `input.yaml` `withheld[]: {ref, description}` | a deliberately absent input, described as an operator would | input; never states the expected class |

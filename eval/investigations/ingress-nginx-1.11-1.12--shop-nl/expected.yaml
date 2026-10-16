@@ -16,8 +16,10 @@ items:
       - url: https://github.com/kubernetes/ingress-nginx/pull/12024
         quote: "This removal will not change the way OpenTelemetry works."
       - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/rootfs/etc/nginx/template/nginx.tmpl#L33
+        lines: L33
         quote: "load_module /etc/nginx/modules/otel_ngx_module.so;"
       - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/rootfs/etc/nginx/template/nginx.tmpl#L33
+        lines: L33
         quote: "load_module /etc/nginx/modules/otel_ngx_module.so;"
     components:
       - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
@@ -34,14 +36,14 @@ items:
             relation: deploys
           - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
             field: spec.template.spec.initContainers[opentelemetry]
-            relation: calls # OTLP gRPC export of spans
+            relation: depends-on # OTLP gRPC export of spans
           - ref: {file: env/platform/otel-collector/service.yaml, kind: Service, namespace: observability, name: otel-collector}
         mitigation:
           kind: relationship-absent
           detail: nothing reads /modules_mount; the module is loaded from the controller image in both versions
         requiredEvidence:
-          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.opentelemetry.enabled}
-          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.config.enable-opentelemetry}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.opentelemetry.enabled}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.config.enable-opentelemetry}
       - ref: {file: env/platform/otel-collector/deployment.yaml, kind: Deployment, namespace: observability, name: otel-collector}
         classification: not-affected
         reason: The collector keeps receiving ingress-nginx spans after the upgrade (observed, same count per probe as before).
@@ -50,13 +52,13 @@ items:
             field: data.otlp-collector-host
             relation: configures
           - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
-            relation: calls
+            relation: depends-on
           - ref: {file: env/platform/otel-collector/deployment.yaml, kind: Deployment, namespace: observability, name: otel-collector}
         mitigation:
           kind: relationship-absent
           detail: span export depends on the ConfigMap settings and the in-image module, neither of which changes
         requiredEvidence:
-          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.config.otlp-collector-host}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.config.otlp-collector-host}
     remediation: none required; controller.opentelemetry can be dropped from values.yaml (it no longer has an effect).
     match:
       - subject: controller.opentelemetry
@@ -71,10 +73,13 @@ items:
       - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
         quote: "`--enable-metrics` gets disabled by default."
       - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/pkg/flags/flags.go#L176-L177
+        lines: L176-L177
         quote: 'enableMetrics = flags.Bool("enable-metrics", true,'
       - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/pkg/flags/flags.go#L177-L178
+        lines: L177-L178
         quote: 'enableMetrics = flags.Bool("enable-metrics", false,'
       - url: https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.12.0/charts/ingress-nginx/templates/_params.tpl#L57-L58
+        lines: L57-L58
         quote: "{{- if .Values.controller.metrics.enabled }} - --enable-metrics={{ .Values.controller.metrics.enabled }}"
     components:
       - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
@@ -91,12 +96,12 @@ items:
             field: spec.template.spec.containers[controller].args
         mitigation:
           kind: override
-          ref: {file: env/platform/ingress-nginx/values.yaml, kind: values, name: values.yaml}
+          ref: {file: env/platform/ingress-nginx/values.yaml}
           field: controller.metrics.enabled
           value: true
         requiredEvidence:
-          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.metrics.enabled}
-          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.podAnnotations}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.metrics.enabled}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.podAnnotations}
     remediation: none required.
     match:
       - subject: --enable-metrics

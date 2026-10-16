@@ -62,7 +62,8 @@ ingress-nginx-4.12.0.tgz sha256 `6445180ad70a12ed91d1430c7b54ed0cc65be6adfc534d2
   finding must name the gap and the next step (fetch those two files, or the live controller
   ConfigMap). `insufficient-evidence` is the primary label. `potentially-affected` is listed as
   `acceptable` because the definitions overlap here ("a plausible impact exists but cannot yet be
-  confirmed or dismissed"); both are fail-closed. `not-affected` or `affected` would be unsupported
+  confirmed or dismissed"); both are fail-closed. The scored label is `insufficient-evidence`; `acceptable` is
+  informational (FORMAT.md, groundtruth additive section). `not-affected` or `affected` would be unsupported
   claims and count as wrong.
 - The fact that snippets are used at all hints that the withheld values allow them; it says nothing
   about the risk level. Guessing from it is exactly the unsupported assumption the policy forbids.
