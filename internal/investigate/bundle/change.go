@@ -144,9 +144,9 @@ func (c *ChangeCollector) CollectChange(ctx context.Context, req investigate.Cha
 	}
 	b.finish() // manifestation / scope need the correlated paths
 
-	// 3. Anchored items for unexplained structural release changes (phase C).
+	// 3. Anchored items for every unexplained release change (phase C).
 	if mp != nil && mp.Status == domain.CollectionOK {
-		b.anchorStructural(mp, pair)
+		b.anchorUnexplained(mp, pair)
 	}
 	items := b.items()
 
@@ -350,28 +350,41 @@ func (b *itemBuilder) finish() {
 	}
 }
 
-// anchorStructural adds an in-scope item for every release-scope rendered
-// change no change explains whose class the default tier policy blocks
-// (scope:rendered-structural) and points the change at it.
-func (b *itemBuilder) anchorStructural(mp *domain.ManifestPair, pair *render.Pair) {
-	structural := map[string]bool{}
+// anchorUnexplained gives every release-scope rendered change no change
+// explains its own item and points the change at it (DESIGN.md §1.3, first
+// match wins): a class the default tier policy blocks is
+// scope:rendered-structural; the version bump of an image the product
+// definition publishes is scope:routine-self-artifact (out of scope, so the
+// change is correlated); anything else is scope:rendered-unexplained.
+func (b *itemBuilder) anchorUnexplained(mp *domain.ManifestPair, pair *render.Pair) {
+	scope := map[string]string{}
 	if pair != nil && pair.Diff != nil {
 		for _, c := range pair.Diff.Changes {
-			if isStructuralRender(c) {
-				structural[domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), c.Path, string(c.Class))] = true
+			id := domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), render.RenderedPath(c), string(c.Class))
+			switch _, self := render.SelfArtifactBump(c, b.edge); {
+			case isStructuralRender(c):
+				scope[id] = ScopeRenderedStructural
+			case self:
+				scope[id] = ScopeRoutineSelfArtifact
+			default:
+				scope[id] = ScopeRenderedUnexplained
 			}
 		}
 	}
 	evidence := b.diffEvidence(mp)
 	for i := range mp.Changes {
 		rc := &mp.Changes[i]
-		if len(rc.ChangeItems) > 0 || !structural[rc.ID] || len(evidence) == 0 {
+		if len(rc.ChangeItems) > 0 || scope[rc.ID] == "" || len(evidence) == 0 {
 			continue
 		}
-		f := changeFacts{RenderedAnchored: true}
+		f := changeFacts{RenderedAnchored: true, RenderedScope: scope[rc.ID]}
+		why := "not mentioned by any change"
+		if f.RenderedScope == ScopeRoutineSelfArtifact {
+			why = "version bump of the product's own image"
+		}
 		it := &domain.ChangeItem{
 			ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
-			Title:    strings.Join(strings.Fields(fmt.Sprintf("%s: %s %s (not mentioned by any change)", rc.Class, rc.Object, rc.Path)), " "),
+			Title:    strings.Join(strings.Fields(fmt.Sprintf("%s: %s %s (%s)", rc.Class, rc.Object, rc.Path, why)), " "),
 			Subjects: []string{rc.Object}, Evidence: evidence,
 		}
 		it.Manifestation, it.ManifestationRule = manifestationOf(f)
@@ -468,14 +481,14 @@ func (c *ChangeCollector) releasePair(ctx context.Context, put putFunc, pool map
 	}
 	byID := map[string]*domain.RenderedChange{}
 	for _, ch := range p.Diff.Changes {
-		id := domain.RenderedChangeID(domain.RenderRelease, releaseTarget, ch.Object.String(), ch.Path, string(ch.Class))
+		id := domain.RenderedChangeID(domain.RenderRelease, releaseTarget, ch.Object.String(), render.RenderedPath(ch), string(ch.Class))
 		l := linked[changeKey(ch)]
 		if existing, dup := byID[id]; dup { // two diff entries with one identity: merge their attributions
 			existing.ChangeItems = mergeSorted(existing.ChangeItems, l.items)
 			continue
 		}
 		rc := &domain.RenderedChange{
-			ID: id, Class: string(ch.Class), Object: ch.Object.String(), Path: ch.Path, Sensitive: ch.Sensitive,
+			ID: id, Class: string(ch.Class), Object: ch.Object.String(), Path: render.RenderedPath(ch), Sensitive: ch.Sensitive,
 			ChangeItems: l.items, Correlation: l.rule, Evidence: []domain.EvidenceID{ev.ID},
 		}
 		if !ch.Sensitive {

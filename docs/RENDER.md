@@ -62,7 +62,7 @@ secrets) mark the target **INCOMPLETE**: an absence of change in an incomplete r
 
 | Target | Source | Notes |
 |---|---|---|
-| `values-files` | `--values`, or a repo-local values file naming the product | |
+| `values-files` | `--values`, or a repo-local values file naming the product (not one an Argo CD / Flux / Helmfile target already layers) | |
 | `argocd` | Argo CD Application | values, `valuesObject`, parameters, `$values/` valueFiles; other value sources ⇒ incomplete |
 | `flux` | Flux HelmRelease | `spec.values`; `valuesFrom` ⇒ incomplete |
 | `helmfile` | Helmfile release | files/inline/set; templated/secrets ⇒ incomplete |

@@ -222,6 +222,7 @@ var fieldPatches = map[string]obj{
 	"ValidationRequest.provenance":    o("$ref", "#/$defs/"+defAI),
 	"ChangeItem.evidence":             o("minItems", 1),
 	"ChangeItem.manifestationRule":    o("pattern", "^manifest:"),
+	"ChangeItem.scopeRule":            o("pattern", "^scope:"),
 	"PinnedSetting.evidence":          o("minItems", 1),
 	"ArtifactRef.digest":              o("pattern", "^sha256:[0-9a-f]{64}$"),
 	"ArtifactRef.id":                  o("pattern", "^"+domain.ArtifactIDPrefix),
@@ -237,6 +238,10 @@ var typePatches = map[string]obj{
 	// The action-classification contract (docs/ACTION_CLASSIFICATION.md):
 	// which provenance each class must carry.
 	"ImpactFinding": o("allOf", impactClassRules()),
+	// DESIGN.md §1.3 amendment: items of the rendered-change scope rules are
+	// anchored on the rendered change, family rendered, rendered-config;
+	// unexplained ones are in scope, self-artifact bumps are not.
+	"ChangeItem": o("allOf", renderedScopeRules()),
 	// "Exactly one of the typed payloads is set", and it is the one that
 	// matches kind.
 	"Snapshot": o(
@@ -253,6 +258,26 @@ var typePatches = map[string]obj{
 			snapshotKindRule(domain.SnapshotLines, "lines"),
 		},
 	),
+}
+
+// renderedScopeRules encodes ChangeItem's rendered-change scope rules
+// (domain.ChangeItem.renderedScopeErrors) as conditionals.
+func renderedScopeRules() []any {
+	rule := func(scope string, inScope bool) obj {
+		return o(
+			"if", o("properties", o("scopeRule", o("const", scope)), "required", []string{"scopeRule"}),
+			"then", o(
+				"required", []string{"renderedChange"},
+				"properties", o(
+					"renderedChange", o("minLength", 1),
+					"family", o("const", string(domain.FamilyRendered)),
+					"manifestation", o("const", string(domain.ManifestRenderedConfig)),
+					"inScope", o("const", inScope),
+				),
+			),
+		)
+	}
+	return []any{rule(domain.ScopeRenderedUnexplained, true), rule(domain.ScopeRoutineSelfArtifact, false)}
 }
 
 // impactClassRules encodes the per-class provenance rules of

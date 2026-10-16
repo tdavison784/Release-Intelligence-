@@ -28,9 +28,13 @@ and say so.
 `Manifestation` + `ManifestationRule` (§2.2.1), decided by declared rules over the upgrade edge
 (`internal/investigate/bundle/scope.go`), never by product code. A behaviour default compiled into a
 controller (`manifest:declared-behaviour`, `manifest:crd-default`) is not render-decisive: a silent
-render never clears it. A release-scope rendered change that no change mentions and the default tier
-policy blocks (removed RBAC permission, removed resource, API-version or CRD storage/served move)
-becomes its own in-scope item (`scope:rendered-structural`).
+render never clears it. Every release-scope rendered change that no change explains becomes its own
+item, anchored on it (DESIGN §1.3, first match wins): a class the default tier policy blocks (removed
+RBAC permission, removed resource, API-version or CRD storage/served move) is in scope
+(`scope:rendered-structural`); the version bump of an image the product definition itself publishes
+(`render.SelfArtifactBump`: same repository, exactly the edge artifact's from/to tags) is out of scope
+(`scope:routine-self-artifact`) — so it is correlated, never "uncorrelated"; anything else is in scope
+(`scope:rendered-unexplained`, manifestation `rendered-config`).
 
 **Layout** (`<state>/investigations/`, `store.New(<state>)`):
 
@@ -71,8 +75,8 @@ diff, changelog correlation, chart coverage).
 values files) declares becomes a `ManifestPair` named by the target, with paths repo-relative so ids do
 not depend on where the repository is checked out: `argocd:clusters/prod/app.yaml#0/$.spec.sources[0]`,
 `flux:…`, `helmfile:…`, `values:<file>`, `kustomize:<dir>`. A repo-discovered values file that an Argo
-CD / Flux / Helmfile target already layers is not rendered on its own (that configuration is not
-deployed anywhere); a note says so.
+CD / Flux / Helmfile target already layers is not rendered on its own (`render.DetectTargets`: that
+configuration is not deployed anywhere); a note says so.
 
 **Status** (what decides whether an absence of change is evidence):
 
@@ -94,9 +98,9 @@ without timestamps, every change with its id, correlation links and change items
 incomplete pair).
 
 **Rendered changes.** One `RenderedChange` per `render.Change` of an ok pair, id
-`RenderedChangeID(environment, target, object, path, class)`. Container args and RBAC rules are sets
-addressed by one path, so their changes carry a member selector — `…args[=--flag]`,
-`rules[=apps/deployments:get]`. Each cites one `rendered-diff` evidence record whose `contentDigest` is
+`RenderedChangeID(environment, target, object, path, class)`. The path is `render.RenderedPath`, shared
+by both render scopes: container args and RBAC rules are sets addressed by one path, so their changes
+carry a member selector — `…args[=--flag]`, `rules[=apps/deployments:get]`. Each cites one `rendered-diff` evidence record whose `contentDigest` is
 the diff artifact's digest and whose locator is `changes[id=<rc>]`, so it resolves to the bytes.
 Sensitive changes record no values.
 
@@ -107,10 +111,16 @@ Sensitive changes record no values.
 - an `artifact` link (no change id) → the computed image items (`manifest:computed-image`) whose title or
   subjects name the repository — the collector's release-scope rule;
 - `release-anchor` → the item anchored on the matching release-scope rendered change (same class, API
-  group, kind, object name and path with the release name normalized).
+  group, kind, object name and path with the release name normalized);
+- otherwise `rendered-anchor` → the change's **own environment item** (`RenderResult.Items` →
+  `EvidenceBundle.EnvironmentItems`, anchored on the environment-scope rendered change):
+  `scope:routine-self-artifact` (out of scope) for a self-artifact version bump, else
+  `scope:rendered-unexplained` (in scope, so it gets a finding: the deployment changes and nothing
+  upstream explains it — exactly what the investigation must look at).
 
-A change with no item is **uncorrelated**: the deployment changes and nothing known explains it. It is
-kept, and it blocks automated approval (DESIGN §3.4).
+`EvidenceBundle.Items()` / `Item()` / `InScope()` cover record and environment items alike. With every
+change anchored, `Uncorrelated()` is empty for a renderdiff-built bundle; it still blocks automated
+approval when non-empty (DESIGN §3.4).
 
 **Queries** (what the agent's diff tools call): `renderdiff.QueryPage(bundle, DiffQuery)` filters by
 scope (default environment), target, change item, uncorrelated, classes, kinds, namespaces (`-` =

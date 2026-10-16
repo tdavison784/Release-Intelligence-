@@ -104,9 +104,45 @@
         "manifestation": {"$ref": "#/$defs/Manifestation"},
         "manifestationRule": {"type": "string", "pattern": "^manifest:"},
         "inScope": {"type": "boolean"},
-        "scopeRule": {"type": "string"}
+        "scopeRule": {"type": "string", "pattern": "^scope:"}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scopeRule": {"const": "scope:rendered-unexplained"}
+            },
+            "required": ["scopeRule"]
+          },
+          "then": {
+            "required": ["renderedChange"],
+            "properties": {
+              "renderedChange": {"minLength": 1},
+              "family": {"const": "rendered"},
+              "manifestation": {"const": "rendered-config"},
+              "inScope": {"const": true}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scopeRule": {"const": "scope:routine-self-artifact"}
+            },
+            "required": ["scopeRule"]
+          },
+          "then": {
+            "required": ["renderedChange"],
+            "properties": {
+              "renderedChange": {"minLength": 1},
+              "family": {"const": "rendered"},
+              "manifestation": {"const": "rendered-config"},
+              "inScope": {"const": false}
+            }
+          }
+        }
+      ]
     },
     "ChangeItemFamily": {
       "type": "string",
@@ -210,6 +246,7 @@
         "change": {"$ref": "#/$defs/ChangeEvidenceRecord"},
         "snapshot": {"$ref": "#/$defs/EnvironmentSnapshot"},
         "renders": {"type": "array", "items": {"$ref": "#/$defs/ManifestPair"}},
+        "environmentItems": {"type": "array", "items": {"$ref": "#/$defs/ChangeItem"}},
         "manifest": {"$ref": "#/$defs/BundleManifest"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
         "producer": {"type": "string"},

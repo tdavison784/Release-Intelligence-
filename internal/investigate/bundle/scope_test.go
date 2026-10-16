@@ -30,6 +30,8 @@ func TestScopeRules(t *testing.T) {
 		{"computed crd fields added", computed("crd:fields-added"), false, ScopeNotBreaking},
 		{"computed image tag changed", computed("images:tag-changed"), false, ScopeNotBreaking},
 		{"rendered anchor", changeFacts{RenderedAnchored: true}, true, ScopeRenderedStructural},
+		{"rendered unexplained", changeFacts{RenderedAnchored: true, RenderedScope: ScopeRenderedUnexplained}, true, ScopeRenderedUnexplained},
+		{"rendered self-artifact", changeFacts{RenderedAnchored: true, RenderedScope: ScopeRoutineSelfArtifact}, false, ScopeRoutineSelfArtifact},
 		{"removal category", changeFacts{Category: domain.CategoryRemoval}, true, ScopeCategory},
 		{"deprecation category", changeFacts{Category: domain.CategoryDeprecation}, true, ScopeCategory},
 		{"migration category", changeFacts{Category: domain.CategoryMigration}, true, ScopeCategory},
