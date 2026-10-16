@@ -115,6 +115,13 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## Current state (2026-10-16)
+- `p4ei/eval2` MERGED into `p4-env-impact` (cf2b0f29). Keep this worktree on `p4ei/eval2` for the remaining runs;
+  `p4ei/eval` left as is (commander + user decide).
+- **Waiting** for the commander's go after lane `defaults` merges: then `git merge p4-env-impact`, score arm A and
+  arm C (runtime attribution precedence merged at 1888a107), report gates. **Arm B HELD.**
+- Shell hygiene (FLEET): rm on variables only as `"${VAR:?}"/...`.
+
 ## Slim storage + branch p4ei/eval2 (2026-10-16, commander request before merge)
 - `p4ei/eval` (ebfff797) left untouched. New branch `p4ei/eval2` from `p4-env-impact` (c9ba21e9): the 11 lane
   files + compressed results, so the 58 MB of uncompressed records never land in history.
