@@ -75,7 +75,7 @@ func runRecord(t *testing.T, f *fixture, out *investigate.AgentOutcome, pre ...d
 	}
 	inv := &domain.Investigation{SchemaVersion: domain.InvestigationSchemaVersion, Bundle: f.b.ID, Snapshot: f.b.Snapshot.ID, ChangeRecord: f.b.Change.ID,
 		Environment: f.b.Snapshot.Environment, Config: cfg.Digest(), Status: domain.InvestigationRunning, Traversal: f.trav, Agent: &out.Run,
-		Hypotheses: out.Hypotheses, Assertions: out.Assertions, AgentNotes: out.Notes, EvidenceRequests: out.EvidenceRequests, ValidationRequests: out.ValidationRequests,
+		Hypotheses: out.Hypotheses, Assertions: out.Assertions, AgentNotes: out.Notes, AgentClaims: out.Claims, EvidenceRequests: out.EvidenceRequests, ValidationRequests: out.ValidationRequests,
 		Validations: append(append([]domain.ValidationRecord(nil), pre...), out.Validations...), Artifacts: out.Artifacts, Evidence: out.Evidence, Review: domain.HumanReview{State: domain.ReviewAwaiting}, CreatedAt: fixedNow()}
 	inv.ID = domain.InvestigationID(inv.Bundle, inv.Config)
 	inv.AppendAudit(domain.AuditEvent{At: fixedNow(), Stage: domain.StageInvestigate, Event: "completed", Actor: "agent:" + out.Run.Model, Refs: []string{out.Run.Transcript}})

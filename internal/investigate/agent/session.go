@@ -157,6 +157,7 @@ type Session struct {
 	callInfo  map[string]CallInfo // model info reported per call (per item session)
 	rcArts    map[string][]string // rendered change -> the render artifacts of its pair
 	sessions  []string            // items given a session, in order
+	claims    []domain.SettingClaim
 }
 
 // itemStat is what one per-item session cost and how it ended.
@@ -601,6 +602,15 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		if decode(&in) {
 			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.recordAssertion(ctx, in) })
 		}
+	case investigate.ToolRecordClaim:
+		if !s.cfg.Prompt.Features.Claims {
+			_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
+			break
+		}
+		var in investigate.ClaimInput
+		if decode(&in) {
+			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.recordClaim(ctx, in) })
+		}
 	case investigate.ToolSubmitFindings:
 		var in investigate.SubmitInput
 		if decode(&in) {
@@ -713,6 +723,14 @@ func (s *Session) RecordHypothesis(ctx context.Context, in investigate.Hypothesi
 func (s *Session) RecordAssertion(ctx context.Context, in investigate.AssertionInput) (*domain.AgentAssertion, error) {
 	return typed[*domain.AgentAssertion](s, ctx, investigate.ToolRecordAssertion, in,
 		func(ctx context.Context) (*outcome, error) { return s.recordAssertion(ctx, in) })
+}
+
+func (s *Session) RecordClaim(ctx context.Context, in investigate.ClaimInput) (*domain.SettingClaim, error) {
+	if !s.cfg.Prompt.Features.Claims {
+		_, _, err := s.invoke(ctx, investigate.ToolRecordClaim, canonicalArgs(in), nil)
+		return nil, err
+	}
+	return typed[*domain.SettingClaim](s, ctx, investigate.ToolRecordClaim, in, func(ctx context.Context) (*outcome, error) { return s.recordClaim(ctx, in) })
 }
 
 func (s *Session) SubmitFindings(ctx context.Context, in investigate.SubmitInput) error {
@@ -966,7 +984,7 @@ func (s *Session) itemEvidence(item string, evs []domain.Evidence) (bool, string
 func (s *Session) note(about, statement, reason string, evs []domain.Evidence) (domain.AgentNote, error) {
 	cites := evidenceIDs(evs)
 	n := domain.AgentNote{ID: domain.AgentRecordID(domain.AgentNoteIDPrefix, about, statement, s.call.ID), About: about, Statement: statement,
-		Reason: reason, Citations: cites, Provenance: s.aiProvenance(cites)}
+		Reason: reason, Citations: cites, StatementKind: s.proseKind(), Provenance: s.aiProvenance(cites)}
 	if len(n.Provenance.InputEvidence) == 0 {
 		n.Provenance.InputEvidence = s.taskEvidence()
 	}

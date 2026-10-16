@@ -182,7 +182,7 @@ func (s *Session) recordHypothesis(ctx context.Context, in investigate.Hypothesi
 		}
 	}
 	cites := evidenceIDs(evs)
-	h := domain.Hypothesis{ID: id, ChangeItem: it.ID, Statement: stmt, Subjects: subjects, Citations: cites,
+	h := domain.Hypothesis{ID: id, ChangeItem: it.ID, Statement: stmt, Subjects: subjects, Citations: cites, StatementKind: s.proseKind(),
 		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 	if err := invalid(func() error { c := h; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
@@ -260,6 +260,10 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	if err != nil {
 		return nil, err
 	}
+	claimIDs, err := s.claimRefs(it.ID, in.Claims)
+	if err != nil {
+		return nil, err
+	}
 	if in.Stance == domain.StanceExplains {
 		if err := s.depthExplains("record_assertion", it.ID, evs, nil); err != nil {
 			return nil, err
@@ -295,6 +299,7 @@ func (s *Session) recordAssertion(ctx context.Context, in investigate.AssertionI
 	cites := evidenceIDs(evs)
 	a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: in.Stance, Statement: stmt, Subjects: subjects, Paths: paths,
 		RenderedChanges: rcs, Citations: cites, ProposedEdge: edge, Hypothesis: in.Hypothesis, NoValidationReason: reason,
+		StatementKind: s.proseKind(), Claims: claimIDs,
 		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 	if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
@@ -799,6 +804,10 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		if err != nil {
 			return nil, fmt.Errorf("items[%d]: %w", i, err)
 		}
+		entryClaims, err := s.claimRefs(it.ID, sum.Claims)
+		if err != nil {
+			return nil, fmt.Errorf("items[%d]: %w", i, err)
+		}
 		if disp == domain.CoverRaisesConcern {
 			if ok, why := s.itemEvidence(it.ID, cs); !ok {
 				n, err := s.note(it.ID, stmt, why, cs)
@@ -834,6 +843,7 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			continue
 		}
 		a := domain.AgentAssertion{ID: id, ChangeItem: it.ID, Stance: stance, Statement: stmt, Citations: cites, NoValidationReason: reason,
+			StatementKind: s.proseKind(), Claims: entryClaims,
 			Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
 		if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 			return nil, err
