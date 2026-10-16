@@ -25,6 +25,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/investigate/renderdiff"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/render"
@@ -548,10 +549,12 @@ type testEnv struct {
 }
 
 type envOptions struct {
-	rotation      string // the consumer's pin ("" = unset)
-	twin          bool   // a second behaviour item reaching the same objects
-	secretMarker  bool   // the Secret node key carries a redaction marker
-	partialRender bool
+	rotation       string // the consumer's pin ("" = unset)
+	twin           bool   // a second behaviour item reaching the same objects
+	secretMarker   bool   // the Secret node key carries a redaction marker
+	partialRender  bool
+	ownWidget      []string // items whose own (environment) rendered change is on the Widget
+	twinReconciled bool     // the twin item is rooted only by the reconciles exposure
 }
 
 func renewExercise(families ...string) DeclaredExercise {
@@ -605,6 +608,12 @@ func newEnv(t *testing.T, o envOptions) *testEnv {
 		productStatus, reason = domain.CollectionPartial, "values-incomplete: valuesFrom outside the repository"
 	} else {
 		changes = []domain.RenderedChange{rcController}
+		if len(o.ownWidget) > 0 {
+			own := append([]string(nil), o.ownWidget...)
+			sort.Strings(own)
+			changes = append(changes, domain.RenderedChange{ID: domain.RenderedChangeID(domain.RenderEnvironment, productTarget, keyWidget, "spec.rotation", "field-changed"),
+				Class: "field-changed", Object: keyWidget, Path: "spec.rotation", ChangeItems: own, Correlation: "subject"})
+		}
 	}
 	items := []domain.ChangeItem{
 		{ID: itemBehaviour, ChangeID: "chg-rotation", Family: domain.FamilyBehavior, Title: "rotation default is now Always", Breaking: true,
@@ -658,7 +667,11 @@ func newEnv(t *testing.T, o envOptions) *testEnv {
 		Roots: []domain.ExposureRoot{{ChangeItem: itemBehaviour, Node: nCRD.ID, Rule: "test"}, {ChangeItem: itemRendered, Node: nCtl.ID, Rule: "test"}},
 		Paths: []domain.ImpactPath{path(itemBehaviour, full, fullEdges), path(itemRendered, []domain.GraphNode{nCtl}, nil)}, Complete: true}
 	if o.twin {
-		e.tr.Roots = append(e.tr.Roots, domain.ExposureRoot{ChangeItem: itemTwin, Node: nCRD.ID, Rule: "test"})
+		rule := "test"
+		if o.twinReconciled {
+			rule = relations.RuleReconciledKind
+		}
+		e.tr.Roots = append(e.tr.Roots, domain.ExposureRoot{ChangeItem: itemTwin, Node: nCRD.ID, Rule: rule})
 		e.tr.Paths = append(e.tr.Paths, path(itemTwin, full, fullEdges))
 	}
 	e.exercises = []DeclaredExercise{renewExercise("behavior", "procedure")}

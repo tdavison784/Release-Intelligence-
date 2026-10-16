@@ -1,7 +1,7 @@
 # Status — lane `runtime` (Claude Opus 5.5, agent ri-runtime)
 
 Branch `p4ei/runtime`, worktree `.claude/worktrees/p4ei-runtime`. Brief: `briefs/runtime.md` (+ `_wave2-common.md`,
-`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE — follow-up 1 complete** (2026-10-16, commander decisions on the three open questions + the
+`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE — follow-up 2 (attribution precedence) complete** (2026-10-16, commander decisions on the three open questions + the
 independent-review queue; see "Follow-up 1"). Lane merged earlier as 34afd967 / 4090a4b7.
 Resume from: this file + brief + `git log`.
 
@@ -64,6 +64,32 @@ objects their controller acts on, so the ingress-nginx refusal and the kps rejec
 describe them — shared by several items, hence inconclusive (R3), never a fail; no runtime record is a `pass` (and
 none could be for reconciled-only exposure or for the reaction-less operator exercises). The `not-affected`
 findings come from the other validators (values/rendered items), not from runtime.
+
+## Follow-up 2 — attribution precedence (2026-10-16, after merging p4-env-impact @ 20e958b8)
+
+Generic precedence for a degradation several in-scope items reach (outcome.go `attribute`): (1) the item whose
+**own rendered change** (environment or release scope) is on the degraded object, when the degradation concerns that
+object (rejected, refused exercise, deleted, not ready, not reconciled, failure condition, warning event) ⇒ `fail`,
+`attribution:own-rendered-change`, citing the change; two or more such items ⇒ all inconclusive,
+`attribution:shared-own-change`, named; other reaching items ⇒ inconclusive `attribution:shared-path` naming the
+owner; (2) otherwise items reaching it through relationship paths: one ⇒ `attribution:unique-path`, several ⇒
+`attribution:shared-path`; (3) reached only as a reconciled kind ⇒ `attribution:reconciled-only`, never owned. The
+rule id rides after `+` in **every** record's provenance rule (`attribution:none` when no degradation is on the item's
+objects); `runtime.OutcomeRule` / `runtime.AttributionRule` split it — no contract change. Tests: one per rule
+(own change wins; two own changes share; shared paths; reconciled-only never owns while the specific-path item is
+unique; data-only differences never owned by an own change; none on a pass). Docs: "Attribution precedence".
+
+### Follow-up 2 real runs (CLI `ri investigate … --runtime`, private `.ri` copy, code a1898058; every cluster deleted)
+
+| case | run | runtime records (outcome + attribution) | findings (all validators) |
+|---|---|---|---|
+| cert-manager payments-eu | 179 s | 7 error reconciled-only (`tls.key` rotations; no item reaches the Secrets through a specific path), 6 no-baseline, 19 no-exercise, 1 no-object, 13 other-families | 2 affected, 27 potentially-affected, 17 not-affected |
+| cert-manager payments-us | 220 s | same shape: 7 error reconciled-only (leaf `tls.key`s) | 2 affected, 27 potentially-affected, 17 not-affected |
+| ingress-nginx shop-de | 184 s | 14 error reconciled-only (storefront Ingress rejected by the new webhook; no item has a rendered change on it), 13 no-object | 14 potentially-affected, 13 not-affected |
+| kube-prometheus-stack obs-north | 217 s | **3 fail own-rendered-change** (each rejected ServiceMonitor carries its own item's `spec.endpoints` change), 1 error shared-path (the procedure item, attributed to those three), 1 no-baseline, 1 no-exercise, 20 no-object | 3 affected, 3 potentially-affected, 20 not-affected |
+
+The precedence restores the specific kps attribution (follow-up 1 had all four inconclusive) without guessing where
+no item has a specific link (cert-manager, ingress-nginx stay inconclusive). No runtime pass anywhere.
 
 ## Decisions (with why)
 
