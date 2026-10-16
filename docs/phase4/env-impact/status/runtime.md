@@ -20,7 +20,7 @@ Resume from: this file + brief + `git log`.
   without exercise ⇒ never pass, cleanup on every exit path (create fails, no baseline, timeout, cancellation,
   delete fails, delete unverified), observation diffing, render verification, prune/hooks, determinism.
 - `docs/INVESTIGATE.md` "Runtime validation".
-- Real run 1: cert-manager payments-eu (see "Real runs").
+- Real runs on all three products (+ cert-manager payments-us), see "Real runs".
 
 ## In progress / next step
 
@@ -40,15 +40,29 @@ Resume from: this file + brief + `git log`.
 
 ## Files touched outside ownership
 
-- none yet
+- none. (`internal/catalog/exercises*.go`, `schemas/product-exercises.schema.json`, `products/exercises/` and
+  `docs/INVESTIGATE.md` "Runtime validation" are in the brief's ownership.)
 
 ## Contract changes
 
-- none yet
+- none (no change to `internal/domain` or `internal/investigate/api.go`).
 
-## Open questions
+## Open questions (for the commander / user)
 
-- none yet
+1. **Is a data change under a consumer alone a `fail`?** The brief lists "referenced data changed under a
+   consumer" as a fail trigger, and the validator follows it: a key that the TO version changes under an
+   exercise and the FROM version did not is `fail` even when no consumer degraded. In payments-us the CA key did
+   **not** rotate but the leaf `tls.key`s did (key and cert rotate together, consumers stayed ready), and that is
+   still a `fail` for the rotation-policy item. The alternative is `error` (inconclusive, R3) for data-only
+   differences, with `fail` reserved for a degraded consumer, a rejection, a condition or a warning. Neither is
+   unsafe (both block not-affected); the choice moves items between affected and potentially-affected. I kept
+   the brief's rule and did not tune it to any case.
+2. **Relations gap:** ingress-nginx behaviour items have no impact paths to Ingress objects, so the observed
+   webhook refusal reaches them only as `runtime:unreached` (inconclusive, all 13 behaviour items). The same holds
+   for the kps procedure item vs the rejected ServiceMonitors (noted below).
+3. **Wiring (`--runtime`)** is the orchestrate lane's (`cmd/ri/investigate.go`): `runtime.New(WithStore,
+   WithRenderer(NewAppRenderer(app)), WithExercises(FromSets(catalog.LoadExercises("products/exercises")...)...))`,
+   name in `Config.Validators`, `Run` as its own heartbeated activity (docs/INVESTIGATE.md "Runtime validation").
 
 ## Test status
 
@@ -121,6 +135,26 @@ and asserts every record conforms and the cluster is deleted.
   (`runtime:no-object`), while the three rendered field-changed items on the same ServiceMonitors do connect
   and fail. Attribution of the observed break rides on the rendered items; the relations lane may want to know.
 
+### cert-manager payments-us (`cert-manager-1.17-1.18--payments-us`) — 218 s (ri-runtime, code 433574f7)
+
+- Run completed, upgrade completed, cluster deleted (verified). Renewal at FROM and TO on 3 Certificates.
+- 2 degradations: exercise-window `data:tls.key` on `payments/checkout-tls` and `payments/ledger-tls`;
+  `cert-manager/mesh-root-ca` did **not** rotate its key at TO (unlike payments-eu). No consumer degraded.
+- Outcomes: 1 `fail` (rotation-policy item — see open question 1), 6 no-baseline, 3 no-exercise, 7 no-object,
+  1 other-families; no `unreached` (no warning on the Certificates in this run).
+
+### Run-to-run variation (same code, 433574f7; ri-runtime's run vs glm-runtime's)
+
+- shop-de: ri-runtime's run had **0** apply errors at TO (48 applied) and 4 degradations (the exercise refusal +
+  3 controller error-log lines); glm-runtime's had the reconcile pass rejected too (1 apply error). The webhook's
+  check of an unchanged object on the reconcile pass is timing-dependent; per-item outcomes were identical.
+- payments-eu: ri-runtime's run additionally saw 3 transient `RequestFailed` warnings ("CertificateRequest … already
+  exists") on the Certificates under the TO renewal, which turned 6 path-less behaviour items into
+  `runtime:unreached` (error) instead of `no-object`. Transient controller retries can therefore move items between
+  not-run and error between runs (never to pass, never to fail). A follow-up could ignore a warning event whose
+  object ends the window healthy with the event's count at 1 — not done, as it would also hide one-shot
+  rejections such as the kps `InvalidConfiguration` events.
+
 ### Cross-run summary
 
 Three products, three `completed` runs, 181–215 s each (budget 15–25 min), every cluster deleted and verified
@@ -130,6 +164,14 @@ webhook rejects a FROM-valid Ingress annotation and refuses the same exercise (b
 inconclusive per item by `runtime:unreached`); kube-prometheus-stack — the operator rejects three control-plane
 ServiceMonitors over the token Secret (3 fails). No run produced a `pass`: each product's exercised behavior
 degraded or the items lacked a declared exercise — the "quiet window is never a pass" rule held everywhere.
+
+## Claude review of the GLM continuation (2026-10-16, ri-runtime on resume)
+
+glm-runtime changed no code (only this file) and its conclusions hold; it re-ran the three cases on 433574f7 and
+the lane was merged as 34afd967. Corrected/added here: Done list, files outside ownership, contract changes, open
+questions, the payments-us run and the run-to-run variation above (glm-runtime's shop-de text reports the
+reconcile-pass rejection as if deterministic). Integration (de2b5110): `go test ./internal/investigate/runtime
+./internal/catalog` green.
 
 ## GLM handoff log
 
