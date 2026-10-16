@@ -71,6 +71,7 @@ Commands:
   review serve                      engineering review UI for the learning loop (-demo for fixtures)
   semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
   evidence link ...                 learning loop: attach the linked PR / commit text of an edge's notes to stored candidates
+  investigate mcp --run <inv-id>    serve an investigation's agent tools over MCP stdio (read-only; docs/INVESTIGATE.md)
 
 Global flags:
 `
@@ -172,6 +173,14 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.semanticCmd(cmdArgs)
 	case "evidence":
 		return c.evidenceCmd(cmdArgs)
+	case "investigate":
+		// `ri investigate mcp` (lane agent); the runner `ri investigate
+		// <product> <from> <to>` is lane orchestrate2's.
+		if len(cmdArgs) > 0 && cmdArgs[0] == "mcp" {
+			return c.investigateMCP(cmdArgs[1:])
+		}
+		fs.Usage()
+		return fmt.Errorf("%w: only `ri investigate mcp` is available in this build", app.ErrUsage)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)
