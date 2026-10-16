@@ -1,0 +1,46 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: ingress-nginx-1.11-1.12--shop-fr
+pair: ingress-nginx-1.11-1.12--security-defaults
+product: ingress-nginx
+chart:
+  repo: https://kubernetes.github.io/ingress-nginx
+  name: ingress-nginx
+from:
+  version: controller-v1.11.5
+  chartVersion: 4.11.5
+to:
+  version: controller-v1.12.0
+  chartVersion: 4.12.0
+environment:
+  id: shop-prod-fr
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  description: >-
+    Production cluster of the web shop, managed by Argo CD from this repository (app-of-apps rooted
+    at clusters/prod). ingress-nginx is installed from the upstream Helm chart with the value files
+    in platform/ingress-nginx (values.yaml shared by all shop clusters, values-prod.yaml for this
+    cluster, in that order). Two applications are exposed through it: the storefront and the
+    catalog API. The repository is the complete declaration of what runs in the cluster; nothing is
+    applied by hand.
+  complete: true
+scope:
+  # The four default changes of the release entry "Enable security features by default (#11819)".
+  - id: B1
+    title: annotations-risk-level default lowered from Critical to High
+    subject: annotations-risk-level
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  - id: B2
+    title: allow-cross-namespace-resources default changed from true to false
+    subject: allow-cross-namespace-resources
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  - id: B3
+    title: strict-validate-path-type default changed from false to true
+    subject: strict-validate-path-type
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  - id: B4
+    title: --enable-annotation-validation enabled by default (chart controller.enableAnnotationValidations true)
+    subject: controller.enableAnnotationValidations
+    source: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+withheld: []

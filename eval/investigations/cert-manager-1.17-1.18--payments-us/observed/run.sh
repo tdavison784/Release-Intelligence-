@@ -84,7 +84,7 @@ rec k version
 log "render-level diff of the cert-manager release (helm template v1.17.2 vs v1.18.0, same values)"
 helm template cert-manager "$CHARTS/cert-manager-v1.17.2.tgz" -n cert-manager -f "$ENV/platform/cert-manager/values.yaml" > "$OUT/render-v1.17.2.yaml"
 helm template cert-manager "$CHARTS/cert-manager-v1.18.0.tgz" -n cert-manager -f "$ENV/platform/cert-manager/values.yaml" > "$OUT/render-v1.18.0.yaml"
-diff -u "$OUT/render-v1.17.2.yaml" "$OUT/render-v1.18.0.yaml" > "$OUT/render.diff" || true
+diff -u --label render-v1.17.2.yaml --label render-v1.18.0.yaml "$OUT/render-v1.17.2.yaml" "$OUT/render-v1.18.0.yaml" > "$OUT/render.diff" || true
 rm "$OUT/render-v1.17.2.yaml" "$OUT/render-v1.18.0.yaml"
 grep -n -E '^[-+].*(feature-gates|rotation|RotationPolicy)' "$OUT/render.diff" | tee -a "$LOG" || echo "(no feature-gate/rotation lines in the render diff)" | tee -a "$LOG"
 

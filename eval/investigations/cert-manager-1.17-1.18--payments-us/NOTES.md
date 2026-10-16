@@ -81,6 +81,10 @@ An earlier run of the first script version gave the same key behaviour; one call
 checks were `OK` (an endpoint-propagation race, not a TLS verdict). That is why the script now
 retries connection-level errors (curl exit 7/28) only; in the recorded run no retry was needed.
 
+`observed/render.diff`: identical to payments-eu's (same chart values); the items show up only as
+CRD description text (L87-L93, L101-L102). The mitigating overlay patch is not part of the chart
+render at all: it is in the environment's Kustomize output, which does not change between versions.
+
 ## Judgement calls
 
 - B1 is `not-affected` with an established override (`kind: override`, the overlay patch), observed.

@@ -1,0 +1,200 @@
+# GROUND TRUTH — authored blind by the groundtruth lane from upstream sources and observed
+# upgrades in isolated kind clusters (see NOTES.md). Pipeline and agent lanes must not read this
+# file (docs/phase4/env-impact/FLEET.md, "Evaluation integrity").
+case: ingress-nginx-1.11-1.12--shop-fr
+authoredAt: "2026-10-16"
+authoredBy: groundtruth lane (Claude Opus 5.5), blind
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # "requests through the controller", "server blocks", phase 2
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "`annotations-risk-level` gets lowered to \"High\" by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go#L753-L757
+        quote: 'AnnotationsRiskLevel:             "High",'
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/annotations/snippet/main.go#L36
+        quote: "Risk:          parser.AnnotationRiskCritical, // Critical, this annotation is not validated at all and allows arbitrary configurations"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/annotations/parser/validators.go#L246-L255
+        quote: 'err = errors.Join(err, fmt.Errorf("annotation %s is too risky for environment", annotation))'
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/store/store.go#L936-L940
+        quote: "parsed, err := s.annotations.Extract(ing) / if err != nil { klog.Error(err); return }"
+      - url: https://github.com/kubernetes/ingress-nginx/pull/11819
+        quote: "Lowers the acceptable annotation risk from Critical to High"
+    components:
+      - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+        classification: not-affected
+        reason: >-
+          The storefront Ingress carries a Critical-risk configuration-snippet (added by the prod
+          overlay), but this cluster's values-prod.yaml sets controller.config.annotations-risk-level:
+          Critical, which the chart renders into the controller ConfigMap. The 1.12 default (High)
+          therefore never applies and the Ingress keeps being served with its headers.
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys # chart 4.12.0 / controller v1.12.0
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.annotations-risk-level # Critical, from env/platform/ingress-nginx/values-prod.yaml controller.config
+            relation: configures
+          - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+            field: metadata.annotations[nginx.ingress.kubernetes.io/configuration-snippet] # added by env/apps/storefront/overlays/prod/ingress-headers.yaml
+            relation: routes-to
+          - ref: {file: env/apps/storefront/base/service.yaml, kind: Service, namespace: storefront, name: storefront}
+        mitigation:
+          kind: override
+          ref: {file: env/platform/ingress-nginx/values-prod.yaml, kind: values, name: values-prod.yaml}
+          field: controller.config.annotations-risk-level
+          value: Critical
+        requiredEvidence:
+          - {file: env/platform/ingress-nginx/values-prod.yaml, object: values, field: controller.config.annotations-risk-level}
+          - {file: env/clusters/prod/ingress-nginx.yaml, object: Application/argocd/ingress-nginx, field: "spec.sources[0].helm.valueFiles"}
+          - {file: env/apps/storefront/overlays/prod/ingress-headers.yaml, object: Ingress/storefront/storefront, field: "metadata.annotations[nginx.ingress.kubernetes.io/configuration-snippet]"}
+      - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+        classification: not-affected
+        reason: catalog-api only uses Low-risk annotations (proxy-read-timeout, enable-cors).
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.annotations-risk-level
+            relation: configures
+          - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+            field: metadata.annotations
+        mitigation: {kind: feature-unused, detail: "no annotation above High risk on this Ingress"}
+        requiredEvidence:
+          - {file: env/apps/catalog-api/base/ingress.yaml, object: Ingress/catalog-api/catalog-api, field: metadata.annotations}
+    remediation: none required for this item (the override keeps accepting Critical-risk annotations; a conscious decision already recorded in values-prod.yaml).
+    match:
+      - subject: annotations-risk-level
+      - text: '(?i)annotations?-risk-level|risk level'
+      - text: '(?i)configuration-snippet'
+
+
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # both Ingresses routed and admitted after the upgrade
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "`allow-cross-namespace-resources` gets disabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go#L97-L101
+        quote: "Case disabled, attempts to use secrets or configmaps from a namespace different from Ingress will be denied"
+    components:
+      - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+        classification: not-affected
+        reason: >-
+          No annotation on the storefront Ingress references a Secret or ConfigMap (let alone one in
+          another namespace); its backend is the same-namespace Service.
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.allow-cross-namespace-resources
+            relation: configures
+          - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+            field: metadata.annotations
+        mitigation: {kind: relationship-absent, detail: "no cross-namespace reference in any Ingress annotation"}
+        requiredEvidence:
+          - {file: env/apps/storefront/base/ingress.yaml, object: Ingress/storefront/storefront, field: metadata.annotations}
+      - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+        classification: not-affected
+        reason: Same as storefront — no annotation references another namespace.
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.allow-cross-namespace-resources
+            relation: configures
+          - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+            field: metadata.annotations
+        mitigation: {kind: relationship-absent, detail: "no cross-namespace reference in any Ingress annotation"}
+        requiredEvidence:
+          - {file: env/apps/catalog-api/base/ingress.yaml, object: Ingress/catalog-api/catalog-api, field: metadata.annotations}
+    match:
+      - subject: allow-cross-namespace-resources
+      - text: '(?i)cross[- ]namespace'
+
+  - item: B3
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # both Ingresses routed and admitted after the upgrade
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "`strict-validate-path-type` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go#L726-L730
+        quote: "It enforces that pathType of type Exact or Prefix should start with / and contain only alphanumeric chars, \"-\", \"_\", \"/\""
+    components:
+      - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+        classification: not-affected
+        reason: "Its only path is \"/\" with pathType Prefix, which satisfies the strict rule."
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.strict-validate-path-type
+            relation: configures
+          - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+            field: spec.rules[0].http.paths
+        mitigation: {kind: feature-unused, detail: "only plain Prefix paths (/, /v1)"}
+        requiredEvidence:
+          - {file: env/apps/storefront/base/ingress.yaml, object: Ingress/storefront/storefront, field: spec.rules}
+      - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+        classification: not-affected
+        reason: "Its only path is \"/v1\" with pathType Prefix, which satisfies the strict rule."
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.strict-validate-path-type
+            relation: configures
+          - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+            field: spec.rules[0].http.paths
+        mitigation: {kind: feature-unused, detail: "only plain Prefix paths (/, /v1)"}
+        requiredEvidence:
+          - {file: env/apps/catalog-api/base/ingress.yaml, object: Ingress/catalog-api/catalog-api, field: spec.rules}
+    match:
+      - subject: strict-validate-path-type
+      - text: '(?i)strict[- ]validate[- ]path[- ]type|path ?type validation'
+
+  - item: B4
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # both Ingresses routed and admitted after the upgrade
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "`--enable-annotation-validation` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/annotations/parser/validators.go#L234-L240
+        quote: "if EnableAnnotationValidation && annotationValue != \"\" { if err := validateFunc(annotationValue); err != nil {"
+    components:
+      - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+        classification: not-affected
+        reason: >-
+          Value validation only checks validated annotations: proxy-body-size "16m" is a valid size;
+          configuration-snippet is never value-validated (its rejection under B1 is the risk check,
+          which runs whether or not validation is enabled).
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys # controller.enableAnnotationValidations defaults to true in chart 4.12.0
+          - ref: {file: env/apps/storefront/base/ingress.yaml, kind: Ingress, namespace: storefront, name: storefront}
+            field: metadata.annotations
+        mitigation: {kind: feature-unused, detail: "all validated annotation values are well-formed"}
+        requiredEvidence:
+          - {file: env/apps/storefront/base/ingress.yaml, object: Ingress/storefront/storefront, field: metadata.annotations}
+      - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+        classification: not-affected
+        reason: 'proxy-read-timeout "30" and enable-cors "true" are valid values.'
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {file: env/apps/catalog-api/base/ingress.yaml, kind: Ingress, namespace: catalog-api, name: catalog-api}
+            field: metadata.annotations
+        mitigation: {kind: feature-unused, detail: "all validated annotation values are well-formed"}
+        requiredEvidence:
+          - {file: env/apps/catalog-api/base/ingress.yaml, object: Ingress/catalog-api/catalog-api, field: metadata.annotations}
+    match:
+      - subject: controller.enableAnnotationValidations
+      - text: '(?i)enable-annotation-validation|annotation validation'

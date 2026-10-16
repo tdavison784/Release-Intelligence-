@@ -39,13 +39,14 @@ probe() { # one request per host through the controller, as an external client w
     set +e
     res=$(k exec -n default client -- curl -s -o /dev/null -D - --max-time 5 -H "Host: $host" "$SVC$path" 2>&1)
     set -e
-    echo "$host$path -> $(echo "$res" | head -1 | tr -d '\r') | $(echo "$res" | grep -i -E '^(strict-transport-security|x-frame-options):' | tr -d '\r' | tr '\n' ' ')" | tee -a "$LOG"
+    body=$(k exec -n default client -- curl -s --max-time 5 -H "Host: $host" "$SVC$path" 2>&1 | head -1 | cut -c1-60)
+    echo "$host$path -> $(echo "$res" | head -1 | tr -d '\r') | body: $body | $(echo "$res" | grep -i -E '^(strict-transport-security|x-frame-options):' | tr -d '\r' | tr '\n' ' ')" | tee -a "$LOG"
   done
 }
 rendered_servers() {
   log "server blocks in the running nginx.conf ($1)"
   pod=$(k get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-  k exec -n ingress-nginx "$pod" -- sh -c "grep -E '^\s*## start server|more_set_headers' /etc/nginx/nginx.conf" 2>&1 | tee -a "$LOG" || true
+  k exec -n ingress-nginx "$pod" -- sh -c "grep -E '^\s*## start server|more_set_headers \"' /etc/nginx/nginx.conf" 2>&1 | tee -a "$LOG" || true
 }
 
 log "case $(basename "$CASE"), cluster $NAME, $(kind version)"
@@ -55,7 +56,7 @@ rec k version
 log "render-level diff of the ingress-nginx release (helm template 4.11.5 vs 4.12.0, same value files)"
 helm template ingress-nginx "$CHARTS/ingress-nginx-4.11.5.tgz" -n ingress-nginx "${VALUES[@]}" > "$OUT/render-4.11.5.yaml"
 helm template ingress-nginx "$CHARTS/ingress-nginx-4.12.0.tgz" -n ingress-nginx "${VALUES[@]}" > "$OUT/render-4.12.0.yaml"
-diff -u "$OUT/render-4.11.5.yaml" "$OUT/render-4.12.0.yaml" > "$OUT/render.diff" || true
+diff -u --label render-4.11.5.yaml --label render-4.12.0.yaml "$OUT/render-4.11.5.yaml" "$OUT/render-4.12.0.yaml" > "$OUT/render.diff" || true
 rm "$OUT/render-4.11.5.yaml" "$OUT/render-4.12.0.yaml"
 log "controller ConfigMap data as rendered by 4.12.0"
 helm template ingress-nginx "$CHARTS/ingress-nginx-4.12.0.tgz" -n ingress-nginx "${VALUES[@]}" -s templates/controller-configmap.yaml | tee -a "$LOG"
@@ -83,10 +84,11 @@ sleep 15
 probe "chart 4.12.0 / controller 1.12.0"
 rendered_servers "1.12.0"
 
-log "phase 2: Argo CD re-sync of the storefront Ingress after the upgrade (server-side apply, dry-run=server, goes through the admission webhook)"
+log "phase 2: Argo CD re-sync of the app Ingresses after the upgrade (kubectl replace --dry-run=server: always sends the object through the admission webhook, persists nothing)"
 set +e
-k apply --server-side --force-conflicts --dry-run=server -k "$ENV/apps/storefront/overlays/prod" 2>&1 | tee -a "$LOG"
-k apply --server-side --force-conflicts --dry-run=server -k "$ENV/apps/catalog-api/overlays/prod" 2>&1 | tee -a "$LOG"
+for app in storefront catalog-api; do
+  kubectl kustomize "$ENV/apps/$app/overlays/prod" | k replace --dry-run=server -f - 2>&1 | grep -i -E 'ingress|denied|error' | tee -a "$LOG"
+done
 set -e
 
 log "controller log lines about the Ingresses"

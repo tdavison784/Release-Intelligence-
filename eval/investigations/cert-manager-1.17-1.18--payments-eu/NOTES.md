@@ -90,9 +90,15 @@ An earlier run (same day, same script before the call-retry tweak) gave the same
 different keys; the retry only covers connection-level errors (curl exit 7/28) right after a
 rollout and was not needed in the recorded run (every call is `attempt=1`).
 
-`observed/render.diff` is the `helm template` v1.17.2 vs v1.18.0 diff with this case's values: the
-default change is not visible in rendered manifests (no feature-gate or rotation lines; CRD text and
-image tags change), i.e. a render-level comparison alone cannot show this break.
+`observed/render.diff` is the `helm template` v1.17.2 vs v1.18.0 diff with this case's values
+(cert-manager release only; the environment's own Certificates are not part of the chart render and
+do not change). Both items surface there **only as CRD field documentation text**, not as a
+structural change: L87-L93 (`spec.privateKey.rotationPolicy` description: "Default is `Never` for
+backward compatibility." → "Default is `Always`. The default was changed from `Never` to `Always` in
+cert-manager >=v1.18.0 ... `--feature-gates=DefaultPrivateKeyRotationPolicyAlways=false`") and
+L101-L102 (`revisionHistoryLimit`: "Default value is `nil`." → "Default value is `1`."). No schema
+`default:`, controller argument or ConfigMap changes; the default lives in the controller binary.
+The rest of the diff is image tags, CRD doc wording and new optional fields.
 
 ## Judgement calls
 
