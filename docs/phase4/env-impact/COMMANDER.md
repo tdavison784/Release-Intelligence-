@@ -189,4 +189,17 @@ Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In
   re-measure may run (fixes merged) and — only in a Claude window — arm B GO (precondition (a) v5 merged
   is met); (5) the unsubmitted `ARM B GO` text in ri-eval's input box. glm-commander now idle awaiting
   the guard's HANDBACK (~17:31).
+- **2026-10-16 ~16:25 (glm-commander): USER REQUEST (direct message during the window): improve the
+  handoff process with a ledger system so usage windows are fully utilized per provider.** Wrote
+  `proposals/2026-10-16-window-ledger.md` (committed): git-versioned LEDGER.yaml per fleet — work items
+  with enqueue-time pre-authorization (`providers`, `glm-executable`, `auto-start`), quota
+  estimates/actuals per item, decisions and evidence-prep as first-class item kinds, and an append-only
+  window log replacing freehand handoff prose; guard v4 auto-starts ready glm-executable lanes at
+  handoff. Core idea: authorization decided at ENQUEUE time by the entity with the right to decide, so
+  GLM windows execute pre-authorized work without widening GLM's standing authority, and claude-only
+  items (model-under-test, e.g. arm B) are invisible to GLM by construction. Seed items for today's
+  backlog are in the proposal (the held eval merge is W-0037). Adoption (brief edits, FLEET.md, guard
+  v4, user sign-off on 4 open decisions) belongs to the Claude commander + user — a GLM window must not
+  edit the commander brief or the guard. This GLM window idled 16:15→handback; the ledger exists so the
+  next one doesn't.
 
