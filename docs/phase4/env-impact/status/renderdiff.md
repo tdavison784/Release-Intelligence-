@@ -2,7 +2,7 @@
 
 Branch `p4ei/renderdiff`, worktree `.claude/worktrees/p4ei-renderdiff`. Brief: `briefs/renderdiff.md`
 (+ `_wave1-common.md`, DESIGN §2.4 / §7 "renderdiff"). Merged `p4-env-impact` @ 918e855a (bundle lane).
-State: **DONE — follow-up 1 (DESIGN §1.3 amendment) complete** (2026-10-16). Resume from: this file +
+State: **DONE — follow-ups 1 (DESIGN §1.3 amendment) and 2 (not-applicable, knowledge facts) complete** (2026-10-16). Resume from: this file +
 brief + `git log`. Since follow-up 1 the lane also owns `internal/investigate/bundle/` (bundle lane finished).
 
 ## Done
@@ -67,6 +67,27 @@ brief + `git log`. Since follow-up 1 the lane also owns `internal/investigate/bu
    The only regenerated file is `schemas/evidence-bundle.schema.json`: (a) `ChangeItem.scopeRule` gains
    `"pattern": "^scope:"`; (b) `ChangeItem` gains the two `allOf` if/then rules above; (c)
    `EvidenceBundle.environmentItems` (array of `ChangeItem`) is added. The other schemas are byte-identical.
+
+## Follow-up 2 (commander queue note, after validate merged at e9566913) — done
+
+(a) **`not-applicable` pairs never block** automated approval: already in follow-up 1's `ValidateAgainst`
+change (only `ok`/`not-applicable` allowed, ≥1 `ok`); `EvidenceBundle.Uncorrelated()` only reads indexed
+changes, which a non-ok pair cannot carry. Test `TestAutoApprovalAcceptsNotApplicableRenders` now also
+asserts the bundle validates with such a pair and `Uncorrelated()` is unchanged by it.
+
+(b) **Knowledge facts in the bundle** — `bundle.WithKnowledge(facts...)` option on
+`NewChangeCollector`/`NewChangeCollectorOver` (additive, variadic). Every supplied fact that
+`impact.AttachedChanges` attaches to a change with an item is stored as a `knowledge-fact` artifact
+(`derived/knowledge/<product>/<fact-id>.json`, canonical JSON of the fact as loaded, URI `knowledge:<id>`,
+tags incl. status and verification level, `ChangeItems` = those items) and listed in the items'
+`Artifacts`. validate's `OverrideInspection` already reads exactly these (`ArtifactKnowledgeFact` +
+`ChangeItems`), so the wiring can pass `bundle.WithKnowledge(ks.Facts...)` and drop
+`validate.WithFacts`. Facts not attached to any item are not stored; retracted/superseded or other-product
+facts never attach. Test `TestChangeStoresAttachedKnowledgeFacts`. Real bundles (groundtruth test, knowledge/
+loaded): cert-manager 18 fact artifacts per bundle; ingress-nginx 0 and kube-prometheus-stack 0 (no
+knowledge for those products in knowledge/ — honest).
+
+Note: `gofmt -l` flags four files in `internal/investigate/validate/` (validate lane, as merged); untouched.
 
 ## Render coverage on the groundtruth environments (8 cases, inputs + env/ only)
 
@@ -180,8 +201,8 @@ Wave 1:
 
 ## Tests
 
-- `go build ./... && go vet ./... && go test ./...` green (38 packages ok, 0 fail) after merging p4-env-impact
-  @ adf4fe08 (follow-up 1).
+- `go build ./... && go vet ./... && go test ./...` green (39 packages ok, 0 fail) after merging p4-env-impact
+  @ 6f3ef2e4 (follow-up 2; TestEvalRenderCases offline).
 - `RI_STATE=<.ri> go test ./internal/investigate/bundle -run Groundtruth` ok (bundle's own groundtruth bundles).
 - `RI_RENDERDIFF_STATE=/Users/tommydavison/repos/Release-Intelligence-/.ri go test ./internal/investigate/renderdiff -run Groundtruth -v`
   — 8/8 pass (bundle validates, every change resolves, two runs identical).

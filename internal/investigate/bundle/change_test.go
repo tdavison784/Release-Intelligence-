@@ -516,3 +516,56 @@ func TestDocURL(t *testing.T) {
 }
 
 var _ = io.EOF
+
+// TestChangeStoresAttachedKnowledgeFacts: facts the wiring supplies are stored
+// as knowledge-fact artifacts when they attach to a change that has an item
+// (Principle 6: validators read them from the bundle), and only then.
+func TestChangeStoresAttachedKnowledgeFacts(t *testing.T) {
+	edge := fixtureEdge()
+	lookup := func(id domain.EvidenceID) (domain.Evidence, bool) {
+		for _, e := range edge.Evidence {
+			if e.ID == id {
+				return e, true
+			}
+		}
+		return domain.Evidence{}, false
+	}
+	var breaking domain.Change
+	for _, c := range edge.Changes {
+		if c.ID == "c-breaking" {
+			breaking = c
+		}
+	}
+	attached := domain.VerifiedFact{ID: "fact-attached", Product: "acme", Status: domain.FactActive,
+		Anchors: []domain.ChangeAnchor{domain.NewChangeAnchor(breaking, lookup)}}
+	otherProduct := attached
+	otherProduct.ID, otherProduct.Product = "fact-other", "other"
+	retracted := attached
+	retracted.ID, retracted.Status = "fact-retracted", domain.FactRetracted
+	fs := newSt(t)
+	res, err := NewChangeCollectorOver(&fakeUpstream{edge: edge, pair: fixturePair()}, fs, WithKnowledge(retracted, otherProduct, attached, attached)).
+		CollectChange(context.Background(), investigate.ChangeRequest{Product: "acme", From: "v1.0.0", To: "v2.0.0", Render: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var facts []domain.ArtifactRef
+	for _, a := range res.Artifacts {
+		if a.Kind == domain.ArtifactKnowledgeFact {
+			facts = append(facts, a)
+		}
+	}
+	item, _ := itemByChange(res.Record, "c-breaking")
+	if len(facts) != 1 || facts[0].Path != "derived/knowledge/acme/fact-attached.json" || len(facts[0].ChangeItems) != 1 || facts[0].ChangeItems[0] != item.ID {
+		t.Fatalf("knowledge artifacts = %+v", facts)
+	}
+	if len(item.Artifacts) != 1 || item.Artifacts[0] != facts[0].ID {
+		t.Errorf("item artifacts = %v", item.Artifacts)
+	}
+	var back domain.VerifiedFact
+	if err := json.Unmarshal([]byte(readFrom(t, fs, facts[0].Digest)), &back); err != nil || back.ID != "fact-attached" {
+		t.Errorf("stored fact = %+v (%v)", back, err)
+	}
+	if err := res.Record.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

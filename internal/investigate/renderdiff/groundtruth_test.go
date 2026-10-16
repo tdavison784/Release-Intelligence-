@@ -64,6 +64,10 @@ func TestGroundtruthEnvironments(t *testing.T) {
 	}
 	a, err := app.New(app.Config{ProductsDir: "../../../products", StateDir: state, Offline: true})
 	must(t, err)
+	var facts []domain.VerifiedFact
+	if ks, err := app.LoadKnowledge("../../../knowledge"); err == nil {
+		facts = ks.Facts
+	}
 	inputs, _ := filepath.Glob(filepath.Join(groundtruthDir, "*", "input.yaml"))
 	if len(inputs) == 0 {
 		t.Fatal("no groundtruth inputs")
@@ -79,7 +83,7 @@ func TestGroundtruthEnvironments(t *testing.T) {
 			ctx := context.Background()
 			st, err := store.New(t.TempDir())
 			must(t, err)
-			change, err := bundle.NewChangeCollector(a, st).CollectChange(ctx, investigate.ChangeRequest{Product: in.Product, From: in.From.Version, To: in.To.Version, Render: true})
+			change, err := bundle.NewChangeCollector(a, st, bundle.WithKnowledge(facts...)).CollectChange(ctx, investigate.ChangeRequest{Product: in.Product, From: in.From.Version, To: in.To.Version, Render: true})
 			if err != nil {
 				t.Skipf("change evidence not available offline from %s: %v", state, err)
 			}
@@ -110,6 +114,16 @@ func TestGroundtruthEnvironments(t *testing.T) {
 			for _, n := range res.Notes {
 				t.Logf("note: %s", n)
 			}
+			nFacts := 0
+			for _, art := range b.Manifest.Artifacts {
+				if art.Kind == domain.ArtifactKnowledgeFact {
+					nFacts++
+					if len(art.ChangeItems) == 0 {
+						t.Errorf("knowledge fact %s relates to no item", art.Path)
+					}
+				}
+			}
+			t.Logf("knowledge-fact artifacts in the bundle: %d", nFacts)
 			items := map[string]domain.ChangeItem{}
 			for _, it := range b.Items() {
 				items[it.ID] = it

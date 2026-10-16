@@ -123,7 +123,14 @@ func TestEnvironmentItemNeedsFinding(t *testing.T) {
 func TestAutoApprovalAcceptsNotApplicableRenders(t *testing.T) {
 	fx := newInvFixture(t)
 	na := ManifestPair{Scope: RenderEnvironment, Target: "kustomize:apps/payments", Status: CollectionNotApplicable, Reason: "version-independent: …"}
+	before := fx.b.Uncorrelated()
 	fx.b.Renders = append(fx.b.Renders, na)
+	if err := fx.b.Validate(); err != nil && strings.Contains(err.Error(), "kustomize:apps/payments") {
+		t.Errorf("a not-applicable pair is valid bundle content: %v", err)
+	}
+	if got := fx.b.Uncorrelated(); strings.Join(got, ",") != strings.Join(before, ",") {
+		t.Errorf("a not-applicable pair changes Uncorrelated(): %v → %v", before, got)
+	}
 	fx.inv.Decision.Outcome = PolicyAutoApproveEligible
 	if err := fx.inv.ValidateAgainst(fx.b); err != nil && strings.Contains(err.Error(), "environment render") {
 		t.Errorf("a not-applicable pair next to a complete one blocks: %v", err)

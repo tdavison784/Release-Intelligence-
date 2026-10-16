@@ -36,6 +36,13 @@ RBAC permission, removed resource, API-version or CRD storage/served move) is in
 (`scope:routine-self-artifact`) — so it is correlated, never "uncorrelated"; anything else is in scope
 (`scope:rendered-unexplained`, manifestation `rendered-config`).
 
+**Knowledge facts.** `bundle.NewChangeCollector(app, st, bundle.WithKnowledge(ks.Facts...))` (the facts
+`app.LoadKnowledge` proves) stores every fact attached to a change of the edge (`impact.AttachedChanges`,
+the join's rule) as a `knowledge-fact` artifact `derived/knowledge/<product>/<fact-id>.json`, related to
+that change's item (`ArtifactRef.ChangeItems`, `ChangeItem.Artifacts`). Validators read facts from the
+bundle, so an investigation is reproducible from its bundle alone (Principle 6); trust is still decided by
+the fact's own verification level (consensus/proxy facts never pin).
+
 **Layout** (`<state>/investigations/`, `store.New(<state>)`):
 
 ```
