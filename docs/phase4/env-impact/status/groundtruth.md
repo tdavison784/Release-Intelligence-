@@ -1,7 +1,7 @@
 # Status — lane `groundtruth` (Phase 4 env-impact)
 
 Agent: ri-groundtruth (Claude Opus 5.5). Branch `p4ei/groundtruth`. Brief: `briefs/groundtruth.md`.
-Last updated: 2026-10-16 ~13:30 CDT.
+Last updated: 2026-10-16 ~13:45 CDT local / 18:45Z (follow-up wave complete).
 
 ## Finding for the commander / contract lane (read this first)
 
@@ -111,6 +111,22 @@ items:
       - text: '(?i)rotation ?policy'
 ```
 
+**Addition (follow-up wave): `renderedChanges`** — for diff-centric cases, expected.yaml labels every
+environment-relevant hunk of `observed/render.diff` (the environment's own FROM/TO render):
+
+```yaml
+renderedChanges:
+  - diff: observed/render.diff#L747-L803        # hunk line range
+    object: ServiceMonitor/kube-system/kube-prometheus-stack-kubelet
+    change: bearerTokenFile -> authorization (...)
+    item: B1                                   # scope id, or null for an out-of-scope chart change
+    impact: breaking | harmless
+```
+
+Present in kube-prometheus-stack-89-90--obs-north/-south and ingress-nginx-1.11-1.12--shop-nl. It lets
+the eval lane score per-rendered-change verdicts (the contract's "a finding lists exactly its item's
+correlated env rendered changes"). Release noise (image tags, chart labels) is not listed.
+
 Relation vocabulary is plain verbs until DESIGN.md's `GraphEdge` kinds are final; I will rename on
 adoption of FORMAT.md. Edges point from provider to consumer (same direction the contract lane chose).
 
@@ -123,6 +139,9 @@ adoption of FORMAT.md. Edges point from provider to consumer (same direction the
 | ingress-nginx-1.11-1.12--shop-de | security-defaults | B1 risk level, B2 cross-ns, B3 strict path, B4 annotation validation | storefront overlay adds configuration-snippet; no risk level set | B1 affected, B2–B4 not-affected | observed | done |
 | ingress-nginx-1.11-1.12--shop-fr | security-defaults | same | values-prod.yaml sets annotations-risk-level: Critical | all not-affected | observed | done |
 | ingress-nginx-1.11-1.12--shop-pl | security-defaults | same | ingress-nginx value files withheld | B1 insufficient-evidence (acceptable potentially-affected), B2–B4 not-affected | observed-alternatives | done |
+| kube-prometheus-stack-89-90--obs-north | control-plane-auth | B1 control-plane SM auth via token Secret, B2 secretFieldSelector, B3 removed values | values-prod sets ignoreNamespaceSelectors: true | B1 affected, B2/B3 not-affected | observed | done (follow-up) |
+| kube-prometheus-stack-89-90--obs-south | control-plane-auth | same | does not | all not-affected | observed | done (follow-up) |
+| ingress-nginx-1.11-1.12--shop-nl | chart-cleanup | B1 OTel init container removed (#12024), B2 metrics default (#12153) | OTel + metrics enabled | both not-affected (diff-visible, harmless) | observed | done (follow-up) |
 
 Required minimum (2 pairs, 2 products) met; stretch met: both pairs are only visible through
 transitive relationships (overlay patches on base objects; consumers 2–5 hops away), plus the
@@ -147,22 +166,45 @@ insufficient-evidence case.
 - Docker Desktop was wedged at lane start (backend up 9 days, hit "no space left on device" on
   2026-10-07, daemon not answering `_ping`). Restarted it (killed the wedged processes, relaunched).
 
+## Follow-up wave results (2026-10-16)
+
+- **kube-prometheus-stack 89.2.4 → 90.2.0** (chart-only change, operator v0.93.1 and CRDs identical):
+  - obs-north (`ignoreNamespaceSelectors: true`): after the upgrade the operator rejects
+    `kube-system/…-kubelet`, `kube-system/…-coredns`, `default/…-apiserver` ("unable to get secret
+    kube-prometheus-stack-prometheus-token … not found"); scrape jobs 12 → 7; cAdvisor series for the
+    checkout memory alert: 2 → none (alert silently dead); KSM-based rule unaffected.
+  - obs-south: same rendered diff; all 12 jobs, kubelet/coredns/apiserver up, rule inputs intact.
+  - The decisive fact (ServiceMonitor namespace vs Secret namespace) is in the rendered objects'
+    unchanged context, not inside any diff hunk.
+- **ingress-nginx shop-nl** (OTel + metrics enabled): rendered diff removes the OTel init container and
+  `modules` volume and adds `--enable-metrics=true`; observed spans at the collector (4/4 before and
+  after), metrics endpoint 200 before and after, both hosts 200. Harmless.
+
 ## In progress / next step
 
-- Lane complete (LANE DONE sent).
+First 5 cases merged by the commander into p4-env-impact (23f79063). Do NOT merge p4-env-impact
+until told (FORMAT.md + EdgeKind adoption comes later).
+
+Follow-up requested by the commander (2026-10-16) — DONE (see "Follow-up wave results"):
+1. Diff-visible pair — chosen: **kube-prometheus-stack 89.2.4 → 90.2.0** (chart-only change, same
+   operator v0.93.1): control-plane ServiceMonitors switch from `bearerTokenFile` to
+   `authorization` from a chart-created token Secret in the release namespace (PR #7238). With
+   `prometheus.prometheusSpec.ignoreNamespaceSelectors: true` the kubelet/control-plane
+   ServiceMonitors render into kube-system (apiserver: default), where that Secret does not exist ⇒
+   operator rejects them (resource_selector.go L237, L150-L155) ⇒ kubelet/cAdvisor scraping stops.
+   Pair: env sets ignoreNamespaceSelectors (affected) vs not (not-affected, same diff shape).
+   Next: write env fixtures, run in kind, expected + NOTES.
+2. Diff-visible-but-harmless trap: ingress-nginx 4.11.5 → 4.12.0 with OpenTelemetry enabled
+   (init container + module volume vanish from the rendered Deployment; #12024 says OTel keeps
+   working) + the `--enable-metrics=false` arg removal (#12153; chart compensates).
 - When the commander says so: `git merge p4-env-impact`, adopt FORMAT.md (rename fields/relations if
   it differs from the draft above), keep the expectations unchanged.
 
 ## Possible follow-up (not started; commander's call)
 
-- A pair whose break **is** visible in the rendered diff (e.g. a chart values key renamed/removed so
-  an environment override silently stops applying). The two releases used here have none: the
-  4.11→4.12 chart removes only `controller.opentelemetry.*` (harmless per #12024: the module is in
-  the controller image since v1.10) and PSP templates; cert-manager's chart changes nothing relevant.
-  Candidates would need a different release (e.g. argo-cd 2.14→3.0 tracking-method default in the
-  rendered argocd-cm, or a kube-prometheus-stack selector change); each needs fresh research.
-- A diff-visible-but-harmless case (OpenTelemetry init container removal in an OTel-enabled
-  environment) as a false-positive trap for diff-driven investigation.
+- Add `renderedChanges` labels to the first five cases (their env diffs are small; the decisive
+  changes are absent from them, which the labels would make explicit).
+- An argo-cd 2.14→3.0 case (needs Argo CD + a git source in kind; heavier).
 
 ## Decisions
 
@@ -201,8 +243,15 @@ insufficient-evidence case.
 
 (none blocking)
 
+## Cleanup (follow-up wave)
+
+- kind clusters created and deleted by the run scripts: ri-groundtruth-kps-n, ri-groundtruth-kps-s,
+  ri-groundtruth-in-nl (earlier wave: -cm-eu, -cm-us, -in-de, -in-fr). `kind get clusters`: none.
+- Scratch only (not in the repo): chart tarballs and renders under the session scratchpad.
+- No Docker images or volumes removed (kind node image and pulled images stay in the local cache).
+
 ## Test status
 
-2026-10-16 on 1b14540f: `go build ./... && go vet ./... && go test ./...` green (32 packages ok, 3 without tests, no
-FAIL; this lane changes no Go code). All case YAML parses; every env overlay renders with
-`kubectl kustomize`. No kind clusters left behind.
+2026-10-16 (follow-up wave, on 892a549c): `go build ./... && go vet ./... && go test ./...` green (32
+packages ok, 3 without tests, no FAIL; this lane changes no Go code). All case YAML parses; every env
+overlay renders. No kind clusters left behind.

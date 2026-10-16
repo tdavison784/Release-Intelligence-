@@ -1,0 +1,28 @@
+# Paging rules owned by the checkout team.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: checkout-alerts
+spec:
+  groups:
+    - name: checkout.rules
+      rules:
+        - alert: CheckoutMemoryNearLimit
+          # working set vs. the container memory limit
+          expr: |
+            max by (pod) (container_memory_working_set_bytes{namespace="checkout", container="checkout"})
+              / max by (pod) (kube_pod_container_resource_limits{namespace="checkout", container="checkout", resource="memory"})
+              > 0.9
+          for: 10m
+          labels:
+            severity: page
+            team: checkout
+          annotations:
+            summary: checkout pod {{ $labels.pod }} is close to its memory limit
+        - alert: CheckoutRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="checkout"}[15m]) > 2
+          labels:
+            severity: page
+            team: checkout
+          annotations:
+            summary: checkout pod {{ $labels.pod }} restarted more than twice in 15 minutes
