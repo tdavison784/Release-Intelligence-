@@ -1,229 +1,297 @@
-package orchestrate
+package orchestrate_test
 
 import (
+	"context"
 	"errors"
-	"reflect"
 	"testing"
 	"time"
 
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run"
+	"github.com/tdavison784/release-intelligence/internal/investigate/run/runtest"
+	"github.com/tdavison784/release-intelligence/internal/orchestrate"
 )
 
-func noErr(t *testing.T, err error) {
+type harness struct {
+	f   *runtest.Fixture
+	env *testsuite.TestWorkflowEnvironment
+}
+
+func newHarness(t *testing.T) *harness {
 	t.Helper()
+	f := runtest.New(t)
+	var ts testsuite.WorkflowTestSuite
+	env := ts.NewTestWorkflowEnvironment()
+	return &harness{f: f, env: env}
+}
+
+// start registers the activities over the fixture's current Deps and runs
+// the workflow; cbs schedule signals and queries before it starts.
+func (h *harness) start(in orchestrate.Input) {
+	orchestrate.Register(h.env, &orchestrate.Activities{P: run.New(h.f.Deps)})
+	h.env.ExecuteWorkflow(orchestrate.WorkflowType, in)
+}
+
+func (h *harness) input() orchestrate.Input {
+	return orchestrate.Input{Request: h.f.Request(), ReviewTimeout: 24 * time.Hour}
+}
+
+func (h *harness) signalAt(d time.Duration, dec *investigate.ReviewDecision) {
+	h.env.RegisterDelayedCallback(func() { h.env.SignalWorkflow(orchestrate.SignalReview, *dec) }, d)
+}
+
+func (h *harness) result(t *testing.T) orchestrate.Result {
+	t.Helper()
+	if !h.env.IsWorkflowCompleted() {
+		t.Fatal("workflow did not complete")
+	}
+	var res orchestrate.Result
+	if err := h.env.GetWorkflowResult(&res); err != nil {
+		t.Fatalf("workflow error: %v", err)
+	}
+	return res
+}
+
+func TestHappyPathApprove(t *testing.T) {
+	h := newHarness(t)
+	var mid orchestrate.State
+	h.env.RegisterDelayedCallback(func() {
+		v, err := h.env.QueryWorkflow(orchestrate.QueryState)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		_ = v.Get(&mid)
+	}, time.Hour)
+	h.signalAt(2*time.Hour, runtest.Human(investigate.ReviewApprove))
+	h.start(h.input())
+	res := h.result(t)
+	if res.Outcome != run.OutcomeApproved || res.Reviewer != "alice" || res.Review != domain.ReviewApproved {
+		t.Fatalf("result = %+v", res.Result)
+	}
+	if !mid.AwaitingReview || mid.CurrentStage != string(domain.StageHumanReview) || mid.Investigation != res.Investigation {
+		t.Fatalf("state while waiting = %+v", mid)
+	}
+	inv, err := h.f.St.GetInvestigation(context.Background(), res.Investigation)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatal(err)
 	}
-}
-
-func isErr(t *testing.T, err error) {
-	t.Helper()
-	if err == nil {
-		t.Fatal("expected an error, got nil")
+	if inv.Status != domain.InvestigationCompleted || inv.Review.State != domain.ReviewApproved {
+		t.Fatalf("record = %s / %s", inv.Status, inv.Review.State)
 	}
-}
-
-func eq(t *testing.T, want, got any) {
-	t.Helper()
-	if !reflect.DeepEqual(want, got) {
-		t.Fatalf("want %v, got %v", want, got)
+	if run.Digest(inv) != res.RecordDigest {
+		t.Fatal("result digest is not the record's digest")
 	}
-}
-
-func ne(t *testing.T, a, b any) {
-	t.Helper()
-	if reflect.DeepEqual(a, b) {
-		t.Fatalf("expected values to differ, both %v", a)
-	}
-}
-
-func isTrue(t *testing.T, v bool, msg string) {
-	t.Helper()
-	if !v {
-		t.Fatal(msg)
-	}
-}
-
-func empty[T any](t *testing.T, s []T) {
-	t.Helper()
-	if len(s) != 0 {
-		t.Fatalf("expected empty, got %v", s)
-	}
-}
-
-func testInput() InvestigationInput {
-	return InvestigationInput{
-		Dependency: "example/dep", FromVersion: "1.0.0", ToVersion: "2.0.0",
-		Environment: "prod", EnvInputRef: ArtifactRef{Digest: "sha256:env"},
-		ReviewTimeout: time.Hour,
-	}
-}
-
-func newEnv(t *testing.T, a *Activities) *testsuite.TestWorkflowEnvironment {
-	var s testsuite.WorkflowTestSuite
-	env := s.NewTestWorkflowEnvironment()
-	env.RegisterWorkflow(InvestigationWorkflow)
-	env.RegisterActivityWithOptions(a.Run, registerRun)
-	return env
-}
-
-func signalAfter(env *testsuite.TestWorkflowEnvironment, d time.Duration, dec ReviewDecision) {
-	env.RegisterDelayedCallback(func() { env.SignalWorkflow(SignalReview, dec) }, d)
-}
-
-func statuses(audit []AuditEntry, stage string) []string {
-	var out []string
-	for _, e := range audit {
-		if e.Stage == stage {
-			out = append(out, e.Status)
+	// The workflow log has every stage started+completed.
+	done := 0
+	for _, a := range res.Audit {
+		if a.Status == "completed" {
+			done++
 		}
 	}
-	return out
-}
-
-func TestHappyPathAutoCompletes(t *testing.T) {
-	a := &Activities{Classification: ClassNotAffected}
-	env := newEnv(t, a)
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeAutoCompleted, res.Outcome)
-	eq(t, ClassNotAffected, res.Classification)
-	eq(t, 6, len(res.Artifacts))
-	for _, s := range []string{StageCollectChange, StageEnvSnapshot, StageGraph, StageInvestigate, StageValidate, StageClassify} {
-		eq(t, []string{"started", "completed"}, statuses(res.Audit, s))
-	}
-	empty(t, statuses(res.Audit, StageReview))
-	for i, e := range res.Audit {
-		eq(t, i+1, e.Seq)
+	if done != len(run.RoundPlan(true)) {
+		t.Fatalf("completed entries = %d: %+v", done, res.Audit)
 	}
 }
 
-func TestIdempotencyKeysAreContentDerived(t *testing.T) {
-	a := []ArtifactRef{{Digest: "x"}, {Digest: "y"}}
-	eq(t, IdempotencyKey("s", a), IdempotencyKey("s", a))
-	ne(t, IdempotencyKey("s", a), IdempotencyKey("t", a))
-	ne(t, IdempotencyKey("s", a), IdempotencyKey("s", a[:1]))
-	eq(t, WorkflowID(testInput()), WorkflowID(testInput()))
-	other := testInput()
-	other.ToVersion = "2.0.1"
-	ne(t, WorkflowID(testInput()), WorkflowID(other))
-}
-
-func TestRetryThenSucceed(t *testing.T) {
-	a := &Activities{Classification: ClassNotAffected, TransientFailures: map[string]int{StageEnvSnapshot: 2}}
-	env := newEnv(t, a)
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	eq(t, 3, a.Attempts(StageEnvSnapshot))
-}
-
-func TestTransientExhaustsRetries(t *testing.T) {
-	a := &Activities{TransientFailures: map[string]int{StageGraph: 100}}
-	env := newEnv(t, a)
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	isErr(t, env.GetWorkflowError())
-	eq(t, 4, a.Attempts(StageGraph))
-}
-
-func TestNonRetryableFailure(t *testing.T) {
-	a := &Activities{PermanentFailure: map[string]bool{StageCollectChange: true}}
-	env := newEnv(t, a)
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	err := env.GetWorkflowError()
-	isErr(t, err)
-	eq(t, 1, a.Attempts(StageCollectChange))
-	var appErr *temporal.ApplicationError
-	isTrue(t, errors.As(err, &appErr), "want ApplicationError")
-	eq(t, ErrTypeInvalidInput, appErr.Type())
-}
-
-func TestReviewApprove(t *testing.T) {
-	a := &Activities{}
-	env := newEnv(t, a)
-	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionApprove, Reviewer: "alice"})
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeApproved, res.Outcome)
-	eq(t, "alice", res.Reviewer)
-	eq(t, []string{"waiting", "signal"}, statuses(res.Audit, StageReview))
-}
-
-func TestReviewReject(t *testing.T) {
-	env := newEnv(t, &Activities{})
-	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionReject, Reviewer: "bob"})
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeRejected, res.Outcome)
-}
-
-func TestRequestMoreEvidenceThenApprove(t *testing.T) {
-	a := &Activities{}
-	env := newEnv(t, a)
-	signalAfter(env, time.Minute, ReviewDecision{Decision: DecisionMoreEvidence, Reviewer: "a", Note: "check overlays"})
-	signalAfter(env, 2*time.Minute, ReviewDecision{Decision: DecisionApprove, Reviewer: "a"})
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeApproved, res.Outcome)
-	eq(t, 1, res.Rounds)
-	eq(t, 2, a.Attempts(StageInvestigate))
-	eq(t, 1, a.Attempts(StageCollectChange))
-}
-
-func TestMoreEvidenceIsBounded(t *testing.T) {
-	env := newEnv(t, &Activities{})
-	for i := 1; i <= MaxEvidenceRounds+1; i++ {
-		signalAfter(env, time.Duration(i)*time.Minute, ReviewDecision{Decision: DecisionMoreEvidence, Reviewer: "a"})
+func TestReject(t *testing.T) {
+	h := newHarness(t)
+	h.signalAt(time.Hour, runtest.Human(investigate.ReviewReject))
+	h.start(h.input())
+	if res := h.result(t); res.Outcome != run.OutcomeRejected {
+		t.Fatalf("result = %+v", res.Result)
 	}
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeRejected, res.Outcome)
-	eq(t, MaxEvidenceRounds, res.Rounds)
+}
+
+func TestMoreEvidenceStartsNewRoundsAndIsBounded(t *testing.T) {
+	h := newHarness(t)
+	for i := 1; i <= run.MaxEvidenceRounds+1; i++ {
+		d := runtest.Human(investigate.ReviewRequestMoreEvidence)
+		d.Requests = []string{"not-fulfillable"}
+		h.signalAt(time.Duration(i)*time.Hour, d)
+	}
+	h.start(h.input())
+	res := h.result(t)
+	if res.Outcome != run.OutcomeRejected || res.Rounds != run.MaxEvidenceRounds {
+		t.Fatalf("result = %+v", res.Result)
+	}
+}
+
+func TestMoreEvidenceThenApprove(t *testing.T) {
+	h := newHarness(t)
+	h.signalAt(time.Hour, runtest.Human(investigate.ReviewRequestMoreEvidence))
+	h.signalAt(2*time.Hour, runtest.Human(investigate.ReviewApprove))
+	h.start(h.input())
+	res := h.result(t)
+	if res.Outcome != run.OutcomeApproved || res.Rounds != 1 {
+		t.Fatalf("result = %+v", res.Result)
+	}
+	// Nothing new was supplied, so round 1 reuses the record and re-runs the later stages on it.
+	inv, _ := h.f.St.GetInvestigation(context.Background(), res.Investigation)
+	classified := 0
+	for _, e := range inv.Audit {
+		if e.Stage == domain.StageClassify && e.Event == "completed" {
+			classified++
+		}
+	}
+	if classified != 2 || inv.Review.State != domain.ReviewApproved {
+		t.Fatalf("classify ran %d times, review %s", classified, inv.Review.State)
+	}
+}
+
+func TestProxyDecisionDoesNotApprove(t *testing.T) {
+	h := newHarness(t)
+	h.signalAt(time.Hour, &investigate.ReviewDecision{Action: investigate.ReviewApprove, Reviewer: "claude", ReviewerKind: domain.ReviewerProxy, At: runtest.FixedNow})
+	h.start(h.input())
+	res := h.result(t)
+	if res.Outcome != run.OutcomeReviewTimedOut {
+		t.Fatalf("a proxy approval settled the review: %+v", res.Result)
+	}
+}
+
+func TestInvalidDecisionIsIgnored(t *testing.T) {
+	h := newHarness(t)
+	h.signalAt(time.Hour, &investigate.ReviewDecision{Action: investigate.ReviewApprove, ReviewerKind: domain.ReviewerHuman}) // no reviewer
+	h.signalAt(2*time.Hour, runtest.Human(investigate.ReviewReject))
+	h.start(h.input())
+	if res := h.result(t); res.Outcome != run.OutcomeRejected {
+		t.Fatalf("result = %+v", res.Result)
+	}
 }
 
 func TestReviewTimeoutFailsClosed(t *testing.T) {
-	env := newEnv(t, &Activities{})
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	var res InvestigationResult
-	noErr(t, env.GetWorkflowResult(&res))
-	eq(t, OutcomeReviewTimedOut, res.Outcome)
-	eq(t, []string{"waiting", "timed-out"}, statuses(res.Audit, StageReview))
+	h := newHarness(t)
+	h.start(h.input())
+	res := h.result(t)
+	if res.Outcome != run.OutcomeReviewTimedOut || res.Review == domain.ReviewApproved {
+		t.Fatalf("result = %+v", res.Result)
+	}
+	inv, _ := h.f.St.GetInvestigation(context.Background(), res.Investigation)
+	if inv.Status != domain.InvestigationFailed || inv.Audit[len(inv.Audit)-1].Event != "timed-out" {
+		t.Fatalf("record = %s, last event %+v", inv.Status, inv.Audit[len(inv.Audit)-1])
+	}
 }
 
 func TestCancelWhileAwaitingReview(t *testing.T) {
-	env := newEnv(t, &Activities{})
-	env.RegisterDelayedCallback(func() {
-		v, err := env.QueryWorkflow(QueryState)
-		noErr(t, err)
-		var st State
-		noErr(t, v.Get(&st))
-		isTrue(t, st.AwaitingReview, "want awaitingReview")
-		eq(t, StageReview, st.CurrentStage)
-		env.CancelWorkflow()
-	}, time.Minute)
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	err := env.GetWorkflowError()
-	isErr(t, err)
-	isTrue(t, temporal.IsCanceledError(err), "want CanceledError, got "+err.Error())
+	h := newHarness(t)
+	h.env.RegisterDelayedCallback(h.env.CancelWorkflow, time.Hour)
+	h.start(h.input())
+	if !h.env.IsWorkflowCompleted() || h.env.GetWorkflowError() == nil {
+		t.Fatal("expected a cancelled workflow")
+	}
+	var st orchestrate.State
+	v, err := h.env.QueryWorkflow(orchestrate.QueryState)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = v.Get(&st)
+	inv, err := h.f.St.GetInvestigation(context.Background(), st.Investigation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if inv.Status != domain.InvestigationCancelled || inv.Audit[len(inv.Audit)-1].Event != "cancelled" {
+		t.Fatalf("record = %s, last event %+v", inv.Status, inv.Audit[len(inv.Audit)-1])
+	}
+	if st.Outcome != run.OutcomeCancelled {
+		t.Fatalf("state = %+v", st)
+	}
 }
 
-func TestQueryStateAfterCompletion(t *testing.T) {
-	env := newEnv(t, &Activities{Classification: ClassNotAffected})
-	env.ExecuteWorkflow(InvestigationWorkflow, testInput())
-	noErr(t, env.GetWorkflowError())
-	v, err := env.QueryWorkflow(QueryState)
-	noErr(t, err)
-	var st State
-	noErr(t, v.Get(&st))
-	eq(t, ClassNotAffected, st.Classification)
-	isTrue(t, len(st.Audit) > 0, "want audit entries")
+type flakySnapshot struct {
+	investigate.SnapshotBuilder
+	fail, calls int
+}
+
+func (f *flakySnapshot) BuildSnapshot(ctx context.Context, in investigate.EnvironmentInputs) (*investigate.SnapshotResult, error) {
+	f.calls++
+	if f.calls <= f.fail {
+		return nil, errors.New("registry timeout")
+	}
+	return f.SnapshotBuilder.BuildSnapshot(ctx, in)
+}
+
+func TestTransientFailureIsRetried(t *testing.T) {
+	h := newHarness(t)
+	fl := &flakySnapshot{SnapshotBuilder: h.f.Deps.Snapshot, fail: 2}
+	h.f.Deps.Snapshot = fl
+	h.signalAt(time.Hour, runtest.Human(investigate.ReviewApprove))
+	h.start(h.input())
+	if res := h.result(t); res.Outcome != run.OutcomeApproved || fl.calls != 3 {
+		t.Fatalf("outcome %s after %d snapshot attempts", res.Outcome, fl.calls)
+	}
+}
+
+func TestTransientExhaustionFailsWorkflow(t *testing.T) {
+	h := newHarness(t)
+	fl := &flakySnapshot{SnapshotBuilder: h.f.Deps.Snapshot, fail: 99}
+	h.f.Deps.Snapshot = fl
+	h.start(h.input())
+	if h.env.GetWorkflowError() == nil || fl.calls != run.PolicyOf(domain.StageBuildSnapshot, investigate.Config{}).MaxAttempts {
+		t.Fatalf("error %v after %d attempts", h.env.GetWorkflowError(), fl.calls)
+	}
+}
+
+type permanentClassifier struct{ calls int }
+
+func (c *permanentClassifier) Classify(context.Context, investigate.ClassifyInput) (*investigate.Classification, error) {
+	c.calls++
+	return nil, investigate.PermanentError(domain.StageClassify, errors.New("unsupported input"))
+}
+
+func TestNonRetryableFailure(t *testing.T) {
+	h := newHarness(t)
+	pc := &permanentClassifier{}
+	h.f.Deps.Classifier = pc
+	h.start(h.input())
+	if h.env.GetWorkflowError() == nil || pc.calls != 1 {
+		t.Fatalf("error %v after %d calls", h.env.GetWorkflowError(), pc.calls)
+	}
+	var st orchestrate.State
+	v, _ := h.env.QueryWorkflow(orchestrate.QueryState)
+	_ = v.Get(&st)
+	inv, _ := h.f.St.GetInvestigation(context.Background(), st.Investigation)
+	if inv == nil || inv.Status != domain.InvestigationFailed {
+		t.Fatalf("record = %+v", inv)
+	}
+}
+
+func TestWorkflowIDIsContentDerived(t *testing.T) {
+	f := runtest.New(t)
+	a, b := f.Request(), f.Request()
+	if orchestrate.WorkflowID(a, 0) != orchestrate.WorkflowID(b, 0) || orchestrate.WorkflowID(a, 1) == orchestrate.WorkflowID(a, 0) {
+		t.Fatal("workflow id is not stable per request")
+	}
+	b.To = "v2.0.1"
+	if orchestrate.WorkflowID(a, 0) == orchestrate.WorkflowID(b, 0) {
+		t.Fatal("different request, same workflow id")
+	}
+}
+
+// The in-process runner and the Temporal path produce the same run record
+// digest for the same inputs (both with the scripted agent; fixed clock).
+func TestInProcessAndTemporalRecordDigestsMatch(t *testing.T) {
+	approve := runtest.Human(investigate.ReviewApprove)
+	// In-process.
+	f1 := runtest.New(t)
+	r := &run.Runner{P: run.New(f1.Deps), Sleep: func(time.Duration) {},
+		Review: func(context.Context, *domain.Investigation) (*investigate.ReviewDecision, error) { return approve, nil }}
+	a, err := r.Run(context.Background(), f1.Request())
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Temporal.
+	h := newHarness(t)
+	h.f.Repo = f1.Repo // the repo path is part of the snapshot, hence of the ids
+	h.signalAt(time.Hour, approve)
+	h.start(h.input())
+	b := h.result(t)
+	if a.Investigation != b.Investigation {
+		t.Fatalf("investigation ids differ: %s vs %s", a.Investigation, b.Investigation)
+	}
+	if a.RecordDigest == "" || a.RecordDigest != b.RecordDigest {
+		t.Fatalf("record digests differ: %s vs %s", a.RecordDigest, b.RecordDigest)
+	}
 }

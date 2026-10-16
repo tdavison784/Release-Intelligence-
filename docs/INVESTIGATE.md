@@ -484,3 +484,123 @@ its replay check:
 environment and the input path as supplied. The groundtruth environments sit inside this repository, so
 every commit, and every checkout location, gives a new bundle id. A recorded run then replays only at its
 commit and path: a replay elsewhere is refused for a prompt-digest mismatch, never silently accepted.
+
+## Running an investigation
+
+`ri investigate <product> <from> <to>` runs the whole environment-aware pipeline (DESIGN.md §5):
+
+```
+collect-change-evidence → build-snapshot → assemble-bundle → build-graph → traverse → validate
+  → investigate (agent) → traverse (graph + the agent's proposed, always-inferred edges) → validate
+  → classify → human-review
+```
+
+The environment is named like `ri impact` (`--repo`, `--values`, `--manifests`, `--crds`, `--images`,
+`--inventory`, `--kubernetes`, `--env-name`); `--render` (default on) renders both releases with the
+environment's configuration; `--knowledge DIR` supplies verified facts (a fact clears a change only when
+trusted). `--agent` runs the investigation agent (driver `--agent-driver claude-cli|exchange|replay`,
+`--agent-exchange DIR`, `--agent-replay FILE`); without it the agent stage records `not-run` and no
+run can become auto-approve-eligible. Everything lands in `<state>/investigations/`: the immutable bundle,
+content-addressed artifacts and the run record `runs/<inv-id>.json`, whose **hash-chained audit trail**
+has `started` / `completed` / `failed` / `retried` per stage (actor `system`), `requested` per agent
+request (actor `agent:<model>`) and `decided` for the review (`human:<name>` / `proxy:<model>`). The
+deterministic pass's `ValidationRecord`s are in the record itself, so it is complete without re-running
+validators.
+
+**In-process** (default): a plain sequential runner. A transient error is retried with the stage's policy
+(DESIGN §5.1: collect ×5, snapshot/assemble/validate ×3, agent/classify ×1; exponential backoff), a
+permanent one stops the run. Without `--review` it ends `awaiting-review`; then
+`ri investigate review <inv-id> approve|reject|more --reviewer NAME [--note …]` records the decision
+(only a human approves; a proxy decision is recorded and never approves). `--review approve --reviewer me`
+applies a decision inline. `--review-timeout` fails closed: nothing is approved.
+
+**Temporal** (`--temporal`): the same stages as activities of one workflow. Start a worker with
+`ri worker` (same wiring flags; `--temporal-addr`, default `localhost:7233`, `--temporal-namespace`), then
+`ri investigate … --temporal` (add `--detach` to print the workflow id and return). The workflow id is
+content-derived from the request (`invreq-…`), so re-submitting attaches to the existing execution; a
+finished result is not silently recomputed (`--rerun N` adds `-rN`). Send the human decision with
+`ri investigate review <workflow-id> approve|reject|more --temporal --reviewer NAME` (`more` takes
+`--request values:<path>,manifest:<path>,crd:<path>,image:<ref>`), and look at the live state (stage,
+round, decision, review, workflow audit) with `ri investigate state <workflow-id> --temporal`. Timeouts:
+review default 7 d (`--review-timeout`) ⇒ outcome `review-timed-out`, status `failed`, nothing approved;
+cancelling the workflow records a `cancelled` audit event. `request-more-evidence` starts a new round
+(snapshot → … → classify; the change evidence is reused; at most 2 rounds). A round whose bundle is
+unchanged reuses the run record; one with new inputs is a new bundle and so a new investigation id.
+`--search-attrs` upserts `RiDependency`, `RiEnvironment`, `RiClassification`, `RiReviewState` (register
+them first; see TEMPORAL.md).
+
+Both paths call the same `run.Pipeline`, so for the same inputs, configuration and a scripted/replay
+agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
+its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
+first result without repeating side effects, in particular without calling the agent again.
+
+Note: until lane classify is merged the `ri` binary has no classifier; build with `-tags ri_devstubs`
+for the placeholder classifier used in live checks (every in-scope item `insufficient-evidence`, human
+review required).
+## Classification and review
+
+Package `internal/investigate/classify` (DESIGN.md §3, §7; policy `classify.policy@v1`). `classify.New()` is the
+`investigate.Classifier`: one `InvestigationFinding` per in-scope change item (record and environment items),
+computed **deterministically** from the bundle, the traversal, the join's findings, the validation records and the
+agent records. Model confidence and model agreement are never inputs. Same input ⇒ byte-identical output (record
+order does not matter), so re-classifying a stored run reproduces its findings.
+
+Rules, in order (first match decides; `Finding.Rule`):
+
+| Rule | Class | When |
+|---|---|---|
+| R1 `classify:validated-exposure` | affected | a validation of the item **failed** (deterministic or observed; a join ACTION REQUIRED arrives wrapped as one) |
+| R2 `classify:validated-clear` | not-affected | **all** of R2.1–R2.8 hold (below) |
+| R3 `classify:plausible-impact` | potentially-affected | not R1/R2, and a plausible impact exists: a correlated environment rendered change, an impact path/root, a review-required/informational join finding, an unknown join finding with matches, an erroring validation on an exposed subject, an unanswered agent concern |
+| R4 `classify:insufficient-evidence` | insufficient-evidence | otherwise |
+
+R2: (1) every change source and environment input that decides the item's **family** is `ok`/`not-applicable`, and
+for render-decided families (values, image, rendered, api-schema) every environment render target of the product is
+complete (`not-applicable` targets do not deploy it) and at least one exists — table `decidingInputs` in
+`collection.go`; (2) every correlated environment rendered change is covered by a passing validation; (3) the
+traversal is complete for the item; (4) every path (else root, else the item) is covered by a passing validation;
+(5) no erroring validation; (6) every `raises-concern` assertion is answered (`ValidationRecord.Answers`) by a
+passing validation; (7) no `claims-mitigation` assertion is left unestablished; (8) no action-required join verdict.
+**Manifestation (R2.4):** for a `controller-behaviour` or `unknown` item only *clearing* validations count —
+an override inspection that established a `PinnedSetting`, or an observed validation. A render that shows nothing
+never clears such an item.
+
+Every unmet R2 condition becomes an `EvidenceGap` (kind, subject, detail, UNKNOWN reason) with the next step that
+would meet it. For a behaviour item in R3/R4 the first next step **names the setting to look for** — flags, values
+keys, fields, annotations, environment variables and feature gates that the item's upstream evidence excerpts,
+title and subjects, or the agent's hypotheses mention (lexical, generic) — and asks for an override inspection;
+when upstream names none, it says to observe the behaviour in an isolated cluster.
+
+**Agent records** (§3.3) can only raise concern: a concern blocks R2 until a validation answers it (and moves R4 to
+R3); a mitigation claim is listed in `Assumptions` and blocks R2 until a validation names it in `Answers`; an
+`explains` assertion is attached, labelled AI, and changes nothing. No agent record can yield `affected` or
+`not-affected`. Validations answer an assertion by its **assertion id** (a hypothesis id answers the hypothesis only).
+
+**Decision** (§3.4): `auto-approve-eligible` ⇔ every in-scope item is not-affected **and** the agent stage
+`submitted` **and** the traversal is complete **and** ≥1 complete environment render, no incomplete one, no
+uncorrelated environment rendered change **and** — when `Config.TierPolicy` (the tier policy digest) is set — the
+tier verdict (`ClassifyInput.Tier`, from `classify.TierVerdict(*policy.Verdict)`) is `auto-pass`. Otherwise
+`human-review-required` with every blocker as a reason. `AutoApprovalEnabled` is always false in milestone 1
+(shadow mode, also when `Config.AutoApproval` is set): an eligible investigation still waits for a human.
+
+**ACTION REQUIRED** (§3.5) is never weakened or written: an action-required join verdict makes the finding affected
+(through the join validator's wrapped fail; without that record `Classify` returns an error rather than classify
+around it); an affected finding the join classifies below action stays `action: review` on the action axis.
+
+**Recording and review.** `classify.Apply(inv, classification, at)` records findings + decision on the run
+record (review `pending`, status `awaiting-review`, a `classify` audit event; validated, unchanged on error).
+`classify.NewReviewApplier()` is the `investigate.ReviewApplier`: a **human** `approve`/`reject` is final,
+`request-more-evidence` (with `Requests`) starts a new round; a **proxy** (AI reviewer, AI provenance required)
+decision of any action is recorded — reviewer, provenance, audit event "not enacted" — and never changes the state.
+Each decision appends a hash-chained `human-review`/`decided` audit event; an invalid decision leaves the record
+unchanged.
+
+**Text** (`classify.WriteText(w, inv, bundle)`): per finding, the class label says *validated* or *not validated*
+next to the action axis ("AFFECTED (validated, deterministic) · action: review"), then separate sections for the
+validations the class rests on, **unvalidated assumptions** (agent, AI), agent concerns and explanations (AI, not
+validations), gaps, next steps and approval — so validated conclusions and assumptions are distinct on the face of
+the text (AC6).
+
+Opt-in real-stage test: `RI_CLASSIFY_STATE=<warm .ri> go test ./internal/investigate/classify -run Groundtruth -v`
+(bundle + renderdiff + relations + validate + classify over every groundtruth `input.yaml`; never `expected.yaml`;
+asserts conformance and reproducibility, logs the class table; `RI_CLASSIFY_VERBOSE=1` prints the text).

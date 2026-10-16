@@ -34,7 +34,7 @@ Verified 2026-10-16 against `temporal server start-dev` (CLI from Homebrew): wor
 review wait, query reported `await-human-review`, signal approved, outcome `approved`, 14 audit
 entries, workflow visible as Completed in `temporal workflow list`.
 
-Intended wiring (not built yet): `ri worker` starts a worker on the task queue; `ri investigate
+Wired in wave 2 (see docs/INVESTIGATE.md "Running an investigation"): `ri worker` starts a worker on the task queue; `ri investigate
 --temporal` starts/attaches to a workflow by ID and prints the result; `ri review <id> approve|reject|more`
 sends the signal. The worker registers via `orchestrate.Register(worker, &Activities{...deps})`.
 
@@ -90,3 +90,15 @@ Payload types are JSON: only add optional fields; never repurpose or remove one.
   stays in activities. Reasoning/graph/validation packages stay Temporal-free.
 - **Agent investigation** is the long, expensive, non-idempotent-ish step: give it a heartbeat, a large
   StartToClose, a low retry count, and persist its transcript as an artifact keyed by the idempotency key.
+
+## Wave 2 (orchestrate2): what changed from the spike
+
+- Workflow `InvestigationWorkflow` runs `run.RoundPlan` (DESIGN §5.1 stages, `domain.Stage` names); one activity
+  per stage, named by the stage, plus `human-review` (applies a decision through `ReviewApplier`) and `finalize`
+  (timeout / cancel / failure / exhausted rounds, run on a disconnected context).
+- Retry classes come from `investigate.ClassOf`: Permanent ⇒ non-retryable `Permanent` application error.
+  Policies/timeouts live in `run.PolicyOf` and are used by both the workflow and the in-process runner.
+- A background heartbeat (5 s) keeps long single port calls alive; ports with their own loops also call `run.beat`.
+- Workflow id = `invreq-` + hash of the request (the investigation id needs the bundle, unknown at start).
+- Replay: `internal/orchestrate/testdata/history-*.json` are recorded from a real dev server
+  (`TestRecordHistory`) and replayed on every `go test` (`TestReplayRecordedHistories`).
