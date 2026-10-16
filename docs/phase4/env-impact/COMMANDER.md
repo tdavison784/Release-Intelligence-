@@ -53,6 +53,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
+| values | ri-values | claude-opus-5-5 | .claude/worktrees/p4ei-values | pane w1:p31 | started 17:55: per-release layered values (redo of reverted GLM fix 1) |
 | reviewfilter | ri-reviewfilter | claude-sonnet-5-5 | .claude/worktrees/p4ei-reviewfilter | pane w1:p20 | started 17:45 (user request: review UI shows only what needs review) |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
@@ -88,6 +89,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 UNSAFE ELIGIBILITY found by eval A′: 4 findings on obs-north (expected affected) became eligible not-affected after the fixes merged. Arm B HELD until root-caused (diagnostic requested from ri-eval: pipeline output only, no ground truth).
 - 2026-10-16 Runtime: a data change under a consumer with no degradation = inconclusive (error), never fail (MISSION: Affected needs a demonstrated breaking impact) — never a clearance. Behaviour-item exposure via a declarative `reconciles:` catalog construct (product controller → kinds).
 - 2026-10-16 Replay decision (agent q.): recorded runs replay against their STORED bundle + transcript (commit-independent); rebuilding a bundle from inputs is only guaranteed identical at the same commit + cache. No cache freeze.
+- 2026-10-16 INDEPENDENT OPUS REVIEW of the GLM merges (5 blockers, 10 should-fix): runtime core rules hold (quiet window never passes, clusters always deleted, generic, cited exercises) but exercise = patch accepted, not controller reaction; no post-exercise health check; weak Secret digests → ri-runtime. Agent v5 clean on policy (claims not policy inputs); claim nits (nested values, comments, absent on partial env) → queued, low priority. FIX 1 (layered values) FAILS OPEN — merges unrelated releases' values, wrong -f order, {} deletes keys, inline beats -f (test inverted) → REVERTED on integration (73bb58ba), redo in lane values. Fix 3 defects overlap F1–F5 + env-scope flood + weakened test → ri-fixes. Fix 2 dropped (not moved) timestamps → ri-fixes. Depth 12: DESIGN §2.5 + CONTRACT-CHANGE marker added by commander (a3f62868).
+- 2026-10-16 LESSON: GLM-window merges passed every test yet two of three carried fail-open or exposure-dropping defects; the mandatory Claude review at resume is the safety net and stays mandatory (ledger proposal decision 2).
 - 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
@@ -136,10 +139,12 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 ## Next actions
 
 1. **Unsafe eligibility (top priority)**: read ri-eval's `runs/unsafe-eligibility-diagnostic.md` (pipeline output only) + the independent Opus review of the GLM merges; route the root cause (likely RenderDiff/OverrideInspection passing an exposed rendered-config item, or fix-3 F3) to its owner. Arm B stays HELD until fixed and arm A re-scored safe (unsafeEligibilityRate 0).
-2. **fixes2** (ri-fixes): F1–F5 on fix 3 + not-run coverage echo → review, merge, clean up.
-3. **runtime** (ri-runtime): data-change ⇒ inconclusive, `reconciles:` exposure, `--runtime` in ri investigate → review, merge, clean up.
+2. **fixes2** (ri-fixes): F1–F5 on fix 3 (+ env-scope flood, restored test), not-run coverage echo, timestamps as provenance → review, merge, clean up.
+2b. **values** (ri-values): per-release values stacks → review hard (this is where the fail-open was), merge, clean up.
+3. **runtime** (ri-runtime): data-change ⇒ inconclusive, `reconciles:` exposure, `--runtime` in ri investigate, exercise reaction required, post-exercise health, keyed HMAC digests → review, merge, clean up.
 4. **reviewfilter** (ri-reviewfilter): on LANE DONE give the user the start command + item count so they can verify the controller-default facts.
 5. **eval** (ri-eval): merge harness + stored runs A, A′, C after review of EVAL-REPORT.md; after 1–3 merge, re-score A (new run id); then ARM B GO (Claude window, claude-sonnet-5-5, prompt v5) — only the Claude commander sends it; then C and B+C; final report.
+5b. Later, low priority: agent claim nits (nested/embedded values, comment matches, absent-claim on partial env) — small lane after eval.
 6. Ledger proposal (proposals/2026-10-16-window-ledger.md): commander review + user sign-off; adopt after phase 4 eval, not mid-endgame.
 7. Then the user decides on push/PR (nothing pushed yet).
 
