@@ -202,7 +202,10 @@ func prepare(ctx context.Context, in investigate.ValidationInput) (domain.Change
 	if in.Bundle == nil {
 		return domain.ChangeItem{}, fmt.Errorf("validate: %w: no bundle", investigate.ErrRejected)
 	}
-	it, ok := in.Bundle.Change.Item(in.ChangeItem)
+	// Bundle.Item: record items and environment-scope items (DESIGN §1.3
+	// amendment: scope:rendered-unexplained anchored on an environment
+	// rendered change lives in EvidenceBundle.EnvironmentItems).
+	it, ok := in.Bundle.Item(in.ChangeItem)
 	if !ok {
 		return domain.ChangeItem{}, fmt.Errorf("validate: change item %q: %w", in.ChangeItem, investigate.ErrNotFound)
 	}
