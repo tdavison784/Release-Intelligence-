@@ -17,11 +17,50 @@ lines of vanilla JS, vendored inside the binary — no CDN, no npm, no third-par
 authentication (a non-goal): it binds to localhost and refuses cross-origin POSTs; do not expose it.
 Without JavaScript the inbox lists the items, each links to its page, and every decision is a plain form.
 
+## Needs review: the default view
+
+The product owner verifies knowledge facts here, so `/` lists **only what needs a human decision now**. Start it
+and read the waiting count off the first lines it prints:
+
+```
+ri review serve -knowledge knowledge/ -reviewer <your name>
+# review UI on http://127.0.0.1:8484 (knowledge store knowledge/; Ctrl-C to stop)
+# 641 item(s) need review, 21 of them block investigations; the page lists only those ("Show all staged data" reveals the rest)
+```
+
+An item **needs review** when its status is pending, no decision of any kind is recorded on it, no active fact
+already holds the aspects it asks about at `human` or `deterministic` level, and (for a fact-review audit item)
+the audited fact is still active. Everything else is hidden from the default list **and from its counters**:
+already decided, parked (deferred / needs evidence: a decision parked them), acted on by an AI proxy (a proxy
+decision is never shown as human), already verified, superseded or retracted. Consensus-only and proxy-staged
+facts, model proposals and demo fixtures are not review items, so they never appear; a consensus-only fact does
+not hide its item either (only human or deterministic verification does).
+
+**Order.** Blocking-first, by a computed signal, not a product list. An item *blocks investigations* when its
+product is investigated (a product in `eval/investigations/*/input.yaml`, or an upstream repository one of those
+products' definitions reads, e.g. the operator a chart bundles) and its candidate is only upstream prose, which
+manifests as controller behaviour (DESIGN §2.2.1 `manifest:declared-behaviour`): no render can clear it, so
+investigations need a verified fact. Among those, items whose proposed assertion would give OverrideInspection a
+pin source once verified (`validate.CanBePinSource`, the same derivation the pin rules use) come first, with the
+sentence *"Verifying this lets investigations clear environments that pin the old default."*; other blockers say
+*"Investigations of this product cannot rely on this behaviour change until a human verifies it."*. Inside each
+group the usual priority order holds. The header has a **Blocking investigations** counter that filters to them.
+`-investigations DIR` (default `eval/investigations`) and the global `-products DIR` say where to read the scope;
+missing directories just mean nothing is ranked as blocking. Known gap: a computed `crd:default-changed` item is
+also controller behaviour but is not flagged (the rule is not recorded on the candidate).
+
+**Show all staged data** (`/?scope=all`, the button in the grey bar) is the one explicit way to see the rest. It is
+the pre-existing inbox with all its filters (status, …), each row it would hide says why ("Not in Needs review: …"),
+and a bar says the view is wider. *Back to Needs review* returns. Decisions are unchanged: the reviewer is
+recorded with `reviewerKind: human`, labels and reasons as before; a decided item leaves the default view at once.
+Without a snapshot source (a custom `knowledge.Queue` and no `Options.Snapshot`) the inbox lists everything as
+before. An item the snapshot does not know is shown, never hidden. Tests: `triage_test.go`.
+
 ## Pages
 
 | Route | What |
 |---|---|
-| `GET /` | inbox: the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, **route priority**, model, model agreement, evidence source, reviewer; `?priority=high|normal|low`). A red **High priority N** chip in the header (pending items of priority high; independent of the status and priority filters) links to `?status=pending&priority=high` |
+| `GET /` | inbox (default: Needs review; `?scope=all` = all staged data): the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, **route priority**, model, model agreement, evidence source, reviewer; `?priority=high|normal|low`). A red **High priority N** chip in the header (pending items of priority high; independent of the status and priority filters) links to `?status=pending&priority=high` |
 | `GET /items/{id}` | the item page (deep link): everything of G8 |
 | `GET /items/{id}/detail` | the same detail as an HTML fragment (inline expansion) |
 | `POST /items/{id}/decision` | one decision: `accept`, `reject`, `correct`, `need-more-evidence`, `defer` |

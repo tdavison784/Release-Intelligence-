@@ -64,6 +64,17 @@ func (r *rig) get(path string) (int, string) {
 	return s, b
 }
 
+// getAll fetches the full "show all staged data" view (the pre-triage inbox);
+// plain get fetches the default needs-review view.
+func (r *rig) getAll(path string) (int, string) {
+	r.t.Helper()
+	sep := "?"
+	if strings.Contains(path, "?") {
+		sep = "&"
+	}
+	return r.get(path + sep + "scope=all")
+}
+
 func (r *rig) post(path string, f url.Values) (int, string, http.Header) {
 	r.t.Helper()
 	req, _ := http.NewRequest("POST", r.srv.URL+path, strings.NewReader(f.Encode()))
@@ -150,7 +161,7 @@ func TestFixturesAreValidDomainRecords(t *testing.T) {
 
 func TestInboxCountsAndDefaultFilter(t *testing.T) {
 	r := newRig(t)
-	st, body := r.get("/")
+	st, body := r.getAll("/")
 	if st != 200 {
 		t.Fatal(st)
 	}
@@ -268,7 +279,7 @@ func TestInboxFilters(t *testing.T) {
 		{"reviewer", "status=all&reviewer=morgan", []string{"Owner-reference flag"}, []string{"rotationPolicy"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			st, body := r.get("/?" + tc.query)
+			st, body := r.getAll("/?" + tc.query)
 			if st != 200 {
 				t.Fatal(st)
 			}
@@ -277,8 +288,8 @@ func TestInboxFilters(t *testing.T) {
 		})
 	}
 	// counts do not depend on the filter
-	_, a := r.get("/")
-	_, b := r.get("/?product=argo-cd")
+	_, a := r.getAll("/")
+	_, b := r.getAll("/?product=argo-cd")
 	for _, body := range []string{a, b} {
 		contains(t, body, "<b>10</b><span>Pending</span>", "<b>1</b><span>Needs more evidence</span>", "<b>1</b><span>Deferred</span>", "<b>2</b><span>Model disagreement</span>")
 	}
@@ -612,18 +623,18 @@ func TestFixtureCallsAreSeparate(t *testing.T) {
 
 func TestConsensusScopeIsLabelledPerAspectAndInTheInbox(t *testing.T) {
 	r := newRig(t)
-	_, same := r.get("/items/" + r.id("Default of --txt-prefix"))
+	_, same := r.getAll("/items/" + r.id("Default of --txt-prefix"))
 	contains(t, same, "consensus · same-model · 2 calls", "call-claude-opus-5-5-")
 	lacks(t, same, "cross-model")
-	_, cross := r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
+	_, cross := r.getAll("/items/" + r.id("Default of --max-concurrent-challenges"))
 	contains(t, cross, "consensus · cross-model · 2 calls")
 	// disagreeing aspects: each answer group is labelled
-	_, dis := r.get("/items/" + r.id("rotationPolicy"))
+	_, dis := r.getAll("/items/" + r.id("rotationPolicy"))
 	contains(t, dis, "same-model consensus · 2 calls", "single call") // opus + sonnet share a family; glm is alone
 	// inbox badges
-	_, inbox := r.get("/")
+	_, inbox := r.getAll("/")
 	contains(t, inbox, "consensus · same-model · 2 calls", "consensus · cross-model · 2 calls", "models disagree")
-	_, all := r.get("/?status=all")
+	_, all := r.getAll("/?status=all")
 	contains(t, all, "single call") // an item with one call
 }
 
@@ -701,7 +712,7 @@ func TestInboxLimitShowsTheTruncationNotice(t *testing.T) {
 
 func TestPriorityFilterAndCounter(t *testing.T) {
 	r := newRig(t)
-	_, all := r.get("/")
+	_, all := r.getAll("/")
 	contains(t, all, "<b>2</b><span>High priority</span>", `href="/?priority=high&amp;status=pending"`, `name="priority"`)
 	for _, tc := range []struct {
 		q         string
@@ -712,7 +723,7 @@ func TestPriorityFilterAndCounter(t *testing.T) {
 		{"priority=low&status=all", []string{"Ambient data plane", "Default retention changed"}, []string{"rotationPolicy"}},
 		{"priority=bogus", []string{"rotationPolicy", "HTTP01 solver"}, nil}, // an unknown value is ignored
 	} {
-		st, body := r.get("/?status=pending&" + tc.q)
+		st, body := r.getAll("/?status=pending&" + tc.q)
 		if st != 200 {
 			t.Fatal(st)
 		}
@@ -721,7 +732,7 @@ func TestPriorityFilterAndCounter(t *testing.T) {
 		// the counters do not move with the priority filter
 		contains(t, body, "<b>2</b><span>High priority</span>", "<b>10</b><span>Pending</span>")
 	}
-	_, f := r.get("/?priority=high")
+	_, f := r.getAll("/?priority=high")
 	contains(t, f, `<option value="high" selected>`, "active") // the filter panel opens with it applied
 }
 
@@ -739,12 +750,12 @@ func TestProxyDecidedItemsLeavePendingAndAreMarked(t *testing.T) {
 	if _, err := r.q.Decide(context.Background(), []domain.ReviewDecision{d}); err != nil {
 		t.Fatal(err)
 	}
-	_, pending := r.get("/")
+	_, pending := r.getAll("/")
 	lacks(t, pending, "Default of --max-concurrent-challenges")
 	contains(t, pending, "<b>9</b><span>Pending</span>")
-	_, decided := r.get("/?status=decided")
+	_, decided := r.getAll("/?status=decided")
 	contains(t, decided, "Default of --max-concurrent-challenges")
-	_, page := r.get("/items/" + id)
+	_, page := r.getAll("/items/" + id)
 	contains(t, page, "opus-proxy", "(proxy)", "no further decision can be added")
 	// and a human cannot re-decide it from the UI
 	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 409 {

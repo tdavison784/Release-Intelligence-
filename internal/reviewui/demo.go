@@ -32,6 +32,22 @@ type DemoQueue struct {
 }
 
 var _ knowledge.Queue = (*DemoQueue)(nil)
+var _ SnapshotSource = (*DemoQueue)(nil)
+
+// Snapshot implements SnapshotSource: the fixtures as a knowledge snapshot.
+func (q *DemoQueue) Snapshot(context.Context) (*knowledge.Snapshot, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	snap := &knowledge.Snapshot{Decisions: append([]domain.ReviewDecision(nil), q.decisions...), Facts: append([]domain.VerifiedFact(nil), q.facts...)}
+	for _, id := range q.order {
+		it := q.items[id]
+		snap.ReviewItems = append(snap.ReviewItems, it)
+	}
+	for _, c := range q.candidates {
+		snap.Candidates = append(snap.Candidates, c)
+	}
+	return snap, nil
+}
 
 // Decisions returns every decision recorded so far (oldest first).
 func (q *DemoQueue) Decisions() []domain.ReviewDecision {

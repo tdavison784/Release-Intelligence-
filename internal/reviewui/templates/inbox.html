@@ -16,17 +16,30 @@
 
 <main class="page">
   {{template "flashes" .Flashes}}
+  {{if .Filter.Triage}}
+  <section class="scopebar {{if .NeedsView}}needs{{else}}everything{{end}}" id="scopebar" aria-label="What this list shows">
+  {{if .NeedsView}}
+    <p><b>Needs review: {{.Counts.Pending}}</b> open question{{if ne .Counts.Pending 1}}s{{end}} waiting for a human decision{{if .Hidden.Blocking}}, <b>{{.Hidden.Blocking}}</b> blocking investigations (listed first){{end}}.
+    {{if .Hidden.Total}}Hidden from this view: {{.Hidden.Total}} ({{join ", " .Hidden.Lines}}).{{end}}</p>
+    <a class="btn ghost" id="showall" href="/?scope=all">Show all staged data</a>
+  {{else}}
+    <p><b>Showing all staged data</b>, including items that need no review (decided, proxy-staged, verified, superseded). Counts below are for this wider view.</p>
+    <a class="btn" id="backtoneeds" href="/">Back to Needs review</a>
+  {{end}}
+  </section>
+  {{end}}
   <details class="filterbox" id="filterbox" {{if .Filter.Active}}open{{end}}>
     <summary>Filters{{if .Filter.Active}} <span class="badge accent">active</span>{{end}}</summary>
   <form class="filters" method="get" action="/" id="filters">
-    <label>Status
+    {{if .Filter.All}}<input type="hidden" name="scope" value="all">{{end}}
+    {{if and .Filter.Triage (not .Filter.All)}}{{else}}<label>Status
       <select name="status">
         <option value="pending" {{if .Filter.HasStatus "pending"}}selected{{end}}>pending</option>
         <option value="needs-evidence" {{if .Filter.HasStatus "needs-evidence"}}selected{{end}}>needs evidence</option>
         <option value="deferred" {{if .Filter.HasStatus "deferred"}}selected{{end}}>deferred</option>
         <option value="decided" {{if .Filter.HasStatus "decided"}}selected{{end}}>decided</option>
         <option value="all" {{if .Filter.HasStatus "all"}}selected{{end}}>all</option>
-      </select></label>
+      </select></label>{{end}}
     <label>Product <input name="product" value="{{.Filter.Product}}" placeholder="cert-manager"></label>
     <label>Release <input name="release" value="{{.Filter.Release}}" placeholder="v1.18.0" size="8"></label>
     <label>Subject type
@@ -45,7 +58,7 @@
     <label>Evidence source <input name="source" value="{{.Filter.Source}}" placeholder="github.com/…" size="12"></label>
     <label>Reviewer <input name="reviewer" value="{{.Filter.Reviewer}}" size="8"></label>
     <button class="btn" type="submit">Filter</button>
-    {{if .Filter.Active}}<a class="btn ghost" href="/">Reset</a>{{end}}
+    {{if .Filter.Active}}<a class="btn ghost" href="{{if .Filter.All}}/?scope=all{{else}}/{{end}}">Reset</a>{{end}}
   </form>
   </details>
   <div class="toolbar">
@@ -67,6 +80,8 @@
           <span class="q">
             <span class="title">{{.Question}}</span>
             <span class="qtext">{{.Row.Title}}</span>
+            {{if .Blocking}}<span class="blocks"><b>Blocks investigations.</b> {{.BlockWhy}}</span>{{end}}
+            {{if .HiddenText}}<span class="hiddennote">Not in Needs review: {{.HiddenText}}.</span>{{end}}
             <span class="why {{.WhyTone}}">{{.Why}}</span>
             <span class="sug"><b>Suggested:</b> {{.Suggested}}</span>
           </span>
