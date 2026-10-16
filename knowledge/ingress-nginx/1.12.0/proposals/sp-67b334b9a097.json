@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-67b334b9a097",
+    "candidateId": "sc-298dac696f1a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "ingress-nginx",
+        "name": "--enable-metrics"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Controllers that do not pass --enable-metrics explicitly now run with metrics disabled by default.",
+        "remediation": "If you rely on controller metrics, set --enable-metrics=true explicitly before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In ingress-nginx 1.12.0 the controller CLI argument --enable-metrics is now disabled by default, so metrics are off unless the flag is set explicitly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-66c015b6a2c7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3792a98ccdf07208230cdfeb43fb6e8fd800a62e43391df12ec66813a34999d5",
+      "inputEvidence": [
+        "ev-66c015b6a2c7"
+      ],
+      "generatedAt": "2026-10-16T22:53:39Z",
+      "callId": "106c7685-af87-4ec2-8df5-cfcc4d3553b9"
+    }
+  }
+}

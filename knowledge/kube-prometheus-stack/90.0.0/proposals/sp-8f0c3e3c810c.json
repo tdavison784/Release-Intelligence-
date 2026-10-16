@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8f0c3e3c810c",
+    "candidateId": "sc-612476bf9c75",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "kube-prometheus-stack",
+        "name": "kubelet-duplicate-targets",
+        "component": "prometheus-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether cluster nodes report several addresses of the same IP family at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On nodes that report several addresses of the same IP family, the duplicate kubelet scrape targets go away, so the set of kubelet targets changes.",
+        "remediation": "Check any dashboards or alerts that may have been built around the duplicate kubelet targets.",
+        "severity": "low"
+      },
+      "statement": "The prometheus-operator bundled in kube-prometheus-stack 90.0.0 (operator v0.93.1) no longer creates duplicate kubelet targets for nodes that report several addresses of the same IP family."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-94a4d99ec637"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:059371a563ecd0aede683c518f4065f208717dc52f1cfce1f620beac7fd98677",
+      "inputEvidence": [
+        "ev-94a4d99ec637"
+      ],
+      "generatedAt": "2026-10-16T22:54:53Z",
+      "callId": "818c7298-031e-40ed-b53c-3e513be3dac4"
+    }
+  }
+}

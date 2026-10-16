@@ -19,6 +19,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -46,6 +47,14 @@ type Options struct {
 	Demo bool
 	// InboxLimit caps the inbox rows (default 200).
 	InboxLimit int
+	// Snapshot returns the store's records (decisions, facts, candidates) for
+	// the "needs review" default view; a queue that implements SnapshotSource
+	// needs none. Without either, the inbox lists everything the queue holds
+	// (no default filter, no toggle).
+	Snapshot func(ctx context.Context) (*knowledge.Snapshot, error)
+	// Scope says which products feed investigations, to rank the items that
+	// block them first (see ScopeFromInvestigations).
+	Scope BlockingScope
 	// Logf receives server-side problems (default log.Printf).
 	Logf func(format string, args ...any)
 }
@@ -249,10 +258,48 @@ func eligible(st domain.ReviewStatus) bool {
 
 // --- inbox -----------------------------------------------------------------------------
 
+func (s *server) snapshot(ctx context.Context) *knowledge.Snapshot {
+	var (
+		snap *knowledge.Snapshot
+		err  error
+	)
+	switch {
+	case s.opts.Snapshot != nil:
+		snap, err = s.opts.Snapshot(ctx)
+	default:
+		src, ok := s.q.(SnapshotSource)
+		if !ok {
+			return nil
+		}
+		snap, err = src.Snapshot(ctx)
+	}
+	if err != nil {
+		s.opts.Logf("reviewui: snapshot for the needs-review view: %v", err)
+		return nil
+	}
+	return snap
+}
+
 func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	ss := s.session(w, r)
 	f, form := parseFilter(r.URL.Query(), s.opts.InboxLimit)
-	in, err := s.q.Inbox(r.Context(), f)
+	snap := s.snapshot(r.Context())
+	var tr map[string]Triage
+	if snap != nil {
+		tr = triageItems(snap, s.opts.Scope)
+	}
+	form.Triage = tr != nil
+	needs := tr != nil && !form.All
+	var (
+		in     *knowledge.Inbox
+		hidden hiddenSummary
+		err    error
+	)
+	if needs {
+		in, hidden, err = s.needsReview(r.Context(), f, form, tr)
+	} else {
+		in, err = s.q.Inbox(r.Context(), f)
+	}
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -262,7 +309,10 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Filter: form, Counts: in.Counts, Tiles: tiles(in.Counts), Flashes: s.takeFlashes(ss),
 		Reviewer: reviewer, Started: s.opts.Now().UTC().Format(time.RFC3339Nano),
 		Return: r.URL.RequestURI(), Total: len(in.Items), Matches: in.Matches,
-		Enums: enums(),
+		Enums: enums(), NeedsView: needs, Hidden: hidden,
+	}
+	if needs {
+		v.Tiles = needsTiles(in.Counts, hidden)
 	}
 	// a Queue implementor that ignores Matches (zero) must not make the page
 	// claim truncation
@@ -270,9 +320,81 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		v.Matches = v.Total
 	}
 	for _, row := range in.Items {
-		v.Rows = append(v.Rows, newRowView(row, r.URL.RequestURI()))
+		rv := newRowView(row, r.URL.RequestURI())
+		if t, ok := tr[row.Item.ID]; ok {
+			rv.Blocking, rv.BlockWhy = t.Blocking, t.Why
+			if !t.NeedsReview {
+				rv.HiddenText = t.HiddenText
+			}
+		}
+		v.Rows = append(v.Rows, rv)
 	}
 	s.render(w, http.StatusOK, "inbox.html", v)
+}
+
+// needsReview builds the default inbox: only items that need a human decision
+// now, blocking-first. The queue is asked for every status with the user's
+// other filters (so the counts and the hidden tally respect them); the
+// priority and blocking filters and the limit apply afterwards, so the counts
+// stay independent of them, as in the full view.
+func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form filterForm, tr map[string]Triage) (*knowledge.Inbox, hiddenSummary, error) {
+	prio, limit := f.Priority, f.Limit
+	f.Status, f.Priority, f.Limit = nil, "", 0
+	all, err := s.q.Inbox(ctx, f)
+	if err != nil {
+		return nil, hiddenSummary{}, err
+	}
+	out := &knowledge.Inbox{}
+	hidden := hiddenSummary{ByReason: map[string]int{}}
+	var rows []knowledge.InboxRow
+	for _, row := range all.Items {
+		t, ok := tr[row.Item.ID]
+		if ok && !t.NeedsReview { // an item the snapshot does not know is shown, never hidden
+			hidden.Total++
+			hidden.ByReason[t.Hidden]++
+			continue
+		}
+		it := row.Item
+		out.Counts.Pending++
+		if ok && t.Blocking {
+			hidden.Blocking++
+		}
+		if it.Routing.Priority == domain.PriorityHigh {
+			out.Counts.HighPriority++
+		}
+		if row.Disagreement {
+			out.Counts.ModelDisagreement++
+		}
+		switch it.QuestionType {
+		case domain.QuestionSemanticMapping, domain.QuestionRelationship:
+			out.Counts.NeedsSemanticMapping++
+		case domain.QuestionApplicability:
+			out.Counts.ApplicabilityQuestions++
+		}
+		if prio != "" && it.Routing.Priority != prio {
+			continue
+		}
+		if form.Blocking && !t.Blocking {
+			continue
+		}
+		rows = append(rows, row)
+	}
+	rank := func(id string) int { // stable sort: priority order is kept inside each rank
+		switch t := tr[id]; {
+		case t.PinSource:
+			return 0
+		case t.Blocking:
+			return 1
+		}
+		return 2
+	}
+	sort.SliceStable(rows, func(i, j int) bool { return rank(rows[i].Item.ID) < rank(rows[j].Item.ID) })
+	out.Matches = len(rows)
+	if limit > 0 && len(rows) > limit {
+		rows = rows[:limit]
+	}
+	out.Items = rows
+	return out, hidden, nil
 }
 
 // --- item page and fragment ------------------------------------------------------

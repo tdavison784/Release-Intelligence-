@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-46a172f71007",
+    "candidateId": "sc-3d0d895030cc",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"⚠️ Images: Remove OpenTelemetry\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The init container and image that installed OpenTelemetry at controller startup are no longer deployed or published; OpenTelemetry keeps working through the module built into the controller image since v1.10.",
+        "remediation": "Remove any references to the separate OpenTelemetry init image and rely on the module built into the controller image.",
+        "severity": "low"
+      },
+      "statement": "ingress-nginx 1.12.0 removes the OpenTelemetry init container and its image, which used to install the module when the controller started; OpenTelemetry is still supported because the module has been built into the controller image since v1.10."
+    },
+    "proposals": [
+      "sp-db85a4bba1ca",
+      "sp-f7de08475b6e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:53:54Z"
+  }
+}

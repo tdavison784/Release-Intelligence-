@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-2a34c76f2348",
+    "candidateId": "sc-612476bf9c75",
+    "product": "kube-prometheus-stack",
+    "release": "90.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"[BUGFIX] Fix duplicate kubelet targets for nodes reporting several addresses of the same IP family\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On nodes that report several addresses of the same IP family, the duplicate kubelet scrape targets go away, so the set of kubelet targets changes.",
+        "remediation": "Check any dashboards or alerts that may have been built around the duplicate kubelet targets.",
+        "severity": "low"
+      },
+      "statement": "The prometheus-operator bundled in kube-prometheus-stack 90.0.0 (operator v0.93.1) no longer creates duplicate kubelet targets for nodes that report several addresses of the same IP family."
+    },
+    "proposals": [
+      "sp-8f0c3e3c810c",
+      "sp-937b2123959b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:53Z"
+  }
+}

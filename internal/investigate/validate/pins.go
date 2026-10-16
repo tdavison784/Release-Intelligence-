@@ -430,3 +430,14 @@ func describeHits(hits []pinHit) string {
 	}
 	return b.String()
 }
+
+// CanBePinSource reports whether a, once verified at a trusted level, would
+// give OverrideInspection at least one setting to look for (a default change of
+// a settable subject, or an exposure an explicit setting falsifies). The
+// review UI uses it to order open questions by what they would unblock
+// (CONTRACT-CHANGE(reviewfilter): additive export; same derivation the pin
+// rules use, so the two cannot drift).
+func CanBePinSource(a domain.SemanticAssertion) bool {
+	specs, _ := specsFromFact(domain.VerifiedFact{Assertion: a}, "")
+	return len(specs) > 0
+}

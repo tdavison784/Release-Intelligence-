@@ -27,7 +27,7 @@
 //	ri knowledge route|decide|review-fact|export|metrics
 //	                                    the learning loop's store, review queue,
 //	                                    feedback dataset and metrics
-//	ri review serve [-addr A] [-demo]   engineering review UI (learning loop):
+//	ri review serve [-addr A] [-demo]   engineering review UI, needs-review first (learning loop):
 //	                                    inbox, evidence, accept/reject/correct,
 //	                                    bulk review
 //

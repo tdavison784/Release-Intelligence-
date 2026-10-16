@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7e190d7b6159",
+    "candidateId": "sc-aa39860e68ae",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "applicability",
+    "question": "For \"⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.plugins",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "ingress-nginx-controller"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.plugins",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "ingress-nginx 1.12.0 removes support for 3rd-party Lua plugins: it drops the `plugins` configuration option and no longer supports user-provided Lua plugins in /etc/nginx/lua/plugins."
+    },
+    "proposals": [
+      "sp-98248c5da123",
+      "sp-9bd7ddc651e9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:39Z"
+  }
+}
