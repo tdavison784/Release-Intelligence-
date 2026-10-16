@@ -33,6 +33,21 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
     `TestSnapshotLayeredValuesFilesAreComplete` (gitops-repo input CollectionOK + merged facts with list
     order beating alphabetical), app/cmd e2e assertions updated, impact goldens regenerated
     (9 keys → 6 effective, warning line gone — reviewed).
+- Fix 2 (run-record reproducibility, EVAL-REPORT §5.1b) COMPLETE, commit 175709ef; full build/vet/test
+  green.
+  - `domain.ImpactReport.IdentifiedContent()` (internal/domain/impact.go): the report with
+    GeneratedAt and every evidence RetrievedAt zeroed (fresh slices — the caller's report is not
+    mutated); evidence ids never covered retrievedAt, so finding references resolve identically.
+    Mirrors normalizedEdgeJSON (bundle/change.go) and the assembler's pinned clock.
+  - `internal/investigate/run/pipeline.go` assemble: the stored impact-report artifact is
+    `rep.IdentifiedContent()`. Behaviour change: the artifact digest — and with it the run-record
+    digest — no longer depends on when the run fetched/generated evidence, so two identical runs are
+    the same record (a re-run is a no-op) instead of two. Why: stamps are provenance of the run
+    (record CreatedAt + audit trail keep them), never identity of content. The CLI's in-memory report
+    keeps real stamps.
+  - Tests: `TestRunRecordDigestIgnoresReportTimestamps` (run) — two identical runs whose reports differ
+    only in their stamps give the same artifact digest AND record digest; `TestImpactReportIdentifiedContent`
+    (domain) — zeroes only the stamps, ids stable, original untouched, nil slices stay nil.
 
   Behaviour changes (all generic, each with its why):
   - Layering no longer warns and no longer degrades the values dimension → gitops-repo input can be
@@ -55,8 +70,6 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
 - (nothing — between fixes)
 
 ## Not started
-- Fix 2 (run-record reproducibility: ImpactReport embeds evidence `retrievedAt`; two identical runs must
-  give identical record digests).
 - Fix 3 (CRD description-only rendered changes: declared generic render class + harmless deterministic
   verdict, no noise flood, never clears behaviour).
 - Fix 4 (cert-manager traversal truncation at depth 8: diagnose, fix artefacts or raise the default with
@@ -86,7 +99,7 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
 - none.
 
 ## Test status
-- Full `go build ./... && go vet ./... && go test ./...` green at fix-1 commit a638c39a.
+- Full `go build ./... && go vet ./... && go test ./...` green at fix-2 commit 175709ef.
 
 ## GLM handoff log
 - (session start) Resumed from brief + commander routing (commit 3729ab10); no prior lane status file
@@ -97,3 +110,11 @@ Defect list: EVAL-REPORT.md §5 (arm A) as routed by the commander; read from `p
   (retrievedAt reproducibility) — start by locating where the ImpactReport artifact embeds `retrievedAt`
   (grep `retrievedAt` in internal/investigate + internal/app) and how bundle CreatedAt was kept out of
   identified content (prior art).
+- Fix 2 finished and committed (175709ef): IdentifiedContent zeroes GeneratedAt + evidence RetrievedAt in
+  the stored report artifact (same pattern as normalizedEdgeJSON); two-identical-runs test proves equal
+  artifact + record digests. Note for the record: the run-level test needed both runs to point at the SAME
+  repo dir — the snapshot audit detail embeds the repo path (content, not a clock), which is correct.
+  Next: fix 3 (CRD description-only rendered changes) — start from internal/render rendered-change
+  classification + how renderdiff emits changes; the brief wants a declared generic render class at
+  render/correlation time, deterministic validator harmless verdict, no noise flood, never clears the
+  item's behaviour change.
