@@ -107,7 +107,65 @@ windows:                         # append-only handoff log (one entry per provid
    ready claude-only items in RESUME; include ledger deltas in the RESUME summary.
 4. Seed the ledger from COMMANDER.md Next actions + open questions; keep COMMANDER.md as state-only.
 
-## Open decisions for the user
+## Alternative substrate: `beads` (raised by the user 2026-10-16)
+
+[beads](https://github.com/gastownhall/beads) (Go, MIT, `bd` CLI + MCP) is a distributed graph issue
+tracker built for AI agents: hierarchical task ids, dependencies + priorities, **dependency-aware
+`bd ready`** (deterministic "what can start now" — my `depends`/`ready-when`), **atomic
+`bd update --claim`** (race-safe `owner` — exactly the claim semantics a multi-agent fleet needs),
+Dolt-backed storage with git sync, `bd remember`/`bd prime` durable memories, and first-class agent
+integrations (`bd setup` writes AGENTS.md guidance + hooks for Claude Code and others).
+
+**Verdict:** as the *work-queue substrate* it is strictly better than hand-rolled LEDGER.yaml — adopt it
+if adding a tool is acceptable (one local `dolt sql-server` serves all worktrees on this machine; no
+push needed). It does **not** provide the provider-window layer that motivated this proposal, so either
+way that layer is ours:
+
+| Need | beads | LEDGER.yaml |
+|---|---|---|
+| Durable items, ids, status, deps, ready-detection | ✅ `bd ready` | ✅ (guard does topo-ready) |
+| Race-safe claiming by lanes | ✅ `--claim` | ⚠️ single-commander-at-a-time makes races rare |
+| Durable cross-window memory | ✅ `remember`/`prime` | ⚠️ status files + COMMANDER.md |
+| Per-item **provider authorization** (`glm-executable`, claude-only/model-under-test) | ❌ | ✅ core field |
+| Per-item quota estimates/actuals, window budgets | ❌ | ✅ |
+| Guard v4 handoff behavior (auto-start glm lanes, RESUME lists claude-only ready items) | ❌ (ours either way) | ❌ (ours either way) |
+| Append-only provider-window log | ❌ | ✅ |
+| New tool/DB in a git-markdown-only fleet | cost to adopt | none |
+
+## Paired with `gascity` (raised by the user 2026-10-16, same author)
+
+[gascity](https://github.com/gastownhall/gascity) (Go, MIT, `gc` CLI) is an orchestration-builder SDK for
+multi-agent coding workflows that uses `bd` (beads) as its work store. Our fleet is a hand-rolled
+instance of it: controller/supervisor reconcile ≈ commander + .lane-lead; **health patrol ≈ fleet guard**;
+runtime providers include **herdr natively** (our tab/pane structure would survive migration);
+convergence loops + gates ≈ LANE DONE + green-gate merge review; mail/waits ≈ herdr `prompt --wait`
+(without its lost-prompt pitfalls); orders/formulas ≈ lane briefs; mayor session ≈ the commander role.
+
+**What the pair would give us beyond the hand-rolled fleet:** maintained infrastructure instead of
+fleet_guard v3/v4 + prose discipline; race-safe claiming and dependency-ready dispatch at scale; a
+controller daemon reconciling desired vs running state; first-class Claude Code/codex/gemini agents
+(GLM rides the claude runtime provider via ANTHROPIC_BASE_URL, exactly how glm-* agents run today).
+
+**What it still does not give us (ours either way):** per-provider quota/window management — neither
+repo tracks usage windows, provider-authorized items (model-under-test constraints like arm B), or
+quota budgets. In a gascity world that becomes a custom provider-policy/health-patrol plugin (worth
+upstreaming); in the current world it is guard v4 + the provider fields in this proposal.
+
+**Adoption risks:** Bazel build + Dolt ≥2.1 + `bd` ≥1.0 dependencies (file store `GC_BEADS=file` is the
+escape hatch); young/high-churn project (948 open issues, 620 open PRs); it is an SDK, so we would still
+be building the fleet on top, including re-encoding our integrity rules (frozen gates, forbidden eval
+paths, no-push) into orders/formulas; and phase 4 is in its eval endgame — re-platforming mid-endgame is
+the risky version of this move.
+
+## Recommended path (updated after the beads + gascity discussion)
+
+1. **Now (finish phase 4):** do not re-platform. Pilot the idle-window fix only — LEDGER.yaml (or `bd`
+   with `GC_BEADS=file`) as the cross-window queue + guard v4 provider layer. Everything else stays.
+2. **Next fleet / phase 5:** build on gascity + beads from day one (herdr provider keeps the current
+   operating feel), and port the ONE thing the stack lacks — provider/quota policy (usage-window
+   handoff, model-under-test item constraints, quota budgets) — as a plugin; upstream it.
+3. Either way, the enqueue-time provider authorization idea from this proposal is the piece to keep:
+   it is what makes windows fully utilized per provider without widening any agent's standing authority.
 
 1. **Guard auto-start vs commander-only starts.** Auto-start maximizes utilization but starts work
    without a human or commander glance; the per-item `auto-start: false` flag is the mitigation

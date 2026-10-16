@@ -202,4 +202,13 @@ Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In
   v4, user sign-off on 4 open decisions) belongs to the Claude commander + user — a GLM window must not
   edit the commander brief or the guard. This GLM window idled 16:15→handback; the ledger exists so the
   next one doesn't.
+- **2026-10-16 ~16:40 (glm-commander): user added two references mid-discussion** —
+  [beads](https://github.com/gastownhall/beads) (work-graph ledger: `bd ready`/`--claim`, Dolt-backed)
+  and [gascity](https://github.com/gastownhall/gascity) (orchestration SDK built on beads: controller
+  reconcile, health patrol, **native herdr runtime provider**, convergence gates; the user notes our
+  fleet is a hand-rolled version of it — an accurate 1:1 mapping is in the proposal). Comparison +
+  recommended path added to `proposals/2026-10-16-window-ledger.md`: finish phase 4 on the current
+  stack + pilot only the queue (LEDGER.yaml or `bd` w/ file store) + guard v4 provider layer; consider
+  gascity+beads as the next fleet's foundation, porting/upstreaming the provider-quota policy neither
+  repo has. Re-platforming mid-eval-endgame flagged as the risk to avoid.
 
