@@ -3,16 +3,27 @@
 Branch `p4ei/contract`, worktree `.claude/worktrees/p4ei-contract`. Brief: `briefs/contract.md`.
 
 ## Done
-- (nothing yet)
+- Read MISSION/FLEET/brief, core docs and code (gap-map survey done; findings feed DESIGN §0).
+- `internal/domain/investigation.go` drafted: all §2 contract types with content-derived ids and
+  Validate()/ValidateAgainst(); builds and vets.
 
 ## In progress
-- Reading MISSION/FLEET/brief + existing docs and code for the §0 gap map.
+- `internal/domain/investigation_test.go` (one test per Validate rule).
 
 ## Next step
-- Finish reading; draft DESIGN.md §0 gap map.
+- Tests → schemagen targets (evidence-bundle, investigation) → `internal/investigate/{doc,api}.go`
+  → DESIGN.md → eval/investigations/{FORMAT.md,gates.yaml}.
 
 ## Decisions
-(none yet)
+- Name collisions with existing domain types forced renames (brief names in parentheses):
+  `BundleManifest` (ArtifactManifest — an ArtifactType constant already), `ValidationRecord`
+  (ValidationResult — the learning loop's candidate-scoped verdict, which forbids environment
+  evidence), `InvestigationFinding` (ImpactFinding — the five-class join finding).
+- Graph edges point in the direction impact propagates (From = provider, To = consumer).
+- "Unresolved" edge = inferred or missing; traversal complete ⇔ not truncated and every path established.
+- Validation outcome is always relative to the safety property (pass = not reached/broken, fail = demonstrated).
+- Affected always cites a failing validation; the join's action-required / not-affected verdicts are
+  wrapped as deterministic ValidationRecords (ImpactFinding set) by the classify lane.
 
 ## Files touched outside ownership
 (none)
