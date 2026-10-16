@@ -1,7 +1,7 @@
 # Status — lane `runtime` (Claude Opus 5.5, agent ri-runtime)
 
 Branch `p4ei/runtime`, worktree `.claude/worktrees/p4ei-runtime`. Brief: `briefs/runtime.md` (+ `_wave2-common.md`,
-`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **FOLLOW-UP IN PROGRESS** (2026-10-16, commander decisions on the three open questions + the
+`_wave1-common.md`, DESIGN §2.6 / §3.1). State: **DONE — follow-up 1 complete** (2026-10-16, commander decisions on the three open questions + the
 independent-review queue; see "Follow-up 1"). Lane merged earlier as 34afd967 / 4090a4b7.
 Resume from: this file + brief + `git log`.
 
@@ -45,6 +45,25 @@ Owned now: `internal/investigate/{runtime,relations}`, `internal/catalog` (new c
 Product-definition edits change definition digests: e2e goldens regenerated (3 `definitionDigest` lines, nothing
 else); the shared warm `.ri` store re-ingests those products once after merge. My real runs used a private copy of
 `.ri/store` + `.ri/cache` (render cache shared, content-addressed) so the shared store was not touched.
+
+### Follow-up 1 real runs — through the CLI (`ri -state <private copy> -offline investigate <product> <from> <to> --repo eval/investigations/<case>/env --kubernetes 1.31 --runtime`), final code bad9239c
+
+Whole pipeline (bundle, renders, graph with reconciles exposure, validators incl. runtime, agent off, classify); every
+cluster deleted (`kind get clusters` empty after each). Runtime records per item (outcome / rule):
+
+| case | runtime records | findings (all validators) |
+|---|---|---|
+| cert-manager payments-eu | 7 error unattributed, 6 not-run no-baseline, 19 no-exercise, 1 no-object, 13 other-families | 2 affected, 27 potentially-affected, 17 not-affected |
+| cert-manager payments-us | same shape (7 unattributed: leaf `tls.key` rotations under consumers, no consumer degraded) | 2 affected, 27 potentially-affected, 17 not-affected |
+| ingress-nginx shop-de | 14 error unattributed (the storefront Ingress rejected by the new webhook, reached by 14 behaviour items through `exposure:product-reconciles`), 13 no-object | 14 potentially-affected, 13 not-affected |
+| kube-prometheus-stack obs-north | 4 error unattributed (3 ServiceMonitors rejected: token Secret not found — now reached by the procedure item too), 1 no-baseline, 1 no-exercise, 20 no-object | 6 potentially-affected, 20 not-affected |
+
+Effects of follow-up 1, as intended: (1) the key rotations are no longer `fail` (payments-eu: CA + leaves,
+payments-us: leaves only — both inconclusive); (2) the reconciles exposure connects the behaviour items to the
+objects their controller acts on, so the ingress-nginx refusal and the kps rejections now reach the items that
+describe them — shared by several items, hence inconclusive (R3), never a fail; no runtime record is a `pass` (and
+none could be for reconciled-only exposure or for the reaction-less operator exercises). The `not-affected`
+findings come from the other validators (values/rendered items), not from runtime.
 
 ## Decisions (with why)
 
