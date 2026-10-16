@@ -177,6 +177,15 @@ func (l *loader) detectArgoApplication(d doc) {
 		chart := scalarOf(s, "chart")
 		path := scalarOf(s, "path")
 		revision, rvLine := scalarLine(s, "targetRevision")
+		// A source that only supplies values (it has a `ref:` and no chart, and
+		// is referenced as $<ref>/path from another source's helm.valueFiles) never carries the
+		// deployed version: its targetRevision is the values repository's
+		// revision. The version comes from the chart source (Argo CD multiple
+		// sources). Its inline helm values, if any, still count below.
+		if scalarOf(s, "ref") != "" && chart == "" {
+			l.valuesOnlySource(d, helmPaths[i], s)
+			continue
+		}
 		if chart == "" && path == "" && revision == "" {
 			continue
 		}
@@ -212,8 +221,27 @@ func (l *loader) detectArgoApplication(d doc) {
 	}
 }
 
+// valuesOnlySource keeps the inline Helm values of an Argo CD values-only
+// source (it deploys nothing and is not an installed product).
+func (l *loader) valuesOnlySource(d doc, helmPath string, s *yaml.Node) {
+	helm := fieldOf(s, "helm")
+	if helm == nil {
+		return
+	}
+	prefix := "$." + helmPath
+	if v := fieldOf(helm, "values"); v != nil {
+		l.inlineValues(d.file, prefix+".values", v)
+	}
+	if v := fieldOf(helm, "valuesObject"); v != nil {
+		l.inlineValues(d.file, prefix+".valuesObject", v)
+	}
+	l.parametersToValues(d.file, prefix+".parameters", fieldOf(helm, "parameters"))
+}
+
 // detectFluxHelmRelease reads a Flux HelmRelease: chart identity, the
-// (possibly ranged) version pin and spec.values — the customer's values.
+// (possibly ranged) version pin and spec.values — the customer's values. The
+// version is the chart's (spec.chart.spec.version); a GitRepository the
+// values come from, or its branch, is never the deployed version.
 func (l *loader) detectFluxHelmRelease(d doc) {
 	name := scalarOf(d.node, "metadata", "name")
 	chart, chLine := scalarLine(fieldOf(d.node, "spec", "chart", "spec"), "chart")

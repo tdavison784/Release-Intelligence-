@@ -134,3 +134,23 @@ record inv-63b726e47824: status completed, review approved by tommy (human), 55 
    no checkout path anywhere in the bundle JSON. Explicit inputs OUTSIDE a repo keep their absolute paths in the facts (not relocatable).
 - Contract changes (all additive): `EnvironmentInputs.Product`, `SnapshotResult.Provenance`, `SnapshotResult.Local`.
 - Tests: `go build ./... && go vet ./... && go test ./...` green; groundtruth suites (bundle, renderdiff, validate, classify) pass offline against the warm cache.
+
+## Follow-up 4: loader attribution, ProposedNodes (LANE DONE)
+- **`internal/env/installed.go` (owned for this fix):** an Argo CD source with a `ref:` and no `chart` (a values-only source, referenced as
+  `$<ref>/path` from another source's `helm.valueFiles`) is no longer an installed product: its `targetRevision` is the values repo
+  revision. Its inline `helm.values/valuesObject/parameters` still become values keys (`valuesOnlySource`). The product version comes from
+  the chart source. A single-source Application tracking a branch for the product chart keeps its warning (gap). Flux: already the
+  HelmRelease `spec.chart.spec.version` only (a GitRepository branch is never read as a version); documented in the comment and pinned
+  by a test. Tests (`internal/env/multisource_test.go`): multi-source pinned chart + values ref on main ⇒ one `cert-manager v1.17.2`
+  installed entry, no unparsable-version warning; single-source branch ⇒ the warning stays; inline values of a values-only source kept;
+  Flux chart version vs GitRepository branch.
+- **Effect on the groundtruth envs (checked by loading `payments-eu` / `payments-us` `env/`):** the `detected-argo "cert-manager": version
+  "main"` warning is gone; the remaining non-kustomize warning is `detected-argo "prod": version "main"` (another product's Application:
+  a note under the follow-up-3 rule). With `Product=cert-manager` the repo input is `ok` with a `note:`.
+- **Golden / eval-result changes: none.** No file under `eval/` or any testdata golden changed; `go test ./...` and the bundle, renderdiff,
+  validate and classify groundtruth suites pass unchanged against the warm cache. (Their snapshot ids already changed in follow-up 3, by design.)
+- **ProposedNodes:** the second traverse now uses `agent.MergeGraph(graph, {assertions, ProposedNodes})`; the nodes are kept in the workspace
+  by the investigate stage (they are not in the run record); my own `MergeProposed` and its placeholder synthesis are deleted. A merged
+  graph that does not validate is ignored with a note in the traverse audit detail. Test `TestProposedEdgeAndNodesExtendTheRunGraph`
+  (inferred edge + two placeholder nodes in the run's graph artifact).
+- Tests: `go build ./... && go vet ./... && go test ./...` green.

@@ -473,7 +473,19 @@ func (p *Pipeline) traverse(ctx context.Context, in StageInput) (*stageResult, e
 	g, graphRef, detail := rc.graph, rc.inv.Graph, ""
 	var newRef *domain.ArtifactRef
 	if in.Phase == PhaseFinal {
-		merged, notes := MergeProposed(g, rc.inv.Assertions)
+		var nodes []domain.GraphNode
+		if _, err := p.W().Memo(proposedKey(rc.inv.ID, in.Round), &nodes); err != nil {
+			return nil, err
+		}
+		// The agent's proposed edges (always inferred) and the placeholder nodes
+		// it asked for (AgentOutcome.ProposedNodes) extend the graph; the result
+		// can only add unresolved paths.
+		merged := agent.MergeGraph(g, &investigate.AgentOutcome{Assertions: rc.inv.Assertions, ProposedNodes: nodes})
+		var notes []string
+		if err := merged.Validate(); err != nil {
+			notes = append(notes, "agent-proposed relationships ignored, the merged graph is invalid: "+Trunc(err.Error()))
+			merged = g
+		}
 		if merged.ID != g.ID {
 			ref, err := p.storeGraph(ctx, merged)
 			if err != nil {
@@ -581,6 +593,9 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 		return nil, err
 	}
 	actor := "agent:" + out.Run.Model
+	if err := p.W().SetMemo(proposedKey(in.Refs.Investigation, in.Round), out.ProposedNodes); err != nil {
+		return nil, err
+	}
 	return &stageResult{refs: in.Refs, detail: fmt.Sprintf("agent %s: %s", out.Run.Status, out.Run.Reason), refsIn: []string{out.Run.CallID},
 		apply: func(inv *domain.Investigation) error {
 			run := out.Run
@@ -766,3 +781,7 @@ func orDash(s string) string {
 	}
 	return s
 }
+
+// proposedKey is the workspace key of an agent run's proposed placeholder
+// nodes (they are not part of the run record; the final traverse needs them).
+func proposedKey(inv string, round int) string { return fmt.Sprintf("proposed:%s:%d", inv, round) }

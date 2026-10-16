@@ -2,13 +2,14 @@ package run_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
-	"github.com/tdavison784/release-intelligence/internal/investigate/run"
 	"github.com/tdavison784/release-intelligence/internal/investigate/run/runtest"
 )
 
@@ -50,39 +51,6 @@ func TestAgentStageRunsOnceAndIsRecorded(t *testing.T) {
 	}
 	if ag.calls != 1 {
 		t.Fatalf("agent ran %d times", ag.calls)
-	}
-}
-
-func TestMergeProposedAddsOnlyInferredEdges(t *testing.T) {
-	n := func(k string) domain.GraphNode {
-		x := domain.GraphNode{Kind: domain.NodeWorkload, Key: k}
-		x.ID = domain.NodeID(x.Kind, x.Key)
-		return x
-	}
-	a, b := n("a"), n("b")
-	g := &domain.RelationshipGraph{Bundle: "bnd-x", Builder: "t@v1", Nodes: []domain.GraphNode{a, b}}
-	if a.ID > b.ID {
-		g.Nodes = []domain.GraphNode{b, a}
-	}
-	g.ID = g.DerivedID()
-	if g.Validate() != nil {
-		t.Fatal(g.Validate())
-	}
-	e := domain.GraphEdge{Kind: domain.EdgeKinds[0], From: a.ID, To: "gn-unknown"}
-	as := []domain.AgentAssertion{{ID: "asr-1", ProposedEdge: &e}, {ID: "asr-2"}}
-	m, notes := run.MergeProposed(g, as)
-	if len(notes) != 0 || len(m.Edges) != 1 || len(m.Nodes) != 3 {
-		t.Fatalf("merged = %+v notes %v", m, notes)
-	}
-	got := m.Edges[0]
-	if got.Status != domain.EdgeInferred || got.Assertion != "asr-1" || got.Status.Resolved() {
-		t.Fatalf("edge = %+v", got)
-	}
-	if m.ID == g.ID || m.Validate() != nil {
-		t.Fatalf("merged graph invalid or unchanged: %v", m.Validate())
-	}
-	if same, _ := run.MergeProposed(g, nil); same.ID != g.ID {
-		t.Fatal("no proposals must keep the graph")
 	}
 }
 
@@ -189,5 +157,70 @@ func TestAnswerLinkReachesClassifyAndRecord(t *testing.T) {
 		if got := answered(inv.Validations); got != link {
 			t.Errorf("link=%t: record answers the concern = %t", link, got)
 		}
+	}
+}
+
+// edgeAgent proposes a relationship to a node the graph does not have,
+// naming the placeholder node in AgentOutcome.ProposedNodes.
+type edgeAgent struct{ st investigate.ArtifactStore }
+
+func (a *edgeAgent) Investigate(ctx context.Context, in investigate.InvestigateInput) (*investigate.AgentOutcome, error) {
+	out, err := (&concernAgent{st: a.st}).Investigate(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	node := domain.GraphNode{Kind: domain.NodeExternal, Key: "external:billing-api", Placeholder: true}
+	node.ID = domain.NodeID(node.Kind, node.Key)
+	src := domain.GraphNode{Kind: domain.NodeExternal, Key: "external:checkout", Placeholder: true}
+	src.ID = domain.NodeID(src.Kind, src.Key)
+	asr := out.Assertions[0]
+	asr.Stance = domain.StanceExplains
+	asr.ID = domain.AgentRecordID(domain.AssertionIDPrefix, asr.ChangeItem, string(asr.Stance)+"\x00"+asr.Statement, asr.Provenance.CallID)
+	e := domain.GraphEdge{Kind: domain.EdgeDependsOn, From: src.ID, To: node.ID, Status: domain.EdgeInferred,
+		Rule: "agent.proposed-edge@v1", Reason: "the agent believes the workload calls the billing API", Assertion: asr.ID}
+	e.ID = domain.EdgeID(e.Kind, e.From, e.To, e.Detail)
+	asr.ProposedEdge = &e
+	out.Assertions = []domain.AgentAssertion{asr}
+	out.ProposedNodes = []domain.GraphNode{node, src}
+	return out, nil
+}
+
+// The second traverse runs over the builder's graph plus the agent's
+// proposed edge and its placeholder node (AgentOutcome.ProposedNodes): the
+// run's graph artifact is the merged one, and the edge stays inferred.
+func TestProposedEdgeAndNodesExtendTheRunGraph(t *testing.T) {
+	f := runtest.New(t)
+	f.Deps.Validators = func(*domain.ImpactReport) []investigate.Validator { return []investigate.Validator{passValidator{}} }
+	f.Deps.Investigator = &edgeAgent{st: f.St}
+	req := f.Request()
+	req.Config.Validators = []string{"validate.render-diff@v1"}
+	req.Config.Agent.Enabled = true
+	res, err := runner(f, nil).Run(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inv, _ := f.St.GetInvestigation(context.Background(), res.Investigation)
+	var g domain.RelationshipGraph
+	for _, a := range inv.Artifacts {
+		if a.ID == inv.Graph {
+			rc, err := f.St.Open(context.Background(), a.Digest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := json.NewDecoder(rc).Decode(&g); err != nil {
+				t.Fatal(err)
+			}
+			rc.Close()
+		}
+	}
+	var proposed, placeholder bool
+	for _, e := range g.Edges {
+		proposed = proposed || (e.Assertion != "" && e.Status == domain.EdgeInferred)
+	}
+	for _, n := range g.Nodes {
+		placeholder = placeholder || (n.Placeholder && n.Key == "external:billing-api")
+	}
+	if !proposed || !placeholder || strings.Contains(g.Builder, "relations.builder@v1") && !strings.Contains(g.Builder, "+") {
+		t.Fatalf("run graph %s (builder %s) lacks the proposed edge/node: proposed=%t placeholder=%t", g.ID, g.Builder, proposed, placeholder)
 	}
 }
