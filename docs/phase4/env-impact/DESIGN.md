@@ -640,7 +640,12 @@ Stage names are `domain.Stage` (the wave-0 spike's `build-env-snapshot`, `build-
 | `human-review` | signal `review-decision` (`investigate.ReviewDecision`) + `ReviewApplier` | — | — | — | review timeout (default 7 d) |
 
 The `validate` stage runs before `investigate` (deterministic pass) and again for agent-requested
-validations inside `investigate` (synchronously, through `Tools.RequestValidation`).
+validations inside `investigate` (synchronously, through `Tools.RequestValidation`). After
+`investigate`, **`traverse` runs again** over the builder's graph plus the agent's proposed edges
+(always `inferred`, with placeholder nodes where an end is new); that merged graph is the run's `graph`
+artifact and its traversal is `Investigation.Traversal`, so a proposed relationship can only add
+unresolved paths — it reaches the policy, and it can never complete a traversal. `validate` then runs
+for any new path before `classify`.
 
 ### §5.2 Errors
 
