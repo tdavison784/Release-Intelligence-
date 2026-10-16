@@ -10,9 +10,20 @@ Resume from: this file + brief + `git log`.
   declarations `products/exercises/{cert-manager,ingress-nginx,prometheus-operator}.yaml` (every quote checked
   verbatim against the pinned upstream URL on 2026-10-16).
 
+- `internal/investigate/runtime/` (validator `runtime.isolated-upgrade@v1`): `validator.go` (options, node-image
+  pinning, run cache per bundle), `session.go` (renders → preflight → kind cluster → FROM / exercises / TO /
+  exercises → degradations → cleanup), `observe.go` (generic observations + diff), `exercise.go`, `outcome.go`
+  (per-item rules), `renders.go` (raw re-render verified against the stored artifact), `apprender.go`
+  (`NewAppRenderer(app)`), `kind.go` (`KindDriver`, kubectl), `driver.go` (ports), `model.go`, `disk_*.go`.
+- Unit tests with a fake driver + in-memory cluster (fictional product `gizmo`): every outcome path, quiet window
+  without exercise ⇒ never pass, cleanup on every exit path (create fails, no baseline, timeout, cancellation,
+  delete fails, delete unverified), observation diffing, render verification, prune/hooks, determinism.
+- `docs/INVESTIGATE.md` "Runtime validation".
+- Real run 1: cert-manager payments-eu (see "Real runs").
+
 ## In progress / next step
 
-- `internal/investigate/runtime/`: validator, cluster driver port + kind/kubectl driver, fakes, tests.
+- Real runs ingress-nginx shop-de + kube-prometheus-stack obs-north (running), then status table, LANE DONE.
 
 ## Decisions (with why)
 
