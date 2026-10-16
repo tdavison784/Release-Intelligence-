@@ -44,7 +44,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | groundtruth | — | claude-opus-5-5 | (removed) | (closed) | MERGED (23f79063, 6e03b550, d2bdd171) + cleaned up — 8 cases, FORMAT.md adopted |
 | orchestrate | — | claude-sonnet-5-5 | (removed) | (closed) | wave 0 merged + cleaned up; wave 2 gets a fresh worktree + agent |
 | renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
-| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab; follow-up: v3 depth rules + live run 3 (kps) |
+| agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd + 071facab + 43dad6f9; follow-up: prompt v4 per-item sessions + live run 4 (same obs-north input) |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab + e6474142 + 52300485; follow-up: Argo/Flux multi-source version attribution in internal/env, ProposedNodes |
@@ -80,6 +80,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Agent depth rules (v3, before scoring, generic): examined-no-concern/explains only after get_change_item on the item + an item-specific citation; raises-concern on behaviour/unknown items needs request_validation or a stated reason.
 - 2026-10-16 Loader warnings are gaps only for inputs that decide the item (the product's own deployment); non-semver targetRevision on Applications not deploying the product = note. Not a blanket waiver.
 - 2026-10-16 Bundle identity = env-subtree content + repo-relative paths (enclosing commit only as provenance), so bundle ids don't change with unrelated commits/checkouts — prerequisite for stored eval runs.
+- 2026-10-16 Agent depth is made STRUCTURAL (prompt v4), not enforced by a budget floor (a floor can be met with useless calls): one short session per agenda item in deterministic priority order (behaviour/unknown → rendered-unexplained → rest), cap N=10 per investigation (beyond-cap items closed not-examined by the runner), concerns must cite item-session evidence else become investigation-level notes. Live run 4 on the same obs-north input to compare v3 vs v4.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -104,6 +105,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 071facab agent follow-ups: deterministic agenda (mandatory per-item disposition), prompt v2 (frozen by live run 2: cert-manager payments-eu, coverage 14/14, 33k tokens, thin depth), prompt v3 (answer links), subject resolution, env-scope items everywhere. Green.
 - 2026-10-16 e6474142 orchestrate2 follow-ups: classify.New() wired, devstubs deleted, kustomize build status in snapshot, --agent-driver scripted, CreatedAt determinism; live e2e on :7299 (payments-eu, real classify, scripted agent): 18 findings (2 affected / 9 potentially / 7 insufficient), human approval via CLI. validate/common.go conflict = identical fix from classify, kept one. Green.
 - 2026-10-16 52300485 orchestrate2: ApplyAnswerLinks before classify; loader-warning gap only for the product under investigation (EnvironmentInputs.Product); bundle identity = env-subtree tree digest + repo-relative paths, provenance in audit detail (TestSnapshotAndBundleIdenticalAcrossCheckouts). Found: env loader attributes an Argo values-ref source's targetRevision 'main' to the product version → follow-up. Green.
+- 2026-10-16 43dad6f9 agent v3: D1 (explains/examined-no-concern only after get_change_item + item-unique citation), D2 (behaviour concerns need request_validation or reason), depth fields in coverage. Live run 3 (kps obs-north, v3, 12 calls / 58k tokens): 26/26 closed, 2 examined, 16 not-examined, 10 concerns (9 resting on one item), 1 validation request (not-run). Green.
 
 ## Open questions for the user
 
