@@ -54,8 +54,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
 | values | ri-values | claude-opus-5-5 | .claude/worktrees/p4ei-values | pane w1:p31 | started 17:55: per-release layered values (redo of reverted GLM fix 1) |
-| reviewfilter | ri-reviewfilter | claude-sonnet-5-5 | .claude/worktrees/p4ei-reviewfilter | pane w1:p20 | MERGED 555b51bb (641 needing review, 21 blocking); follow-up: default = blocking only, other open items separate, crd:default-changed as blocking |
-| knowledge | ri-knowledge | claude-sonnet-5-5 | .claude/worktrees/p4ei-knowledge | pane w1:p32 | started 17:58: semantic proposals → review items for ingress-nginx + kube-prometheus-stack (no proxy review) |
+| reviewfilter | ri-reviewfilter | claude-sonnet-5-5 | .claude/worktrees/p4ei-reviewfilter | pane w1:p20 | MERGED 555b51bb; follow-ups: blocking-only default (done, not merged), proxy-acted pin sources must stay visible, default = pin-source candidates only |
+| knowledge | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED d432d5f6 + cleaned up: 110 review items (ingress-nginx 99, kps 11), nothing verified |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
