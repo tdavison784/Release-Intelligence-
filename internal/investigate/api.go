@@ -63,6 +63,13 @@ type Config struct {
 	// stays false until the pre-registered gates allow it (DESIGN.md §3.4,
 	// eval/investigations/gates.yaml); eligibility is computed either way.
 	AutoApproval bool `json:"autoApproval,omitempty"`
+	// TierPolicy is the digest of the configured tier policy (docs/POLICY.md)
+	// whose verdict must also be auto-pass for an investigation to be
+	// approval-eligible (DESIGN.md §3.4); "" = no tier policy configured.
+	// CONTRACT-CHANGE(classify): additive; the conjunction needs to know
+	// whether a policy is configured, and the policy decides the outcome, so
+	// it belongs in the config digest.
+	TierPolicy string `json:"tierPolicy,omitempty"`
 }
 
 // Digest pins the configuration (canonical JSON).
@@ -316,6 +323,22 @@ type ClassifyInput struct {
 	// Validations from every validator run (deterministic pass and agent requests).
 	Validations []domain.ValidationRecord `json:"validations"`
 	Config      Config                    `json:"config"`
+	// Tier is the tier policy's verdict for the same upgrade and environment
+	// (nil when none was evaluated).
+	// CONTRACT-CHANGE(classify): additive; the §3.4 tier-policy conjunction
+	// had no input.
+	Tier *TierVerdict `json:"tier,omitempty"`
+}
+
+// TierVerdict is the upgrade-level verdict of the tier policy (docs/POLICY.md,
+// internal/policy.Verdict), reduced to what the approval conjunction reads.
+// CONTRACT-CHANGE(classify): additive.
+type TierVerdict struct {
+	Policy string `json:"policy"`
+	Digest string `json:"digest"` // policy digest; must equal Config.TierPolicy
+	Tier   string `json:"tier"`   // "auto-pass" | "review" | "block"
+	// Why summarises the items that kept the upgrade out of auto-pass.
+	Why []string `json:"why,omitempty"`
 }
 
 // Classification is the policy's output.

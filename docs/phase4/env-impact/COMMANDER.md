@@ -47,7 +47,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd; follow-up: deterministic per-item agenda + prompt v2, subject resolution, live run 2 on another product |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | ri-classify | claude-opus-5-5 | .claude/worktrees/p4ei-classify | pane w1:p2P (tab w1:t17) | wave 2, working since 14:15 |
-| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | wave 2, working since 14:15 |
+| orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab; follow-up: bundle CreatedAt determinism (owns bundle now), then wire classify.New() + drop devstubs when classify merges |
+| runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
@@ -93,6 +94,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 6f3ef2e4 (commander) TestEvalRenderCases offline by default: it went online on cache misses and hung in GitHub rate-limit backoff past the 10-min test timeout, blocking the merge check. Live with RI_RENDER_EVAL_LIVE=1.
 - 2026-10-16 31fa8c2b renderdiff follow-up: §1.3 amendment implemented (render.SelfArtifactBump; unexplained items at release + env scope), shared render path convention, DetectTargets skips layered values files (no golden changes), not-applicable pairs never block approval, bundle.WithKnowledge stores attached facts as artifacts (cert-manager 18/bundle; ingress-nginx and kps 0 — no facts in knowledge/). 0 uncorrelated rendered changes on all 8 envs. a0da019f gofmt validate. Green (-count=1). Cleanup done (tab w1:t12). WAVE 1 COMPLETE.
 - 2026-10-16 ed7a0acd agent: Tools with id/citation/verbatim-quote validation before recording, budgets, JSONL transcript; drivers claude-cli/exchange/replay/scripted; `ri investigate mcp`; 31 rejection tests; replay byte-identical. Live run 1 (shop-de, sonnet, prompt v1): 12/80 tool calls, but only 3/27 in-scope items examined; 2 validation requests refused (values key as subject). Green.
+- 2026-10-16 c7f6d5ab orchestrate2: internal/investigate/run (plain Go Pipeline shared by in-process Runner and Temporal activities; parity test same id + digest), internal/orchestrate activities per domain.Stage, review signal via ReviewApplier (timeout fails closed), bounded rounds, hash-chained audit; `ri investigate`, `ri investigate review|state`, `ri worker`; deterministic-pass ValidationRecords in the run record (49 live). Live run on own dev server :7299 (payments-eu input, placeholder classifier, no agent). Green.
 
 ## Open questions for the user
 
@@ -101,6 +103,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - (asked 2026-10-16) Is it OK that the opt-in agent stage sends environment configuration (Secret values redacted) to the model provider? Default until answered: opt-in, redacted; milestone-1 runs use only synthetic fixture environments.
 
 ## Next actions
+
+- When classify merges: tell ri-orchestrate2 'classify merged' (wire classify.New(), drop devstubs, live e2e with --agent scripted/replay); then start lane eval (Wave 3, Opus — write briefs/eval.md from DESIGN §6/§7 first; include runtime results if merged, reported per basis).
 
 1. ~~Wave 1~~ COMPLETE 2026-10-16 14:20 (all merged + cleaned up). Old text for reference: (renderdiff, validate, bundle, relations; briefs/_wave1-common.md + briefs/<lane>.md). On each LANE DONE: review against DESIGN §7 + the brief (renderdiff: coverage numbers in status; validate: OverrideInspection pin source is declarative and release-level, absent setting never passes), merge, clean up, and tell still-running wave-1 lanes to `git merge p4-env-impact` when they need a merged sibling.
 2. Groundtruth follow-up running (diff-visible pair + diff-visible-harmless trap). When it reports LANE DONE: review + merge; then tell it to `git merge p4-env-impact`, adopt FORMAT.md and the contract's EdgeKind relation names, re-verify, LANE DONE; then merge + clean up.

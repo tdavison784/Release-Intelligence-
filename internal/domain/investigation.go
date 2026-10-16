@@ -2505,7 +2505,13 @@ func (inv *Investigation) Validate() error {
 		if d.Policy == "" || !oneOf(d.Outcome, PolicyOutcomes) || len(d.Reasons) == 0 {
 			bad("decision needs policy, a known outcome and reasons")
 		}
-		if (d.Outcome == PolicyAutoApproveEligible) != allEligible {
+		// Eligible ⇒ every finding eligible. Not the converse: §3.4 adds
+		// investigation-level conjuncts (agent completed, complete traversal and
+		// renders, no uncorrelated change, tier policy), so all findings may be
+		// eligible while the decision is human-review-required.
+		// CONTRACT-CHANGE(classify): was "⇔", which left no valid decision when
+		// every item is not-affected but e.g. the agent did not complete.
+		if d.Outcome == PolicyAutoApproveEligible && !allEligible {
 			bad("decision %s contradicts the findings (all eligible = %v)", d.Outcome, allEligible)
 		}
 		if d.AutoApprovalEnabled && d.Outcome != PolicyAutoApproveEligible {
