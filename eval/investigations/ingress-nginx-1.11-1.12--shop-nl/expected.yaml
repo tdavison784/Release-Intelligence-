@@ -1,0 +1,123 @@
+# GROUND TRUTH — authored blind by the groundtruth lane from upstream sources and an observed
+# upgrade in an isolated kind cluster (see NOTES.md). Pipeline and agent lanes must not read this
+# file (docs/phase4/env-impact/FLEET.md, "Evaluation integrity").
+case: ingress-nginx-1.11-1.12--shop-nl
+authoredAt: "2026-10-16"
+authoredBy: groundtruth lane (Claude Opus 5.5), blind
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # "tracing and metrics (1.11.5)" vs "(1.12.0)"
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "OpenTelemetry is still supported, but since the module is built into the controller image since v1.10, we hereby remove the init container and image which were used to install it upon controller startup."
+      - url: https://github.com/kubernetes/ingress-nginx/pull/12024
+        quote: "This removal will not change the way OpenTelemetry works."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/rootfs/etc/nginx/template/nginx.tmpl#L33
+        quote: "load_module /etc/nginx/modules/otel_ngx_module.so;"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/rootfs/etc/nginx/template/nginx.tmpl#L33
+        quote: "load_module /etc/nginx/modules/otel_ngx_module.so;"
+    components:
+      - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
+        classification: not-affected
+        reason: >-
+          values.yaml sets controller.opentelemetry.enabled: true, so chart 4.11.5 renders the
+          `opentelemetry` init container (image opentelemetry-1.25.3) and a `modules` emptyDir mounted at
+          /modules_mount; chart 4.12.0 renders neither (the value no longer exists). The nginx template
+          of both controller versions loads the module from the controller image
+          (/etc/nginx/modules/otel_ngx_module.so), never from /modules_mount, so the removed init
+          container was already unused. Tracing keeps working with the same ConfigMap settings.
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: spec.template.spec.initContainers[opentelemetry]
+            relation: calls # OTLP gRPC export of spans
+          - ref: {file: env/platform/otel-collector/service.yaml, kind: Service, namespace: observability, name: otel-collector}
+        mitigation:
+          kind: relationship-absent
+          detail: nothing reads /modules_mount; the module is loaded from the controller image in both versions
+        requiredEvidence:
+          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.opentelemetry.enabled}
+          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.config.enable-opentelemetry}
+      - ref: {file: env/platform/otel-collector/deployment.yaml, kind: Deployment, namespace: observability, name: otel-collector}
+        classification: not-affected
+        reason: The collector keeps receiving ingress-nginx spans after the upgrade (observed, same count per probe as before).
+        impactPath:
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: data.otlp-collector-host
+            relation: configures
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
+            relation: calls
+          - ref: {file: env/platform/otel-collector/deployment.yaml, kind: Deployment, namespace: observability, name: otel-collector}
+        mitigation:
+          kind: relationship-absent
+          detail: span export depends on the ConfigMap settings and the in-image module, neither of which changes
+        requiredEvidence:
+          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.config.otlp-collector-host}
+    remediation: none required; controller.opentelemetry can be dropped from values.yaml (it no longer has an effect).
+    match:
+      - subject: controller.opentelemetry
+      - text: '(?i)opentelemetry|otel'
+
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # metrics endpoint HTTP 200 before and after; args show enable-metrics=true after
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "`--enable-metrics` gets disabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/pkg/flags/flags.go#L176-L177
+        quote: 'enableMetrics = flags.Bool("enable-metrics", true,'
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/pkg/flags/flags.go#L177-L178
+        quote: 'enableMetrics = flags.Bool("enable-metrics", false,'
+      - url: https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.12.0/charts/ingress-nginx/templates/_params.tpl#L57-L58
+        quote: "{{- if .Values.controller.metrics.enabled }} - --enable-metrics={{ .Values.controller.metrics.enabled }}"
+    components:
+      - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
+        classification: not-affected
+        reason: >-
+          values.yaml sets controller.metrics.enabled: true. Chart 4.11.5 passed no flag (controller 1.11
+          defaulted to true); chart 4.12.0 passes --enable-metrics=true explicitly because controller 1.12
+          defaults to false. Net effect: metrics stay on, and the annotation-based scraper keeps getting
+          them on :10254 (observed HTTP 200 and nginx_ingress_controller_requests series before and after).
+        impactPath:
+          - ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}
+            relation: deploys
+          - ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}
+            field: spec.template.spec.containers[controller].args
+        mitigation:
+          kind: override
+          ref: {file: env/platform/ingress-nginx/values.yaml, kind: values, name: values.yaml}
+          field: controller.metrics.enabled
+          value: true
+        requiredEvidence:
+          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.metrics.enabled}
+          - {file: env/platform/ingress-nginx/values.yaml, object: values, field: controller.podAnnotations}
+    remediation: none required.
+    match:
+      - subject: --enable-metrics
+      - subject: controller.metrics.enabled
+      - text: '(?i)enable-metrics|metrics.*(disabled|default)'
+
+# Every environment-relevant hunk of observed/render.diff, labelled. Image digests, chart labels and
+# the added securityContext.runAsGroup lines are release noise and not listed.
+renderedChanges:
+  - diff: observed/render.diff#L191-L224
+    object: Deployment/ingress-nginx/ingress-nginx-controller
+    change: initContainer `opentelemetry`, volume `modules` and its mount at /modules_mount removed
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L179
+    object: Deployment/ingress-nginx/ingress-nginx-controller
+    change: arg `--enable-metrics=true` added
+    item: B2
+    impact: harmless
+  - diff: observed/render.diff#L45
+    object: ConfigMap/ingress-nginx/ingress-nginx-controller
+    change: '`allow-snippet-annotations: "false"` no longer rendered (4.12 renders the key only when true; the controller default is false in both versions)'
+    item: null # not an in-scope item; chart template change
+    impact: harmless
