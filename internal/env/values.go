@@ -273,6 +273,7 @@ func kindName(k yaml.Kind) string {
 type setEntry struct {
 	name, value string
 	forceString bool
+	unsupported bool // not a single scalar value (--set-file, a values list): not evaluated
 	line        int
 	locator     string // evidence locator
 }
@@ -288,8 +289,7 @@ func (l *loader) setLayer(file, source string, line int, sets []setEntry) stackL
 	var skipped []string
 	for _, e := range sets {
 		segs, ok := parseSetName(e.name)
-		v := strings.TrimSpace(e.value)
-		if !ok || (!e.forceString && strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}")) {
+		if e.unsupported || !ok || !SetSupported(e.name, e.value, e.forceString) {
 			skipped = append(skipped, e.name)
 			continue
 		}
@@ -302,9 +302,21 @@ func (l *loader) setLayer(file, source string, line int, sets []setEntry) stackL
 	}
 	if len(skipped) > 0 {
 		s.info.Gap = true
-		s.info.Reason = fmt.Sprintf("%s: --set style entries %s use list syntax (an index or {a,b}) that is not evaluated", file, strings.Join(skipped, ", "))
+		s.info.Reason = fmt.Sprintf("%s: --set style entries %s are not evaluated (list syntax — an index or {a,b} —, --set-file or a non-scalar value)", file, strings.Join(skipped, ", "))
 	}
 	return s
+}
+
+// SetSupported reports whether a --set style assignment is one the values
+// model evaluates: a dotted name (no list index) and, unless forceString, a
+// value Helm would not read as a list ({a,b}). The renderer applies the same
+// rule, so render targets and values stacks agree on completeness.
+func SetSupported(name, value string, forceString bool) bool {
+	if _, ok := parseSetName(name); !ok {
+		return false
+	}
+	v := strings.TrimSpace(value)
+	return forceString || !(strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}"))
 }
 
 // parseSetName splits a strvals key ("a.b\.c" → [a, b.c]); false when it
@@ -792,7 +804,12 @@ func (l *loader) helmfileReleases(h helmfileDoc) []*release {
 				if n == "" {
 					continue
 				}
-				es = append(es, setEntry{name: n, value: scalarOf(s, "value"), line: resolveAlias(s).Line, locator: fmt.Sprintf("%s.set[%s]", loc, n)})
+				// helmfile's set value is a string field: the scalar's text, as
+				// written ("1.50", "0123"), reaches helm --set, which types it
+				v := fieldOf(s, "value")
+				unsupported := fieldOf(s, "values") != nil || fieldOf(s, "file") != nil || (v != nil && resolveAlias(v).Kind != yaml.ScalarNode)
+				es = append(es, setEntry{name: n, value: scalarOf(s, "value"), unsupported: unsupported,
+					line: resolveAlias(s).Line, locator: fmt.Sprintf("%s.set[%s]", loc, n)})
 			}
 			r.add(l.setLayer(h.path, loc+".set", resolveAlias(fieldOf(rn, "set")).Line, es))
 		}

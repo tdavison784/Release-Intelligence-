@@ -452,6 +452,10 @@ func argoTargets(o TargetOptions, file string) (out []Target, notes []string) {
 						val = fmt.Sprint(pm["value"])
 					}
 					force, _ := pm["forceString"].(bool)
+					if !env.SetSupported(name, val, force) {
+						incomplete(fmt.Sprintf("helm.parameters %s uses list syntax (an index or {a,b}) that is not evaluated", name))
+						continue
+					}
 					// Argo CD passes --set (--set-string with forceString): Helm's
 					// strvals typing decides the type, as env.SetValueJSON encodes it
 					t.Set = append(t.Set, SetValue{Path: name, Value: env.SetValueJSON(val, force), Origin: origin + ".helm.parameters"})
@@ -551,8 +555,9 @@ func helmfileTargets(o TargetOptions, file string) (out []Target, referenced []s
 	if err != nil {
 		return nil, nil, []string{fmt.Sprintf("%s: %v (templated helmfiles are not rendered)", file, err)}
 	}
+	setTexts := helmfileSetTexts(raw)
 	dir := filepath.Dir(file)
-	for _, d := range docs {
+	for di, d := range docs {
 		rels, _ := d["releases"].([]any)
 		for ri, r := range rels {
 			rm, _ := r.(map[string]any)
@@ -590,19 +595,87 @@ func helmfileTargets(o TargetOptions, file string) (out []Target, referenced []s
 				t.ValuesComplete, t.IncompleteReason = false, "secrets entries are encrypted and not read"
 			}
 			if sets, ok := rm["set"].([]any); ok {
-				for _, s := range sets {
+				for si, s := range sets {
 					sm, _ := s.(map[string]any)
 					name, _ := sm["name"].(string)
 					if name == "" {
 						continue
 					}
-					t.Set = append(t.Set, SetValue{Path: name, Value: encode(sm["value"]), Origin: origin + ".set"})
+					// helmfile's set value is a string field: the scalar's text as
+					// written ("1.50", "0123", a quoted "12") reaches helm --set,
+					// which types it — env.SetValueJSON, as the values stack does
+					text, ok := setTexts[[3]int{di, ri, si}]
+					if !ok || !env.SetSupported(name, text, false) {
+						if t.ValuesComplete {
+							t.ValuesComplete, t.IncompleteReason = false, fmt.Sprintf("set entry %s is not evaluated (list syntax, --set-file or a non-scalar value)", name)
+						}
+						continue
+					}
+					t.Set = append(t.Set, SetValue{Path: name, Value: env.SetValueJSON(text, false), Origin: origin + ".set"})
 				}
 			}
 			out = append(out, t)
 		}
 	}
 	return out, referenced, notes
+}
+
+// helmfileSetTexts returns the scalar text of every releases[].set[].value
+// of a helmfile, keyed by (document, release, set entry) — documents counted
+// as yamlDocs counts them (null documents skipped). An entry with no single
+// scalar value (values:, file:, a mapping or list) is absent; one without a
+// value is "".
+func helmfileSetTexts(raw []byte) map[[3]int]string {
+	out := map[[3]int]string{}
+	dec := yaml.NewDecoder(bytes.NewReader(raw))
+	for di := 0; ; {
+		var root yaml.Node
+		if err := dec.Decode(&root); err != nil {
+			return out
+		}
+		if len(root.Content) == 0 || (root.Content[0].Kind == yaml.ScalarNode && root.Content[0].Tag == "!!null") {
+			continue
+		}
+		for ri, r := range nodeSeq(nodeField(root.Content[0], "releases")) {
+			for si, s := range nodeSeq(nodeField(r, "set")) {
+				v := nodeField(s, "value")
+				switch {
+				case nodeField(s, "values") != nil || nodeField(s, "file") != nil:
+				case v == nil:
+					out[[3]int{di, ri, si}] = ""
+				case v.Kind == yaml.ScalarNode:
+					out[[3]int{di, ri, si}] = v.Value
+				}
+			}
+		}
+		di++
+	}
+}
+
+func nodeField(n *yaml.Node, key string) *yaml.Node {
+	for n != nil && n.Kind == yaml.AliasNode {
+		n = n.Alias
+	}
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		if n.Content[i].Value == key {
+			v := n.Content[i+1]
+			for v != nil && v.Kind == yaml.AliasNode {
+				v = v.Alias
+			}
+			return v
+		}
+	}
+	return nil
+}
+
+func nodeSeq(n *yaml.Node) []*yaml.Node {
+	if n == nil || n.Kind != yaml.SequenceNode {
+		return nil
+	}
+	return n.Content
 }
 
 // RepoFilesFrom collects the repo-mode discoveries of an environment by role.

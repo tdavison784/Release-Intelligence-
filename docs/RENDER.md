@@ -65,7 +65,7 @@ secrets) mark the target **INCOMPLETE**: an absence of change in an incomplete r
 | `values-files` | `--values`, or a repo-local values file naming the product (not one an Argo CD / Flux / Helmfile target already layers) | |
 | `argocd` | Argo CD Application (a chart source, or a git `path` source holding a Helm chart in this repo) | layered exactly as `env` stacks it (docs/IMPACT.md "Values are per release"): `valueFiles` in declared order (`$ref/…` from the repo root; a plain path relative to the source path in this repo), then `valuesObject` — or `values` when no `valuesObject` is set (otherwise ignored, with a note) —, then `parameters` with Helm's `--set` typing; a plain path of a Helm-repository chart (inside the chart package), a remote, missing or unknown-ref file, `fileParameters` ⇒ incomplete |
 | `flux` | Flux HelmRelease | `spec.values`; `valuesFrom` ⇒ incomplete |
-| `helmfile` | Helmfile release | files/inline/set; templated/secrets ⇒ incomplete |
+| `helmfile` | Helmfile release | values entries in order (files, inline maps), then `set` — its value is the scalar's text as written (`1.50`, `0123`, a quoted `"12"`), typed by Helm's `--set` rules exactly as the `env` stack does; templated/secrets, a `set` entry with `values:`/`file:` or list syntax ⇒ incomplete |
 | `kustomize` | Kustomize overlay | tied to the environment (Argo source path, `--overlay`, else top-level kustomizations referencing the product); rendered with the product version substituted (recorded); an overlay that does not pin the version is `not-applicable` |
 | `chart-defaults` | `--chart-defaults` | release level |
 

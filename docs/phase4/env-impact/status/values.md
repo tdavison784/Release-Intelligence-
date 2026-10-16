@@ -5,7 +5,7 @@ layered-values merge (a638c39a, reverted in 73bb58ba).
 
 ## State
 
-**Follow-up done** (commander review of 65ee78a5: render divergences + review-UI flag text; branch merged
+**Last item done** (helmfile `set` agreement, below). **Follow-up done** (commander review of 65ee78a5: render divergences + review-UI flag text; branch merged
 `p4-env-impact` @ 20e958b8 first, fast-forward). First round: **done.** `go build ./... && go vet ./... && go test ./...` green. No kind clusters, servers, `bin/` or
 scratch output created.
 
@@ -148,9 +148,29 @@ Ownership extended to `internal/render/source.go` for this, plus the review-UI f
   `----enable-metrics`. Tests in `english_test.go`.
 - Goldens: **none changed** (no golden covers an Application with both values blocks, plain
   valueFiles or a git-path Helm source). Docs: `docs/RENDER.md` target table.
-- Residual (not asked): helmfile `set` values in render are still encoded from the YAML-typed value
-  (`encode`), env uses the scalar text with strvals typing — they differ only for floats written with
-  trailing zeros / leading-zero numbers / mixed-case bools.
+- ~~Residual: helmfile `set` encoding~~ — fixed in the last item below.
+
+## Last item (commander, after merge 3b73d721)
+
+Branch merged `p4-env-impact` (fast-forward to 3b73d721) first.
+
+- Render helmfile `set` values now use `env.SetValueJSON` on the scalar's **text** as written
+  (`render.helmfileSetTexts` reads it from the YAML node; the decoded map loses it). Why the text:
+  helmfile's set value is a Go `string` field, so YAML decoding hands it the source text, which helmfile
+  passes to `helm --set` and Helm types (strvals). Old render behaviour (shown by a mutation of the new
+  test): `1.50` → number `1.5`, `0123` → `83` (YAML octal), quoted `"12"` / `"true"` → strings; now
+  `"1.50"`, `"0123"`, `12`, `true`, as env.
+- One shared completeness rule, `env.SetSupported` (exported; env's `setLayer` uses it): a list index
+  in the name or a `{a,b}` value is not evaluated. Render now applies it to helmfile `set` **and** Argo
+  `parameters` (formerly passed to `--set-json`, where `{a,b}` became a string) ⇒ incomplete, as env is
+  partial. A helmfile `set` entry with `values:` (list) or `file:` (`--set-file`), or a non-scalar
+  `value`, is a gap in both (env previously applied it as `""`).
+- Tests (`internal/render/argo_values_test.go`): `TestHelmfileRenderAndEnvStacksAgree` (file order,
+  inline map, `{}`, list replace, `null`, `1.50`, `0123`, quoted `"12"`, `TRUE`, escaped dot: render
+  effective values == env release with the same id, both complete; the mutation back to `encode(…)`
+  fails it); `TestHelmfileUnsupportedSetAgrees` (values list, `file:`, index, `{a,b}` ⇒ both incomplete).
+- Goldens: none changed (no golden fixture has helmfile `set` entries or list-syntax parameters).
+  Docs: `docs/RENDER.md` helmfile row.
 
 ## Open questions / findings for the commander
 
