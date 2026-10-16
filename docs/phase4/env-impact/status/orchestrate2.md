@@ -81,3 +81,34 @@ Dev server on :7299 and worker stopped; scratch state/binaries live in the sessi
 - Test: `TestAssembleByteIdenticalAndPutIsNoop` (a wall-clock second passes between two assemblies; JSON equal; stored file unchanged).
 - Pending (waiting for the commander's classify message): replace `newClassifier` with `classify.New()`, delete
   `cmd/ri/investigate_devstubs.go` and the `ri_devstubs` tag, re-run the live end-to-end with `--agent` (scripted/replay driver).
+
+## Follow-up 2: kustomization status, classify wired, live e2e with --agent (LANE DONE)
+- **Bundle (owned):** the snapshot builder now builds every kustomization the env loader reports as "not built with kustomize"
+  (`bundle/kustomize.go`, real `kustomize build` / `kubectl kustomize` through `internal/render`). A built one no longer makes the repo
+  input `partial`; an unbuildable one stays `partial` with `kustomization X cannot be built: <reason>` (also when no binary exists).
+  Tests: built ⇒ ok, unbuildable ⇒ partial+reason (injected builder), real kustomize good ⇒ ok / broken ⇒ partial (skips without a binary).
+- **Remaining partial on the groundtruth env (flag for commander):** `payments-prod-eu`'s repo input is still `partial`, now only because
+  of two other loader warnings: `detected-argo "cert-manager"/"prod": version "main" is not a parsable version; kept as stated, it cannot
+  be range-checked` (Argo `targetRevision: main`). That is an informational warning about version range checks, not lost data, but the
+  snapshot counts any loader warning as partial. I did NOT loosen it (fail-open risk, env-loader semantics): decide whether such warnings
+  should be non-gaps (env loader / bundle rule) — until then R2.1 still fails for that env.
+- **Outside ownership (one line):** `validate/common.go` `prepare` looked items up with `Bundle.Change.Item`, so every validator failed
+  permanently on environment-anchored items (`bundle.EnvironmentItems`, DESIGN §1.3 amendment); now `Bundle.Item` (the domain lookup that
+  covers both lists). Pipeline iterates `Bundle.Items()`.
+- `classify.New()` / `classify.NewReviewApplier()` wired in `cmd/ri/investigate.go`; `investigate_devstubs.go` and the `ri_devstubs` tag deleted;
+  `Config.Policy = classify.Policy`. New flag `--agent-driver scripted --agent-script FILE` (JSON list of tool calls) for deterministic runs.
+- **Live e2e with --agent (scripted driver), own dev server :7299 (stopped after), same case/state setup as before, real classify:**
+```
+worker …  --agent-driver scripted --agent-script script.json     # [{"tool":"list_renders"},{"tool":"submit_findings","args":{"items":[]}}]
+$ ri investigate cert-manager v1.17.2 v1.18.0 --repo …/env --kubernetes 1.31 --env-name payments-prod-eu --agent \
+      --agent-driver scripted --agent-script script.json --temporal --detach --rerun 1        → invreq-3a6252f01a0e-r1
+state: validate (initial) 72 validator runs, 55 records → investigate "agent submitted" → traverse final → validate final
+       → classify "18 findings, decision human-review-required" → human-review waiting (168h)
+$ ri investigate review invreq-3a6252f01a0e-r1 approve --reviewer tommy --note "live check 2" --temporal
+record inv-63b726e47824: status completed, review approved by tommy (human), 55 validations, agent submitted (scripted, 2 turns,
+2 tool calls, transcript artifact), findings affected=2 potentially-affected=9 insufficient-evidence=7, audit: …
+  24 human-review decided human:tommy
+```
+  (The first attempt of this run failed `validate` permanently on the environment items — the bug fixed above — and its `failed` events
+  are kept in the append-only trail of the same record, the retry shows the resubmission attaching to it.)
+- Tests: `go build ./... && go vet ./... && go test ./...` green. Cleanup: dev server/worker stopped, scratch under the scratchpad only.

@@ -3,6 +3,7 @@ package bundle
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -255,3 +256,82 @@ func TestSnapshotErrors(t *testing.T) {
 }
 
 func readFrom(t *testing.T, st *store.Store, digest string) string { return read(t, st, digest) }
+
+func kustomizeRepo(t *testing.T) string {
+	root := t.TempDir()
+	write(t, root, "base/deploy.yaml", "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\n  namespace: shop\nspec:\n  replicas: 1\n")
+	write(t, root, "base/kustomization.yaml", "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deploy.yaml\n")
+	write(t, root, "apps/cert-manager/values.yaml", "replicaCount: 2\n")
+	return root
+}
+
+func repoStatus(t *testing.T, res *investigate.SnapshotResult) (domain.CollectionStatus, string) {
+	t.Helper()
+	for _, in := range res.Snapshot.Inputs {
+		if in.Kind == domain.InputGitOpsRepo {
+			return in.Status, in.Reason
+		}
+	}
+	t.Fatal("no repo input")
+	return "", ""
+}
+
+// A kustomization the snapshot builds is not a collection gap: the loader's
+// "not built" warning is about the loader.
+func TestSnapshotBuiltKustomizationIsComplete(t *testing.T) {
+	repo := kustomizeRepo(t)
+	b := NewSnapshotBuilder(newSt(t)).(*SnapshotBuilder)
+	var built []string
+	b.kbuild = func(_ context.Context, root, dir string) error { built = append(built, dir); return nil }
+	res, err := b.BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: repo})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(built) != 1 || !strings.HasSuffix(built[0], "base") {
+		t.Fatalf("built = %v", built)
+	}
+	if st, why := repoStatus(t, res); st != domain.CollectionOK {
+		t.Fatalf("repo status = %s (%s), want ok", st, why)
+	}
+}
+
+// A kustomization that cannot be built stays partial, with the reason.
+func TestSnapshotUnbuildableKustomizationStaysPartial(t *testing.T) {
+	repo := kustomizeRepo(t)
+	b := NewSnapshotBuilder(newSt(t)).(*SnapshotBuilder)
+	b.kbuild = func(context.Context, string, string) error { return errors.New("accumulating resources: missing base") }
+	res, err := b.BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: repo})
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, why := repoStatus(t, res)
+	if st != domain.CollectionPartial || !strings.Contains(why, "cannot be built") || !strings.Contains(why, "missing base") {
+		t.Fatalf("repo status = %s (%s)", st, why)
+	}
+}
+
+// With the real kustomize: a good kustomization is ok, a broken one partial.
+func TestSnapshotRealKustomize(t *testing.T) {
+	if _, err := exec.LookPath("kustomize"); err != nil {
+		if _, err := exec.LookPath("kubectl"); err != nil {
+			t.Skip("neither kustomize nor kubectl is on PATH")
+		}
+	}
+	good := kustomizeRepo(t)
+	res, err := NewSnapshotBuilder(newSt(t)).BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: good})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st, why := repoStatus(t, res); st != domain.CollectionOK {
+		t.Fatalf("good kustomization: %s (%s)", st, why)
+	}
+	bad := kustomizeRepo(t)
+	write(t, bad, "base/kustomization.yaml", "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deploy.yaml\npatches:\n  - path: nope.yaml\n")
+	res, err = NewSnapshotBuilder(newSt(t)).BuildSnapshot(context.Background(), investigate.EnvironmentInputs{Name: "e", Repo: bad})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st, why := repoStatus(t, res); st != domain.CollectionPartial || !strings.Contains(why, "cannot be built") {
+		t.Fatalf("broken kustomization: %s (%s)", st, why)
+	}
+}

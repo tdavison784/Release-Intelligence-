@@ -512,7 +512,7 @@ func (p *Pipeline) validate(ctx context.Context, in StageInput) (*stageResult, e
 	var arts []domain.ArtifactRef
 	var evid []domain.Evidence
 	ran := 0
-	items := append(append([]domain.ChangeItem(nil), rc.bundle.Change.Items...), rc.bundle.EnvironmentItems...)
+	items := rc.bundle.Items()
 	for _, it := range items {
 		if !it.InScope {
 			continue

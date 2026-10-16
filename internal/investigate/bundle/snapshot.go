@@ -30,19 +30,21 @@ type SnapshotBuilder struct {
 	st    investigate.ArtifactStore
 	hints []env.ProductHint
 	now   func() time.Time
+	// kbuild builds kustomizations at snapshot time (default: kustomize).
+	kbuild kustomizeBuilder
 }
 
 var _ investigate.SnapshotBuilder = (*SnapshotBuilder)(nil)
 
 // NewSnapshotBuilder returns the snapshot builder writing artifacts to st.
 func NewSnapshotBuilder(st investigate.ArtifactStore) investigate.SnapshotBuilder {
-	return &SnapshotBuilder{st: st, now: pinnedClock}
+	return &SnapshotBuilder{st: st, now: pinnedClock, kbuild: realKustomizeBuilder}
 }
 
 // NewSnapshotBuilderWithHints is NewSnapshotBuilder with the catalog's product
 // hints (env.HintsFromCatalog), so images are recognised as catalog products.
 func NewSnapshotBuilderWithHints(st investigate.ArtifactStore, hints []env.ProductHint) investigate.SnapshotBuilder {
-	return &SnapshotBuilder{st: st, hints: hints, now: pinnedClock}
+	return &SnapshotBuilder{st: st, hints: hints, now: pinnedClock, kbuild: realKustomizeBuilder}
 }
 
 // BuildSnapshot loads the environment and stores its files (redacted) and
@@ -63,6 +65,8 @@ func (b *SnapshotBuilder) BuildSnapshot(ctx context.Context, in investigate.Envi
 	if err != nil {
 		return nil, fmt.Errorf("snapshot: %w", err)
 	}
+
+	e.Warnings = resolveBuilt(ctx, in.Repo, e.Warnings, b.kbuild)
 
 	// 1. Files → artifacts (redacted before hashing).
 	type collected struct {
@@ -416,5 +420,5 @@ func redactEvidence(in []domain.Evidence) []domain.Evidence {
 // NewSnapshotBuilderWithClock is NewSnapshotBuilderWithHints with CollectedAt
 // taken from now (see pinnedClock for why the default is the zero time).
 func NewSnapshotBuilderWithClock(st investigate.ArtifactStore, hints []env.ProductHint, now func() time.Time) investigate.SnapshotBuilder {
-	return &SnapshotBuilder{st: st, hints: hints, now: now}
+	return &SnapshotBuilder{st: st, hints: hints, now: now, kbuild: realKustomizeBuilder}
 }

@@ -202,7 +202,7 @@ func prepare(ctx context.Context, in investigate.ValidationInput) (domain.Change
 	if in.Bundle == nil {
 		return domain.ChangeItem{}, fmt.Errorf("validate: %w: no bundle", investigate.ErrRejected)
 	}
-	it, ok := in.Bundle.Change.Item(in.ChangeItem)
+	it, ok := in.Bundle.Item(in.ChangeItem) // environment-anchored items too (orchestrate2 fix)
 	if !ok {
 		return domain.ChangeItem{}, fmt.Errorf("validate: change item %q: %w", in.ChangeItem, investigate.ErrNotFound)
 	}
