@@ -69,6 +69,8 @@ are OK, note them).
 
 ## Running things
 
+- Shell hygiene: in any `rm` write the variable as `"${VAR:?}"/…` (or use a literal path). An `rm` on a possibly-empty
+  variable triggers a Claude Code safety prompt that blocks unattended lanes until it auto-denies.
 - Build: `go build -o bin/ri ./cmd/ri` (bin/ is gitignored, per worktree).
 - Upstream cache: reuse the primary checkout's warm cache with
   `-state /Users/tommydavison/repos/Release-Intelligence-/.ri` (read-mostly; don't delete it). Live
