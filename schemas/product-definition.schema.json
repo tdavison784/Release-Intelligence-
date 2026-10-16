@@ -82,6 +82,42 @@
         }
       }
     },
+    "relationships": {
+      "type": "array",
+      "description": "Upstream-documented relationships between object kinds (produces / references / selects) followed by the investigation's relationship graph. Each entry cites upstream documentation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "from", "to", "summary", "references"],
+        "properties": {
+          "id": {"$ref": "#/$defs/dnsLabel"},
+          "kind": {"enum": ["produces", "references", "selects"]},
+          "from": {"$ref": "#/$defs/objectType"},
+          "to": {"$ref": "#/$defs/objectType"},
+          "summary": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "format": {"enum": ["name", "namespace/name"]},
+          "scope": {"enum": ["namespaced", "cluster"]},
+          "selectorPath": {"type": "string", "minLength": 1},
+          "namespaceSelectorPath": {"type": "string", "minLength": 1},
+          "whenPath": {"type": "string", "minLength": 1},
+          "whenEquals": {"type": "string", "minLength": 1},
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["url", "quote"],
+              "properties": {
+                "url": {"type": "string", "pattern": "^https://"},
+                "quote": {"type": "string", "minLength": 1, "maxLength": 400}
+              }
+            }
+          }
+        }
+      }
+    },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
@@ -96,6 +132,12 @@
     }
   },
   "$defs": {
+    "objectType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {"group": {"type": "string"}, "kind": {"type": "string", "minLength": 1}}
+    },
     "dnsLabel": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"},
     "stringList": {"type": "array", "items": {"type": "string"}},
     "constraint": {"type": "string", "description": "Semver constraint on the release version, e.g. \">= 1.14.0\"."},

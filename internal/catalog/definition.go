@@ -40,6 +40,11 @@ type ProductDefinition struct {
 	// a decidable predicate instead of `undecidable` (configsources.go).
 	ConfigSources []ConfigSource `yaml:"configSources,omitempty" json:"configSources,omitempty"`
 
+	// Relationships declare upstream-documented relationships between object
+	// kinds (produces / references / selects) that the investigation's
+	// relationship graph follows (relationships.go).
+	Relationships []Relationship `yaml:"relationships,omitempty" json:"relationships,omitempty"`
+
 	// Provenance documents how this definition was produced and validated.
 	Provenance *DefinitionProvenance `yaml:"provenance,omitempty" json:"provenance,omitempty"`
 

@@ -25,8 +25,7 @@ Branch `p4ei/relations`, worktree `.claude/worktrees/p4ei-relations`. Brief: `br
   resource names it via a declared `ProducesRule` the `produces` edge and the reference are `established`; via the
   generic `spec.secretName` convention they are `inferred` (unresolved ⇒ blocks R2, never clears).
 - Name-only matches (namespace unknown on either side) are `inferred`, never `established`.
-- No catalog `relationships:` construct yet: `ProducesRule` is the declarative data type; wiring it to product
-  definitions is deferred (see Open questions) — the builder takes rules by option.
+- The catalog `relationships:` construct was added in the follow-up (see below).
 
 ## Files touched outside ownership
 - `docs/INVESTIGATE.md` ("Relationships" section only, as the skeleton directs).
@@ -34,8 +33,25 @@ Branch `p4ei/relations`, worktree `.claude/worktrees/p4ei-relations`. Brief: `br
 ## Contract changes
 - None.
 
-## Open questions
-- Should `ProducesRule` come from a product-definition `relationships:` block (additive catalog + schema change)?
+## Follow-up (commander review: catalog construct) — done
+- `relationships:` in product definitions: `internal/catalog/relationships.go` (types, `SplitFieldPath`, validator),
+  `ProductDefinition.Relationships`, `schemas/product-definition.schema.json`, tests (valid, 19 bad-rule cases,
+  schema). Kinds: produces / references / selects (+ `scope`, `whenPath`/`whenEquals`, `format`, namespaceSelector).
+- `relations.WithCatalog` / `WithRelationships` / (compat) `WithProducesRules`; label selectors evaluate
+  matchLabels + matchExpressions; cluster scope known from built-ins, declared rules and snapshot CRDs.
+- Rules authored from upstream API source docs (quotes verified against the fetched files): cert-manager
+  (certificate-secret, issuer-ca-secret, clusterissuer-ca-secret, certificate-cluster-issuer), ingress-nginx
+  (auth-secret, auth-tls-secret, proxy-ssl-secret), prometheus-operator (servicemonitor-services, podmonitor-pods).
+  ServiceMonitor/PodMonitor also apply to kube-prometheus-stack envs (catalog-wide). No eval files were opened.
+- Test: with the catalog, Certificate → Secret → Deployment is established and the traversal is complete.
+- Fixes found on the way: ClusterIssuer-style kinds were mis-scoped by Application destination namespace (now via
+  declared cluster scope); `*Ref` without `group` no longer fails to resolve; placeholder status no longer overwritten.
+- Golden files in internal/app/testdata/e2e changed ONLY in `definitionDigest` (cert-manager.yaml edited): regenerated
+  with `-update`; diff verified to be digest lines only.
+- A ClusterIssuer reading its CA Secret stays `inferred` on purpose (cluster resource namespace not stated).
+
+## Open questions (resolved)
+- (answered: yes, done) Should `ProducesRule` come from a product-definition `relationships:` block (additive catalog + schema change)?
   Without it cert-manager's Certificate→Secret edge is `inferred` (fail closed), which is the safe default.
 
 ## Notes for integration

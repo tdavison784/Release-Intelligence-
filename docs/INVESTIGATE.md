@@ -94,9 +94,8 @@ resolve; kustomize patch files are not objects; `configMapGenerator`/`secretGene
 **Status = how well a relationship is known.** `established` is an explicit name reference or resolved selector in
 the snapshot. A reference to something the snapshot does not contain becomes a **placeholder node** and a `missing`
 edge (reason stated) — never dropped. A name-only match (a namespace unknown on either side) and the generic
-`spec.secretName` produces-convention are `inferred`. A `ProducesRule` (declarative data: producing group/kind, the
-field naming the produced object, its kind) makes the produces edge and the reference through it `established`;
-rules are passed with `relations.WithProducesRules` and are meant to come from the product catalog (not wired yet).
+`spec.secretName` produces-convention are `inferred`. A declared `produces` relationship (below) makes the produces edge and the reference through it `established`, so a
+path Certificate → Secret → Deployment can be complete.
 Unresolved (inferred/missing) edges can only add paths that need validation: a path through one leaves the
 traversal incomplete, which blocks `not-affected` (fail closed).
 
@@ -113,5 +112,41 @@ hitting any bound sets `Truncated` and a reason (`max depth N reached`, `max pat
 reached`) and the traversal is not complete. Path status is the weakest edge status; `Unresolved` lists exactly the
 non-established edges on paths. Same graph, roots and bound ⇒ byte-identical result (input order does not matter).
 
-Limits (milestone 1): no ServiceMonitor/Gateway-API/NetworkPolicy selectors, no live observation, no values-file
-`configures` for Helm values outside Argo `$values/` references, scope of unknown custom kinds assumed namespaced.
+**Declared relationships** (`relationships:` in a product definition, `internal/catalog/relationships.go`,
+validated by `ri catalog validate`/`catalog.Validate`, schema `schemas/product-definition.schema.json`). Object
+kinds relate in ways field semantics cannot show, so the catalog states them, each citing upstream API/CRD
+documentation with a verbatim quote (never an environment or an evaluation case):
+
+```yaml
+relationships:
+- id: certificate-secret
+  kind: produces            # produces | references | selects
+  from: {group: cert-manager.io, kind: Certificate}
+  to: {kind: Secret}
+  path: spec.secretName     # dotted keys; a key with dots/slashes in brackets: metadata.annotations[a.b/c]
+  format: name              # or namespace/name (default name = namespace of `from`)
+  scope: namespaced         # or cluster (scope of `to`)
+  whenPath: spec.issuerRef.kind   # optional condition on `from`; with whenEquals
+  summary: ...
+  references: [{url: https://…, quote: "verbatim, ≤400 chars"}]
+- id: servicemonitor-services
+  kind: selects             # to: Service (metadata.labels) or Pod (pod-template labels of workloads)
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Service}
+  selectorPath: spec.selector                 # a LabelSelector: matchLabels + matchExpressions
+  namespaceSelectorPath: spec.namespaceSelector   # {any, matchNames}; default: the selector's own namespace
+```
+
+`produces` makes the edge from → to (status `established`; a missing `to` object becomes a placeholder explained by
+its producer); `references` links `to` → `from`; `selects` links the selected object → the selector. A field that
+does not hold the documented form (e.g. no `namespace/name`) yields no edge. `relations.NewBuilder(store,
+relations.WithCatalog(cat))` applies the relationships of every product in the catalog (rules of products the
+environment does not use match no object); `WithRelationships(product, rs...)` and `WithProducesRules` add rules
+directly. Edges carry the rule id `relationship:<product>/<id>`. Shipped: cert-manager (Certificate secret,
+Issuer/ClusterIssuer CA secrets, `issuerRef` to a ClusterIssuer), ingress-nginx (`auth-secret`,
+`auth-tls-secret`, `proxy-ssl-secret` annotations), prometheus-operator (ServiceMonitor, PodMonitor). A ClusterIssuer
+reading its CA Secret stays `inferred`: the issuer does not state the cluster resource namespace.
+
+Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
+Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
+`scope: cluster` and CRDs in the snapshot.

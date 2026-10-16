@@ -160,6 +160,8 @@ type environment struct {
 	// dirNS / dirDest are the effective namespace and Application destination
 	// of each kustomization directory (applyNamespaces).
 	dirNS, dirDest map[string]string
+	// cluster is the set of cluster-scoped kinds (clusterKinds).
+	cluster map[string]bool
 }
 
 func load(ctx context.Context, b *domain.EvidenceBundle, st investigate.ArtifactStore) (*environment, error) {

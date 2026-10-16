@@ -337,6 +337,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 	}
 	v.lifecycle(d)
 	v.configSources(d)
+	v.relationships(d)
 	return v.r
 }
 

@@ -551,3 +551,10 @@ kept as the historical record.
   release; the definition's exception wording was corrected.
 - *ingress-nginx*: the live run found that `controller-chroot:v1.10.0` was never
   published (exception added to the definition).
+
+## Declaring object relationships (optional)
+
+Products whose custom resources or annotations name other objects (a Certificate's `spec.secretName`, an Ingress
+annotation naming a Secret, a ServiceMonitor's selector) can declare a `relationships:` block so the Phase 4
+investigation's relationship graph follows them with `established` edges. Each entry must cite upstream API/CRD
+documentation with a short verbatim quote. See docs/INVESTIGATE.md "Relationships" for the fields.
