@@ -1324,8 +1324,18 @@ type TraversalBound struct {
 	MaxNodes int `json:"maxNodes"` // distinct visited nodes
 }
 
-// DefaultTraversalBound is the first-milestone bound.
-var DefaultTraversalBound = TraversalBound{MaxDepth: 8, MaxPaths: 500, MaxNodes: 5000}
+// DefaultTraversalBound is the first-milestone bound. The depth covers real
+// GitOps relationship chains with headroom: measured on a cert-manager
+// app-of-apps repository with a two-tier internal PKI (the deepest real
+// environment in the phase-4 dataset), the longest genuine chain is 9 edges
+// (CRD → api-type → bootstrap ClusterIssuer → root-CA Certificate → Secret →
+// issuing ClusterIssuer → leaf Certificate → Secret → workload → Service;
+// 82 nodes, 97 edges, no cycles or self-references), which the previous
+// default of 8 truncated on 22 of 77 paths, one edge short of the workloads
+// they reach. Depth stays bounded — it is the guard that keeps worst-case
+// simple-path enumeration finite — and hitting it stays honest: the
+// truncation records its reason and blocks not-affected.
+var DefaultTraversalBound = TraversalBound{MaxDepth: 12, MaxPaths: 500, MaxNodes: 5000}
 
 // TraversalResult is the deterministic, bounded DFS from the exposure roots.
 // Complete is true exactly when the traversal was not truncated and every

@@ -155,21 +155,12 @@ func manifestationOf(f changeFacts) (domain.Manifestation, string) {
 		return domain.ManifestRenderedConfig, ManifestRuleComputedCRDStruct
 	case f.Computed && f.Rule == "crd:default-changed":
 		return domain.ManifestControllerBehaviour, ManifestRuleCRDDefault
-	case !f.Computed && hasNonDescriptionPath(f.CorrelatedPaths):
+	case !f.Computed && len(f.CorrelatedPaths) > 0:
 		return domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated
 	case !f.Computed:
 		return domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour
 	}
 	return domain.ManifestUnknown, ManifestRuleUnknown
-}
-
-func hasNonDescriptionPath(paths []string) bool {
-	for _, p := range paths {
-		if !strings.HasSuffix(p, "description") {
-			return true
-		}
-	}
-	return false
 }
 
 // familyOf groups an item by how its exposure is decided (DESIGN.md §2.2).

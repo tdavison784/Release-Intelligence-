@@ -434,11 +434,17 @@ func (b *itemBuilder) finish() {
 // match wins): a class the default tier policy blocks is
 // scope:rendered-structural; the version bump of an image the product
 // definition publishes is scope:routine-self-artifact (out of scope, so the
-// change is correlated); anything else is scope:rendered-unexplained.
+// change is correlated); anything else is scope:rendered-unexplained. CRD
+// description text is documentation — it stays an unanchored rendered change
+// (visible in the pair), never an item: reworded docs are noise to every
+// downstream consumer, not an unexplained behavioural change.
 func (b *itemBuilder) anchorUnexplained(mp *domain.ManifestPair, pair *render.Pair) {
 	scope := map[string]string{}
 	if pair != nil && pair.Diff != nil {
 		for _, c := range pair.Diff.Changes {
+			if c.Class == render.CRDDescriptionChanged {
+				continue
+			}
 			id := domain.RenderedChangeID(domain.RenderRelease, mp.Target, c.Object.String(), render.RenderedPath(c), string(c.Class))
 			switch _, self := render.SelfArtifactBump(c, b.edge); {
 			case isStructuralRender(c):

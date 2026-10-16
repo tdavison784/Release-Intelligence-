@@ -221,3 +221,51 @@ func TestResubmissionIsIdempotent(t *testing.T) {
 		t.Fatalf("resubmission recomputed: %+v vs %+v (classifier calls %d -> %d)", a, b, calls, f.Class.Calls)
 	}
 }
+
+// Two identical runs whose impact reports differ only in their wall-clock
+// stamps (GeneratedAt, evidence retrievedAt — the fetch/generate times of the
+// run) produce the same impact-report artifact and the same run-record
+// digest: stamps are provenance of the run, not identity of the report, so
+// re-running the same investigation is a no-op instead of a new record.
+func TestRunRecordDigestIgnoresReportTimestamps(t *testing.T) {
+	var artifacts, records []string
+	first := runtest.New(t)
+	for _, stamps := range [][2]time.Time{
+		{time.Date(2026, 10, 16, 9, 0, 0, 0, time.UTC), time.Date(2026, 10, 16, 9, 0, 1, 0, time.UTC)},
+		{time.Date(2027, 1, 2, 3, 4, 5, 0, time.UTC), time.Date(2027, 1, 2, 3, 4, 6, 0, time.UTC)},
+	} {
+		f := runtest.New(t)
+		f.Repo = first.Repo // the same environment repo: only the stamps differ
+		gen, fetched := stamps[0], stamps[1]
+		f.Deps.Report = func(context.Context, investigate.Request) (*domain.ImpactReport, error) {
+			return &domain.ImpactReport{
+				SchemaVersion: domain.ImpactReportSchemaVersion,
+				Product:       domain.ProductRef{ID: "acme", Name: "Acme"},
+				From:          domain.Version{Tag: "v1.0.0", Semver: "1.0.0"},
+				To:            domain.Version{Tag: "v2.0.0", Semver: "2.0.0"},
+				GeneratedAt:   gen,
+				Evidence:      []domain.Evidence{domain.NewEvidence(domain.EvidenceDocument, "notes", "https://example/notes.md", "L1", "upstream", "sha256:u", fetched)},
+			}, nil
+		}
+		res, err := runner(f, nil).Run(context.Background(), f.Request())
+		if err != nil {
+			t.Fatal(err)
+		}
+		inv, err := f.St.GetInvestigation(context.Background(), res.Investigation)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, a := range inv.Artifacts {
+			if a.Kind == domain.ArtifactImpactReport {
+				artifacts = append(artifacts, a.Digest)
+			}
+		}
+		records = append(records, res.RecordDigest)
+	}
+	if len(artifacts) != 2 || artifacts[0] != artifacts[1] {
+		t.Fatalf("impact report artifacts differ between identical runs: %v", artifacts)
+	}
+	if records[0] == "" || records[0] != records[1] {
+		t.Fatalf("identical runs gave different record digests: %q vs %q", records[0], records[1])
+	}
+}

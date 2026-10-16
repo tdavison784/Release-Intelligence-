@@ -68,7 +68,9 @@ func TestManifestationRules(t *testing.T) {
 		{"crd required", computed("crd:field-required"), domain.ManifestRenderedConfig, ManifestRuleComputedCRDStruct},
 		{"crd default is server-side behaviour", computed("crd:default-changed"), domain.ManifestControllerBehaviour, ManifestRuleCRDDefault},
 		{"declared with a rendered subject match", changeFacts{CorrelatedPaths: []string{"spec.template.spec.containers[name=a].args"}}, domain.ManifestRenderedConfig, ManifestRuleRenderedCorrelated},
-		{"declared matched only on description text", changeFacts{CorrelatedPaths: []string{"spec.versions[name=v1].schema.openAPIV3Schema.properties.x.description"}}, domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour},
+		// description-only paths no longer reach CorrelatedPaths at all (a
+		// crd-description-changed render change correlates to no item), so
+		// every correlated path is a real one; see render's correlate tests.
 		{"declared with no render match", changeFacts{}, domain.ManifestControllerBehaviour, ManifestRuleDeclaredBehaviour},
 		{"computed rule nobody classified fails closed", computed("something:new"), domain.ManifestUnknown, ManifestRuleUnknown},
 		{"computed crd fields added fails closed", computed("crd:fields-added"), domain.ManifestUnknown, ManifestRuleUnknown},

@@ -162,6 +162,9 @@ func changedLeaves(rc Change) map[string]any {
 }
 
 func match(rc Change, c domain.Change, text string) string {
+	if rc.Class == CRDDescriptionChanged {
+		return "" // schema documentation restates no behavioural change, by any rule
+	}
 	if c.Category == domain.CategoryHelmValues && rc.Class.Presence() == PresenceChanged {
 		// values-default: the values change names a key whose rendered leaf
 		// changed, and states the new rendered value

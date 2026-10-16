@@ -6,6 +6,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 const crdKey = "apiextensions.k8s.io/v1/CustomResourceDefinition//widgets.gizmo.example.io"
@@ -93,28 +94,32 @@ func TestRenderDiffSilentRenderedConfigPasses(t *testing.T) {
 	}
 }
 
+// CRD description text (the declared render class) documents behaviour, it
+// configures nothing: the validator passes it as harmless. Description
+// changes correlate to no item and anchor none (render/correlate), so the
+// way they reach this validator is a requested check.
 func TestRenderDiffDescriptionOnlyIsHarmless(t *testing.T) {
 	f, item := renderFx(t)
 	ids := f.pair("argocd:apps/a.yaml", controller(), controller(),
-		rc("field-changed", crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
-			`"defaults to safe"`, `"defaults to fast"`, "mentions-field", item))
+		rc(string(render.CRDDescriptionChanged), crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
+			`"defaults to safe"`, `"defaults to fast"`, ""))
 	b := f.bundle()
-	r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+	r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item, RenderedChanges: ids}))
 	wantOutcome(t, r, domain.ValidationPass, "description text only")
 	if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
-		t.Fatalf("the harmless correlated change must be covered: %+v", r)
+		t.Fatalf("the harmless description change must be covered: %+v", r)
 	}
 }
 
-// Render silence never clears a behaviour item — not even with only
-// description text correlated (that text is often the only trace).
+// Render silence never clears a behaviour item — not even when the only
+// correlated trace is a text mention (that text is often the only trace).
 func TestRenderDiffSilenceNeverClearsBehaviour(t *testing.T) {
 	for _, m := range []domain.Manifestation{domain.ManifestControllerBehaviour, domain.ManifestUnknown} {
 		t.Run(string(m), func(t *testing.T) {
 			f, item := renderFx(t, func(it *domain.ChangeItem) { it.Manifestation, it.ManifestationRule = m, "manifest:test" })
 			f.pair("argocd:apps/a.yaml", controller(), controller(),
-				rc("field-changed", crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description",
-					`"a"`, `"b"`, "mentions-field", item))
+				rc("field-changed", crdKey, "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.type",
+					`"string"`, `"integer"`, "mentions-field", item))
 			b := f.bundle()
 			wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationNotRun, "render silence proves nothing")
 		})
@@ -149,7 +154,7 @@ func TestRenderDiffUndecidedShapes(t *testing.T) {
 func TestRenderDiffRequestedChanges(t *testing.T) {
 	f, item := renderFx(t)
 	ids := f.pair("argocd:apps/a.yaml", controller(), controller("--mode=fast"),
-		rc("field-changed", crdKey, "spec.x.description", `"a"`, `"b"`, "mentions-field", item),
+		rc(string(render.CRDDescriptionChanged), crdKey, "spec.x.description", `"a"`, `"b"`, ""),
 		rc("container-arg-added", deployKey, "spec.template.spec.containers[name=controller].args", "", `"--mode=fast"`, "mentions-name", item))
 	b := f.bundle()
 	var desc string

@@ -8,6 +8,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 // RenderDiff validates a change item against the environment-scope render
@@ -237,17 +238,11 @@ func (v *renderDiff) changeEvidence(out *output, p domain.ManifestPair, c domain
 }
 
 // descriptionOnly: a change of OpenAPI description text inside a CRD — it
-// documents behaviour, it does not configure anything.
+// documents behaviour, it does not configure anything. The render layer
+// declares the class (crd-description-changed); reading the class, not the
+// path spelling, keeps this aligned with what the differ actually emitted.
 func descriptionOnly(c domain.RenderedChange) bool {
-	parts := strings.Split(c.Object, "/")
-	if len(parts) < 3 || parts[2] != "CustomResourceDefinition" {
-		return false
-	}
-	last := c.Path
-	if i := strings.LastIndexByte(last, '.'); i >= 0 {
-		last = last[i+1:]
-	}
-	return last == "description"
+	return c.Class == string(render.CRDDescriptionChanged)
 }
 
 // exposedBy returns the graph nodes of the given objects that the item

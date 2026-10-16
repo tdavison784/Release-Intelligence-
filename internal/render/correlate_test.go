@@ -23,3 +23,20 @@ func TestCorrelateIgnoresWildcardsAndPunctuation(t *testing.T) {
 		t.Error("mentions")
 	}
 }
+
+// CRD description text correlates to no declared change — not even by a text
+// mention of the word "description": schema documentation restates no
+// behavioural change, so no rule may tie it to an item.
+func TestCorrelateCRDDescriptionLinksNothing(t *testing.T) {
+	ev := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://example.org/n", "L1",
+		"Reworded the description of the CRD schema for clarity; also fixes a bug.", "sha256:n", fixedNow)
+	edge := &domain.UpgradeEdge{Evidence: []domain.Evidence{ev}, Changes: []domain.Change{
+		{ID: "chg-1", Title: "Reworded the CRD description", Subjects: []string{"mode"}, Evidence: []domain.EvidenceID{ev.ID}}}}
+	d := &DiffResult{Changes: []Change{
+		{Class: CRDDescriptionChanged, Object: ObjectID{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition", Name: "widgets.demo.example.org"},
+			Path: "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.description", Name: "description"},
+	}}
+	if c := Correlate(d, edge); c.Documented != 0 {
+		t.Fatalf("CRD description correlated: %+v", c.Changes)
+	}
+}
