@@ -58,12 +58,20 @@ type filterForm struct {
 	Product, Release, Subject, Question, Severity, Confidence string
 	Model, Disagreement, Source, Reviewer, Priority           string
 	Status                                                    []string // selected; "all" = every status
+	// All is the explicit "Show all staged data" scope (?scope=all); Blocking
+	// narrows the default view to items that block investigations
+	// (?blocking=yes); Triage says the server can tell what needs review.
+	All, Blocking, Triage bool
 }
 
 func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, s) }
 
 // Active reports whether anything but the default status is filtered.
 func (f filterForm) Active() bool {
+	if f.Triage && !f.All {
+		// the default view has no status filter: only the other filters count
+		return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" || f.Blocking
+	}
 	return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" ||
 		!(len(f.Status) == 1 && f.Status[0] == string(domain.ReviewPending))
 }
@@ -75,6 +83,8 @@ func parseFilter(q url.Values, limit int) (knowledge.InboxFilter, filterForm) {
 		Severity: g("severity"), Confidence: g("confidence"), Model: g("model"), Disagreement: g("disagreement"),
 		Source: g("source"), Reviewer: g("reviewer"), Priority: g("priority"),
 	}
+	form.All = g("scope") == "all"
+	form.Blocking = g("blocking") == "yes"
 	f := knowledge.InboxFilter{
 		Product: domain.ProductID(form.Product), Release: form.Release, SubjectType: domain.SubjectFamily(form.Subject),
 		QuestionType: domain.QuestionType(form.Question), Severity: domain.ImpactSeverity(form.Severity),
@@ -142,12 +152,74 @@ func tiles(c knowledge.InboxCounts) []tile {
 	}
 }
 
+// hiddenSummary is what the default view leaves out: Total items by reason
+// (ByReason keys are the Hidden* constants), and how many of the items it does
+// show block investigations.
+type hiddenSummary struct {
+	Total    int
+	ByReason map[string]int
+	Blocking int
+}
+
+// Lines lists the reasons with counts, largest first, for the header note.
+func (h hiddenSummary) Lines() []string {
+	label := map[string]string{
+		HiddenProxy: "acted on by an AI proxy", HiddenDecided: "already decided", HiddenParked: "parked (deferred / needs evidence)",
+		HiddenVerified: "already verified", HiddenSuperseded: "superseded or retracted",
+	}
+	var keys []string
+	for k := range h.ByReason {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if h.ByReason[keys[i]] != h.ByReason[keys[j]] {
+			return h.ByReason[keys[i]] > h.ByReason[keys[j]]
+		}
+		return keys[i] < keys[j]
+	})
+	var out []string
+	for _, k := range keys {
+		name := label[k]
+		if name == "" {
+			name = k
+		}
+		out = append(out, fmt.Sprintf("%d %s", h.ByReason[k], name))
+	}
+	return out
+}
+
+// needsTiles are the header counters of the default view; every one counts
+// only items that need review.
+func needsTiles(c knowledge.InboxCounts, h hiddenSummary) []tile {
+	href := func(kv ...string) string {
+		v := url.Values{}
+		for i := 0; i < len(kv); i += 2 {
+			v.Add(kv[i], kv[i+1])
+		}
+		return "/?" + v.Encode()
+	}
+	return []tile{
+		{"Needs review", "/", "open questions waiting for a human decision", c.Pending, "accent"},
+		{"Blocking investigations", href("blocking", "yes"), "controller-behaviour changes of investigated products no human has verified yet", h.Blocking, "danger"},
+		{"High priority", href("priority", "high"), "route priority high", c.HighPriority, "warn"},
+		{"Model disagreement", href("disagreement", "yes"), "proposals disagree on an aspect", c.ModelDisagreement, ""},
+		{"Needs semantic mapping", href("question", "semantic-mapping"), "what changed, exactly?", c.NeedsSemanticMapping, ""},
+		{"Applicability", href("question", "applicability"), "who is exposed?", c.ApplicabilityQuestions, ""},
+	}
+}
+
 type rowView struct {
-	Row       knowledge.InboxRow
-	Href      string
-	Severity  string
-	Agreement string // disagree | agree | single
-	AgreeText string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
+	// Blocking / BlockWhy: the item blocks investigations, and the one plain
+	// sentence why. HiddenText is set only in the "show all" view, on items
+	// the default view hides, and says why.
+	Blocking   bool
+	BlockWhy   string
+	HiddenText string
+	Row        knowledge.InboxRow
+	Href       string
+	Severity   string
+	Agreement  string // disagree | agree | single
+	AgreeText  string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
 	// ux-v2 row: the plain-English question, the one reason it needs a
 	// human, and the suggested answer preview.
 	Question     string
@@ -208,6 +280,10 @@ type inboxView struct {
 	// list was truncated by Options.InboxLimit and the page must say so.
 	Matches int
 	Enums   enumView
+	// NeedsView: this is the default "needs review" view; Hidden is what it
+	// leaves out (reachable with ?scope=all).
+	NeedsView bool
+	Hidden    hiddenSummary
 }
 
 // --- item ----------------------------------------------------------------------------------
