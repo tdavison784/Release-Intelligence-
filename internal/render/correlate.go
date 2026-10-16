@@ -54,7 +54,10 @@ var genericKinds = map[string]bool{
 //     field (DocumentedField, an identifier of 6+ characters) the text names
 //     — the only rule that links schema documentation;
 //   - values-default: a helm-values change whose subject ends in a key that
-//     changed in the rendered object and whose text states the new value;
+//     changed in the rendered object and whose text states the new value —
+//     or a removed / default-changed key whose source default the rendered
+//     change's before holds and its after no longer does (fromDefaultGone:
+//     the default the customer relied on disappears from their render);
 //   - artifact: an image change (or an argument carrying an image reference) whose repository is an artifact the edge
 //     records as changed (a version bump documented by the artifact delta).
 func Correlate(d *DiffResult, edge *domain.UpgradeEdge) Correlation {
@@ -173,6 +176,9 @@ func match(rc Change, c domain.Change, text string) string {
 			return "documents-field"
 		}
 		return ""
+	}
+	if fromDefaultGone(rc, c) {
+		return "values-default"
 	}
 	if c.Category == domain.CategoryHelmValues && rc.Class.Presence() == PresenceChanged {
 		// values-default: the values change names a key whose rendered leaf
