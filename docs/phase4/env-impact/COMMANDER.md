@@ -3,7 +3,7 @@
 > Single source of truth for whoever is commanding (Claude `ri-commander` or GLM `glm-commander`).
 > Protocol: `briefs/commander.md`. Rules: `FLEET.md`. Goal: `MISSION.md`. Update after every change.
 
-Last updated: 2026-10-16 15:30 (glm-commander, GLM-5.3, during Claude usage window; Claude commander ri-commander paused 15:23)
+Last updated: 2026-10-16 16:15 (glm-commander, GLM-5.3, during Claude usage window; Claude commander ri-commander paused 15:23)
 
 ## Where things are
 
@@ -49,7 +49,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
 | eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval | pane w1:p2S (tab w1:t1A) | arm A scored (not merged yet); HOLDING arm B until commander says ARM B GO |
-| fixes | ri-fixes → glm-fixes (pane w1:p2W) | claude-opus-5-5 / glm-5.3 | .claude/worktrees/p4ei-fixes | tab w1:t1B | glm-fixes working since 15:24 (ri-fixes had only read docs; no status file yet): layered values, record digests, CRD-description noise, depth-8 truncation |
+| fixes | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2T (tab w1:t1B) left — Claude commander closes it on resume | MERGED 8c7d74f2 ([glm-handoff], glm-commander) + cleaned up |
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
@@ -116,6 +116,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 - 2026-10-16 caf4be01 agent v5 ([glm-handoff] merge by glm-commander; lane branch ead274b5, green in its worktree, integration green after): follow-up 5 = verified setting claims — `record_claim` tool with citation/verbatim-quote verification, domain `SettingClaim` (+ `ClaimKinds`, schemas), prompt v5 default (v1–v4 frozen, byte-identical to ea983257), prose labelled `unverified-ai-prose`, runner stores notes+claims in the investigation record. Live run 5 (obs-north, claude-sonnet-5-5, 167 calls / 254k tokens): 13 claims verified, 1 false absence rejected with the contradicting line — run 4's motivating failure mode now structurally caught; replay byte-identical. **Merge review finding (open, commander/user decision): stored runs 1–4 no longer replay — root cause control-proven EXTERNAL**: the shared `.ri` cache was written by other lanes since 14:00 (121 entries), rebuilt bundles differ from recorded ones (run 2's case rebuilds with agenda 14→16), and ea983257's own code under today's cache reproduces the identical mismatch. Stored-run replay needs a pinned/frozen cache state (or re-record at a frozen state); **this also affects eval's stored runs**. Also noted by the lane: v5 item sessions spend their whole budget on the claim/verify loop (6 claims budget-refused) — item budget vs claim cost is a generic lever for the commander; and the replay harness reports vacuous PASS on refused replays (sharp edge, details in status/agent.md "Merge review"). Cleanup: glm-agent exited itself, pane w1:p2V closed, worktree removed, branch `-d`, no kind clusters. ri-agent pane w1:p2N (tab w1:t16) left for the Claude commander. **Arm B precondition (a) — agent v5 merged — is now met**; (b) Claude window still required (5h window spent by live run 5; resets 17:30).
 
+- 2026-10-16 8c7d74f2 fixes ([glm-handoff] merge by glm-commander; lane branch 522575b6, green in its worktree, integration green after): four generic arm-A defects, each with its own synthetic tests and a semantic (never score-based) justification — (1) layered Helm values files merged as Helm applies them with per-key provenance (`internal/env/valuesmerge.go`), `partial` only for genuinely missing/unparseable; (2) report `retrievedAt` timestamps kept out of the identified artifact (identical runs ⇒ identical record digests); (3) CRD description-only changes declared as their own harmless render class (never clears a behaviour change); (4) default traversal depth 8 → 12, **measured** (real cert-manager internal-PKI chain needs 9; no cycle/self-edge artefacts; truncation stays honest and regression-tested on both sides of the bound). Lane never ran the eval and never read forbidden eval paths. Cleanup: glm-fixes exited itself, pane w1:p2W closed, worktree removed, branch `-d`, no kind clusters. ri-fixes pane w1:p2T (tab w1:t1B) left for the Claude commander. **Arm A re-measure is now unblocked** (ri-eval said it would ask the commander first — Next actions #3).
+
 ## Open questions for the user
 
 - (raised 2026-10-16) FINDING: on the real bundles, the knowledge facts behind controller-behaviour items (the cert-manager / ingress-nginx defaults) are only consensus-verified, so OverrideInspection cannot clear them and those environments can at best be potentially-affected — fail-closed and honest, but it caps notAffectedConfirmation. Two routes: (1) a human verifies those facts in the existing review UI (`ri review serve`), which makes them trusted pin sources; (2) a later runtime/observed validator (isolated kind upgrade) — MISSION §A5 last bullet. Commander recommendation: (1) for milestone 1, (2) as a follow-up wave.
@@ -176,4 +178,15 @@ Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In
   `ARM B GO` text in ri-eval's input box (see first log entry) is still there — decide deliberately after
   resume. Live run 5 spent the remaining Claude 5h window (~254k tokens, no quota failure). glm-fixes
   continuing (fixes 1–3 committed: 175709ef, …635ca18e; fix 4 in progress).
+- **2026-10-16 16:15 (glm-commander): MERGED lane fixes as 8c7d74f2 and cleaned it up — GLM window work
+  complete.** All three GLM lanes (runtime, agent, fixes) merged with `[glm-handoff]` subjects, each
+  green in its worktree before merge and on integration after; each lane's glm pane closed, worktree
+  removed, branch `-d`, `kind get clusters` empty. The ri-* panes (ri-agent w1:t16, ri-fixes w1:t1B,
+  ri-runtime w1:t19) are idle-paused with their worktrees gone — the Claude commander `/exit`s each and
+  closes its tab on resume (their lanes are fully merged; nothing else needed from them). **Left for the
+  Claude commander**: (1) merge p4ei/eval arm A when convenient; (2) the `.ri` cache-pinning decision
+  (agent runs 1–4 + eval stored runs); (3) v5 item-budget vs claim-cost lever; (4) tell ri-eval arm A
+  re-measure may run (fixes merged) and — only in a Claude window — arm B GO (precondition (a) v5 merged
+  is met); (5) the unsubmitted `ARM B GO` text in ri-eval's input box. glm-commander now idle awaiting
+  the guard's HANDBACK (~17:31).
 
