@@ -415,3 +415,56 @@ tools work, and record/request/submit tools are refused.
 **Live run.** One `claude -p` run on a groundtruth input is recorded in
 [docs/phase4/env-impact/runs/agent-live-1/](phase4/env-impact/runs/agent-live-1/README.md). It covers what
 the agent did, and its replay check.
+
+## Running an investigation
+
+`ri investigate <product> <from> <to>` runs the whole environment-aware pipeline (DESIGN.md §5):
+
+```
+collect-change-evidence → build-snapshot → assemble-bundle → build-graph → traverse → validate
+  → investigate (agent) → traverse (graph + the agent's proposed, always-inferred edges) → validate
+  → classify → human-review
+```
+
+The environment is named like `ri impact` (`--repo`, `--values`, `--manifests`, `--crds`, `--images`,
+`--inventory`, `--kubernetes`, `--env-name`); `--render` (default on) renders both releases with the
+environment's configuration; `--knowledge DIR` supplies verified facts (a fact clears a change only when
+trusted). `--agent` runs the investigation agent (driver `--agent-driver claude-cli|exchange|replay`,
+`--agent-exchange DIR`, `--agent-replay FILE`); without it the agent stage records `not-run` and no
+run can become auto-approve-eligible. Everything lands in `<state>/investigations/`: the immutable bundle,
+content-addressed artifacts and the run record `runs/<inv-id>.json`, whose **hash-chained audit trail**
+has `started` / `completed` / `failed` / `retried` per stage (actor `system`), `requested` per agent
+request (actor `agent:<model>`) and `decided` for the review (`human:<name>` / `proxy:<model>`). The
+deterministic pass's `ValidationRecord`s are in the record itself, so it is complete without re-running
+validators.
+
+**In-process** (default): a plain sequential runner. A transient error is retried with the stage's policy
+(DESIGN §5.1: collect ×5, snapshot/assemble/validate ×3, agent/classify ×1; exponential backoff), a
+permanent one stops the run. Without `--review` it ends `awaiting-review`; then
+`ri investigate review <inv-id> approve|reject|more --reviewer NAME [--note …]` records the decision
+(only a human approves; a proxy decision is recorded and never approves). `--review approve --reviewer me`
+applies a decision inline. `--review-timeout` fails closed: nothing is approved.
+
+**Temporal** (`--temporal`): the same stages as activities of one workflow. Start a worker with
+`ri worker` (same wiring flags; `--temporal-addr`, default `localhost:7233`, `--temporal-namespace`), then
+`ri investigate … --temporal` (add `--detach` to print the workflow id and return). The workflow id is
+content-derived from the request (`invreq-…`), so re-submitting attaches to the existing execution; a
+finished result is not silently recomputed (`--rerun N` adds `-rN`). Send the human decision with
+`ri investigate review <workflow-id> approve|reject|more --temporal --reviewer NAME` (`more` takes
+`--request values:<path>,manifest:<path>,crd:<path>,image:<ref>`), and look at the live state (stage,
+round, decision, review, workflow audit) with `ri investigate state <workflow-id> --temporal`. Timeouts:
+review default 7 d (`--review-timeout`) ⇒ outcome `review-timed-out`, status `failed`, nothing approved;
+cancelling the workflow records a `cancelled` audit event. `request-more-evidence` starts a new round
+(snapshot → … → classify; the change evidence is reused; at most 2 rounds). A round whose bundle is
+unchanged reuses the run record; one with new inputs is a new bundle and so a new investigation id.
+`--search-attrs` upserts `RiDependency`, `RiEnvironment`, `RiClassification`, `RiReviewState` (register
+them first; see TEMPORAL.md).
+
+Both paths call the same `run.Pipeline`, so for the same inputs, configuration and a scripted/replay
+agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
+its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
+first result without repeating side effects, in particular without calling the agent again.
+
+Note: until lane classify is merged the `ri` binary has no classifier; build with `-tags ri_devstubs`
+for the placeholder classifier used in live checks (every in-scope item `insufficient-evidence`, human
+review required).

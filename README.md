@@ -137,6 +137,9 @@ ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -rev
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
 ri knowledge export -o feedback.jsonl           # the human-feedback dataset
 ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
+ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --agent   # environment-aware investigation: bundle, rendered diff, graph, validators, agent, classification, human review (docs/INVESTIGATE.md "Running an investigation")
+ri investigate review <inv-id> approve --reviewer me                         # record the human decision on an in-process run
+ri worker && ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --temporal   # the same pipeline as a durable Temporal workflow
 ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
 ri investigate mcp --run <inv-id>             # serve a stored investigation's agent tools over MCP stdio, read-only (docs/INVESTIGATE.md)
 ri impact cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31 --render # impact report + what actually changes in your rendered deployment
