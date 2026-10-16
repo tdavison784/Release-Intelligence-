@@ -255,7 +255,8 @@ nothing deterministic can confirm as affected, and which only a trusted pinned s
    **Deleted on every exit path** — success, error, timeout, cancellation (a fresh bounded context) — and verified
    absent with `kind get clusters`; a cluster that could not be deleted turns the run into `error` with the
    `kind delete cluster` command in every record.
-4. **FROM**: namespaces, CRDs (until established), then every object by server-side apply (field manager
+4. **FROM**: namespaces, CRDs (until established), then — in Helm's install order, coarsened: service accounts,
+   RBAC, config, services before workloads, jobs, custom resources and webhooks — every object by server-side apply (field manager
    `ri-runtime`, conflicts forced — a GitOps sync), retrying transient errors (webhooks not serving yet, CRDs not
    established) within a bound; wait for readiness (workloads, jobs, CRDs, objects with a Ready/Available
    condition); settle; **baseline observation**. The product's own workloads must be ready, else the run is
@@ -288,6 +289,8 @@ against live names by recomputing the marker.
 - **exercise window** — what the exercises did at TO (TO → TO-exercised) that **the same exercises did not do at
   FROM** (FROM → FROM-exercised). A renewal that rotates a certificate at both versions is explained; one that also
   rotates the private key only at TO is a degradation (`data:tls.key` under the consuming Deployment).
+- an exercise the TO version **refuses** on an object the FROM version accepted it on (an admission webhook
+  denying the update) is a degradation of that object (`exercise-rejected:<exercise>`).
 - an image that cannot be pulled is the sandbox's problem (`Infrastructure`), never a failure.
 
 **Exercises** — `products/exercises/<product>.yaml` (kind `ProductExercises`, `internal/catalog/exercises.go`,
@@ -307,7 +310,8 @@ admission webhook re-validates), prometheus-operator `servicemonitor-update` / `
 |---|---|---|
 | `not-run` | `runtime:run-not-run` | the run had a missing precondition (above) |
 | `error` | `runtime:run-error` | the run broke (cluster creation, no baseline, timeout, cluster not deleted) |
-| `not-run` | `runtime:no-object` | nothing on the item's roots/paths is a Kubernetes object of the cluster |
+| `error` | `runtime:unreached` | nothing on the item's roots/paths is a cluster object, but an exercise declared for its family degraded its targets at TO only — a plausible impact the graph does not connect to any one item (never a fail, never a pass) |
+| `not-run` | `runtime:no-object` | nothing on the item's roots/paths is a Kubernetes object of the cluster (and nothing above) |
 | `fail` | `runtime:degraded` | a degradation on the item's paths that **only this in-scope item** reaches (for an exercise-window degradation: only this item among those whose exercise ran on their paths); names each concrete failure, cites the observation artifact and the item's rendered changes on the degraded objects |
 | `error` | `runtime:sandbox` | the sandbox could not run an object on the paths (image pull) |
 | `error` | `runtime:unattributed` | a degradation on its paths that other in-scope items reach too — inconclusive (R3), never a fail |

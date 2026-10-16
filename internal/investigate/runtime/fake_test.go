@@ -135,8 +135,9 @@ type fakeCluster struct {
 	pullFailAtV2   bool                   // the v2 controller image cannot be pulled
 	rejectAtV2     func(m Manifest) error // the v2 admission webhook's verdict
 	patchErr       error
-	block          bool // Apply blocks until the context ends
-	warnAtV2Renew  bool // the v2 controller emits a warning event on renewal
+	patchRejectV2  error // the v2 admission webhook refuses the exercise's update
+	block          bool  // Apply blocks until the context ends
+	warnAtV2Renew  bool  // the v2 controller emits a warning event on renewal
 	logAtV2Renew   bool
 	renewals       int
 	consumerFailed bool
@@ -284,6 +285,9 @@ func (c *fakeCluster) Patch(_ context.Context, ref ObjectRef, sub string, patch 
 	defer c.mu.Unlock()
 	if c.patchErr != nil {
 		return c.patchErr
+	}
+	if c.patchRejectV2 != nil && c.version() == "v2" {
+		return c.patchRejectV2
 	}
 	obj, ok := c.objs[ref.String()]
 	if !ok {

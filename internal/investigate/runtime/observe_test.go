@@ -35,15 +35,22 @@ func TestDegradations(t *testing.T) {
 		opt   compareOptions
 		want  []string // signatures
 	}{
-		"unchanged":                   {healthy, consumed, nil},
-		"apply rejected":              {mut(func(s *ObjectState) { s.ApplyError = "denied" }), consumed, []string{"rejected"}},
-		"deleted":                     {ObjectState{}, consumed, []string{"deleted"}},
-		"deleted by the upgrade":      {ObjectState{}, compareOptions{removed: true}, nil},
-		"condition True to False":     {mut(func(s *ObjectState) { s.Conditions = []Condition{{Type: "Ready", Status: "False", Reason: "Broken"}}; s.Ready = no() }), consumed, []string{"condition:Ready", "not-ready"}},
-		"condition Unknown":           {mut(func(s *ObjectState) { s.Conditions = []Condition{{Type: "Ready", Status: "Unknown"}} }), consumed, nil},
-		"negative condition appears":  {mut(func(s *ObjectState) { s.Conditions = append(s.Conditions, Condition{Type: "Degraded", Status: "True"}) }), consumed, []string{"condition:Degraded"}},
-		"new failing condition":       {mut(func(s *ObjectState) { s.Conditions = append(s.Conditions, Condition{Type: "Synced", Status: "False", Reason: "SyncFailed"}) }), consumed, []string{"condition:Synced"}},
-		"new benign False condition":  {mut(func(s *ObjectState) { s.Conditions = append(s.Conditions, Condition{Type: "Issuing", Status: "False", Reason: "Done"}) }), consumed, nil},
+		"unchanged":              {healthy, consumed, nil},
+		"apply rejected":         {mut(func(s *ObjectState) { s.ApplyError = "denied" }), consumed, []string{"rejected"}},
+		"deleted":                {ObjectState{}, consumed, []string{"deleted"}},
+		"deleted by the upgrade": {ObjectState{}, compareOptions{removed: true}, nil},
+		"condition True to False": {mut(func(s *ObjectState) {
+			s.Conditions = []Condition{{Type: "Ready", Status: "False", Reason: "Broken"}}
+			s.Ready = no()
+		}), consumed, []string{"condition:Ready", "not-ready"}},
+		"condition Unknown":          {mut(func(s *ObjectState) { s.Conditions = []Condition{{Type: "Ready", Status: "Unknown"}} }), consumed, nil},
+		"negative condition appears": {mut(func(s *ObjectState) { s.Conditions = append(s.Conditions, Condition{Type: "Degraded", Status: "True"}) }), consumed, []string{"condition:Degraded"}},
+		"new failing condition": {mut(func(s *ObjectState) {
+			s.Conditions = append(s.Conditions, Condition{Type: "Synced", Status: "False", Reason: "SyncFailed"})
+		}), consumed, []string{"condition:Synced"}},
+		"new benign False condition": {mut(func(s *ObjectState) {
+			s.Conditions = append(s.Conditions, Condition{Type: "Issuing", Status: "False", Reason: "Done"})
+		}), consumed, nil},
 		"not ready (image pull)":      {mut(func(s *ObjectState) { s.Ready, s.ImagePullIssue = no(), true }), consumed, []string{"not-ready"}},
 		"not reconciled":              {mut(func(s *ObjectState) { s.Generation = 3 }), consumed, []string{"not-reconciled"}},
 		"restarts, same pods":         {mut(func(s *ObjectState) { s.Restarts = 2 }), compareOptions{samePods: true}, []string{"restarts"}},

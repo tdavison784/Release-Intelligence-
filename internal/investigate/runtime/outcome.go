@@ -18,6 +18,7 @@ const (
 	RuleDegraded      = "runtime:degraded"       // fail: a degradation only this item reaches
 	RuleUnattributed  = "runtime:unattributed"   // error: a degradation on the item's paths other items reach too
 	RuleOtherFamilies = "runtime:other-families" // not-run: degraded under an exercise declared for other families
+	RuleUnreached     = "runtime:unreached"      // error: no object on its paths, but its family's exercise degraded its targets
 	RuleSandbox       = "runtime:sandbox"        // error: the sandbox broke an object (image pull)
 	RuleUpgradeFailed = "runtime:upgrade-incomplete"
 	RuleNoBaseline    = "runtime:no-baseline" // not-run: an object on the paths was not observed healthy before
@@ -244,6 +245,12 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 	}
 	reach := s.reach(nodesOf(in, cov))
 	if len(reach) == 0 {
+		if ds := s.unreached(item); len(ds) > 0 {
+			return draft{outcome: domain.ValidationError, rule: RuleUnreached, evidence: s.evidenceAll(ds), detail: fmt.Sprintf(
+				"Inconclusive: no object on this item's impact paths, but the exercises declared for its family (%s) degraded their targets at the TO version, "+
+					"which they did not at the FROM version — a plausible impact the relationship graph does not connect to this item, or to any one item: %s.",
+				item.Family, summarize(ds))}
+		}
 		return draft{outcome: domain.ValidationNotRun, rule: RuleNoObject, detail: fmt.Sprintf(
 			"No object on the item's impact paths or exposure roots is a Kubernetes object of this environment (%s, %s): there is nothing to observe for it. "+
 				"The run itself %s; its observations and any degradations are in the run artifact.",
@@ -364,6 +371,30 @@ func (s *session) decide(in investigate.ValidationInput, item domain.ChangeItem,
 	return draft{outcome: domain.ValidationPass, rule: RuleQuiet, rcs: rcs, detail: fmt.Sprintf(
 		"Observed healthy: the upgrade completed and every object on the item's impact paths (%s) was healthy at the FROM and TO versions, "+
 			"and the exercises declared for it (%s) ran at both versions without degrading them.", plural(len(reach), "object", "objects"), strings.Join(ran, ", "))}
+}
+
+// unreached returns the exercise-window degradations on targets of the
+// selected exercises that cover the item's family. They concern an item whose
+// paths reach no object only as an unattributed plausible impact (never a
+// fail, never a pass).
+func (s *session) unreached(item domain.ChangeItem) []Degradation {
+	var out []Degradation
+	for _, d := range s.run.Degradations {
+		if d.Window != "exercise" || d.Infrastructure {
+			continue
+		}
+		r, ok := ParseRef(d.Object)
+		if !ok {
+			continue
+		}
+		for _, x := range s.exercises {
+			if x.covers(item.Family) && x.targets(r) {
+				out = append(out, d)
+				break
+			}
+		}
+	}
+	return out
 }
 
 // ranOn reports whether an exercise was applied to a target within reach at

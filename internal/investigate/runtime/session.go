@@ -528,11 +528,24 @@ func (s *session) apply(ctx context.Context, cl Cluster, phase string, set, prev
 			return err
 		}
 	}
-	for k, v := range s.applyRounds(ctx, cl, rest, deadline, crdTypes, &pl) {
-		errs[k] = v
+	// Helm's install order, coarsened: what workloads and hooks need
+	// (service accounts, RBAC, config, services) before the workloads,
+	// jobs, custom resources and webhooks themselves.
+	var first, then []Manifest
+	for _, m := range rest {
+		if installFirst(m.Ref) {
+			first = append(first, m)
+		} else {
+			then = append(then, m)
+		}
 	}
-	if err := ctx.Err(); err != nil {
-		return err
+	for _, group := range [][]Manifest{first, then} {
+		for k, v := range s.applyRounds(ctx, cl, group, deadline, crdTypes, &pl) {
+			errs[k] = v
+		}
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 	}
 	notReady, err := s.waitReady(ctx, cl, ms)
 	if err != nil {
@@ -648,6 +661,24 @@ func (s *session) applyRounds(ctx context.Context, cl Cluster, ms []Manifest, de
 		pending = retry
 	}
 	return errs
+}
+
+// installFirst reports kinds Helm installs before workloads (its
+// InstallOrder: quotas, service accounts, secrets, config, storage, RBAC,
+// services).
+func installFirst(r ObjectRef) bool {
+	switch r.Group {
+	case "":
+		switch r.Kind {
+		case "ResourceQuota", "LimitRange", "ServiceAccount", "Secret", "ConfigMap", "PersistentVolume", "PersistentVolumeClaim", "Service":
+			return true
+		}
+	case "rbac.authorization.k8s.io":
+		return true
+	case "storage.k8s.io", "policy", "networking.k8s.io":
+		return r.Kind == "StorageClass" || r.Kind == "PodDisruptionBudget" || r.Kind == "NetworkPolicy"
+	}
+	return false
 }
 
 func namespacesOf(ms []Manifest) []string {
@@ -951,6 +982,17 @@ func (s *session) degradations() []Degradation {
 		known := s.knownLines(id, PhaseFrom, PhaseFromExercised)
 		opt := compareOptions{dataDeclared: s.dataDeclared(id), consumed: s.isConsumed(id), removed: s.removed(id), knownWarnings: known.warnings, knownLogs: known.logs}
 		out = append(out, degradations(id, "upgrade", before.Objects[id], after.Objects[id], opt)...)
+	}
+	// an exercise the TO version refuses on an object the FROM version
+	// accepted it on (an admission webhook denying the update)
+	for key, er := range s.exRuns["to"] {
+		from := s.exRuns["from"][key]
+		for _, id := range sortedKeys(keysOf(er.Failed)) {
+			if contains(from.Executed, id) {
+				out = append(out, Degradation{Object: id, Window: "exercise", Signature: "exercise-rejected:" + key,
+					Detail: fmt.Sprintf("the exercise %s was refused at the TO version (%s); the same exercise was accepted at the FROM version", key, er.Failed[id])})
+			}
+		}
 	}
 	fe, te := s.obs[PhaseFromExercised], s.obs[PhaseToExercised]
 	if fe != nil && te != nil {

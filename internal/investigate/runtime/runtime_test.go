@@ -401,3 +401,19 @@ func TestUpgradePrunesAndRecreatesHooks(t *testing.T) {
 		t.Fatal("the pruned object still exists")
 	}
 }
+
+// The new version's admission webhook refuses the exercise's update that the
+// old version accepted: a concrete failure on the item's path; an item whose
+// paths reach no object but whose family the exercise covers gets an
+// inconclusive record (a plausible impact), never a fail or a pass.
+func TestExerciseRefusedAtTO(t *testing.T) {
+	e := newEnv(t, envOptions{rotation: "Never"})
+	e.drv.setup = func(c *fakeCluster) {
+		c.patchRejectV2 = errors.New(`admission webhook "validate.gizmo.io" denied the request: risky field`)
+	}
+	v := e.validator()
+	expect(t, e.validate(v, itemBehaviour), domain.ValidationFail, RuleDegraded, "refused at the TO version", "denied the request", "accepted at the FROM version")
+	expect(t, e.validate(v, itemNoPath), domain.ValidationError, RuleUnreached, "the relationship graph does not connect")
+	// the rendered item's family is not covered by the exercise
+	expect(t, e.validate(v, itemRendered), domain.ValidationNotRun, RuleNoExercise)
+}
