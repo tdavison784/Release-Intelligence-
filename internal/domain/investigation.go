@@ -129,6 +129,14 @@ const (
 // ArtifactOrigins lists every origin.
 var ArtifactOrigins = []ArtifactOrigin{OriginUpstream, OriginEnvironment, OriginDerived}
 
+// PathPrefix is the logical path prefix of artifacts of this origin.
+func (o ArtifactOrigin) PathPrefix() string {
+	if o == OriginEnvironment {
+		return "env/"
+	}
+	return string(o) + "/"
+}
+
 // ArtifactRef identifies one stored artifact by the digest of its bytes. The
 // bytes live in the content-addressed store (DESIGN.md §2.3:
 // cas/sha256/<hex>); the ref is what the manifest lists, what the agent
@@ -175,8 +183,8 @@ func (a ArtifactRef) Validate() error {
 	}
 	if !oneOf(a.Origin, ArtifactOrigins) {
 		bad("unknown origin %q", a.Origin)
-	} else if !strings.HasPrefix(a.Path, string(a.Origin)+"/") {
-		bad("path %q must start with %q", a.Path, string(a.Origin)+"/")
+	} else if !strings.HasPrefix(a.Path, a.Origin.PathPrefix()) {
+		bad("path %q must start with %q", a.Path, a.Origin.PathPrefix())
 	}
 	if strings.Contains(a.Path, "..") || strings.HasPrefix(a.Path, "/") {
 		bad("path %q must be relative and must not contain ..", a.Path)

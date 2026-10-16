@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "ri.dev/evidence-bundle/v1alpha1",
+  "id": "bnd-1002d484018b",
+  "change": {
+    "id": "cer-d72225d2a564",
+    "product": {
+      "id": "cert-manager",
+      "name": "cert-manager"
+    },
+    "from": {
+      "tag": "v1.17.0",
+      "version": "1.17.0"
+    },
+    "to": {
+      "tag": "v1.18.0",
+      "version": "1.18.0"
+    },
+    "edge": "art-7714bb9184c0",
+    "items": [
+      {
+        "id": "ci-9357afdf1fbb",
+        "changeId": "chg-a",
+        "family": "api-schema",
+        "title": "Certificate privateKey.rotationPolicy default changes to Always",
+        "breaking": true,
+        "evidence": [
+          "ev-7bc8fccc319a"
+        ],
+        "inScope": true,
+        "scopeRule": "scope:breaking"
+      },
+      {
+        "id": "ci-29522604f5a6",
+        "changeId": "chg-b",
+        "family": "values",
+        "title": "ACME HTTP01 ingress pathType defaults to Exact",
+        "breaking": true,
+        "evidence": [
+          "ev-c2b91bda1e23"
+        ],
+        "inScope": true,
+        "scopeRule": "scope:breaking"
+      },
+      {
+        "id": "ci-94140b751894",
+        "changeId": "chg-c",
+        "family": "behavior",
+        "title": "Bump Go to 1.24",
+        "evidence": [
+          "ev-7bc8fccc319a"
+        ],
+        "inScope": false,
+        "scopeRule": "scope:routine-excluded"
+      }
+    ],
+    "sources": [
+      {
+        "source": "release-notes",
+        "status": "ok",
+        "artifacts": [
+          "art-256a5657701d"
+        ]
+      },
+      {
+        "source": "migration-guide",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      },
+      {
+        "source": "source-diff",
+        "status": "unavailable",
+        "reason": "no source-diff collector yet"
+      },
+      {
+        "source": "api-schema",
+        "status": "ok",
+        "artifacts": [
+          "art-4344ca4c3b3c"
+        ]
+      },
+      {
+        "source": "chart",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      },
+      {
+        "source": "kustomize",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      },
+      {
+        "source": "rendered-manifests",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      },
+      {
+        "source": "compatibility",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      },
+      {
+        "source": "advisories",
+        "status": "not-applicable",
+        "reason": "not collected in the fixture"
+      }
+    ],
+    "producer": "bundle.change@v1"
+  },
+  "snapshot": {
+    "id": "snap-d9c9b9df89c1",
+    "environment": "prod-eu",
+    "repo": {
+      "path": "./gitops",
+      "commit": "0123abc",
+      "treeDigest": "sha256:dc9c5edb8b2d479e697b4b0b8ab874f32b325138598ce9e7b759eb8292110622"
+    },
+    "kubernetesVersion": "1.31",
+    "inputs": [
+      {
+        "kind": "gitops-repo",
+        "path": "./gitops",
+        "status": "ok",
+        "artifacts": [
+          "art-3ee2331a6887",
+          "art-fed933a434bc"
+        ]
+      },
+      {
+        "kind": "cluster-version",
+        "value": "1.31",
+        "status": "ok"
+      }
+    ],
+    "facts": "art-3328329d2b41",
+    "producer": "bundle.snapshot@v1",
+    "collectedAt": "2026-10-16T12:00:00Z"
+  },
+  "manifest": {
+    "artifacts": [
+      {
+        "id": "art-3328329d2b41",
+        "kind": "environment-facts",
+        "mediaType": "application/yaml",
+        "digest": "sha256:0694aacb66d62e742a92e8d5f1e82bd9d2a8ca1be88744201fbe63d0f5007502",
+        "size": 5,
+        "path": "derived/environment-facts.json",
+        "origin": "derived",
+        "uri": "file://derived/environment-facts.json",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "environment-facts"
+        ]
+      },
+      {
+        "id": "art-7714bb9184c0",
+        "kind": "upgrade-edge",
+        "mediaType": "application/yaml",
+        "digest": "sha256:a1cb100f57e971cacf269e7c26e4630a25a8e9d4bdd35e32df1a80b66b896254",
+        "size": 4,
+        "path": "derived/upgrade-edge.json",
+        "origin": "derived",
+        "uri": "file://derived/upgrade-edge.json",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "upgrade-edge"
+        ]
+      },
+      {
+        "id": "art-fed933a434bc",
+        "kind": "environment-file",
+        "mediaType": "application/yaml",
+        "digest": "sha256:89445ea08b55421faa49919a5fd272e9a520f701b479d6084847e161ca5b7711",
+        "size": 6,
+        "path": "env/apps/cert-manager/values.yaml",
+        "origin": "environment",
+        "uri": "file://env/apps/cert-manager/values.yaml",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "environment-file"
+        ]
+      },
+      {
+        "id": "art-3ee2331a6887",
+        "kind": "environment-file",
+        "mediaType": "application/yaml",
+        "digest": "sha256:06298432e8066b29e2223bcc23aa9504b56ae508fabf3435508869b9c3190e22",
+        "size": 4,
+        "path": "env/apps/web/certificate.yaml",
+        "origin": "environment",
+        "uri": "file://env/apps/web/certificate.yaml",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "environment-file"
+        ]
+      },
+      {
+        "id": "art-4344ca4c3b3c",
+        "kind": "crd",
+        "mediaType": "application/yaml",
+        "digest": "sha256:ebd18182ec39993e96b6da4b8ce1aa3944db1d02dd7f6be4f6e28d316643ec71",
+        "size": 4,
+        "path": "upstream/cert-manager/v1.18.0/crds.yaml",
+        "origin": "upstream",
+        "uri": "file://upstream/cert-manager/v1.18.0/crds.yaml",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "crd"
+        ],
+        "changeItems": [
+          "ci-9357afdf1fbb"
+        ]
+      },
+      {
+        "id": "art-256a5657701d",
+        "kind": "upstream-document",
+        "mediaType": "application/yaml",
+        "digest": "sha256:ab5aa97074c454a0632057e704220d9a6678fbf773a0a5806fc09b8173b07309",
+        "size": 5,
+        "path": "upstream/cert-manager/v1.18.0/release-notes.md",
+        "origin": "upstream",
+        "uri": "file://upstream/cert-manager/v1.18.0/release-notes.md",
+        "producer": "bundle.collect@v1",
+        "tags": [
+          "upstream-document"
+        ],
+        "changeItems": [
+          "ci-9357afdf1fbb",
+          "ci-29522604f5a6"
+        ]
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "ev-7bc8fccc319a",
+      "kind": "document",
+      "sourceId": "notes",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0",
+      "locator": "L10-L12",
+      "excerpt": "rotationPolicy defaults to Always",
+      "contentDigest": "sha256:ab5aa97074c454a0632057e704220d9a6678fbf773a0a5806fc09b8173b07309",
+      "retrievedAt": "2026-10-16T12:00:00Z"
+    },
+    {
+      "id": "ev-c2b91bda1e23",
+      "kind": "document",
+      "sourceId": "notes",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0",
+      "locator": "L20",
+      "excerpt": "pathType Exact",
+      "contentDigest": "sha256:ab5aa97074c454a0632057e704220d9a6678fbf773a0a5806fc09b8173b07309",
+      "retrievedAt": "2026-10-16T12:00:00Z"
+    },
+    {
+      "id": "ev-35a44287e99d",
+      "kind": "local-file",
+      "uri": "apps/web/certificate.yaml",
+      "locator": "$.spec",
+      "excerpt": "secretName: web-tls",
+      "contentDigest": "sha256:06298432e8066b29e2223bcc23aa9504b56ae508fabf3435508869b9c3190e22",
+      "retrievedAt": "2026-10-16T12:00:00Z"
+    }
+  ],
+  "producer": "bundle@v1",
+  "createdAt": "2026-10-16T12:00:00Z"
+}

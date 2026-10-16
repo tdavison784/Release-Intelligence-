@@ -1,0 +1,95 @@
+{
+  "id": "grf-b606b1b5dc03",
+  "bundle": "bnd-1002d484018b",
+  "builder": "graph.build@v1",
+  "nodes": [
+    {
+      "id": "gn-2374acd61199",
+      "kind": "config-object",
+      "key": "/v1/Secret/web/web-tls",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "gn-9eeba225ba2a",
+      "kind": "custom-resource",
+      "key": "cert-manager.io/v1/Certificate/web/web-tls",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "gn-a6b7fcefd10a",
+      "kind": "workload",
+      "key": "apps/v1/Deployment/web/web",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "gn-d1229861693a",
+      "kind": "api-type",
+      "key": "cert-manager.io/v1/Certificate",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "gn-f45752da65b3",
+      "kind": "product-release",
+      "key": "cert-manager@v1.18.0",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "ge-80e7c28114f6",
+      "kind": "consumes-api",
+      "from": "gn-d1229861693a",
+      "to": "gn-9eeba225ba2a",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "ge-a9da47b9518f",
+      "kind": "serves-api",
+      "from": "gn-f45752da65b3",
+      "to": "gn-d1229861693a",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "ge-ae41f72ad182",
+      "kind": "produces",
+      "from": "gn-9eeba225ba2a",
+      "to": "gn-2374acd61199",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1",
+      "detail": "spec.secretName",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    },
+    {
+      "id": "ge-cef5131dffd0",
+      "kind": "references",
+      "from": "gn-2374acd61199",
+      "to": "gn-a6b7fcefd10a",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1",
+      "detail": "spec.template.spec.volumes[0].secret.secretName",
+      "evidence": [
+        "ev-35a44287e99d"
+      ]
+    }
+  ]
+}

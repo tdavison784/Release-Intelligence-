@@ -7,12 +7,17 @@ Branch `p4ei/contract`, worktree `.claude/worktrees/p4ei-contract`. Brief: `brie
 - `internal/domain/investigation.go` drafted: all §2 contract types with content-derived ids and
   Validate()/ValidateAgainst(); builds and vets.
 
+- `internal/domain/investigation_test.go`: valid fixture + one mutation test per Validate rule;
+  sample documents in `internal/domain/testdata/sample-*.json` (golden, `RI_UPDATE_SAMPLES=1`).
+- schemagen: new targets `schemas/{evidence-bundle,investigation,investigation-graph}.schema.json`,
+  enums, provenance-variant patches; schemagen tests validate the samples and reject AI findings /
+  AI validations / deterministic assertions / a fifth class.
+
 ## In progress
-- `internal/domain/investigation_test.go` (one test per Validate rule).
+- `internal/investigate/{doc,api}.go` (ports only).
 
 ## Next step
-- Tests → schemagen targets (evidence-bundle, investigation) → `internal/investigate/{doc,api}.go`
-  → DESIGN.md → eval/investigations/{FORMAT.md,gates.yaml}.
+- ports → DESIGN.md (§0–§7) → eval/investigations/{FORMAT.md,gates.yaml} → full build/vet/test.
 
 ## Decisions
 - Name collisions with existing domain types forced renames (brief names in parentheses):
