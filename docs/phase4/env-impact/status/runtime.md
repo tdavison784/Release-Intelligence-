@@ -56,6 +56,30 @@ Resume from: this file + brief + `git log`.
 - `go build ./... && go vet ./...` green; `go test ./internal/investigate/runtime` green (GLM continuation,
   2026-10-16).
 
+## Real runs (2026-10-16, GLM re-runs on current code; brief requires one per product)
+
+Method: `RI_RUNTIME_STATE=<warm .ri> RI_RUNTIME_CASES=<id> RI_RUNTIME_TIMEOUT=<budget> go test
+./internal/investigate/runtime -run Groundtruth -v -timeout 60m` — the harness builds the bundle offline
+(change + snapshot + renders + graph + traversal), then the validator runs one throwaway kind cluster per case
+and asserts every record conforms and the cluster is deleted.
+
+### cert-manager payments-eu (`cert-manager-1.17-1.18--payments-eu`, v1.17.2 → v1.18.0, k8s 1.31) — 215 s
+
+- Run `completed` (budget 900 s), node image pinned `kindest/node:v1.31.0`, cluster deleted (verified).
+- Phases: FROM applied 61 objects (3 transient retries); TO applied 121, pruned 2, re-created 4 hook Jobs;
+  zero apply/admission errors, nothing unserved, all workloads ready — **upgrade completed**.
+- Exercise `cert-manager/certificate-renewal` (Issuing=True + ManuallyTriggered on each Certificate): 3 targets
+  at FROM and at TO, all executed, none refused at either version.
+- **3 degradations**, all exercise-window `data:tls.key` under a consumer: `cert-manager/mesh-root-ca`,
+  `payments/checkout-tls`, `payments/ledger-tls` rotated the private key when renewed at TO only; the identical
+  renewal at FROM did not. (Digests recorded, never values.)
+- Outcomes over 18 in-scope items: **1 `fail`** `runtime:degraded` — the `Certificate.Spec.PrivateKey.
+  RotationPolicy` default change (the only in-scope item reaching those Secrets); 6 `not-run`
+  `runtime:no-baseline` (RBAC objects the release adds/removes — no FROM baseline can exist); 3 `not-run`
+  `runtime:no-exercise` (rendered-family items whose paths carry no declared exercise — quiet window, never a
+  pass); 7 `not-run` `runtime:no-object`; 1 `not-run` `runtime:other-families`. Zero `pass` — consistent: the
+  only exercised behavior degraded, and nothing else had an exercise proving health.
+
 ## GLM handoff log
 
 - 2026-10-16 (glm-runtime, GLM-5.3): took over from ri-runtime during its usage-limit window, mid "real runs".
