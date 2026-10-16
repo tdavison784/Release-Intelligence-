@@ -3,7 +3,8 @@
 Branch `p4ei/classify`, worktree `.claude/worktrees/p4ei-classify`. Brief: `briefs/classify.md`
 (+ `_wave2-common.md`, `_wave1-common.md`, DESIGN §3 / §7 "classify"). Merged `p4-env-impact` @ 359605dc
 (wave 1 complete, incl. the §1.3 amendment items in `EvidenceBundle.EnvironmentItems`).
-State: **DONE** (2026-10-16). Resume from: this file + brief + `git log` + `docs/INVESTIGATE.md`
+State: **DONE** (2026-10-16), incl. follow-up 1 (below). Merged into p4-env-impact @ 7bb6e559; follow-up
+branch re-merged `p4-env-impact` first. Resume from: this file + brief + `git log` + `docs/INVESTIGATE.md`
 "Classification and review".
 
 ## Done
@@ -58,6 +59,39 @@ Every decision is `human-review-required` (agent not run; shop-pl also: no compl
 insufficient-evidence findings are behaviour items with no clearing validation, and values items blocked by the
 repo input's `partial` status (note 2).
 
+## Follow-up 1 (commander, after merge 7bb6e559): validate env-scope lookup — DONE
+
+Commander assigned ownership of `internal/investigate/validate/` for gap (a).
+- Fix: `validate/common.go` `prepare` looks items up with `in.Bundle.Item` (record + environment items) instead of
+  `in.Bundle.Change.Item`. It is the only item lookup in validate; render-diff already matched environment anchors
+  (`c.ID == item.RenderedChange`), and join/override/schema/reference take the item from `prepare`.
+- Regression test `TestEnvironmentScopeItemGetsRecords` (validate/renderdiff_test.go; fixture helper
+  `fx.envUnexplained`, `fx.env` → `EnvironmentItems`): an environment-scope `scope:rendered-unexplained` item gets
+  real records from every applicable validator, all conforming (`ValidateAgainst`), none failing; render-diff speaks
+  for the anchoring change (not-run, "concrete failure"). Verified it fails without the fix (`ErrNotFound`).
+- `classify` groundtruth test: the ErrNotFound tolerance is removed (any validator error is fatal again); it now
+  asserts environment items get records and logs their outcomes.
+- Same lookup elsewhere (other lanes, NOT edited; for the commander): `renderdiff/query.go:67` rejects a
+  `DiffQuery.ChangeItem` that is an environment item (`b.Change.Item`); `agent/prompts.go:180` and
+  `agent/session.go:154,733` iterate `b.Change.Items` only (task/prompt and per-item tooling likely miss
+  environment items). `run/pipeline.go:522` and `run/runtest` already include `EnvironmentItems`.
+
+Real-pipeline diagnostics (8 groundtruth inputs, never `expected.yaml`; agent not run), before → after:
+
+| case | env items | env-item records | affected | not-affected | potentially | insufficient |
+|---|---|---|---|---|---|---|
+| cert-manager payments-eu / -us | 2 | 0 (8 ErrNotFound) → 6 | 2 → 2 | 0 → 0 | 9 → 9 | 7 → 7 |
+| ingress-nginx shop-de / -fr | 0 | — | 0 → 0 | 1 → 1 | 4 → 4 | 22 → 22 |
+| ingress-nginx shop-nl | 4 | 0 (16 ErrNotFound) → 12 | 1 → 1 | 1 → 1 | 7 → 7 | 22 → 22 |
+| ingress-nginx shop-pl | 0 | — | 0 → 0 | 0 → 0 | 0 → 0 | 27 → 27 |
+| kube-prometheus-stack obs-north / -south | 0 | — | 0 → 0 | 5 → 5 | 6 → 6 | 15 → 15 |
+
+Class counts are unchanged: every new record is `not-run` (render-diff "concrete failure" ×1, override-inspection
+×1, static-reference ×1 per item) — an unexplained change that IS in the environment render can neither be shown
+harmless by render silence nor fail without a concrete failure (DESIGN §1.3 amendment), so the items stay
+`potentially-affected` (R3, correlated rendered change); their gaps now carry the validators' reasons instead of
+"no validation".
+
 ## In progress / next step
 
 - Nothing. Commander: review + merge `p4ei/classify`.
@@ -97,7 +131,9 @@ repo input's `partial` status (note 2).
 
 - `internal/investigate/api.go` — contract change 1 below.
 - `internal/domain/investigation.go` — contract change 2 below (one condition).
-- `docs/INVESTIGATE.md` — new section "Classification and review" only.
+- `docs/INVESTIGATE.md` — new section "Classification and review"; follow-up 1: one sentence in "Validators".
+- Follow-up 1: `internal/investigate/validate/common.go`, `harness_test.go`, `renderdiff_test.go` (ownership
+  assigned by the commander for gap (a)).
 
 ## Contract changes
 
@@ -112,7 +148,7 @@ repo input's `partial` status (note 2).
 
 ## Open questions / cross-lane notes (commander)
 
-1. **validate ignores environment-scope items** (bug, one line, not mine to edit):
+1. ~~validate ignores environment-scope items~~ — FIXED in follow-up 1 (above). Was:
    `internal/investigate/validate/common.go:205` looks the item up with `in.Bundle.Change.Item`; for
    `EnvironmentItems` (scope:rendered-unexplained) every validator returns `ErrNotFound`. Fix: `in.Bundle.Item`.
    Until then those items get no validation records and can never be not-affected (fail closed). The groundtruth
