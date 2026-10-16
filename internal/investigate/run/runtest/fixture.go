@@ -92,14 +92,26 @@ func (f *Classifier) Classify(_ context.Context, in investigate.ClassifyInput) (
 		return nil, fmt.Errorf("classifier unavailable (transient)")
 	}
 	var fs []domain.InvestigationFinding
-	for _, it := range in.Bundle.Change.Items {
+	items := append([]domain.ChangeItem(nil), in.Bundle.Change.Items...)
+	items = append(items, in.Bundle.EnvironmentItems...)
+	for _, it := range items {
 		if !it.InScope {
 			continue
+		}
+		var rcs []string
+		for _, p := range in.Bundle.Renders {
+			for _, c := range p.Changes {
+				for _, x := range c.ChangeItems {
+					if x == it.ID {
+						rcs = append(rcs, c.ID)
+					}
+				}
+			}
 		}
 		f := domain.InvestigationFinding{
 			ChangeItem: it.ID, Class: domain.FindingInsufficientEvidence, Manifestation: it.Manifestation,
 			Rule: "classify:test", Reasoning: "fake policy", Environment: in.Bundle.Snapshot.Environment,
-			Evidence: it.Evidence, NextSteps: []string{"supply the values file"},
+			Evidence: it.Evidence, NextSteps: []string{"supply the values file"}, RenderedChanges: rcs,
 			Gaps:       []domain.EvidenceGap{{Kind: domain.GapValidation, Subject: "none", Detail: "no decisive validation"}},
 			Approval:   domain.ApprovalEligibility{RequiresHumanReview: true, Blockers: []string{"insufficient-evidence"}},
 			Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: "classify.policy@v1", Rule: "classify:test", Confidence: domain.ConfidenceHigh},

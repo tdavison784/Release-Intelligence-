@@ -94,7 +94,7 @@ func (w *wf) stage(s run.StageSpec, round int, refs run.Refs, extra []string) (r
 		if temporal.IsCanceledError(err) {
 			status = "cancelled"
 		}
-		w.audit(string(s.Stage), status, in.Key, err.Error())
+		w.audit(string(s.Stage), status, in.Key, run.Trunc(err.Error()))
 		return out, err
 	}
 	w.audit(string(s.Stage), "completed", in.Key, out.Detail)

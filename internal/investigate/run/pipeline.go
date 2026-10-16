@@ -120,7 +120,7 @@ func (p *Pipeline) Run(ctx context.Context, in StageInput) (StageOutput, error) 
 
 	res, err := p.exec(ctx, in)
 	if err != nil {
-		failed := ev("failed", err.Error(), nil)
+		failed := ev("failed", Trunc(err.Error()), nil)
 		if hasRecord {
 			if _, uerr := p.update(ctx, in.Stage, in.Refs.Investigation, func(inv *domain.Investigation) error {
 				inv.AppendAudit(failed)
@@ -519,7 +519,8 @@ func (p *Pipeline) validate(ctx context.Context, in StageInput) (*stageResult, e
 	var arts []domain.ArtifactRef
 	var evid []domain.Evidence
 	ran := 0
-	for _, it := range rc.bundle.Change.Items {
+	items := append(append([]domain.ChangeItem(nil), rc.bundle.Change.Items...), rc.bundle.EnvironmentItems...)
+	for _, it := range items {
 		if !it.InScope {
 			continue
 		}
@@ -744,4 +745,14 @@ func mergeValidations(have, add []domain.ValidationRecord) []domain.ValidationRe
 	}
 	sort.SliceStable(have, func(i, j int) bool { return have[i].ID < have[j].ID })
 	return have
+}
+
+// Trunc bounds an error text stored in an audit detail (validation errors
+// can list hundreds of ids).
+func Trunc(s string) string {
+	const max = 600
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "… (" + fmt.Sprint(len(s)-max) + " more bytes)"
 }
