@@ -1354,6 +1354,7 @@ type TraversalBound struct {
 // they reach. Depth stays bounded — it is the guard that keeps worst-case
 // simple-path enumeration finite — and hitting it stays honest: the
 // truncation records its reason and blocks not-affected.
+// CONTRACT-CHANGE(fixes, commander-approved 2026-10-16): MaxDepth 8 -> 12, measured; DESIGN §2.5 updated.
 var DefaultTraversalBound = TraversalBound{MaxDepth: 12, MaxPaths: 500, MaxNodes: 5000}
 
 // TraversalResult is the deterministic, bounded DFS from the exposure roots.

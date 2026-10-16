@@ -141,11 +141,29 @@ func TestLiveAgentRun(t *testing.T) {
 	cfg := investigate.AgentConfig{Enabled: true, Driver: DriverClaudeCLI, Model: model, PromptVersion: prompt, Budget: budget}
 	input := investigate.InvestigateInput{Bundle: b, Graph: g, Traversal: trav, Report: rep, Validations: pre,
 		ValidationArtifacts: preArts, ValidationEvidence: preEv, Config: cfg}
-	_, as, err := Prepare(st, input, nil, nil)
+	sess, as, err := Prepare(st, input, nil, nil)
 	must(t, err)
 	must(t, os.MkdirAll(outDir, 0o755))
 	write := func(name string, b []byte) { must(t, os.WriteFile(filepath.Join(outDir, name), b, 0o644)) }
-	write("task.md", []byte(as.Task))
+	// Per-item prompts have no single task: write each session's task (in
+	// session order) and check it against the transcript's item digests.
+	itemTasks := map[string]string{} // item -> digest of the task written
+	if p := sess.cfg.Prompt; p.Features.PerItem {
+		agenda, cap := sess.cfg.Agenda, sess.cfg.ItemCap
+		n := len(agenda)
+		if n > cap {
+			n = cap
+		}
+		must(t, os.MkdirAll(filepath.Join(outDir, "tasks"), 0o755))
+		for k := 0; k < n; k++ {
+			task, err := p.renderItemTask(input, agenda[k], k+1, n, cap, as.Budget)
+			must(t, err)
+			itemTasks[agenda[k].ChangeItem] = p.Digest(task)
+			write(fmt.Sprintf("tasks/%02d-%s.md", k+1, agenda[k].ChangeItem), []byte(task))
+		}
+	} else {
+		write("task.md", []byte(as.Task))
+	}
 
 	var driver investigate.AgentDriver = &ClaudeCLI{RIBinary: riBin, Stderr: os.Stderr}
 	var replay *Replay
@@ -163,6 +181,11 @@ func TestLiveAgentRun(t *testing.T) {
 		if len(replay.Mismatches) > 0 {
 			t.Fatalf("replay of %s: %d results differ: %+v", os.Getenv("RI_AGENT_REPLAY"), len(replay.Mismatches), replay.Mismatches)
 		}
+		// A refused replay (another prompt digest: a different bundle or prompt)
+		// re-issues nothing, so Mismatches stays empty: fail on the refusal.
+		if strings.Contains(out.Run.Reason, "replay:") {
+			t.Fatalf("replay of %s was refused: %s", os.Getenv("RI_AGENT_REPLAY"), out.Run.Reason)
+		}
 		t.Logf("replay: every one of the recorded results reproduced (status %s)", out.Run.Status)
 		outDir = filepath.Join(outDir, "replay")
 		must(t, os.MkdirAll(outDir, 0o755))
@@ -171,6 +194,15 @@ func TestLiveAgentRun(t *testing.T) {
 	rc, err := st.Open(ctx, out.Artifacts[0].Digest)
 	must(t, err)
 	transcript, _ := io.ReadAll(rc)
+	if len(itemTasks) > 0 {
+		tr, err := ParseTranscript(transcript)
+		must(t, err)
+		for _, sg := range tr.Segments {
+			if d, ok := itemTasks[sg.Item]; !ok || d != sg.PromptDigest {
+				t.Errorf("the task written for %s does not match the session's prompt digest %s", sg.Item, sg.PromptDigest)
+			}
+		}
+	}
 	rc.Close()
 	write("transcript.jsonl", transcript)
 	ob, _ := json.MarshalIndent(out, "", "  ")

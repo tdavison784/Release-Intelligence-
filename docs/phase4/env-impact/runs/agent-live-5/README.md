@@ -71,6 +71,6 @@ environment's actual settings is now checked rather than asserted.
 
 ## Files
 
-`task.md` (empty: per-item sessions each get their own task), `transcript.jsonl` (segmented per item),
+`tasks/NN-<item>.md` (each session's task, recovered afterwards by re-rendering at the run's commit; every one reproduces the session's recorded prompt digest in the transcript's `item` lines), `transcript.jsonl` (segmented per item),
 `outcome.json`, `coverage.md` (per item: disposition, examined, inspections, validation requests, session
 status, tool calls, turns, tokens; then the validation requests, answer links and notes), `bundle-summary.json`.

@@ -273,29 +273,25 @@ func (l *loader) detectFluxHelmRelease(d doc) {
 }
 
 // inlineValues flattens an inline values mapping (or a values string holding
-// YAML) into the layered-values merge, with the same path syntax and value
+// YAML) into the values inventory, with the same path syntax and value
 // encoding as parsed values files. Lines come from the original nodes where
-// possible and from the inline node itself otherwise. Inline values apply
-// after every values file (Helm/Argo/Flux apply them last), so they win per
-// key over the files.
+// possible and from the inline node itself otherwise.
 func (l *loader) inlineValues(file, locatorPrefix string, node *yaml.Node) {
 	node = resolveAlias(node)
 	if node == nil {
 		return
 	}
-	add := func(flat []normalize.FlattenedValue, lines map[string]int, containers []string) {
-		entries := make([]ValuesKey, 0, len(flat))
+	add := func(flat []normalize.FlattenedValue, lines map[string]int) {
 		for _, kv := range flat {
 			line := node.Line
 			if ln, ok := lines[kv.Path]; ok && ln > 0 {
 				line = ln
 			}
-			entries = append(entries, ValuesKey{
+			l.addValuesKey(ValuesKey{
 				Path: kv.Path, Value: kv.Value, Line: line,
 				Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s.%s (L%d)", locatorPrefix, kv.Path, line), kv.Path+": "+kv.Value)},
 			})
 		}
-		l.values.apply(file, entries, containers)
 	}
 	switch {
 	case node.Kind == yaml.MappingNode:
@@ -315,19 +311,19 @@ func (l *loader) inlineValues(file, locatorPrefix string, node *yaml.Node) {
 				lines[p] = v.Line
 			}
 		})
-		add(flat, lines, valuesContainerPaths(node))
+		add(flat, lines)
 	case node.Kind == yaml.ScalarNode && node.Tag != "!!null":
 		flat, err := normalize.FlattenValues([]byte(node.Value))
 		if err != nil {
 			l.warnf(DimValues, "%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
 			return
 		}
-		add(flat, nil, valuesContainersOf([]byte(node.Value)))
+		add(flat, nil)
 	}
 }
 
 // parametersToValues converts an Argo helm.parameters list
-// ([- name: x, value: y]) into values keys of the layered-values merge.
+// ([- name: x, value: y]) into values keys.
 func (l *loader) parametersToValues(file, locatorPrefix string, parameters *yaml.Node) {
 	for _, item := range itemsOf(parameters) {
 		name := scalarOf(item, "name")
@@ -345,35 +341,20 @@ func (l *loader) parametersToValues(file, locatorPrefix string, parameters *yaml
 		if err != nil {
 			continue
 		}
-		// A parameter whose value is a mapping deep-merges like any other
-		// layer: map its container paths under the parameter name too.
-		remap := func(p string) (string, bool) {
-			switch {
-			case p == "value":
-				return name, true
-			case strings.HasPrefix(p, "value."), strings.HasPrefix(p, "value["):
-				return name + strings.TrimPrefix(p, "value"), true
-			}
-			return "", false
-		}
-		var containers []string
-		for _, c := range valuesContainersOf(b) {
-			if m, ok := remap(c); ok {
-				containers = append(containers, m)
-			}
-		}
-		var entries []ValuesKey
 		for _, kv := range flat {
-			m, ok := remap(kv.Path)
-			if !ok {
-				continue
+			switch {
+			case kv.Path == "value":
+				l.addValuesKey(ValuesKey{
+					Path: name, Value: kv.Value, Line: item.Line,
+					Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), name+": "+kv.Value)},
+				})
+			case strings.HasPrefix(kv.Path, "value."):
+				l.addValuesKey(ValuesKey{
+					Path: name + "." + strings.TrimPrefix(kv.Path, "value."), Value: kv.Value, Line: item.Line,
+					Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), name+"."+kv.Path+": "+kv.Value)},
+				})
 			}
-			entries = append(entries, ValuesKey{
-				Path: m, Value: kv.Value, Line: item.Line,
-				Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), m + ": " + kv.Value)},
-			})
 		}
-		l.values.apply(file, entries, containers)
 	}
 }
 

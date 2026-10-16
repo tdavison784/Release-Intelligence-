@@ -53,6 +53,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
 | relations | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 9c280dc4 + e993219a (relationships construct) + cleaned up |
+| reviewfilter | ri-reviewfilter | claude-sonnet-5-5 | .claude/worktrees/p4ei-reviewfilter | pane w1:p20 | started 17:45 (user request: review UI shows only what needs review) |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -83,6 +84,11 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Loader warnings are gaps only for inputs that decide the item (the product's own deployment); non-semver targetRevision on Applications not deploying the product = note. Not a blanket waiver.
 - 2026-10-16 Bundle identity = env-subtree content + repo-relative paths (enclosing commit only as provenance), so bundle ids don't change with unrelated commits/checkouts — prerequisite for stored eval runs.
 - 2026-10-16 Agent depth is made STRUCTURAL (prompt v4), not enforced by a budget floor (a floor can be met with useless calls): one short session per agenda item in deterministic priority order (behaviour/unknown → rendered-unexplained → rest), cap N=10 per investigation (beyond-cap items closed not-examined by the runner), concerns must cite item-session evidence else become investigation-level notes. Live run 4 on the same obs-north input to compare v3 vs v4.
+- 2026-10-16 17:32 RESUME after the GLM window: reviewed every [glm-handoff] merge — build/vet/test green (-count=1), no eval/gates changes, kind clean; independent Opus review running. Fix 3 (CRD description class, GLM) has real defects F1–F5 (found by ri-fixes review): noise items, lost rotationPolicy exposure (breaks DESIGN §2.4), possible false clear of a real field named description, deleted §2.2.1 guard → fix forward on p4ei/fixes2. GLM-run arm A′ and arm C accepted after ri-eval verified them by rescore; NO arm B was run.
+- 2026-10-16 UNSAFE ELIGIBILITY found by eval A′: 4 findings on obs-north (expected affected) became eligible not-affected after the fixes merged. Arm B HELD until root-caused (diagnostic requested from ri-eval: pipeline output only, no ground truth).
+- 2026-10-16 Runtime: a data change under a consumer with no degradation = inconclusive (error), never fail (MISSION: Affected needs a demonstrated breaking impact) — never a clearance. Behaviour-item exposure via a declarative `reconciles:` catalog construct (product controller → kinds).
+- 2026-10-16 Replay decision (agent q.): recorded runs replay against their STORED bundle + transcript (commit-independent); rebuilding a bundle from inputs is only guaranteed identical at the same commit + cache. No cache freeze.
+- 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log
@@ -120,19 +126,22 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Open questions for the user
 
+- ANSWERED 2026-10-16 ~15:25 (user): (1) YES — the opt-in agent stage may send environment configuration with Secret values redacted to the model provider; (2) YES — the user will verify the controller-default facts in the review UI, BUT the review UI must show ONLY the data that needs review, not all the other staged data → lane reviewfilter.
+- (raised during the GLM window, user ↔ glm-commander) window work-ledger proposal (docs/phase4/env-impact/proposals/2026-10-16-window-ledger.md; beads/gascity comparison) — needs Claude commander review + user sign-off on its 4 open decisions.
+
 - (raised 2026-10-16) FINDING: on the real bundles, the knowledge facts behind controller-behaviour items (the cert-manager / ingress-nginx defaults) are only consensus-verified, so OverrideInspection cannot clear them and those environments can at best be potentially-affected — fail-closed and honest, but it caps notAffectedConfirmation. Two routes: (1) a human verifies those facts in the existing review UI (`ri review serve`), which makes them trusted pin sources; (2) a later runtime/observed validator (isolated kind upgrade) — MISSION §A5 last bullet. Commander recommendation: (1) for milestone 1, (2) as a follow-up wave.
 
 - (asked 2026-10-16) Is it OK that the opt-in agent stage sends environment configuration (Secret values redacted) to the model provider? Default until answered: opt-in, redacted; milestone-1 runs use only synthetic fixture environments.
 
 ## Next actions
 
-Claude 5h window at 85 % at 15:15 (resets 17:30) — a GLM handoff is likely. In order:
-
-1. **agent** (ri-agent, working): prompt v5 = structured, tool-verified environment claims; pipeline copies AgentNotes; list of validator/pin-rule gaps behind every not-run answer. On LANE DONE: review (replay of runs 1–4 still byte-identical, v4 frozen), merge, then route the listed validator gaps (validate package is unowned now — a new small lane or the eval lane must NOT fix them). Keep the ri-agent worktree only if more agent work is queued; else clean up.
-2. **eval** (ri-eval, idle by instruction): arm A DONE (see merge log). Merge p4ei/eval's harness + arm A results when convenient (review EVAL-REPORT.md). Then re-score arm A after **fixes** merges (new run id; keep the first). Arm B (+agent) runs only when (a) agent v5 is merged AND (b) a Claude window is available — it calls `claude -p` with claude-sonnet-5-5. **A GLM commander must NOT start arm B and must not let it run with a GLM model** (that would change the model under test). Tell ri-eval when B may start. Arm C waits for runtime.
-3. **fixes** (ri-fixes, working): on LANE DONE review that each fix is generic with its own test and justified by semantics, never by a score; merge; tell ri-eval to re-run arm A.
-4. **runtime** (ri-runtime, working): on LANE DONE review that a quiet window never passes and every kind cluster is deleted (`kind get clusters`), merge, clean up, tell ri-eval arm C may run (Claude window not needed for C unless combined with the agent).
-5. After eval's report: commander reviews EVAL-REPORT.md, then the user decides on push/PR (nothing pushed yet).
+1. **Unsafe eligibility (top priority)**: read ri-eval's `runs/unsafe-eligibility-diagnostic.md` (pipeline output only) + the independent Opus review of the GLM merges; route the root cause (likely RenderDiff/OverrideInspection passing an exposed rendered-config item, or fix-3 F3) to its owner. Arm B stays HELD until fixed and arm A re-scored safe (unsafeEligibilityRate 0).
+2. **fixes2** (ri-fixes): F1–F5 on fix 3 + not-run coverage echo → review, merge, clean up.
+3. **runtime** (ri-runtime): data-change ⇒ inconclusive, `reconciles:` exposure, `--runtime` in ri investigate → review, merge, clean up.
+4. **reviewfilter** (ri-reviewfilter): on LANE DONE give the user the start command + item count so they can verify the controller-default facts.
+5. **eval** (ri-eval): merge harness + stored runs A, A′, C after review of EVAL-REPORT.md; after 1–3 merge, re-score A (new run id); then ARM B GO (Claude window, claude-sonnet-5-5, prompt v5) — only the Claude commander sends it; then C and B+C; final report.
+6. Ledger proposal (proposals/2026-10-16-window-ledger.md): commander review + user sign-off; adopt after phase 4 eval, not mid-endgame.
+7. Then the user decides on push/PR (nothing pushed yet).
 
 ## GLM commander log
 

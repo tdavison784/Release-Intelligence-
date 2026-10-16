@@ -55,7 +55,7 @@ What changed on those 10 items, as the agent recorded it (not a judgement of whi
 
 ## Files
 
-`task.md` is the first item's task (each session gets its own), `transcript.jsonl` (segmented per item),
+The per-item tasks are not included: the harness wrote the (empty) session-level task for per-item runs (a bug, fixed afterwards), and they cannot be re-rendered now because the shared upstream cache has drifted since the run (the bundle rebuilds differently; see the status file's merge review). Each session's prompt digest is in the transcript's `item` lines. `transcript.jsonl` (segmented per item),
 `outcome.json`, `coverage.md` (per item: disposition, examined, inspections, validation requests, session status,
 tool calls, turns, tokens; then the validation requests, answer links and notes), `bundle-summary.json`.
 

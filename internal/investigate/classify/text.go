@@ -169,6 +169,24 @@ func WriteText(w io.Writer, inv *domain.Investigation, b *domain.EvidenceBundle)
 			p.f("  Approval: human review required — %s\n", strings.Join(f.Approval.Blockers, "; "))
 		}
 	}
+	// CONTRACT-CHANGE(agent): investigation-level agent records (additive;
+	// shown only when present).
+	if len(inv.AgentClaims) > 0 {
+		p.f("\nAgent environment claims (AI claims checked deterministically against the bundle — evidence for the agent's records, not validations):\n")
+		for _, c := range inv.AgentClaims {
+			v := ""
+			if c.Value != "" {
+				v = " = " + c.Value
+			}
+			p.f("  ✓ %s %s %s%s in %s (%s) — %s\n", c.ID, c.Kind, c.Setting, v, c.Input, c.Verifier, clip(c.Detail, 200))
+		}
+	}
+	if len(inv.AgentNotes) > 0 {
+		p.f("\nAgent notes (AI, investigation-level — never item concerns, no effect on any class):\n")
+		for _, n := range inv.AgentNotes {
+			p.f("    ? %s about %s (%s) — %s\n", n.ID, n.About, n.Reason, clip(n.Statement, 300))
+		}
+	}
 	return p.err
 }
 
@@ -234,5 +252,12 @@ func (p *printer) assertion(a domain.AgentAssertion, id string) {
 		p.f("    ? %s (not in the run record)\n", id)
 		return
 	}
-	p.f("    ? %s %s (AI: %s) — %s\n", a.Stance, a.ID, a.Provenance.Model, clip(a.Statement, 300))
+	label := "AI: " + a.Provenance.Model
+	if a.StatementKind == domain.StatementUnverifiedProse { // CONTRACT-CHANGE(agent): prose labels (prompt v5)
+		label += ", unverified prose"
+	}
+	p.f("    ? %s %s (%s) — %s\n", a.Stance, a.ID, label, clip(a.Statement, 300))
+	if len(a.Claims) > 0 {
+		p.f("      rests on verified claims: %s\n", strings.Join(a.Claims, ", "))
+	}
 }

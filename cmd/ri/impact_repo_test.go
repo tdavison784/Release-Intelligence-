@@ -27,13 +27,10 @@ func TestImpactRepoCommand(t *testing.T) {
 		"Cluster Kubernetes 1.28 is below the supported range 1.29–1.33",
 		"customer-repo/clusters/prod/values-cert-manager.yaml",
 		"is not built with kustomize",
+		"repo mode found 2 values files",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in:\n%s", want, out)
 		}
-	}
-	// layered values files are merged as Helm applies them, not warned about
-	if strings.Contains(out, "repo mode found 2 values files") {
-		t.Errorf("layered values files must be merged, not warned about:\n%s", out)
 	}
 }

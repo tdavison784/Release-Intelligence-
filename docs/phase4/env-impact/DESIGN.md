@@ -371,7 +371,7 @@ objects of correlated environment rendered changes first, then join match subjec
 **DFS** (`graph.dfs@v1`, lane relations): roots sorted by (change item, node id); outgoing edges sorted
 by (kind, to-node id, edge id); simple paths only (a node already on the current path is not re-entered);
 a path is emitted when it reaches a node with no unvisited outgoing edge (maximal simple path) — so every
-reachable edge lies on some emitted path. **Bound** `DefaultTraversalBound = {MaxDepth 8, MaxPaths 500,
+reachable edge lies on some emitted path. **Bound** `DefaultTraversalBound = {MaxDepth 12 (commander amendment 2026-10-16: raised from 8 after measuring real GitOps graph depths in lane fixes; truncation still recorded and still blocks not-affected), MaxPaths 500,
 MaxNodes 5000}`; hitting any bound sets `Truncated` + reason. `ImpactPath.Status` is the weakest edge
 status on the path; `Unresolved` lists exactly the non-established edges on paths.
 

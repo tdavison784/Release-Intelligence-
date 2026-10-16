@@ -10,6 +10,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/classify"
 )
 
 const promptV5 = "investigate-agent/v5"
@@ -184,5 +185,42 @@ func TestDefaultPromptIsTheNewest(t *testing.T) {
 	must(t, err)
 	if p.Version != DefaultPromptVersion {
 		t.Fatalf("LoadPrompt(\"\") = %s", p.Version)
+	}
+}
+
+// The rendered text labels agent prose and shows verified claims and
+// investigation-level notes (commander decision: prose is labelled in
+// records and rendered text).
+func TestRenderedTextLabelsProseAndShowsClaims(t *testing.T) {
+	f := newFixture(t, true)
+	values := []map[string]any{{"artifact": f.values.ID, "quote": "rotationPolicy: Never"}}
+	claimID := domain.SettingClaimID(f.behaviour, domain.ClaimValue, "controller.rotationPolicy", ClaimInputEnvironment, `"Never"`, "a")
+	script := map[string][]Step{
+		f.behaviour: {
+			{Call: "a", Tool: investigate.ToolGetChangeItem, Args: map[string]any{"id": f.behaviour}},
+			{Call: "a", Tool: investigate.ToolReadArtifact, Args: map[string]any{"artifact": f.values.ID}},
+			{Call: "a", Tool: investigate.ToolRecordClaim, Args: map[string]any{"changeItem": f.behaviour, "kind": "value", "setting": "controller.rotationPolicy", "input": ClaimInputEnvironment, "value": "Never"}},
+			{Call: "a", Tool: investigate.ToolRequestValidation, Args: map[string]any{"changeItem": f.behaviour, "kind": "override-inspection"}},
+			{Call: "a", Tool: investigate.ToolSubmitFindings, Args: submitArgs(map[string]any{"changeItem": f.behaviour, "disposition": "raises-concern",
+				"summary": "the default flips", "citations": values, "claims": []string{claimID}})},
+		},
+		f.envItem: {{Call: "b", Tool: investigate.ToolSubmitFindings, Args: submitArgs(map[string]any{"changeItem": f.envItem, "disposition": "raises-concern",
+			"summary": "unexplained mode change", "citations": values})}}, // no item evidence → note
+	}
+	out := runItems(t, f, investigate.AgentConfig{Enabled: true, Driver: DriverScripted, Model: "test-model", PromptVersion: promptV5, MaxItems: 2},
+		&Scripted{Model: "test-model", ModelVersion: "v", ByItem: script})
+	inv := runRecord(t, f, out)
+	c, err := classify.New().Classify(context.Background(), investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: out, Validations: out.Validations,
+		Config: investigate.Config{Policy: "classify.policy@v1"}})
+	must(t, err)
+	inv.Findings = c.Findings
+	var buf strings.Builder
+	must(t, classify.WriteText(&buf, inv, f.b))
+	text := buf.String()
+	for _, want := range []string{"unverified prose", "rests on verified claims: " + claimID, "Agent environment claims", "✓ " + claimID + " value controller.rotationPolicy",
+		"Agent notes (AI, investigation-level", out.Notes[0].ID} {
+		if !strings.Contains(text, want) {
+			t.Errorf("rendered text lacks %q:\n%s", want, text)
+		}
 	}
 }
