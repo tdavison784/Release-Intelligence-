@@ -23,7 +23,8 @@ Resume from: this file + brief + `git log`.
 
 ## In progress / next step
 
-- Real runs ingress-nginx shop-de + kube-prometheus-stack obs-north (running), then status table, LANE DONE.
+- Real runs re-started 2026-10-16 by GLM continuation (see "GLM handoff log"): all three products sequentially
+  with the current code, then the "Real runs" table below, cleanup, LANE DONE.
 
 ## Decisions (with why)
 
@@ -52,3 +53,20 @@ Resume from: this file + brief + `git log`.
 ## Test status
 
 - `go test ./internal/catalog` green.
+- `go build ./... && go vet ./...` green; `go test ./internal/investigate/runtime` green (GLM continuation,
+  2026-10-16).
+
+## GLM handoff log
+
+- 2026-10-16 (glm-runtime, GLM-5.3): took over from ri-runtime during its usage-limit window, mid "real runs".
+  The paused agent had finished real run 1 (cert-manager payments-eu) and folded its findings into 433574f7 —
+  but that commit postdates the run, so run 1's per-item outcomes reflect pre-fix code and were never recorded
+  here (the promised "Real runs" section was missing). Decision: re-run **all three** cases (cert-manager
+  payments-eu, ingress-nginx shop-de, kube-prometheus-stack obs-north) sequentially against current code so the
+  summary table describes the validator as it will merge; this also exercises the 433574f7 fixes for real.
+  Runs launched via `RI_RUNTIME_STATE=<warm .ri> RI_RUNTIME_CASES=<id> RI_RUNTIME_TIMEOUT=<budget> go test
+  ./internal/investigate/runtime -run Groundtruth -v -timeout 60m`, one case at a time (the validator enforces
+  one `ri-runtime-*` cluster at a time), logs kept in an untracked `.glm-scratch/` dir (deleted before done).
+  Uncertain: whether the shared warm `.ri` cache holds everything the two new cases need offline; if a case
+  skips with "change evidence not available offline" I will warm the cache with `GITHUB_TOKEN=$(gh auth token)`
+  and re-run it.
