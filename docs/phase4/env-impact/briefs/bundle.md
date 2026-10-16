@@ -13,4 +13,4 @@ renders through its port — use a fake in your tests.
 Done: a bundle that `Validate`s for every groundtruth case's `input.yaml` (live upstream reads go through
 the warm cache: `-state /Users/tommydavison/repos/Release-Intelligence-/.ri`; tests use checked-in
 fixtures/caches only); determinism test (two runs → same bundle id); docs (a short
-`docs/INVESTIGATE.md` section "Evidence bundle" — create the file if absent, keep your section only).
+`docs/INVESTIGATE.md` section "Evidence bundle" (skeleton exists; edit your section only)).

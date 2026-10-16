@@ -18,4 +18,4 @@ Quality bar: a query result is something an agent can cite; every `RenderedChang
 artifact bytes (digest + locator). Measure and record (status file) render coverage across the
 groundtruth environments: targets found, rendered ok / partial / unavailable with reasons, rendered
 changes, uncorrelated rendered changes. Tests skip with a message when `helm`/`kubectl` are missing.
-Docs: `docs/INVESTIGATE.md` section "Render diffs" (create if absent; your section only).
+Docs: `docs/INVESTIGATE.md` section "Render diffs" (skeleton exists; edit your section only).
