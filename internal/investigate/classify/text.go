@@ -88,6 +88,9 @@ func WriteText(w io.Writer, inv *domain.Investigation, b *domain.EvidenceBundle)
 			}
 			for _, v := range cited {
 				p.validation(v)
+				if v.Outcome == domain.ValidationPass && !f.Manifestation.RenderDecisive() && !v.ClearsBehaviour() {
+					p.f("      ↳ not decisive for this item: it manifests as %s, and only a pinned setting or an observed outcome clears it\n", f.Manifestation)
+				}
 			}
 		}
 		assumed := map[string]bool{}
