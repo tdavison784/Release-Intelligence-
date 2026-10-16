@@ -121,6 +121,23 @@ func TestGroundtruthInputsBundle(t *testing.T) {
 				t.Logf("source %-18s %-14s %d artifact(s) %s", k, s.Status, len(s.Artifacts), s.Reason)
 			}
 			t.Logf("bundle %s: %d items (%d in scope), %d artifacts, %d evidence", b.ID, len(b.Change.Items), len(b.Change.InScope()), len(b.Manifest.Artifacts), len(b.Evidence))
+			if testing.Verbose() {
+				for _, it := range b.Change.Items {
+					if it.InScope {
+						t.Logf("  in-scope %s %-10s %-22s %-34s %-32s %s", it.ID, it.Family, it.ScopeRule, it.ManifestationRule, it.Manifestation, it.Title)
+					}
+				}
+				for _, p := range b.Change.Renders {
+					n, corr := 0, 0
+					for _, c := range p.Changes {
+						n++
+						if len(c.ChangeItems) > 0 {
+							corr++
+						}
+					}
+					t.Logf("  release render %s: %s, %d changes (%d correlated) %s", p.Target, p.Status, n, corr, p.Reason)
+				}
+			}
 			// determinism: a second, independent run over a fresh store
 			st2, _ := store.New(t.TempDir())
 			if b2 := buildBundle(t, a, st2, in, helmErr == nil); b2.ID != b.ID {

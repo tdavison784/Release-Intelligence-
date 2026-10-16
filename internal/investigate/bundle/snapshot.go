@@ -377,8 +377,10 @@ func walkFacts(n any) {
 				v["Value"] = redactedValue(val)
 			}
 		}
-		if ex, ok := v["Excerpt"].(string); ok && ex != "" && sensitiveKey.MatchString(ex) {
-			v["Excerpt"] = "<redacted: credential-like content>"
+		for _, k := range []string{"excerpt", "Excerpt"} { // domain.Evidence is tagged, env facts are not
+			if ex, ok := v[k].(string); ok && ex != "" && sensitiveKey.MatchString(ex) {
+				v[k] = "<redacted: credential-like content>"
+			}
 		}
 		for _, c := range v {
 			walkFacts(c)

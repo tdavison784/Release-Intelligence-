@@ -371,7 +371,7 @@ func (b *itemBuilder) anchorStructural(mp *domain.ManifestPair, pair *render.Pai
 		f := changeFacts{RenderedAnchored: true}
 		it := &domain.ChangeItem{
 			ID: domain.ChangeItemID("", "", rc.ID), RenderedChange: rc.ID, Family: domain.FamilyRendered,
-			Title:    fmt.Sprintf("%s: %s %s (not mentioned by any change)", rc.Class, rc.Object, rc.Path),
+			Title:    strings.Join(strings.Fields(fmt.Sprintf("%s: %s %s (not mentioned by any change)", rc.Class, rc.Object, rc.Path)), " "),
 			Subjects: []string{rc.Object}, Evidence: evidence,
 		}
 		it.Manifestation, it.ManifestationRule = manifestationOf(f)
@@ -636,6 +636,9 @@ type sourceSpec struct {
 	artifactType domain.ArtifactType
 	// evidenceKinds restricts the evidence kinds taken.
 	evidenceKinds []domain.EvidenceKind
+	// always: evidence of these kinds counts whatever its source (advisory
+	// evidence carries no definition source id).
+	always []domain.EvidenceKind
 }
 
 var documentKinds = []domain.EvidenceKind{domain.EvidenceDocument, domain.EvidenceStructured, domain.EvidenceReleaseAsset, domain.EvidenceAdvisory}
@@ -644,7 +647,7 @@ var fetchedSources = []sourceSpec{
 	{kind: domain.ChangeSourceReleaseNotes, artifact: domain.ArtifactUpstreamDocument, label: "release notes / changelog", roles: []domain.SourceRole{domain.RoleReleaseNotes, domain.RoleChangelog}, evidenceKinds: documentKinds},
 	{kind: domain.ChangeSourceMigrationGuide, artifact: domain.ArtifactUpstreamDocument, label: "upgrade guide", roles: []domain.SourceRole{domain.RoleUpgradeGuide}, evidenceKinds: documentKinds},
 	{kind: domain.ChangeSourceCompatibility, artifact: domain.ArtifactUpstreamDocument, label: "compatibility matrix", roles: []domain.SourceRole{domain.RoleCompatibility}, evidenceKinds: documentKinds},
-	{kind: domain.ChangeSourceAdvisories, artifact: domain.ArtifactUpstreamDocument, label: "security advisories", roles: []domain.SourceRole{domain.RoleSecurity}, evidenceKinds: documentKinds},
+	{kind: domain.ChangeSourceAdvisories, artifact: domain.ArtifactUpstreamDocument, label: "security advisories", roles: []domain.SourceRole{domain.RoleSecurity}, evidenceKinds: documentKinds, always: []domain.EvidenceKind{domain.EvidenceAdvisory}},
 	{kind: domain.ChangeSourceAPISchema, artifact: domain.ArtifactCRDDefinition, label: "CRD bundle", artifactType: domain.ArtifactCRD, evidenceKinds: documentKinds},
 	{kind: domain.ChangeSourceChart, artifact: domain.ArtifactChartValues, label: "Helm chart", artifactType: domain.ArtifactHelmChart, evidenceKinds: documentKinds},
 }
@@ -748,7 +751,7 @@ func (c *ChangeCollector) fetchedSource(ctx context.Context, put putFunc, edge *
 	digests := map[string]map[string]bool{}
 	for _, e := range edge.Evidence {
 		sid := e.SourceID
-		if !(srcIDs[sid] || srcIDs[strings.SplitN(sid, "/", 2)[0]]) || !kindIn(e.Kind, spec.evidenceKinds) {
+		if !kindIn(e.Kind, spec.always) && (!(srcIDs[sid] || srcIDs[strings.SplitN(sid, "/", 2)[0]]) || !kindIn(e.Kind, spec.evidenceKinds)) {
 			continue
 		}
 		u, ok := docURL(e.URI)
