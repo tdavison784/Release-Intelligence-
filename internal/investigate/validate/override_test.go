@@ -299,8 +299,10 @@ func joinPinnedFx(t *testing.T, extra ...domain.ImpactFinding) (*fx, string, *do
 
 func TestOverrideJoinPinned(t *testing.T) {
 	f, item, rep := joinPinnedFx(t)
+	f.file("apps/a/widgets.yaml", widget("w1", "apps", "Never"))
+	f.pair("argocd:apps/gizmo.yaml", controller(), controller())
 	b := f.bundle()
-	r := one(t, run(t, OverrideInspection(WithClock(clock)), investigate.ValidationInput{Bundle: b, ChangeItem: item, Report: rep}))
+	r := one(t, run(t, OverrideInspection(WithClock(clock), WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item, Report: rep}))
 	wantOutcome(t, r, domain.ValidationPass, RulePinJoin)
 	p := r.Pin
 	if p.Kind != domain.PinField || p.Subject != "gizmo.example.io/v1/Widget/apps/w1" || p.Path != "spec.rotation" || p.Value != `"Never"` || r.ImpactFinding != "imp-pin" {
@@ -308,6 +310,30 @@ func TestOverrideJoinPinned(t *testing.T) {
 	}
 	if !r.ClearsBehaviour() {
 		t.Fatal("the join's pinned verdict on a CRD default clears the behaviour item")
+	}
+}
+
+// The join reads the environment files; the renders must not contradict it.
+func TestOverrideJoinPinnedNeedsTheRenders(t *testing.T) {
+	cases := []struct {
+		name   string
+		setup  func(f *fx)
+		detail string
+	}{
+		{"no render", func(f *fx) {}, "no environment render"},
+		{"a rendered widget leaves it unset", func(f *fx) {
+			f.pair("argocd:apps/gizmo.yaml", stream(controller(), widget("w9", "gizmo", "")), stream(controller(), widget("w9", "gizmo", "")))
+		}, "w9"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			f, item, rep := joinPinnedFx(t)
+			f.file("apps/a/widgets.yaml", widget("w1", "apps", "Never"))
+			c.setup(f)
+			b := f.bundle()
+			r := one(t, run(t, OverrideInspection(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item, Report: rep}))
+			wantOutcome(t, r, domain.ValidationNotRun, c.detail)
+		})
 	}
 }
 

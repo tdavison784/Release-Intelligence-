@@ -56,7 +56,34 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 	// 1. the join's pinned verdict on the item's change.
 	rep := in.Report
 	if rep != nil {
-		if d, note, ok := v.joinPinned(in, item, rep, out); ok {
+		d, sel, note, ok := v.joinPinned(in, item, rep, out)
+		if ok && sel != nil {
+			// The join read the environment files; objects of the kind that
+			// only the environment render shows must pin the field too.
+			view, err := loadView(ctx, v.cfg, in.Bundle)
+			if err != nil {
+				return nil, err
+			}
+			res := sel.evaluate(view)
+			switch {
+			case res.undecided != "":
+				ok, note = false, "join: pinned in the environment files, but "+res.undecided
+			case !res.held:
+				ok, note = false, "join: pinned in the environment files, but not everywhere:\n    "+strings.Join(res.misses, "\n    ")
+			default:
+				for _, h := range res.hits {
+					if h.rendered {
+						d.evidence = append(d.evidence, out.cite(h.evidence))
+						d.pin.Evidence = uniqEvidence(append(d.pin.Evidence, h.evidence.ID))
+						if d.pin.RenderedObject == "" {
+							d.pin.RenderedObject = h.object
+						}
+					}
+				}
+				d.inputs = append(d.inputs, res.inputs...)
+			}
+		}
+		if ok {
 			d.subjects, d.paths, d.property = cov.subjects, cov.paths, property
 			out.add(d)
 			return out.result()
@@ -144,7 +171,9 @@ func factStatement(f domain.VerifiedFact) string {
 // when the join's whole verdict on the change is "pinned": a pinned finding
 // and no finding that says the default reaches something (applies, adjacent,
 // unknown), and — for values — every changed key of the item pinned exactly.
-func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item domain.ChangeItem, rep *domain.ImpactReport, out *output) (draft, string, bool) {
+// For a field pin it also returns the spec "every object of the kind sets
+// the field", which the caller checks against the environment renders.
+func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item domain.ChangeItem, rep *domain.ImpactReport, out *output) (draft, *pinSpec, string, bool) {
 	fs := findingsFor(rep, item)
 	var pinned []domain.ImpactFinding
 	var other []string
@@ -157,13 +186,14 @@ func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item dom
 		}
 	}
 	if len(pinned) == 0 {
-		return draft{}, "", false
+		return draft{}, nil, "", false
 	}
 	if len(other) > 0 {
-		return draft{}, "join: the change is pinned only in part — other findings: " + strings.Join(other, ", "), false
+		return draft{}, nil, "join: the change is pinned only in part — other findings: " + strings.Join(other, ", "), false
 	}
 	pool := reportPool(rep)
 	var hits []pinHit
+	var sel *pinSpec
 	keys := map[string]bool{}
 	kind := domain.PinField
 	path := ""
@@ -181,8 +211,17 @@ func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item dom
 					continue
 				}
 				obj, ok := objectFromLabel(label)
+				if ok && sel == nil {
+					id := strings.Split(obj, "/")
+					group := id[0]
+					if group == "core" {
+						group = ""
+					}
+					s := objectSpec(group, id[2], "", element)
+					sel = &s
+				}
 				if !ok {
-					return draft{}, "join: cannot read the pinned resource from " + m.Subject, false
+					return draft{}, nil, "join: cannot read the pinned resource from " + m.Subject, false
 				}
 				h.object, h.path, path = obj, element, element
 				if strings.HasPrefix(element, "metadata.annotations.") {
@@ -209,7 +248,7 @@ func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item dom
 		}
 	}
 	if len(hits) == 0 {
-		return draft{}, "join: the pinned verdict cites no environment record stating the value", false
+		return draft{}, nil, "join: the pinned verdict cites no environment record stating the value", false
 	}
 	if kind == domain.PinValuesKey {
 		var missing []string
@@ -219,7 +258,7 @@ func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item dom
 			}
 		}
 		if len(missing) > 0 {
-			return draft{}, "join: values keys of the change not pinned: " + strings.Join(missing, ", "), false
+			return draft{}, nil, "join: values keys of the change not pinned: " + strings.Join(missing, ", "), false
 		}
 	}
 	d := draft{rule: RulePinJoin, outcome: domain.ValidationPass, impactFinding: pinned[0].ID}
@@ -239,7 +278,10 @@ func (v *overrideInspection) joinPinned(in investigate.ValidationInput, item dom
 		d.pin.Path = hits[0].path
 	}
 	d.detail = fmt.Sprintf("pin rule %s: the upstream change is a computed default change and the deterministic join found every relevant environment record setting it explicitly:\n%s", RulePinJoin, describeFindings(pinned))
-	return d, "", true
+	if kind == domain.PinValuesKey {
+		sel = nil
+	}
+	return d, sel, "", true
 }
 
 // objectFromLabel converts the join's resource label

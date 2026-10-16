@@ -306,6 +306,12 @@ func nodesByKey(g *domain.RelationshipGraph) map[string][]string {
 	return m
 }
 
+// scopeRenderedUnexplained is the scope rule of an item that is a rendered
+// change nothing upstream explains (DESIGN.md §1.3 amendment): a validator
+// passes it only by positively showing the change harmless, and fails it
+// only with a concrete failure named.
+const scopeRenderedUnexplained = "scope:rendered-unexplained"
+
 // breaking reports whether an item is breaking in the sense of DESIGN.md §1.3
 // (declared, computed-breaking or rendered-structural).
 func breaking(it domain.ChangeItem) bool {

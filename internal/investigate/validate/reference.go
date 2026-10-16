@@ -113,6 +113,9 @@ func (v *staticReference) Validate(ctx context.Context, in investigate.Validatio
 				}
 			}
 		}
+		if why == "" && len(p.Edges) == 0 {
+			why = "the path is its root alone: there is no reference on it to check"
+		}
 		switch {
 		case len(dangles) > 0:
 			danglingPaths = append(danglingPaths, pid)
@@ -160,6 +163,15 @@ func (v *staticReference) Validate(ctx context.Context, in investigate.Validatio
 			subjects: roots(danglingPaths), paths: danglingPaths, rcs: danglingRCs, inputs: inputs, evidence: ev,
 			detail: "references the upgrade leaves dangling:\n- " + strings.Join(danglingLines, "\n- ")})
 		return out.result()
+	}
+	if len(intact) > 0 && item.ScopeRule == scopeRenderedUnexplained {
+		// Intact references do not show that a rendered change nothing
+		// upstream explains is harmless (DESIGN.md §1.3 amendment).
+		undecided = append(undecided, intact...)
+		for _, pid := range intact {
+			undecidedLines = append(undecidedLines, pid+": references resolve, but that does not show the unexplained rendered change harmless")
+		}
+		intact = nil
 	}
 	if len(intact) > 0 {
 		ev := append(known(evidence), summary())
