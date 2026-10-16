@@ -407,6 +407,17 @@ func (b *builder) valuesFamily() {
 				}
 			}
 		}
+		if len(matches) == 0 && b.env.Health(env.DimValues) != env.HealthOK {
+			// nothing matched, but the values were not fully read (a release's
+			// stack has an unreadable layer, several releases differ, a values
+			// file no release accounts for): the key may be set where we could
+			// not look — never "not affected" from that (fail closed)
+			b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
+				fmt.Sprintf("Cannot tell whether this affects you: your Helm values were only partially collected (%s)", c.Title),
+				"Applicability of a Helm values change is decided against the values you actually set; part of them could not be read, so a changed key may be set there.",
+				c, c.Evidence, []domain.ImpactCheck{b.valuesCheck(c.Subjects)}, "Helm values were only partially collected: "+b.valuesGap())
+			continue
+		}
 		if len(matches) == 0 {
 			// CONTRACT-CHANGE(render): PO-3 — a changed default or new key
 			// left unset reaches the customer; rendering decides it
@@ -432,6 +443,17 @@ func (b *builder) valuesFamily() {
 			// there is no evaluator or no decisive render.
 			b.setValues(b.set, c, matches, exact, partial)
 		case "default-changed":
+			if len(exact) > 0 && !b.pinnedInEveryRelease(exact) {
+				// values are per release: a release of the product that leaves
+				// the key unset gets the new default, whatever another one pins —
+				// a pin never speaks for another release (and several distinct
+				// releases leave the values dimension partial: a gap)
+				b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
+					fmt.Sprintf("Cannot tell whether this affects you: only some releases of the product pin %s", codeList(exact, 3)),
+					fmt.Sprintf("Some releases deploying this product set %s explicitly and keep their value; others leave it unset and get the new default of %s. Evaluate each release on its own.", strings.Join(exact, ", "), toTag),
+					c, c.Evidence, []domain.ImpactCheck{b.valuesCheck(c.Subjects)}, "a per-release decision: "+b.valuesGap())
+				exact = nil
+			}
 			if len(exact) > 0 {
 				title := fmt.Sprintf("You pin %s, so the new default of %s does not apply", codeList(exact, 3), toTag)
 				if len(exact) == 1 && len(partial) == 0 {
@@ -457,6 +479,43 @@ func (b *builder) valuesFamily() {
 			b.add(RuleValuesNewKey, domain.ImpactReviewRequired, domain.SeverityMedium, domain.ConfidenceHigh, title, detail, c, matches, c.Evidence...)
 		}
 	}
+}
+
+// valuesGap states why the values dimension is not complete (its first
+// warning).
+func (b *builder) valuesGap() string {
+	for _, st := range b.env.Statuses() {
+		if st.Dimension == env.DimValues && len(st.Warnings) > 0 {
+			return st.Warnings[0]
+		}
+	}
+	return "the values dimension is partial"
+}
+
+// pinnedInEveryRelease reports whether every release whose values the
+// environment holds (env.ValuesScope: one per distinct configuration) sets
+// each of the keys exactly. A key pinned in one release never speaks for
+// another release of the product.
+func (b *builder) pinnedInEveryRelease(paths []string) bool {
+	sc := b.env.ValuesScope
+	if sc == nil || len(sc.Releases) < 2 {
+		return true
+	}
+	for _, rel := range sc.Releases {
+		for _, p := range paths {
+			set := false
+			for _, k := range b.env.ValuesKeys {
+				if k.Release == rel && relate(p, k.Path) == relExact {
+					set = true
+					break
+				}
+			}
+			if !set {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // --- rule 2: CRDs and API versions ----------------------------------------------

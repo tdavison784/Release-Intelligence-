@@ -218,20 +218,30 @@ func TestRepoInlineValuesBecomeValuesKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Argo CD spec.source.helm.values (block scalar) — flattened like a file;
-	// several sources set replicaCount, so find the argo one by its evidence
-	var argoEV domain.Evidence
+	// Argo CD: the Application sets both helm.values and helm.valuesObject;
+	// Argo CD applies valuesObject only ("valuesObject trumps values -
+	// therefore values will be ignored"), so no argo key comes from values
+	// and the ignored block is recorded as such on the release
 	for _, k := range e.ValuesKeys {
 		if k.Path != "replicaCount" {
 			continue
 		}
-		ev := evURI(*e, k.Evidence[0])
-		if strings.Contains(ev.URI, "cert-manager-argocd.yaml") {
-			argoEV = ev
+		if ev := evURI(*e, k.Evidence[0]); strings.Contains(ev.URI, "cert-manager-argocd.yaml") {
+			t.Fatalf("helm.values must be ignored when valuesObject is set: %+v", ev)
 		}
 	}
-	if argoEV.ID == "" || !strings.Contains(argoEV.Locator, "$.spec.source.helm.values.replicaCount") {
-		t.Fatalf("argo inline values missing or mislocated: %+v", argoEV)
+	var argo *ValuesRelease
+	for i, r := range e.ValuesReleases {
+		if r.Kind == ReleaseArgoCD {
+			argo = &e.ValuesReleases[i]
+		}
+	}
+	if argo == nil || len(argo.Layers) != 2 || argo.Layers[0].Kind != LayerInline || !strings.HasSuffix(argo.Layers[0].Source, ".helm.valuesObject") ||
+		argo.Layers[1].Applied || argo.Layers[1].Gap || !strings.Contains(argo.Layers[1].Reason, "valuesObject trumps values") {
+		t.Fatalf("argo release = %+v", argo)
+	}
+	if argo.Health != HealthOK {
+		t.Errorf("an ignored block is Argo CD's own semantics, not a gap: %+v", argo)
 	}
 	// Argo valuesObject keeps exact line numbers from the original node
 	for _, k := range e.ValuesKeys {
@@ -298,7 +308,7 @@ func TestRepoWarnings(t *testing.T) {
 	}
 	joined := strings.Join(e.Warnings, "\n")
 	for _, want := range []string{
-		"2 values files",
+		"4 releases deploy the product with different effective values",
 		"is not built with kustomize",
 		"templating (go templates, environments) is not evaluated",
 		"valuesFrom",

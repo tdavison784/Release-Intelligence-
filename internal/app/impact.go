@@ -74,6 +74,11 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 	if opts.Environment.ProductHints == nil {
 		opts.Environment.ProductHints = env.HintsFromCatalog(a.Catalog)
 	}
+	if opts.Environment.Product == "" {
+		// values are per release: scope them to the releases deploying
+		// this product (env.Inputs.Product)
+		opts.Environment.Product = productID
+	}
 	e, err := env.Load(opts.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("environment: %w", err)

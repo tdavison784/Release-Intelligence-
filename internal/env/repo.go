@@ -7,6 +7,7 @@
 package env
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -419,6 +420,14 @@ func (l *loader) discKustomization(path, rel string, mans *[]string) {
 	})
 }
 
+// helmfileDoc is a helmfile the walk found; values.go builds its releases
+// values stacks.
+type helmfileDoc struct {
+	path, rel string
+	node      *yaml.Node
+	templated bool
+}
+
 // discHelmfile inventories helmfile releases: chart + version become
 // installed-product guesses, referenced values files become values inputs.
 // Templating (go templates, environments) is NOT evaluated — documented gap.
@@ -439,6 +448,7 @@ func (l *loader) discHelmfile(path, rel string, vals *[]string) {
 	if node == nil {
 		return
 	}
+	l.helmfiles = append(l.helmfiles, helmfileDoc{path: path, rel: rel, node: node, templated: bytes.Contains(b, []byte("{{"))})
 	releases := 0
 	for _, r := range itemsOf(fieldOf(node, "releases")) {
 		chart := scalarOf(r, "chart")
