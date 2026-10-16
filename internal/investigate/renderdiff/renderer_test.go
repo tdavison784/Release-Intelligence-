@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/render"
@@ -266,12 +267,16 @@ func TestLayeredValuesFileIsNotRenderedAlone(t *testing.T) {
 		helmTarget("values:"+f.repo+"/values-prod.yaml", render.TargetValuesFiles, f.repo+"/values-prod.yaml", "replicaCount: 3\n"),
 		helmTarget("values:"+f.repo+"/standalone.yaml", render.TargetValuesFiles, f.repo+"/standalone.yaml", "replicaCount: 1\n"),
 	}
+	f.r.targets = func(string, app.RenderOptions) ([]render.Target, []string, error) {
+		return f.targets, []string{"values file " + f.repo + "/values.yaml: skipped (its name does not name acme; pass it with --values to render it)"}, nil
+	}
 	res := renderOK(t, f)
 	if got := targetNames(res.Pairs); !reflect.DeepEqual(got, []string{"argocd:app.yaml#0", "values:standalone.yaml"}) {
 		t.Errorf("targets = %v", got)
 	}
 	notes := strings.Join(res.Notes, "\n")
-	if !strings.Contains(notes, "values file values-prod.yaml: rendered as a values layer of") {
+	if !strings.Contains(notes, "values file values-prod.yaml: rendered as a values layer of") ||
+		strings.Contains(notes, "skipped") || !strings.Contains(notes, "values file values.yaml: rendered as a values layer of argocd:app.yaml#0") {
 		t.Errorf("notes = %s", notes)
 	}
 }
@@ -373,4 +378,27 @@ func keys[V any](m map[string]V) []string {
 		out = append(out, k)
 	}
 	return out
+}
+
+func TestArtifactLinkAttachesToComputedImageItem(t *testing.T) {
+	f := newFixture(t)
+	f.targets = []render.Target{helmTarget("argocd:"+f.repo+"/app.yaml#0", render.TargetArgoCD, f.repo+"/values.yaml", "replicaCount: 2\n")}
+	rec := &f.change.Record
+	img := rec.Items[0]
+	img.ChangeID, img.Family, img.Title, img.Subjects = "chg-img", domain.FamilyImage, "Manifests now reference image `example.io/acme/controller:2.0.0`", []string{"example.io/acme/controller"}
+	img.ManifestationRule, img.Manifestation = ManifestComputedImage, domain.ManifestRenderedConfig
+	img.ID = domain.ChangeItemID("chg-img", "", "")
+	other := img
+	other.ChangeID, other.Title, other.Subjects = "chg-other", "Manifests now reference image `example.io/other/thing:1`", []string{"example.io/other/thing"}
+	other.ID = domain.ChangeItemID("chg-other", "", "")
+	rec.Items = append(rec.Items, img, other)
+	rec.ID = rec.DerivedID()
+	must(t, rec.Validate())
+	res := renderOK(t, f)
+	for _, c := range res.Pairs[0].Changes {
+		if c.Class == "image-changed" && (!reflect.DeepEqual(c.ChangeItems, []string{img.ID}) || c.Correlation != "artifact") {
+			t.Errorf("image change = %+v", c)
+		}
+	}
+	must(t, f.bundle(t, res).Validate())
 }

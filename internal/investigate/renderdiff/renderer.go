@@ -115,15 +115,22 @@ func (r *Renderer) RenderEnvironment(ctx context.Context, change *investigate.Ch
 	product := string(edge.Product.ID)
 	targets, notes, err := r.targets(product, app.RenderOptions{Repo: in.repo, ValuesFiles: in.values, KubeVersion: in.kube})
 	rel := relativizer(in.repo)
-	for _, n := range notes {
-		out.Notes = append(out.Notes, rel(n))
-	}
 	if err != nil {
 		// an unreadable environment is a recorded gap, not an infrastructure failure
 		out.Notes = append(out.Notes, "render target detection failed: "+rel(err.Error()))
 		return out, nil
 	}
-	targets, skipped := dropLayeredValuesTargets(targets, len(in.values) > 0)
+	layered := valuesLayers(targets)
+	for _, n := range notes {
+		// a values file "skipped" on its own is still rendered as a layer
+		if f, _, ok := strings.Cut(strings.TrimPrefix(n, "values file "), ": skipped"); ok && strings.HasPrefix(n, "values file ") {
+			if by, ok := layered[filepath.Clean(f)]; ok {
+				n = fmt.Sprintf("values file %s: rendered as a values layer of %s, not on its own", f, by)
+			}
+		}
+		out.Notes = append(out.Notes, rel(n))
+	}
+	targets, skipped := dropLayeredValuesTargets(targets, layered, len(in.values) > 0)
 	for _, n := range skipped {
 		out.Notes = append(out.Notes, rel(n))
 	}
@@ -400,20 +407,9 @@ func canonicalRepo(ref string) string {
 // file alone is not how the environment deploys the product, and rendering
 // it alone would index changes of a configuration nobody runs. Explicit
 // --values targets are kept.
-func dropLayeredValuesTargets(targets []render.Target, explicitValues bool) ([]render.Target, []string) {
+func dropLayeredValuesTargets(targets []render.Target, layered map[string]string, explicitValues bool) ([]render.Target, []string) {
 	if explicitValues {
 		return targets, nil
-	}
-	layered := map[string]string{}
-	for _, t := range targets {
-		if t.Kind == render.TargetValuesFiles || t.Kind == render.TargetKustomize {
-			continue
-		}
-		for _, l := range t.Values {
-			if _, ok := layered[filepath.Clean(l.Origin)]; !ok {
-				layered[filepath.Clean(l.Origin)] = t.ID
-			}
-		}
 	}
 	var kept []render.Target
 	var notes []string
@@ -427,6 +423,23 @@ func dropLayeredValuesTargets(targets []render.Target, explicitValues bool) ([]r
 		kept = append(kept, t)
 	}
 	return kept, notes
+}
+
+// valuesLayers maps each values file an Argo CD / Flux / Helmfile target
+// layers to that target's id.
+func valuesLayers(targets []render.Target) map[string]string {
+	layered := map[string]string{}
+	for _, t := range targets {
+		if t.Kind == render.TargetValuesFiles || t.Kind == render.TargetKustomize {
+			continue
+		}
+		for _, l := range t.Values {
+			if _, ok := layered[filepath.Clean(l.Origin)]; !ok {
+				layered[filepath.Clean(l.Origin)] = t.ID
+			}
+		}
+	}
+	return layered
 }
 
 // relativizer rewrites paths under the repository root to repo-relative

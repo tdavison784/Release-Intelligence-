@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -86,13 +87,21 @@ type indexer struct {
 	rel     func(string) string
 	items   map[string]bool
 	anchors map[string][]string // anchor key → items anchored on that release-scope rendered change
+	images  []domain.ChangeItem // computed image/artifact items (targets of "artifact" links)
 }
+
+// ManifestComputedImage is the manifestation rule of computed image and
+// artifact items (DESIGN §2.2.1; lane bundle's collector assigns it).
+const ManifestComputedImage = "manifest:computed-image"
 
 func newIndexer(rec domain.ChangeEvidenceRecord, edge *domain.UpgradeEdge, rel func(string) string) *indexer {
 	ix := &indexer{record: rec, edge: edge, rel: rel, items: map[string]bool{}, anchors: map[string][]string{}}
 	byAnchor := map[string][]string{}
 	for _, it := range rec.Items {
 		ix.items[it.ID] = true
+		if it.ChangeID != "" && it.ManifestationRule == ManifestComputedImage {
+			ix.images = append(ix.images, it)
+		}
 		if it.RenderedChange != "" {
 			byAnchor[it.RenderedChange] = append(byAnchor[it.RenderedChange], it.ID)
 		}
@@ -238,7 +247,19 @@ func (ix *indexer) entries(p *render.Pair, target string) []DiffEntry {
 		var rules []string
 		for _, l := range e.Links {
 			if l.ChangeID == "" {
-				continue // an artifact-delta link names no change, hence no change item
+				// an artifact-delta link names no change: it attaches to the
+				// computed image items of that repository (the release-scope
+				// collector's rule), else to nothing
+				if l.Rule != "artifact" {
+					continue
+				}
+				for _, it := range ix.images {
+					if itemMentions(it, strings.TrimPrefix(l.Title, "artifact version change of ")) {
+						e.ChangeItems = appendUnique(e.ChangeItems, it.ID)
+						rules = appendUnique(rules, l.Rule)
+					}
+				}
+				continue
 			}
 			if it := domain.ChangeItemID(l.ChangeID, "", ""); ix.items[it] {
 				e.ChangeItems = appendUnique(e.ChangeItems, it)
@@ -261,6 +282,21 @@ func (ix *indexer) entries(p *render.Pair, target string) []DiffEntry {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
+}
+
+// itemMentions reports whether an item's title or subjects name an image
+// repository (or its last path segment, when that has 4+ characters).
+func itemMentions(it domain.ChangeItem, repo string) bool {
+	if repo == "" {
+		return false
+	}
+	base := path.Base(repo)
+	for _, s := range append([]string{it.Title}, it.Subjects...) {
+		if strings.Contains(s, repo) || len(base) >= 4 && strings.Contains(s, base) {
+			return true
+		}
+	}
+	return false
 }
 
 // changePath is the RenderedChange path of a render change. Container args
