@@ -35,8 +35,10 @@ State: **DONE** (2026-10-16). Resume from: this file + `docs/phase4/env-impact/D
 ## In progress / next step
 
 - Nothing. Commander: review DESIGN.md (gap-map honesty, §3 fail-closed policy, §3.5 ACTION REQUIRED
-  never weakened), merge (clean against `p4-env-impact` @ 80cfd819 — checked with `git merge-tree`; the
-  merged tree builds and `internal/{domain,investigate,orchestrate}` tests pass), then write wave-1
+  never weakened), merge (clean against `p4-env-impact` @ 2111dd7e, incl. the groundtruth merge — checked with
+  `git merge-tree`; at 80cfd819 the merged tree built and `internal/{domain,investigate,orchestrate}` tests
+  passed). Groundtruth cases written against the draft may still use draft relation verbs; FORMAT.md maps
+  them — ask groundtruth to adopt the `EdgeKind` names, then write wave-1
   briefs from DESIGN §7.
 
 ## Decisions (with why)
