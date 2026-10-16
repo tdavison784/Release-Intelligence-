@@ -71,12 +71,19 @@ const (
 	// cites its upstream evidence only — no environment dimension is
 	// consulted, and none is claimed (docs/ACTION_CLASSIFICATION.md §5).
 	RuleSecurityFix = "impact:security-fix"
+	// A removed values key the environment leaves unset while its source
+	// default was non-empty (or not recorded): the environment relied on
+	// that default, which no longer exists — exactly the exposed case, never
+	// not-affected. Review-required with the values files' absence of the
+	// key as the environment chain; never action-required from this rule.
+	RuleValuesRemovedDefault = "impact:values-removed-default"
 
 	// --- verdict rules (docs/ACTION_CLASSIFICATION.md) -----------------------
 
 	// A not-affected verdict for a values change: the deciding dimension
 	// (values) was supplied, the changed keys were checked, and the
-	// environment does not set any of them.
+	// environment does not set any of them — for a removed key, only when
+	// its source default is empty (RuleValuesRemovedDefault otherwise).
 	RuleValuesUnset = "impact:values-unset"
 	// A not-affected verdict for a CRD-removal change: the CRD is not
 	// installed in the environment.
