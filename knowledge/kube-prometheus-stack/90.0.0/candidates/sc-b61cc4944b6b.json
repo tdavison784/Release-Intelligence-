@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-b61cc4944b6b",
+    "product": "kube-prometheus-stack",
+    "release": "90.0.0",
+    "members": [
+      {
+        "changeId": "chg-e724d40fe35f",
+        "anchor": {
+          "release": "90.0.0",
+          "evidenceKeys": [
+            "ek-209d06a63e6e"
+          ],
+          "statementKeys": [
+            "sk-cfeddc79d922"
+          ],
+          "changeIds": [
+            "chg-e724d40fe35f"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns…",
+    "text": "From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns, kube-dns) no longer reference credentials on the scraper's filesystem. `bearerTokenFile` and `tlsConfig.caFile` are rejected by Prometheus Operator when `arbitraryFSAccessThroughSMs.deny` is enabled, and by Grafana Alloy's `prometheus.operator.servicemonitors` component since v1.19.0, which silently dropped every control-plane target. The bearer token now comes from a Secret through `authorization`, and the CA from the `kube-root-ca.crt` ConfigMap that Kubernetes maintains in every namespace since 1.21. Because a ServiceMonitor can only authenticate through a Secret, and Kubernetes no longer creates a token Secret for a service account automatically, the chart now creates one itself: `prometheus.serviceAccount.createTokenSecret` (default `true`) renders a `kubernetes.io/service-account-token` Secret named `<prometheus service account>-token`. That token is long-lived and does not expire. Disable the value and set the `authorization` of each component if you would rather manage the credential yourself. The Secret must exist in the…",
+    "evidence": [
+      {
+        "id": "ev-75ebb2851d6e",
+        "kind": "document",
+        "sourceId": "upgrade-md",
+        "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.0.0/charts/kube-prometheus-stack/UPGRADE.md",
+        "locator": "L3-L76 (From 89.x to 90.x)",
+        "excerpt": "## From 89.x to 90.x\n\nThe control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd,\nkube-proxy, coredns, kube-dns) no longer reference credentials on the scraper's filesystem. `bearerTokenFile` and\n`tlsConfig.caFile` are rejected by Prometheus Operator when `arbitraryFSAccessThroughSMs.deny` is enabled, and by\nGrafana Alloy's `prometheus.operator.servicemonitors` component since v1.19.0, which silently dropped every\ncontrol-plane target. The bearer token now comes from a Secret through `authorization`, and the CA from the\n`kube-root-ca.crt` Con…",
+        "contentDigest": "sha256:4e84eda679fca6edb73c60a85425cb548e243c6d207bff37dcb1b861e2ab0109",
+        "retrievedAt": "2026-10-16T18:37:28Z"
+      }
+    ],
+    "hints": [
+      "code:bearerTokenFile",
+      "code:tlsConfig.caFile",
+      "code:arbitraryFSAccessThroughSMs.deny",
+      "code:prometheus.operator.servicemonitors",
+      "code:authorization",
+      "code:kube-root-ca.crt",
+      "code:prometheus.serviceAccount.createTokenSecret",
+      "code:true",
+      "code:kubernetes.io/service-account-token",
+      "code:<prometheus service account>-token",
+      "path:tlsConfig.caFile",
+      "path:arbitraryFSAccessThroughSMs.deny",
+      "path:prometheus.operator.servicemonitors",
+      "path:kube-root-ca.crt",
+      "path:prometheus.serviceAccount.createTokenSecret",
+      "version:v1.19.0",
+      "version:1.21"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-16T22:53:03Z"
+  }
+}
