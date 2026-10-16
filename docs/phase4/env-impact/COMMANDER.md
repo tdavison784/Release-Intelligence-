@@ -46,7 +46,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | renderdiff | — | claude-opus-5-5 | (removed) | (closed) | MERGED 5521569a + 31fa8c2b (follow-up) + cleaned up |
 | agent | ri-agent | claude-opus-5-5 | .claude/worktrees/p4ei-agent | pane w1:p2N (tab w1:t16) | MERGED ed7a0acd; follow-up: deterministic per-item agenda + prompt v2, subject resolution, live run 2 on another product |
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
-| classify | ri-classify | claude-opus-5-5 | .claude/worktrees/p4ei-classify | pane w1:p2P (tab w1:t17) | MERGED 7bb6e559 + 1a355107; follow-up 2: renderdiff query env-scope lookup (owns renderdiff now) |
+| classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | ri-orchestrate2 | claude-sonnet-5-5 | .claude/worktrees/p4ei-orchestrate2 | pane w1:p2Q (tab w1:t18) | MERGED c7f6d5ab; follow-up: bundle CreatedAt determinism (owns bundle now), then wire classify.New() + drop devstubs when classify merges |
 | runtime | ri-runtime | claude-opus-5-5 | .claude/worktrees/p4ei-runtime | pane w1:p2R (tab w1:t19) | working since 14:30 |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
@@ -97,6 +97,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 c7f6d5ab orchestrate2: internal/investigate/run (plain Go Pipeline shared by in-process Runner and Temporal activities; parity test same id + digest), internal/orchestrate activities per domain.Stage, review signal via ReviewApplier (timeout fails closed), bounded rounds, hash-chained audit; `ri investigate`, `ri investigate review|state`, `ri worker`; deterministic-pass ValidationRecords in the run record (49 live). Live run on own dev server :7299 (payments-eu input, placeholder classifier, no agent). Green.
 - 2026-10-16 7bb6e559 classify: R1–R4 in order, manifestation rule, §3.3 agent-record table, tier-policy input (Config.TierPolicy, additive), ReviewApplier (proxy never approves), ~45 tests, real-pipeline run over 8 inputs valid + reproducible. Domain relaxed: eligible ⇒ every finding eligible (was ⇔) — accepted, fail-closed preserved. INVESTIGATE.md conflict (both lanes appended sections) resolved keeping both. Gaps routed: (a) validate env-scope lookup → classify; (b) snapshot 'partial' for unbuilt kustomizations blocks R2.1 everywhere → orchestrate2 (owns bundle); (c) Answers must carry assertion ids → agent.
 - 2026-10-16 1a355107 classify follow-up: validate env-scope item lookup fixed (+ regression test); records for env-scope items 0 → 6 (cert-manager), 0 → 12 (shop-nl), all not-run (honest: unexplained change present in the env render can't be cleared by an empty diff nor fail without a concrete failure). Same bug found in renderdiff query.go:67 → classify; agent prompts.go/session.go → agent.
+- 2026-10-16 classify follow-up 2: renderdiff query.go accepts env-scope items (+ regression test). Classify lane complete, cleaned up (tab w1:t17).
 
 ## Open questions for the user
 
