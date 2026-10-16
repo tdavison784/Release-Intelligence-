@@ -172,20 +172,21 @@ func Attach(ctx context.Context, socket, token string, stdin io.Reader, stdout i
 	if _, err := conn.Write(append(hello, '\n')); err != nil {
 		return fmt.Errorf("agent: attach handshake: %w", err)
 	}
-	done := make(chan error, 2)
+	// stdin → socket ends with a half-close (the server then finishes and
+	// closes); the session is over when socket → stdout ends.
+	out := make(chan error, 1)
 	go func() {
-		_, err := io.Copy(conn, stdin)
+		_, err := io.Copy(stdout, conn)
+		out <- err
+	}()
+	go func() {
+		_, _ = io.Copy(conn, stdin)
 		if uc, ok := conn.(*net.UnixConn); ok {
 			_ = uc.CloseWrite()
 		}
-		done <- err
-	}()
-	go func() {
-		_, err := io.Copy(stdout, conn)
-		done <- err
 	}()
 	select {
-	case err := <-done:
+	case err := <-out:
 		if err != nil && !errors.Is(err, net.ErrClosed) {
 			return err
 		}
