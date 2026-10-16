@@ -46,7 +46,9 @@ func TestCannotDecideNeverPasses(t *testing.T) {
 				f := newFx(t)
 				item := f.change(domain.Change{ID: "chg-" + string(fam), Category: domain.CategoryOther, Breaking: true, Title: "a change",
 					Subjects: []string{"x"}, Provenance: domain.Provenance{Rule: "values:default-changed"}},
-					func(it *domain.ChangeItem) { it.Family, it.Manifestation, it.ManifestationRule = fam, m, "manifest:test" })
+					func(it *domain.ChangeItem) {
+						it.Family, it.Manifestation, it.ManifestationRule = fam, m, "manifest:test"
+					})
 				f.file("apps/a.yaml", widget("w1", "apps", "Never"))
 				b := f.bundle()
 				var st investigate.ArtifactStore

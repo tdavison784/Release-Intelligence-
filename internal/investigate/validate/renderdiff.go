@@ -188,8 +188,8 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 			n := 0
 			for _, c := range p.Changes {
 				// an item anchored on this environment change (scope
-			// rendered-unexplained) is that change, correlated or not
-			if contains(c.ChangeItems, item.ID) || c.ID == item.RenderedChange {
+				// rendered-unexplained) is that change, correlated or not
+				if contains(c.ChangeItems, item.ID) || c.ID == item.RenderedChange {
 					n++
 				}
 			}

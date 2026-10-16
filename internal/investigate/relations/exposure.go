@@ -34,7 +34,7 @@ func (exposure) Exposure(ctx context.Context, b *domain.EvidenceBundle, g *domai
 		byKey[n.Key] = n.ID
 	}
 	inScope := map[string]bool{}
-	for _, it := range b.Change.Items {
+	for _, it := range b.Items() { // record and environment-scope items (DESIGN §1.3 amendment)
 		if it.InScope {
 			inScope[it.ID] = true
 		}

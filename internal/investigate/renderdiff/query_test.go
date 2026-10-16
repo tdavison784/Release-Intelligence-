@@ -41,13 +41,13 @@ func TestQueryFilters(t *testing.T) {
 	}{
 		{"target", investigate.DiffQuery{Target: "argocd:app.yaml#0"}, 10, nil},
 		{"change item", investigate.DiffQuery{ChangeItem: ci}, 2, func(c domain.RenderedChange) bool { return contains(c.ChangeItems, ci) }},
-		{"uncorrelated", investigate.DiffQuery{Uncorrelated: true}, 16, func(c domain.RenderedChange) bool { return len(c.ChangeItems) == 0 }},
+		{"uncorrelated (every change anchors an item now)", investigate.DiffQuery{Uncorrelated: true}, 0, nil},
 		{"classes", investigate.DiffQuery{Classes: []string{"image-changed", "resource-added"}}, 4, nil},
 		{"kinds (case-insensitive)", investigate.DiffQuery{Kinds: []string{"clusterrole"}}, 4, nil},
 		{"cluster-scoped namespace", investigate.DiffQuery{Namespaces: []string{"-"}}, 4, nil},
 		{"namespace", investigate.DiffQuery{Namespaces: []string{"acme"}}, 16, nil},
 		{"path prefix", investigate.DiffQuery{PathPrefix: "spec.template.spec.containers[name=controller].args"}, 6, nil},
-		{"combined", investigate.DiffQuery{Target: "values:standalone.yaml", Kinds: []string{"Deployment"}, Uncorrelated: true}, 3, nil},
+		{"combined", investigate.DiffQuery{Target: "values:standalone.yaml", Kinds: []string{"Deployment"}, Classes: []string{"container-arg-added", "image-changed"}}, 3, nil},
 		{"release scope (empty)", investigate.DiffQuery{Scope: domain.RenderRelease}, 0, nil},
 	}
 	for _, c := range cases {
@@ -240,7 +240,7 @@ func TestSummaries(t *testing.T) {
 	if len(s) != 2 {
 		t.Fatalf("summaries = %+v", s)
 	}
-	if s[0].Target != "argocd:app.yaml#0" || s[0].Status != domain.CollectionOK || s[0].Changes != 10 || s[0].Uncorrelated != 8 || s[0].ByClass["container-arg-added"] != 2 {
+	if s[0].Target != "argocd:app.yaml#0" || s[0].Status != domain.CollectionOK || s[0].Changes != 10 || s[0].Uncorrelated != 0 || s[0].ByClass["container-arg-added"] != 2 {
 		t.Errorf("ok summary = %+v", s[0])
 	}
 	if s[1].Status != domain.CollectionPartial || s[1].Changes != 0 || s[1].Reason == "" {

@@ -103,6 +103,9 @@ func fixtureEdge() *domain.UpgradeEdge {
 		Artifacts: []domain.ArtifactChange{
 			{ArtifactID: "crds", Type: domain.ArtifactCRD, Name: "crds", Change: domain.ChangeUpdated},
 			{ArtifactID: "chart", Type: domain.ArtifactHelmChart, Name: "chart", Change: domain.ChangeUpdated},
+			{ArtifactID: "ctl", Type: domain.ArtifactContainerImage, Name: "ctl", Change: domain.ChangeUpdated,
+				From: &domain.ArtifactInstance{Type: domain.ArtifactContainerImage, Coordinate: "example.io/acme/ctl:v1.0.0"},
+				To:   &domain.ArtifactInstance{Type: domain.ArtifactContainerImage, Coordinate: "example.io/acme/ctl:v2.0.0"}},
 		},
 		Changes: []domain.Change{
 			chg("c-breaking", domain.CategoryConfiguration, declared("marker:breaking"), func(c *domain.Change) {
@@ -138,12 +141,15 @@ func s(v string) *string { return &v }
 
 // fixturePair is an OK chart-default pair with: a container arg the breaking
 // change names (correlated), a removed ClusterRole nothing mentions (an
-// unexplained structural change), and an unexplained non-structural change.
+// unexplained structural change), unexplained non-structural changes, and
+// the version bump of the product's own image.
 func fixturePair() *render.Pair {
 	diff := &render.DiffResult{Changes: []render.Change{
 		{Class: render.ContainerArgAdded, Object: objID("Deployment", "ctl"), Path: "spec.template.spec.containers[name=ctl].args[--enable-thing]", Pattern: "spec.template.spec.containers[].args", Name: "--enable-thing", Container: "ctl", After: s(`"--enable-thing=true"`)},
 		{Class: render.ResourceRemoved, Object: render.ObjectID{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole", Name: "acme-old"}},
 		{Class: render.FieldChanged, Object: objID("Deployment", "ctl"), Path: "spec.minReadySeconds", Before: s("1"), After: s("5")},
+		{Class: render.ImageChanged, Object: objID("Deployment", "ctl"), Path: "spec.template.spec.containers[name=ctl].image", Name: "example.io/acme/ctl",
+			Before: s(`"example.io/acme/ctl:v1.0.0"`), After: s(`"example.io/acme/ctl:v2.0.0"`)},
 		{Class: render.FieldChanged, Object: render.ObjectID{Version: "v1", Kind: "Secret", Namespace: "acme", Name: "s"}, Path: "data.token", Sensitive: true, Before: s("sha256:aa"), After: s("sha256:bb")},
 	}}
 	return &render.Pair{Product: "acme", From: "v1.0.0", To: "v2.0.0", Scope: domain.RenderRelease, Target: render.DefaultsTarget("acme"), Status: render.PairOK,
@@ -239,11 +245,11 @@ func TestChangeReleaseRenderCorrelationAndAnchors(t *testing.T) {
 		t.Fatalf("renders = %d", len(rec.Renders))
 	}
 	p := rec.Renders[0]
-	if p.Scope != domain.RenderRelease || p.Target != "chart-defaults" || p.Status != domain.CollectionOK || len(p.Changes) != 4 {
+	if p.Scope != domain.RenderRelease || p.Target != "chart-defaults" || p.Status != domain.CollectionOK || len(p.Changes) != 5 {
 		t.Fatalf("pair = %+v", p)
 	}
 	breaking, _ := itemByChange(rec, "c-breaking")
-	var arg, role, field, secret *domain.RenderedChange
+	var arg, role, field, secret, img *domain.RenderedChange
 	for i := range p.Changes {
 		c := &p.Changes[i]
 		switch {
@@ -253,6 +259,8 @@ func TestChangeReleaseRenderCorrelationAndAnchors(t *testing.T) {
 			role = c
 		case c.Object == "core/v1/Secret/acme/s":
 			secret = c
+		case c.Class == "image-changed":
+			img = c
 		default:
 			field = c
 		}
@@ -260,8 +268,21 @@ func TestChangeReleaseRenderCorrelationAndAnchors(t *testing.T) {
 	if arg == nil || len(arg.ChangeItems) != 1 || arg.ChangeItems[0] != breaking.ID || arg.Correlation == "" {
 		t.Fatalf("the arg change must be attributed to the breaking item: %+v", arg)
 	}
-	if field == nil || len(field.ChangeItems) != 0 || field.Correlation != "" {
-		t.Errorf("an unexplained non-structural change stays uncorrelated and gets no item: %+v", field)
+	// DESIGN §1.3 amendment: every other unexplained change anchors its own
+	// in-scope item; the product's own image bump an out-of-scope one
+	for _, c := range []struct {
+		rc      *domain.RenderedChange
+		rule    string
+		inScope bool
+	}{{field, ScopeRenderedUnexplained, true}, {secret, ScopeRenderedUnexplained, true}, {img, ScopeRoutineSelfArtifact, false}} {
+		if c.rc == nil || len(c.rc.ChangeItems) != 1 || c.rc.Correlation != "rendered-anchor" {
+			t.Fatalf("an unexplained change is anchored on its own item: %+v", c.rc)
+		}
+		it, ok := rec.Item(c.rc.ChangeItems[0])
+		if !ok || it.RenderedChange != c.rc.ID || it.ScopeRule != c.rule || it.InScope != c.inScope || it.Family != domain.FamilyRendered ||
+			it.Manifestation != domain.ManifestRenderedConfig {
+			t.Errorf("%s: item = %+v", c.rc.ID, it)
+		}
 	}
 	if role == nil || len(role.ChangeItems) != 1 || role.Correlation != "rendered-anchor" {
 		t.Fatalf("an unexplained structural change is anchored on its own item: %+v", role)
@@ -495,3 +516,56 @@ func TestDocURL(t *testing.T) {
 }
 
 var _ = io.EOF
+
+// TestChangeStoresAttachedKnowledgeFacts: facts the wiring supplies are stored
+// as knowledge-fact artifacts when they attach to a change that has an item
+// (Principle 6: validators read them from the bundle), and only then.
+func TestChangeStoresAttachedKnowledgeFacts(t *testing.T) {
+	edge := fixtureEdge()
+	lookup := func(id domain.EvidenceID) (domain.Evidence, bool) {
+		for _, e := range edge.Evidence {
+			if e.ID == id {
+				return e, true
+			}
+		}
+		return domain.Evidence{}, false
+	}
+	var breaking domain.Change
+	for _, c := range edge.Changes {
+		if c.ID == "c-breaking" {
+			breaking = c
+		}
+	}
+	attached := domain.VerifiedFact{ID: "fact-attached", Product: "acme", Status: domain.FactActive,
+		Anchors: []domain.ChangeAnchor{domain.NewChangeAnchor(breaking, lookup)}}
+	otherProduct := attached
+	otherProduct.ID, otherProduct.Product = "fact-other", "other"
+	retracted := attached
+	retracted.ID, retracted.Status = "fact-retracted", domain.FactRetracted
+	fs := newSt(t)
+	res, err := NewChangeCollectorOver(&fakeUpstream{edge: edge, pair: fixturePair()}, fs, WithKnowledge(retracted, otherProduct, attached, attached)).
+		CollectChange(context.Background(), investigate.ChangeRequest{Product: "acme", From: "v1.0.0", To: "v2.0.0", Render: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var facts []domain.ArtifactRef
+	for _, a := range res.Artifacts {
+		if a.Kind == domain.ArtifactKnowledgeFact {
+			facts = append(facts, a)
+		}
+	}
+	item, _ := itemByChange(res.Record, "c-breaking")
+	if len(facts) != 1 || facts[0].Path != "derived/knowledge/acme/fact-attached.json" || len(facts[0].ChangeItems) != 1 || facts[0].ChangeItems[0] != item.ID {
+		t.Fatalf("knowledge artifacts = %+v", facts)
+	}
+	if len(item.Artifacts) != 1 || item.Artifacts[0] != facts[0].ID {
+		t.Errorf("item artifacts = %v", item.Artifacts)
+	}
+	var back domain.VerifiedFact
+	if err := json.Unmarshal([]byte(readFrom(t, fs, facts[0].Digest)), &back); err != nil || back.ID != "fact-attached" {
+		t.Errorf("stored fact = %+v (%v)", back, err)
+	}
+	if err := res.Record.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

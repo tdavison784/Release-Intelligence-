@@ -264,7 +264,9 @@ func (g *gb) edge(kind domain.EdgeKind, from, to string, status domain.EdgeStatu
 	return e.ID
 }
 
-func (g *gb) root(item, node string) { g.roots = append(g.roots, domain.ExposureRoot{ChangeItem: item, Node: node, Rule: "exposure:test"}) }
+func (g *gb) root(item, node string) {
+	g.roots = append(g.roots, domain.ExposureRoot{ChangeItem: item, Node: node, Rule: "exposure:test"})
+}
 
 // path adds the impact path along nodes (edges looked up between neighbours).
 func (g *gb) path(item string, nodes ...string) string {
