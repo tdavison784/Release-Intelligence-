@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/product-exercises/v1alpha1.json",
+  "title": "ProductExercises",
+  "description": "Runtime exercises of one product (products/exercises/<product>.yaml): declarative, upstream-documented triggers that make the product's controller act on the objects it manages. The investigation's runtime validator runs them before and after an upgrade in a throwaway cluster (docs/INVESTIGATE.md \"Runtime validation\"). Each entry cites upstream documentation, never an evaluation case.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "product", "exercises"],
+  "properties": {
+    "apiVersion": {"const": "ri.dev/v1alpha1"},
+    "kind": {"const": "ProductExercises"},
+    "product": {"$ref": "#/$defs/dnsLabel"},
+    "exercises": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "summary", "target", "action", "references"],
+        "properties": {
+          "id": {"$ref": "#/$defs/dnsLabel"},
+          "summary": {"type": "string", "minLength": 1},
+          "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind"],
+            "properties": {"group": {"type": "string"}, "kind": {"type": "string", "minLength": 1}}
+          },
+          "action": {"enum": ["status-condition", "annotate", "rollout-restart"]},
+          "condition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "status", "reason"],
+            "properties": {
+              "type": {"type": "string", "minLength": 1},
+              "status": {"enum": ["True", "False", "Unknown"]},
+              "reason": {"type": "string", "minLength": 1},
+              "message": {"type": "string"}
+            }
+          },
+          "annotation": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?/[A-Za-z0-9._-]{1,63}$"},
+          "families": {
+            "type": "array",
+            "items": {"enum": ["values", "api-schema", "image", "compatibility", "rendered", "behavior", "procedure"]}
+          },
+          "settleSeconds": {"type": "integer", "minimum": 0, "maximum": 600},
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["url", "quote"],
+              "properties": {
+                "url": {"type": "string", "pattern": "^https://"},
+                "quote": {"type": "string", "minLength": 1, "maxLength": 400}
+              }
+            }
+          }
+        },
+        "allOf": [
+          {"if": {"properties": {"action": {"const": "status-condition"}}}, "then": {"required": ["condition"], "not": {"required": ["annotation"]}}},
+          {"if": {"properties": {"action": {"const": "annotate"}}}, "then": {"required": ["annotation"], "not": {"required": ["condition"]}}},
+          {"if": {"properties": {"action": {"const": "rollout-restart"}}}, "then": {"not": {"anyOf": [{"required": ["condition"]}, {"required": ["annotation"]}]}}}
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "dnsLabel": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"}
+  }
+}

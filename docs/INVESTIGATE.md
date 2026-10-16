@@ -230,6 +230,117 @@ checked with `Investigation.ValidateAgainst`). Real bundles from the groundtruth
 relations, offline): `RI_VALIDATE_STATE=<warm .ri> go test ./internal/investigate/validate -run Groundtruth -v`
 (`RI_VALIDATE_VERBOSE=1` logs every record).
 
+## Runtime validation
+
+Package `internal/investigate/runtime` (MISSION §A5 last bullet, DESIGN §2.6 / §3.1 R1–R2). **Opt-in only**
+(`--runtime` in the wiring; never part of a default run). One `investigate.Validator`,
+`runtime.New(opts…)`, name `runtime.isolated-upgrade@v1`, kind `runtime`, level **observed**. It exists for the
+breaking changes a render cannot show — behaviour defaults compiled into the new controller binary — which
+nothing deterministic can confirm as affected, and which only a trusted pinned setting can otherwise clear.
+
+**What one run does** (once per bundle; every item's record is derived from it; one cluster at a time):
+
+1. **Manifests.** Only complete render pairs are usable: any `partial`/`unavailable` environment pair ⇒ every
+   record `not-run`. `ok` pairs deploy the product (FROM and TO renders); `not-applicable` pairs are
+   version-independent consumer overlays whose FROM render is applied at both versions. The stored renders are
+   normalized (empty maps dropped, credential-like values replaced by digest markers) — right for diffs, wrong for
+   `kubectl apply` — so the validator **re-renders** each target through the same path (`runtime.NewAppRenderer(app)`:
+   `app.RenderTargets` + the render engine and its cache) and **proves** the raw re-render normalizes to exactly the
+   stored artifact (`render.ParseObjects` vs the artifact, object by object; nondeterministic objects tolerated)
+   before applying anything. The raw bytes go to the throwaway cluster and are never stored.
+2. **Preflight** (each failure ⇒ `not-run` with the reason, no cluster): `kind`, `kubectl`, `docker` on PATH and
+   the daemon reachable; free disk ≥ 10 GiB (`WithMinFreeDisk`); a pinned node image for the environment's
+   Kubernetes version (`kind` v0.24 images for 1.25–1.31, `WithNodeImage` overrides; no version stated ⇒ kind's
+   default); **no other `ri-runtime-*` cluster exists** (one at a time, also across processes; a leftover is named
+   with the command to delete it).
+3. **Cluster** `ri-runtime-<8 hex derived from the bundle id>` (kind, own kubeconfig file; `~/.kube/config` untouched).
+   **Deleted on every exit path** — success, error, timeout, cancellation (a fresh bounded context) — and verified
+   absent with `kind get clusters`; a cluster that could not be deleted turns the run into `error` with the
+   `kind delete cluster` command in every record.
+4. **FROM**: namespaces, CRDs (until established), then — in Helm's install order, coarsened: service accounts,
+   RBAC, config, services before workloads, jobs, custom resources and webhooks — every object by server-side apply (field manager
+   `ri-runtime`, conflicts forced — a GitOps sync), retrying transient errors (webhooks not serving yet, CRDs not
+   established) within a bound; wait for readiness (workloads, jobs, CRDs, objects with a Ready/Available
+   condition); settle; **baseline observation**. The product's own workloads must be ready, else the run is
+   `error` ("no baseline").
+5. **Exercises at FROM** (see below) on every target; settle; observation.
+6. **TO — the upgrade**: objects the new release no longer renders are pruned (as `helm upgrade` does), Helm
+   hooks re-created, everything applied; after readiness **every object is applied once more** (a sync of the
+   unchanged desired state: admission webhooks of the new controller re-validate existing objects); settle;
+   observation. The upgrade *completed* when every object of the product's targets applied and every product
+   workload is ready.
+7. **Exercises at TO**; settle; **after observation**.
+8. Bounded wall clock: `WithTimeout` (default 10 min, cluster creation to the last observation; deletion has its
+   own bound); the run record states the duration. Pulled images stay in the node's cache only.
+
+**Observations are generic** (no product Go code), per object: existence and apply/admission errors, status
+conditions, readiness and pod problems (waiting reasons, restarts), generation vs observedGeneration,
+Secret/ConfigMap data **digests per key (never values)**, Warning events since the window started, and
+error-level log lines of the product's controller pods that name the object (`<ns>/<name>` with name
+boundaries). Observed objects are every applied object plus every Kubernetes object the relationship graph names
+(e.g. the Secret a Certificate's controller produces); graph keys whose name is a redaction marker are resolved
+against live names by recomputing the marker.
+
+**Degradations** (value-free *signatures*: `rejected`, `deleted`, `condition:<type>`, `not-ready`,
+`not-reconciled`, `restarts`, `data:<key>`, `warning:<reason>`, `log:<line>`):
+
+- **upgrade window** — the last FROM observation → TO. An object the new release no longer renders being gone
+  is the upgrade itself, not a degradation; a data change the render declares (the object's rendered data differs
+  FROM → TO) is the render diff's business; data changes count only under a consumer (an outgoing graph edge);
+  warnings/log lines already seen at FROM are explained.
+- **exercise window** — what the exercises did at TO (TO → TO-exercised) that **the same exercises did not do at
+  FROM** (FROM → FROM-exercised). A renewal that rotates a certificate at both versions is explained; one that also
+  rotates the private key only at TO is a degradation (`data:tls.key` under the consuming Deployment).
+- an exercise the TO version **refuses** on an object the FROM version accepted it on (an admission webhook
+  denying the update) is a degradation of that object (`exercise-rejected:<exercise>`).
+- an image that cannot be pulled is the sandbox's problem (`Infrastructure`), never a failure.
+
+**Exercises** — `products/exercises/<product>.yaml` (kind `ProductExercises`, `internal/catalog/exercises.go`,
+schema `schemas/product-exercises.schema.json`): declared, upstream-documented triggers, each with a target kind,
+an action (`status-condition` through the status subresource, `annotate`, `rollout-restart`), the change-item
+`families` it exercises, an optional settle window and ≥1 https upstream reference with a verbatim quote (never
+eval data). They live beside the product definitions, not inside them, so the definition digest that pins ingested
+releases is untouched. All files load catalog-wide (`catalog.LoadExercises` → `runtime.FromSets`); an exercise
+runs when the environment has an object of its target kind. Declared today: cert-manager `certificate-renewal`
+(Issuing=True, ManuallyTriggered — what `cmctl renew` does), ingress-nginx `ingress-update` (an Ingress update the
+admission webhook re-validates), prometheus-operator `servicemonitor-update` / `podmonitor-update` /
+`prometheusrule-update` (the operator re-reconciles and rejects invalid resources with an Event).
+
+**Per item** (rule = provenance rule; coverage = the requested subjects/paths, or every root and path of the item):
+
+| Outcome | Rule | When |
+|---|---|---|
+| `not-run` | `runtime:run-not-run` | the run had a missing precondition (above) |
+| `error` | `runtime:run-error` | the run broke (cluster creation, no baseline, timeout, cluster not deleted) |
+| `error` | `runtime:unreached` | nothing on the item's roots/paths is a cluster object, but an exercise declared for its family degraded its targets at TO only — a plausible impact the graph does not connect to any one item (never a fail, never a pass) |
+| `not-run` | `runtime:no-object` | nothing on the item's roots/paths is a Kubernetes object of the cluster (and nothing above) |
+| `fail` | `runtime:degraded` | a degradation on the item's paths that **only this in-scope item** reaches (for an exercise-window degradation: only this item among those whose exercise ran on their paths); names each concrete failure, cites the observation artifact and the item's rendered changes on the degraded objects |
+| `error` | `runtime:sandbox` | the sandbox could not run an object on the paths (image pull) |
+| `error` | `runtime:unattributed` | a degradation on its paths that other in-scope items reach too — inconclusive (R3), never a fail |
+| `not-run` | `runtime:other-families` | its objects degraded only under an exercise declared for other families |
+| `error` | `runtime:upgrade-incomplete` | the upgrade did not complete (a product object rejected, a product workload not ready) |
+| `not-run` | `runtime:no-baseline` | an object on its paths was not observed healthy at both FROM and TO (absent before, removed by the upgrade, not ready, unserved) |
+| `not-run` | `runtime:no-exercise` | **no exercise declared for its family with a target on its paths: a quiet window is never a pass** |
+| `not-run` | `runtime:exercise-not-run` | its exercise did not run on its objects at both versions |
+| `pass` | `runtime:healthy-exercised` | the upgrade completed, every object on its paths was healthy before and after, and its exercise ran at both versions without degrading them; covers the item's rendered changes on those objects |
+
+A runtime pass is level `observed`, so it `ClearsBehaviour()` (R2.4); classify still applies R2.1–R2.8. Records cite
+the applied render artifacts and the exercise declarations (`derived/runtime/<bundle>/exercises.json`) as inputs,
+and `run.json` (phases, apply errors, exercises, upgrade problems, degradations, cleanup) and `observations.json`
+(the four observations) as outputs (`validation-output` artifacts, returned in `ValidationOutput.Artifacts`).
+
+**Wiring** (lane orchestrate, behind `--runtime`): `runtime.New(runtime.WithStore(st),
+runtime.WithRenderer(runtime.NewAppRenderer(app)), runtime.WithExercises(runtime.FromSets(sets…)…))` with `sets`
+from `catalog.LoadExercises("products/exercises")`, and its name in `Config.Validators`. `Run(ctx, bundle, graph)`
+performs the run explicitly (e.g. as its own activity, heartbeating); `Validate` reuses it per item, so an agent's
+`request_validation` of kind `runtime` is answered from the same run.
+
+Tests: `go test ./internal/investigate/runtime` (a fake driver and an in-memory cluster simulating a fictional
+product: every outcome path, "quiet window without exercise ⇒ never pass", cleanup on every exit path, observation
+diffing). Real runs on groundtruth inputs (one kind cluster at a time, minutes per case):
+`RI_RUNTIME_STATE=<warm .ri> RI_RUNTIME_CASES=<case>[,<case>] [RI_RUNTIME_TIMEOUT=20m] go test
+./internal/investigate/runtime -run Groundtruth -v -timeout 60m`.
+
 ## Relationships
 
 Secondary supporting context (the rendered diff is the centerpiece). Package `internal/investigate/relations`

@@ -1,0 +1,48 @@
+# Runtime exercises for the Prometheus Operator's configuration resources (also deployed by
+# kube-prometheus-stack; internal/catalog/exercises.go; docs/INVESTIGATE.md "Runtime
+# validation"). Release-level triggers from upstream documentation, never from an evaluation case.
+apiVersion: ri.dev/v1alpha1
+kind: ProductExercises
+product: prometheus-operator
+exercises:
+- id: servicemonitor-update
+  summary: >-
+    Update every ServiceMonitor (an annotation the operator does not read): the operator
+    detects the change, regenerates the Prometheus configuration, and rejects an invalid
+    resource with a Kubernetes Event.
+  target: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  action: annotate
+  annotation: ri.dev/runtime-exercise
+  families: [behavior, procedure]
+  settleSeconds: 30
+  references: &po-refs
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/README.md
+    quote: The Prometheus operator automatically detects changes in the Kubernetes API server to any of the above objects, and ensures that
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/troubleshooting.md
+    quote: The Prometheus Operator will reject invalid resources and not reconcile them in the Prometheus configuration. When it happens the Operator emits a Kubernetes Event detailing the issue.
+- id: podmonitor-update
+  summary: >-
+    Update every PodMonitor (an annotation the operator does not read): the operator detects
+    the change, regenerates the Prometheus configuration, and rejects an invalid resource with
+    a Kubernetes Event.
+  target: {group: monitoring.coreos.com, kind: PodMonitor}
+  action: annotate
+  annotation: ri.dev/runtime-exercise
+  families: [behavior, procedure]
+  settleSeconds: 30
+  references: *po-refs
+- id: prometheusrule-update
+  summary: >-
+    Update every PrometheusRule (an annotation the operator does not read): the operator
+    reconciles the rules into the rule files Prometheus loads, and rejects an invalid
+    resource with a Kubernetes Event.
+  target: {group: monitoring.coreos.com, kind: PrometheusRule}
+  action: annotate
+  annotation: ri.dev/runtime-exercise
+  families: [behavior, procedure]
+  settleSeconds: 30
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/getting-started/design.md
+    quote: Alerts and recording rules are reconciled by the Operator and dynamically loaded without requiring a restart of Prometheus or Thanos Ruler.
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/troubleshooting.md
+    quote: The Prometheus Operator will reject invalid resources and not reconcile them in the Prometheus configuration. When it happens the Operator emits a Kubernetes Event detailing the issue.
