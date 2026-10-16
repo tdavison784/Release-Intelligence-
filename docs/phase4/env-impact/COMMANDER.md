@@ -24,9 +24,10 @@ Last updated: 2026-10-16 (Claude commander, Opus 5.5, session 77622fd0)
 | 0 | orchestrate | Sonnet | §A7 Temporal SDK spike + skeleton | — | briefs/orchestrate.md |
 | 0 | guard | Sonnet | fleet guard v3 (commander handoff, ctx checkpoints) | — | briefs/guard.md |
 | 1 | bundle | Sonnet* | P1 change evidence + env snapshot → evidence bundle | contract | (from DESIGN §7) |
-| 1 | graph | Opus | P2 relationship discovery + bounded DFS impact paths | contract | (from DESIGN §7) |
+| 1 | renderdiff | Opus | **critical path**: env-scoped render before/after manifests + structured diffs into the bundle, diff query API | contract | (from DESIGN §7) |
+| 1 | relations | Sonnet | (only if needed) lightweight consumer/reference discovery from rendered objects | contract | (from DESIGN §7) |
 | 1 | validate | Sonnet | P4 override/render/schema/reference validators | contract | (from DESIGN §7) |
-| 2 | agent | Opus | P3 investigation agent (MCP tools, claude -p runner, replay) | bundle, graph | (from DESIGN §7) |
+| 2 | agent | Opus | P3 investigation agent centred on diff-query tools (MCP, claude -p runner, replay) | bundle, renderdiff | (from DESIGN §7) |
 | 2 | classify | Opus | §A6 four-class policy, findings, approval eligibility | contract, validate | (from DESIGN §7) |
 | 2 | orchestrate (cont.) | Sonnet | P5 real activities, `ri worker`, human review signal | all wave 1 | (from DESIGN §7) |
 | 3 | eval | Opus | P6 harness + scored report vs groundtruth | all | (from DESIGN §7) |
@@ -53,6 +54,8 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 Known outcomes for AC5 come from real upgrades in throwaway `kind` clusters where
   feasible (render-level otherwise, labelled).
 - 2026-10-16 ri-guard runs with shell cwd in p4-integration (already trusted) instead of ~/.claude/fleet-guard: Claude Code showed a folder-trust dialog there that the commander must not answer for the user.
+- 2026-10-16 PRODUCT OWNER: "DFS" in the goal was a mistype for **diffs**. Render before/after diffs (internal/render) are the centerpiece evidence for the agent; graph/DFS demoted to lightweight supporting context. `graph` lane replaced by `renderdiff` (critical path) + optional `relations`. Sent to ri-contract mid-design; noted in MISSION.md.
+- 2026-10-16 orchestrate: go directive 1.24.7 → 1.26.0 accepted (Temporal SDK v1.50.0 requires it; no CI/Docker pins Go in this repo; toolchain go1.27.1). testify removed as a direct dep before merge (stdlib test idiom).
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
 
 ## Merge log

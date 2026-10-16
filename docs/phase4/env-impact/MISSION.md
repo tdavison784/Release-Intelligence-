@@ -2,6 +2,13 @@
 
 > Verbatim goal from the product owner (2026-10-16). Normative for every lane. The fleet's design
 > decisions live in DESIGN.md (contract lane); where DESIGN.md narrows scope it says so explicitly.
+> **Product-owner clarification (2026-10-16, binding):** "DFS" in this goal was a mistype for
+> **diffs**. The centerpiece is the rendered before/after **diffs** produced by the existing render part
+> of the app (`internal/render`: the FROM and TO releases rendered with the environment's own
+> configuration, object- and field-level diffs, correlated to upstream changes). Those diffs are the
+> primary evidence the investigation agent works from. Dependency/relationship traversal (§A3) stays
+> useful but is secondary supporting context and should be kept lightweight.
+>
 > Section numbers below (§A1–§A7, P1–P6, AC1–AC8) are added for cross-referencing only.
 
 ## Objective
