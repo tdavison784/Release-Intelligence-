@@ -645,7 +645,7 @@ func matchLogs(lines []string, r ObjectRef) []string {
 	var out []string
 	seen := map[string]bool{}
 	for _, l := range lines {
-		named := r.Namespace != "" && strings.Contains(l, r.Namespace+"/"+r.Name)
+		named := r.Namespace != "" && containsToken(l, r.Namespace+"/"+r.Name)
 		if !named && r.Namespace != "" {
 			named = strings.Contains(l, `"`+r.Name+`"`) && strings.Contains(l, `"`+r.Namespace+`"`)
 		}
@@ -661,6 +661,26 @@ func matchLogs(lines []string, r ObjectRef) []string {
 		}
 	}
 	return out
+}
+
+// containsToken reports whether tok occurs in s delimited by characters that
+// cannot be part of a Kubernetes name (so "shop/web" does not match
+// "shop/webby").
+func containsToken(s, tok string) bool {
+	nameChar := func(b byte) bool {
+		return b >= 'a' && b <= 'z' || b >= '0' && b <= '9' || b == '-' || b == '.' || b == '/'
+	}
+	for i := 0; ; {
+		j := strings.Index(s[i:], tok)
+		if j < 0 {
+			return false
+		}
+		start, end := i+j, i+j+len(tok)
+		if (start == 0 || !nameChar(s[start-1])) && (end == len(s) || !nameChar(s[end])) {
+			return true
+		}
+		i = start + 1
+	}
 }
 
 func toInt(v any) int64 {
