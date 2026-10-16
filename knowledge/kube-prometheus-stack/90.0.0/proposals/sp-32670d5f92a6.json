@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-32670d5f92a6",
+    "candidateId": "sc-b61cc4944b6b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "kube-prometheus-stack",
+        "path": "prometheus.serviceAccount.createTokenSecret"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "prometheus.serviceAccount.createTokenSecret",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The control-plane ServiceMonitors no longer use bearerTokenFile or tlsConfig.caFile. They take the bearer token from a Secret through `authorization` and the CA from the `kube-root-ca.crt` ConfigMap. By default the chart now renders a long-lived, non-expiring `kubernetes.io/service-account-token` Secret named `<prometheus service account>-token`.",
+        "remediation": "If you would rather manage the credential yourself, set prometheus.serviceAccount.createTokenSecret to false and set the `authorization` of each control-plane component.",
+        "severity": "medium"
+      },
+      "statement": "In 90.x the chart adds the value prometheus.serviceAccount.createTokenSecret (default true), which renders a non-expiring `<prometheus service account>-token` Secret. The control-plane ServiceMonitors now use that Secret through `authorization` and the `kube-root-ca.crt` ConfigMap instead of bearerTokenFile and tlsConfig.caFile."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-75ebb2851d6e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:94a96aed8bf863cee70ae20f83d8ac5e302508deed4934b803c7e0f121ffbfc2",
+      "inputEvidence": [
+        "ev-75ebb2851d6e"
+      ],
+      "generatedAt": "2026-10-16T22:54:56Z",
+      "callId": "84da1006-0bd5-4cb6-b41b-88db8fd72cdd"
+    }
+  }
+}

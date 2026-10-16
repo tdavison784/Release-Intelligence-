@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f9d0064d43f7",
+    "candidateId": "sc-515ec6d15bf6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "ingress-nginx",
+        "name": "ingress-upstream-latency-seconds-metric"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether monitoring dashboards, alerts or recording rules query the ingress_upstream_latency_seconds metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The ingress_upstream_latency_seconds metric is no longer emitted, so any query, dashboard panel or alert that uses it will get no data.",
+        "remediation": "Move monitoring queries off ingress_upstream_latency_seconds before upgrading.",
+        "severity": "low"
+      },
+      "statement": "The ingress-nginx controller no longer exposes the metric `ingress_upstream_latency_seconds`, which was already deprecated, and the bundled dashboard no longer uses it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-17dbffb59988",
+      "ev-8e6b2dc8262e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8c9ecf9d69f813f6c3e2fe283ddec8fa716bc2f8d8fbc0659343475dafea58e3",
+      "inputEvidence": [
+        "ev-17dbffb59988",
+        "ev-8e6b2dc8262e"
+      ],
+      "generatedAt": "2026-10-16T22:53:50Z",
+      "callId": "affdea72-2914-4e84-895b-e4882c2fc241"
+    }
+  }
+}

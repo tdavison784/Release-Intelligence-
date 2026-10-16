@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f7de08475b6e",
+    "candidateId": "sc-3d0d895030cc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The init container and image that installed OpenTelemetry at controller startup are no longer deployed or published; OpenTelemetry keeps working through the module built into the controller image since v1.10.",
+        "remediation": "Remove any references to the separate OpenTelemetry init image and rely on the module built into the controller image.",
+        "severity": "low"
+      },
+      "statement": "ingress-nginx 1.12.0 removes the OpenTelemetry init container and its image, which used to install the module when the controller started; OpenTelemetry is still supported because the module has been built into the controller image since v1.10."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The evidence names the removed OpenTelemetry init container and image but gives no image repository, Helm values key or other identity to spell the subject by.; applicability: No image repository, values key or setting that enables the init container is stated, so no predicate can be written for exposure.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-30e0289e7611"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a080912f0414eeee09b576632f02bcba7eda1c44652406fec09bb2bbf3f568e5",
+      "inputEvidence": [
+        "ev-30e0289e7611"
+      ],
+      "generatedAt": "2026-10-16T22:53:54Z",
+      "callId": "dca63250-6154-4f42-be23-fdbea8769352"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1772b3593aba",
+    "candidateId": "sc-32ce52a9d6da",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "applicability",
+    "question": "For \"Config: Fix panic on invalid `lua-shared-dict`\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.lua-shared-dict",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "ingress-nginx-controller"
+            },
+            {
+              "op": "values-key",
+              "path": "controller.config.lua-shared-dict",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "In ingress-nginx 1.12.0, an invalid value for the controller ConfigMap setting `lua-shared-dict` no longer makes the controller panic."
+    },
+    "proposals": [
+      "sp-ecbe0f30c7e3",
+      "sp-fd03d53d3023"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:37Z"
+  }
+}

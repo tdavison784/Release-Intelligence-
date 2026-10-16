@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-c15924d7035f",
+    "candidateId": "sc-aa39860e68ae",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `plugins` configuration option is removed, so it is no longer honoured. User-provided Lua plugins in /etc/nginx/lua/plugins are no longer supported.",
+        "remediation": "Before upgrading, remove the `plugins` setting and stop relying on custom Lua plugins in /etc/nginx/lua/plugins. Replace their function by other means.",
+        "severity": "high"
+      },
+      "statement": "ingress-nginx 1.12.0 removes support for 3rd-party Lua plugins: it drops the `plugins` configuration option and no longer supports user-provided Lua plugins in /etc/nginx/lua/plugins."
+    },
+    "proposals": [
+      "sp-98248c5da123",
+      "sp-9bd7ddc651e9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T22:54:39Z"
+  }
+}
