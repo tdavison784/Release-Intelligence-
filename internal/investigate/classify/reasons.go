@@ -218,7 +218,13 @@ func (x *index) settings(e *itemEval) []string {
 	}
 	for _, t := range texts {
 		for _, m := range reBacktick.FindAllStringSubmatch(t, -1) {
-			if v := strings.TrimSpace(m[1]); looksLikeSetting(v) {
+			// "`key: value`" / "`key=value`" / "`--flag value`": the setting is
+			// the first token.
+			v := strings.TrimSpace(m[1])
+			if i := strings.IndexAny(v, " \t:"); i > 0 {
+				v = v[:i]
+			}
+			if looksLikeSetting(v) {
 				out = append(out, v)
 			}
 		}
