@@ -222,6 +222,10 @@ var fieldPatches = map[string]obj{
 	"Hypothesis.citations":            o("minItems", 1, "uniqueItems", true),
 	"EvidenceRequest.provenance":      o("$ref", "#/$defs/"+defAI),
 	"ValidationRequest.provenance":    o("$ref", "#/$defs/"+defAI),
+	// Phase 5 (PROTOCOL §8): agent verdicts are AI output, never findings.
+	"AgentVerdict.provenance":         o("$ref", "#/$defs/"+defAI),
+	"AgentVerdict.id":                 o("pattern", "^"+domain.AgentVerdictIDPrefix),
+	"AgentVerdict.changeItem":         o("pattern", "^"+domain.ChangeItemIDPrefix),
 	"ChangeItem.evidence":             o("minItems", 1),
 	"ChangeItem.manifestationRule":    o("pattern", "^manifest:"),
 	"ChangeItem.scopeRule":            o("pattern", "^scope:"),
