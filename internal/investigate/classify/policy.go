@@ -169,6 +169,11 @@ type itemEval struct {
 	gaps    []domain.EvidenceGap
 	steps   []string
 	assume  []string // claims-mitigation assertions no counting validation established
+	// scope gaps say what the deterministic join does not evaluate (an
+	// impact:not-joined verdict). They are listed when the item is not
+	// cleared for another reason, and never block R2 by themselves.
+	scope      []domain.EvidenceGap
+	scopeSteps []string
 }
 
 // counts reports whether a validation counts for the item's R2 checks:
@@ -234,6 +239,9 @@ func (x *index) classify(id string) (domain.InvestigationFinding, error) {
 	}
 
 	x.r2(e) // collects gaps, steps and assumptions for every class
+	if len(failing) > 0 || len(e.gaps) > 0 || len(e.assume) > 0 {
+		e.gaps, e.steps = append(e.gaps, e.scope...), append(e.steps, e.scopeSteps...)
+	}
 	f := x.base(e)
 	switch {
 	case len(failing) > 0: // R1
@@ -414,9 +422,29 @@ func (x *index) r2(e *itemEval) {
 		if need != "" {
 			step = fmt.Sprintf("Supply what the deterministic join needs to decide %s: %s.", j.ID, need)
 		}
-		e.gap(domain.GapValidation, j.ID, fmt.Sprintf("the deterministic join could not decide the change (%s): %s", j.Rule, orDash(need)), j.UnknownReason, step)
+		g := domain.EvidenceGap{Kind: domain.GapValidation, Subject: j.ID, UnknownReason: j.UnknownReason,
+			Detail: fmt.Sprintf("the deterministic join could not decide the change (%s): %s", j.Rule, orDash(need))}
+		if j.Rule == ruleJoinNotJoined {
+			// The join does not evaluate this kind of change at all (a declared
+			// change, a diff rule without a join rule, a change without
+			// subjects): a statement about the join's scope, not missing
+			// environment evidence. The investigation decides such items with
+			// its own evidence — R2.1–R2.8 still hold in full (for a behaviour
+			// item: pinned settings or observed passes covering every path,
+			// root and rendered change) — so this does not block R2.
+			e.scope = append(e.scope, g)
+			if step != "" {
+				e.scopeSteps = append(e.scopeSteps, step)
+			}
+			continue
+		}
+		e.gap(g.Kind, g.Subject, g.Detail, g.UnknownReason, step)
 	}
 }
+
+// ruleJoinNotJoined is impact.RuleNotJoined: the join's verdict for a change
+// it does not evaluate.
+const ruleJoinNotJoined = "impact:not-joined"
 
 // plausible lists the R3 plausible-impact signals of the item.
 func (x *index) plausible(e *itemEval) []string {
