@@ -213,7 +213,7 @@ func (v *staticReference) Validate(ctx context.Context, in investigate.Validatio
 type renderRefs struct {
 	ran     bool
 	err     error
-	failing refCheckList      // new or regressed dangles touching the item's rendered changes
+	failing refCheckList // new or regressed dangles touching the item's rendered changes
 	effects []domain.RenderedChange
 	blocked map[string]string // object key → why paths through it decide nothing
 	other   refCheckList      // pre-existing dangles and undecidable references (reported)
