@@ -191,6 +191,9 @@ func (c *cli) evalInvestigations(args []string) error {
 		label = *arm
 	}
 	workDir := *work
+	if err := checkEvalWorkDir(workDir, *appendTo != ""); err != nil {
+		return err
+	}
 	if workDir == "" {
 		if workDir, err = os.MkdirTemp("", "ri-eval-inv-*"); err != nil {
 			return err

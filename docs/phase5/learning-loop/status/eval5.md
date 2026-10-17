@@ -44,7 +44,7 @@
   runs load, rescore and compare unchanged (verified with `-compare` against the Phase 4 A run).
 
 ## Open questions
-- None blocking. Note for commander: every existing invocation of `ri eval -investigations` now needs `-knowledge <snapshot>`.
+- None blocking. A0/B0 F1 runs superseded (W-0027); -work guard added (refuses non-empty -work unless -append). Note for commander: every existing invocation of `ri eval -investigations` now needs `-knowledge <snapshot>`.
 
 ## Test status
 - `go build ./... && go vet ./... && go test ./...` green (before the final docs commit; docs only since).

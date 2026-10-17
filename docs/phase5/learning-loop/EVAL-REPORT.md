@@ -129,7 +129,10 @@ The six non-payments cases are unchanged from Phase 4 (see the item table). The 
 Not applicable to A0. The verdict table is implemented (ungated, separate; outcomes correct / false-safe / false-alarm
 / hedged / overstated / no-verdict) and is empty until lane `verdict` merges and B0 runs.
 
-## §A0-F1 — deterministic baseline on the frozen code (wave 2)
+## §A0-F1 — deterministic baseline on the frozen code (wave 2) — SUPERSEDED, kept for the record
+
+> Superseded (commander, W-0027): collection redacts the whole `spec.privateKey` map, so `rotationPolicy` is withheld from the
+> agent and the validators. A0 and B0 are re-run on F2. The F1 runs below stay stored and are not edited.
 
 **Run** `A0-K0-20261017-d262210d`: merge `d262210d` (includes F1 = `131d6c2e`), clean tree, 8 Phase 4 cases, K0 digest
 `sha256:672a7ce0…74ff5` (unchanged), fresh `-work`. Compared with `A0-K0-20261017-bfebde39` (wave 1):
@@ -143,7 +146,10 @@ Not applicable to A0. The verdict table is implemented (ungated, separate; outco
   findings; the edge and its inference are the same, so I attribute it to the F1 gap-deduplication, not to new evidence
   — **not verified in code, commander to confirm**). No class, rule or eligibility moved.
 
-## §B0-dev — agent arm on the development pair, K0 (wave 2, first half)
+## §B0-dev — agent arm on the development pair, K0 (wave 2, first half) — SUPERSEDED, kept for the record
+
+> Superseded for the same reason (the `payments-us` verdict was hedged because `rotationPolicy` was redacted from its evidence).
+> PROTOCOL §4 was amended 2026-10-17 09:10: the invariant is class/rule/basis/eligibility/decision identical; this run meets it.
 
 **Run** `B0-K0-20261017-d262210d`: arm B0 (`-agent`, `claude-sonnet-5-5`, prompt `investigate-agent/v7`), same binary as
 A0-F1, K0, fresh `-work`, the two payments cases only (the other six are appended later with the same binary). The agent

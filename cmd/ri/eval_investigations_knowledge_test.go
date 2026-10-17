@@ -85,3 +85,25 @@ func TestCheckEvalKnowledgeRefusesImplicitAndLive(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckEvalWorkDir(t *testing.T) {
+	full := writeTree(t, map[string]string{"x": "y"})
+	empty := t.TempDir()
+	for _, tc := range []struct {
+		name      string
+		dir       string
+		appending bool
+		refuse    bool
+	}{
+		{"default temp", "", false, false},
+		{"missing dir", filepath.Join(empty, "new"), false, false},
+		{"empty dir", empty, false, false},
+		{"non-empty", full, false, true},
+		{"non-empty with append", full, true, false},
+	} {
+		err := checkEvalWorkDir(tc.dir, tc.appending)
+		if (err != nil) != tc.refuse {
+			t.Errorf("%s: err = %v, want refuse=%v", tc.name, err, tc.refuse)
+		}
+	}
+}
