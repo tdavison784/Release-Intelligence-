@@ -241,3 +241,17 @@ func TestPolicyV1StillReproduces(t *testing.T) {
 		t.Fatal("an unknown policy version must be refused")
 	}
 }
+
+// The text report says what a documentation-only record does.
+func TestDocumentationOnlyInText(t *testing.T) {
+	d := newDocFx(t, behaviour)
+	in := d.f.in(d.tr, nil, d.pin, d.doc())
+	_, inv := run(t, in)
+	var buf strings.Builder
+	if err := WriteText(&buf, inv, in.Bundle); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(buf.String(), "documentation only: accounts for the CRD description changes it names (R2.2), clears nothing") {
+		t.Fatalf("text does not label the documentation-only record:\n%s", buf.String())
+	}
+}
