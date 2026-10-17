@@ -209,4 +209,14 @@ items:
     status: ready
     providers: [claude]
     glm-executable: false     # contract edits are Claude-commander only
+  - id: W-0024
+    title: Fix — investigation id ignores run settings (same bundle + state dir, different -agent/-runtime ⇒ second run silently resumes the first)
+    kind: lane
+    status: queued
+    ready-when: lane verdict reports LANE DONE (it found the bug; assign to it or a fresh lane)
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "must not change the ids/digests of stored Phase 4 runs; a test runs both orders"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:30, because: verdict lane finding}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
