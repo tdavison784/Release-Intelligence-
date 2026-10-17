@@ -131,7 +131,7 @@ items:
     title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
     kind: commander-task
     status: queued
-    depends: [W-0012, W-0028]
+    depends: [W-0012, W-0030]
     note: "export ran and was empty (no hypotheses); verification has no input until W-0028 is decided"
     providers: [claude, glm]  # deterministic + observed; no model judgment
     glm-executable: true
@@ -264,10 +264,41 @@ items:
     title: "Protocol decision: B0 proposed no mitigation hypothesis — where does K1's input come from?"
     kind: decision
     decision-rights: user
-    status: ready
+    status: done
+    decision: "prompt v8 (one revision) + one B0-v8 dev-pair run; pre-registered fallback = human-authored rule (PROTOCOL amendment 10:55)"
+    decided-by: product owner 2026-10-17T10:53
     depends: [W-0012]
     providers: [claude]
     glm-executable: false
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:50, because: "B0-K0-20261017-6d2ae5bf export-hypotheses empty on all 8 cases"}
+  - id: W-0029
+    title: Lane prompt8 — agent prompt v8, mitigation hypotheses from named overturning conditions (F3)
+    kind: lane
+    status: in-progress
+    owner: ri-prompt8
+    brief: briefs/prompt8.md
+    depends: [W-0028]
+    providers: [claude]       # writes the prompt of the model under test; live smoke uses claude only
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: W-0028 decision}
+  - id: W-0030
+    title: A0 + B0-v8 on the dev pair at F3, K0 (PROTOCOL amendment 10:55 step 2), then export-hypotheses
+    kind: commander-task
+    status: queued
+    depends: [W-0029]
+    providers: [claude]       # MODEL UNDER TEST
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: W-0028 decision}
+  - id: W-0031
+    title: "Fallback: human-authored rotationPolicy mitigation rule → §7 verification (only if W-0030 yields none confirmed)"
+    kind: commander-task
+    status: queued
+    depends: [W-0030]
+    providers: [claude, glm]
+    glm-executable: false     # authoring the rule is a knowledge judgment
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: pre-registered fallback}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}

@@ -140,3 +140,20 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   agent). Expected effect on deterministic runs: Secret references in environment files become readable, so more
   graph edges resolve; all bundle/investigation ids change. All arms run on F2.
 
+- **2026-10-17 10:55 — B0 on F2 proposed no mitigation hypothesis (W-0028; product owner decision).** Run
+  `B0-K0-20261017-6d2ae5bf` recorded zero hypotheses on all 8 cases, so §6 step 4 has no input. On the dev pair
+  the agent stated the environment facts correctly but stayed `potentially-affected` and put the overturning
+  conditions only in prose (`wouldOverturn`, `proposedValidations`). Decision, made before any further run:
+  1. **Prompt v8 (one revision, no iteration).** Lane `prompt8` writes v8 from the *transcript-observable* failure
+     (no case labels in its brief; generic text; synthetic tests). Disclosed: the commander, who knows the dev-pair
+     labels, also asked for a generic "objects that change vs objects where a consumer observes the change"
+     instruction and for consumer tracing; both are domain-free but were chosen with that knowledge. It is a
+     revision made after seeing in-sample v7 results and is reported as such. F3 = its merge; v8 is then frozen.
+  2. **One B0-v8 run on the dev pair** (and A0 re-run on the F3 binary). No further prompt change after it,
+     whatever it shows.
+  3. **Fallback, pre-registered.** If B0-v8 yields no well-formed mitigation hypothesis on the payments-us
+     `rotationPolicy` item(s) that §7 verification confirms, the rule is **human-authored** instead (labelled
+     `human-authored` in its proposal provenance, in K1's commit and in the report) and goes through the same §7
+     verification and §6 step 5 gate. The claim of §1 is then reported as holding for verification → promotion
+     → classifier only; agent discovery is reported as failed.
+  4. Held-out B0 (§6 step 7) uses v8 either way. S6 is scored on both the v7 and the v8 dev-pair runs.
