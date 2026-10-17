@@ -1,5 +1,5 @@
 ══ investigation eval — arm B: +agent (driver claude-cli, model claude-sonnet-5-5) — run B-20261017-047cb4ea1c (commit 047cb4ea1c) ══
-n = 18 item decisions over 6 cases (small dataset: every rate below has a wide uncertainty)
+n = 21 item decisions over 7 cases (small dataset: every rate below has a wide uncertainty)
 
 ── runs ──
   cert-manager-1.17-1.18--payments-eu          human-review-required  findings 18 (affected=0 not-affected=1 potentially-affected=17 insufficient-evidence=0)  agent submitted  citations 283/283  reproduced
@@ -14,6 +14,8 @@ n = 18 item decisions over 6 cases (small dataset: every rate below has a wide u
       27 finding(s) on items no expected item selects (unscored), 0 affected
   ingress-nginx-1.11-1.12--shop-pl             human-review-required  findings 27 (affected=0 not-affected=1 potentially-affected=14 insufficient-evidence=12)  agent submitted  citations 193/193  reproduced
       25 finding(s) on items no expected item selects (unscored), 0 affected
+  kube-prometheus-stack-89-90--obs-north       human-review-required  findings 23 (affected=3 not-affected=17 potentially-affected=3 insufficient-evidence=0)  agent submitted  citations 320/320  reproduced
+      12 finding(s) on items no expected item selects (unscored), 2 affected: ci-555bf9fefdf5 field-changed: monitoring.coreos.com/v1/ServiceMonitor/kube-prometheus-stack/kube-prometh…; ci-903ca29715e3 field-changed: monitoring.coreos.com/v1/ServiceMonitor/kube-prometheus-stack/kube-prometh…
 
 ── item decisions (expected vs system) ──
 ✗  cert-manager-1.17-1.18--payments-eu          B1  expected affected              system potentially-affected  (observed, 2 matched) classify:plausible-impact [controller-behaviour, basis none, ci-86548e9a2300] "The default value of `Certificate.Spec.PrivateKey.RotationP…"
@@ -34,53 +36,58 @@ n = 18 item decisions over 6 cases (small dataset: every rate below has a wide u
 ✗  ingress-nginx-1.11-1.12--shop-pl             B2  expected not-affected          system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
 ✗  ingress-nginx-1.11-1.12--shop-pl             B3  expected not-affected          system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
 ✗  ingress-nginx-1.11-1.12--shop-pl             B4  expected not-affected          system potentially-affected  (observed, 2 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
+✓  kube-prometheus-stack-89-90--obs-north       B1  expected affected              system affected              (observed, 5 matched) classify:validated-exposure [rendered-config, basis deterministic, ci-63ebfdbffcaf] "Helm value `coreDns.serviceMonitor.bearerTokenFile` removed"
+✗  kube-prometheus-stack-89-90--obs-north       B2  expected not-affected          system potentially-affected  (observed, 2 matched) classify:plausible-impact [rendered-config, basis none, ci-aaeb79bed47e] "container-arg-changed: apps/v1/Deployment/kube-prometheus-s…"
+✓  kube-prometheus-stack-89-90--obs-north       B3  expected not-affected          system not-affected          (render, 4 matched) classify:validated-clear [rendered-config, basis deterministic, ci-1b14cf0134ba] "Helm value `kubeControllerManager.serviceMonitor.insecureSk…"
 
 ── metrics (overall) ──
-  falseNegativeRate              0.000 (0/2)
-  unsafeEligibilityRate          0.000 (0/2)
-  falsePositiveRate              0.067 (1/15)
-  affectedDetection              1.000 (2/2)
-  affectedConfirmation           0.000 (0/2)
-  notAffectedConfirmation        0.000 (0/15)
-  exposureRecall                 0.667 (2/3)
-  evidenceCoverage               0.472 (25/53)
-  unresolvedRate                 0.000 (0/17)
-  observedAgreement              0.000 (0/17)
-  accuracy                       0.000 (0/18)
-  humanReviewRate                1.000 (18/18)
-  autoApprovalEligibilityRate    0.111 (2/18)
-  itemMatchMisses                0 (of 18)
-  evidenceFileCoverage           0.717 (38/53)
-  citationResolution             1.000 (1625/1625)
-  reproducibility                1.000 (6/6)
-  pipelineFailures               0 (of 6)
-  runHumanReviewRate             1.000 (6/6)
-  runAutoApproveEligibleRate     0.000 (0/6)
+  falseNegativeRate              0.000 (0/3)
+  unsafeEligibilityRate          0.200 (1/5)
+  falsePositiveRate              0.059 (1/17)
+  affectedDetection              1.000 (3/3)
+  affectedConfirmation           0.333 (1/3)
+  notAffectedConfirmation        0.059 (1/17)
+  exposureRecall                 0.857 (6/7)
+  evidenceCoverage               0.403 (25/62)
+  unresolvedRate                 0.000 (0/20)
+  observedAgreement              0.053 (1/19)
+  accuracy                       0.095 (2/21)
+  humanReviewRate                0.952 (20/21)
+  autoApprovalEligibilityRate    0.238 (5/21)
+  itemMatchMisses                0 (of 21)
+  evidenceFileCoverage           0.710 (44/62)
+  citationResolution             1.000 (1945/1945)
+  reproducibility                1.000 (7/7)
+  pipelineFailures               0 (of 7)
+  runHumanReviewRate             1.000 (7/7)
+  runAutoApproveEligibleRate     0.000 (0/7)
 
 ── splits (decision metrics per subset) ──
-  basis         deterministic          n=1   accuracy 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 0.000 (0/1); evidenceCoverage 0.333 (1/3)
-  basis         none                   n=17  accuracy 0.000 (0/17); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/14); unresolvedRate 0.000 (0/16); exposureRecall 0.667 (2/3); evidenceCoverage 0.480 (24/50)
+  basis         deterministic          n=3   accuracy 0.667 (2/3); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.500 (1/2); unresolvedRate 0.000 (0/3); exposureRecall 1.000 (4/4); evidenceCoverage 0.091 (1/11)
+  basis         none                   n=18  accuracy 0.000 (0/18); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/15); unresolvedRate 0.000 (0/17); exposureRecall 0.667 (2/3); evidenceCoverage 0.471 (24/51)
   manifestation controller-behaviour   n=17  accuracy 0.000 (0/17); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/14); unresolvedRate 0.000 (0/16); exposureRecall 0.667 (2/3); evidenceCoverage 0.480 (24/50)
-  manifestation rendered-config        n=1   accuracy 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 0.000 (0/1); evidenceCoverage 0.333 (1/3)
-  verification  observed               n=17  accuracy 0.000 (0/17); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/15); unresolvedRate 0.000 (0/17); exposureRecall 0.667 (2/3); evidenceCoverage 0.480 (24/50)
+  manifestation rendered-config        n=4   accuracy 0.500 (2/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.333 (1/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (4/4); evidenceCoverage 0.083 (1/12)
+  verification  observed               n=19  accuracy 0.053 (1/19); falseNegativeRate 0.000 (0/3); affectedDetection 1.000 (3/3); affectedConfirmation 0.333 (1/3); notAffectedConfirmation 0.000 (0/16); unresolvedRate 0.000 (0/19); exposureRecall 0.857 (6/7); evidenceCoverage 0.421 (24/57)
   verification  observed-alternatives  n=1   accuracy 0.000 (0/1); evidenceCoverage 0.333 (1/3)
+  verification  render                 n=1   accuracy 1.000 (1/1); notAffectedConfirmation 1.000 (1/1); unresolvedRate 0.000 (0/1); evidenceCoverage 0.000 (0/2)
 
 ── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
-✗ affectedConfirmation       FAIL              actual 0.000 (0/2)        ≥ 0.50  (minSample 2)
-✓ affectedDetection          PASS              actual 1.000 (2/2)        ≥ 0.75  (minSample 2)
-✓ citationResolution         PASS              actual 1.000 (1625/1625)  ≥ 1.00  (minSample 1)
-✗ evidenceCoverage           FAIL              actual 0.472 (25/53)      ≥ 0.75  (minSample 4)
-✗ exposureRecall             FAIL              actual 0.667 (2/3)        ≥ 0.75  (minSample 2)
-? falseNegativeRate          INSUFFICIENT-DATA actual 0.000 (0/2)        ≤ 0.00  (minSample 4)
-✓ falsePositiveRate          PASS              actual 0.067 (1/15)       ≤ 0.25  (minSample 2)
-✗ notAffectedConfirmation    FAIL              actual 0.000 (0/15)       ≥ 0.50  (minSample 2)
-✗ observedAgreement          FAIL              actual 0.000 (0/17)       ≥ 0.75  (minSample 4)
-✓ pipelineFailures           PASS              actual 0 (of 6)           ≤ 0.00  (minSample 0)
-✓ reproducibility            PASS              actual 1.000 (6/6)        ≥ 1.00  (minSample 1)
-✓ unresolvedRate             PASS              actual 0.000 (0/17)       ≤ 0.50  (minSample 4)
-✓ unsafeEligibilityRate      PASS              actual 0.000 (0/2)        ≤ 0.00  (minSample 1)
+✗ affectedConfirmation       FAIL              actual 0.333 (1/3)        ≥ 0.50  (minSample 2)
+✓ affectedDetection          PASS              actual 1.000 (3/3)        ≥ 0.75  (minSample 2)
+✓ citationResolution         PASS              actual 1.000 (1945/1945)  ≥ 1.00  (minSample 1)
+✗ evidenceCoverage           FAIL              actual 0.403 (25/62)      ≥ 0.75  (minSample 4)
+✓ exposureRecall             PASS              actual 0.857 (6/7)        ≥ 0.75  (minSample 2)
+? falseNegativeRate          INSUFFICIENT-DATA actual 0.000 (0/3)        ≤ 0.00  (minSample 4)
+✓ falsePositiveRate          PASS              actual 0.059 (1/17)       ≤ 0.25  (minSample 2)
+✗ notAffectedConfirmation    FAIL              actual 0.059 (1/17)       ≥ 0.50  (minSample 2)
+✗ observedAgreement          FAIL              actual 0.053 (1/19)       ≥ 0.75  (minSample 4)
+✓ pipelineFailures           PASS              actual 0 (of 7)           ≤ 0.00  (minSample 0)
+✓ reproducibility            PASS              actual 1.000 (7/7)        ≥ 1.00  (minSample 1)
+✓ unresolvedRate             PASS              actual 0.000 (0/20)       ≤ 0.50  (minSample 4)
+✗ unsafeEligibilityRate      FAIL              actual 0.200 (1/5)        ≤ 0.00  (minSample 1)
 
-autonomy (§6.3): eligible=false — observed not-affected 15, observed affected 2
+autonomy (§6.3): eligible=false — observed not-affected 16, observed affected 3
     falseNegativeRate is INSUFFICIENT-DATA
-    15 observed not-affected decisions < 20
-    2 observed affected/potentially-affected decisions < 20
+    unsafeEligibilityRate is FAIL
+    16 observed not-affected decisions < 20
+    3 observed affected/potentially-affected decisions < 20
