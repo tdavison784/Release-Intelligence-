@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
@@ -161,6 +162,9 @@ func (v *Viewer) View(ctx context.Context, b *domain.EvidenceBundle, side Side) 
 // refView collects references while the graph is built.
 type refView struct{ refs []Reference }
 
+// sensitiveMark starts a value internal/render replaced by its digest.
+const sensitiveMark = "<sensitive "
+
 // providedEverywhere are objects Kubernetes creates in every namespace.
 var providedEverywhere = map[string]bool{"ServiceAccount|default": true, "ConfigMap|kube-root-ca.crt": true}
 
@@ -191,6 +195,10 @@ func (v *refView) record(g *gb, referrer *gnode, group string, groupStated bool,
 	}
 	if r.Resolution == RefDangling {
 		switch {
+		case strings.HasPrefix(name, sensitiveMark):
+			// the render replaced the value of a credential-named key (an
+			// annotation ending in "secret") by its digest: the name is withheld
+			r.Resolution, r.Reason = RefUnknown, "the render withholds the name (its key looks like a credential)"
 		case (!groupStated || group == "") && providedEverywhere[kind+"|"+name]:
 			r.Resolution, r.Reason = RefResolved, "Kubernetes provides it in every namespace"
 		case !cluster && ns == "":

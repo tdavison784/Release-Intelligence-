@@ -611,9 +611,11 @@ func readNames(o *object, r catalog.Relationship, defaultNS string) []namedRef {
 		if opt, _ := fv.parent["optional"].(bool); opt {
 			ref.optional = true
 		}
-		if r.Format == catalog.RelFormatNamespaceName {
+		switch {
+		case r.Format == catalog.RelFormatNamespaceName,
+			r.Format == catalog.RelFormatOptionalNamespace && strings.Contains(v, "/"):
 			i := strings.Index(v, "/")
-			if i <= 0 || i == len(v)-1 {
+			if i <= 0 || i == len(v)-1 || strings.Count(v, "/") != 1 {
 				continue
 			}
 			ref.ns, ref.name = v[:i], v[i+1:]

@@ -28,6 +28,9 @@ var RelationshipKinds = []RelationshipKind{RelProduces, RelReferences, RelSelect
 const (
 	RelFormatName          = "name"
 	RelFormatNamespaceName = "namespace/name"
+	// RelFormatOptionalNamespace: "name" (in the namespace of From) or
+	// "namespace/name" (ingress-nginx's auth-secret).
+	RelFormatOptionalNamespace = "[namespace/]name"
 )
 
 // ObjectType identifies a Kubernetes kind (Group "" is the core group).
@@ -56,7 +59,7 @@ type Relationship struct {
 	// key stands for every element of that list (spec.endpoints[].tlsConfig.ca.secret.name).
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 	// Format of the name at Path: "name" (default; the namespace is the
-	// namespace of From) or "namespace/name".
+	// namespace of From), "namespace/name", or "[namespace/]name" (either).
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 	// Scope of To: "namespaced" (default) or "cluster".
 	Scope string `yaml:"scope,omitempty" json:"scope,omitempty"`
@@ -197,8 +200,8 @@ func (v *validator) relationships(d *ProductDefinition) {
 				v.errf(p+".to", "a selects relationship targets the core kinds Service or Pod, got %q", r.To.Group+"/"+r.To.Kind)
 			}
 		}
-		if r.Format != "" && r.Format != RelFormatName && r.Format != RelFormatNamespaceName {
-			v.errf(p+".format", "must be %q or %q, got %q", RelFormatName, RelFormatNamespaceName, r.Format)
+		if r.Format != "" && r.Format != RelFormatName && r.Format != RelFormatNamespaceName && r.Format != RelFormatOptionalNamespace {
+			v.errf(p+".format", "must be %q, %q or %q, got %q", RelFormatName, RelFormatNamespaceName, RelFormatOptionalNamespace, r.Format)
 		}
 		if r.Scope != "" && r.Scope != "namespaced" && r.Scope != "cluster" {
 			v.errf(p+".scope", "must be namespaced or cluster, got %q", r.Scope)
