@@ -242,12 +242,12 @@ type rowView struct {
 	BlockWhy   string
 	HiddenText string
 	// GroupHead starts the rows of one pin-source fact (default view).
-	GroupHead  *groupHead
-	Row        knowledge.InboxRow
-	Href       string
-	Severity   string
-	Agreement  string // disagree | agree | single
-	AgreeText  string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
+	GroupHead *groupHead
+	Row       knowledge.InboxRow
+	Href      string
+	Severity  string
+	Agreement string // disagree | agree | single
+	AgreeText string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
 	// ux-v2 row: the plain-English question, the one reason it needs a
 	// human, and the suggested answer preview.
 	Question     string
