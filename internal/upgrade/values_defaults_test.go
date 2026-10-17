@@ -25,11 +25,11 @@ func TestFromDefaultsRoundTrip(t *testing.T) {
 	)
 	e := mustBuild(t, simpleInput(from, to))
 	for title, want := range map[string]map[string]string{
-		"Helm values section `a.*` removed (2 keys)": {"a.x": `"/var/run/token"`, "a.y": "{}"},
-		"Helm values section `g.*` removed (1 key)":  {"g.only": "null"},
-		"Helm value `b.gone` removed":                {"b.gone": `"path. Default in x: y"`},
-		"Helm values `b.sub.*` removed (2 keys)":     {"b.sub.one": `["x","y"]`, "b.sub.two": `""`},
-		"Helm value `e` removed":                     {"e": "true"},
+		"Helm values section `a.*` removed (2 keys)":           {"a.x": `"/var/run/token"`, "a.y": "{}"},
+		"Helm values section `g.*` removed (1 key)":            {"g.only": "null"},
+		"Helm value `b.gone` removed":                          {"b.gone": `"path. Default in x: y"`},
+		"Helm values `b.sub.*` removed (2 keys)":               {"b.sub.one": `["x","y"]`, "b.sub.two": `""`},
+		"Helm value `e` removed":                               {"e": "true"},
 		"Default of Helm value `d` changed: \"a → b\" → \"c\"": {"d": `"a → b"`},
 	} {
 		c := findTitle(e, title)

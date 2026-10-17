@@ -104,6 +104,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 fd103f0e defaults: impact:values-removed-default (review-required) for unset keys with non-empty FROM default; default-value correlation with specificity guard; Phase 3 eval no regression (applicability 0.525→0.535, -render 0.564→0.574). obs-north: coreDns now affected (own ServiceMonitor change); kubeDns/kubeProxy/kubeEtcd stay not-affected+eligible — components disabled in this env (no FROM ServiceMonitor), so per key correct; may still count in unsafeEligibility via one coarse expected item (granularity limitation) — report, never re-match.
 - 2026-10-16 EVAL A⁗ / C′ (aa067206): 7 PASS / 5 FAIL / 1 INSUFF. affectedConfirmation 1/3 (obs-north B1 now affected; observed basis in C), FP 2/20 (new: obs-south B1 affected — same rendered change; RenderDiff fails on exposure), unsafeEligibility 1/8 = only per-key items of components not rendered in this env (kubeDns/kubeProxy/kubeEtcd) matched with the deciding coreDns item to one coarse expected item → recorded as granularity limitation, no re-matching. Runtime separates the kps pair (obs-north 3 fails, obs-south none) but can only raise. → lane refcheck; then A + C again, then ARM B.
 - 2026-10-16 fc0fee09 refcheck: RenderDiff exposure ⇒ inconclusive; concrete failures fail (dangling refs, schema-invalid CRs, unserved apiVersions); StaticReference TO vs FROM with namespace semantics, compared by target (a list-index shift once produced a false fail — fixed); 18 cited prometheus-operator secret/configmap rules; classify: impact:not-joined no longer blocks an otherwise-cleared item (accepted; DESIGN §2.6/§3.5 amended). Diagnostic: obs-north 3 concrete fails, obs-south none.
+- 2026-10-16 EVAL A₅ / C₅ (0790b001, reference for B): 7 PASS / 5 FAIL / 1 INSUFF. FP 1/20 (obs-south FP gone: exposure inconclusive), affectedConfirmation 1/3 (obs-north on deterministic evidence: dangling token-Secret ref in kube-system), C₅ notAffectedConfirmation 3/20 incl. the FIRST OBSERVED CLEARING (shop-nl B2 via runtime pass), observedAgreement 2/21; unsafeEligibility 1/8 (1/9 in C) = only the 3 not-rendered per-key items. ARM B GO sent 20:01 (claude-sonnet-5-5, per-case commits; GLM must never run/resume arm B).
 - 2026-10-16 LESSON: GLM-window merges passed every test yet two of three carried fail-open or exposure-dropping defects; the mandatory Claude review at resume is the safety net and stays mandatory (ledger proposal decision 2).
 - 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
@@ -152,15 +153,12 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-1. **Unsafe eligibility (top priority)** — eval re-scoring arm A on dec9342c now: read ri-eval's `runs/unsafe-eligibility-diagnostic.md` (pipeline output only) + the independent Opus review of the GLM merges; route the root cause (likely RenderDiff/OverrideInspection passing an exposed rendered-config item, or fix-3 F3) to its owner. Arm B stays HELD until fixed and arm A re-scored safe (unsafeEligibilityRate 0).
-2. **fixes2** (ri-fixes): F1–F5 on fix 3 (+ env-scope flood, restored test), not-run coverage echo, timestamps as provenance → review, merge, clean up.
-2b. **values** (ri-values): per-release values stacks → review hard (this is where the fail-open was), merge, clean up.
-3. **runtime** (ri-runtime): data-change ⇒ inconclusive, `reconciles:` exposure, `--runtime` in ri investigate, exercise reaction required, post-exercise health, keyed HMAC digests → review, merge, clean up.
-4. **reviewfilter** (ri-reviewfilter): on LANE DONE give the user the start command + item count so they can verify the controller-default facts.
-5. **eval** (ri-eval): merge harness + stored runs A, A′, C after review of EVAL-REPORT.md; after 1–3 merge, re-score A (new run id); then ARM B GO (Claude window, claude-sonnet-5-5, prompt v5) — only the Claude commander sends it; then C and B+C; final report.
-5b. Later, low priority: agent claim nits (nested/embedded values, comment matches, absent-claim on partial env) — small lane after eval.
-6. Ledger proposal (proposals/2026-10-16-window-ledger.md): commander review + user sign-off; adopt after phase 4 eval, not mid-endgame.
-7. Then the user decides on push/PR (nothing pushed yet).
+1. **ARM B running** (ri-eval, claude-sonnet-5-5, per-case commits). If a GLM window starts: glm-eval and glm-commander must NOT run, resume or re-run any arm B case (model under test). Resume arm B only in a Claude window.
+2. When B is scored: review EVAL-REPORT (B vs A₅ isolates the agent), merge p4ei/eval2, write the Phase 4 summary for the user (what works, gates per arm, known limitations: item granularity, controller-default facts awaiting human verification, ingress-nginx risk-level has no pin-able fact).
+3. User's 5 review items (pin sources) — when decisions appear as untracked files under p4-integration/knowledge/, commit them and have eval score one more arm A/C run.
+4. Ledger proposal sign-off (4 decisions) — then guard v4 + LEDGER.yaml via ri-guard, after the eval endgame.
+5. Old branch p4ei/eval (58 MB uncompressed history, superseded by eval2) — delete only with user OK (needs -D).
+6. Push / PR — only when the user says so.
 
 ## GLM commander log
 
