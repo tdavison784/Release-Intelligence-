@@ -100,5 +100,7 @@ are OK, note them).
   stop any server you started (`temporal server start-dev`, port-forwards). Never delete the shared
   `.ri` cache in the primary checkout. Say what you cleaned in your final message. You do not remove
   your own worktree — the commander does that after merging (see `briefs/commander.md`).
+- `docs/phase5/learning-loop/LEDGER.yaml` lists your lane as an item; the commander updates it — lanes do not
+  edit the ledger (one writer per window avoids merge conflicts), but read it to see what is queued after you.
 - When finished: commit everything, then end with a final message starting `LANE DONE:` followed by a
   ≤15-line summary (branch, commits, what works, test results, known gaps).

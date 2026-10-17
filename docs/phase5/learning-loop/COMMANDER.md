@@ -15,8 +15,16 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
+| pins | ri-pins | Opus | p5ll/pins | .claude/worktrees/p5ll-pins | w1:t1P | working (started 07:53) |
+| coverage | ri-coverage | Opus | p5ll/coverage | .claude/worktrees/p5ll-coverage | w1:t1Q | working |
+| verdict | ri-verdict | Opus | p5ll/verdict | .claude/worktrees/p5ll-verdict | w1:t1R | working |
+| verify | ri-verify | Opus | p5ll/verify | .claude/worktrees/p5ll-verify | w1:t1S | working |
+| groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED) | .claude/worktrees/p5ll-groundtruth5 | w1:t1T | working |
+| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log
+
+- 2026-10-17 e5b3afa7 eval5 wave 1: knowledgeDigest/knowledgeLive in run.json, `-knowledge` mandatory (live tree refused unless -allow-live-knowledge), snapshot.sh + kbad (S3 a–h), ungated agent-verdict table (correct/false-safe/false-alarm/hedged/overstated/no-verdict; stub until verdict merges), `-compare` tables, A0-K0-20261017-bfebde39 (K0 digest sha256:672a7ce0…; 24/24 item decisions identical to Phase 4 arm A; payments-us B1 potentially-affected). Green. Worktree kept. Note: lane deleted one uncommitted earlier A0 run from a pre-commit binary (never cited).
 
 ## Decisions
 
@@ -30,12 +38,14 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
   never inside, policy inputs.
 - 2026-10-17 Promotion is the product owner's click (human level), gated on a confirmed proof record.
 
+- 2026-10-17 PR #6 merged into main by the product owner (merge commit bebbeb2c, history preserved: this branch's
+  base 03b6ff43 is in main). Window ledger ADOPTED (product owner) → `LEDGER.yaml`; guard v4 queued (W-0008).
+
 ## Open questions for the user
 
-- (Phase 4 carry-over) delete superseded branch `p4ei/eval` (needs -D); window-ledger proposal sign-off.
+- W-0019 delete superseded branch `p4ei/eval` (needs -D). W-0020 gascity/beads for the next fleet (after the report).
 
 ## Next actions
 
-1. Start wave-1 lanes (tabs, agents, models.txt), restart fleet guard with `--fleet-dir docs/phase5/learning-loop
-   --commander-cwd .claude/worktrees/p5-integration`.
-2. Merge lanes as they finish (review every diff for fail-open behaviour); tell eval5 to merge `verdict` when it lands.
+The queue is `LEDGER.yaml` (ready items, their depends and who may execute them). Guard v4 (W-0008) in
+progress with ri-guard; until it merges, handoffs use guard v3 and the GLM commander reads LEDGER.yaml by hand.

@@ -112,6 +112,12 @@ None (no `internal/domain` types changed; no schema regen needed).
 2. A rule whose scope excludes every object yields no pin by design (exposure is the join's decision). If the experiment
    expects a clearance there, it must come from the join, not from override inspection.
 
+## Integration
+
+- 2026-10-17 merged `p5-learning-loop` @ ef6b8d04 (coverage, eval5). Conflicts only in the validator-name line of
+  `validate/common.go` and its row in `docs/INVESTIGATE.md`: kept both bumps (`validate.render-diff@v2` from
+  coverage, `validate.override-inspection@v2` from this lane).
+
 ## Test status
 
 `go build ./... && go vet ./... && go test ./...` green on `p5ll/pins`.

@@ -206,6 +206,8 @@ type gb struct {
 	rels      []rel
 	// view, when set, records every reference as it is resolved (View).
 	view *refView
+	// nsCache holds each namespaceFrom resolution by rule id (one per build).
+	nsCache map[string]nsResolution
 }
 
 func (g *gb) node(kind domain.NodeKind, id render.ObjectID, key string, artifact string) *gnode {
@@ -287,7 +289,7 @@ func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Sid
 	if err != nil {
 		return nil, err
 	}
-	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels, view: v}
+	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels, view: v, nsCache: map[string]nsResolution{}}
 
 	env.cluster = clusterKinds(env.objects, bd.rels)
 	applyNamespaces(env)
@@ -336,6 +338,9 @@ func clusterKinds(objs []*object, rels []rel) map[string]bool {
 	for _, r := range rels {
 		if r.r.Scope == "cluster" {
 			out[r.r.To.Kind] = true
+		}
+		if r.r.NamespaceFrom != nil { // the rule states its referrer is cluster-scoped
+			out[r.r.From.Kind] = true
 		}
 	}
 	for _, o := range objs {

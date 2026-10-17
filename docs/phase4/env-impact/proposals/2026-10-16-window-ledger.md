@@ -1,5 +1,11 @@
 # Proposal — provider window work ledger (user-requested 2026-10-16)
 
+> **ADOPTED 2026-10-17** (product owner: "go ahead and update the ledger"), with the four recommendations:
+> auto-start true for mechanical items / false for merges & reviews; GLM may execute pre-authorized `review`
+> merges (Claude reviews every GLM merge at resume); commander-level items; pilot on the **Phase 5** fleet
+> (Phase 4 merged first) — `docs/phase5/learning-loop/LEDGER.yaml`, guard v4 = ledger item W-0008.
+> Re-platforming on gascity + beads is NOT adopted: it is decision W-0020 (user), after the Phase 5 report.
+
 > Status: PROPOSAL, not adopted policy. Requested by the user during the 2026-10-16 15:24–17:31 GLM
 > window after observing idle GLM capacity while open work existed. Adoption needs: commander brief
 > edits (Claude commander), FLEET.md note, fleet guard v4 (guard lane), and user sign-off on the open
