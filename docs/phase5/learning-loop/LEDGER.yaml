@@ -130,8 +130,9 @@ items:
   - id: W-0013
     title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
     kind: commander-task
-    status: in-progress
+    status: done
     owner: claude-commander
+    result: "F4 binary, scratch K0 copy: intake-rule → hyp-8fb090745e65 / ri-612fd8261e22 / rule 7089555d9e86; ri verify hypotheses -runtime -kubernetes 1.31 → CONFIRMED (observed) pf-23e47aa9c6a9 (citation-check pass, consumer rule-exercise pass, 226 s, cluster deleted). Agent hypotheses: none (v7, v8). Record: runs/w0013-verify/"
     depends: [W-0012, W-0031, W-0032]
     note: "export ran and was empty (no hypotheses); verification has no input until W-0028 is decided"
     providers: [claude, glm]  # deterministic + observed; no model judgment
@@ -141,7 +142,8 @@ items:
     title: Human promotion of confirmed hypotheses in the review UI → K1 SHA (PROTOCOL §6 step 5)
     kind: decision
     decision-rights: user
-    status: queued
+    status: ready
+    note: "review UI http://127.0.0.1:8486/items/ri-612fd8261e22 (tab w1:t10, scratch K1 candidate); promotion must choose supersede for vf-9b9cfa5c9f5f"
     depends: [W-0013]
     providers: [claude]
     glm-executable: false
@@ -299,7 +301,7 @@ items:
   - id: W-0031
     title: "Fallback: human-authored rotationPolicy mitigation rule → §7 verification (only if W-0030 yields none confirmed)"
     kind: commander-task
-    status: in-progress
+    status: done
     note: "rule pre-registered: rules/rotationpolicy-ca-scoped.json (commander-drafted, label-aware); verification needs W-0032"
     depends: [W-0030, W-0032]
     providers: [claude, glm]
