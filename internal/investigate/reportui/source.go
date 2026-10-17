@@ -75,6 +75,10 @@ type Source interface {
 	// Artifact returns the bytes of an artifact digest the source holds for
 	// the investigation key; investigate.ErrNotFound when it does not.
 	Artifact(ctx context.Context, key, digest string) ([]byte, error)
+	// Has reports whether Artifact can return the digest's bytes.
+	Has(key, digest string) bool
+	// Version changes whenever the record of key changes (list cache).
+	Version(key string) string
 	// Writable reports whether Update works.
 	Writable() bool
 	// Update loads the run record, applies fn and stores the result
@@ -199,6 +203,21 @@ func (s *StoreSource) Artifact(ctx context.Context, _ string, digest string) ([]
 	return io.ReadAll(rc)
 }
 
+// Has implements Source.
+func (s *StoreSource) Has(_ string, digest string) bool { return s.st.Has(digest) }
+
+// Version implements Source: the run file's size and modification time.
+func (s *StoreSource) Version(key string) string {
+	if !validID(key) {
+		return ""
+	}
+	st, err := os.Stat(filepath.Join(s.st.Dir(), "runs", key+".json"))
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%d-%d", st.Size(), st.ModTime().UnixNano())
+}
+
 // Update implements Source.
 func (s *StoreSource) Update(ctx context.Context, key string, fn func(*domain.Investigation) error) error {
 	s.mu.Lock()
@@ -236,6 +255,9 @@ func readJSON(p string, v any) error {
 type RunsSource struct {
 	runs  map[string]*runDir
 	order []string
+
+	mu      sync.Mutex
+	digests map[string]map[string]bool // key → digests of the case's files
 }
 
 type runDir struct {
@@ -246,7 +268,7 @@ type runDir struct {
 
 // OpenRuns opens evaluation run directories (each containing run.json).
 func OpenRuns(dirs []string) (*RunsSource, error) {
-	s := &RunsSource{runs: map[string]*runDir{}}
+	s := &RunsSource{runs: map[string]*runDir{}, digests: map[string]map[string]bool{}}
 	for _, d := range dirs {
 		var info RunInfo
 		if err := readJSON(filepath.Join(d, "run.json"), &info); err != nil {
@@ -309,15 +331,12 @@ func (s *RunsSource) Load(ctx context.Context, key string) (*Record, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	runID, c, ok := strings.Cut(key, "/")
-	r := s.runs[runID]
-	if !ok || r == nil || !validID(c) {
-		return nil, fmt.Errorf("investigation %q: %w", key, investigate.ErrNotFound)
-	}
-	files, err := readRunFiles(r.dir, c)
+	files, err := s.caseFiles(key)
 	if err != nil {
 		return nil, err
 	}
+	runID, c, _ := strings.Cut(key, "/")
+	r := s.runs[runID]
 	raw, ok := files[c+"/investigation.json"]
 	if !ok {
 		return nil, fmt.Errorf("investigation %q: %w", key, investigate.ErrNotFound)
@@ -341,19 +360,54 @@ func (s *RunsSource) Load(ctx context.Context, key string) (*Record, error) {
 // files packed with the case (graph, transcript, …) are served when their
 // digest matches.
 func (s *RunsSource) Artifact(ctx context.Context, key, digest string) ([]byte, error) {
-	runID, c, ok := strings.Cut(key, "/")
-	if r := s.runs[runID]; ok && r != nil && validID(c) {
-		files, err := readRunFiles(r.dir, c)
-		if err != nil {
-			return nil, err
-		}
-		for _, b := range files {
-			if sum := sha256.Sum256(b); "sha256:"+hex.EncodeToString(sum[:]) == digest {
-				return b, nil
-			}
+	files, err := s.caseFiles(key)
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range files {
+		if sha(b) == digest {
+			return b, nil
 		}
 	}
 	return nil, fmt.Errorf("artifact %s: %w", digest, investigate.ErrNotFound)
+}
+
+// Has implements Source.
+func (s *RunsSource) Has(key, digest string) bool {
+	s.mu.Lock()
+	d, ok := s.digests[key]
+	s.mu.Unlock()
+	if !ok {
+		files, err := s.caseFiles(key)
+		if err != nil {
+			return false
+		}
+		d = map[string]bool{}
+		for _, b := range files {
+			d[sha(b)] = true
+		}
+		s.mu.Lock()
+		s.digests[key] = d
+		s.mu.Unlock()
+	}
+	return d[digest]
+}
+
+// Version implements Source: stored runs never change.
+func (s *RunsSource) Version(string) string { return "stored" }
+
+func (s *RunsSource) caseFiles(key string) (map[string][]byte, error) {
+	runID, c, ok := strings.Cut(key, "/")
+	r := s.runs[runID]
+	if !ok || r == nil || !validID(c) {
+		return nil, fmt.Errorf("investigation %q: %w", key, investigate.ErrNotFound)
+	}
+	return readRunFiles(r.dir, c)
+}
+
+func sha(b []byte) string {
+	sum := sha256.Sum256(b)
+	return "sha256:" + hex.EncodeToString(sum[:])
 }
 
 // readRunFiles returns the files of a run's cases as "<case>/<file>" →

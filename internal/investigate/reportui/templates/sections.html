@@ -1,0 +1,200 @@
+{{define "artifact"}}{{if .}}{{if .Href}}<a href="{{.Href}}" class="mono small">{{if .Path}}{{.Path}}{{else}}{{.ID}}{{end}}</a>{{else}}<span class="mono small" title="{{.Digest}}">{{if .Path}}{{.Path}}{{else}}{{.ID}}{{end}}</span>{{end}}{{if .Redacted}} <span class="badge muted">redacted</span>{{end}}{{end}}{{end}}
+
+{{define "evidence"}}<div class="ev">{{if .Href}}<a href="{{.Href}}" rel="noopener noreferrer" target="_blank">{{.URI}}</a>{{else if .URI}}<span class="mono">{{.URI}}</span>{{else}}<span class="mono">{{.ID}}</span>{{end}}
+  {{if .Locator}}<span class="loc">· {{.Locator}}</span>{{end}} <span class="badge muted">{{.Kind}}</span>
+  {{if .Excerpt}}<blockquote>{{.Excerpt}}</blockquote>{{end}}</div>{{end}}
+
+{{define "airec"}}<div class="ai-rec">
+  <div><span class="badge ai">AI · {{.Kind}}</span>{{if .Unverified}} <span class="badge warn">unverified AI prose</span>{{end}} {{.Statement}}</div>
+  {{if .Detail}}<div class="small muted">{{.Detail}}</div>{{end}}
+  {{range .Citations}}{{template "evidence" .}}{{end}}
+  <div class="lab">{{.Label}}{{if .ID}} · {{.ID}}{{end}}</div>
+</div>{{end}}
+
+{{define "validation"}}<div class="validated">
+  <div class="head"><span class="badge {{.Tone}}">{{.Outcome}}</span> <b class="mono small">{{.Validator}}</b> <span class="badge">{{.Level}}</span> <span class="muted small mono">{{.ID}}{{if .Rule}} · {{.Rule}}{{end}}</span></div>
+  <div class="small"><span class="muted">Property:</span> {{.Property}}</div>
+  {{if .Detail}}<pre class="small">{{.Detail}}</pre>{{end}}
+  {{with .Pin}}<div class="small"><span class="badge ok">pinned setting</span> {{.Kind}} <code>{{.Path}}</code> = <code>{{.Value}}</code> in <span class="mono">{{.Subject}}</span>{{if .Rendered}} → lands in <span class="mono">{{.Rendered}}</span>{{end}}</div>{{end}}
+  {{if .Evidence}}<details class="small"><summary>Evidence ({{len .Evidence}})</summary>{{range .Evidence}}{{template "evidence" .}}{{end}}</details>{{end}}
+  {{if .Inputs}}<details class="small"><summary>Inputs read ({{len .Inputs}})</summary><ul class="plain">{{range .Inputs}}<li>{{template "artifact" .}}</li>{{end}}</ul></details>{{end}}
+  {{if .Outputs}}<details class="small"><summary>Outputs ({{len .Outputs}})</summary><ul class="plain">{{range .Outputs}}<li>{{template "artifact" .}}</li>{{end}}</ul></details>{{end}}
+  {{if .Request}}<div class="small muted">run on the agent's request {{.Request}} (the record, not the request, is policy input)</div>{{end}}
+</div>{{end}}
+
+{{define "sections"}}{{$v := .V}}
+<section class="panel hero {{$v.HeadlineTone}}" id="decision">
+  <div class="meta"><span class="badge">{{$v.Product}}</span><span class="badge">{{$v.Env}}</span><span class="badge {{$v.ReviewTone}}">review: {{$v.ReviewLabel}}</span>{{if $v.RunID}}<span class="badge info">evaluation run</span>{{end}}</div>
+  <h1>{{$v.Product}} {{$v.From}} → {{$v.To}} <span class="muted">in</span> {{$v.Env}}</h1>
+  <div class="headline">{{$v.Headline}}</div>
+  {{range $v.Decision}}<p style="margin:.2rem 0">{{.}}</p>{{end}}
+  {{if $v.Reasons}}<h3>The policy's reasons{{if $v.Policy}} ({{$v.Policy}}){{end}}</h3><ul>{{range $v.Reasons}}<li>{{.}}</li>{{end}}</ul>{{end}}
+  <p style="margin:.6rem 0 0"><b>Review:</b> {{$v.ReviewLine}}{{if $v.Review.Note}} <span class="muted">“{{$v.Review.Note}}”</span>{{end}}</p>
+  <p class="small muted" style="margin:.3rem 0 0">Automated approval: {{if $v.AutoApproval}}enabled{{else}}off — eligibility is computed, never enacted{{end}}.</p>
+  {{if not .Offline}}<div class="actions noprint">
+    <a class="btn" href="{{.L.Export $v.Key "html"}}">Download report (HTML)</a>
+    <a class="btn" href="{{.L.Export $v.Key "json"}}">Download run record (JSON)</a>
+    {{if $v.Review.CanDecide}}<a class="btn primary" href="#review">Review this investigation</a>{{end}}
+  </div>{{end}}
+</section>
+
+<div class="grid2">
+<section class="panel" id="release">
+  <h2>Release</h2>
+  {{if $v.BundleMissing}}<p class="flash flash-warn">The evidence bundle {{$v.Bundle}} is not in this store: release, environment and rendered changes cannot be shown.</p>{{end}}
+  <dl class="kv">
+    <dt>Product</dt><dd>{{$v.Release.Product}}{{if $v.Release.Name}} ({{$v.Release.Name}}){{end}}</dd>
+    <dt>Upgrade</dt><dd>{{$v.Release.From}} → {{$v.Release.To}}</dd>
+    <dt>Change items</dt><dd>{{$v.Release.Items}} collected, {{$v.Release.InScope}} in scope, {{$v.Items}} decided</dd>
+    <dt>Change record</dt><dd class="mono small">{{$v.ChangeRecord}}</dd>
+  </dl>
+  <h3>Collection status of the change evidence</h3>
+  <table><tbody>{{range $v.Release.Sources}}<tr><td class="mono small">{{.Name}}</td><td><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}{{if .Artifacts}} <span class="muted">({{.Artifacts}} artifact{{if ne .Artifacts 1}}s{{end}})</span>{{end}}</td></tr>{{end}}</tbody></table>
+</section>
+<section class="panel" id="environment">
+  <h2>Environment</h2>
+  <dl class="kv">
+    <dt>Name</dt><dd>{{$v.Environment.Name}}</dd>
+    {{if $v.Environment.RepoPath}}<dt>Repository</dt><dd class="mono small">{{$v.Environment.RepoPath}}{{if $v.Environment.RepoURL}} · {{$v.Environment.RepoURL}}{{end}}</dd>{{end}}
+    {{if $v.Environment.Commit}}<dt>Commit</dt><dd class="mono small">{{$v.Environment.Commit}}{{if $v.Environment.Dirty}} <span class="badge warn">uncommitted changes</span>{{end}}</dd>{{end}}
+    {{if $v.Environment.TreeDigest}}<dt>Tree digest</dt><dd class="mono small">{{$v.Environment.TreeDigest}}</dd>{{end}}
+    {{if $v.Environment.KubeVersion}}<dt>Kubernetes</dt><dd>{{$v.Environment.KubeVersion}}</dd>{{end}}
+    <dt>Snapshot</dt><dd class="mono small">{{$v.Snapshot}}{{with $v.Environment.Facts}} · facts {{template "artifact" .}}{{end}}</dd>
+  </dl>
+  <h3>Inputs</h3>
+  <table><tbody>{{range $v.Environment.Inputs}}<tr><td class="mono small">{{.Name}}</td><td class="mono small">{{.Where}}</td><td><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}</td></tr>{{end}}</tbody></table>
+</section>
+</div>
+
+<section class="panel" id="checked">
+  <h2>What was checked</h2>
+  <h3>Renders (the environment's own FROM/TO renders are the primary evidence)</h3>
+  {{if $v.Checked.Renders}}<div class="tablewrap"><table>
+    <thead><tr><th>Target</th><th>Scope</th><th>Status</th><th>Rendered changes</th><th>Artifacts</th></tr></thead>
+    <tbody>{{range $v.Checked.Renders}}<tr>
+      <td class="mono small">{{.Target}}</td><td class="small">{{.Scope}}</td>
+      <td><span class="badge {{.Tone}}">{{.Status}}</span>{{if .Reason}}<div class="small muted">{{.Reason}}</div>{{end}}</td>
+      <td class="small n">{{.Changes}}{{if .Changes}}{{if .Unc}} · {{.Correlated}} explained, <b style="color:var(--danger)">{{.Unc}} unexplained</b>{{else}} · all explained by change items{{end}}{{end}}</td>
+      <td class="small">{{with .From}}from {{template "artifact" .}}<br>{{end}}{{with .To}}to {{template "artifact" .}}<br>{{end}}{{with .Diff}}diff {{template "artifact" .}}{{end}}</td>
+    </tr>{{end}}</tbody></table></div>{{else}}<p class="muted small">No render recorded.</p>{{end}}
+
+  <h3>Validators run ({{$v.Checked.Validated}} record{{if ne $v.Checked.Validated 1}}s{{end}})</h3>
+  {{if $v.Checked.Validators}}<div class="tablewrap"><table>
+    <thead><tr><th>Validator</th><th>Level</th><th>Pass</th><th>Fail</th><th>Inconclusive</th><th>Not run</th></tr></thead>
+    <tbody>{{range $v.Checked.Validators}}<tr><td class="mono small">{{.Name}}</td><td class="small">{{.Level}}</td>
+      <td class="n">{{.Pass}}</td><td class="n">{{if .Fail}}<b style="color:var(--danger)">{{.Fail}}</b>{{else}}0{{end}}</td><td class="n">{{.Error}}</td><td class="n">{{.NotRun}}</td></tr>{{end}}</tbody>
+  </table></div>{{else}}<p class="muted small">No validation ran.</p>{{end}}
+
+  <ul class="checks" style="margin-top:.9rem">
+    <li><span class="mark {{$v.Checked.Traversal.Tone}}">{{if $v.Checked.Traversal.Done}}✓{{else}}–{{end}}</span><div><b>Relationship traversal.</b> {{$v.Checked.Traversal.Text}}{{range $v.Checked.Traversal.Detail}}<div class="small muted">{{.}}</div>{{end}}</div></li>
+    <li><span class="mark {{$v.Checked.Runtime.Tone}}">{{if $v.Checked.Runtime.Done}}✓{{else}}–{{end}}</span><div><b>Runtime validation (observed).</b> {{$v.Checked.Runtime.Text}}</div></li>
+    <li><span class="mark {{$v.Checked.Agent.Tone}}">{{if $v.Checked.Agent.Done}}✓{{else}}–{{end}}</span><div><b>Investigation agent (AI).</b> {{$v.Checked.Agent.Text}}
+      {{if $v.Checked.Agent.Done}}<div class="small muted">{{$v.Checked.Agent.Covered}} item(s) on its agenda, {{$v.Checked.Agent.Examined}} examined · {{$v.Checked.Agent.Turns}} turns · {{$v.Checked.Agent.ToolCalls}} tool calls · {{$v.Checked.Agent.Tokens}} tokens · prompt {{$v.Checked.Agent.PromptVersion}} <span class="mono">{{short $v.Checked.Agent.PromptDigest}}</span>{{with $v.Checked.Agent.Transcript}} · transcript {{template "artifact" .}}{{end}}</div>{{end}}
+      {{range $v.Checked.Agent.Detail}}<div class="small muted">{{.}}</div>{{end}}</div></li>
+    <li><span class="mark {{if $v.Checked.Facts}}ok{{else}}muted{{end}}">{{if $v.Checked.Facts}}✓{{else}}–{{end}}</span><div><b>Knowledge facts available to the validators.</b>
+      {{if $v.Checked.Facts}}Only facts verified deterministically or by a human (trusted) can pin behaviour; consensus and proxy facts never clear an item.
+      <ul class="plain small">{{range $v.Checked.Facts}}<li>{{template "artifact" .Artifact}}
+        {{if .Known}} — <span class="badge {{if .Trusted}}ok{{else}}warn{{end}}">verified: {{if .Level}}{{.Level}}{{else}}incomplete{{end}}</span> <span class="badge muted">{{.Status}}</span> {{.Statement}}{{else}} — <span class="muted">verification level not readable here (the fact's bytes are not in this store)</span>{{end}}
+        {{if .Items}}<span class="muted">· for {{join .Items ", "}}</span>{{end}}</li>{{end}}</ul>
+      {{else}}None attached to this upgrade.{{end}}</div></li>
+    <li><span class="mark {{if $v.Checked.Pins}}ok{{else}}muted{{end}}">{{if $v.Checked.Pins}}✓{{else}}–{{end}}</span><div><b>Pinned settings established.</b>
+      {{if $v.Checked.Pins}}<ul class="plain small">{{range $v.Checked.Pins}}<li>{{.Kind}} <code>{{.Path}}</code> = <code>{{.Value}}</code> in <span class="mono">{{.Subject}}</span> (item {{.Item}}, {{.Validation}})</li>{{end}}</ul>
+      {{else}}None: no environment setting was shown to pin the old behaviour of a behaviour change.{{end}}</div></li>
+  </ul>
+</section>
+
+<section id="items">
+{{range $v.Groups}}
+  <div class="group" id="class-{{.Class}}"><h2>{{.Label}}</h2><span class="badge {{.Tone}}"><span class="n">{{len .Items}}</span> item{{if ne (len .Items) 1}}s{{end}}</span>
+    {{if not .Open}}<span class="muted small">collapsed — every item here was cleared by validated evidence</span>{{end}}</div>
+  {{range .Items}}
+  <details class="item {{.Tone}}" id="{{.Item}}"{{if $.Offline}} open{{else if eq .Class "affected"}} open{{end}}>
+    <summary>
+      <div class="meta"><span class="badge {{.Tone}}">{{.ClassLabel}}</span>{{if .Family}}<span class="badge">{{.Family}}</span>{{end}}<span class="badge">{{.Manifestation}}</span>
+        {{if .Breaking}}<span class="badge warn">breaking upstream</span>{{end}}{{if .ActionReq}}<span class="badge danger">upstream: action required</span>{{end}}
+        {{if .Basis}}<span class="badge ok">basis: {{.Basis}}</span>{{end}}{{if .AI}}<span class="badge ai">AI notes</span>{{end}}<span class="muted small mono">{{.Item}}</span></div>
+      <span class="t">{{.Title}}</span>
+      <span class="why">{{.Reason}}</span>
+    </summary>
+    <div class="item-body">
+      <div class="section small"><b>Decided by</b> <code>{{.Rule}}</code> — {{.RuleLabel}}.</div>
+      <details class="reasoning section"><summary>Full deterministic reasoning</summary><p>{{.Reasoning}}</p></details>
+
+      {{if .Upstream}}<div class="section"><h3>Upstream change</h3>{{range .Upstream}}{{template "evidence" .}}{{end}}</div>{{end}}
+
+      {{if .Rendered}}<div class="section"><h3>Rendered before / after in this environment</h3>
+        {{range .Rendered}}<div class="small"><span class="badge">{{.Class}}</span> <span class="mono">{{.Object}}</span>{{if .Path}} <code>{{.Path}}</code>{{end}} <span class="muted mono">{{.ID}}{{if .Correlation}} · {{.Correlation}}{{end}}</span></div>
+        {{if .Sensitive}}<p class="small muted">Sensitive field — values withheld (redacted at collection).</p>
+        {{else if or .Before .After}}<div class="diff"><div><div class="lbl">before ({{$v.From}})</div><pre class="before">{{if .Before}}{{.Before}}{{else}}(absent){{end}}</pre></div><div><div class="lbl">after ({{$v.To}})</div><pre class="after">{{if .After}}{{.After}}{{else}}(absent){{end}}</pre></div></div>{{end}}
+        {{end}}</div>{{end}}
+
+      <div class="section"><h3>Validations ({{len .Validations}})</h3>
+        {{range .Validations}}{{template "validation" .}}{{else}}<p class="small muted">No validation of this item.</p>{{end}}</div>
+
+      {{if .Runtime}}<div class="section"><h3>Runtime observations (isolated cluster, observed level)</h3>{{range .Runtime}}{{template "validation" .}}{{end}}</div>{{end}}
+
+      {{if .Join}}<div class="section"><h3>Deterministic join (five-class report)</h3><ul class="plain small">{{range .Join}}<li><span class="mono">{{.ID}}</span> {{.Classification}} — <code>{{.Rule}}</code></li>{{end}}</ul></div>{{end}}
+
+      {{if .Gaps}}<div class="section"><h3>Evidence gaps</h3><ul class="plain small">{{range .Gaps}}<li><span class="badge warn">{{.Kind}}</span> <span class="mono">{{.Subject}}</span> — {{.Detail}}</li>{{end}}</ul></div>{{end}}
+      {{if .Assumptions}}<div class="section"><h3>Unvalidated assumptions</h3><ul class="plain small">{{range .Assumptions}}<li class="mono">{{.}}</li>{{end}}</ul></div>{{end}}
+      {{if .Remediation}}<div class="section"><h3>Remediation</h3><p class="small">{{.Remediation}}</p></div>{{end}}
+      {{if .NextSteps}}<div class="section"><h3>Next steps</h3><ul class="plain small">{{range .NextSteps}}<li>{{.}}</li>{{end}}</ul></div>{{end}}
+      {{if not .Eligible}}{{if .Blockers}}<div class="section"><h3>Why it is not approval-eligible</h3><ul class="plain small">{{range .Blockers}}<li>{{.}}</li>{{end}}</ul></div>{{end}}{{end}}
+
+      {{if .AI}}<div class="ai-box"><div class="ai-title">AI OUTPUT — advisory, not a validation. It never decides or lowers a class.</div>
+        {{range .AI}}{{template "airec" .}}{{end}}</div>{{end}}
+    </div>
+  </details>
+  {{end}}
+{{else}}<div class="panel empty">No findings yet.</div>{{end}}
+</section>
+
+{{if $v.AINotes}}<section class="panel"><div class="ai-box"><div class="ai-title">AI NOTES ON THE WHOLE INVESTIGATION — advisory, never item concerns</div>{{range $v.AINotes}}{{template "airec" .}}{{end}}</div></section>{{end}}
+
+<section class="panel" id="review">
+  <h2>Human review</h2>
+  <p>{{$v.ReviewLine}}{{if $v.Review.Note}} <span class="muted">“{{$v.Review.Note}}”</span>{{end}}</p>
+  {{if not $.Offline}}
+  {{if $v.Review.CanDecide}}
+  <form method="post" action="{{.L.Review $v.Key}}" class="noprint" id="review-form">
+    <div class="form-row">
+      <label class="radio approve"><input type="radio" name="action" value="approve"{{if eq .Form.Action "approve"}} checked{{end}} required> Approve</label>
+      <label class="radio reject"><input type="radio" name="action" value="reject"{{if eq .Form.Action "reject"}} checked{{end}}> Reject</label>
+      <label class="radio more"><input type="radio" name="action" value="more"{{if eq .Form.Action "more"}} checked{{end}}> Request more evidence</label>
+    </div>
+    <div class="form-row"><label>Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" placeholder="your name (required)" autocomplete="name" required></label></div>
+    <label class="small muted">Reason (required; recorded with the decision and in the audit trail)
+      <textarea name="note" rows="3" required>{{.Form.Note}}</textarea></label>
+    <label class="small muted">With “request more evidence”: inputs wanted, comma-separated (e.g. <code>values:shop/prod-pl.yaml</code>)
+      <input type="text" name="requests" value="{{.Form.Requests}}" style="width:100%"></label>
+    <p class="small muted">You decide as a human reviewer. Approval is yours alone: the policy never auto-approves, and an AI reviewer can never approve.</p>
+    <button class="btn primary" type="submit">Record decision</button>
+  </form>
+  {{else}}<p class="small muted">{{$v.Review.Why}}</p>{{end}}
+  {{end}}
+  <h3>Review history</h3>
+  {{if $v.Review.History}}<ul class="plain small">{{range $v.Review.History}}<li>{{date .At}} · <b>{{.Actor}}</b>{{if .Proxy}} <span class="badge ai">AI reviewer — recorded, never approves</span>{{end}} · {{.Action}} — {{.Detail}} <span class="muted">(audit #{{.Seq}})</span></li>{{end}}</ul>
+  {{else}}<p class="small muted">No review decision recorded yet.</p>{{end}}
+
+  <h3>Audit trail {{if $v.ChainOK}}<span class="badge ok">hash chain intact</span>{{else}}<span class="badge danger">hash chain broken</span>{{end}}</h3>
+  {{range $v.ChainErr}}<div class="flash flash-error small">{{.}}</div>{{end}}
+  <div class="tablewrap"><table class="audit">
+    <thead><tr><th>#</th><th>When</th><th>Stage</th><th>Event</th><th>Who</th><th>Detail</th><th>Prev → digest</th></tr></thead>
+    <tbody>{{range $v.Audit}}<tr{{if not .OK}} class="bad"{{end}}><td class="n">{{.Seq}}</td><td class="n">{{date .At}}</td><td>{{.Stage}}</td><td>{{.Event}}</td><td>{{.Actor}}</td>
+      <td>{{.Detail}}{{if .Refs}} <span class="muted mono">[{{join .Refs ", "}}]</span>{{end}}</td><td class="hash">{{if .Prev}}{{short .Prev}}{{else}}—{{end}}<br>{{short .Digest}}</td></tr>{{end}}</tbody>
+  </table></div>
+</section>
+
+<section class="panel small" id="provenance">
+  <h2>Record</h2>
+  <dl class="kv">
+    <dt>Investigation</dt><dd class="mono">{{$v.ID}}</dd>
+    <dt>Status</dt><dd>{{$v.Status}}</dd>
+    <dt>Run date</dt><dd>{{date $v.Date}}</dd>
+    <dt>Evidence bundle</dt><dd class="mono">{{$v.Bundle}}</dd>
+    <dt>Configuration</dt><dd class="mono">{{$v.Config}}</dd>
+    <dt>Record digest</dt><dd class="mono">{{$v.RecordDigest}} <span class="muted">(timestamps excluded: identical runs have identical digests)</span></dd>
+    <dt>Stored in</dt><dd>{{$v.Origin}}</dd>
+  </dl>
+</section>
+{{end}}

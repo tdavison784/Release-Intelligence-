@@ -244,7 +244,7 @@ type View struct {
 
 	BundleMissing bool
 	Release       ReleaseView
-	Env           EnvView
+	Environment   EnvView
 	Checked       CheckedView
 	Groups        []Group
 	AINotes       []AIRecord
@@ -513,22 +513,22 @@ func Build(ctx context.Context, rec *Record, links Links, has func(digest string
 			v.Release.Sources = append(v.Release.Sources, StatusRow{Name: string(s.Source), Status: s.Status, Tone: statusTone(s.Status), Reason: s.Reason, Artifacts: len(s.Artifacts)})
 		}
 		sn := b.Snapshot
-		v.Env = EnvView{Name: sn.Environment, KubeVersion: sn.KubernetesVersion}
+		v.Environment = EnvView{Name: sn.Environment, KubeVersion: sn.KubernetesVersion}
 		if sn.Repo != nil {
-			v.Env.RepoPath, v.Env.RepoURL, v.Env.Commit, v.Env.TreeDigest, v.Env.Dirty = sn.Repo.Path, sn.Repo.URL, sn.Repo.Commit, sn.Repo.TreeDigest, sn.Repo.Dirty
+			v.Environment.RepoPath, v.Environment.RepoURL, v.Environment.Commit, v.Environment.TreeDigest, v.Environment.Dirty = sn.Repo.Path, sn.Repo.URL, sn.Repo.Commit, sn.Repo.TreeDigest, sn.Repo.Dirty
 		}
 		for _, in := range sn.Inputs {
 			where := in.Path
 			if where == "" {
 				where = in.Value
 			}
-			v.Env.Inputs = append(v.Env.Inputs, StatusRow{Name: string(in.Kind), Where: where, Status: in.Status, Tone: statusTone(in.Status), Reason: in.Reason, Artifacts: len(in.Artifacts)})
+			v.Environment.Inputs = append(v.Environment.Inputs, StatusRow{Name: string(in.Kind), Where: where, Status: in.Status, Tone: statusTone(in.Status), Reason: in.Reason, Artifacts: len(in.Artifacts)})
 		}
 		if sn.Facts != "" {
-			v.Env.Facts = x.artifact(sn.Facts)
+			v.Environment.Facts = x.artifact(sn.Facts)
 		}
 	} else {
-		v.Env.Name = inv.Environment
+		v.Environment.Name = inv.Environment
 	}
 
 	v.Checked = checked(ctx, inv, b, x, read)
