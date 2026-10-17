@@ -32,7 +32,7 @@ items:
   - id: W-0003
     title: Lane verdict — item dossier, agent provisional verdict, mitigation hypotheses, export
     kind: lane
-    status: in-progress
+    status: done
     owner: ri-verdict
     brief: briefs/verdict.md
     providers: [claude, glm]
@@ -96,7 +96,7 @@ items:
     title: Code freeze F1 + PROTOCOL §6 step 1 (record SHA)
     kind: commander-task
     status: queued
-    depends: [W-0007]
+    depends: [W-0007, W-0024, W-0025]
     providers: [claude]
     glm-executable: false
     auto-start: false
@@ -212,11 +212,22 @@ items:
   - id: W-0024
     title: Fix — investigation id ignores run settings (same bundle + state dir, different -agent/-runtime ⇒ second run silently resumes the first)
     kind: lane
-    status: queued
-    ready-when: lane verdict reports LANE DONE (it found the bug; assign to it or a fresh lane)
+    status: in-progress
+    owner: ri-fixes5
+    brief: briefs/fixes5.md
     providers: [claude, glm]
     glm-executable: true
     auto-start: false
     integrity: "must not change the ids/digests of stored Phase 4 runs; a test runs both orders"
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:30, because: verdict lane finding}
+  - id: W-0025
+    title: Verdict inherits the closing entry's verified citations (17% of live calls were one avoidable rejection); tool/prompt v7
+    kind: lane
+    status: in-progress
+    owner: ri-fixes5
+    brief: briefs/fixes5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:40, because: verdict live run 1}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
