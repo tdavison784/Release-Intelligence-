@@ -15,7 +15,15 @@ nothing in this report moved a threshold, an expectation or a pipeline rule.
 | **A′** | deterministic only, after lane `fixes` (4 routed defects fixed) | `results/A-20261016T213500Z-cf761e89e5` (+ identical dirty-tree copy `A-20261016T212406Z-13f9ba749d`, kept) | **scored** (binary cf761e89, clean tree) |
 | **A″** | deterministic only, after fixes2 + values + runtime follow-up (`p4-env-impact` dec9342c; GLM layered-values fix reverted) | `results/A-20261016T231142Z-5d4da37635` (+ replicate `A-20261016T231217Z-5d4da37635`) | **scored** (binary 5d4da37635, clean tree) |
 | **A‴ (reference for the ARM B decision)** | A″ + renderer fix 3b73d721 (Argo valuesObject / plain valueFiles / git-path Helm sources) | `results/A-20261016T231534Z-6b9fd9cc7c` | **scored** (binary 6b9fd9cc7c, clean tree) |
-| **B** | A′ + investigation agent (claude-cli, claude-sonnet-5-5, the prompt version named by the commander's ARM B GO; v5 is merged) | — | held until "ARM B GO" (Claude window; ~1M tokens) |
+| **A⁗** | deterministic only, after lane `defaults` (fd103f0e; last pipeline fix) | `results/A-20261016T234421Z-aa06720656` | **scored** (binary aa06720656, clean tree) |
+| **C′** | A⁗ + runtime (attribution precedence 1888a107) | `results/C-20261016T234455Z-aa06720656` | **scored** (binary aa06720656, clean tree) |
+| **A₅** | deterministic only, after lane `refcheck` (fc0fee09) — **reference for arm B** | `results/A-20261017T003437Z-0790b00157` | **scored** (binary 0790b00157, clean tree) |
+| **C₅** | A₅ + runtime | `results/C-20261017T003511Z-0790b00157` | **scored** (binary 0790b00157, clean tree) |
+| **B** (aborted) | A₅ + agent; first attempt | `results/B-20261017-355df68274` | 1 case, pipeline failure (audit-ordering defect, fixed by lane auditfix); kept |
+| **B** | A₅ + investigation agent: claude-cli, **claude-sonnet-5-5**, prompt **investigate-agent/v5** (digest per case in run.json) | `results/B-20261017-047cb4ea1c` | **scored** (binary 047cb4ea1c = A₅ tree + audit fix, clean; built case by case) |
+| **A₆** | deterministic control on the same binary as B | `results/A-20261017T014549Z-047cb4ea1c` | **scored**; identical decisions and metrics to A₅ |
+| **B-replay** | B replayed offline from its stored transcripts (no model) | `results/B-replay-20261017T014617Z-047cb4ea1c` | **scored** |
+| **B+C** | — | — | **not run** (see §2f) |
 | **C** | + runtime (observed) validation in throwaway kind clusters | `results/C-20261016T213533Z-cf761e89e5` (+ superseded vacuous `C-20261016T212613Z-13f9ba749d`, kept) | **scored** (binary cf761e89, clean tree) |
 
 ## 1. Headline (arm A)
@@ -106,6 +114,181 @@ for 8/8 cases; the wall-clock times now live in `Investigation.reportStamps`, ou
 artifact. Note for the stored files: these two runs' `run.json` `recordDigest` fields were written by the
 harness's older private digest, which predates `reportStamps` and therefore differs between the runs; the
 harness now uses `run.ContentDigest` (future runs). The stored files are not edited.
+
+## 2f. Arm B — the investigation agent, isolated (B vs A₅/A₆)
+
+Run `B-20261017-047cb4ea1c`: claude-cli driver, model `claude-sonnet-5-5` (as reported by the CLI), prompt
+`investigate-agent/v5` (per-item sessions, cap 10 items per investigation, item budget 16 calls / 14 turns /
+150 000 tokens), one session set per case, run case by case and committed after each case (8 commits). Binary
+047cb4ea1c = the A₅ tree plus the audit-ordering fix (5 lines in `run/pipeline.go`; no classification change). The
+control A₆ on the same binary reproduces A₅'s decisions and metrics exactly, so **B − A₆ is the agent's effect**.
+
+**Cost:** 824 623 tokens, 496 tool calls, ~21 min wall clock for 8 cases (91–131 k tokens per case). 7 agent runs
+`submitted`, 1 `budget-exhausted` (shop-de: the composite #11819 item's session used 17 turns of 14). 0 pipeline
+failures.
+
+**Gates: 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA — every gate identical to A₅/A₆ except:**
+
+| Metric | A₅ / A₆ | B | |
+|---|---|---|---|
+| evidenceCoverage | 23/71 | **25/71** | FAIL either way |
+| evidenceFileCoverage (path only, ungated) | 34/71 | **50/71** | the agent cites the environment files that matter |
+| citationResolution | 1999/1999 | 2261/2261 | every agent citation resolves (quotes verified) |
+| everything else | — | unchanged | incl. unsafeEligibilityRate 1/8 (same three not-rendered per-key items) |
+
+**Decisions: 0 of 24 changed. Findings: 0 of 211 changed class, 0 changed eligibility; investigation decisions
+unchanged (8/8 human-review-required).** What the agent did produce (pipeline output):
+- **46 `raises-concern` assertions — all on items that were already potentially-affected.** No concern landed on a
+  not-affected finding, so none blocked a clearance; 8 were answered by a passing validation.
+- **20 validation requests — all `not-run`** (19 × override inspection: "no declarative pin rule names a setting
+  that pins the old behaviour of this item"; 1 × static reference). The agent asks the right question, but the
+  validator has no trusted pin source to answer it with.
+- **82 deterministically verified setting claims** (record_claim, prompt v5): 65 `absent`, 15 `value`, 2 `present` —
+  e.g. a `value` claim that `controller.metrics.enabled` is set in the environment's values. These are verified
+  facts about the environment, but no policy rule consumes a verified claim as a pinned setting, so they cannot
+  clear a controller-behaviour item. **This is the structural reason the agent moves no number:** under §3.3 the
+  agent can only raise or request; its requests reach validators that cannot decide without trusted knowledge; its
+  verified claims are not wired to R2.4. Turning verified claims (or the agent's requested settings) into
+  override-inspection pins is the change that would let the agent's work count — a policy/contract decision, not an
+  evaluation one.
+- No agent-proposed edge changed a traversal (paths identical in every case).
+
+**Replay (offline reproducibility of B).** `B-replay-…` re-issues every recorded tool call against fresh bundles
+with no model: findings identical in 7/8 cases; decision classes and every gate identical. obs-south: one of ten
+item sessions mismatched (`submit_findings` result digest differs from the recording for item `ci-194d5b487655`),
+which the replay driver reports honestly (agent status `failed`, the mismatch in the reason) — classes unchanged,
+only that decision's gap/next-step text differs. Routed to the agent owner (a non-deterministic `submit_findings`
+result). Investigation ids differ from B by design (the driver name is part of the configuration digest);
+assertions differ only in `generatedAt`.
+
+**B+C not run.** Running the agent live with runtime would spend another ~0.8 M tokens; reusing arm C's stored
+runtime records in B's investigations would stitch two different runs (not honest); replaying B's transcripts with
+runtime enabled is not a faithful replay either (the runtime records change what the agent's tools return, so the
+recorded calls no longer match). Given B's effect on every decision is nil and C's effect is recorded separately
+(§2e: shop-nl B2 observed clearing, obs-north observed basis), B+C would add cost without isolating anything new.
+
+## 2e. After lane `refcheck` (arms A₅ and C₅) — current reference
+
+Runs `A-20261017T003437Z-0790b00157` and `C-20261017T003511Z-0790b00157` (clean tree, merge 0790b001 containing
+fc0fee09: render-diff exposure ⇒ inconclusive, concrete failures such as dangling references ⇒ fail; an
+`impact:not-joined` join verdict no longer blocks an otherwise-cleared item). Same bundles in both arms.
+
+| Gate | A⁗ | C′ | **A₅** | **C₅** |
+|---|---|---|---|---|
+| falseNegativeRate | 0/3 INSUFF. | 0/3 INSUFF. | 0/3 **INSUFFICIENT-DATA** | 0/3 **INSUFFICIENT-DATA** |
+| unsafeEligibilityRate | 1/8 FAIL | 1/8 FAIL | 1/8 **FAIL** | 1/9 **FAIL** |
+| falsePositiveRate | 2/20 PASS | 2/20 PASS | **1/20** PASS | **1/20** PASS |
+| affectedDetection | 3/3 PASS | 3/3 PASS | 3/3 PASS | 3/3 PASS |
+| affectedConfirmation | 1/3 FAIL | 1/3 FAIL | 1/3 FAIL | 1/3 FAIL |
+| notAffectedConfirmation | 2/20 FAIL | 2/20 FAIL | 2/20 FAIL | **3/20** FAIL |
+| exposureRecall | 6/7 PASS | 6/7 PASS | 6/7 PASS | 6/7 PASS |
+| evidenceCoverage | 23/71 FAIL | 23/71 FAIL | 23/71 FAIL | 23/71 FAIL |
+| citationResolution | PASS | PASS | 1999/1999 PASS | 3680/3680 PASS |
+| unresolvedRate | 0/23 PASS | 0/23 PASS | 0/23 PASS | 0/23 PASS |
+| observedAgreement | 1/21 FAIL | 1/21 FAIL | 1/21 FAIL | **2/21** FAIL |
+| reproducibility | 8/8 PASS | 8/8 PASS | 8/8 PASS | 8/8 PASS |
+| pipelineFailures | 0 PASS | 0 PASS | 0 PASS | 0 PASS |
+
+Both arms **7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA**.
+
+**Per-case decisions vs the previous runs** (A⁗ → A₅; C′ → C₅): 21 of 24 decisions are unchanged in both arms.
+Changes:
+- **obs-south B1** (expected not-affected): affected → **potentially-affected** in A and C. The render-diff `fail`
+  on the coreDns ServiceMonitor `spec.endpoints` change is now an inconclusive exposure (`error`), so R1 no longer
+  fires. The false positive from §2d is gone (falsePositiveRate 2/20 → 1/20, the remaining one being shop-nl B1,
+  ACTION REQUIRED contract).
+- **obs-north B1** (expected affected): stays **affected**, now for a concrete reason. render-diff and
+  static-reference both `fail` on a dangling reference in the TO render: `ServiceMonitor
+  kube-system/kube-prometheus-stack-coredns spec.endpoints[0].authorization.credentials.name → Secret
+  kube-system/kube-prometheus-stack-prometheus-token`, which the TO render does not contain. Deterministic A now
+  separates the kube-prometheus-stack pair (north affected, south potentially-affected). Basis is deterministic in
+  A₅ and observed in C₅ (three runtime `fail`s, as in C′).
+- **shop-nl B2** (expected not-affected, C only): potentially-affected → **not-affected, basis observed**. This is
+  the first observed clearing in the evaluation: a runtime `pass` on "⚠️ Metrics: Disable by default"
+  (controller-behaviour) now clears the item because the `impact:not-joined` gap no longer blocks it.
+  notAffectedConfirmation 3/20, observedAgreement 2/21 in C₅. The same item also clears in shop-fr, where no
+  expected item selects it.
+
+**unsafeEligibilityRate — contributors unchanged and still only the not-rendered per-key items.** The counted
+decision is obs-north B1 (system decision `affected`), in both arms, through the same three eligible not-affected
+findings (bundle `bnd-3345ac2d26f6`, identical to §2d's, so the same FROM render):
+
+| Finding | Item | Title | Rule | Component in the FROM render |
+|---|---|---|---|---|
+| `inf-8584d1f22d6d` | `ci-0f8475f72a68` | Helm value `kubeDns.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | not rendered |
+| `inf-8bd4c3f5b149` | `ci-1d8a464ef1b7` | Helm value `kubeProxy.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | not rendered |
+| `inf-9d2274eda209` | `ci-f8350fd0b224` | Helm value `kubeEtcd.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | not rendered |
+
+C₅'s denominator is 9 because shop-nl B2 is now eligible as well (expected not-affected, so not unsafe). The
+granularity finding of §2d stands as reported (no re-matching).
+
+## 2d. After lane `defaults` (arm A⁗) and with runtime (arm C′) — basis for the ARM B decision
+
+Runs `A-20261016T234421Z-aa06720656` and `C-20261016T234455Z-aa06720656` (clean tree, merge aa067206 containing
+fd103f0e and 1888a107). Both arms: **7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA**, same numbers per gate.
+
+| Gate | A‴ (ref.) | A⁗ | C′ |
+|---|---|---|---|
+| falseNegativeRate | 0/3 INSUFFICIENT-DATA | 0/3 INSUFFICIENT-DATA | 0/3 INSUFFICIENT-DATA |
+| unsafeEligibilityRate | 1/8 FAIL | 1/8 **FAIL** | 1/8 **FAIL** |
+| falsePositiveRate | 1/20 PASS | **2/20** PASS | 2/20 PASS |
+| affectedDetection | 3/3 PASS | 3/3 PASS | 3/3 PASS |
+| affectedConfirmation | 0/3 FAIL | **1/3** FAIL | 1/3 FAIL |
+| notAffectedConfirmation | 2/20 FAIL | 2/20 FAIL | 2/20 FAIL |
+| exposureRecall | 6/7 PASS | 6/7 PASS | 6/7 PASS |
+| evidenceCoverage | 23/71 FAIL | 23/71 FAIL | 23/71 FAIL |
+| citationResolution | PASS | 1861/1861 PASS | 3503/3503 PASS |
+| unresolvedRate | 0/23 PASS | 0/23 PASS | 0/23 PASS |
+| observedAgreement | 0/21 FAIL | **1/21** FAIL | 1/21 FAIL |
+| reproducibility | 8/8 PASS | 8/8 PASS | 8/8 PASS |
+| pipelineFailures | 0 PASS | 0 PASS | 0 PASS |
+
+**What `defaults` changed (A‴ → A⁗).** Removed values keys whose non-empty FROM default was in effect are now
+join `impact:values-removed-default` (review-required) and the rendered change where that default disappears is
+correlated. Two decisions moved:
+- obs-north B1 potentially-affected → **affected** (R1 `classify:validated-exposure`, deterministic): item
+  `ci-63ebfdbffcaf` "Helm value `coreDns.serviceMonitor.bearerTokenFile` removed" — render-diff `fail` on the
+  correlated `ServiceMonitor kube-system/kube-prometheus-stack-coredns spec.endpoints` change. First confirmed
+  affected decision (affectedConfirmation 1/3, observedAgreement 1/21).
+- obs-south B1 potentially-affected → **affected** — the same item, the same R1 rule, on
+  `ServiceMonitor monitoring/kube-prometheus-stack-coredns spec.endpoints`. Expected not-affected: a **new
+  false positive** (falsePositiveRate 2/20, still within the gate). The deterministic layer still gives the pair
+  identical classes; the difference between the two environments (where the ServiceMonitors render) is not
+  something render-diff evaluates.
+
+**unsafeEligibilityRate 1/8 — the counted decision is obs-north B1** (expected affected; system decision
+`affected`). The eligible not-affected findings matched to it — pipeline output only:
+
+| Finding | Item | Title | Rule | Component in the FROM environment render |
+|---|---|---|---|---|
+| `inf-8584d1f22d6d` | `ci-0f8475f72a68` | Helm value `kubeDns.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-dns object in `derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/from.yaml` (80 objects) |
+| `inf-8bd4c3f5b149` | `ci-1d8a464ef1b7` | Helm value `kubeProxy.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-proxy object |
+| `inf-9d2274eda209` | `ci-f8350fd0b224` | Helm value `kubeEtcd.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-etcd object |
+
+(For contrast, the coreDns sibling `ci-63ebfdbffcaf`, whose `Service` and `ServiceMonitor kube-prometheus-stack-coredns`
+*are* rendered, is now `affected` and not eligible.) Each of the three has join `impact:values-removed-default`
+(review-required), render-diff `pass`, no correlated rendered change, no exposure root. The FROM render was
+re-read from a diagnostic re-execution whose bundles are byte-identical to the stored run's (`bnd-3345ac2d26f6`,
+`bnd-e7ef20b45a3d`).
+
+**Finding (reported, not changed):** the only remaining unsafe-eligibility count comes from per-key items of
+chart components this environment does not render, matched together with the deciding item to one coarse
+expected item. Their not-affected is plausibly correct per component; the count fires because the metric counts
+a decision eligible when *any* matched finding is. The matcher, FORMAT.md and expectations are unchanged; whether
+to narrow the expected item's `match`, or to score eligibility on the deciding finding, is a groundtruth /
+commander decision. The decision-level class is `affected`, and no investigation is auto-approve-eligible (0/8;
+agent not run).
+
+**Arm C′ (runtime).** Seven cases ran an isolated kind upgrade (~3–4 min each; shop-pl refused, incomplete
+render by design; `kind get clusters` empty afterwards). Only one decision differs from A⁗: **obs-north B1 stays
+`affected`, now with basis `observed`** — attribution precedence puts a runtime `fail` on the matched coreDns item
+(plus the two `scope:rendered-unexplained` ServiceMonitor items, unmatched). Runtime outcomes: obs-north 3 fail /
+1 error; **obs-south 0 fail** (23 not-run) — the runtime layer does tell the kps pair apart, but it can only raise
+a class, so obs-south's deterministic false positive stays. Two runtime `pass` records (shop-fr, shop-nl, item
+"Metrics: Disable by default", controller-behaviour) do not clear the item: its remaining R2 blocker is a
+validation gap from the join's `impact:not-joined` verdict (no machine-comparable subject), which an observed
+pass does not lift — reported for the classify owner. Errors are `Inconclusive: objects on this item's impact
+paths degraded …` (payments-eu/-us 7, shop-de 14, obs-north 1).
 
 ### 2c′. Reference run on 3b73d721 (arm A‴) — the reference for the ARM B decision
 

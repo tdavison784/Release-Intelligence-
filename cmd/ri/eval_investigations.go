@@ -50,6 +50,17 @@ type InvRunMeta struct {
 	ConfigDigest string             `json:"configDigest"`
 	GatesDigest  string             `json:"gatesDigest"`
 	Cases        []InvRunMetaCase   `json:"cases"`
+	// Appends records every later invocation that added cases to the run
+	// (-append): the run is built case by case, never rewritten.
+	Appends []InvRunAppend `json:"appends,omitempty"`
+}
+
+// InvRunAppend is one -append invocation.
+type InvRunAppend struct {
+	Args       []string  `json:"args"`
+	Cases      []string  `json:"cases"`
+	StartedAt  time.Time `json:"startedAt"`
+	FinishedAt time.Time `json:"finishedAt"`
 }
 
 // InvRunMetaCase pins one case's inputs and outputs.
@@ -98,6 +109,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	only := fs.String("case", "", "comma-separated case ids (default: every case)")
 	output := fs.String("o", "text", "output format: text|json")
 	save := fs.Bool("save", false, "store the scored run under <dir>/results/<run-id>/ (never overwritten)")
+	appendTo := fs.String("append", "", "add the selected cases to this stored run (same arm, configuration and binary commit; a case already in the run is refused) and re-score the run over all its cases")
 	arm := fs.String("arm", "", "arm label for the stored run (default: A deterministic, B +agent, C +runtime)")
 	runID := fs.String("run-id", "", "run id (default <arm>-<UTC time>-<commit>)")
 	work := fs.String("work", "", "investigation store directory (default: a temporary directory, removed afterwards)")
@@ -171,10 +183,33 @@ func (c *cli) evalInvestigations(args []string) error {
 		meta.RunID = fmt.Sprintf("%s-%s-%s", label, meta.StartedAt.Format("20060102T150405Z"), short)
 	}
 	outDir := filepath.Join(*dir, invResultsDir, meta.RunID)
+	if *save && *appendTo != "" {
+		return fmt.Errorf("%w: -save starts a run, -append extends one; not both", app.ErrUsage)
+	}
 	if *save {
 		if _, err := os.Stat(outDir); err == nil {
 			return fmt.Errorf("%s exists: scored runs are never overwritten", outDir)
 		}
+	}
+	var prior *InvRunMeta
+	if *appendTo != "" {
+		if prior, err = readInvRunMeta(*appendTo); err != nil {
+			return err
+		}
+		switch {
+		case prior.Arm != label:
+			return fmt.Errorf("-append: run %s is arm %s, this invocation is arm %s", prior.RunID, prior.Arm, label)
+		case prior.Commit != commit || prior.Dirty != dirty:
+			return fmt.Errorf("-append: run %s was made by binary %s (dirty=%v), this is %s (dirty=%v): use the same binary", prior.RunID, prior.Commit, prior.Dirty, commit, dirty)
+		}
+		for _, m := range prior.Cases {
+			for _, cs := range cases {
+				if cs.ID == m.ID {
+					return fmt.Errorf("-append: case %s is already in run %s (scored runs are never overwritten)", cs.ID, prior.RunID)
+				}
+			}
+		}
+		outDir, meta.RunID, short = *appendTo, prior.RunID, shortCommit(prior.Commit)
 	}
 
 	runs := map[string]*eval.InvRun{}
@@ -200,18 +235,30 @@ func (c *cli) evalInvestigations(args []string) error {
 			if meta.ConfigDigest == "" {
 				meta.Config, meta.ConfigDigest = s.Request.Config, s.Request.Config.Digest()
 			}
+			if prior != nil && s.Request.Config.Digest() != prior.ConfigDigest {
+				return fmt.Errorf("-append: %s ran with configuration %s, run %s has %s — not the same arm", cs.ID, s.Request.Config.Digest(), prior.RunID, prior.ConfigDigest)
+			}
 		}
 		runs[cs.ID] = run
 		meta.Cases = append(meta.Cases, m)
 	}
 	meta.FinishedAt = time.Now().UTC()
-	score := eval.ScoreInvestigations(cases, runs, gates)
+	var priorFiles map[string][]byte
+	scored := cases
+	if prior != nil {
+		merged, files, all, err := c.invMergeAppend(*dir, *appendTo, prior, meta, runs, args)
+		if err != nil {
+			return err
+		}
+		meta, priorFiles, scored = merged, files, all
+	}
+	score := eval.ScoreInvestigations(scored, runs, gates)
 	title := fmt.Sprintf("investigation eval — arm %s: %s — run %s (commit %s%s)", label, detail, meta.RunID, short, map[bool]string{true: ", DIRTY tree"}[dirty])
 
 	var text bytes.Buffer
 	eval.WriteInvText(&text, title, score)
-	if *save {
-		if err := saveInvRun(outDir, meta, score, stored, text.Bytes()); err != nil {
+	if *save || prior != nil {
+		if err := saveInvRun(outDir, meta, score, stored, text.Bytes(), priorFiles); err != nil {
 			return err
 		}
 		fmt.Fprintf(c.err, "stored %s\n", outDir)
@@ -401,11 +448,11 @@ func reclassify(s *invStored) (bool, string) {
 // no wall-clock stamps), so two runs of the same inputs compare equal.
 func recordDigest(inv *domain.Investigation) string { return runpkg.ContentDigest(inv) }
 
-func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[string]*invStored, text []byte) error {
+func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[string]*invStored, text []byte, prior map[string][]byte) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	small := map[string]any{"run.json": meta, "score.json": score, "gates.json": invGatesSummary(meta, score), "report.txt": text}
+	small := map[string]any{"run.json": meta, "gates.json": invGatesSummary(meta, score), "report.txt": text}
 	for name, v := range small {
 		raw, err := invFileBytes(v)
 		if err != nil {
@@ -415,7 +462,17 @@ func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[st
 			return err
 		}
 	}
+	raw, err := invFileBytes(score)
+	if err != nil {
+		return err
+	}
+	if err := writeInvGzip(filepath.Join(dir, invScoreFile), raw); err != nil {
+		return err
+	}
 	files := map[string][]byte{}
+	for n, b := range prior {
+		files[n] = b
+	}
 	for id, s := range stored {
 		parts := map[string]any{"request.json": s.Request, "investigation.json": s.Inv, "bundle.json": s.Bundle, "changes.json": s.ChangeText}
 		if s.Graph != nil {

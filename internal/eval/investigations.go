@@ -155,7 +155,7 @@ func LoadInvCases(dir string, only ...string) ([]*InvCase, error) {
 	if err != nil {
 		return nil, err
 	}
-	want := map[string]bool{}
+	want, found := map[string]bool{}, map[string]bool{}
 	for _, o := range only {
 		want[o] = true
 	}
@@ -179,13 +179,15 @@ func LoadInvCases(dir string, only ...string) ([]*InvCase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", e.Name(), err)
 		}
-		delete(want, e.Name())
+		found[e.Name()] = true
 		out = append(out, c)
 	}
-	if len(want) > 0 {
+	if len(want) > len(found) {
 		var missing []string
 		for k := range want {
-			missing = append(missing, k)
+			if !found[k] {
+				missing = append(missing, k)
+			}
 		}
 		sort.Strings(missing)
 		return nil, fmt.Errorf("unknown investigation case(s): %s", strings.Join(missing, ", "))

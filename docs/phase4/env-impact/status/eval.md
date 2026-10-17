@@ -115,6 +115,63 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## ARM B — GO received 2026-10-17 (commander)
+
+**ARM B is claude-only (model under test claude-sonnet-5-5). A GLM continuation must NOT run, resume or re-run any arm B case - its claude -p calls would hit a different model.**
+
+- Reference: A₅ tree (0790b001; this branch adds only docs/results on top). claude-cli driver, claude-sonnet-5-5,
+  newest merged prompt (version + digest recorded per case in run.json). One run per case, case by case, commit
+  after each case. If the fleet guard pauses this lane (Esc) or a HANDBACK/handoff happens: STOP arm B.
+- Progress (cases done): see `eval/investigations/results/B-*/run.json` `cases`.
+- **ARM B STOPPED after case 1 (2026-10-17) — pipeline defect, routed to the commander.** Run
+  `B-20261017-355df68274` (binary 355df682, clean; prompt investigate-agent/v5, claude-sonnet-5-5): case
+  payments-eu → pipeline failure after the agent ran (158 s): `investigate (permanent): store: invalid
+  investigation: audit: event 19 goes back in time`. Cause (read-only analysis, not fixed here — run package):
+  `internal/investigate/run/pipeline.go` `Pipeline.Run`, `case hasRecord:` — `done := ev("completed", …)` takes its
+  `At` (`p.now()`) BEFORE `res.apply` runs; the investigate stage's apply appends one `requested` audit event per
+  agent evidence/validation request at a later `p.now()`; `done` is appended after them with the earlier time ⇒
+  `Investigation.Validate` rejects the record. Any agent run with ≥1 request fails; scripted runs without
+  requests never hit it. Fix: stamp `done` when it is appended (after apply). The run is kept (1 case, error).
+  The case's records/transcript lived in the temporary work store and are gone; next arm B attempt uses `-work`
+  inside the scratchpad so a failed case keeps its transcript. Arm B restarts as a NEW run after the fix (new
+  binary; -append refuses a different commit).
+- **ARM B DONE (2026-10-17, restart):** `B-20261017-047cb4ea1c` (binary 047cb4ea, clean; claude-sonnet-5-5; v5),
+  8/8 cases, 0 pipeline failures, 825k tokens, transcripts stored. Control `A-20261017T014549Z-047cb4ea1c` = A₅.
+  Replay `B-replay-20261017T014617Z-047cb4ea1c`: findings identical 7/8; obs-south one submit_findings digest
+  mismatch (routed to agent). Agent effect: 0/24 decisions, 0/211 finding classes changed; evidenceCoverage 23→25,
+  evidenceFileCoverage 34→50. 20 validation requests all not-run (no pin rule); 82 verified claims not consumed by
+  policy. B+C not run (cost; reuse would not be honest). EVAL-REPORT §2f.
+- Commander: stop was correct; lane `auditfix` is fixing it. **WAIT for the explicit "ARM B RESTART" message**
+  (auto-suggestions in the input box are not it). On restart: merge `p4-env-impact`, rebuild clean, new run id,
+  `-work <scratchpad>/bwork`, case 1 with `-save`, cases 2–8 with `-append`, commit after each case.
+
+## Arms A₅ + C₅ after lane refcheck (2026-10-17) — current reference for arm B
+- Merged `p4-env-impact` (fc0fee09 refcheck) at 0790b001; green. `A-20261017T003437Z-0790b00157`,
+  `C-20261017T003511Z-0790b00157`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
+- obs-south B1 FP gone (FP 1/20); obs-north B1 affected on a concrete dangling Secret reference (A: deterministic,
+  C: observed); C: shop-nl B2 not-affected with observed basis (first observed clearing; NA conf. 3/20, observed
+  agreement 2/21). unsafeEligibility contributors unchanged: only the three not-rendered per-key items
+  (kubeDns/kubeProxy/kubeEtcd) under obs-north B1. EVAL-REPORT §2e.
+- **Waiting for ARM B GO.**
+
+## Arm A⁗ + C′ after lane defaults (2026-10-16)
+- Merged `p4-env-impact` (fd103f0e defaults, 1888a107 runtime attribution) at aa067206; green.
+- `A-20261016T234421Z-aa06720656` and `C-20261016T234455Z-aa06720656`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
+  obs-north B1 now affected (R1; basis observed in C′); obs-south B1 now affected = new FP (2/20). unsafeEligibility
+  1/8: obs-north B1 via ci-0f84…/ci-1d8a…/ci-f835… (kubeDns/kubeProxy/kubeEtcd per-key items; components NOT
+  rendered in the FROM render) — reported as a finding, matcher/FORMAT/expectations unchanged. EVAL-REPORT §2d.
+- Routed: observed runtime pass does not clear an item blocked by a join `impact:not-joined` validation gap.
+- Commander: report accepted; granularity finding recorded as reported (no re-matching). **HOLD**: lane `refcheck`
+  fixes RenderDiff (exposure ⇒ inconclusive; dangling references in the TO render ⇒ fail; cause of the obs-south
+  FP). After it merges: `git merge p4-env-impact`, score A and C once more, then ARM B (only on the commander's go).
+
+## Current state (2026-10-16)
+- `p4ei/eval2` MERGED into `p4-env-impact` (cf2b0f29). Keep this worktree on `p4ei/eval2` for the remaining runs;
+  `p4ei/eval` left as is (commander + user decide).
+- **Waiting** for the commander's go after lane `defaults` merges: then `git merge p4-env-impact`, score arm A and
+  arm C (runtime attribution precedence merged at 1888a107), report gates. **Arm B HELD.**
+- Shell hygiene (FLEET): rm on variables only as `"${VAR:?}"/...`.
+
 ## Slim storage + branch p4ei/eval2 (2026-10-16, commander request before merge)
 - `p4ei/eval` (ebfff797) left untouched. New branch `p4ei/eval2` from `p4-env-impact` (c9ba21e9): the 11 lane
   files + compressed results, so the 58 MB of uncompressed records never land in history.

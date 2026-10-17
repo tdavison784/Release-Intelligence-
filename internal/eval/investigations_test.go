@@ -122,7 +122,27 @@ func TestLoadInvCases(t *testing.T) {
 		req.Environment.Repo != filepath.Join(c.Dir, "env/") || req.Environment.KubernetesVersion != "1.31" {
 		t.Fatalf("request does not carry the inputs: %+v", req)
 	}
-	if _, err := LoadInvCases(filepath.Dir(c.Dir), "nope"); err == nil {
+	// Selecting one case loads exactly that case, even when others sort after it.
+	root := filepath.Dir(c.Dir)
+	other := filepath.Join(root, "demo-1.0-2.0--zulu")
+	if err := os.MkdirAll(filepath.Join(other, "env"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for name, body := range map[string]string{
+		"input.yaml":    strings.ReplaceAll(synthInput, "--alpha", "--zulu"),
+		"expected.yaml": strings.ReplaceAll(synthExpected, "--alpha", "--zulu"),
+	} {
+		if err := os.WriteFile(filepath.Join(other, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if sel, err := LoadInvCases(root, c.ID); err != nil || len(sel) != 1 || sel[0].ID != c.ID {
+		t.Fatalf("-case selection must load only the named case: %v %d", err, len(sel))
+	}
+	if all, err := LoadInvCases(root); err != nil || len(all) != 2 {
+		t.Fatalf("no selection loads every case: %v %d", err, len(all))
+	}
+	if _, err := LoadInvCases(root, "nope"); err == nil {
 		t.Fatal("an unknown case id must be an error")
 	}
 }

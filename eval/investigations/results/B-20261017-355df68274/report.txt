@@ -1,0 +1,60 @@
+══ investigation eval — arm B: +agent (driver claude-cli, model claude-sonnet-5-5) — run B-20261017-355df68274 (commit 355df68274) ══
+n = 2 item decisions over 1 cases (small dataset: every rate below has a wide uncertainty)
+
+── runs ──
+✗ cert-manager-1.17-1.18--payments-eu          PIPELINE FAILURE: investigate: investigate (permanent): store: invalid investigation: audit: event 19 goes back in time
+
+── item decisions (expected vs system) ──
+✗  cert-manager-1.17-1.18--payments-eu          B1  expected affected              system insufficient-evidence (observed, 0 matched) run failed
+✗  cert-manager-1.17-1.18--payments-eu          B2  expected not-affected          system insufficient-evidence (observed, 0 matched) run failed
+
+── metrics (overall) ──
+  falseNegativeRate              0.000 (0/1)
+  unsafeEligibilityRate          n/a (0/0)
+  falsePositiveRate              0.000 (0/1)
+  affectedDetection              0.000 (0/1)
+  affectedConfirmation           0.000 (0/1)
+  notAffectedConfirmation        0.000 (0/1)
+  exposureRecall                 n/a (0/0)
+  evidenceCoverage               n/a (0/0)
+  unresolvedRate                 1.000 (2/2)
+  observedAgreement              0.000 (0/2)
+  accuracy                       0.000 (0/2)
+  humanReviewRate                1.000 (2/2)
+  autoApprovalEligibilityRate    0.000 (0/2)
+  itemMatchMisses                0 (of 2)
+  evidenceFileCoverage           n/a (0/0)
+  citationResolution             n/a (0/0)
+  reproducibility                n/a (0/0)
+  pipelineFailures               1 (of 1)
+  runHumanReviewRate             n/a (0/0)
+  runAutoApproveEligibleRate     n/a (0/0)
+
+── splits (decision metrics per subset) ──
+  basis         none                   n=2   accuracy 0.000 (0/2); falseNegativeRate 0.000 (0/1); affectedDetection 0.000 (0/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 1.000 (2/2)
+  manifestation unmatched              n=2   accuracy 0.000 (0/2); falseNegativeRate 0.000 (0/1); affectedDetection 0.000 (0/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 1.000 (2/2)
+  verification  observed               n=2   accuracy 0.000 (0/2); falseNegativeRate 0.000 (0/1); affectedDetection 0.000 (0/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 1.000 (2/2)
+
+── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
+? affectedConfirmation       INSUFFICIENT-DATA actual 0.000 (0/1)        ≥ 0.50  (minSample 2)
+? affectedDetection          INSUFFICIENT-DATA actual 0.000 (0/1)        ≥ 0.75  (minSample 2)
+? citationResolution         INSUFFICIENT-DATA actual n/a (0/0)          ≥ 1.00  (minSample 1)
+? evidenceCoverage           INSUFFICIENT-DATA actual n/a (0/0)          ≥ 0.75  (minSample 4)
+? exposureRecall             INSUFFICIENT-DATA actual n/a (0/0)          ≥ 0.75  (minSample 2)
+? falseNegativeRate          INSUFFICIENT-DATA actual 0.000 (0/1)        ≤ 0.00  (minSample 4)
+? falsePositiveRate          INSUFFICIENT-DATA actual 0.000 (0/1)        ≤ 0.25  (minSample 2)
+? notAffectedConfirmation    INSUFFICIENT-DATA actual 0.000 (0/1)        ≥ 0.50  (minSample 2)
+? observedAgreement          INSUFFICIENT-DATA actual 0.000 (0/2)        ≥ 0.75  (minSample 4)
+✗ pipelineFailures           FAIL              actual 1 (of 1)           ≤ 0.00  (minSample 0)
+? reproducibility            INSUFFICIENT-DATA actual n/a (0/0)          ≥ 1.00  (minSample 1)
+? unresolvedRate             INSUFFICIENT-DATA actual 1.000 (2/2)        ≤ 0.50  (minSample 4)
+? unsafeEligibilityRate      INSUFFICIENT-DATA actual n/a (0/0)          ≤ 0.00  (minSample 1)
+
+autonomy (§6.3): eligible=false — observed not-affected 1, observed affected 1
+    falseNegativeRate is INSUFFICIENT-DATA
+    unsafeEligibilityRate is INSUFFICIENT-DATA
+    citationResolution is INSUFFICIENT-DATA
+    reproducibility is INSUFFICIENT-DATA
+    pipelineFailures is FAIL
+    1 observed not-affected decisions < 20
+    1 observed affected/potentially-affected decisions < 20
