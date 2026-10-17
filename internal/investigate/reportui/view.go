@@ -438,8 +438,10 @@ type ReviewEvent struct {
 // AuditRow is one hash-chained audit event.
 type AuditRow struct {
 	domain.AuditEvent
-	Digest string
-	OK     bool
+	Digest   string
+	OK       bool
+	Shown    []string // the first refs (the full list is in the run record)
+	MoreRefs int
 }
 
 // ArtifactReader reads artifact bytes (nil: none available).
@@ -561,7 +563,10 @@ func Build(ctx context.Context, rec *Record, links Links, has func(digest string
 	var last time.Time
 	v.ChainOK = len(inv.Audit) > 0
 	for i, e := range inv.Audit {
-		row := AuditRow{AuditEvent: e, Digest: e.Digest(), OK: true}
+		row := AuditRow{AuditEvent: e, Digest: e.Digest(), OK: true, Shown: e.Refs}
+		if len(e.Refs) > 4 {
+			row.Shown, row.MoreRefs = e.Refs[:4], len(e.Refs)-4
+		}
 		if e.Seq != i+1 {
 			row.OK = false
 			v.ChainErr = append(v.ChainErr, fmt.Sprintf("event %d has seq %d (must be contiguous from 1)", i+1, e.Seq))

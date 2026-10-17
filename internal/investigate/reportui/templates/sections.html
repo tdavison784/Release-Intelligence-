@@ -49,7 +49,7 @@
     <dt>Change record</dt><dd class="mono small">{{$v.ChangeRecord}}</dd>
   </dl>
   <h3>Collection status of the change evidence</h3>
-  <table><tbody>{{range $v.Release.Sources}}<tr><td class="mono small">{{.Name}}</td><td><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}{{if .Artifacts}} <span class="muted">({{.Artifacts}} artifact{{if ne .Artifacts 1}}s{{end}})</span>{{end}}</td></tr>{{end}}</tbody></table>
+  <table><tbody>{{range $v.Release.Sources}}<tr><td class="mono small nm">{{.Name}}</td><td class="nm"><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}{{if .Artifacts}} <span class="muted">({{.Artifacts}} artifact{{if ne .Artifacts 1}}s{{end}})</span>{{end}}</td></tr>{{end}}</tbody></table>
 </section>
 <section class="panel" id="environment">
   <h2>Environment</h2>
@@ -62,7 +62,7 @@
     <dt>Snapshot</dt><dd class="mono small">{{$v.Snapshot}}{{with $v.Environment.Facts}} · facts {{template "artifact" .}}{{end}}</dd>
   </dl>
   <h3>Inputs</h3>
-  <table><tbody>{{range $v.Environment.Inputs}}<tr><td class="mono small">{{.Name}}</td><td class="mono small">{{.Where}}</td><td><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}</td></tr>{{end}}</tbody></table>
+  <table><tbody>{{range $v.Environment.Inputs}}<tr><td class="mono small nm">{{.Name}}</td><td class="mono small nm">{{.Where}}</td><td class="nm"><span class="badge {{.Tone}}">{{.Status}}</span></td><td class="small">{{.Reason}}</td></tr>{{end}}</tbody></table>
 </section>
 </div>
 
@@ -72,8 +72,8 @@
   {{if $v.Checked.Renders}}<div class="tablewrap"><table>
     <thead><tr><th>Target</th><th>Scope</th><th>Status</th><th>Rendered changes</th><th>Artifacts</th></tr></thead>
     <tbody>{{range $v.Checked.Renders}}<tr>
-      <td class="mono small">{{.Target}}</td><td class="small">{{.Scope}}</td>
-      <td><span class="badge {{.Tone}}">{{.Status}}</span>{{if .Reason}}<div class="small muted">{{.Reason}}</div>{{end}}</td>
+      <td class="mono small">{{.Target}}</td><td class="small nm">{{.Scope}}</td>
+      <td style="min-width:12rem"><span class="badge {{.Tone}}">{{.Status}}</span>{{if .Reason}}<div class="small muted">{{.Reason}}</div>{{end}}</td>
       <td class="small n">{{.Changes}}{{if .Changes}}{{if .Unc}} · {{.Correlated}} explained, <b style="color:var(--danger)">{{.Unc}} unexplained</b>{{else}} · all explained by change items{{end}}{{end}}</td>
       <td class="small">{{with .From}}from {{template "artifact" .}}<br>{{end}}{{with .To}}to {{template "artifact" .}}<br>{{end}}{{with .Diff}}diff {{template "artifact" .}}{{end}}</td>
     </tr>{{end}}</tbody></table></div>{{else}}<p class="muted small">No render recorded.</p>{{end}}
@@ -81,7 +81,7 @@
   <h3>Validators run ({{$v.Checked.Validated}} record{{if ne $v.Checked.Validated 1}}s{{end}})</h3>
   {{if $v.Checked.Validators}}<div class="tablewrap"><table>
     <thead><tr><th>Validator</th><th>Level</th><th>Pass</th><th>Fail</th><th>Inconclusive</th><th>Not run</th></tr></thead>
-    <tbody>{{range $v.Checked.Validators}}<tr><td class="mono small">{{.Name}}</td><td class="small">{{.Level}}</td>
+    <tbody>{{range $v.Checked.Validators}}<tr><td class="mono small nm">{{.Name}}</td><td class="small">{{.Level}}</td>
       <td class="n">{{.Pass}}</td><td class="n">{{if .Fail}}<b style="color:var(--danger)">{{.Fail}}</b>{{else}}0{{end}}</td><td class="n">{{.Error}}</td><td class="n">{{.NotRun}}</td></tr>{{end}}</tbody>
   </table></div>{{else}}<p class="muted small">No validation ran.</p>{{end}}
 
@@ -180,8 +180,8 @@
   {{range $v.ChainErr}}<div class="flash flash-error small">{{.}}</div>{{end}}
   <div class="tablewrap"><table class="audit">
     <thead><tr><th>#</th><th>When</th><th>Stage</th><th>Event</th><th>Who</th><th>Detail</th><th>Prev → digest</th></tr></thead>
-    <tbody>{{range $v.Audit}}<tr{{if not .OK}} class="bad"{{end}}><td class="n">{{.Seq}}</td><td class="n">{{date .At}}</td><td>{{.Stage}}</td><td>{{.Event}}</td><td>{{.Actor}}</td>
-      <td>{{.Detail}}{{if .Refs}} <span class="muted mono">[{{join .Refs ", "}}]</span>{{end}}</td><td class="hash">{{if .Prev}}{{short .Prev}}{{else}}—{{end}}<br>{{short .Digest}}</td></tr>{{end}}</tbody>
+    <tbody>{{range $v.Audit}}<tr{{if not .OK}} class="bad"{{end}}><td class="n nm">{{.Seq}}</td><td class="n nm">{{date .At}}</td><td class="nm">{{.Stage}}</td><td class="nm">{{.Event}}</td><td class="nm">{{.Actor}}</td>
+      <td>{{.Detail}}{{if .Shown}} <span class="muted mono">[{{join .Shown ", "}}{{if .MoreRefs}}, … +{{.MoreRefs}} more{{end}}]</span>{{end}}</td><td class="hash">{{if .Prev}}{{short .Prev}}{{else}}—{{end}}<br>{{short .Digest}}</td></tr>{{end}}</tbody>
   </table></div>
 </section>
 
