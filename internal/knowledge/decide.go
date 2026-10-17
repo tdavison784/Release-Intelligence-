@@ -3,6 +3,7 @@ package knowledge
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -96,7 +97,7 @@ func candidateState(seed map[domain.Aspect]aspectState, vs []domain.ValidationRe
 		if fin == nil {
 			continue
 		}
-		for _, x := range item.Aspects() {
+		for _, x := range d.Verifies(item) {
 			if !fin.Has(x) {
 				continue
 			}
@@ -703,6 +704,11 @@ func validateDecisions(snap *Snapshot, ds []domain.ReviewDecision) error {
 			}
 			if len(it.Aspects()) == 0 {
 				errs = append(errs, fmt.Errorf("knowledge: decision %s: a %s item verifies nothing; reject, defer or need-more-evidence", d.ID, it.QuestionType))
+			}
+			for _, x := range d.Aspects {
+				if !slices.Contains(it.Aspects(), x) {
+					errs = append(errs, fmt.Errorf("knowledge: decision %s records aspect %s, which a %s question does not verify", d.ID, x, it.QuestionType))
+				}
 			}
 		}
 		if d.BatchID != "" {

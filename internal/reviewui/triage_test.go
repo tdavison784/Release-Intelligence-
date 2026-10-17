@@ -438,7 +438,7 @@ func TestVersionRangeLimitsBlockingToInvestigatedUpgrades(t *testing.T) {
 	}
 }
 
-func TestUnreviewedPinFactsAreFoundUntilAnAuditExists(t *testing.T) {
+func TestUnreviewedPinFactsAreFoundUntilAWholeFactItemExists(t *testing.T) {
 	sc := BlockingScope{Products: []domain.ProductID{"p"}}
 	a := domain.SemanticAssertion{
 		Subject: &domain.Subject{Family: domain.SubjectCLIFlag, Product: "p", Name: "f"},
@@ -450,8 +450,14 @@ func TestUnreviewedPinFactsAreFoundUntilAnAuditExists(t *testing.T) {
 	if got := UnreviewedPinFacts(snap, sc); len(got) != 1 {
 		t.Fatalf("got %d", len(got))
 	}
+	// an audit (classification) item verifies only the consequence: the fact
+	// still needs its whole-fact item
 	snap.ReviewItems = []domain.ReviewItem{{ID: domain.ReviewItemID("c", domain.QuestionClassification, a)}}
+	if got := UnreviewedPinFacts(snap, sc); len(got) != 1 {
+		t.Errorf("only an audit item exists: %d", len(got))
+	}
+	snap.ReviewItems = append(snap.ReviewItems, domain.ReviewItem{ID: domain.ReviewItemID("c", domain.QuestionFactReview, a)})
 	if got := UnreviewedPinFacts(snap, sc); len(got) != 0 {
-		t.Errorf("an audit item exists: %d", len(got))
+		t.Errorf("a whole-fact item exists: %d", len(got))
 	}
 }
