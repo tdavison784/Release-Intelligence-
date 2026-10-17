@@ -59,26 +59,56 @@ func TestRenderDiffIncompleteIsNotRun(t *testing.T) {
 	wantOutcome(t, r, domain.ValidationNotRun, "valuesFrom outside the repository")
 }
 
-func TestRenderDiffBreakingEffectFails(t *testing.T) {
-	f, item := renderFx(t)
-	ids := f.pair("argocd:apps/a.yaml", controller("--mode=safe"), controller("--mode=fast"),
-		rc("container-arg-changed", deployKey, "spec.template.spec.containers[name=controller].args", `"--mode=safe"`, `"--mode=fast"`, "values-default", item))
-	f.brokenPair("argocd:apps/b.yaml", "chart-unavailable")
-	b := f.bundle()
-	g, tr, dep, p := withGraph(t, b, item)
-	r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, Graph: g, Traversal: tr, ChangeItem: item}))
-	wantOutcome(t, r, domain.ValidationFail, "reaches the environment's rendered deployment")
-	if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] || !contains(r.Subjects, dep) || !contains(r.Paths, p) {
-		t.Fatalf("fail must cite the rendered change, its node and path: %+v", r)
+// Exposure is not failure: a breaking item's effect reaching the rendered
+// deployment, with no concrete failure, is inconclusive (error) — R3, never
+// R1 — and the record names the exposure, its node and path.
+func TestRenderDiffExposureIsInconclusive(t *testing.T) {
+	for _, store := range []bool{false, true} {
+		t.Run(map[bool]string{false: "no store", true: "store"}[store], func(t *testing.T) {
+			f, item := renderFx(t)
+			ids := f.pair("argocd:apps/a.yaml", controller("--mode=safe"), controller("--mode=fast"),
+				rc("container-arg-changed", deployKey, "spec.template.spec.containers[name=controller].args", `"--mode=safe"`, `"--mode=fast"`, "values-default", item))
+			f.brokenPair("argocd:apps/b.yaml", "chart-unavailable")
+			b := f.bundle()
+			g, tr, dep, p := withGraph(t, b, item)
+			var opts []Option
+			want := "could not run: no artifact store"
+			if store {
+				opts, want = append(opts, WithStore(f.st)), "no concrete failure found"
+			}
+			r := one(t, run(t, RenderDiff(opts...), investigate.ValidationInput{Bundle: b, Graph: g, Traversal: tr, ChangeItem: item}))
+			wantOutcome(t, r, domain.ValidationError, "exposure: container-arg-changed spec.template.spec.containers[name=controller].args reaches "+deployKey)
+			wantOutcome(t, r, domain.ValidationError, want)
+			if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] || !contains(r.Subjects, dep) || !contains(r.Paths, p) {
+				t.Fatalf("the exposure record must cite the rendered change, its node and path: %+v", r)
+			}
+		})
 	}
 }
 
-func TestRenderDiffBehaviourItemCanFail(t *testing.T) {
-	f, item := renderFx(t, behaviour)
-	f.pair("argocd:apps/a.yaml", controller(), controller("--mode=fast"),
-		rc("container-arg-added", deployKey, "spec.template.spec.containers[name=controller].args", "", `"--mode=fast"`, "subject", item))
-	b := f.bundle()
-	wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationFail, "")
+// Every shape of a strongly correlated effect is inconclusive without a
+// concrete failure: behaviour items, non-breaking items, multi-rule
+// correlations — the same rendered change gets the same outcome whatever the
+// item's breaking flag (two environments are told apart by consequences).
+func TestRenderDiffEffectShapesAreInconclusive(t *testing.T) {
+	cases := []struct {
+		name string
+		mods []func(*domain.ChangeItem)
+		corr string
+	}{
+		{"behaviour item", []func(*domain.ChangeItem){behaviour}, "subject"},
+		{"non-breaking item", []func(*domain.ChangeItem){notBreaking}, "subject"},
+		{"multi-rule correlation", nil, "mentions-field,values-default"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			f, item := renderFx(t, c.mods...)
+			f.pair("argocd:apps/a.yaml", controller(), controller("--mode=fast"),
+				rc("container-arg-added", deployKey, "spec.template.spec.containers[name=controller].args", "", `"--mode=fast"`, c.corr, item))
+			b := f.bundle()
+			wantOutcome(t, one(t, run(t, RenderDiff(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationError, "exposure:")
+		})
+	}
 }
 
 func TestRenderDiffSilentRenderedConfigPasses(t *testing.T) {
@@ -161,7 +191,6 @@ func TestRenderDiffUndecidedShapes(t *testing.T) {
 		corr   string
 		detail string
 	}{
-		{"non-breaking item with an effect", []func(*domain.ChangeItem){notBreaking}, "subject", "not breaking"},
 		{"text-mention correlation", nil, "mentions-name", "text mention"},
 	}
 	for _, c := range cases {
@@ -207,14 +236,6 @@ func TestRenderDiffRequestedChanges(t *testing.T) {
 	}
 }
 
-func TestRenderDiffMultiRuleCorrelation(t *testing.T) {
-	f, item := renderFx(t)
-	f.pair("argocd:apps/a.yaml", controller("--mode=safe"), controller("--mode=fast"),
-		rc("container-arg-changed", deployKey, "spec.template.spec.containers[name=controller].args", `"--mode=safe"`, `"--mode=fast"`, "mentions-field,values-default", item))
-	b := f.bundle()
-	wantOutcome(t, one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item})), domain.ValidationFail, "")
-}
-
 // scope:rendered-unexplained (DESIGN §1.3 amendment): pass only when the
 // environment render positively shows the change does not land; never fail
 // without a concrete failure; otherwise not-run.
@@ -234,7 +255,7 @@ func TestRenderDiffRenderedUnexplained(t *testing.T) {
 			rc("rbac-permission-added", "rbac.authorization.k8s.io/v1/ClusterRole//gizmo", "rules", "", `"secrets/get"`, "release-anchor", item))
 		b := f.bundle()
 		r := one(t, run(t, RenderDiff(), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
-		wantOutcome(t, r, domain.ValidationNotRun, "concrete failure")
+		wantOutcome(t, r, domain.ValidationError, "exposure: rbac-permission-added rules reaches")
 	})
 }
 
@@ -269,7 +290,7 @@ func TestEnvironmentScopeItemGetsRecords(t *testing.T) {
 			if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
 				t.Fatalf("render-diff must speak for the anchoring change: %+v", r.RenderedChanges)
 			}
-			wantOutcome(t, r, domain.ValidationNotRun, "concrete failure")
+			wantOutcome(t, r, domain.ValidationError, "no concrete failure found")
 		}
 	}
 	if total == 0 {

@@ -418,10 +418,15 @@ relationships:
   from: {group: networking.k8s.io, kind: Ingress}
   to: {kind: Secret}
   path: metadata.annotations[nginx.ingress.kubernetes.io/auth-secret]
-  summary: The auth-secret annotation names the Secret holding basic-auth credentials.
+  format: '[namespace/]name'
+  summary: The auth-secret annotation names the Secret holding basic-auth credentials, as secretName (in the Ingress's namespace) or namespace/secretName.
   references:
   - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/nginx-configuration/annotations.md
     quote: 'nginx.ingress.kubernetes.io/auth-secret: secretName'
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/annotations/auth/main.go
+    quote: 'sns, sname, err := cache.SplitMetaNamespaceKey(s)'
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/annotations/auth/main.go
+    quote: 'sns = ing.Namespace'
 - id: auth-tls-secret
   kind: references
   from: {group: networking.k8s.io, kind: Ingress}

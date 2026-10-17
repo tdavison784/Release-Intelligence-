@@ -447,6 +447,223 @@ relationships:
     quote: Label selector to select the Kubernetes `Pod` objects to scrape metrics from.
   - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/podmonitor_types.go
     quote: By default, the pods are discovered in the same namespace as the `PodMonitor` object
+# Secrets and ConfigMaps a monitor endpoint references (credentials, TLS material), always in the
+# monitor's own namespace (the operator reads them with the monitor's namespace and rejects the
+# monitor when one cannot be read). From the v0.80.0 API types and resource selector.
+- id: servicemonitor-authorization
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].authorization.credentials.name
+  summary: A ServiceMonitor's spec.endpoints[].authorization.credentials names the Secret holding the Authorization header credentials, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/prometheus_types.go
+    quote: "Selects a key of a Secret in the namespace that contains the credentials for authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeAuthorizationCredentials(ctx, sm.GetNamespace(), endpoint.Authorization); err != nil {"
+- id: servicemonitor-bearer-token-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].bearerTokenSecret.name
+  summary: A ServiceMonitor's spec.endpoints[].bearerTokenSecret names the Secret holding the bearer token (deprecated field), read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "token for scraping targets. The secret needs to be in the same namespace"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if _, err = rs.store.GetSecretKey(ctx, sm.GetNamespace(), *endpoint.BearerTokenSecret); err != nil {"
+- id: servicemonitor-basic-auth-username
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].basicAuth.username.name
+  summary: A ServiceMonitor's spec.endpoints[].basicAuth.username names the Secret holding the basic-auth username, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "`username` specifies a key of a Secret containing the username for"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddBasicAuth(ctx, sm.GetNamespace(), endpoint.BasicAuth); err != nil {"
+- id: servicemonitor-basic-auth-password
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].basicAuth.password.name
+  summary: A ServiceMonitor's spec.endpoints[].basicAuth.password names the Secret holding the basic-auth password, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "`password` specifies a key of a Secret containing the password for"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddBasicAuth(ctx, sm.GetNamespace(), endpoint.BasicAuth); err != nil {"
+- id: servicemonitor-tls-ca-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].tlsConfig.ca.secret.name
+  summary: A ServiceMonitor's spec.endpoints[].tlsConfig.ca.secret names the Secret holding the CA used to verify the target's certificate, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Certificate authority used when verifying server certificates."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddTLSConfig(ctx, sm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: servicemonitor-tls-ca-configmap
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: ConfigMap}
+  path: spec.endpoints[].tlsConfig.ca.configMap.name
+  summary: A ServiceMonitor's spec.endpoints[].tlsConfig.ca.configMap names the ConfigMap holding the CA used to verify the target's certificate, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Certificate authority used when verifying server certificates."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "ConfigMap containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddTLSConfig(ctx, sm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: servicemonitor-tls-cert-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].tlsConfig.cert.secret.name
+  summary: A ServiceMonitor's spec.endpoints[].tlsConfig.cert.secret names the Secret holding the client certificate, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Client certificate to present when doing client-authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddTLSConfig(ctx, sm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: servicemonitor-tls-cert-configmap
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: ConfigMap}
+  path: spec.endpoints[].tlsConfig.cert.configMap.name
+  summary: A ServiceMonitor's spec.endpoints[].tlsConfig.cert.configMap names the ConfigMap holding the client certificate, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Client certificate to present when doing client-authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "ConfigMap containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddTLSConfig(ctx, sm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: servicemonitor-tls-key-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: ServiceMonitor}
+  to: {kind: Secret}
+  path: spec.endpoints[].tlsConfig.keySecret.name
+  summary: A ServiceMonitor's spec.endpoints[].tlsConfig.keySecret names the Secret holding the client key, read from the ServiceMonitor's own namespace; the operator rejects the ServiceMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing the client key file for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddTLSConfig(ctx, sm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: podmonitor-authorization
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].authorization.credentials.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].authorization.credentials names the Secret holding the Authorization header credentials, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/prometheus_types.go
+    quote: "Selects a key of a Secret in the namespace that contains the credentials for authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeAuthorizationCredentials(ctx, pm.GetNamespace(), endpoint.Authorization); err != nil {"
+- id: podmonitor-bearer-token-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].bearerTokenSecret.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].bearerTokenSecret names the Secret holding the bearer token (deprecated field), read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/podmonitor_types.go
+    quote: "token for scraping targets. The secret needs to be in the same namespace"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if _, err = rs.store.GetSecretKey(ctx, pm.GetNamespace(), endpoint.BearerTokenSecret); err != nil {"
+- id: podmonitor-basic-auth-username
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].basicAuth.username.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].basicAuth.username names the Secret holding the basic-auth username, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "`username` specifies a key of a Secret containing the username for"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddBasicAuth(ctx, pm.GetNamespace(), endpoint.BasicAuth); err != nil {"
+- id: podmonitor-basic-auth-password
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].basicAuth.password.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].basicAuth.password names the Secret holding the basic-auth password, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "`password` specifies a key of a Secret containing the password for"
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddBasicAuth(ctx, pm.GetNamespace(), endpoint.BasicAuth); err != nil {"
+- id: podmonitor-tls-ca-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].tlsConfig.ca.secret.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].tlsConfig.ca.secret names the Secret holding the CA used to verify the target's certificate, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Certificate authority used when verifying server certificates."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeTLSConfig(ctx, pm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: podmonitor-tls-ca-configmap
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: ConfigMap}
+  path: spec.podMetricsEndpoints[].tlsConfig.ca.configMap.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].tlsConfig.ca.configMap names the ConfigMap holding the CA used to verify the target's certificate, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Certificate authority used when verifying server certificates."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "ConfigMap containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeTLSConfig(ctx, pm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: podmonitor-tls-cert-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].tlsConfig.cert.secret.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].tlsConfig.cert.secret names the Secret holding the client certificate, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Client certificate to present when doing client-authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeTLSConfig(ctx, pm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: podmonitor-tls-cert-configmap
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: ConfigMap}
+  path: spec.podMetricsEndpoints[].tlsConfig.cert.configMap.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].tlsConfig.cert.configMap names the ConfigMap holding the client certificate, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Client certificate to present when doing client-authentication."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "ConfigMap containing data to use for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeTLSConfig(ctx, pm.GetNamespace(), endpoint.TLSConfig); err != nil {"
+- id: podmonitor-tls-key-secret
+  kind: references
+  from: {group: monitoring.coreos.com, kind: PodMonitor}
+  to: {kind: Secret}
+  path: spec.podMetricsEndpoints[].tlsConfig.keySecret.name
+  summary: A PodMonitor's spec.podMetricsEndpoints[].tlsConfig.keySecret names the Secret holding the client key, read from the PodMonitor's own namespace; the operator rejects the PodMonitor when it cannot read it.
+  references:
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/apis/monitoring/v1/types.go
+    quote: "Secret containing the client key file for the targets."
+  - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.80.0/pkg/prometheus/resource_selector.go
+    quote: "if err = rs.store.AddSafeTLSConfig(ctx, pm.GetNamespace(), endpoint.TLSConfig); err != nil {"
 
 # Object kinds the controller this product ships reconciles (docs/INVESTIGATE.md "Relationships":
 # the exposure of controller-behaviour changes). Release-level, from upstream documentation.

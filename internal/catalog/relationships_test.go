@@ -107,6 +107,29 @@ func TestSplitFieldPath(t *testing.T) {
 	}
 }
 
+func TestSplitListFieldPath(t *testing.T) {
+	for in, want := range map[string]string{
+		"spec.secretName": "spec|secretName",
+		"spec.endpoints[].tlsConfig.ca.secret.name": "spec|endpoints|[]|tlsConfig|ca|secret|name",
+		"spec.a[].b[].c":                     "spec|a|[]|b|[]|c",
+		"metadata.annotations[example.io/x]": "metadata|annotations|example.io/x",
+	} {
+		got, err := SplitListFieldPath(in)
+		if err != nil || strings.Join(got, "|") != want {
+			t.Errorf("%q = %v %v, want %s", in, got, err, want)
+		}
+	}
+	for _, bad := range []string{"[]", "[].a", "a[][]", "a[]b", "a.[]", "a[", "a[]."} {
+		if _, err := SplitListFieldPath(bad); err == nil {
+			t.Errorf("%q accepted", bad)
+		}
+	}
+	// only a relationship's path iterates lists
+	if _, err := SplitFieldPath("spec.a[].b"); err == nil {
+		t.Error("SplitFieldPath accepted []")
+	}
+}
+
 func TestRelationshipsSchemaAndParse(t *testing.T) {
 	schema := compileSchema(t, filepath.Join("..", "..", "schemas", "product-definition.schema.json"))
 	doc := `apiVersion: ri.dev/v1alpha1

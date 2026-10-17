@@ -159,10 +159,10 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 	validators := func(rep *domain.ImpactReport) []investigate.Validator {
 		vs := []investigate.Validator{
 			validate.JoinVerdicts(rep, validate.WithStore(st)),
-			validate.RenderDiff(validate.WithStore(st)),
+			validate.RenderDiff(validate.WithStore(st), validate.WithRelations(relations.WithCatalog(a.Catalog))),
 			validate.OverrideInspection(validate.WithStore(st), validate.WithFacts(facts...)),
 			validate.SchemaCompat(validate.WithStore(st)),
-			validate.StaticReference(validate.WithStore(st)),
+			validate.StaticReference(validate.WithStore(st), validate.WithRelations(relations.WithCatalog(a.Catalog))),
 		}
 		if rtv != nil {
 			vs = append(vs, rtv)

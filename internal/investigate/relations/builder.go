@@ -204,6 +204,8 @@ type gb struct {
 	objNode   map[*object]*gnode
 	env       *environment
 	rels      []rel
+	// view, when set, records every reference as it is resolved (View).
+	view *refView
 }
 
 func (g *gb) node(kind domain.NodeKind, id render.ObjectID, key string, artifact string) *gnode {
@@ -269,11 +271,23 @@ func (bd *builder) BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*d
 	if b == nil {
 		return nil, fmt.Errorf("relations: nil bundle: %w", investigate.ErrRejected)
 	}
-	env, err := load(ctx, b, bd.st)
+	g, err := bd.build(ctx, b, SideTo, nil)
 	if err != nil {
 		return nil, err
 	}
-	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels}
+	return g.finish(), nil
+}
+
+// build reads the environment at one side and adds every node and edge. A
+// reference view (v non-nil) sees only objects that exist at that side: the
+// graph's extra nodes for objects of rendered changes (removed objects, so
+// they can be roots) would make references to them resolve.
+func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Side, v *refView) (*gb, error) {
+	env, err := load(ctx, b, bd.st, side)
+	if err != nil {
+		return nil, err
+	}
+	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels, view: v}
 
 	env.cluster = clusterKinds(env.objects, bd.rels)
 	applyNamespaces(env)
@@ -283,10 +297,12 @@ func (bd *builder) BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*d
 	for _, o := range objs {
 		g.objectNode(o)
 	}
-	for _, p := range b.Renders {
-		for _, c := range p.Changes {
-			if id, ok := parseObjectKey(c.Object); ok && g.find(id.String()) == nil {
-				g.node(classify(id), id, id.String(), p.Diff)
+	if v == nil {
+		for _, p := range b.Renders {
+			for _, c := range p.Changes {
+				if id, ok := parseObjectKey(c.Object); ok && g.find(id.String()) == nil {
+					g.node(classify(id), id, id.String(), p.Diff)
+				}
 			}
 		}
 	}
@@ -306,8 +322,7 @@ func (bd *builder) BuildGraph(ctx context.Context, b *domain.EvidenceBundle) (*d
 	g.selectorEdges()
 	g.relationshipSelectEdges()
 	g.apiEdges()
-
-	return g.finish(), nil
+	return g, nil
 }
 
 // clusterKinds is the set of kinds known to be cluster-scoped: the built-in

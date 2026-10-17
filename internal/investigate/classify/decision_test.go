@@ -217,6 +217,50 @@ func TestActionRequiredContract(t *testing.T) {
 	})
 }
 
+// impact:not-joined says the join does not evaluate the change (every
+// declared change gets it): it never blocks R2 by itself — the item is
+// cleared by the investigation's own validations — but it stays listed when
+// the item is not cleared. Any other unknown join keeps blocking.
+func TestNotJoinedJoinIsNoR2Blocker(t *testing.T) {
+	notJoined := func(in *investigate.ClassifyInput, change string) {
+		in.Report = &domain.ImpactReport{Findings: []domain.ImpactFinding{{ID: "imf-nj", ChangeID: change, Classification: domain.ImpactUnknown,
+			Rule: "impact:not-joined", UnknownReason: domain.UnknownReleaseKnowledgeGap,
+			NeededToDetermine: []string{"no machine-comparable subject (declared change)"}}}}
+	}
+	t.Run("cleared item", func(t *testing.T) {
+		c := newClean(t)
+		in := c.f.in(c.tr, nil, c.pass)
+		it, _ := in.Bundle.Item(c.item)
+		notJoined(&in, it.ChangeID)
+		cls, _ := run(t, in)
+		if f := finding(t, cls, c.item); f.Class != domain.FindingNotAffected || hasGap(f, domain.GapValidation, "imf-nj") {
+			t.Fatalf("a not-joined join blocked an otherwise cleared item: %s %+v", f.Class, f.Gaps)
+		}
+	})
+	t.Run("not cleared for another reason", func(t *testing.T) {
+		c := newClean(t)
+		in := c.f.in(c.tr, nil) // no passing validation
+		it, _ := in.Bundle.Item(c.item)
+		notJoined(&in, it.ChangeID)
+		cls, _ := run(t, in)
+		f := finding(t, cls, c.item)
+		if f.Class == domain.FindingNotAffected || !hasGap(f, domain.GapValidation, "imf-nj") || !anyContains(f.NextSteps, "machine-comparable") {
+			t.Fatalf("the not-joined gap must be listed on an uncleared item: %s %+v %v", f.Class, f.Gaps, f.NextSteps)
+		}
+	})
+	t.Run("other unknown rule still blocks", func(t *testing.T) {
+		c := newClean(t)
+		in := c.f.in(c.tr, nil, c.pass)
+		it, _ := in.Bundle.Item(c.item)
+		notJoined(&in, it.ChangeID)
+		in.Report.Findings[0].Rule = "impact:values-unknown"
+		cls, _ := run(t, in)
+		if f := finding(t, cls, c.item); f.Class == domain.FindingNotAffected {
+			t.Fatal("an unknown join with another rule must keep blocking R2")
+		}
+	})
+}
+
 // --- reproducibility ---------------------------------------------------------------------
 
 // Same inputs ⇒ same findings (digests), regardless of record order; a run
