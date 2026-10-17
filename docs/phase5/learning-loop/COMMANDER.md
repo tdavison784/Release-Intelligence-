@@ -15,14 +15,16 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| pins | ri-pins | Opus | p5ll/pins | .claude/worktrees/p5ll-pins | w1:t1P | working (started 07:53) |
-| coverage | ri-coverage | Opus | p5ll/coverage | .claude/worktrees/p5ll-coverage | w1:t1Q | working |
+| pins | ri-pins | Opus | p5ll/pins | .claude/worktrees/p5ll-pins | w1:t1P | review: fail-open sent back 08:20 (value predicate on unset field with no CRD default decided, must be undecidable) |
+| coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | .claude/worktrees/p5ll-verdict | w1:t1R | working |
 | verify | ri-verify | Opus | p5ll/verify | .claude/worktrees/p5ll-verify | w1:t1S | working |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED) | .claude/worktrees/p5ll-groundtruth5 | w1:t1T | working |
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log
+
+- 2026-10-17 ef6b8d04 coverage: `namespaceFrom` on relationship rules (controller flag + documented default + citations; undecidable ⇒ edge stays inferred), cert-manager ClusterIssuer CA-secret rule declares --cluster-resource-namespace; validate.render-diff@v2 documentation-only pass; classify.policy@v2 counts it for R2.2 only (v1 still honoured for stored runs). Reviewed policy diff: doc-only excluded from counts(), re-checked against bundle. Green. Cleaned up (tab w1:t1Q, worktree, branch -d). Follow-ups: DESIGN §2.5/§2.6/§3.1 R2.4 wording proposed in its status (commander applies); stored run C-20261016T234455Z-aa06720656 re-classifies 6/8 at base too (pre-existing; W-0022).
 
 - 2026-10-17 e5b3afa7 eval5 wave 1: knowledgeDigest/knowledgeLive in run.json, `-knowledge` mandatory (live tree refused unless -allow-live-knowledge), snapshot.sh + kbad (S3 a–h), ungated agent-verdict table (correct/false-safe/false-alarm/hedged/overstated/no-verdict; stub until verdict merges), `-compare` tables, A0-K0-20261017-bfebde39 (K0 digest sha256:672a7ce0…; 24/24 item decisions identical to Phase 4 arm A; payments-us B1 potentially-affected). Green. Worktree kept. Note: lane deleted one uncommitted earlier A0 run from a pre-commit binary (never cited).
 
