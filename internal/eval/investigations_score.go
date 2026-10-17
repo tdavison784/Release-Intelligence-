@@ -29,6 +29,9 @@ type InvRun struct {
 	// byte for byte; nil = not checked.
 	Reproduced      *bool
 	ReproduceDetail string
+	// Verdicts are the agent's provisional verdicts (arm B); scored in a
+	// separate, ungated table and never read by the policy metrics.
+	Verdicts []VerdictInput
 	// Error is set when the pipeline failed instead of classifying.
 	Error string
 }
