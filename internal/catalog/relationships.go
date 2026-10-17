@@ -52,7 +52,8 @@ type Relationship struct {
 	Summary string `yaml:"summary" json:"summary"`
 	// Path is the field of From holding the name (produces, references):
 	// dotted keys, a key containing dots or slashes in brackets, e.g.
-	// spec.secretName or metadata.annotations[example.io/secret].
+	// spec.secretName or metadata.annotations[example.io/secret]; `[]` after a
+	// key stands for every element of that list (spec.endpoints[].tlsConfig.ca.secret.name).
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 	// Format of the name at Path: "name" (default; the namespace is the
 	// namespace of From) or "namespace/name".
@@ -77,7 +78,17 @@ type Relationship struct {
 
 // SplitFieldPath parses a relationship field path into keys: dot-separated
 // keys, or a key in brackets (which may contain dots and slashes).
-func SplitFieldPath(p string) ([]string, error) {
+func SplitFieldPath(p string) ([]string, error) { return splitFieldPath(p, false) }
+
+// ListElements is the key SplitListFieldPath returns for `[]`.
+const ListElements = "[]"
+
+// SplitListFieldPath is SplitFieldPath that also accepts `[]` after a key:
+// every element of that list (returned as the key ListElements). Only a
+// relationship's Path may iterate lists.
+func SplitListFieldPath(p string) ([]string, error) { return splitFieldPath(p, true) }
+
+func splitFieldPath(p string, lists bool) ([]string, error) {
 	bad := func(why string) ([]string, error) { return nil, fmt.Errorf("field path %q: %s", p, why) }
 	if p == "" || strings.TrimSpace(p) != p {
 		return bad("empty or surrounded by whitespace")
@@ -86,6 +97,9 @@ func SplitFieldPath(p string) ([]string, error) {
 	i := 0
 	for i < len(p) {
 		switch {
+		case lists && strings.HasPrefix(p[i:], "[]") && len(out) > 0 && out[len(out)-1] != ListElements && p[i-1] != '.':
+			out = append(out, ListElements)
+			i += 2
 		case p[i] == '[':
 			j := strings.IndexByte(p[i:], ']')
 			if j < 2 {
@@ -149,7 +163,11 @@ func (v *validator) relationships(d *ProductDefinition) {
 		}
 		for _, f := range []struct{ name, val string }{{"path", r.Path}, {"selectorPath", r.SelectorPath}, {"namespaceSelectorPath", r.NamespaceSelectorPath}, {"whenPath", r.WhenPath}} {
 			if f.val != "" {
-				if _, err := SplitFieldPath(f.val); err != nil {
+				split := SplitFieldPath
+				if f.name == "path" {
+					split = SplitListFieldPath
+				}
+				if _, err := split(f.val); err != nil {
 					v.errf(p+"."+f.name, "%v", err)
 				}
 			}

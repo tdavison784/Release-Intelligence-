@@ -302,6 +302,13 @@ func producesDetail(p producer) string { return p.detail }
 
 // link adds a references edge target → referrer.
 func (g *gb) link(referrer *gnode, group, kind, name, ns, rule, detail string) {
+	g.linkRef(referrer, group, kind, name, ns, rule, detail, false)
+}
+
+// linkRef is link for a reference that may be optional (its absence is
+// tolerated: a key selector or volume source with optional: true, an image
+// pull secret). The graph treats both alike; a reference view records it.
+func (g *gb) linkRef(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool) {
 	groupStated := group != anyGroup
 	target, status, reason := g.resolve(group, groupStated, kind, name, ns)
 	if target == nil {
@@ -310,6 +317,9 @@ func (g *gb) link(referrer *gnode, group, kind, name, ns, rule, detail string) {
 	art := ""
 	if referrer.obj != nil {
 		art = referrer.obj.artifact
+	}
+	if g.view != nil {
+		g.view.record(g, referrer, group, groupStated, kind, name, ns, rule, detail, optional, target, status, reason)
 	}
 	g.edge(domain.EdgeReferences, target, referrer, status, rule, detail, reason, art)
 }
@@ -356,19 +366,24 @@ func (g *gb) podRefs(n *gnode) {
 		return
 	}
 	ns := n.effNS
-	ref := func(kind, name, rule, detail string) {
-		if name != "" {
-			g.link(n, "", kind, name, ns, ruleRefs+rule, prefix+"."+detail)
+	// ref links the name at keys of v; sel is the selector holding the name
+	// (its optional: true makes the reference optional).
+	ref := func(kind string, v any, keys []string, rule, detail string) {
+		name := str(v, keys...)
+		if name == "" {
+			return
 		}
+		opt, _ := get(v, append(keys[:len(keys)-1:len(keys)-1], "optional")...).(bool)
+		g.linkRef(n, "", kind, name, ns, ruleRefs+rule, prefix+"."+detail, opt)
 	}
 	for i, v := range asSeq(spec["volumes"]) {
 		vn := str(v, "name")
 		at := func(s string) string { return fmt.Sprintf("volumes[%d:%s].%s", i, vn, s) }
-		ref("Secret", str(v, "secret", "secretName"), "volumes.secret", at("secret.secretName"))
-		ref("ConfigMap", str(v, "configMap", "name"), "volumes.configMap", at("configMap.name"))
+		ref("Secret", v, []string{"secret", "secretName"}, "volumes.secret", at("secret.secretName"))
+		ref("ConfigMap", v, []string{"configMap", "name"}, "volumes.configMap", at("configMap.name"))
 		for j, src := range asSeq(get(v, "projected", "sources")) {
-			ref("Secret", str(src, "secret", "name"), "volumes.projected", at(fmt.Sprintf("projected.sources[%d].secret.name", j)))
-			ref("ConfigMap", str(src, "configMap", "name"), "volumes.projected", at(fmt.Sprintf("projected.sources[%d].configMap.name", j)))
+			ref("Secret", src, []string{"secret", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].secret.name", j)))
+			ref("ConfigMap", src, []string{"configMap", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].configMap.name", j)))
 		}
 	}
 	for _, field := range []string{"initContainers", "containers", "ephemeralContainers"} {
@@ -376,13 +391,13 @@ func (g *gb) podRefs(n *gnode) {
 			cn := str(c, "name")
 			for j, e := range asSeq(asMap(c)["env"]) {
 				at := fmt.Sprintf("%s[%d:%s].env[%d:%s].valueFrom", field, i, cn, j, str(e, "name"))
-				ref("Secret", str(e, "valueFrom", "secretKeyRef", "name"), "env.secretKeyRef", at+".secretKeyRef.name")
-				ref("ConfigMap", str(e, "valueFrom", "configMapKeyRef", "name"), "env.configMapKeyRef", at+".configMapKeyRef.name")
+				ref("Secret", e, []string{"valueFrom", "secretKeyRef", "name"}, "env.secretKeyRef", at+".secretKeyRef.name")
+				ref("ConfigMap", e, []string{"valueFrom", "configMapKeyRef", "name"}, "env.configMapKeyRef", at+".configMapKeyRef.name")
 			}
 			for j, e := range asSeq(asMap(c)["envFrom"]) {
 				at := fmt.Sprintf("%s[%d:%s].envFrom[%d]", field, i, cn, j)
-				ref("Secret", str(e, "secretRef", "name"), "envFrom.secretRef", at+".secretRef.name")
-				ref("ConfigMap", str(e, "configMapRef", "name"), "envFrom.configMapRef", at+".configMapRef.name")
+				ref("Secret", e, []string{"secretRef", "name"}, "envFrom.secretRef", at+".secretRef.name")
+				ref("ConfigMap", e, []string{"configMapRef", "name"}, "envFrom.configMapRef", at+".configMapRef.name")
 			}
 		}
 	}
@@ -390,9 +405,14 @@ func (g *gb) podRefs(n *gnode) {
 	if sa == "" {
 		sa = str(spec, "serviceAccount")
 	}
-	ref("ServiceAccount", sa, "serviceAccountName", "serviceAccountName")
+	if sa != "" {
+		g.link(n, "", "ServiceAccount", sa, ns, ruleRefs+"serviceAccountName", prefix+".serviceAccountName")
+	}
+	// The kubelet pulls without a missing pull secret (and warns): optional.
 	for i, s := range asSeq(spec["imagePullSecrets"]) {
-		ref("Secret", str(s, "name"), "imagePullSecrets", fmt.Sprintf("imagePullSecrets[%d].name", i))
+		if name := str(s, "name"); name != "" {
+			g.linkRef(n, "", "Secret", name, ns, ruleRefs+"imagePullSecrets", prefix+"."+fmt.Sprintf("imagePullSecrets[%d].name", i), true)
+		}
 	}
 }
 
@@ -473,8 +493,16 @@ func (g *gb) refFields(n *gnode) {
 func (g *gb) covered(o *object, p string) bool {
 	p = strings.TrimPrefix(p, ".")
 	for _, r := range g.rels {
-		if r.r.Kind == catalog.RelReferences && g.matches(r, o) && r.r.Path == p {
+		if r.r.Kind != catalog.RelReferences || !g.matches(r, o) {
+			continue
+		}
+		if r.r.Path == p {
 			return true
+		}
+		for _, ref := range readNames(o, r.r, "") {
+			if ref.field == p {
+				return true
+			}
 		}
 	}
 	return false
@@ -564,21 +592,40 @@ func (g *gb) apiEdges() {
 
 // --- producers --------------------------------------------------------------------------------
 
-// readName reads the name (and namespace, for namespace/name) a relationship
-// field holds in an object.
-func readName(o *object, path []string, format, defaultNS string) (ns, name string) {
-	v, _ := get(o.body, path...).(string)
-	if v == "" {
-		return "", ""
+// readNames reads the names (and namespaces, for namespace/name) a
+// relationship field holds in an object, with the concrete field path of
+// each and whether the reference is optional (a Kubernetes key selector's
+// `optional: true` next to the name).
+func readNames(o *object, r catalog.Relationship, defaultNS string) []namedRef {
+	keys, err := catalog.SplitListFieldPath(r.Path)
+	if err != nil {
+		return nil
 	}
-	if format == catalog.RelFormatNamespaceName {
-		i := strings.Index(v, "/")
-		if i <= 0 || i == len(v)-1 {
-			return "", ""
+	var out []namedRef
+	for _, fv := range fieldValues(o.body, keys, r.Path) {
+		v, _ := fv.v.(string)
+		if v == "" {
+			continue
 		}
-		return v[:i], v[i+1:]
+		ref := namedRef{field: fv.path, ns: defaultNS, name: v}
+		if opt, _ := fv.parent["optional"].(bool); opt {
+			ref.optional = true
+		}
+		if r.Format == catalog.RelFormatNamespaceName {
+			i := strings.Index(v, "/")
+			if i <= 0 || i == len(v)-1 {
+				continue
+			}
+			ref.ns, ref.name = v[:i], v[i+1:]
+		}
+		out = append(out, ref)
 	}
-	return defaultNS, v
+	return out
+}
+
+type namedRef struct {
+	field, ns, name string
+	optional        bool
 }
 
 func (g *gb) matches(r rel, o *object) bool {
@@ -611,16 +658,10 @@ func (g *gb) indexProducers(rels []rel) {
 			if r.r.Kind != catalog.RelProduces || !g.matches(r, o) {
 				continue
 			}
-			path, err := catalog.SplitFieldPath(r.r.Path)
-			if err != nil {
-				continue
+			for _, ref := range readNames(o, r.r, n.effNS) {
+				declared = true
+				g.addProducer(r.r.To.Kind, ref.ns, ref.name, producer{node: n, rule: r.id, declared: true, detail: ref.field})
 			}
-			ns, name := readName(o, path, r.r.Format, n.effNS)
-			if name == "" {
-				continue
-			}
-			declared = true
-			g.addProducer(r.r.To.Kind, ns, name, producer{node: n, rule: r.id, declared: true, detail: r.r.Path})
 		}
 		if !declared && n.n.Kind == domain.NodeCustomResource {
 			if name := str(o.body, "spec", "secretName"); name != "" {
@@ -636,13 +677,8 @@ func (g *gb) relationshipRefs(n *gnode) {
 		if r.r.Kind != catalog.RelReferences || !g.matches(r, n.obj) {
 			continue
 		}
-		path, err := catalog.SplitFieldPath(r.r.Path)
-		if err != nil {
-			continue
-		}
-		ns, name := readName(n.obj, path, r.r.Format, n.effNS)
-		if name != "" {
-			g.link(n, r.r.To.Group, r.r.To.Kind, name, ns, r.id, r.r.Path)
+		for _, ref := range readNames(n.obj, r.r, n.effNS) {
+			g.linkRef(n, r.r.To.Group, r.r.To.Kind, ref.name, ref.ns, r.id, ref.field, ref.optional)
 		}
 	}
 }
