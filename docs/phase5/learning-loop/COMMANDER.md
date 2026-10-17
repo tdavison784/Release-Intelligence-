@@ -15,7 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| verify2 | ri-verify2 | Opus | p5ll/verify2 | .claude/worktrees/p5ll-verify2 | w1:t1Z | W-0032 consumer-observation arm + rule intake (F4) |
+| verify2 | ri-verify2 | Opus | p5ll/verify2 | (removed) | (closed) | merged 48a87f69 = F4, cleaned up |
 | prompt8 | ri-prompt8 | Opus | p5ll/prompt8 | (removed) | (closed) | merged 89328b6f = F3, cleaned up |
 | redact | ri-redact | Opus | p5ll/redact | (removed) | (closed) | merged = F2, cleaned up |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
@@ -45,6 +45,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 - 2026-10-17 c36e7de1 eval5 F2 runs: A0-K0-20261017-6d2ae5bf (24/24 decisions = F1) and B0-K0-20261017-6d2ae5bf (8/8 agent ran, 1.06M tokens, 1565 s; policy invariant holds; verdicts 11 correct / 12 hedged / 1 no-verdict / 0 false-safe / 0 false-alarm). F1 runs marked superseded. `-work` non-empty guard (+test). **Zero hypotheses** on all 8 cases; export into a K0 copy is empty. payments-us rotationPolicy items: potentially-affected/medium; the agent saw mesh-root-ca `Never` and leaves unset, but left leaf-key consumers open (the static-reference validation could not run: the leaf Secrets are not in the snapshot) and put its mitigation only in prose `wouldOverturn`. Green (build/vet/test after merge). Worktree kept.
 
 - 2026-10-17 89328b6f prompt8 = **F3**: prompt v8 default (system.md/item.md only; tools.json differs from v7 only in the two environmentBasis texts; v1–v7 digest-pinned). Mitigation = release-level rule recorded whether the env meets it on all/some/none; change vs consequence; wouldOverturn consistency; consumer tracing. Commander decision: environmentBasis = evidence of env state w.r.t. the conditions, met or not (non-empty). Reviewed prompt diff (generic, abstract example only). Smoke shop-fr 125k tokens, well-formed, no hypothesis calls. Lane note: smoke ingestion rewrote 3 ingress-nginx release/edge records in the shared `.ri/store`. Green. Cleaned up (tab w1:t1Y, worktree, branch -d).
+
+- 2026-10-17 48a87f69 verify2 = **F4**: consumer observation (crypto/x509 chain check of the post-re-issuance leaf against the pre-re-issuance ca.crt; PEM certs only, outcomes + digests stored), arms from the rule (role field spec.isCA), outcome logic = the pre-registered criterion (reviewed: shielded fail ⇒ refuted; undetermined/no exposed arm/no baseline/quiet exposed ⇒ inconclusive; pass needs stored evidence). `ri knowledge intake-rule -dir D -author A F`. Supersede choice only in the review UI. Smoke: rule confirmed pf-57da896bcf53, wrong rule refuted pf-97c17ca82902; clusters deleted; shared .ri not written. Green. Cleaned up (tab w1:t1Z, worktree, branch -d).
 
 ## Decisions
 

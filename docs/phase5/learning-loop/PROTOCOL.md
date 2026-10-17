@@ -177,3 +177,11 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   `vf-9b9cfa5c9f5f` (two active facts on the subject ⇒ `pin:contradicting-facts`). If it is not confirmed, it is
   not promoted, C1 = K0 and S1 is reported as failed. The S4 held-out set (5 blind cert-manager cases) is the
   test of whether the rule's scope over-generalizes.
+- **2026-10-17 F4 = `48a87f69`** (W-0032, lane verify2): consumer observation in the §7.1 rule exercise
+  (`verify.exercise-consumer@v1`, used when a rule names the fixture's role field; every other rule keeps the
+  `tls.key` observation) and `ri knowledge intake-rule` (`knowledge.intake@v1`; proposal provenance method stays
+  `ai` — the rule was drafted by the commander, an AI — with rule `human-authored:<hyp>` and the author string).
+  Outcome logic reviewed against the criterion pre-registered in the rule file. Disclosed limitation: the overlap
+  alternatives `isCA unset` / `isCA: false` are not exercised as separate arms; they are covered only by the leaf
+  present in every arm. The lane's mechanism smoke (`runs/verify2-smoke.md`) confirmed the rule (pf-57da896bcf53)
+  and refuted the wrong rule (pf-97c17ca82902) on a scratch K0; the scored verification is W-0013 at F4.
