@@ -100,7 +100,7 @@ func (x *index) decide(findings []domain.InvestigationFinding) domain.PolicyDeci
 		ok = append(ok, "no tier policy is configured")
 	}
 
-	d := domain.PolicyDecision{Policy: Policy}
+	d := domain.PolicyDecision{Policy: x.policy}
 	if len(blockers) == 0 {
 		d.Outcome = domain.PolicyAutoApproveEligible
 		d.Reasons = ok
