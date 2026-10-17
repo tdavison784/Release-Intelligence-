@@ -188,18 +188,35 @@ func rawGitHub(u string) string {
 }
 
 // versionToken matches a version named in a URL or path: major.minor with an
-// optional patch and prerelease, not part of a longer dotted number.
-var versionToken = regexp.MustCompile(`(?:^|[^0-9.])v?(\d+)\.(\d+)(?:\.(\d+)(-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)?(?:$|[^0-9])`)
+// optional patch and prerelease. VersionsNamed drops matches that are part of
+// a longer dotted number.
+var versionToken = regexp.MustCompile(`v?(\d+)\.(\d+)(?:\.(\d+)(-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)?`)
 
 // VersionsNamed returns the versions a location names ("1.18", "1.18.0", …).
 func VersionsNamed(locations ...string) []string {
 	var out []string
 	seen := map[string]bool{}
 	for _, loc := range locations {
-		for _, m := range versionToken.FindAllStringSubmatch(loc, -1) {
-			v := m[1] + "." + m[2]
-			if m[3] != "" {
-				v += "." + m[3] + m[4]
+		for _, ix := range versionToken.FindAllStringSubmatchIndex(loc, -1) {
+			start, end := ix[0], ix[1]
+			if loc[start] == 'v' {
+				start++
+			}
+			if start > 0 && (isDigit(loc[start-1]) || loc[start-1] == '.') {
+				continue
+			}
+			if end < len(loc) && (isDigit(loc[end]) || (loc[end] == '.' && end+1 < len(loc) && isDigit(loc[end+1]))) {
+				continue
+			}
+			sub := func(i int) string {
+				if ix[2*i] < 0 {
+					return ""
+				}
+				return loc[ix[2*i]:ix[2*i+1]]
+			}
+			v := sub(1) + "." + sub(2)
+			if sub(3) != "" {
+				v += "." + sub(3) + sub(4)
 			}
 			if !seen[v] {
 				seen[v] = true
@@ -209,6 +226,8 @@ func VersionsNamed(locations ...string) []string {
 	}
 	return out
 }
+
+func isDigit(b byte) bool { return b >= '0' && b <= '9' }
 
 // inBounds reports whether a named version lies inside the release bounds
 // (From exclusive, To inclusive). A minor-only token names a release line: it

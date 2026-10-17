@@ -111,10 +111,10 @@ type ProofArm struct {
 
 // Arm names and behaviours.
 const (
-	ArmConditionPresent  = "condition-present"
-	ArmConditionAbsent   = "condition-absent"
-	BehaviourPrevious    = "previous-behaviour"
-	BehaviourNew         = "new-behaviour"
+	ArmConditionPresent   = "condition-present"
+	ArmConditionAbsent    = "condition-absent"
+	BehaviourPrevious     = "previous-behaviour"
+	BehaviourNew          = "new-behaviour"
 	BehaviourUndetermined = "undetermined"
 )
 
