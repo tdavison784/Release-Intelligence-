@@ -302,11 +302,12 @@ run).
   the deploying Application's); a cluster-scoped kind (built-in, declared `scope: cluster`, or a CRD with
   `scope: Cluster`) in none; an explicit namespace where it says (`namespace/name` formats, a `*Ref`'s
   `namespace`). A Secret of the same name in another namespace does not provide it.
-- **FROM vs TO.** A TO reference is compared with the same reference (referrer, field, target) at FROM:
-  dangling at TO and resolved at FROM → *regressed*; dangling at TO and absent at FROM → *new*; dangling at both →
-  *pre-existing* (the environment provides it outside the snapshot, or it was already missing — not the
-  upgrade's doing, never a failure); undecidable at either side → *unknown* (decides nothing). Regressed and new
-  dangles are failures.
+- **FROM vs TO.** A dangling TO reference is judged by what the FROM render says about its **target**
+  (kind/namespace/name — not the field or list position, which an upgrade that removes a list element shifts):
+  some FROM reference resolved it → *regressed*; FROM references to it dangled too → *pre-existing* (the
+  environment provides it outside the snapshot — a hook Job or a controller creates it at runtime — or it was
+  already missing; not the upgrade's doing, never a failure); no FROM reference names it → *new*; undecidable at
+  either side → *unknown* (decides nothing). Regressed and new dangles are failures.
 - **CRD schema.** A custom resource the item's changes touch — or every custom resource of a CRD they touch —
   is checked against the CRD the same side renders (or the environment files define), `apiextensions.k8s.io/v1`
   only: its apiVersion defined and served; its body against the version's structural schema (types incl.
