@@ -1073,3 +1073,12 @@ classifier: a stored run reproduces byte for byte with the binary of its own com
 code shows exactly what a policy change altered.
 Scored runs are kept, never overwritten or cherry-picked; the analysis is
 `docs/phase4/env-impact/EVAL-REPORT.md`.
+
+### Held-out ground truth (Phase 5)
+
+`eval/investigations-heldout/` holds ten further cases (cert-manager 1.17.2 → 1.18.0, ingress-nginx
+4.11.5 → 4.12.0, kube-prometheus-stack 89.2.4 → 90.2.0) in the same format, authored blind by lane
+`groundtruth5` on a sealed branch and confirmed by observed upgrades in kind (`README.md` there: case
+index and re-run commands; no expected class is stated outside `expected.yaml`). It is the held-out
+measurement of `docs/phase5/learning-loop/PROTOCOL.md` §5 S4, scored with `ri eval -investigations -dir
+eval/investigations-heldout` once the gates file for it is in place (commander-owned, PROTOCOL §5).

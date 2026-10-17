@@ -16,7 +16,7 @@ items:
         quote: "`validationActions` to declare how `validations` of a policy are enforced. ... The supported `validationActions` are: - `Deny`: Validation failure results in a denied request."
     match:
       - subject: kubelet.serviceMonitor.authorization
-      - text: '(?i)authorization|bearerTokenFile|token secret|kube-root-ca'
+      - text: '(?i)authoriz|token secret|kube-root-ca'
     components:
       - ref: {renderedFrom: env/infrastructure/monitoring/helmrelease.yaml, apiVersion: v1, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
         classification: affected
@@ -76,7 +76,7 @@ items:
         quote: "Removed values, all replaced by the `authorization` and `tlsConfig` blocks of the same component ... `<component>.serviceMonitor.bearerTokenFile` ... `kubelet.serviceMonitor.insecureSkipVerify` ..."
     match:
       - subject: kubelet.serviceMonitor.insecureSkipVerify
-      - text: '(?i)removed values|bearerTokenFile|insecureSkipVerify|caSecret'
+      - text: '(?i)removed values|insecureSkipVerify|caSecret'
     components:
       - ref: {file: env/infrastructure/monitoring/values.yaml}
         classification: not-affected

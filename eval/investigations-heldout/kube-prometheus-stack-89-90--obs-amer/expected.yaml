@@ -13,7 +13,7 @@ items:
         quote: "The bearer token now comes from a Secret through `authorization`, and the CA from the `kube-root-ca.crt` ConfigMap ... the chart now creates one itself: `prometheus.serviceAccount.createTokenSecret` (default `true`) renders a `kubernetes.io/service-account-token` Secret named `<prometheus service account>-token`. That token is long-lived and does not expire. Disable the value and set the `authorization` of each component if you would rather manage the credential yourself."
     match:
       - subject: kubelet.serviceMonitor.authorization
-      - text: '(?i)authorization|bearerTokenFile|token secret|kube-root-ca'
+      - text: '(?i)authoriz|token secret|kube-root-ca'
     components:
       - ref: {renderedFrom: env/infrastructure/monitoring/helmrelease.yaml, apiVersion: monitoring.coreos.com/v1, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-kubelet}
         classification: not-affected
@@ -63,7 +63,7 @@ items:
         quote: "Removed values, all replaced by the `authorization` and `tlsConfig` blocks of the same component ... `<component>.serviceMonitor.bearerTokenFile` ... `kubelet.serviceMonitor.insecureSkipVerify` ..."
     match:
       - subject: kubelet.serviceMonitor.insecureSkipVerify
-      - text: '(?i)removed values|bearerTokenFile|insecureSkipVerify|caSecret'
+      - text: '(?i)removed values|insecureSkipVerify|caSecret'
     components:
       - ref: {file: env/infrastructure/monitoring/values.yaml}
         classification: not-affected
