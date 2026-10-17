@@ -39,9 +39,9 @@ Branch `p5ll/verify`. Brief: `briefs/verify.md`. Contract: PROTOCOL §7–§8. D
 
 ## In progress
 
-- Real `-runtime` smoke run (two hand-authored hypotheses on the cert-manager fixture): positive
-  (`rotationPolicy: Never`) **confirmed** in 207 s; negative control (an incorrect mitigation "an ECDSA key is not
-  rotated") running. Next: record under `runs/verify-smoke.md`, delete scratch, final checks.
+- Nothing. Lane done. Real `-runtime` smoke run recorded in `runs/verify-smoke.md`: `rotationPolicy: Never`
+  **confirmed** (207 s), an incorrect mitigation **refuted** (194 s); both `ri-verify-*` clusters deleted and verified;
+  the gate refused the refuted rule and a proxy, and promoted the confirmed one for a human (scratch copy).
 
 ## Decisions (with why)
 
@@ -80,4 +80,14 @@ Branch `p5ll/verify`. Brief: `briefs/verify.md`. Contract: PROTOCOL §7–§8. D
 
 ## Tests
 
-- `go build ./... && go vet ./... && go test ./...` — see final message.
+- `go build ./... && go vet ./... && go test ./...` green (2026-10-17, after the last commit).
+- New: `internal/domain/proof_test.go`, `internal/knowledge/promote_test.go` (every gate refusal path, proxy,
+  partial, refuted-then-confirmed, digest mismatch after correction, bounds, silent coexistence, routing ignores
+  hypotheses), `internal/investigate/verify/*_test.go` (citations incl. outside bounds / unresolvable / tampered
+  cache; arm synthesis; the four arm combinations; never-pass paths; end-to-end with the gate),
+  `internal/investigate/runtime/fixture_test.go`, `internal/reviewui/hypothesis_test.go`.
+
+## Cleanup
+
+- Deleted: both `ri-verify-*` clusters (by the run itself, verified), `bin/`, the scratch smoke dir, the temporary
+  smoke program. Remaining kind clusters `ri-groundtruth5-*` belong to lane groundtruth5 (not touched).
