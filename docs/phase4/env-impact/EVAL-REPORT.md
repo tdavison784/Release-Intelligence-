@@ -19,7 +19,11 @@ nothing in this report moved a threshold, an expectation or a pipeline rule.
 | **C′** | A⁗ + runtime (attribution precedence 1888a107) | `results/C-20261016T234455Z-aa06720656` | **scored** (binary aa06720656, clean tree) |
 | **A₅** | deterministic only, after lane `refcheck` (fc0fee09) — **reference for arm B** | `results/A-20261017T003437Z-0790b00157` | **scored** (binary 0790b00157, clean tree) |
 | **C₅** | A₅ + runtime | `results/C-20261017T003511Z-0790b00157` | **scored** (binary 0790b00157, clean tree) |
-| **B** | A′ + investigation agent (claude-cli, claude-sonnet-5-5, the prompt version named by the commander's ARM B GO; v5 is merged) | — | held until "ARM B GO" (Claude window; ~1M tokens) |
+| **B** (aborted) | A₅ + agent; first attempt | `results/B-20261017-355df68274` | 1 case, pipeline failure (audit-ordering defect, fixed by lane auditfix); kept |
+| **B** | A₅ + investigation agent: claude-cli, **claude-sonnet-5-5**, prompt **investigate-agent/v5** (digest per case in run.json) | `results/B-20261017-047cb4ea1c` | **scored** (binary 047cb4ea1c = A₅ tree + audit fix, clean; built case by case) |
+| **A₆** | deterministic control on the same binary as B | `results/A-20261017T014549Z-047cb4ea1c` | **scored**; identical decisions and metrics to A₅ |
+| **B-replay** | B replayed offline from its stored transcripts (no model) | `results/B-replay-20261017T014617Z-047cb4ea1c` | **scored** |
+| **B+C** | — | — | **not run** (see §2f) |
 | **C** | + runtime (observed) validation in throwaway kind clusters | `results/C-20261016T213533Z-cf761e89e5` (+ superseded vacuous `C-20261016T212613Z-13f9ba749d`, kept) | **scored** (binary cf761e89, clean tree) |
 
 ## 1. Headline (arm A)
@@ -110,6 +114,58 @@ for 8/8 cases; the wall-clock times now live in `Investigation.reportStamps`, ou
 artifact. Note for the stored files: these two runs' `run.json` `recordDigest` fields were written by the
 harness's older private digest, which predates `reportStamps` and therefore differs between the runs; the
 harness now uses `run.ContentDigest` (future runs). The stored files are not edited.
+
+## 2f. Arm B — the investigation agent, isolated (B vs A₅/A₆)
+
+Run `B-20261017-047cb4ea1c`: claude-cli driver, model `claude-sonnet-5-5` (as reported by the CLI), prompt
+`investigate-agent/v5` (per-item sessions, cap 10 items per investigation, item budget 16 calls / 14 turns /
+150 000 tokens), one session set per case, run case by case and committed after each case (8 commits). Binary
+047cb4ea1c = the A₅ tree plus the audit-ordering fix (5 lines in `run/pipeline.go`; no classification change). The
+control A₆ on the same binary reproduces A₅'s decisions and metrics exactly, so **B − A₆ is the agent's effect**.
+
+**Cost:** 824 623 tokens, 496 tool calls, ~21 min wall clock for 8 cases (91–131 k tokens per case). 7 agent runs
+`submitted`, 1 `budget-exhausted` (shop-de: the composite #11819 item's session used 17 turns of 14). 0 pipeline
+failures.
+
+**Gates: 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA — every gate identical to A₅/A₆ except:**
+
+| Metric | A₅ / A₆ | B | |
+|---|---|---|---|
+| evidenceCoverage | 23/71 | **25/71** | FAIL either way |
+| evidenceFileCoverage (path only, ungated) | 34/71 | **50/71** | the agent cites the environment files that matter |
+| citationResolution | 1999/1999 | 2261/2261 | every agent citation resolves (quotes verified) |
+| everything else | — | unchanged | incl. unsafeEligibilityRate 1/8 (same three not-rendered per-key items) |
+
+**Decisions: 0 of 24 changed. Findings: 0 of 211 changed class, 0 changed eligibility; investigation decisions
+unchanged (8/8 human-review-required).** What the agent did produce (pipeline output):
+- **46 `raises-concern` assertions — all on items that were already potentially-affected.** No concern landed on a
+  not-affected finding, so none blocked a clearance; 8 were answered by a passing validation.
+- **20 validation requests — all `not-run`** (19 × override inspection: "no declarative pin rule names a setting
+  that pins the old behaviour of this item"; 1 × static reference). The agent asks the right question, but the
+  validator has no trusted pin source to answer it with.
+- **82 deterministically verified setting claims** (record_claim, prompt v5): 65 `absent`, 15 `value`, 2 `present` —
+  e.g. a `value` claim that `controller.metrics.enabled` is set in the environment's values. These are verified
+  facts about the environment, but no policy rule consumes a verified claim as a pinned setting, so they cannot
+  clear a controller-behaviour item. **This is the structural reason the agent moves no number:** under §3.3 the
+  agent can only raise or request; its requests reach validators that cannot decide without trusted knowledge; its
+  verified claims are not wired to R2.4. Turning verified claims (or the agent's requested settings) into
+  override-inspection pins is the change that would let the agent's work count — a policy/contract decision, not an
+  evaluation one.
+- No agent-proposed edge changed a traversal (paths identical in every case).
+
+**Replay (offline reproducibility of B).** `B-replay-…` re-issues every recorded tool call against fresh bundles
+with no model: findings identical in 7/8 cases; decision classes and every gate identical. obs-south: one of ten
+item sessions mismatched (`submit_findings` result digest differs from the recording for item `ci-194d5b487655`),
+which the replay driver reports honestly (agent status `failed`, the mismatch in the reason) — classes unchanged,
+only that decision's gap/next-step text differs. Routed to the agent owner (a non-deterministic `submit_findings`
+result). Investigation ids differ from B by design (the driver name is part of the configuration digest);
+assertions differ only in `generatedAt`.
+
+**B+C not run.** Running the agent live with runtime would spend another ~0.8 M tokens; reusing arm C's stored
+runtime records in B's investigations would stitch two different runs (not honest); replaying B's transcripts with
+runtime enabled is not a faithful replay either (the runtime records change what the agent's tools return, so the
+recorded calls no longer match). Given B's effect on every decision is nil and C's effect is recorded separately
+(§2e: shop-nl B2 observed clearing, obs-north observed basis), B+C would add cost without isolating anything new.
 
 ## 2e. After lane `refcheck` (arms A₅ and C₅) — current reference
 

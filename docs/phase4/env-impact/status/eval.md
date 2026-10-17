@@ -135,6 +135,12 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
   The case's records/transcript lived in the temporary work store and are gone; next arm B attempt uses `-work`
   inside the scratchpad so a failed case keeps its transcript. Arm B restarts as a NEW run after the fix (new
   binary; -append refuses a different commit).
+- **ARM B DONE (2026-10-17, restart):** `B-20261017-047cb4ea1c` (binary 047cb4ea, clean; claude-sonnet-5-5; v5),
+  8/8 cases, 0 pipeline failures, 825k tokens, transcripts stored. Control `A-20261017T014549Z-047cb4ea1c` = A₅.
+  Replay `B-replay-20261017T014617Z-047cb4ea1c`: findings identical 7/8; obs-south one submit_findings digest
+  mismatch (routed to agent). Agent effect: 0/24 decisions, 0/211 finding classes changed; evidenceCoverage 23→25,
+  evidenceFileCoverage 34→50. 20 validation requests all not-run (no pin rule); 82 verified claims not consumed by
+  policy. B+C not run (cost; reuse would not be honest). EVAL-REPORT §2f.
 - Commander: stop was correct; lane `auditfix` is fixing it. **WAIT for the explicit "ARM B RESTART" message**
   (auto-suggestions in the input box are not it). On restart: merge `p4-env-impact`, rebuild clean, new run id,
   `-work <scratchpad>/bwork`, case 1 with `-save`, cases 2–8 with `-append`, commit after each case.
