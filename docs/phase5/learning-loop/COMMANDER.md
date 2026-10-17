@@ -40,6 +40,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 ## Decisions
 
+- 2026-10-17 09:40 Redaction rule (commander decision, lane redact): ONE rule for collection and the render model — Secret data redacted; private-key material redacted by content anywhere; credential-named scalars redacted except Kubernetes object-reference keys (`name`, `namespace`, `key`, `*Name`, `*Namespace`: object/data-key names, not secret material); below credential-named maps keep bool/null/number + reference keys + CRD-enum read-back, everything else redacted; credential-name regex = union of both. Why: the render model left e.g. `credentials.secretAccessKey` in clear (renders reach the agent ⇒ provider — violates the product owner's data-sharing condition; Phase 4 gap), while a blunt rule would hide Secret names the graph needs. Dossier path casing + effective view fixed in the same lane.
+
 - 2026-10-17 09:10 B0 dev pair (B0-K0-20261017-d262210d, 339k tokens): eu verdict affected (correct), us hedged because `mesh-root-ca`'s rotationPolicy is REDACTED in the bundle; 0 hypotheses on either env. Root cause = collection redacts whole credential-named maps (`privateKey`). Generic defect ⇒ lane redact, F2, re-run A0/B0. Without it no correct rule could ever apply (pin validator: withheld ⇒ undecidable). A0 on F1 (A0-K0-20261017-d262210d): 24/24 decisions identical to wave-1 A0; gap text only.
 
 - 2026-10-17 Phase 5 branches from `p4-env-impact` @ 03b6ff43 (PR #6 open, not merged into main): Phase 5 needs
