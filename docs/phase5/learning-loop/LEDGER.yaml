@@ -105,7 +105,8 @@ items:
   - id: W-0011
     title: Arm A0 + C1-ready deterministic runs on the 8 Phase 4 cases with K0 (PROTOCOL §6 step 2)
     kind: commander-task
-    status: ready
+    status: in-progress
+    owner: ri-eval5
     depends: [W-0010]
     providers: [claude, glm]  # deterministic, no model under test
     glm-executable: true
@@ -114,13 +115,14 @@ items:
   - id: W-0012
     title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
     kind: commander-task
-    status: ready
+    status: in-progress
+    owner: ri-eval5
     depends: [W-0010]
     providers: [claude]       # MODEL UNDER TEST: never under GLM
     glm-executable: false
     auto-start: false
-    ready-when: a fresh Claude 5h window (Phase 4 arm B used ~825k tokens)
-    quota-estimate: {provider: claude, tokens: ~1M}
+    ready-when: W-0027 merged (F2). Product owner 09:35 — current Claude window is fine (50%); run all 8 cases on F2 in this window, no wait for the 12:30 reset
+    quota-estimate: {provider: claude, tokens: ~1.4M (dev pair used 339k ≈ 2% of the 5h window)}
   - id: W-0013
     title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
     kind: commander-task
@@ -241,4 +243,16 @@ items:
     glm-executable: true
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:55, because: fixes5 findings}
+  - id: W-0027
+    title: Redaction wipes non-secret settings under credential-named maps (spec.privateKey.rotationPolicy) — exposed by B0 dev pair
+    kind: lane
+    status: done
+    merged: 8286e36f
+    owner: ri-redact
+    brief: briefs/redact.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "secrets must never be weakened (provider data-sharing condition); F1 amendment required"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T09:10, because: B0-K0-20261017-d262210d payments-us verdict 'redacted value that may be Never'}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}

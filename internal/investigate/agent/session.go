@@ -15,6 +15,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 // Producer is the component that records agent output (hypotheses,
@@ -112,21 +113,25 @@ type Session struct {
 	transcript bytes.Buffer
 	seq        int
 
-	arts     map[string]domain.ArtifactRef
-	runArts  []domain.ArtifactRef
-	text     map[string][]byte
-	textSize int
-	pool     map[domain.EvidenceID]domain.Evidence // bundle pool
-	runEv    map[domain.EvidenceID]domain.Evidence
-	runEvIDs []domain.EvidenceID
-	rcs      map[string]domain.RenderedChange
-	items    map[string]domain.ChangeItem
-	nodes    map[string]domain.GraphNode
-	nodeKey  map[string]string // key -> node id (first by id order)
-	edges    map[string]domain.GraphEdge
-	paths    map[string]domain.ImpactPath
-	edge     *domain.UpgradeEdge
-	edgeErr  error
+	arts    map[string]domain.ArtifactRef
+	runArts []domain.ArtifactRef
+	// schemas: the bundle's CRDs, for reading back withheld enum values
+	// (withheld.go), built on first use.
+	schemaOnce sync.Once
+	schemas    *redaction.Schemas
+	text       map[string][]byte
+	textSize   int
+	pool       map[domain.EvidenceID]domain.Evidence // bundle pool
+	runEv      map[domain.EvidenceID]domain.Evidence
+	runEvIDs   []domain.EvidenceID
+	rcs        map[string]domain.RenderedChange
+	items      map[string]domain.ChangeItem
+	nodes      map[string]domain.GraphNode
+	nodeKey    map[string]string // key -> node id (first by id order)
+	edges      map[string]domain.GraphEdge
+	paths      map[string]domain.ImpactPath
+	edge       *domain.UpgradeEdge
+	edgeErr    error
 
 	hyps        []domain.Hypothesis
 	asserts     []domain.AgentAssertion
