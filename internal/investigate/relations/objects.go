@@ -12,6 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/render"
@@ -60,6 +61,63 @@ func get(v any, keys ...string) any {
 func str(v any, keys ...string) string {
 	s, _ := get(v, keys...).(string)
 	return s
+}
+
+// fieldValue is a value found at a relationship field path, with the
+// concrete path (list elements by index) it was found at.
+type fieldValue struct {
+	path   string
+	v      any
+	parent map[string]any // the map holding the value's last key
+}
+
+// fieldValues returns the values at a relationship field path (keys from
+// catalog.SplitListFieldPath; catalog.ListElements iterates a list). raw is
+// the path as declared; for a path without lists the concrete path is raw
+// itself, so edge details stay as declared.
+func fieldValues(v any, keys []string, raw string) []fieldValue {
+	var out []fieldValue
+	var walk func(v any, i int, idx []int, parent map[string]any)
+	walk = func(v any, i int, idx []int, parent map[string]any) {
+		if i == len(keys) {
+			if v != nil {
+				out = append(out, fieldValue{path: concretePath(raw, idx), v: v, parent: parent})
+			}
+			return
+		}
+		if keys[i] == catalog.ListElements {
+			for j, e := range asSeq(v) {
+				walk(e, i+1, append(append([]int(nil), idx...), j), parent)
+			}
+			return
+		}
+		m := asMap(v)
+		if m == nil {
+			return
+		}
+		walk(m[keys[i]], i+1, idx, m)
+	}
+	walk(v, 0, nil, nil)
+	return out
+}
+
+// concretePath replaces the n-th "[]" of a declared path with "[idx[n]]".
+func concretePath(raw string, idx []int) string {
+	if len(idx) == 0 {
+		return raw
+	}
+	var b strings.Builder
+	n := 0
+	for i := 0; i < len(raw); i++ {
+		if n < len(idx) && strings.HasPrefix(raw[i:], "[]") {
+			fmt.Fprintf(&b, "[%d]", idx[n])
+			n++
+			i++
+			continue
+		}
+		b.WriteByte(raw[i])
+	}
+	return b.String()
 }
 
 // --- loading ----------------------------------------------------------------------------
@@ -164,19 +222,26 @@ type environment struct {
 	cluster map[string]bool
 }
 
-func load(ctx context.Context, b *domain.EvidenceBundle, st investigate.ArtifactStore) (*environment, error) {
+// load reads the environment at one side of the upgrade: the side's render
+// of every complete environment pair (the TO render for the graph) and the
+// environment files (one commit: the same at both sides).
+func load(ctx context.Context, b *domain.EvidenceBundle, st investigate.ArtifactStore, side Side) (*environment, error) {
 	env := &environment{
 		kustomizations: map[string]*kustomization{},
 		files:          map[string]domain.ArtifactRef{},
 		patchFiles:     map[string]bool{},
 		pairObjects:    map[string][]*object{},
 	}
-	// Rendered objects: the TO render of every complete environment pair.
+	// Rendered objects: the side's render of every complete environment pair.
 	for _, p := range b.Renders {
-		if p.Status != domain.CollectionOK || p.To == "" {
+		art := p.To
+		if side == SideFrom {
+			art = p.From
+		}
+		if p.Status != domain.CollectionOK || art == "" {
 			continue
 		}
-		ref, ok := b.Manifest.Lookup(p.To)
+		ref, ok := b.Manifest.Lookup(art)
 		if !ok {
 			continue
 		}

@@ -8,29 +8,39 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 // RenderDiff validates a change item against the environment-scope render
 // pairs of the bundle (the customer's own configuration rendered at from and
-// to; DESIGN.md §2.4, the centerpiece evidence):
+// to; DESIGN.md §2.4, the centerpiece evidence). Exposure is not failure: a
+// rendered change that carries the item's effect into the customer's
+// deployment is a plausible impact (R3), and only a concrete failure it
+// causes is a demonstrated one (R1):
 //
-//   - fail: the item is breaking (§1.3) and an environment rendered change
-//     is correlated to it by a rule that ties the change to the item's
-//     effect (subject, values-default, artifact, or the item is itself a
-//     rendered change) on a path that is not description text — the item's
-//     effect demonstrably reaches the customer's rendered deployment. Only
-//     complete pairs decide.
+//   - fail: an environment rendered change correlated to the item by a rule
+//     that ties it to the item's effect (subject, values-default, artifact,
+//     release-anchor, or the item is itself the rendered change) causes a
+//     concrete failure in the TO render that the FROM render did not have —
+//     a reference of (or to) the changed object that dangles (the object the
+//     change removes, a name the change introduces that nothing provides), a
+//     custom resource invalid against its rendered CRD schema, or an
+//     apiVersion the rendered CRD no longer serves. Each failure is named.
+//   - error (inconclusive): such an effect reaches the rendered deployment
+//     and no concrete failure is found (or the checks cannot run) — never a
+//     pass, never a fail by itself.
 //   - pass: every environment pair is complete and every rendered change
 //     correlated to the item is CRD description text (shown harmless, cited
 //     in RenderedChanges), or there is none — and the item manifests as
 //     rendered-config. Render silence never clears a controller-behaviour or
 //     unknown item (§2.2.1).
-//   - not-run otherwise: no or incomplete render, a non-breaking item with
-//     correlated changes (a render cannot say they are harmless), changes
-//     correlated only by a text mention, or a behaviour item.
+//   - not-run otherwise: no or incomplete render, changes correlated only by
+//     a text mention, or a behaviour item.
 //
-// A requested set of rendered changes restricts the check to them.
+// A requested set of rendered changes restricts the check to them. The
+// reference and schema checks need the artifact store (WithStore) and use
+// the relationship rules given by WithRelations.
 func RenderDiff(opts ...Option) investigate.Validator {
 	return &renderDiff{base{name: NameRenderDiff, kind: domain.ValidationRenderDiff, cfg: newConfig(opts)}}
 }
@@ -140,15 +150,42 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 		return ids
 	}
 
-	if len(effects) > 0 && breaking(item) {
-		d := draft{rule: "render-diff:breaking-effect", outcome: domain.ValidationFail, property: property,
+	if len(effects) > 0 {
+		rcOf := func(hs []hit) []domain.RenderedChange {
+			return effects2rc(hs, func(h hit) domain.RenderedChange { return h.rc })
+		}
+		cf := v.concreteFailures(ctx, b, effects2rc(effects, func(h hit) domain.RenderedChange { return h.rc }))
+		if cf.failed() {
+			var involved []hit
+			for _, h := range effects {
+				if cf.involves(h.rc.Object) {
+					involved = append(involved, h)
+				}
+			}
+			d := draft{rule: "render-diff:concrete-failure", outcome: domain.ValidationFail, property: property,
+				rcs: rcIDs(involved), inputs: inputs(involved)}
+			d.subjects, d.paths = exposedBy(in, cf.objects())
+			for _, h := range involved {
+				d.evidence = append(d.evidence, v.changeEvidence(out, h.pair, h.rc)...)
+			}
+			d.detail = fmt.Sprintf("the item's effect causes a concrete failure in the TO render that the FROM render did not have:\n%s\ncaused by:\n%s",
+				cf.failures(), describeChanges(rcOf(involved)))
+			out.add(d)
+			return out.result()
+		}
+		d := draft{rule: "render-diff:exposure", outcome: domain.ValidationError, property: property,
 			rcs: rcIDs(effects), inputs: inputs(effects)}
 		d.subjects, d.paths = exposedBy(in, effects2objects(effects, func(h hit) string { return h.rc.Object }))
 		for _, h := range effects {
 			d.evidence = append(d.evidence, v.changeEvidence(out, h.pair, h.rc)...)
 		}
-		d.detail = fmt.Sprintf("breaking item (%s) whose effect reaches the environment's rendered deployment:\n%s",
-			item.ScopeRule, describeChanges(effects2rc(effects, func(h hit) domain.RenderedChange { return h.rc })))
+		var lines []string
+		for _, c := range rcOf(effects) {
+			lines = append(lines, fmt.Sprintf("- exposure: %s %s reaches %s (%s)", c.Class, orNone(c.Path), c.Object, c.ID))
+		}
+		sort.Strings(lines)
+		d.detail = fmt.Sprintf("inconclusive — the item's effect (%s) reaches the environment's rendered deployment, which by itself is exposure, not a demonstrated failure:\n%s\n%s",
+			item.ScopeRule, strings.Join(lines, "\n"), cf.summary())
 		out.add(d)
 		return out.result()
 	}
@@ -162,18 +199,11 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 			item.Manifestation, item.ManifestationRule))
 		return out.result()
 	}
-	if len(effects)+len(weak) > 0 {
-		var why string
-		switch {
-		case len(effects) > 0:
-			why = fmt.Sprintf("the item is not breaking (%s), but its effect reaches the rendered deployment; a render cannot say whether that is harmless, nor name a concrete failure", item.ScopeRule)
-		default:
-			why = "rendered changes are correlated to the item only by a text mention, which does not show they are its effect (nor that they are harmless)"
-		}
-		hs := append(append([]hit{}, effects...), weak...)
+	if len(weak) > 0 {
+		why := "rendered changes are correlated to the item only by a text mention, which does not show they are its effect (nor that they are harmless)"
 		out.add(draft{rule: "render-diff:undecided", outcome: domain.ValidationNotRun, property: property,
-			subjects: cov.subjects, paths: cov.paths, rcs: rcIDs(hs),
-			detail: why + ":\n" + describeChanges(effects2rc(hs, func(h hit) domain.RenderedChange { return h.rc }))})
+			subjects: cov.subjects, paths: cov.paths, rcs: rcIDs(weak),
+			detail: why + ":\n" + describeChanges(effects2rc(weak, func(h hit) domain.RenderedChange { return h.rc }))})
 		return out.result()
 	}
 	// Complete render, rendered-config item, nothing attributable (or only
@@ -212,6 +242,107 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 	}
 	out.add(d)
 	return out.result()
+}
+
+// concrete is what the concrete-failure checks found for a set of rendered
+// changes.
+type concrete struct {
+	refs     refCheckList      // failing references (new or regressed)
+	other    refCheckList      // pre-existing and unknown references (reported, decide nothing)
+	resolved int               // references that resolve at TO
+	schema   []schemaViolation // new schema violations
+	checked  int               // custom resources checked against a rendered CRD
+	err      error             // the checks could not run
+}
+
+func (c concrete) failed() bool { return len(c.refs) > 0 || len(c.schema) > 0 }
+
+// objects are the objects a failure involves.
+func (c concrete) objects() []string {
+	out := c.refs.objects()
+	for _, v := range c.schema {
+		out = append(out, v.object, v.crd)
+	}
+	return uniq(out)
+}
+
+func (c concrete) involves(object string) bool {
+	for _, o := range c.objects() {
+		if o == object {
+			return true
+		}
+	}
+	for _, r := range c.refs {
+		if r.ref.TargetMatches(object) {
+			return true
+		}
+	}
+	return false
+}
+
+func (c concrete) failures() string {
+	var ls []string
+	if len(c.refs) > 0 {
+		ls = append(ls, "dangling references:\n"+c.refs.lines())
+	}
+	if len(c.schema) > 0 {
+		var vs []string
+		for _, v := range c.schema {
+			vs = append(vs, "- "+v.line())
+		}
+		ls = append(ls, "invalid against the rendered CRD (new at TO):\n"+strings.Join(vs, "\n"))
+	}
+	return strings.Join(ls, "\n")
+}
+
+func (c concrete) summary() string {
+	if c.err != nil {
+		return "the concrete-failure checks (dangling references, CRD schema) could not run: " + c.err.Error()
+	}
+	s := fmt.Sprintf("no concrete failure found: %s of or to the changed objects checked at FROM and TO, none newly dangling (%d resolve); %s checked against the rendered CRD schema, no new violation",
+		plural(c.resolved+len(c.other), "reference", "references"), c.resolved, plural(c.checked, "custom resource", "custom resources"))
+	if len(c.other) > 0 {
+		s += "; references that decide nothing:\n" + c.other.lines()
+	}
+	return s
+}
+
+// concreteFailures runs the reference and schema checks on the objects of
+// the given environment rendered changes.
+func (v *renderDiff) concreteFailures(ctx context.Context, b *domain.EvidenceBundle, rcs []domain.RenderedChange) concrete {
+	from, to, err := v.cfg.sides(ctx, b)
+	if err != nil {
+		return concrete{err: err}
+	}
+	var keys []string
+	for _, c := range rcs {
+		keys = append(keys, c.Object)
+	}
+	keys = uniq(keys)
+	var c concrete
+	for _, r := range compareRefs(from, to, touching(keys)) {
+		switch {
+		case r.failing():
+			c.refs = append(c.refs, r)
+		case r.state == refResolved:
+			c.resolved++
+		default:
+			c.other = append(c.other, r)
+		}
+	}
+	var objs []relations.Object
+	inKeys := map[string]bool{}
+	for _, k := range keys {
+		inKeys[k] = true
+		objs = append(objs, customResourcesOf(to, k)...)
+	}
+	for _, o := range to.Objects {
+		if inKeys[o.Key] {
+			objs = append(objs, o)
+		}
+	}
+	c.schema, c.checked = newViolations(from, to, objs)
+	return c
 }
 
 // changeEvidence returns the evidence of a rendered change: its own

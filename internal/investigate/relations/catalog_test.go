@@ -3,6 +3,7 @@ package relations
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
@@ -185,4 +186,103 @@ spec:
 	}
 	// PodMonitor: workloads through their pod template labels
 	v.wantEdge(domain.EdgeSelects, "apps/v1/Deployment/shop/web", "monitoring.coreos.com/v1/PodMonitor/shop/pm", domain.EdgeEstablished)
+}
+
+// The shipped prometheus-operator rules: a monitor endpoint's credentials and
+// TLS Secrets/ConfigMaps resolve in the monitor's own namespace only.
+func TestCatalogMonitorSecretReferences(t *testing.T) {
+	const sm = `apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: {name: api, namespace: mon}
+spec:
+  selector: {matchLabels: {app: api}}
+  endpoints:
+    - port: http
+      authorization: {credentials: {name: api-token, key: token}}
+    - port: https
+      tlsConfig: {ca: {configMap: {name: api-ca, key: ca.crt}}, keySecret: {name: api-key, key: tls.key}}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata: {name: pods, namespace: mon}
+spec:
+  selector: {matchLabels: {app: api}}
+  podMetricsEndpoints:
+    - port: http
+      basicAuth: {username: {name: basic, key: user}, password: {name: basic, key: pass}}
+`
+	const objs = `apiVersion: v1
+kind: Secret
+metadata: {name: api-token, namespace: mon}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: api-ca, namespace: mon}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: api-key, namespace: other}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: basic, namespace: mon}
+`
+	f := newFixture(t)
+	f.pair("argocd:apps/mon.yaml", sm+"---\n"+objs, sm+"---\n"+objs)
+	v := f.view(SideTo, WithCatalog(loadCatalog(t)))
+	const smKey, pmKey = "monitoring.coreos.com/v1/ServiceMonitor/mon/api", "monitoring.coreos.com/v1/PodMonitor/mon/pods"
+	r := ref(t, v, smKey, "spec.endpoints[0].authorization.credentials.name")
+	wantRes(t, r, RefResolved, "")
+	if r.Rule != "relationship:prometheus-operator/servicemonitor-authorization" {
+		t.Errorf("rule %q", r.Rule)
+	}
+	wantRes(t, ref(t, v, smKey, "spec.endpoints[1].tlsConfig.ca.configMap.name"), RefResolved, "")
+	wantRes(t, ref(t, v, smKey, "spec.endpoints[1].tlsConfig.keySecret.name"), RefDangling, "Secret mon/api-key")
+	wantRes(t, ref(t, v, pmKey, "basicAuth.username.name"), RefResolved, "")
+	wantRes(t, ref(t, v, pmKey, "basicAuth.password.name"), RefResolved, "")
+
+	// the graph carries the same references
+	g := f.build(WithCatalog(loadCatalog(t)))
+	view{t, g}.wantEdge(domain.EdgeReferences, "core/v1/Secret/mon/api-token", smKey, domain.EdgeEstablished)
+}
+
+// ingress-nginx's auth-secret takes secretName or namespace/secretName;
+// auth-tls-secret only namespace/secretName (a bare name is not a reference).
+func TestCatalogIngressNginxSecretFormats(t *testing.T) {
+	ing := func(name, annotations string) string {
+		return "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: " + name + "\n  namespace: web\n  annotations:\n" + annotations
+	}
+	const objs = "apiVersion: v1\nkind: Secret\nmetadata: {name: basic, namespace: web}\n---\napiVersion: v1\nkind: Secret\nmetadata: {name: ca, namespace: shared}\n"
+	docs := ing("a", "    nginx.ingress.kubernetes.io/auth-secret: basic\n") + "---\n" +
+		ing("b", "    nginx.ingress.kubernetes.io/auth-secret: shared/ca\n") + "---\n" +
+		ing("c", "    nginx.ingress.kubernetes.io/auth-tls-secret: shared/ca\n") + "---\n" +
+		ing("d", "    nginx.ingress.kubernetes.io/auth-tls-secret: ca\n") + "---\n" + objs
+	// environment files: the render withholds values of keys ending in "secret"
+	f := newFixture(t)
+	f.file("web/all.yaml", docs)
+	v := f.view(SideTo, WithCatalog(loadCatalog(t)))
+	key := func(n string) string { return "networking.k8s.io/v1/Ingress/web/" + n }
+	wantRes(t, ref(t, v, key("a"), "auth-secret]"), RefResolved, "")
+	b := ref(t, v, key("b"), "auth-secret]")
+	wantRes(t, b, RefResolved, "")
+	if b.Target != "core/v1/Secret/shared/ca" {
+		t.Fatalf("namespace/name form: %+v", b)
+	}
+	wantRes(t, ref(t, v, key("c"), "auth-tls-secret]"), RefResolved, "")
+	for _, r := range v.References {
+		if r.Referrer == key("d") && strings.Contains(r.Field, "auth-tls-secret") {
+			t.Fatalf("a bare name is no namespace/name reference: %+v", r)
+		}
+	}
+}
+
+// A rendered Ingress's Secret annotations are withheld by the render (keys
+// ending in "secret" look like credentials): the reference is unknown, never
+// dangling.
+func TestCatalogRedactedNameIsUnknown(t *testing.T) {
+	docs := "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: a\n  namespace: web\n  annotations:\n    nginx.ingress.kubernetes.io/auth-secret: basic\n"
+	f := newFixture(t)
+	f.pair("argocd:apps/web.yaml", docs, docs)
+	r := ref(t, f.view(SideTo, WithCatalog(loadCatalog(t))), "networking.k8s.io/v1/Ingress/web/a", "auth-secret]")
+	wantRes(t, r, RefUnknown, "withholds the name")
 }

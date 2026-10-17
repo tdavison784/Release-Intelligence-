@@ -416,6 +416,9 @@ Inputs, Outputs, Outcome, Detail, Evidence, Answers, Request, ImpactFinding, Pro
 
 *(Commander amendment 2026-10-16, lane fixes2.)* Every undecided record (`not-run`, `error`) echoes the requested coverage — subjects, paths, rendered changes — exactly as requested (`EchoRequested`), so a request stays linkable and the audit keeps what was asked; the run record rejects one that does not.
 
+
+*(Commander amendment 2026-10-16, lane refcheck.)* `validate.RenderDiff`: a correlated rendered change that reaches a subject is **exposure** ⇒ `error` (inconclusive, an R3 signal) — never `pass`, never `fail` by itself. It fails only on a concrete failure the TO render has and the FROM render did not: a dangling reference, a custom resource invalid against the rendered CRD schema, an apiVersion no longer served. `validate.StaticReference` compares TO against FROM references with namespace semantics (referrer namespace, cluster-scoped kinds, explicit namespaces); a reference that resolved at FROM and dangles at TO, or a new one nothing provides, fails naming referrer, field path and target; references that already dangled at FROM never fail; undecidable targets are `not-run`.
+
 ### §2.7 Agent records (§A4)
 
 All carry AI provenance (`method: ai`, model, modelVersion as reported, promptVersion, promptDigest,
@@ -572,6 +575,9 @@ And the other way: the investigation never writes ACTION REQUIRED. An `affected`
 the join classifies below action stays, on the action axis, at most review-required; the renderer shows
 "AFFECTED (validated) · action: review" — the action contract (dual chains + high confidence, PO-2/PO-4)
 is untouched.
+
+
+*(Commander amendment 2026-10-16, lane refcheck.)* A join `impact:not-joined` verdict means the deterministic join did not evaluate the change; it is not evidence about the environment. It is reported as a gap only when the item is not cleared for another reason; it never blocks an item that satisfies every R2 condition on other validations (pinned setting / observed pass for behaviour items). Every other `unknown` join verdict still blocks.
 
 ### §3.6 Where each rule is enforced
 
