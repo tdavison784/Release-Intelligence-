@@ -148,3 +148,22 @@ func samePathAny(dir string, roots []string) bool {
 	}
 	return false
 }
+
+// checkEvalWorkDir refuses a non-empty -work unless the invocation extends a
+// run (-append): a store holding another arm's investigations of the same
+// bundle can hand a later arm the earlier arm's records.
+func checkEvalWorkDir(dir string, appending bool) error {
+	if dir == "" || appending {
+		return nil
+	}
+	entries, err := os.ReadDir(dir)
+	switch {
+	case os.IsNotExist(err):
+		return nil
+	case err != nil:
+		return err
+	case len(entries) > 0:
+		return fmt.Errorf("%w: -work %s is not empty; use a fresh directory per arm (or -append to extend a run)", app.ErrUsage, dir)
+	}
+	return nil
+}

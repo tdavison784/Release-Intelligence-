@@ -32,6 +32,9 @@
 - Mutation (b) is the knowledge state after a refused promotion (no fact, item pending); the refusal is lane verify's gate.
 - The first A0 run (binary 19baddab) was deleted before commit and redone on bfebde39: the code gained report fields after it,
   and it was never committed or cited.
+  It showed the same as the kept run: identical 24 item decisions and gate states, same digest `sha256:672a7ce0…74ff5`;
+  the only difference was the missing review/token/hypothesis fields in its score. Deleted by me (`rm -rf` of its own
+  uncommitted results dir) on 2026-10-17; nothing was edited to move a number.
 
 ## Files touched outside ownership
 - `docs/INVESTIGATE.md` (appended subsection, edited 3 example lines) and `README.md` (one command line): docs only.
@@ -41,7 +44,9 @@
   runs load, rescore and compare unchanged (verified with `-compare` against the Phase 4 A run).
 
 ## Open questions
-- None blocking. Note for commander: every existing invocation of `ri eval -investigations` now needs `-knowledge <snapshot>`.
+- None blocking. A0/B0 F1 runs superseded (W-0027); -work guard added (refuses non-empty -work unless -append). Note for commander: every existing invocation of `ri eval -investigations` now needs `-knowledge <snapshot>`.
 
 ## Test status
 - `go build ./... && go vet ./... && go test ./...` green (before the final docs commit; docs only since).
+
+- F2 (8286e36f): A0-K0-20261017-6d2ae5bf and B0-K0-20261017-6d2ae5bf stored, 8 cases each; B0 1,056,794 tokens, 0 hypotheses, verdicts 11 correct / 12 hedged / 1 no-verdict. F1 runs superseded. Idle; bin/ri = 6d2ae5bf.
