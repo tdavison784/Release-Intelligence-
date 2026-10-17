@@ -21,11 +21,15 @@ State: **IN PROGRESS** (2026-10-16). Resume from: this file + `git log` + DESIGN
 
 ## Done
 
-- (nothing yet)
+- Step 1 (811bc872): `relations.NewViewer(st, opts…).View(ctx, bundle, SideFrom|SideTo)`; catalog
+  `SplitListFieldPath` (`[]`), optional refs; graph output unchanged (all relations/app tests green).
+- Step 2 (83458f93, 0c6b0e5d): `validate/refcheck.go` (cached views, FROM/TO comparison),
+  `validate/crdschema.go`; RenderDiff exposure ⇒ error, concrete failure ⇒ fail; StaticReference TO-vs-FROM;
+  `validate.WithRelations`, wired in `cmd/ri/investigate.go`.
 
 ## In progress / next step
 
-- Step 1.
+- Step 3: prometheus-operator monitor Secret/ConfigMap rules (fetch v0.80.0 API types, quote verbatim).
 
 ## Decisions (with why)
 
