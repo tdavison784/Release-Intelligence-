@@ -139,7 +139,7 @@ type DossierJoinFinding struct {
 // its state across the environment.
 type DossierSetting struct {
 	Setting string `json:"setting"`
-	Kind    string `json:"kind"` // object-field | values-key | token
+	Kind    string `json:"kind"` // object-field | values-key | key-path | token
 	From    string `json:"from"` // where the dossier learned the setting
 	// State summarises the per-object / per-input states: explicit,
 	// inherited-default, unknown, or mixed (some objects one way, some another).
@@ -700,6 +700,8 @@ func (s settingSpec) key() string {
 		return g + "/" + s.objKd + " " + s.path
 	case "values-key":
 		return "values " + s.path
+	case "key-path":
+		return "key " + s.path
 	}
 	return "token " + s.token
 }
@@ -715,6 +717,9 @@ func (db *dossierBuilder) deriveSettings() {
 		for _, x := range db.specs { // a group-less subject names the same field as a fact's
 			if s.kind == "object-field" && x.kind == s.kind && x.objKd == s.objKd && x.path == s.path && (s.group == "" || x.group == "" || s.group == x.group) {
 				return
+			}
+			if s.kind == "key-path" && x.kind == "values-key" && x.path == s.path {
+				return // the same key, already looked up as a values key
 			}
 		}
 		if k := s.key(); !seen[k] {
@@ -778,10 +783,51 @@ func (db *dossierBuilder) deriveSettings() {
 			add(settingSpec{kind: "token", token: sub, from: "item subject"})
 		}
 	}
+	for _, span := range codeSpans(db.upstreamText()) {
+		key := span
+		if i := strings.IndexAny(key, ":= "); i > 0 {
+			key = key[:i] // "a.b: value", "--flag=value"
+		}
+		segs := strings.Split(key, ".")
+		switch {
+		case valuesKeyRe.MatchString(key) && upperRe.MatchString(segs[0]):
+			add(settingSpec{kind: "object-field", objKd: segs[0], path: strings.Join(segs[1:], "."), from: "upstream text"})
+		case valuesKeyRe.MatchString(key):
+			add(settingSpec{kind: "key-path", path: key, from: "upstream text"})
+		case identRe.MatchString(key) && strings.ContainsAny(key, "-_"):
+			add(settingSpec{kind: "token", token: key, from: "upstream text"})
+		}
+	}
 	if len(db.specs) > dossierSettings {
 		db.d.Truncated = append(db.d.Truncated, fmt.Sprintf("settings: %d more not evaluated", len(db.specs)-dossierSettings))
 		db.specs = db.specs[:dossierSettings]
 	}
+}
+
+// upstreamText is the change's own upstream wording: the title, the detail
+// and the item's evidence excerpts.
+func (db *dossierBuilder) upstreamText() string {
+	parts := []string{db.it.Title, db.d.Change.Detail}
+	for _, e := range db.d.Change.Upstream {
+		parts = append(parts, e.Excerpt)
+	}
+	return strings.Join(parts, "\n")
+}
+
+var codeSpanRe = regexp.MustCompile("`([^`\n]{2,120})`")
+
+// codeSpans are the code spans of a text, in order of first occurrence: the
+// way release notes name flags, keys and fields.
+func codeSpans(text string) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, m := range codeSpanRe.FindAllStringSubmatch(text, -1) {
+		if x := strings.TrimSpace(m[1]); !seen[x] {
+			seen[x] = true
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 // walkLeaves visits every leaf with its enclosing resource scope.
@@ -823,7 +869,9 @@ func (db *dossierBuilder) settings(ctx context.Context) {
 		case "object-field":
 			ds = db.objectSetting(s, roots)
 		case "values-key":
-			ds = db.valuesSetting(s)
+			ds = db.keySetting(s, db.envText, "a complete render consumed the values, so the chart default applies")
+		case "key-path":
+			ds = db.keySetting(s, append(append([]textArt(nil), db.envText...), db.toText...), "it occurs at no key path of the environment files or the complete renders: the shipped default applies")
 		default:
 			ds = db.tokenSetting(s)
 		}
@@ -905,16 +953,18 @@ func (db *dossierBuilder) unchanged(u DossierUnchanged) {
 	db.d.Unchanged = append(db.d.Unchanged, u)
 }
 
-// valuesSetting looks the key path up in the environment files: at the
+// keySetting looks the key path up in the inputs (environment files, and
+// for a key path from the upstream text the complete renders too): at the
 // document root, or under a parent (a HelmRelease spec.values, a nested
-// values block). Absent everywhere with a complete render ⇒ the chart default.
-func (db *dossierBuilder) valuesSetting(s settingSpec) DossierSetting {
+// values block, an object's spec). Absent everywhere with a complete render
+// ⇒ the default; the leaf occurring elsewhere ⇒ unknown.
+func (db *dossierBuilder) keySetting(s settingSpec, inputs []textArt, inherited string) DossierSetting {
 	ds := DossierSetting{Setting: s.key(), Kind: s.kind, From: s.from}
 	path := strings.Split(s.path, ".")
 	leaf := path[len(path)-1]
 	values := map[string]bool{}
 	var loose []string
-	for _, ta := range db.envText {
+	for _, ta := range inputs {
 		dec := yaml.NewDecoder(strings.NewReader(ta.text))
 		lines := strings.Split(ta.text, "\n")
 		for {
@@ -945,16 +995,19 @@ func (db *dossierBuilder) valuesSetting(s settingSpec) DossierSetting {
 			vs = append(vs, v)
 		}
 		sort.Strings(vs)
-		ds.Detail = fmt.Sprintf("set explicitly in the environment files to %s", strings.Join(vs, ", "))
+		ds.Detail = fmt.Sprintf("set explicitly to %s at %d place(s)", strings.Join(vs, ", "), len(ds.Where))
+		if s.kind == "key-path" {
+			ds.Detail += "; a key path names no object kind, so objects that leave it unset are not listed here"
+		}
 		if len(vs) > 1 {
 			db.gap(GapContradictory, "setting "+s.key(), "set to different values in several environment files ("+strings.Join(vs, ", ")+"); which is effective depends on the order the files are applied")
 		}
 	case len(loose) > 0:
 		ds.State, ds.Detail = SettingUnknown, fmt.Sprintf("the key %s occurs (%s) but not at the key path %s: the dossier cannot tell whether it sets this setting", leaf, strings.Join(loose, ", "), s.path)
 	case db.complete:
-		ds.State, ds.Detail = SettingInheritedDefault, "not set in any environment file; a complete render consumed the values, so the chart default applies"
+		ds.State, ds.Detail = SettingInheritedDefault, "not set in any environment file; "+inherited
 	default:
-		ds.State, ds.Detail = SettingUnknown, "not set in any environment file the bundle holds, and no complete render shows the values were complete"
+		ds.State, ds.Detail = SettingUnknown, "not set in any environment file the bundle holds, and no complete render shows the deployed configuration"
 	}
 	return ds
 }
@@ -1152,7 +1205,7 @@ func (db *dossierBuilder) gaps() {
 	}
 	uncorrelated := 0
 	for _, p := range db.b.Renders {
-		if p.Status != domain.CollectionOK {
+		if p.Status != domain.CollectionOK && p.Status != domain.CollectionNotApplicable {
 			kind := GapPartial
 			if p.Status == domain.CollectionUnavailable {
 				kind = GapMissing

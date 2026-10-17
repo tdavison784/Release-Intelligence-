@@ -84,6 +84,15 @@ func TestDossierSettingStates(t *testing.T) {
 	if len(d.Knowledge) != 1 || d.Knowledge[0].Fact != f.fact.ID || d.Knowledge[0].Level != string(domain.VerifiedConsensus) {
 		t.Errorf("knowledge: %+v", d.Knowledge)
 	}
+	var fromText *DossierSetting
+	for i := range d.Settings {
+		if d.Settings[i].From == "upstream text" {
+			fromText = &d.Settings[i]
+		}
+	}
+	if fromText == nil || fromText.Setting != "key spec.cleanup.policy" || fromText.State != SettingExplicit || !strings.Contains(fromText.Detail, "not listed") {
+		t.Errorf("the upstream text's code span names the setting: %+v", d.Settings)
+	}
 	if hasGap(d, GapMissing, "setting") || hasGap(d, GapContradictory, "") {
 		t.Errorf("a complete view has no setting gap: %+v", d.Gaps)
 	}

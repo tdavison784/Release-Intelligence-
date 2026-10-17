@@ -93,7 +93,7 @@ func newWidgetFixture(t *testing.T, o widgetOpts) *widgetFixture {
 	edge := domain.UpgradeEdge{Product: domain.ProductRef{ID: "widgets"}, From: domain.Version{Tag: "v1.4.0"}, To: domain.Version{Tag: "v1.5.0"},
 		Changes: []domain.Change{
 			{ID: "chg-cleanup", Category: domain.Category("behavior"), Breaking: true, Title: "Default cleanup policy is Purge", Release: "v1.5.0",
-				Detail: "Set spec.cleanup.policy: Retain on a Widget to keep the previous behaviour.", Subjects: []string{"Widget.spec.cleanup.policy"}, Evidence: []domain.EvidenceID{ev1.ID},
+				Detail: "Set `spec.cleanup.policy: Retain` on a Widget to keep the previous behaviour.", Subjects: []string{"Widget.spec.cleanup.policy"}, Evidence: []domain.EvidenceID{ev1.ID},
 				Provenance: domain.Provenance{Method: domain.MethodHeuristic, Producer: "normalize.releasenotes@v1", Rule: "section:/breaking/i", Confidence: domain.ConfidenceMedium}},
 			{ID: "chg-legacy", Category: domain.Category("removal"), Breaking: true, Title: "values key controller.legacyMode removed", Release: "v1.5.0",
 				Subjects: []string{"controller.legacyMode"}, Evidence: []domain.EvidenceID{ev2.ID}},
