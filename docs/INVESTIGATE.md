@@ -994,12 +994,18 @@ ri eval -investigations -rescore eval/investigations/results/<run-id>   # re-cla
 
 A stored run (`eval/investigations/results/<run-id>/`) holds, uncompressed, `run.json` (arm, binary commit
 and dirty flag, configuration, per-case input/env/expected digests, investigation and bundle ids, record
-digests), `score.json` (decisions, metrics, splits, gates), `gates.json` (gate states + autonomy at a
-glance) and `report.txt`; the bulky per-case records — `request.json`, `investigation.json`, `bundle.json`,
+digests, and every later `-append`), `gates.json` (gate states + autonomy at a glance) and `report.txt`;
+compressed, `score.json.gz` (decisions, metrics, splits, gates) and one deterministic `cases.tar.gz` (sorted
+entries, zero times, gzip -9) with the per-case records — `request.json`, `investigation.json`, `bundle.json`,
 `graph.json`, `impact-report.json`, `changes.json` (+ `transcript.jsonl` when the agent ran) under
-`cases/<id>/` — live in one deterministic `cases.tar.gz` (sorted entries, zero times, gzip -9), enough to
-re-score offline. `-rescore` and the replay driver read the archive transparently (the legacy uncompressed
-`cases/` directory is still read); `ri eval -investigations -pack <run dir>` converts a legacy run, checking
-every file byte for byte before removing `cases/`.
+`cases/<id>/` — enough to re-score offline. `-rescore` and the replay driver read them transparently (the
+legacy uncompressed layout is still read); `ri eval -investigations -pack <run dir>` converts a legacy run,
+checking every file byte for byte before removing the original.
+
+`-append <run dir>` adds the selected cases (`-case`) to an existing run — same arm, configuration digest and
+binary commit; a case already in the run is refused — and re-scores the run over all its cases. Long arms (the
+agent, runtime) are built this way case by case so partial progress is committed. `-rescore` uses the current
+classifier: a stored run reproduces byte for byte with the binary of its own commit, and a difference under newer
+code shows exactly what a policy change altered.
 Scored runs are kept, never overwritten or cherry-picked; the analysis is
 `docs/phase4/env-impact/EVAL-REPORT.md`.

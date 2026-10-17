@@ -60,7 +60,13 @@ func TestPackLegacyRunAndReadBothLayouts(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "cases")); !os.IsNotExist(err) {
 		t.Fatal("cases/ must be removed after packing")
 	}
-	for _, n := range []string{invCasesArchive, "gates.json", "run.json", "score.json"} {
+	if _, err := os.Stat(filepath.Join(dir, "score.json")); !os.IsNotExist(err) {
+		t.Fatal("plain score.json must be replaced by score.json.gz")
+	}
+	if raw, err := readInvScore(dir); err != nil || !bytes.Equal(raw, mustJSONBytes(t, eval.InvScore{})) {
+		t.Fatalf("compressed score differs: %v", err)
+	}
+	for _, n := range []string{invCasesArchive, invScoreFile, "gates.json", "run.json"} {
 		if _, err := os.Stat(filepath.Join(dir, n)); err != nil {
 			t.Fatalf("%s missing after pack: %v", n, err)
 		}
@@ -84,15 +90,22 @@ func TestSaveInvRunArchiveLoads(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "run")
 	s := &invStored{Inv: &domain.Investigation{ID: "inv-1"}, Bundle: &domain.EvidenceBundle{ID: "bnd-1"}, ChangeText: map[string]string{"c": "d"},
 		Graph: &domain.RelationshipGraph{ID: "grf-1"}, Transcript: []byte("{\"type\":\"session\"}\n")}
-	if err := saveInvRun(dir, InvRunMeta{RunID: "A-x"}, &eval.InvScore{}, map[string]*invStored{"case-1": s}, []byte("report\n")); err != nil {
+	if err := saveInvRun(dir, InvRunMeta{RunID: "A-x"}, &eval.InvScore{}, map[string]*invStored{"case-1": s}, []byte("report\n"),
+		map[string][]byte{invCasePath("case-0", "investigation.json"): []byte("{}\n")}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, "cases")); !os.IsNotExist(err) {
 		t.Fatal("new runs store no uncompressed cases/ directory")
 	}
+	if _, err := readInvScore(dir); err != nil {
+		t.Fatalf("score.json.gz: %v", err)
+	}
 	rf, err := openInvRunFiles(dir)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if raw, err := rf.read("case-0", "investigation.json"); err != nil || string(raw) != "{}\n" {
+		t.Fatalf("earlier case records must be carried over unchanged: %v", err)
 	}
 	got, err := loadInvStored(rf, "case-1")
 	if err != nil {

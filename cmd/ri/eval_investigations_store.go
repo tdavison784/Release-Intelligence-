@@ -24,8 +24,68 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/eval"
 )
 
-// invCasesArchive holds cases/<id>/<file> entries.
-const invCasesArchive = "cases.tar.gz"
+// invCasesArchive holds cases/<id>/<file> entries; invScoreFile is the
+// gzip-compressed score (decisions, metrics, splits, gates).
+const (
+	invCasesArchive = "cases.tar.gz"
+	invScoreFile    = "score.json.gz"
+)
+
+func shortCommit(c string) string {
+	if len(c) > 10 {
+		return c[:10]
+	}
+	return c
+}
+
+func readInvRunMeta(dir string) (*InvRunMeta, error) {
+	raw, err := os.ReadFile(filepath.Join(dir, "run.json"))
+	if err != nil {
+		return nil, err
+	}
+	var m InvRunMeta
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil, fmt.Errorf("%s/run.json: %w", dir, err)
+	}
+	return &m, nil
+}
+
+// writeInvGzip writes a deterministic gzip file (no name, zero time).
+func writeInvGzip(dst string, raw []byte) error {
+	var buf bytes.Buffer
+	zw, err := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	if _, err := zw.Write(raw); err != nil {
+		return err
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	return os.WriteFile(dst, buf.Bytes(), 0o644)
+}
+
+func readInvGzip(src string) ([]byte, error) {
+	f, err := os.Open(src)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	zr, err := gzip.NewReader(f)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", src, err)
+	}
+	return io.ReadAll(zr)
+}
+
+// readInvScore reads a run's score: score.json.gz, or a plain score.json.
+func readInvScore(dir string) ([]byte, error) {
+	if raw, err := readInvGzip(filepath.Join(dir, invScoreFile)); err == nil || !os.IsNotExist(err) {
+		return raw, err
+	}
+	return os.ReadFile(filepath.Join(dir, "score.json"))
+}
 
 func invCasePath(caseID, name string) string { return path.Join("cases", caseID, name) }
 
@@ -145,12 +205,66 @@ func (rf *invRunFiles) read(caseID, name string) ([]byte, error) {
 	return raw, nil
 }
 
-// packInvRun converts a legacy run directory: every file under cases/ goes
-// into cases.tar.gz with its bytes unchanged, the archive is read back and
-// compared, then cases/ is removed; gates.json is derived from score.json and
-// run.json when missing. Nothing else in the run is touched.
+// packInvRun converts a run stored in an earlier layout: every file under
+// cases/ goes into cases.tar.gz and a plain score.json becomes score.json.gz,
+// each read back and compared byte for byte before the original is removed;
+// gates.json is derived from the score and run.json when missing. Nothing
+// else in the run is touched. A run already in the current layout is an error.
 func packInvRun(dir string) error {
+	did := false
 	root := filepath.Join(dir, "cases")
+	if _, err := os.Stat(root); err == nil {
+		if err := packInvCases(dir, root); err != nil {
+			return err
+		}
+		did = true
+	}
+	plain := filepath.Join(dir, "score.json")
+	if raw, err := os.ReadFile(plain); err == nil {
+		dst := filepath.Join(dir, invScoreFile)
+		if _, err := os.Stat(dst); err == nil {
+			return fmt.Errorf("%s and %s both exist", plain, dst)
+		}
+		if err := writeInvGzip(dst, raw); err != nil {
+			return err
+		}
+		back, err := readInvGzip(dst)
+		if err != nil || !bytes.Equal(back, raw) {
+			return fmt.Errorf("%s differs after compressing (%v)", dst, err)
+		}
+		if err := os.Remove(plain); err != nil {
+			return err
+		}
+		did = true
+	}
+	if !did {
+		return fmt.Errorf("%s: nothing to pack (already cases.tar.gz + score.json.gz)", dir)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "gates.json")); os.IsNotExist(err) {
+		meta, err := readInvRunMeta(dir)
+		if err != nil {
+			return err
+		}
+		sraw, err := readInvScore(dir)
+		if err != nil {
+			return err
+		}
+		var score eval.InvScore
+		if err := json.Unmarshal(sraw, &score); err != nil {
+			return fmt.Errorf("score: %w", err)
+		}
+		raw, err := invFileBytes(invGatesSummary(*meta, &score))
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(dir, "gates.json"), raw, 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func packInvCases(dir, root string) error {
 	files := map[string][]byte{}
 	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -192,28 +306,56 @@ func packInvRun(dir string) error {
 			return fmt.Errorf("%s: %s differs after packing", dst, n)
 		}
 	}
-	if _, err := os.Stat(filepath.Join(dir, "gates.json")); os.IsNotExist(err) {
-		var meta InvRunMeta
-		var score eval.InvScore
-		for name, v := range map[string]any{"run.json": &meta, "score.json": &score} {
-			raw, err := os.ReadFile(filepath.Join(dir, name))
-			if err != nil {
-				return err
-			}
-			if err := json.Unmarshal(raw, v); err != nil {
-				return fmt.Errorf("%s: %w", name, err)
-			}
-		}
-		raw, err := invFileBytes(invGatesSummary(meta, &score))
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dir, "gates.json"), raw, 0o644); err != nil {
-			return err
-		}
-	}
 	if !strings.HasSuffix(filepath.Clean(root), string(filepath.Separator)+"cases") {
 		return fmt.Errorf("refusing to remove %s", root)
 	}
 	return os.RemoveAll(root)
+}
+
+// invMergeAppend folds the cases this invocation ran into a stored run: the
+// run's earlier case records (archive bytes, unchanged) and their re-loaded
+// InvRuns join the new ones, run.json gains the new cases and an Appends
+// entry. It returns the merged meta, the earlier archive files and every case
+// of the run (for scoring).
+func (c *cli) invMergeAppend(datasetDir, runDir string, prior *InvRunMeta, cur InvRunMeta, runs map[string]*eval.InvRun, args []string) (InvRunMeta, map[string][]byte, []*eval.InvCase, error) {
+	merged := *prior
+	var newIDs []string
+	for _, m := range cur.Cases {
+		newIDs = append(newIDs, m.ID)
+	}
+	merged.Cases = append(append([]InvRunMetaCase{}, prior.Cases...), cur.Cases...)
+	sort.Slice(merged.Cases, func(i, j int) bool { return merged.Cases[i].ID < merged.Cases[j].ID })
+	merged.FinishedAt = cur.FinishedAt
+	merged.Appends = append(append([]InvRunAppend{}, prior.Appends...), InvRunAppend{
+		Args: append([]string{"eval", "-investigations"}, args...), Cases: newIDs, StartedAt: cur.StartedAt, FinishedAt: cur.FinishedAt})
+	if merged.ConfigDigest == "" {
+		merged.Config, merged.ConfigDigest = cur.Config, cur.ConfigDigest
+	}
+	rf, err := openInvRunFiles(runDir)
+	if err != nil {
+		return merged, nil, nil, err
+	}
+	if rf.arch == nil {
+		return merged, nil, nil, fmt.Errorf("-append: run %s uses the legacy cases/ layout; -pack it first", prior.RunID)
+	}
+	var ids []string
+	for _, m := range merged.Cases {
+		ids = append(ids, m.ID)
+	}
+	all, err := eval.LoadInvCases(datasetDir, ids...)
+	if err != nil {
+		return merged, nil, nil, err
+	}
+	for _, m := range prior.Cases {
+		if m.Error != "" {
+			runs[m.ID] = &eval.InvRun{Case: m.ID, Error: m.Error}
+			continue
+		}
+		s, err := loadInvStored(rf, m.ID)
+		if err != nil {
+			return merged, nil, nil, fmt.Errorf("%s: %w", m.ID, err)
+		}
+		runs[m.ID] = s.evalRun(m.ID)
+	}
+	return merged, rf.arch, all, nil
 }
