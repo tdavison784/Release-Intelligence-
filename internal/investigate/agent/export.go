@@ -265,8 +265,8 @@ func reviewItemOf(h domain.Hypothesis, inv string, c domain.SemanticCandidate, p
 		h.ID, inv, strings.TrimSpace(a.Statement), m.ProposedRule.Release.From, m.ProposedRule.Release.To, m.RequestedVerification)
 	return domain.ReviewItem{ID: domain.ReviewItemID(c.ID, domain.QuestionFactReview, a), CandidateID: c.ID, Product: c.Product, Release: c.Release,
 		QuestionType: domain.QuestionFactReview, Question: q, Proposed: a, Proposals: []string{proposal},
-		Routing:   domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal, Signals: []domain.RoutingSignal{domain.SignalSingleModel}},
-		Status:    domain.ReviewPending, CreatedAt: now.UTC()}
+		Routing: domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal, Signals: []domain.RoutingSignal{domain.SignalSingleModel}},
+		Status:  domain.ReviewPending, CreatedAt: now.UTC()}
 }
 
 // put writes a record unless one with its id exists (reported).
