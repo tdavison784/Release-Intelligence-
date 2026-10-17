@@ -958,6 +958,70 @@ enclosing commit, dirty flag, remote and checkout path are provenance recorded i
 A loader warning that a non-semver version (a branch) was found counts as a collection gap only when it concerns the product under
 investigation; for another product's deployment it is recorded as a `note:` on the repo input.
 
+## Investigation report (per upgrade): what was checked, every verdict, the human decision
+
+`ri investigate serve` (and `/investigations` inside `ri review serve`, one link in its top bar) shows every stored
+investigation so a human can see what was checked before a release, read every verdict and record the decision.
+Package `internal/investigate/reportui` (stdlib only).
+
+```
+ri investigate serve                                         # the investigation store in the global -state (reviews are recorded)
+ri investigate serve -store eval/investigations/results      # the stored evaluation runs, read-only (packed cases.tar.gz or unpacked cases/)
+ri investigate serve -store eval/investigations/results/B-20261017-047cb4ea1c   # one evaluation run
+ri review serve -knowledge knowledge/ -investigation-store eval/investigations/results   # both views, one server
+```
+
+Default address `127.0.0.1:8486` (`/` redirects to `/investigations`). No authentication: it binds to localhost and
+refuses cross-origin POSTs.
+
+**List** (`GET /investigations`): one row per investigation — product, from → to, environment, run date, decision
+(needs human review / eligible, not enacted / not classified), review state and reviewer, item counts by class —
+newest first; filters `?product=`, `?env=`, `?decision=review|eligible|none` and, for stored runs, `?run=<run-id>`.
+
+**Investigation page** (`GET /investigations/view/<key>`; key = the investigation id, or `<run-id>/<case>` for a stored
+evaluation run), top to bottom:
+
+1. The decision in plain English (why it needs review, or why it is eligible and that automated approval is off), the
+   policy's own reasons verbatim, and the review state.
+2. Release (product, from → to, item counts, change-evidence collection status per source) and environment (repo
+   path/URL, commit, tree digest, Kubernetes version, every snapshot input with status).
+3. **What was checked**: every render target (environment and chart-default scope) with status, rendered-change counts
+   (explained / unexplained) and links to the FROM/TO renders and diff; every validator with pass / fail /
+   inconclusive / not-run counts; relationship traversal (complete or not); runtime validation run yes/no; agent run
+   yes/no (model, provider, prompt, turns, tool calls, tokens, transcript); knowledge-fact artifacts with their
+   verification level when the store holds their bytes (trusted = deterministic or human); pinned settings established.
+4. **Items, attention first**: affected → potentially affected → insufficient evidence → not affected (collapsed). Each
+   item: class, the rule that decided it (R1–R4 in words), one deterministic sentence of reason (never from AI output),
+   the full deterministic reasoning, the upstream change text with links, the rendered before/after values of its
+   correlated changes (sensitive fields withheld), every validation (validator, outcome, level, property, detail,
+   pinned setting, evidence, inputs/outputs), runtime observations, the join verdicts, gaps, assumptions, remediation,
+   next steps and approval blockers.
+5. **AI output in its own dashed, labelled box** ("AI OUTPUT — advisory, not a validation"): the agent's per-item
+   summary, concerns (with whether a passing validation answered them), explanations, mitigation claims, hypotheses,
+   verified setting claims (with the checker), and its validation/evidence requests — each with model, provider,
+   prompt version and call id, and "unverified AI prose" where the record says so. Validated results never appear
+   inside it; AI records never appear outside it.
+6. **Human review**: approve / reject / request more evidence, with reviewer name and a reason (both required; inputs
+   wanted for "more"). The decision goes through `classify.NewReviewApplier()` (`ReviewerKind: human` always — the form
+   has no other kind; an AI reviewer is recorded by tooling, shown as "AI reviewer — recorded, never approves", and never
+   approves) and is written with the store's `PutInvestigation` (validated; the audit trail only grows). As with
+   `ri investigate review` on a stored run, a decided review completes the run; a new round of evidence is a new
+   `ri investigate`. Runs driven by Temporal are reviewed with `ri investigate review <workflow-id> … --temporal` (the
+   signal), not on this page. Then the review history and the full **hash-chained audit trail** (who, what, when, each
+   event's previous and own digest; the chain is re-checked on every view).
+7. The record: investigation id, status, bundle, configuration digest, record digest (timestamps excluded).
+
+**Shareable record**: "Download report (HTML)" (`GET /investigations/export/<key>?format=html`) is one self-contained
+file for a release ticket — stylesheet inlined, no scripts, no links back into the server, every item expanded — that
+carries the run record JSON inside it as a download link; `?format=json` is the run record alone.
+`GET /investigations/artifact/<key>?digest=sha256:…` serves an artifact's bytes as plain text when the store holds them
+(stored evaluation runs keep only the per-case records, so most artifact names are shown without a link there).
+
+Stored evaluation runs are read-only: the page says so and offers no review form. Screenshots:
+`docs/phase4/env-impact/review-ui/10-investigations-list.png`, `11-investigation-page.png`, `12-investigation-review.png`.
+Tests: `internal/investigate/reportui/reportui_test.go` (list/filter, attention order, AI labelling, human review with
+reason, proxy cannot approve, read-only runs, cross-origin refusal, self-contained export).
+
 ## Evaluation
 
 `ri eval -investigations` scores the investigation pipeline against the blind ground truth in
