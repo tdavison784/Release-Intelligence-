@@ -3,6 +3,9 @@ package bundle
 import (
 	"strings"
 	"testing"
+
+	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 func TestRedactSecretDocumentKeepsKeys(t *testing.T) {
@@ -86,5 +89,173 @@ func TestCredentialLastSegment(t *testing.T) {
 		if got := lastSegment(p); got != want {
 			t.Errorf("lastSegment(%q) = %q, want %q", p, got, want)
 		}
+	}
+}
+
+// gadgetDoc is a synthetic custom resource: a credential-named map holding
+// an enum setting, free text, a number, a flag, a password-like value and a
+// private key.
+const gadgetDoc = `apiVersion: example.test/v1
+kind: Gadget
+metadata:
+  name: g
+spec:
+  replicas: 2
+  credentials:
+    rotation: Never
+    comment: rotate by hand, ask ops
+    size: 256
+    enabled: true
+    pin: "0420"
+    password: hunter2
+    bundle: |
+      -----BEGIN EC PRIVATE KEY-----
+      MHcCAQEEIGadgetKeyMaterial
+      -----END EC PRIVATE KEY-----
+`
+
+const gadgetCRD = `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gadgets.example.test
+spec:
+  group: example.test
+  names: {kind: Gadget, plural: gadgets}
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              credentials:
+                type: object
+                properties:
+                  rotation: {type: string, enum: [Never, Always]}
+                  comment: {type: string}
+                  pin: {type: string}
+                  password: {type: string, enum: [hunter2, letmein]}
+`
+
+func TestRedactCredentialMapKeepsOnlyNonStrings(t *testing.T) {
+	out, red := redactYAML([]byte(gadgetDoc))
+	if !red {
+		t.Fatal("not redacted")
+	}
+	s := string(out)
+	// readable: what is provably not a credential
+	for _, keep := range []string{"replicas: 2", "size: 256", "enabled: true", "name: g"} {
+		if !strings.Contains(s, keep) {
+			t.Errorf("%q should stay readable:\n%s", keep, s)
+		}
+	}
+	// withheld: every string below the map (no schema is known at collection)
+	for _, leak := range []string{"Never", "rotate by hand", "0420", "hunter2", "PRIVATE KEY", "GadgetKeyMaterial"} {
+		if strings.Contains(s, leak) {
+			t.Errorf("%q leaked:\n%s", leak, s)
+		}
+	}
+	for _, m := range []string{"Never", "rotate by hand, ask ops", "0420", "hunter2"} {
+		if !strings.Contains(s, redactedValue(m)) {
+			t.Errorf("no marker for %q:\n%s", m, s)
+		}
+	}
+}
+
+// TestRedactReadBackOnlySchemaEnum runs the whole chain the validators and
+// the agent see: the stored (redacted) file, parsed, then read back against
+// the bundle's CRD. Only the enum setting comes back.
+func TestRedactReadBackOnlySchemaEnum(t *testing.T) {
+	stored, _ := redactYAML([]byte(gadgetDoc))
+	crds, err := render.ParseObjects([]byte(gadgetCRD))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ix := redaction.NewSchemas()
+	for _, c := range crds {
+		ix.AddCRD(c.Body)
+	}
+	objs, err := render.ParseObjects(stored)
+	if err != nil || len(objs) != 1 {
+		t.Fatalf("parse: %v %v", objs, err)
+	}
+	got := ix.Recover(objs[0].ID.Group, objs[0].ID.Version, objs[0].ID.Kind, objs[0].Body)
+	if len(got) != 1 || got[0].Path != "spec.credentials.rotation" || got[0].Value != "Never" {
+		t.Fatalf("read back %v, want only spec.credentials.rotation = Never", got)
+	}
+	cred := objs[0].Body["spec"].(map[string]any)["credentials"].(map[string]any)
+	if cred["rotation"] != "Never" {
+		t.Errorf("rotation = %v", cred["rotation"])
+	}
+	for _, k := range []string{"comment", "pin", "password", "bundle"} {
+		if v, _ := cred[k].(string); !redaction.IsMarker(v) && !strings.HasPrefix(v, "<sensitive sha256:") {
+			t.Errorf("%s was re-exposed: %v", k, cred[k])
+		}
+	}
+}
+
+func TestRedactPrivateKeyAnywhere(t *testing.T) {
+	in := []byte("apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: c\ndata:\n  ca.pem: |\n    -----BEGIN CERTIFICATE-----\n    MIIBpublic\n    -----END CERTIFICATE-----\n  key.pem: |\n    -----BEGIN PRIVATE KEY-----\n    MIIEsecret\n    -----END PRIVATE KEY-----\n")
+	out, red := redactYAML(in)
+	s := string(out)
+	if !red || strings.Contains(s, "MIIEsecret") || strings.Contains(s, "PRIVATE KEY") {
+		t.Fatalf("private key kept:\n%s", s)
+	}
+	if !strings.Contains(s, "MIIBpublic") {
+		t.Errorf("a certificate is not a credential:\n%s", s)
+	}
+}
+
+// TestRedactSecretAndOwnKeyUnchanged pins the v1 values for what v2 does not
+// change: Secret data, scalar credentials, credential-named lists.
+func TestRedactSecretAndOwnKeyUnchanged(t *testing.T) {
+	in := []byte("apiVersion: v1\nkind: Secret\nmetadata:\n  name: db\ndata:\n  password: aHVudGVyMg==\n  port: 5432\nstringData:\n  flag: true\n---\ndb:\n  password: hunter2\n  apiToken: 123456\n  createSecret: true\nimagePullSecrets:\n  - name: regcred\n")
+	want := "apiVersion: v1\nkind: Secret\nmetadata:\n  name: db\ndata:\n  password: \"" + redactedValue("aHVudGVyMg==") + "\"\n  port: \"" + redactedValue("5432") + "\"\nstringData:\n  flag: \"" + redactedValue("true") + "\"\n" +
+		"---\ndb:\n  password: \"" + redactedValue("hunter2") + "\"\n  apiToken: \"" + redactedValue("123456") + "\"\n  createSecret: true\nimagePullSecrets:\n  - name: \"" + redactedValue("regcred") + "\"\n"
+	out, _ := redactYAML(in)
+	if string(out) != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", out, want)
+	}
+}
+
+func TestWithheldFact(t *testing.T) {
+	for _, c := range []struct {
+		path, value string
+		want        bool
+	}{
+		{"replicas", "2", false},
+		{"db.host", `"db.internal"`, false},
+		{"db.password", `"hunter2"`, true},
+		{"db.password", "true", true}, // own key: withheld whatever the value, as before
+		{"spec.credentials.rotation", `"Never"`, true},
+		{"spec.credentials.size", "256", false},
+		{"spec.credentials.enabled", "false", false},
+		{"spec.credentials.note", "null", false},
+		{"spec.privateKey.algorithm", `"ECDSA"`, true},
+		{"tokens[0].weight", "3", true}, // a credential-named list is withheld whole
+		{"spec.tokens[].weight", "3", true},
+		{"ca", `"-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"`, true},
+		{"spec.x", "not json", true},
+	} {
+		if got := withheldFact(c.path, c.value); got != c.want {
+			t.Errorf("withheldFact(%q, %s) = %v, want %v", c.path, c.value, got, c.want)
+		}
+	}
+}
+
+func TestRedactKeepsDocumentSeparators(t *testing.T) {
+	in := []byte("---\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: a\n---\napiVersion: v1\nkind: Secret\nmetadata:\n  name: b\ndata:\n  k: dg==\n---\napiVersion: example.test/v1\nkind: Gadget\nmetadata:\n  name: c\nspec:\n  token: abc\n")
+	out, red := redactYAML(in)
+	if !red || strings.Count(string(out), "---\n") != 3 {
+		t.Fatalf("separators lost:\n%s", out)
+	}
+	objs, err := render.ParseObjects(out)
+	if err != nil || len(objs) != 3 {
+		t.Fatalf("the redacted stream must keep its 3 objects, got %d (%v):\n%s", len(objs), err, out)
 	}
 }

@@ -531,8 +531,9 @@ func (s pinSpec) pinsOn(e effObj, path string) ([]pinHit, string) {
 			return nil, why
 		}
 		where := o.ID.String() + " " + s.path
+		why += e.src.readBackNote(o.ID, s.path)
 		hits = append(hits, pinHit{object: o.ID.String(), path: s.path, value: val, rendered: e.rendered, view: e.src.label(), why: why,
-			evidence: objectEvidence(e, where, fmt.Sprintf("%s: %s", s.path, plainValue(val)), s.path, val)})
+			evidence: objectEvidence(e, where, fmt.Sprintf("%s: %s%s", s.path, plainValue(val), e.src.readBackNote(o.ID, s.path)), s.path, val)})
 	}
 	return hits, ""
 }

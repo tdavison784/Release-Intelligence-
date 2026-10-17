@@ -51,6 +51,9 @@ func redactYAML(in []byte) (out []byte, redacted bool) {
 		}
 		if redactNode(root.Content[0], "", false, isSecretDoc(root.Content[0])) {
 			var enc bytes.Buffer
+			if nl := bytes.IndexByte(d, '\n'); nl >= 0 && isSeparator(d[:nl]) {
+				enc.Write(d[:nl+1]) // v1 dropped it, merging the document into the one before
+			}
 			e := yaml.NewEncoder(&enc)
 			e.SetIndent(2)
 			if err := e.Encode(&root); err == nil && e.Close() == nil {
@@ -84,7 +87,7 @@ func splitDocs(in []byte) [][]byte {
 		} else {
 			line = in[pos:]
 		}
-		if (bytes.HasPrefix(line, []byte("---")) && len(bytes.TrimSpace(line[3:])) == 0) && pos > start {
+		if isSeparator(line) && pos > start {
 			docs = append(docs, in[start:pos])
 			start = pos
 		}
@@ -94,6 +97,11 @@ func splitDocs(in []byte) [][]byte {
 		docs = append(docs, in[start:])
 	}
 	return docs
+}
+
+// isSeparator reports whether line is a document separator line.
+func isSeparator(line []byte) bool {
+	return bytes.HasPrefix(line, []byte("---")) && len(bytes.TrimSpace(line[3:])) == 0
 }
 
 func isSecretDoc(n *yaml.Node) bool {

@@ -276,11 +276,19 @@ func (s objSource) readBackNote(o render.ObjectID, path string) string {
 	return ""
 }
 
-// redactedValue reports whether a value is a redaction marker (the bundle's
-// or the renderer's): what it stands for is not known.
+// redactedValue reports whether a value — decoded, or JSON-encoded as
+// lookup returns it — is a redaction marker (the bundle's or the
+// renderer's): what it stands for is not known.
 func redactedValue(v any) bool {
 	s, ok := v.(string)
-	return ok && (redaction.IsMarker(s) || strings.HasPrefix(s, "<sensitive sha256:"))
+	if !ok {
+		return false
+	}
+	var dec string
+	if strings.HasPrefix(s, `"`) && json.Unmarshal([]byte(s), &dec) == nil {
+		s = dec
+	}
+	return redaction.IsMarker(s) || strings.HasPrefix(s, "<sensitive sha256:")
 }
 
 func isCRD(o render.Object) bool {
