@@ -102,4 +102,5 @@ are the first instances.
 2. Route agent-proposed pin rules into the review queue (the learning-loop link between §A4 and §A5).
 3. Add affected ground-truth cases (≥4) so falseNegativeRate becomes measurable; refine expected-item granularity
    blind, before scoring.
-4. Adopt the provider-window ledger (proposal in `proposals/`) after sign-off.
+4. Later, opt-in (product-owner direction 2026-10-16): an agent-verdict mode (agent safe/unsafe call above a deterministic floor) — off by default.
+5. Adopt the provider-window ledger (proposal in `proposals/`) after sign-off.
