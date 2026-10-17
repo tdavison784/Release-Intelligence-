@@ -205,3 +205,69 @@ as PROTOCOL §4 states ("must be byte-identical to A0"): the agent arm removes t
 blocker, appends the agent-assertion sentence to `reasoning`, adds `assertions`, and on payments-us adds two
 override-inspection@v2 records to two findings' `validations` (both `not-run`). I read this as the intended attachment of
 agent output, not as the policy consuming it; flagged for the commander because the protocol text says byte-identical.
+
+## §A0-F2 — deterministic baseline on F2 (8286e36f + docs), K0 — current
+
+Run `A0-K0-20261017-6d2ae5bf` (binary 6d2ae5bf, clean; K0 digest `sha256:672a7ce0…4ff5`; fresh `-work`). Supersedes §A0-F1.
+
+**A0-F2 vs A0-F1 (`A0-K0-20261017-d262210d`), per item (24):** class, rule, basis, manifestation, eligibility, decider and
+correctness are **identical on all 24 items**; so are run decisions and class counts. Accuracy 3/24, affectedDetection 3/3,
+2 clearances (both correct, obs-north B3 and obs-south B3), 0 unsafe clearances, unsafeEligibilityRate 1/8 (shop-nl B1, as before).
+What changed is evidence text only:
+
+| change | where | why |
+|---|---|---|
+| new impact-path ids (counts unchanged: 15 and 10 gaps) | cert-manager eu/us, both items | path ids are content hashes; the redaction fix changed what is collected for the Certificates. I did not diff the facts to confirm `rotationPolicy` is the cause. |
+| override-inspection v2 → v3 and render-diff id churn in gap text | kube-prometheus-stack B2/B3, ingress shop-nl B1 reasoning | validator versions moved in F2; same verdicts |
+| `traversalComplete` false → true | cert-manager eu/us (vs the earliest A0 `bfebde39`) | fixes5/F1 already; unchanged between F1 and F2 |
+
+So F2 did not change any A0 decision. The `rotationPolicy` items stay `potentially-affected` (controller-behaviour, no
+clearing pin rule in K0); the blocker analysis in §A0 stands.
+
+## §B0-F2 — agent arm, all 8 cases, K0 — current
+
+Run `B0-K0-20261017-6d2ae5bf`: `-agent -agent-model claude-sonnet-5-5`, prompt `investigate-agent/v7`, fresh `-work`, same
+binary and K0 as A0-F2. All 8 cases ran the agent (status `submitted`) and each has its own investigation id (no run-key reuse).
+
+| case | investigation | agent tokens | turns / tool calls |
+|---|---|---|---|
+| cert-manager payments-eu | inv-a2332d5ab309 | 165,332 | 63 / 47 |
+| cert-manager payments-us | inv-b20eca4cfe98 | 161,910 | 64 / 49 |
+| ingress-nginx shop-de | inv-ff6cf34928f5 | 112,016 | 62 / 48 |
+| ingress-nginx shop-fr | inv-d3ddb63f76e2 | 103,612 | 53 / 42 |
+| ingress-nginx shop-nl | inv-108304fbac44 | 112,322 | 60 / 45 |
+| ingress-nginx shop-pl | inv-e54a22252f45 | 118,228 | 66 / 50 |
+| kube-prometheus-stack obs-north | inv-b1b3a13440d8 | 146,058 | 71 / 59 |
+| kube-prometheus-stack obs-south | inv-e1c0e384aeaf | 137,316 | 62 / 49 |
+| **total** | | **1,056,794** | wall 1,565 s (26 min) vs A0 23 s |
+
+**Policy invariance:** the class, rule, basis, eligibility and decision of every finding in all 8 cases equal A0-F2
+(PROTOCOL §4 as amended).
+
+### Agent verdicts (ungated, provisional)
+
+correct 11, false-safe 0, false-alarm 0, hedged 12, overstated 0, no-verdict 1 (obs-south B3). Per case: shop-fr 4/4 correct,
+shop-nl 2/2, obs-north 3/3, obs-south 2/3 (+1 no-verdict); hedged on all of shop-de, shop-pl, payments-eu, payments-us (every
+item `potentially-affected`). No verdict was unsafe: the agent never said not-affected where the expectation is affected.
+
+### rotationPolicy item (ci-86548e9a2300), both environments
+
+- **payments-eu (expected affected): potentially-affected, confidence medium.** Mechanism: default `rotationPolicy` Never →
+  Always (gate `DefaultPrivateKeyRotationPolicyAlways`, on by default); every re-issuance makes a new key. Environment: 3
+  Certificates inherit the default, none explicit (claims `clm-b3137f38c077`, `clm-d99138fa1716`; override-inspection
+  `vr-95cc27670c43` found no pin). Cited evidence `ev-cac9c8fee493`. Uncertainty: whether a consumer pins keys (mesh CA).
+  Would overturn: explicit Never on all three, the gate disabled, or no consumer depends on key stability.
+- **payments-us (expected not-affected): potentially-affected, confidence medium.** Same mechanism. checkout-tls and
+  ledger-tls leave the field unset; **mesh-root-ca sets Never explicitly** (the F1 run could not see this: W-0027 is fixed).
+  Cited `ev-cac9c8fee493`, claim `clm-c02505c2d6b2`, validation `vr-231a6e4b18d6`. It assumed the controller args carry no
+  gate override (searched environment files only). So the verdict is hedged, not false-alarm, by the §8 scoring.
+
+Both verdicts now rest on the real field values. Neither reached a class stronger than the deterministic one.
+
+### Mitigation hypotheses
+
+**None.** 0 hypotheses recorded on any of the 8 investigations (no well-formed, no malformed). `ri investigate
+export-hypotheses` run for all 8 ids into a scratch copy of K0 (not `knowledge/`) returned `hypotheses: []` each time; the
+copy is byte-identical to K0. The agent expressed its mitigation ideas only as prose `proposedValidations` ("set rotationPolicy:
+Never … re-run override-inspection"). Consequence for the experiment: C1 has **no B0-derived input** from these cases; if
+K1 is to be promoted it must come from somewhere else, which is a protocol question for the commander.
