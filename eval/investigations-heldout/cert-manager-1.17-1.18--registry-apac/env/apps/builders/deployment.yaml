@@ -1,0 +1,39 @@
+# Build agents fetch artifacts with their client certificate and verify the registry against the
+# CA certificate that comes with it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: builder
+  labels:
+    app: builder
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: builder
+  template:
+    metadata:
+      labels:
+        app: builder
+    spec:
+      containers:
+        - name: agent
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                curl -sS --max-time 5 \
+                  --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key \
+                  https://artifacts.registry.svc/ || echo "fetch failed"
+                sleep 20
+              done
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: builder-tls

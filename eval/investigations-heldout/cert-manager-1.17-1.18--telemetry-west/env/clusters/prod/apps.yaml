@@ -1,0 +1,29 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: telemetry
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/telemetry
+  prune: true
+  dependsOn:
+    - name: pki
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: edge
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/edge
+  prune: true
+  dependsOn:
+    - name: pki
+  sourceRef:
+    kind: GitRepository
+    name: flux-system

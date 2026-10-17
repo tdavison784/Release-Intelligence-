@@ -1,0 +1,58 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: query-frontend-tls
+spec:
+  secretName: query-frontend-tls
+  commonName: query-frontend.search.svc
+  duration: 2160h # 90d
+  renewBefore: 720h
+  revisionHistoryLimit: 2
+  usages:
+    - client auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: search-ca
+---
+# Calls search-api over mutual TLS; trusts the CA certificate from its own Secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query-frontend
+  labels:
+    app: query-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: query-frontend
+  template:
+    metadata:
+      labels:
+        app: query-frontend
+    spec:
+      containers:
+        - name: client
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                curl -sS --max-time 5 \
+                  --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key \
+                  https://search-api.search.svc/ || echo "search-api call failed"
+                sleep 30
+              done
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: query-frontend-tls
