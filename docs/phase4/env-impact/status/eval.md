@@ -123,6 +123,18 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
   newest merged prompt (version + digest recorded per case in run.json). One run per case, case by case, commit
   after each case. If the fleet guard pauses this lane (Esc) or a HANDBACK/handoff happens: STOP arm B.
 - Progress (cases done): see `eval/investigations/results/B-*/run.json` `cases`.
+- **ARM B STOPPED after case 1 (2026-10-17) — pipeline defect, routed to the commander.** Run
+  `B-20261017-355df68274` (binary 355df682, clean; prompt investigate-agent/v5, claude-sonnet-5-5): case
+  payments-eu → pipeline failure after the agent ran (158 s): `investigate (permanent): store: invalid
+  investigation: audit: event 19 goes back in time`. Cause (read-only analysis, not fixed here — run package):
+  `internal/investigate/run/pipeline.go` `Pipeline.Run`, `case hasRecord:` — `done := ev("completed", …)` takes its
+  `At` (`p.now()`) BEFORE `res.apply` runs; the investigate stage's apply appends one `requested` audit event per
+  agent evidence/validation request at a later `p.now()`; `done` is appended after them with the earlier time ⇒
+  `Investigation.Validate` rejects the record. Any agent run with ≥1 request fails; scripted runs without
+  requests never hit it. Fix: stamp `done` when it is appended (after apply). The run is kept (1 case, error).
+  The case's records/transcript lived in the temporary work store and are gone; next arm B attempt uses `-work`
+  inside the scratchpad so a failed case keeps its transcript. Arm B restarts as a NEW run after the fix (new
+  binary; -append refuses a different commit).
 
 ## Arms A₅ + C₅ after lane refcheck (2026-10-17) — current reference for arm B
 - Merged `p4-env-impact` (fc0fee09 refcheck) at 0790b001; green. `A-20261017T003437Z-0790b00157`,
