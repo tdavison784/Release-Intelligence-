@@ -76,6 +76,7 @@ Commands:
   investigate review|state <id>     apply a human-review decision / show the run (in-process, or --temporal)
   investigate serve                 per-upgrade investigation view: what was checked, verdicts, human review, export (-store DIR; also /investigations in review serve)
   worker                            Temporal worker for investigations (task queue ri-investigation)
+  verify hypotheses -knowledge DIR  independently verify agent-proposed rules: citation check, two-arm runtime exercise (-runtime), proof records gating promotion
   investigate mcp --run <inv-id>    serve an investigation's agent tools over MCP stdio (read-only; docs/INVESTIGATE.md)
 
 Global flags:
@@ -187,6 +188,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.investigateCmd(cmdArgs)
 	case "worker":
 		return c.worker(cmdArgs)
+	case "verify":
+		return c.verifyCmd(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

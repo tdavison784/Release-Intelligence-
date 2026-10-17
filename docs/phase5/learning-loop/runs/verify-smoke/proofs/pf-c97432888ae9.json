@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proof",
+  "proof": {
+    "id": "pf-c97432888ae9",
+    "hypothesis": "hyp-5a0e00000001",
+    "investigation": "inv-5a0e00000001",
+    "reviewItem": "ri-582b21db0eed",
+    "candidateId": "sc-0564d2273368",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "proposedRuleDigest": "cd67ede61ca2",
+    "methods": [
+      {
+        "method": "citation-check",
+        "producer": "verify.citations@v1",
+        "level": "deterministic",
+        "outcome": "pass",
+        "detail": "1 citations resolve in the evidence cache, contain their passages and lie inside (1.17.2, 1.18.0]; 1 name the subject",
+        "checks": [
+          {
+            "subject": "ev-c92478af13c4",
+            "outcome": "pass",
+            "detail": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md (http-cache, sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a) contains the passage and names 1.18, inside (1.17.2, 1.18.0]"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-c92478af13c4",
+            "kind": "document",
+            "sourceId": "website-major-themes",
+            "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+            "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+            "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+            "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+            "retrievedAt": "2026-10-02T02:35:39Z"
+          }
+        ]
+      },
+      {
+        "method": "rule-exercise",
+        "producer": "verify.exercise@v1",
+        "level": "observed",
+        "outcome": "pass",
+        "detail": "fixture cert-manager 1.17.2 → 1.18.0 in ri-verify-f58409c8 (completed, 207s): with the condition the behaviour at TO matched FROM; without it, it changed (core/v1/Secret/ri-verify/ri-arm-absent-tls data:tls.key)",
+        "checks": [
+          {
+            "subject": "condition-present",
+            "outcome": "pass",
+            "detail": "condition-present (spec.privateKey.rotationPolicy = \"Never\"): predicted previous-behaviour, observed previous-behaviour; exercise answered at FROM true, at TO true"
+          },
+          {
+            "subject": "condition-absent",
+            "outcome": "pass",
+            "detail": "condition-absent (spec.privateKey.rotationPolicy unset): predicted new-behaviour, observed new-behaviour; exercise answered at FROM true, at TO true; differences: core/v1/Secret/ri-verify/ri-arm-absent-tls data:tls.key"
+          }
+        ],
+        "arms": [
+          {
+            "name": "condition-present",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+              "core/v1/Secret/ri-verify/ri-arm-present-tls"
+            ],
+            "condition": "spec.privateKey.rotationPolicy = \"Never\"",
+            "predicted": "previous-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": false,
+            "observed": "previous-behaviour"
+          },
+          {
+            "name": "condition-absent",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+              "core/v1/Secret/ri-verify/ri-arm-absent-tls"
+            ],
+            "condition": "spec.privateKey.rotationPolicy unset",
+            "predicted": "new-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": true,
+            "signatures": [
+              "core/v1/Secret/ri-verify/ri-arm-absent-tls data:tls.key"
+            ],
+            "observed": "new-behaviour"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-681289faf54f",
+            "kind": "structured",
+            "sourceId": "art-c63e6b11b176",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-b285a23b1c60/exercises.json",
+            "locator": "derived/runtime/fx-b285a23b1c60/exercises.json",
+            "excerpt": "runtime derived/runtime/fx-b285a23b1c60/exercises.json",
+            "contentDigest": "sha256:62cd238f03d6e4e4128b811a282a7de8440711d50adf90f0596a4ee8daf84e7b"
+          },
+          {
+            "id": "ev-b91163a29c7b",
+            "kind": "structured",
+            "sourceId": "art-6218a91c9427",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-b285a23b1c60/observations.json",
+            "locator": "derived/runtime/fx-b285a23b1c60/observations.json",
+            "excerpt": "runtime derived/runtime/fx-b285a23b1c60/observations.json",
+            "contentDigest": "sha256:dd911993a84776b7642f2c0dc2c46b3c7a0ff68819912931ea2f2bb7865dcc08"
+          },
+          {
+            "id": "ev-3326763c772f",
+            "kind": "structured",
+            "sourceId": "art-7572384b9fff",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-b285a23b1c60/run.json",
+            "locator": "derived/runtime/fx-b285a23b1c60/run.json",
+            "excerpt": "runtime derived/runtime/fx-b285a23b1c60/run.json",
+            "contentDigest": "sha256:5e9c13fc42226bf3dd553463bf66203349b29217f3b7698ac8a0504c545cb6be"
+          }
+        ]
+      }
+    ],
+    "outcome": "confirmed",
+    "versionBounds": {
+      "from": "1.17.2",
+      "to": "1.18.0"
+    },
+    "conditions": {
+      "exposure": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "unset"
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      },
+      "overlap": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "equals",
+            "values": [
+              "\"Never\""
+            ]
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      }
+    },
+    "limitations": [
+      "the rule exercise uses one synthetic subject object per arm in a fresh cluster: other consumers of the subject's outputs, other topologies, pre-existing state and other controller configurations are not covered",
+      "the controller is installed from its chart with the fixture's declared values only; environment-specific controller settings are not exercised",
+      "the citation check proves the passages exist in version-bounded upstream text and name the subject; whether they state the claimed behaviour is the human reviewer's judgement",
+      "a proof never decides whether an environment meets the rule's conditions: the deterministic validators decide that at investigation time"
+    ],
+    "level": "observed",
+    "producer": "verify.hypothesis@v1",
+    "checkedAt": "2026-10-17T13:21:51Z"
+  }
+}

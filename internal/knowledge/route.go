@@ -2,6 +2,7 @@ package knowledge
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -58,6 +59,13 @@ func Route(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain
 // is a pure function: the result is deterministic in its inputs (timestamps
 // come from the records themselves).
 func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult) RouteResult {
+	// agent-proposed rules reach a human only through their exported
+	// whole-fact item and the promotion gate (promote.go): they never count
+	// toward agreement, consensus or an auto-approval policy
+	ps = slices.DeleteFunc(slices.Clone(ps), func(p domain.SemanticProposal) bool {
+		_, _, hyp := ParseHypothesisRule(p.Provenance.Rule)
+		return hyp
+	})
 	agreement := Agreements(ps)
 	state := stateFromValidations(vs)
 	policyName := ""

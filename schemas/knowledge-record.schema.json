@@ -333,12 +333,111 @@
         "validation": {"$ref": "#/$defs/ValidationResult"},
         "reviewItem": {"$ref": "#/$defs/ReviewItem"},
         "decision": {"$ref": "#/$defs/ReviewDecision"},
-        "fact": {"$ref": "#/$defs/VerifiedFact"}
+        "fact": {"$ref": "#/$defs/VerifiedFact"},
+        "proof": {"$ref": "#/$defs/ProofRecord"}
       },
       "additionalProperties": false
     },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "MethodOutcome": {"type": "string", "enum": ["pass", "fail", "inconclusive", "not-run"]},
     "ProductID": {"type": "string"},
+    "ProofArm": {
+      "type": "object",
+      "required": [
+        "name",
+        "objects",
+        "condition",
+        "predicted",
+        "reactedFrom",
+        "reactedTo",
+        "changed",
+        "observed"
+      ],
+      "properties": {
+        "name": {"type": "string"},
+        "objects": {"type": "array", "items": {"type": "string"}},
+        "condition": {"type": "string"},
+        "predicted": {"type": "string"},
+        "reactedFrom": {"type": "boolean"},
+        "reactedTo": {"type": "boolean"},
+        "changed": {"type": "boolean"},
+        "signatures": {"type": "array", "items": {"type": "string"}},
+        "observed": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ProofBounds": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"type": "string"},
+        "to": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ProofCheck": {
+      "type": "object",
+      "required": ["subject", "outcome", "detail"],
+      "properties": {
+        "subject": {"type": "string"},
+        "outcome": {"$ref": "#/$defs/MethodOutcome"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ProofMethod": {
+      "type": "object",
+      "required": ["method", "producer", "level", "outcome", "detail"],
+      "properties": {
+        "method": {"$ref": "#/$defs/ProofMethodKind"},
+        "producer": {"type": "string"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "outcome": {"$ref": "#/$defs/MethodOutcome"},
+        "detail": {"type": "string"},
+        "checks": {"type": "array", "items": {"$ref": "#/$defs/ProofCheck"}},
+        "arms": {"type": "array", "items": {"$ref": "#/$defs/ProofArm"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}}
+      },
+      "additionalProperties": false
+    },
+    "ProofMethodKind": {"type": "string", "enum": ["citation-check", "rule-exercise"]},
+    "ProofOutcome": {"type": "string", "enum": ["confirmed", "refuted", "inconclusive"]},
+    "ProofRecord": {
+      "type": "object",
+      "required": [
+        "id",
+        "hypothesis",
+        "reviewItem",
+        "candidateId",
+        "product",
+        "proposedRuleDigest",
+        "methods",
+        "outcome",
+        "limitations",
+        "level",
+        "producer",
+        "checkedAt"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "hypothesis": {"type": "string"},
+        "investigation": {"type": "string"},
+        "reviewItem": {"type": "string"},
+        "candidateId": {"type": "string"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "release": {"type": "string"},
+        "proposedRuleDigest": {"type": "string"},
+        "methods": {"type": "array", "items": {"$ref": "#/$defs/ProofMethod"}},
+        "outcome": {"$ref": "#/$defs/ProofOutcome"},
+        "versionBounds": {"$ref": "#/$defs/ProofBounds"},
+        "conditions": {"$ref": "#/$defs/Applicability"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "producer": {"type": "string"},
+        "checkedAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
     "ProposalTask": {
       "type": "string",
       "enum": ["semantic-mapping", "applicability", "consequence", "relationship", "duplicate", "full"]
@@ -411,7 +510,7 @@
     },
     "RecordKind": {
       "type": "string",
-      "enum": ["candidate", "proposal", "validation", "review-item", "decision", "fact"]
+      "enum": ["candidate", "proposal", "validation", "review-item", "decision", "fact", "proof"]
     },
     "RenderArtifact": {
       "type": "object",
@@ -490,7 +589,9 @@
         "duplicateOf": {"type": "string"},
         "batchId": {"type": "string"},
         "batchSize": {"type": "integer"},
-        "aspects": {"type": "array", "items": {"$ref": "#/$defs/Aspect"}}
+        "aspects": {"type": "array", "items": {"$ref": "#/$defs/Aspect"}},
+        "supersedes": {"type": "array", "items": {"type": "string"}},
+        "coexists": {"type": "array", "items": {"type": "string"}}
       },
       "additionalProperties": false
     },
@@ -664,6 +765,7 @@
         "semantic-ambiguity"
       ]
     },
+    "ValidationLevel": {"type": "string", "enum": ["deterministic", "observed"]},
     "ValidationOutcome": {"type": "string", "enum": ["confirmed", "refuted", "inconclusive"]},
     "ValidationResult": {
       "type": "object",
