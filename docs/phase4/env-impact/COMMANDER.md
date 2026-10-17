@@ -48,7 +48,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | validate | — | claude-opus-5-5 | (removed) | (closed) | MERGED e9566913 + cleaned up |
 | classify | — | claude-opus-5-5 | (removed) | (closed) | MERGED 7bb6e559 + 1a355107 + follow-up 2 + cleaned up |
 | orchestrate2 | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED (c7f6d5ab, e6474142, 52300485, 8e602992) + cleaned up |
-| eval | ri-eval | claude-opus-5-5 | .claude/worktrees/p4ei-eval (branch p4ei/eval2) | pane w1:p2S (tab w1:t1A) | MERGED cf2b0f29 (harness + 9 stored runs, 7.7 MB compressed); next: A + C after defaults; B HELD. Old branch p4ei/eval (58 MB uncompressed history, superseded) kept unmerged pending user decision |
+| eval | — | claude-opus-5-5 | (removed) | (closed) | COMPLETE: merged cf2b0f29 + c2597d56 + final status; 17 runs, 11 MB |
 | fixes | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2T (tab w1:t1B) left — Claude commander closes it on resume | MERGED 8c7d74f2 ([glm-handoff], glm-commander) + cleaned up |
 | runtime | — | claude-opus-5-5 / glm-5.3 | (removed) | ri pane w1:p2R (tab w1:t19) left — Claude commander closes it on resume | MERGED 34afd967 ([glm-handoff], glm-commander) + cleaned up |
 | bundle | — | claude-sonnet-5-5 | (removed) | (closed) | MERGED 251d7cde + cleaned up |
@@ -106,6 +106,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 fc0fee09 refcheck: RenderDiff exposure ⇒ inconclusive; concrete failures fail (dangling refs, schema-invalid CRs, unserved apiVersions); StaticReference TO vs FROM with namespace semantics, compared by target (a list-index shift once produced a false fail — fixed); 18 cited prometheus-operator secret/configmap rules; classify: impact:not-joined no longer blocks an otherwise-cleared item (accepted; DESIGN §2.6/§3.5 amended). Diagnostic: obs-north 3 concrete fails, obs-south none.
 - 2026-10-16 EVAL A₅ / C₅ (0790b001, reference for B): 7 PASS / 5 FAIL / 1 INSUFF. FP 1/20 (obs-south FP gone: exposure inconclusive), affectedConfirmation 1/3 (obs-north on deterministic evidence: dangling token-Secret ref in kube-system), C₅ notAffectedConfirmation 3/20 incl. the FIRST OBSERVED CLEARING (shop-nl B2 via runtime pass), observedAgreement 2/21; unsafeEligibility 1/8 (1/9 in C) = only the 3 not-rendered per-key items. ARM B GO sent 20:01 (claude-sonnet-5-5, per-case commits; GLM must never run/resume arm B).
 - 2026-10-16 ARM B attempt 1 aborted after case 1 (payments-eu): run record rejected 'audit: event 19 goes back in time' — stage-completed event stamped before the investigate stage's apply appended agent request events. Kept as aborted run B-20261017-355df68274. Fixed by lane auditfix (893dd21e; tests catch it on both runners). ARM B RESTART sent 20:23.
+- 2026-10-16 c2597d56 ARM B (claude-sonnet-5-5, prompt v5, 8/8 cases, 825k tokens, matched control on the same binary): no decision or finding class changed; evidenceCoverage 23→25/71; 46 concerns, 20 validation requests (19 refused: no trusted pin rule), 82 verified setting claims; offline replay identical in classes (1 obs-south submit_findings non-determinism). STRUCTURAL FINDING: trusted pin knowledge, not the agent, is the bottleneck. Phase 4 summary: SUMMARY.md. All lanes merged + cleaned up.
 - 2026-10-16 LESSON: GLM-window merges passed every test yet two of three carried fail-open or exposure-dropping defects; the mandatory Claude review at resume is the safety net and stays mandatory (ledger proposal decision 2).
 - 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
@@ -154,12 +155,12 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 ## Next actions
 
-1. **ARM B running** (ri-eval, claude-sonnet-5-5, per-case commits). If a GLM window starts: glm-eval and glm-commander must NOT run, resume or re-run any arm B case (model under test). Resume arm B only in a Claude window.
-2. When B is scored: review EVAL-REPORT (B vs A₅ isolates the agent), merge p4ei/eval2, write the Phase 4 summary for the user (what works, gates per arm, known limitations: item granularity, controller-default facts awaiting human verification, ingress-nginx risk-level has no pin-able fact).
-3. User's 5 review items (pin sources) — when decisions appear as untracked files under p4-integration/knowledge/, commit them and have eval score one more arm A/C run.
-4. Ledger proposal sign-off (4 decisions) — then guard v4 + LEDGER.yaml via ri-guard, after the eval endgame.
-5. Old branch p4ei/eval (58 MB uncompressed history, superseded by eval2) — delete only with user OK (needs -D).
-6. Push / PR — only when the user says so.
+Phase 4 milestone work is COMPLETE (see SUMMARY.md). All lanes merged and cleaned up; only the integration worktree remains. Waiting on the user for:
+1. Verifying the 5 pin-source review items (`go run ./cmd/ri review serve -knowledge knowledge -reviewer <name> -addr 127.0.0.1:8485` from p4-integration) → commit their decisions, re-score A/C (new small eval lane).
+2. Push branch / open PR p4-env-impact → main (nothing pushed yet).
+3. Ledger proposal sign-off (4 decisions) → guard v4 + LEDGER.yaml via ri-guard.
+4. Delete superseded branch p4ei/eval (58 MB uncompressed history; needs -D) — only with user OK.
+5. Follow-ups proposed in SUMMARY.md (agent pin-rule proposals into the review queue; ≥4 affected cases; blind granularity refinement).
 
 ## GLM commander log
 
