@@ -50,3 +50,5 @@
 - `go build ./... && go vet ./... && go test ./...` green (before the final docs commit; docs only since).
 
 - F2 (8286e36f): A0-K0-20261017-6d2ae5bf and B0-K0-20261017-6d2ae5bf stored, 8 cases each; B0 1,056,794 tokens, 0 hypotheses, verdicts 11 correct / 12 hedged / 1 no-verdict. F1 runs superseded. Idle; bin/ri = 6d2ae5bf.
+
+- F3 (89328b6f): A0-K0-20261017-edb21ed9 (8 cases, identical to A0-F2) and B0-K0-20261017-edb21ed9-v8 (dev pair, prompt v8, one run): 301,442 tokens, 0 record_hypothesis calls, verdicts 1 correct / 3 hedged. Idle.
