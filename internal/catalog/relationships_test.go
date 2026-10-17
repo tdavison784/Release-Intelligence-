@@ -111,7 +111,7 @@ func TestSplitListFieldPath(t *testing.T) {
 	for in, want := range map[string]string{
 		"spec.secretName": "spec|secretName",
 		"spec.endpoints[].tlsConfig.ca.secret.name": "spec|endpoints|[]|tlsConfig|ca|secret|name",
-		"spec.a[].b[].c": "spec|a|[]|b|[]|c",
+		"spec.a[].b[].c":                     "spec|a|[]|b|[]|c",
 		"metadata.annotations[example.io/x]": "metadata|annotations|example.io/x",
 	} {
 		got, err := SplitListFieldPath(in)
