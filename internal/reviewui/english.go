@@ -112,6 +112,8 @@ func questionWord(q domain.QuestionType) string {
 		return "Compatibility question"
 	case domain.QuestionDuplicate:
 		return "Duplicate check"
+	case domain.QuestionFactReview:
+		return "Whole-fact review"
 	}
 	return strings.ReplaceAll(string(q), "-", " ")
 }
@@ -570,6 +572,8 @@ func plainQuestion(it domain.ReviewItem) string {
 			return fmt.Sprintf("Is the %s change something to act on, or just to know?", head)
 		}
 		return fmt.Sprintf("Is the %s change to %s something to act on, or just to know?", head, subjectPhrase(a.Subject))
+	case domain.QuestionFactReview:
+		return fmt.Sprintf("Is this whole fact about %s correct — what it is, what changed, who is exposed and what happens?", head)
 	case domain.QuestionRelationship:
 		if a.Subject != nil && a.Subject.Name != "" {
 			return fmt.Sprintf("Does %s change how it works together with %s — and which environments are exposed?", head, a.Subject.Name)

@@ -241,6 +241,8 @@ type rowView struct {
 	Blocking   bool
 	BlockWhy   string
 	HiddenText string
+	// GroupHead starts the rows of one pin-source fact (default view).
+	GroupHead  *groupHead
 	Row        knowledge.InboxRow
 	Href       string
 	Severity   string
@@ -310,6 +312,9 @@ type inboxView struct {
 	// leaves out (reachable with ?scope=all).
 	NeedsView bool
 	Hidden    hiddenSummary
+	// Unopened are the pin-source facts below human with no open question
+	// (default view): they need `ri review open-audits -apply` first.
+	Unopened []*groupHead
 }
 
 // --- item ----------------------------------------------------------------------------------
@@ -360,6 +365,7 @@ type itemView struct {
 	Facts       []domain.VerifiedFact
 	Rendered    *RenderedDelta
 	Correction  *correctionView // nil when the question states nothing to correct
+	WholeFact   *wholeFactView  // fact-review items: every aspect and its level
 	Editable    bool            // the item can still be decided
 	Disagrees   bool
 	// ConsensusAction: separate calls agree on an action-eligible consequence
@@ -493,6 +499,9 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 		}
 	}
 	v.PrimaryLabel, v.PrimaryAction = "Accept suggested answer", "accept"
+	if v.WholeFact = newWholeFactView(rc); v.WholeFact != nil {
+		v.PrimaryLabel = "Yes — the whole fact is correct"
+	}
 	if rc.Item.QuestionType == domain.QuestionEvidenceSufficiency {
 		v.PrimaryLabel, v.PrimaryAction = "Send back — need more evidence", "need-more-evidence"
 	}
