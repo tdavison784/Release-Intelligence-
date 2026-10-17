@@ -205,7 +205,7 @@ func TestEvaluateConsumerArms(t *testing.T) {
 		"wrong rule refuted":                {[]string{present, present2}, map[string][2]string{present: {v, v}, present2: {v, f}}, domain.MethodFail, "does not shield"},
 	} {
 		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(tc.arms...))
-		if m.Outcome != tc.want || !strings.Contains(m.Detail, tc.why) {
+		if m.Outcome != tc.want || !strings.Contains(m.Detail, tc.why) || m.Producer != ConsumerExerciseProducer {
 			t.Errorf("%s: %s %s", name, m.Outcome, m.Detail)
 		}
 		for _, a := range m.Arms {

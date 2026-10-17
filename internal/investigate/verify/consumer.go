@@ -39,6 +39,11 @@ import (
 // pass, and without an exposed arm the rule can be refuted but not
 // confirmed.
 
+// ConsumerExerciseProducer names the rule exercise when its consumer
+// observation decides it (component@vN; the produced-object observation
+// stays ExerciseProducer).
+const ConsumerExerciseProducer = "verify.exercise-consumer@v1"
+
 // ConsumerFixture is one declared consumer observation of a subject kind.
 type ConsumerFixture struct {
 	ID      string `yaml:"id" json:"id"`
@@ -362,7 +367,7 @@ func consumerCheckOf(a consumerArm, cf *ConsumerFixture, fx *SubjectFixture, exe
 // EvaluateConsumerArms decides a consumer observation from a fixture run
 // (the outcome rule in the package comment above).
 func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.ProofMethod {
-	m := domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ExerciseProducer, Level: domain.LevelObserved}
+	m := domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ConsumerExerciseProducer, Level: domain.LevelObserved}
 	r := res.Run
 	summary := fmt.Sprintf("fixture %s %s → %s in %s (%s, %.0fs), consumer observation", r.Product, r.From, r.To, r.Cluster, r.Status, r.DurationSeconds)
 	for _, a := range res.Artifacts {
