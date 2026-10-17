@@ -309,10 +309,21 @@ func (g *gb) link(referrer *gnode, group, kind, name, ns, rule, detail string) {
 // tolerated: a key selector or volume source with optional: true, an image
 // pull secret). The graph treats both alike; a reference view records it.
 func (g *gb) linkRef(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool) {
+	g.linkVia(referrer, group, kind, name, ns, rule, detail, optional, nsResolution{})
+}
+
+// linkVia is linkRef for a reference whose namespace a declared
+// namespaceFrom resolution decided (or failed to decide): a non-established
+// edge says how the namespace was decided, or why it could not be, and the
+// edge cites the controller configuration it was read from.
+func (g *gb) linkVia(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool, via nsResolution) {
 	groupStated := group != anyGroup
 	target, status, reason := g.resolve(group, groupStated, kind, name, ns)
 	if target == nil {
 		return
+	}
+	if via.note != "" && status != domain.EdgeEstablished {
+		reason += "; " + via.note
 	}
 	art := ""
 	if referrer.obj != nil {
@@ -321,7 +332,7 @@ func (g *gb) linkRef(referrer *gnode, group, kind, name, ns, rule, detail string
 	if g.view != nil {
 		g.view.record(g, referrer, group, groupStated, kind, name, ns, rule, detail, optional, target, status, reason)
 	}
-	g.edge(domain.EdgeReferences, target, referrer, status, rule, detail, reason, art)
+	g.edge(domain.EdgeReferences, target, referrer, status, rule, detail, reason, append([]string{art}, via.arts...)...)
 }
 
 // podTemplate returns the pod spec, labels and the path prefix of a
@@ -674,15 +685,291 @@ func (g *gb) indexProducers(rels []rel) {
 }
 
 // relationshipRefs applies declared references relationships to one object.
+// A name a cluster-scoped object references through a relationship with a
+// namespaceFrom resolution is looked up in the namespace the environment's
+// controller configuration gives; when that is not decided, in no namespace
+// (matched by name only: never established).
 func (g *gb) relationshipRefs(n *gnode) {
 	for _, r := range g.rels {
 		if r.r.Kind != catalog.RelReferences || !g.matches(r, n.obj) {
 			continue
 		}
+		var via nsResolution
+		if r.r.NamespaceFrom != nil {
+			via = g.clusterRefNamespace(r)
+		}
 		for _, ref := range readNames(n.obj, r.r, n.effNS) {
-			g.linkRef(n, r.r.To.Group, r.r.To.Kind, ref.name, ref.ns, r.id, ref.field, ref.optional)
+			if r.r.NamespaceFrom != nil {
+				ref.ns = via.ns
+			}
+			g.linkVia(n, r.r.To.Group, r.r.To.Kind, ref.name, ref.ns, r.id, ref.field, ref.optional, via)
 		}
 	}
+}
+
+// nsResolution is where a declared namespaceFrom resolution says the
+// controller resolves a cluster-scoped object's name references: ns ("" when
+// not decided), a note for the edge reason, and the artifacts of the
+// controller configuration it was read from.
+type nsResolution struct {
+	ns   string
+	note string
+	arts []string
+}
+
+// clusterRefNamespace decides a relationship's namespaceFrom from the
+// environment at the graph's side: every container named by the rule in the
+// pod templates of the environment's workloads, the rule's flag in its
+// command and args (Kubernetes $(VAR) references expanded from the
+// container's env: literal values, or the pod's own namespace through
+// fieldRef metadata.namespace), else the documented default when no
+// configuration file can set it. Fail closed: no citation, no such
+// container, a value set through anything the snapshot cannot read
+// (configMapKeyRef, secretKeyRef, envFrom, a configuration file), a flag
+// without a value, or containers that disagree leave it undecided.
+func (g *gb) clusterRefNamespace(r rel) nsResolution {
+	if res, ok := g.nsCache[r.id]; ok {
+		return res
+	}
+	src := r.r.NamespaceFrom
+	where := fmt.Sprintf("%s of container %q", src.Arg, src.Container)
+	undecided := func(why string) nsResolution {
+		return nsResolution{note: fmt.Sprintf("the namespace the controller resolves it in (%s, rule %s) is not decided: %s", where, r.id, why)}
+	}
+	res := func() nsResolution {
+		if len(src.References) == 0 {
+			return undecided("the rule cites no upstream documentation for it")
+		}
+		if src.Container == "" || src.Arg == "" {
+			return undecided("the rule names no container or argument")
+		}
+		var found []string
+		var arts []string
+		seen := map[string]bool{}
+		for _, n := range g.sortedNodes() {
+			o := n.obj
+			if o == nil || g.objNode[o] != n || n.n.Kind != domain.NodeWorkload {
+				continue
+			}
+			spec, _, prefix := podTemplate(o)
+			for _, field := range []string{"initContainers", "containers"} {
+				for _, c := range asSeq(spec[field]) {
+					if str(c, "name") != src.Container {
+						continue
+					}
+					at := fmt.Sprintf("%s %s.%s[%s]", o.key(), prefix, field, src.Container)
+					ns, why := containerNamespace(asMap(c), n.effNS, src)
+					if ns == "" {
+						return undecided(at + ": " + why)
+					}
+					if !seen[ns] {
+						seen[ns] = true
+						found = append(found, fmt.Sprintf("%s (%s: %s)", ns, at, why))
+					}
+					if o.artifact != "" {
+						arts = append(arts, o.artifact)
+					}
+				}
+			}
+		}
+		switch len(seen) {
+		case 0:
+			return undecided(fmt.Sprintf("no workload of the environment runs a container named %q", src.Container))
+		case 1:
+			var ns string
+			for k := range seen {
+				ns = k
+			}
+			return nsResolution{ns: ns, arts: uniqStrings(arts), note: "namespace " + found[0] + " from " + where + " (rule " + r.id + ")"}
+		}
+		sort.Strings(found)
+		return undecided("the controller containers disagree: " + strings.Join(found, ", "))
+	}()
+	g.nsCache[r.id] = res
+	return res
+}
+
+// containerNamespace decides the namespace one controller container gives
+// through src: the flag's value, else the documented default. why says how
+// (or why not).
+func containerNamespace(c map[string]any, podNS string, src *catalog.NamespaceSource) (ns, why string) {
+	vals, bare, cfg := flagValues(c, src.Arg), false, false
+	for _, v := range vals {
+		bare = bare || v == nil
+	}
+	if src.ConfigFileArg != "" {
+		cfg = len(flagValues(c, src.ConfigFileArg)) > 0
+	}
+	switch {
+	case vals == nil && cfg:
+		return "", fmt.Sprintf("%s is not given and %s names a configuration file that can set it", src.Arg, src.ConfigFileArg)
+	case vals == nil && src.Default == "":
+		return "", fmt.Sprintf("%s is not given and the rule documents no default", src.Arg)
+	case vals == nil:
+		return src.Default, fmt.Sprintf("%s is not given; documented default %s", src.Arg, src.Default)
+	case bare:
+		return "", fmt.Sprintf("%s is given without a value", src.Arg)
+	}
+	out := map[string]bool{}
+	for _, v := range vals {
+		x, why := expandEnv(*v, c, podNS)
+		if x == "" {
+			return "", why
+		}
+		if !namespaceName(x) {
+			return "", fmt.Sprintf("%s=%s is not a namespace name", src.Arg, x)
+		}
+		out[x] = true
+	}
+	if len(out) != 1 {
+		return "", fmt.Sprintf("%s is given more than once with different values", src.Arg)
+	}
+	for x := range out {
+		ns = x
+	}
+	if len(vals) == 1 && *vals[0] == ns {
+		return ns, fmt.Sprintf("%s=%s", src.Arg, ns)
+	}
+	return ns, fmt.Sprintf("%s=%s, expanded from the container's env", src.Arg, *vals[0])
+}
+
+// flagValues returns every value the flag takes in the container's command
+// and args ("--flag=v" or "--flag v"; nil for a flag without a value; nil
+// slice when absent). Tokens after "--" are positional.
+func flagValues(c map[string]any, flag string) []*string {
+	want := strings.TrimLeft(flag, "-")
+	var toks []string
+	for _, field := range []string{"command", "args"} {
+		for _, x := range asSeq(c[field]) {
+			s, _ := x.(string)
+			toks = append(toks, s)
+		}
+	}
+	var out []*string
+	for i := 0; i < len(toks); i++ {
+		t := toks[i]
+		if t == "--" {
+			break
+		}
+		if !strings.HasPrefix(t, "-") {
+			continue
+		}
+		k, v, eq := strings.Cut(t, "=")
+		if strings.TrimLeft(k, "-") != want {
+			continue
+		}
+		switch {
+		case eq:
+			out = append(out, &v)
+		case i+1 < len(toks) && !strings.HasPrefix(toks[i+1], "-"):
+			i++
+			v := toks[i]
+			out = append(out, &v)
+		default:
+			out = append(out, nil)
+		}
+	}
+	return out
+}
+
+// expandEnv expands Kubernetes $(VAR) references in a container argument
+// from the container's env: a literal value, or the pod's namespace through
+// fieldRef metadata.namespace. Anything else is undecided ("" with why).
+func expandEnv(v string, c map[string]any, podNS string) (string, string) {
+	if strings.Contains(v, "$$") {
+		return "", fmt.Sprintf("%q escapes a $(VAR) reference", v)
+	}
+	var b strings.Builder
+	for {
+		i := strings.Index(v, "$(")
+		if i < 0 {
+			b.WriteString(v)
+			break
+		}
+		j := strings.IndexByte(v[i:], ')')
+		if j < 0 {
+			return "", fmt.Sprintf("%q has an unterminated $(VAR) reference", v)
+		}
+		name := v[i+2 : i+j]
+		val, why := envValue(c, name, podNS)
+		if why != "" {
+			return "", why
+		}
+		b.WriteString(v[:i])
+		b.WriteString(val)
+		v = v[i+j+1:]
+	}
+	return b.String(), ""
+}
+
+// envValue is the value of the container's env var name, when the snapshot
+// decides it.
+func envValue(c map[string]any, name, podNS string) (string, string) {
+	var hit map[string]any
+	n := 0
+	for _, e := range asSeq(c["env"]) {
+		if m := asMap(e); str(m, "name") == name {
+			hit, n = m, n+1
+		}
+	}
+	switch {
+	case n > 1:
+		return "", fmt.Sprintf("env var %s is defined more than once", name)
+	case hit == nil && len(asSeq(c["envFrom"])) > 0:
+		return "", fmt.Sprintf("env var %s is not defined in env; envFrom may supply it, which the snapshot does not decide", name)
+	case hit == nil:
+		return "", fmt.Sprintf("env var %s is not defined: $(%s) stays unexpanded", name, name)
+	}
+	if v, ok := hit["value"].(string); ok && !strings.Contains(v, "$(") {
+		return v, ""
+	}
+	if fp := str(hit, "valueFrom", "fieldRef", "fieldPath"); fp == "metadata.namespace" {
+		if podNS == "" {
+			return "", fmt.Sprintf("env var %s is the pod's namespace, which is not known", name)
+		}
+		return podNS, ""
+	}
+	return "", fmt.Sprintf("env var %s is set through something the snapshot does not decide (%s)", name, envSource(hit))
+}
+
+func envSource(m map[string]any) string {
+	if vf := asMap(m["valueFrom"]); vf != nil {
+		var ks []string
+		for k := range vf {
+			ks = append(ks, k)
+		}
+		sort.Strings(ks)
+		return "valueFrom." + strings.Join(ks, ",")
+	}
+	return "a value with a $(VAR) reference"
+}
+
+func namespaceName(s string) bool {
+	if len(s) == 0 || len(s) > 63 {
+		return false
+	}
+	for i, r := range s {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+		case r == '-' && i > 0 && i < len(s)-1:
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func uniqStrings(xs []string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, x := range xs {
+		if x != "" && !seen[x] {
+			seen[x] = true
+			out = append(out, x)
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 // relationshipSelectEdges applies declared selects relationships: a selected
