@@ -170,6 +170,27 @@ func Hypotheses(ctx context.Context, o Options) ([]Result, error) {
 	return out, nil
 }
 
+// humanAuthoredBounds are the release bounds a human-authored proposal of
+// exactly the item's rule states (it has no run record). Proposals that
+// disagree, or none, leave them unknown (with why).
+func humanAuthoredBounds(snap *knowledge.Snapshot, it domain.ReviewItem) (*domain.ProofBounds, string) {
+	var out *domain.ProofBounds
+	for _, p := range snap.Proposals {
+		if p.CandidateID != it.CandidateID || p.Assertion.Digest() != it.Proposed.Digest() || !knowledge.HumanAuthored(p.Provenance.Rule) || p.Release == nil {
+			continue
+		}
+		b := &domain.ProofBounds{From: p.Release.From, To: p.Release.To}
+		if out != nil && *out != *b {
+			return nil, fmt.Sprintf("human-authored proposals of this rule state different release bounds ((%s, %s] and (%s, %s]), so they are unknown", out.From, out.To, b.From, b.To)
+		}
+		out = b
+	}
+	if out == nil {
+		return nil, "the proposal names no investigation and states no release bounds, so the rule's release bounds are unknown"
+	}
+	return out, ""
+}
+
 func decisive(snap *knowledge.Snapshot, it domain.ReviewItem) *domain.ProofRecord {
 	var last *domain.ProofRecord
 	for i, p := range snap.Proofs {
@@ -187,7 +208,11 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 	var limitations []string
 	switch {
 	case inv == "":
-		limitations = append(limitations, "the proposal names no investigation, so the rule's release bounds are unknown")
+		b, why := humanAuthoredBounds(snap, it)
+		if why != "" {
+			limitations = append(limitations, why)
+		}
+		bounds = b
 	case o.Runs == nil:
 		limitations = append(limitations, "no run store configured, so the rule's release bounds are unknown")
 	default:

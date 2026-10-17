@@ -1261,6 +1261,82 @@ and per subject `target` (group/version/kind), `exercise` (an id from `products/
 must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
 name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
 
+### Consumer observation (lane verify2)
+
+The produced-object observation above can show that an explicit setting preserves an object's previous
+behaviour. It cannot test a rule whose claim is about **consequence** — that an object changes without any
+consumer observing it (a certificate's own key rotating is invisible to a client that verifies it through its
+issuer; the issuer's key rotating is not). A subject fixture may therefore declare `consumers`:
+
+```yaml
+consumers:
+- id: ca-trust
+  role: [{path: spec.isCA, value: true}]          # the field(s) the subject holds in this role
+  objects: [ ...consuming objects, {{name}} = the arm's subject object... ]
+  trust:   {secret: "{{name}}-tls", key: ca.crt}  # captured by the consumer before re-issuance
+  reissue: ["{{name}}", "{{name}}-leaf"]          # objects of the subject kind, re-issued in this order
+  verify:  {secret: "{{name}}-leaf-tls", key: tls.crt}
+  references: [ ...upstream documentation... ]
+```
+
+**Selection.** A rule whose applicability names a role field distinguishes subjects by that role, so its
+exercise is the consumer observation; every other rule keeps the produced-object observation, unchanged (the
+Phase 5 verify-smoke proofs still load and re-verify). A rule naming the role fields of two observations is
+`not-run` (ambiguous).
+
+**Arms, from the rule, in the role.** Exposure and overlap are expanded into alternatives (`resource` / `all` /
+`any` / `field` on the subject kind; at most 16). Every overlap alternative that holds together with the role
+fields and does not meet the exposure is a **shielded** arm (`condition-present`, `condition-present-2`, …;
+predicted: the consumer still verifies at TO); every exposure alternative that holds in the role and does not
+meet the overlap is an **exposed** arm (`condition-absent`, …; predicted: it verifies at FROM and fails at TO).
+Alternatives that contradict the role are not exercised and are listed as limitations. Each arm also gets the
+declared consuming objects (e.g. a CA issuer and a leaf it signs).
+
+**The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
+after the version's baseline observation and before its exercises (inside the exercise window at both
+versions, so the upgrade window stays clean): capture the PEM certificates of `trust`; re-issue the `reissue`
+objects one after another with the subject's declared exercise, each awaited until its reaction field changes
+(bounded by the exercise's settle time); then verify the first certificate of `verify` (the rest as
+intermediates) against the captured certificates with Go `crypto/x509`, in process. `verified`; `failed` only
+for an authority mismatch (`x509.UnknownAuthorityError`: the chain does not reach the captured trust);
+`undetermined` for anything else (an object not re-issued, a Secret or certificate missing, any other x509
+error such as validity). Only PEM `CERTIFICATE` blocks are read — a declared key holding any other block (a
+private key) is refused — and only the outcome and sha256 digests of the certificates and their public keys
+are recorded (`Run.Consumers`, `ProofArm.Consumer`); Secret data in observations stays HMAC-digested.
+
+**Outcome** (fixed by PROTOCOL amendment 2026-10-17 before the method existed): `pass` iff every shielded arm
+verifies at FROM and at TO and every exposed arm verifies at FROM and fails at TO; `fail` (refuted) if a
+shielded arm fails at either version; otherwise `inconclusive` — an exposed arm that still verifies at TO
+(quiet), an exposed arm that fails already at FROM (no baseline), any undetermined arm, or no exposed arm at
+all (the rule can then be refuted but never confirmed). Data differences on the arm's objects (e.g. the leaf's
+own key rotating) are listed on the arm as "not decisive for the consumer". The cert-manager fixture declares
+`ca-trust`: the arm's Certificate is a self-signed CA, a CA `Issuer` signs a leaf with it, the CA and then the
+leaf are re-issued, and the leaf's `tls.crt` is verified against the CA's `ca.crt` captured before.
+
+### Human-authored rules (`ri knowledge intake-rule`)
+
+```
+ri knowledge intake-rule -dir <knowledge copy> -author "<who wrote it, verbatim>" [-candidate sc-…] <rule.json>
+```
+
+The pre-registered fallback (PROTOCOL amendment 2026-10-17) when the agent proposes no mitigation: a rule file
+(`docs/phase5/learning-loop/rules/*.json`: `_provenance`, `statement`, `assertion` {subject, change,
+applicability, consequence, release {from, to, bounds: "(from, to]"}}, `citations` ["ev-… (locator)"],
+`requestedVerification`) becomes exactly what `export-hypotheses` makes of an agent hypothesis — a
+`SemanticProposal` and a whole-fact `fact-review` item proposing exactly its rule, never a fact
+(`internal/knowledge/intake.go`). The file is encoded **faithfully or refused**: unknown fields, a bounds shape
+other than `(from, to]`, an incomplete or undecidable rule, or any part of the assertion that does not survive a
+round trip through the fact grammar unchanged is an error. Provenance: rule `human-authored:<hyp-id>` (the
+hypothesis id derived from the file's sha256), provider and model version `human-authored`, prompt version
+`human-authored/v1`, `model` = the author string verbatim, prompt digest and call id = the file's sha256; method
+stays `ai` (the proposal contract admits only AI provenance, the least trusted label). The proposal carries the
+rule's bounds (`SemanticProposal.release`, set only by the intake) because there is no run record. The rule is
+anchored on the one candidate of the subject's product inside the bounds holding every cited evidence id (or
+`-candidate`); an existing item proposing exactly the same rule is reused (`itemExisted`). Routing ignores the
+proposal, `ri verify hypotheses` verifies it (bounds from the proposal) and the promotion gate applies
+unchanged; the review UI labels it **human-authored — not agent-proposed**. Output: file digest, hypothesis,
+candidate, proposal, review item, rule digest (what a proof must name) and proposed-rule digest (with bounds).
+
 ### The promotion gate (`internal/knowledge/promote.go`)
 
 `Queue.Decide` refuses, before anything is written, an accept/correct of a hypothesis-sourced item unless:
@@ -1284,8 +1360,10 @@ clear investigated environments); until then it is hidden as "awaiting a confirm
 
 Tests: `go test ./internal/investigate/verify ./internal/knowledge ./internal/reviewui` (synthetic product
 `acme-ctl`; every gate refusal path, the four arm combinations, citations outside the bounds, a proof digest
-mismatch after a correction) and `go test ./internal/investigate/runtime -run Fixture` (the fake cluster). A
-real run on the cert-manager fixture is recorded in `docs/phase5/learning-loop/runs/verify-smoke.md`.
+mismatch after a correction; the consumer outcome rule, human-authored intake and its gate) and `go test
+./internal/investigate/runtime -run 'Fixture|Consumer'` (the fake cluster, with real x509 certificates for the
+consumer observation). Real runs on the cert-manager fixture are recorded in
+`docs/phase5/learning-loop/runs/verify-smoke.md` and `runs/verify2-smoke.md` (consumer observation).
 
 ## Running an investigation
 

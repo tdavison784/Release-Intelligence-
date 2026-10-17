@@ -22,6 +22,20 @@ import (
 // ProofIDPrefix starts every proof record id.
 const ProofIDPrefix = "pf-"
 
+// HumanAuthoredRuleKind prefixes the provenance rule of a knowledge proposal
+// taken in from a rule file written outside the agent (`ri knowledge
+// intake-rule`, lane verify2): "human-authored:<hyp-id>", the hypothesis id
+// derived from the file's digest. Such a proposal is gated, verified and
+// reviewed exactly like an exported agent hypothesis (PROTOCOL amendment
+// 2026-10-17 "fallback"). CONTRACT-CHANGE(verify2): additive.
+const HumanAuthoredRuleKind = "human-authored:"
+
+// HumanAuthoredHypothesisID is the hypothesis id of a human-authored rule
+// file (its sha256 digest).
+func HumanAuthoredHypothesisID(fileDigest string) string {
+	return HypothesisIDPrefix + ShortHash("human-authored", fileDigest)
+}
+
 // ProofOutcome is what the verification concluded about the rule.
 type ProofOutcome string
 
@@ -107,6 +121,36 @@ type ProofArm struct {
 	Signatures []string `json:"signatures,omitempty"`
 	// Observed is "previous-behaviour", "new-behaviour" or "undetermined".
 	Observed string `json:"observed"`
+	// Consumer is the arm's consumer observation when the exercise made one
+	// (lane verify2): then it, not the data of the arm's objects, decides
+	// the arm. CONTRACT-CHANGE(verify2): additive.
+	Consumer *ProofConsumer `json:"consumer,omitempty"`
+}
+
+// ProofConsumer is a consumer observation of one arm: at each version a
+// consumer captured the Trust certificates, the Reissue objects were
+// re-issued in order, and the Verified certificate chain was checked against
+// the captured trust with x509 (outcome and digests only: never key
+// material).
+type ProofConsumer struct {
+	Check    string               `json:"check"`
+	Trust    string               `json:"trust"`
+	Reissue  []string             `json:"reissue"`
+	Verified string               `json:"verified"`
+	From     *ProofConsumerResult `json:"from,omitempty"`
+	To       *ProofConsumerResult `json:"to,omitempty"`
+}
+
+// ProofConsumerResult is the consumer observation at one version.
+type ProofConsumerResult struct {
+	// Outcome is "verified", "failed" (the chain does not reach the
+	// captured trust) or "undetermined".
+	Outcome           string   `json:"outcome"`
+	Detail            string   `json:"detail"`
+	TrustCertificates []string `json:"trustCertificates,omitempty"`
+	TrustKeys         []string `json:"trustKeys,omitempty"`
+	Certificate       string   `json:"certificate,omitempty"`
+	CertificateKey    string   `json:"certificateKey,omitempty"`
 }
 
 // Arm names and behaviours.

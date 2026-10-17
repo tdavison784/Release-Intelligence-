@@ -23,7 +23,8 @@ import (
 const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR] [-again] [-json]
 
   Independently verify every open agent-proposed rule (hypothesis-sourced
-  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + `) in a
+  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + `, or a
+  human-authored rule taken in by ` + "`ri knowledge intake-rule`" + `) in a
   knowledge directory and store a proof record beside it (PROTOCOL §7–§8):
 
     citation check   (deterministic) each cited upstream text resolves in the
@@ -33,7 +34,11 @@ const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR]
     rule exercise    (observed, -runtime) a synthetic fixture built from the rule
                      (products/exercises/fixtures/<product>.yaml), the condition
                      present and absent, upgraded FROM → TO in a throwaway kind
-                     cluster ri-verify-*, the declared exercise run on both arms
+                     cluster ri-verify-*, the declared exercise run on both arms;
+                     for a rule naming a fixture's consumer role field, the
+                     consumer observation instead (x509 verification of a
+                     certificate issued after re-issuance against the trust
+                     captured before it)
 
   confirmed only when both pass; any failure refutes; otherwise inconclusive.
   A human accept/correct of the item then needs a confirmed proof of exactly

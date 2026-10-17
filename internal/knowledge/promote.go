@@ -28,8 +28,17 @@ import (
 const hypothesisRulePrefix = domain.HypothesisRuleKind
 
 // ParseHypothesisRule splits a proposal's provenance rule
-// "hypothesis:<hyp-id>@<inv-id>"; ok is false for any other rule.
+// "hypothesis:<hyp-id>@<inv-id>"; ok is false for any other rule. A
+// human-authored rule "human-authored:<hyp-id>" (intake.go) is a hypothesis
+// without an investigation: every consumer — routing, the gate, verify, the
+// review UI — treats it exactly like an exported agent hypothesis.
 func ParseHypothesisRule(rule string) (hyp, inv string, ok bool) {
+	if rest, found := strings.CutPrefix(rule, domain.HumanAuthoredRuleKind); found {
+		if !strings.HasPrefix(rest, domain.HypothesisIDPrefix) || strings.Contains(rest, "@") {
+			return "", "", false
+		}
+		return rest, "", true
+	}
 	rest, found := strings.CutPrefix(rule, hypothesisRulePrefix)
 	if !found {
 		return "", "", false
@@ -39,6 +48,13 @@ func ParseHypothesisRule(rule string) (hyp, inv string, ok bool) {
 		return "", "", false
 	}
 	return hyp, inv, true
+}
+
+// HumanAuthored reports whether a proposal's provenance rule is a
+// human-authored rule's (not an agent hypothesis).
+func HumanAuthored(rule string) bool {
+	_, _, ok := ParseHypothesisRule(rule)
+	return ok && strings.HasPrefix(rule, domain.HumanAuthoredRuleKind)
 }
 
 // HypothesisSource names the agent hypothesis a review item comes from: a

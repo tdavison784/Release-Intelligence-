@@ -1450,6 +1450,11 @@ type SemanticProposal struct {
 	SuggestedClass ImpactClass  `json:"suggestedClass,omitempty"`
 	Citations      []EvidenceID `json:"citations,omitempty"`
 	Provenance     Provenance   `json:"provenance"`
+	// Release bounds the transition a proposed rule is about. Set only by
+	// the human-authored rule intake (lane verify2; an exported agent
+	// hypothesis carries its bounds on its run record). Not part of the id.
+	// CONTRACT-CHANGE(verify2): additive.
+	Release *ReleaseBounds `json:"release,omitempty"`
 }
 
 // ProposalID derives a proposal id.
@@ -1528,6 +1533,14 @@ func (p SemanticProposal) Validate() error {
 		}
 	default:
 		bad("a model may request action-required or suggest review-required, informational or unknown, not %q", p.SuggestedClass)
+	}
+	if p.Release != nil {
+		if _, _, err := p.Release.Versions(); err != nil {
+			bad("%v", err)
+		}
+		if !strings.HasPrefix(p.Provenance.Rule, HumanAuthoredRuleKind) {
+			bad("release bounds are stated only by a human-authored rule proposal")
+		}
 	}
 	if pv := p.Provenance.ProviderName(); pv != "" && pv != p.Provider {
 		bad("provenance provider %q differs from the proposal's provider %q", pv, p.Provider)

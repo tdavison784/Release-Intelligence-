@@ -78,6 +78,8 @@ type SubjectFixture struct {
 	// per arm, and NamePlaceholder in any string is replaced by the name.
 	Template   map[string]any            `yaml:"template" json:"template"`
 	References []catalog.ConfigReference `yaml:"references" json:"references"`
+	// Consumers are consumer observations of the subject kind (consumer.go).
+	Consumers []ConsumerFixture `yaml:"consumers,omitempty" json:"consumers,omitempty"`
 }
 
 var dnsLabel = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
@@ -156,6 +158,18 @@ func (s *FixtureSet) validate() error {
 			}
 		}
 		refs(w, x.References, true)
+		cseen := map[string]bool{}
+		for j, cf := range x.Consumers {
+			cw := fmt.Sprintf("%s consumers[%d] (%s)", w, j, cf.ID)
+			if !dnsLabel.MatchString(cf.ID) || cseen[cf.ID] {
+				bad("%s: id must be a unique lowercase DNS label", cw)
+			}
+			cseen[cf.ID] = true
+			for _, e := range cf.validate(x) {
+				bad("%s: %v", cw, e)
+			}
+			refs(cw, cf.References, true)
+		}
 	}
 	return errors.Join(errs...)
 }
