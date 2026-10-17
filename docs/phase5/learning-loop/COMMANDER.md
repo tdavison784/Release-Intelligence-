@@ -20,7 +20,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | verdict | ri-verdict | Opus | p5ll/verdict | (removed) | (closed) | merged, cleaned up |
 | fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | .claude/worktrees/p5ll-fixes5 | w1:t1W | working (W-0024, W-0025) |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
-| groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED) | .claude/worktrees/p5ll-groundtruth5 | w1:t1T | working |
+| groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED @ 2c092bdf) | .claude/worktrees/p5ll-groundtruth5 (kept, sealed) | (closed) | LANE DONE 08:48 — 10 cases, 5A/5NA decisive; not merged until W-0016 |
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log

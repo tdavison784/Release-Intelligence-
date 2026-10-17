@@ -115,4 +115,9 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
 
 ## Amendments
 
-(none)
+- **2026-10-17 08:50 (before any held-out run).** Held-out scoring gates: at unseal (§6 step 7) the commander
+  copies `eval/investigations/gates.yaml` byte-identically to `eval/investigations-heldout/gates.yaml`
+  (sha256 prefix `8e7a008efcde4f41`); no other gate file. Why: lane groundtruth5 reported that the held-out dir needs one, and
+  gates are pre-registered — reusing the frozen Phase 4 gates unchanged is the only choice made without
+  knowledge of the held-out outcomes. The held-out set is 10 cases (5 cert-manager, 3 ingress-nginx, 2
+  kube-prometheus-stack; decisive items 5 affected / 5 not affected) on sealed branch `p5ll/groundtruth5` @ 2c092bdf.
