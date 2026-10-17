@@ -271,3 +271,54 @@ export-hypotheses` run for all 8 ids into a scratch copy of K0 (not `knowledge/`
 copy is byte-identical to K0. The agent expressed its mitigation ideas only as prose `proposedValidations` ("set rotationPolicy:
 Never … re-run override-inspection"). Consequence for the experiment: C1 has **no B0-derived input** from these cases; if
 K1 is to be promoted it must come from somewhere else, which is a protocol question for the commander.
+
+## §B0-v8 — agent arm on the development pair, prompt v8, K0 (F3) — the pre-registered single shot
+
+Binary edb21ed9 (clean; F3 89328b6f merged; `go build/vet/test ./...` green). K0 digest unchanged. One run, not repeated:
+`B0-K0-20261017-edb21ed9-v8` (`-case` payments-eu,payments-us; `-agent -agent-model claude-sonnet-5-5`, default prompt;
+every agent record says `investigate-agent/v8`; fresh `-work`). Alongside it, A0 on all 8 cases on the same binary:
+`A0-K0-20261017-edb21ed9`. (The command exited 1 because gates fail/insufficient-data, as for every run; it did not crash.)
+
+**A0-F3 vs A0-F2:** no difference on any of the 24 items — decisions, gap and reasoning text, and every metric are identical.
+**Policy invariant vs A0-F3:** class, rule, basis, eligibility and decision of every finding on the dev pair equal A0-F3.
+
+| case | investigation | tokens | turns / calls | agent wall | items examined |
+|---|---|---|---|---|---|
+| payments-eu | inv-98ea0dfc2787 | 153,361 | 59 / 45 | 161.5 s | 10 of 18 |
+| payments-us | inv-377edfda16af | 148,081 | 55 / 45 | 155.6 s | 10 of 18 |
+| total | | 301,442 | | 324 s (A0: 41 s for 8 cases) | |
+
+**Budget exhaustion:** none. Every examined item's session ended `submitted`; the largest item used 30,470 tokens (limit 150,000)
+and 9 turns (limit 14). The only ceiling reached is the item cap: 10 of the 18 agenda items got a session and 8 are
+`not-examined` in each case (budget rule `item@v1`, cap 10). Case-level token totals exceed 150,000 because the budget is per
+item, not per case.
+
+**Agent verdicts (ungated):** correct 1, hedged 3, false-safe 0, false-alarm 0, overstated 0, no-verdict 0.
+
+### rotationPolicy item (ci-86548e9a2300)
+
+- **payments-eu (expected affected): `affected`, confidence medium — correct.** Mechanism: default Never → Always; each
+  re-issuance of a Certificate leaving the field unset generates a new key. Environment reasoning: mesh-root-ca, checkout-tls
+  and ledger-tls all inherit the default; neither the field nor the gate is set in the environment. Consumers traced: **none**
+  ("mesh CA trust, payments TLS endpoints … I did not trace these consumers, and the Secrets are absent from the snapshot").
+  Citations `ev-cac9c8fee493`; claims `clm-44d796a9f8c6`, `clm-92f59c4780cb`; validation `vr-567a81391649`. Uncertainty: whether any
+  consumer depends on a stable key. Proposed validation: check the rendered Deployment's controller args for the gate. Would
+  overturn: explicit Never, or the gate false. It states "I recorded no mitigation."
+- **payments-us (expected not-affected): `potentially-affected`, confidence medium — hedged.** Same mechanism. checkout-tls and
+  ledger-tls inherit the default; mesh-root-ca is explicit ("redacted but is the digest of Never") and unaffected; gate not
+  disabled anywhere. Consumers traced: **none** (Secrets absent from the snapshot). Citations `ev-cac9c8fee493`; claim
+  `clm-861f8b91c4ad`. Proposed validations: override-inspection on the two Certificates; a runtime re-issuance check. It treats
+  the gate-off condition as a controller flag and "did not record it as a mitigation".
+
+### Hypotheses
+
+**`record_hypothesis` was called zero times** in either transcript (tool names used: get_change_item, record_claim,
+search_manifest, get_rendered_object, request_validation, record_assertion, query_diff, submit_findings). So there are **no
+rejected calls and no stored mitigations** to quote. The agent said in prose, per item, that it recorded none (e.g. "I recorded no
+mitigation hypothesis, because the verdict rests on ACME not being used at all"). `ri investigate export-hypotheses` for
+both investigations into a scratch copy of K0 (`K0-export3`, not `knowledge/`) returned `hypotheses: []` and wrote no files; the
+copy is identical to K0. `ri verify` not run.
+
+Observation, not a conclusion: on this pair the redaction fix made the field values visible and the agent used them (it saw
+mesh-root-ca's explicit setting in us), but the mitigation it identified — an explicit `rotationPolicy: Never` — it
+treated as a remedy ("would overturn"), not as an existing environment property to record as a hypothesis.
