@@ -67,6 +67,9 @@ type Snapshot struct {
 	ReviewItems []domain.ReviewItem
 	Decisions   []domain.ReviewDecision
 	Facts       []domain.VerifiedFact
+	// Proofs are the verifications of hypothesis-sourced rules (PROTOCOL §8);
+	// the promotion gate reads them. CONTRACT-CHANGE(verify): additive.
+	Proofs []domain.ProofRecord
 }
 
 // --- proposals (semantic lane) -------------------------------------------------------

@@ -120,7 +120,11 @@ var enums = []enumSet{
 	enumOf(domain.RenderAttributableChange, domain.RenderNoAttributableChange, domain.RenderUnavailable),
 	enumOf(domain.RenderConfirmed, domain.RenderNotVisible, domain.RenderContradicted, domain.RenderNotApplicable),
 	enumOf(domain.RenderVerifiable, domain.RenderPartiallyVerifiable, domain.RenderNotVerifiable),
-	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
+	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact, domain.RecordProof),
+	// --- phase 5 proof records (internal/domain/proof.go) ---
+	enumOf(domain.ProofConfirmed, domain.ProofRefuted, domain.ProofInconclusive),
+	enumOf(domain.ProofMethodKinds...),
+	enumOf(domain.MethodPass, domain.MethodFail, domain.MethodInconclusive, domain.MethodNotRun),
 	// --- phase 4 investigation (internal/domain/investigation.go) ---
 	enumOf(domain.CollectionStatuses...),
 	enumOf(domain.ArtifactKinds...),

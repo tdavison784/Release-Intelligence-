@@ -2051,6 +2051,15 @@ type ReviewDecision struct {
 	// verified by an accept/correct. Empty means the item's question aspects.
 	// CONTRACT-CHANGE(factlevel): additive field.
 	Aspects []Aspect `json:"aspects,omitempty"`
+	// Supersedes names active facts the fact this accept/correct mints
+	// refines and replaces (a narrower, verified rule for the same subject):
+	// they become superseded. Coexists names active facts on the same subject
+	// the reviewer explicitly keeps beside it. A promotion of a
+	// hypothesis-sourced rule must name every active fact on its subject in
+	// one of the two — it never silently coexists (internal/knowledge).
+	// CONTRACT-CHANGE(verify): additive fields.
+	Supersedes []string `json:"supersedes,omitempty"`
+	Coexists   []string `json:"coexists,omitempty"`
 }
 
 // Verifies returns the aspects an accept/correct decision on item verifies:
@@ -2281,6 +2290,19 @@ func (d ReviewDecision) Validate() error {
 	}
 	if d.Action == ActionCorrect && d.BatchID != "" {
 		bad("corrections are individual-only; a correct decision is never part of a batch")
+	}
+	if len(d.Supersedes)+len(d.Coexists) > 0 && d.Action != ActionAccept && d.Action != ActionCorrect {
+		bad("supersedes/coexists belong to an accept or correct decision")
+	}
+	named := map[string]bool{}
+	for _, id := range append(append([]string(nil), d.Supersedes...), d.Coexists...) {
+		if !strings.HasPrefix(id, FactIDPrefix) {
+			bad("supersedes/coexists entry %q lacks the %s prefix", id, FactIDPrefix)
+		}
+		if named[id] {
+			bad("fact %s is named twice in supersedes/coexists", id)
+		}
+		named[id] = true
 	}
 	return errors.Join(errs...)
 }
@@ -2752,6 +2774,8 @@ const (
 	RecordReviewItem RecordKind = "review-item"
 	RecordDecision   RecordKind = "decision"
 	RecordFact       RecordKind = "fact"
+	// RecordProof is a ProofRecord (proof.go). CONTRACT-CHANGE(verify): additive kind.
+	RecordProof RecordKind = "proof"
 )
 
 // KnowledgeRecord is the self-describing envelope of one file under
@@ -2766,9 +2790,10 @@ type KnowledgeRecord struct {
 	ReviewItem    *ReviewItem        `json:"reviewItem,omitempty"`
 	Decision      *ReviewDecision    `json:"decision,omitempty"`
 	Fact          *VerifiedFact      `json:"fact,omitempty"`
+	Proof         *ProofRecord       `json:"proof,omitempty"`
 }
 
-// NewRecord wraps an entity (one of the six knowledge types, value or pointer).
+// NewRecord wraps an entity (one of the seven knowledge types, value or pointer).
 func NewRecord(entity any) (KnowledgeRecord, error) {
 	r := KnowledgeRecord{SchemaVersion: KnowledgeSchemaVersion}
 	switch e := entity.(type) {
@@ -2796,6 +2821,10 @@ func NewRecord(entity any) (KnowledgeRecord, error) {
 		r.Kind, r.Fact = RecordFact, &e
 	case *VerifiedFact:
 		r.Kind, r.Fact = RecordFact, e
+	case ProofRecord:
+		r.Kind, r.Proof = RecordProof, &e
+	case *ProofRecord:
+		r.Kind, r.Proof = RecordProof, e
 	default:
 		return r, fmt.Errorf("knowledge record: unsupported entity %T", entity)
 	}
@@ -2817,6 +2846,8 @@ func (r KnowledgeRecord) ID() string {
 		return r.Decision.ID
 	case r.Kind == RecordFact && r.Fact != nil:
 		return r.Fact.ID
+	case r.Kind == RecordProof && r.Proof != nil:
+		return r.Proof.ID
 	}
 	return ""
 }
@@ -2827,7 +2858,7 @@ func (r KnowledgeRecord) Validate() error {
 		return fmt.Errorf("knowledge record: schemaVersion = %q, want %q", r.SchemaVersion, KnowledgeSchemaVersion)
 	}
 	set := 0
-	for _, p := range []bool{r.Candidate != nil, r.Proposal != nil, r.Validation != nil, r.ReviewItem != nil, r.Decision != nil, r.Fact != nil} {
+	for _, p := range []bool{r.Candidate != nil, r.Proposal != nil, r.Validation != nil, r.ReviewItem != nil, r.Decision != nil, r.Fact != nil, r.Proof != nil} {
 		if p {
 			set++
 		}
@@ -2848,6 +2879,8 @@ func (r KnowledgeRecord) Validate() error {
 		return r.Decision.Validate()
 	case RecordFact:
 		return r.Fact.Validate()
+	case RecordProof:
+		return r.Proof.Validate()
 	}
 	return fmt.Errorf("knowledge record: unknown kind %q", r.Kind)
 }
