@@ -394,13 +394,14 @@ func redactedFacts(e *env.Environment) ([]byte, error) {
 	if err := json.Unmarshal(raw, &tree); err != nil {
 		return nil, err
 	}
-	walkFacts(tree, false)
+	walkFacts(tree, false, nil)
 	return json.MarshalIndent(tree, "", "  ")
 }
 
 // walkFacts applies the rule to every fact below n; crd: n belongs to a
-// CustomResourceDefinition resource (only private keys are withheld).
-func walkFacts(n any, crd bool) {
+// CustomResourceDefinition resource (only private keys are withheld);
+// named: the mapping paths (in n's list of facts) that have a "name" key.
+func walkFacts(n any, crd bool, named map[string]bool) {
 	switch v := n.(type) {
 	case map[string]any:
 		if k, _ := v["Kind"].(string); k != "" {
@@ -408,7 +409,7 @@ func walkFacts(n any, crd bool) {
 			crd = crd || redaction.CRDDocument(g+"/", k)
 		}
 		if p, ok := v["Path"].(string); ok {
-			if val, ok := v["Value"].(string); ok && val != "" && withheldFact(p, val, crd) {
+			if val, ok := v["Value"].(string); ok && val != "" && withheldFact(p, val, crd, named[parentPath(factLoc(v))]) {
 				v["Value"] = redactedValue(val)
 			}
 			if lines, ok := v["Lines"].([]any); ok && !crd && withheldPath(p) {
@@ -427,16 +428,41 @@ func walkFacts(n any, crd bool) {
 			}
 		}
 		for _, c := range v {
-			walkFacts(c, crd)
+			walkFacts(c, crd, nil)
 		}
 	case []any:
 		if !crd {
 			withholdCredentialEnv(v)
 		}
+		named := map[string]bool{}
 		for _, c := range v {
-			walkFacts(c, crd)
+			if m, ok := c.(map[string]any); ok {
+				if prefix, ok := strings.CutSuffix(factLoc(m), ".name"); ok {
+					named[prefix] = true
+				}
+			}
+		}
+		for _, c := range v {
+			walkFacts(c, crd, named)
 		}
 	}
+}
+
+// factLoc is a fact's location: its element path (with indexes) when it
+// has one, else its path.
+func factLoc(m map[string]any) string {
+	if el, _ := m["Element"].(string); el != "" {
+		return el
+	}
+	p, _ := m["Path"].(string)
+	return p
+}
+
+func parentPath(loc string) string {
+	if i := strings.LastIndexByte(loc, '.'); i >= 0 {
+		return loc[:i]
+	}
+	return ""
 }
 
 // withholdCredentialEnv applies rule (e) to a list of facts: the value of an
@@ -444,13 +470,7 @@ func walkFacts(n any, crd bool) {
 // credential.
 func withholdCredentialEnv(facts []any) {
 	names := map[string]bool{}
-	loc := func(m map[string]any) string {
-		if el, _ := m["Element"].(string); el != "" {
-			return el
-		}
-		p, _ := m["Path"].(string)
-		return p
-	}
+	loc := factLoc
 	for _, f := range facts {
 		m, ok := f.(map[string]any)
 		if !ok {
@@ -487,8 +507,9 @@ func pathKeys(path string) (own string, under bool) {
 	return own, under
 }
 
-// withheldFact applies the rule to a fact's path and JSON-encoded value.
-func withheldFact(path, encoded string, crd bool) bool {
+// withheldFact applies the rule to a fact's path and JSON-encoded value;
+// nameSibling: its mapping has a "name" fact.
+func withheldFact(path, encoded string, crd, nameSibling bool) bool {
 	var v any
 	if err := json.Unmarshal([]byte(encoded), &v); err != nil {
 		return true // not a JSON leaf: nothing proves it harmless
@@ -498,13 +519,13 @@ func withheldFact(path, encoded string, crd bool) bool {
 		return redaction.HoldsPrivateKey(str)
 	}
 	own, under := pathKeys(path)
-	return !redaction.Keep(own, redaction.KindOf(v), str, under)
+	return !redaction.Keep(own, redaction.KindOf(v), str, under, nameSibling)
 }
 
 // withheldPath reports whether the rule withholds a string at path.
 func withheldPath(path string) bool {
 	own, under := pathKeys(path)
-	return !redaction.Keep(own, redaction.String, "", under)
+	return !redaction.Keep(own, redaction.String, "", under, false)
 }
 
 // redactEvidence returns the evidence pool, sorted by id, with credential-like

@@ -14,38 +14,41 @@ func TestKeep(t *testing.T) {
 		value string
 		under bool
 		want  bool
+		named bool // the mapping has a "name" key
 	}{
-		{"replicas", Number, "2", false, true},
-		{"host", String, "db.internal", false, true},
-		{"password", String, "hunter2", false, false},
-		{"apiToken", Number, "123456", false, false}, // own key: only bool/null, as before
-		{"createSecret", Bool, "true", false, true},
-		{"password", Null, "", false, true},
-		{"ca.key", String, pem, false, false}, // a private key under any key
-		{"note", String, "see " + pem, false, false},
-		{"algorithm", String, "ECDSA", true, false}, // below a credential map: strings withheld
-		{"size", Number, "256", true, true},
-		{"enabled", Bool, "false", true, true},
-		{"unset", Null, "", true, true},
-		{"password", String, "hunter2", true, false},
-		{"password", Number, "1234", true, false},
-		{"", String, "item", true, false}, // a sequence item below a credential map
+		{"replicas", Number, "2", false, true, false},
+		{"host", String, "db.internal", false, true, false},
+		{"password", String, "hunter2", false, false, false},
+		{"apiToken", Number, "123456", false, false, false}, // own key: only bool/null, as before
+		{"createSecret", Bool, "true", false, true, false},
+		{"password", Null, "", false, true, false},
+		{"ca.key", String, pem, false, false, false}, // a private key under any key
+		{"note", String, "see " + pem, false, false, false},
+		{"algorithm", String, "ECDSA", true, false, false}, // below a credential map: strings withheld
+		{"size", Number, "256", true, true, false},
+		{"enabled", Bool, "false", true, true, false},
+		{"unset", Null, "", true, true, false},
+		{"password", String, "hunter2", true, false, false},
+		{"password", Number, "1234", true, false, false},
+		{"", String, "item", true, false, false}, // a sequence item below a credential map
 		// object-reference keys (rule c/d exception)
-		{"secretName", String, "tls", false, true},
-		{"name", String, "ca-key", true, true},
-		{"key", String, "tls.key", true, true},
-		{"namespace", String, "apps", true, true},
-		{"issuerNamespace", String, "apps", true, true},
-		{"secretNames", String, "a", false, false}, // not a reference key
+		{"secretName", String, "tls", false, true, false},
+		{"name", String, "ca-key", true, true, false},
+		{"key", String, "tls.key", true, true, true},       // the {name, key} selector shape
+		{"key", String, "AKIAEXAMPLE", true, false, false}, // a lone key below a credential map
+		{"key", String, "tls.key", false, true, false},     // not below a credential: not withheld at all
+		{"namespace", String, "apps", true, true, false},
+		{"issuerNamespace", String, "apps", true, true, false},
+		{"secretNames", String, "a", false, false, false}, // not a reference key
 		// the union of credential names
-		{"secretAccessKey", String, "AKIA", false, false},
-		{"accessKey", String, "AKID", false, false},
-		{"clientSecret", String, "x", false, false},
-		{"passphrase", String, "x", false, false},
-		{"bearer", String, "x", false, false},
+		{"secretAccessKey", String, "AKIA", false, false, false},
+		{"accessKey", String, "AKID", false, false, false},
+		{"clientSecret", String, "x", false, false, false},
+		{"passphrase", String, "x", false, false, false},
+		{"bearer", String, "x", false, false, false},
 	} {
-		if got := Keep(c.key, c.kind, c.value, c.under); got != c.want {
-			t.Errorf("Keep(%q, %v, %q, under=%v) = %v, want %v", c.key, c.kind, c.value, c.under, got, c.want)
+		if got := Keep(c.key, c.kind, c.value, c.under, c.named); got != c.want {
+			t.Errorf("Keep(%q, %v, %q, under=%v, named=%v) = %v, want %v", c.key, c.kind, c.value, c.under, c.named, got, c.want)
 		}
 	}
 }

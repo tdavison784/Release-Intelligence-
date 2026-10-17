@@ -221,32 +221,34 @@ func TestWithheldFact(t *testing.T) {
 		path, value string
 		crd         bool
 		want        bool
+		named       bool // a "name" fact beside it
 	}{
-		{"replicas", "2", false, false},
-		{"db.host", `"db.internal"`, false, false},
-		{"db.password", `"hunter2"`, false, true},
-		{"db.password", "true", false, false}, // a flag, as in the files
-		{"spec.secretAccessKey", `"AKIAEXAMPLE"`, false, true},
-		{"spec.secretName", `"tls"`, false, false}, // an object reference
-		{"spec.privateKeySecretRef.name", `"ca-key"`, false, false},
-		{"spec.tokenSecretRef.key", `"token"`, false, false},
-		{"spec.credentials.rotation", `"Never"`, false, true},
-		{"spec.credentials.size", "256", false, false},
-		{"spec.credentials.enabled", "false", false, false},
-		{"spec.credentials.note", "null", false, false},
-		{"spec.privateKey.algorithm", `"ECDSA"`, false, true},
-		{"imagePullSecrets[0].name", `"regcred"`, false, false}, // a credential-named list is walked like a map
-		{"tokens[0]", `"abc"`, false, true},
-		{"tokens[0].weight", "3", false, false},
-		{"tokens[0].owner", `"ops"`, false, true},
-		{"ca", `"-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"`, false, true},
-		{"spec.x", "not json", false, true},
+		{"replicas", "2", false, false, false},
+		{"db.host", `"db.internal"`, false, false, false},
+		{"db.password", `"hunter2"`, false, true, false},
+		{"db.password", "true", false, false, false}, // a flag, as in the files
+		{"spec.secretAccessKey", `"AKIAEXAMPLE"`, false, true, false},
+		{"spec.secretName", `"tls"`, false, false, false}, // an object reference
+		{"spec.privateKeySecretRef.name", `"ca-key"`, false, false, false},
+		{"spec.tokenSecretRef.key", `"token"`, false, false, true},    // {name, key}
+		{"spec.credentials.key", `"AKIAEXAMPLE"`, false, true, false}, // a lone key
+		{"spec.credentials.rotation", `"Never"`, false, true, false},
+		{"spec.credentials.size", "256", false, false, false},
+		{"spec.credentials.enabled", "false", false, false, false},
+		{"spec.credentials.note", "null", false, false, false},
+		{"spec.privateKey.algorithm", `"ECDSA"`, false, true, false},
+		{"imagePullSecrets[0].name", `"regcred"`, false, false, false}, // a credential-named list is walked like a map
+		{"tokens[0]", `"abc"`, false, true, false},
+		{"tokens[0].weight", "3", false, false, false},
+		{"tokens[0].owner", `"ops"`, false, true, false},
+		{"ca", `"-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"`, false, true, false},
+		{"spec.x", "not json", false, true, false},
 		// a CRD is a schema: only private keys
-		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.properties.rotationPolicy.enum[]", `"Never"`, true, false},
-		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.default", `"-----BEGIN PRIVATE KEY-----\nx"`, true, true},
+		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.properties.rotationPolicy.enum[]", `"Never"`, true, false, false},
+		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.default", `"-----BEGIN PRIVATE KEY-----\nx"`, true, true, false},
 	} {
-		if got := withheldFact(c.path, c.value, c.crd); got != c.want {
-			t.Errorf("withheldFact(%q, %s, crd=%v) = %v, want %v", c.path, c.value, c.crd, got, c.want)
+		if got := withheldFact(c.path, c.value, c.crd, c.named); got != c.want {
+			t.Errorf("withheldFact(%q, %s, crd=%v, named=%v) = %v, want %v", c.path, c.value, c.crd, c.named, got, c.want)
 		}
 	}
 }
@@ -276,6 +278,8 @@ spec:
   secretName: gadget-tls
   privateKeySecretRef: {name: gadget-key}
   tokenSecretRef: {name: gadget-token, key: token}
+  credentials: {key: AKIALONEKEYSECRET}
+  privateKey: {key: lone-key-material}
   env:
     - {name: DB_PASSWORD, value: hunter2}
     - {name: LOG_LEVEL, value: debug}
@@ -296,7 +300,7 @@ spec:
 `)
 	out, _ := redactYAML(in)
 	s := string(out)
-	for _, leak := range []string{"AKIAEXAMPLESECRET", "open-sesame", "hunter2"} {
+	for _, leak := range []string{"AKIAEXAMPLESECRET", "open-sesame", "hunter2", "AKIALONEKEYSECRET", "lone-key-material"} {
 		if strings.Contains(s, leak) {
 			t.Errorf("%q leaked:\n%s", leak, s)
 		}
@@ -305,6 +309,28 @@ spec:
 		"description: key settings", "enum: [Never, Always]"} {
 		if !strings.Contains(s, keep) {
 			t.Errorf("%q should stay readable:\n%s", keep, s)
+		}
+	}
+}
+
+// The facts artifact: a key is a reference key only beside a "name" fact of
+// the same mapping (the {name, key} selector shape).
+func TestRedactedFactsKeyNeedsNameSibling(t *testing.T) {
+	tree := map[string]any{"Resources": []any{map[string]any{"Kind": "Gadget", "Fields": []any{
+		map[string]any{"Path": "spec.tokenSecretRef.name", "Element": "spec.tokenSecretRef.name", "Value": `"gadget-token"`},
+		map[string]any{"Path": "spec.tokenSecretRef.key", "Element": "spec.tokenSecretRef.key", "Value": `"token"`},
+		map[string]any{"Path": "spec.credentials.key", "Element": "spec.credentials.key", "Value": `"AKIALONEKEYSECRET"`},
+		map[string]any{"Path": "spec.credentials.region", "Element": "spec.credentials.region", "Value": `"eu-1"`},
+	}}}}
+	walkFacts(tree, false, nil)
+	fields := tree["Resources"].([]any)[0].(map[string]any)["Fields"].([]any)
+	val := func(i int) string { return fields[i].(map[string]any)["Value"].(string) }
+	if val(0) != `"gadget-token"` || val(1) != `"token"` {
+		t.Errorf("selector {name, key} withheld: %s %s", val(0), val(1))
+	}
+	for i := 2; i < 4; i++ {
+		if !strings.HasPrefix(val(i), "<redacted sha256:") {
+			t.Errorf("%s kept: %s", fields[i].(map[string]any)["Path"], val(i))
 		}
 	}
 }

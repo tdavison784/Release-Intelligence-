@@ -135,10 +135,13 @@ func redactNode(n *yaml.Node, key string, under, secretDoc, crd bool) bool {
 	changed := false
 	switch n.Kind {
 	case yaml.MappingNode:
-		envName := ""
+		envName, hasName := "", false
 		for i := 0; i+1 < len(n.Content); i += 2 {
-			if n.Content[i].Value == "name" && n.Content[i+1].Kind == yaml.ScalarNode {
-				envName = n.Content[i+1].Value
+			if n.Content[i].Value == "name" {
+				hasName = true
+				if n.Content[i+1].Kind == yaml.ScalarNode {
+					envName = n.Content[i+1].Value
+				}
 			}
 		}
 		for i := 0; i+1 < len(n.Content); i += 2 {
@@ -150,6 +153,8 @@ func redactNode(n *yaml.Node, key string, under, secretDoc, crd bool) bool {
 				changed = redactScalar(v) || changed
 			case !crd && (v.Kind == yaml.MappingNode || v.Kind == yaml.SequenceNode) && redaction.CredentialContainer(k):
 				changed = redactNode(v, k, true, secretDoc, crd) || changed
+			case v.Kind == yaml.ScalarNode:
+				changed = redactLeaf(v, k, under, crd, hasName) || changed
 			default:
 				changed = redactNode(v, k, under, secretDoc, crd) || changed
 			}
@@ -159,17 +164,24 @@ func redactNode(n *yaml.Node, key string, under, secretDoc, crd bool) bool {
 			changed = redactNode(c, key, under, secretDoc, crd) || changed
 		}
 	case yaml.ScalarNode:
-		kind := redaction.KindOfTag(n.ShortTag())
-		switch {
-		case crd:
-			if kind == redaction.String && redaction.HoldsPrivateKey(n.Value) {
-				changed = redactScalar(n)
-			}
-		case !redaction.Keep(key, kind, n.Value, under):
-			changed = redactScalar(n)
-		}
+		changed = redactLeaf(n, key, under, crd, false) // a list item
 	}
 	return changed
+}
+
+// redactLeaf applies the rule to one scalar; nameSibling: its mapping has a
+// "name" key.
+func redactLeaf(n *yaml.Node, key string, under, crd, nameSibling bool) bool {
+	kind := redaction.KindOfTag(n.ShortTag())
+	switch {
+	case crd:
+		if kind == redaction.String && redaction.HoldsPrivateKey(n.Value) {
+			return redactScalar(n)
+		}
+	case !redaction.Keep(key, kind, n.Value, under, nameSibling):
+		return redactScalar(n)
+	}
+	return false
 }
 
 // redactAll replaces every scalar below n.

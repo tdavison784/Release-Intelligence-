@@ -200,6 +200,7 @@ func normalizeTree(v any, kind, key string, under bool) any {
 	case map[string]any:
 		out := map[string]any{}
 		envName, _ := t["name"].(string)
+		_, hasName := t["name"]
 		for k, x := range t {
 			var n any
 			switch {
@@ -208,7 +209,7 @@ func normalizeTree(v any, kind, key string, under bool) any {
 			case !crd && k == "value" && envName != "" && redaction.CredentialEnvVar(envName) && isScalar(x):
 				n = redact(x)
 			case isScalar(x) || x == nil:
-				n = leaf(x, k, under, crd)
+				n = leaf(x, k, under, crd, hasName)
 			default:
 				n = normalizeTree(x, kind, k, under || (!crd && redaction.CredentialContainer(k)))
 			}
@@ -225,7 +226,7 @@ func normalizeTree(v any, kind, key string, under bool) any {
 		for _, x := range t {
 			var n any
 			if isScalar(x) {
-				n = leaf(x, key, under, crd)
+				n = leaf(x, key, under, crd, false) // a list item
 			} else {
 				n = normalizeTree(x, kind, key, under)
 			}
@@ -240,12 +241,13 @@ func normalizeTree(v any, kind, key string, under bool) any {
 	case nil:
 		return nil
 	default:
-		return leaf(t, key, under, crd)
+		return leaf(t, key, under, crd, false)
 	}
 }
 
-// leaf applies the rule to one scalar (nil is dropped).
-func leaf(x any, key string, under, crd bool) any {
+// leaf applies the rule to one scalar (nil is dropped); nameSibling: its
+// mapping has a "name" key.
+func leaf(x any, key string, under, crd, nameSibling bool) any {
 	if x == nil {
 		return nil
 	}
@@ -258,7 +260,7 @@ func leaf(x any, key string, under, crd bool) any {
 			return redact(s)
 		}
 		return x
-	case !redaction.Keep(key, redaction.KindOf(x), s, under):
+	case !redaction.Keep(key, redaction.KindOf(x), s, under, nameSibling):
 		return redact(x)
 	}
 	return x

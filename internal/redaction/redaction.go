@@ -13,9 +13,10 @@
 //	    withheld under any key;
 //	(c) a scalar whose own key names a credential (SensitiveKey) is withheld
 //	    unless it is a boolean or null — except an object-reference key
-//	    (ReferenceKey: name, namespace, key, …Name, …Namespace): its value
-//	    names an object or a data key, not secret material (secretName,
-//	    privateKeySecretRef.name, tokenSecretRef.key);
+//	    (ReferenceKey: name, namespace, …Name, …Namespace, and key beside a
+//	    name — the {name, key} selector shape): its value names an object or
+//	    a data key, not secret material (secretName,
+//	    privateKeySecretRef.name, tokenSecretRef.key); a lone key is not one;
 //	(d) below a credential-named key holding a mapping or a list
 //	    (privateKey:, credentials:, imagePullSecrets:) a scalar is kept only
 //	    when it is a boolean, null or number, or sits at a reference key;
@@ -49,11 +50,15 @@ import (
 var SensitiveKey = regexp.MustCompile(`(?i)password|passwd|passphrase|secret|token|api[-_]?key|private[-_]?key|access[-_]?key|credential|bearer`)
 
 // ReferenceKey reports whether a key holds an object reference's name,
-// namespace or data-key name rather than secret material.
-func ReferenceKey(key string) bool {
+// namespace or data-key name rather than secret material. key is one only
+// in the selector shape {name, key} (SecretKeySelector, ConfigMapKeySelector):
+// nameSibling reports a "name" key in the same mapping.
+func ReferenceKey(key string, nameSibling bool) bool {
 	switch key {
-	case "name", "namespace", "key":
+	case "name", "namespace":
 		return true
+	case "key":
+		return nameSibling
 	}
 	return strings.HasSuffix(key, "Name") || strings.HasSuffix(key, "Namespace")
 }
@@ -61,7 +66,7 @@ func ReferenceKey(key string) bool {
 // Credential reports whether a key names a credential and is not a
 // reference key: its scalar value is withheld (rule c).
 func Credential(key string) bool {
-	return key != "" && SensitiveKey.MatchString(key) && !ReferenceKey(key)
+	return key != "" && SensitiveKey.MatchString(key) && !ReferenceKey(key, false)
 }
 
 // CredentialContainer reports whether a key holding a mapping or list
@@ -144,15 +149,16 @@ func KindOf(v any) ScalarKind {
 // Keep reports whether a scalar may be stored as is (rules b–d). key is the
 // nearest mapping key above it (its own key, or the key of the list it is
 // an item of); under reports that a key further up names a credential and
-// holds a mapping or list.
-func Keep(key string, kind ScalarKind, value string, under bool) bool {
+// holds a mapping or list; nameSibling that the scalar's own mapping has a
+// "name" key (false for a list item).
+func Keep(key string, kind ScalarKind, value string, under, nameSibling bool) bool {
 	switch {
 	case kind == String && HoldsPrivateKey(value):
 		return false
 	case Credential(key):
 		return kind == Bool || kind == Null
 	case under:
-		return kind != String || ReferenceKey(key)
+		return kind != String || ReferenceKey(key, nameSibling)
 	}
 	return true
 }

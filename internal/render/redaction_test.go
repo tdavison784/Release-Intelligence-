@@ -48,7 +48,9 @@ spec:
   secretName: gadget-tls
   privateKeySecretRef: {name: gadget-key}
   tokenSecretRef: {name: gadget-token, key: token}
+  privateKey: {key: lone-key-material}
   credentials:
+    key: AKIALONEKEYSECRET
     rotation: Never
     comment: rotate by hand
     size: 256
@@ -77,7 +79,10 @@ spec:
 			t.Errorf("spec.%s survived: %v", k, spec[k])
 		}
 	}
-	for _, k := range []string{"rotation", "comment"} {
+	if !sensitive(at(t, b, "spec", "privateKey", "key")) {
+		t.Errorf("a lone key below privateKey survived")
+	}
+	for _, k := range []string{"rotation", "comment", "key"} {
 		if !sensitive(at(t, b, "spec", "credentials", k)) {
 			t.Errorf("credentials.%s survived", k)
 		}
