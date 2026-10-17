@@ -74,7 +74,10 @@ type Run struct {
 	UpgradeCompleted bool          `json:"upgradeCompleted"`
 	UpgradeProblems  []string      `json:"upgradeProblems,omitempty"`
 	Degradations     []Degradation `json:"degradations,omitempty"`
-	Cleanup          *CleanupLog   `json:"cleanup,omitempty"`
+	// Consumers are the fixture's consumer observations at each version
+	// (consumer.go; lane verify2, additive).
+	Consumers []ConsumerResult `json:"consumers,omitempty"`
+	Cleanup   *CleanupLog      `json:"cleanup,omitempty"`
 }
 
 // TargetUse is one render target applied to the cluster.
@@ -157,6 +160,8 @@ type session struct {
 	prefix      string
 	prepared    bool
 	allConsumed bool
+	// consumers are a fixture's consumer checks (consumer.go).
+	consumers []ConsumerCheck
 }
 
 func (s *session) clusterPrefix() string {
@@ -419,6 +424,11 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 	if problems := s.productProblems(PhaseFrom); len(problems) > 0 {
 		return fmt.Errorf("the FROM version (%s) did not come up in the isolated cluster, so there is no baseline: %s", s.run.From, strings.Join(problems, "; "))
 	}
+	// consumer checks run before the exercises, inside the exercise window
+	// (symmetric at both versions), so the upgrade window stays clean
+	if err := s.checkConsumers(ctx, cl, "from"); err != nil {
+		return err
+	}
 	s.selectExercises()
 	if len(s.exercises) > 0 {
 		start = s.v.clock.Now()
@@ -442,6 +452,9 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 	}
 	s.run.UpgradeProblems = s.productProblems(PhaseTo)
 	s.run.UpgradeCompleted = len(s.run.UpgradeProblems) == 0
+	if err := s.checkConsumers(ctx, cl, "to"); err != nil {
+		return err
+	}
 	if len(s.exercises) > 0 {
 		start = s.v.clock.Now()
 		settle := s.exerciseAll(ctx, cl, "to")

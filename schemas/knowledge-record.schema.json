@@ -362,7 +362,8 @@
         "reactedTo": {"type": "boolean"},
         "changed": {"type": "boolean"},
         "signatures": {"type": "array", "items": {"type": "string"}},
-        "observed": {"type": "string"}
+        "observed": {"type": "string"},
+        "consumer": {"$ref": "#/$defs/ProofConsumer"}
       },
       "additionalProperties": false
     },
@@ -382,6 +383,32 @@
         "subject": {"type": "string"},
         "outcome": {"$ref": "#/$defs/MethodOutcome"},
         "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ProofConsumer": {
+      "type": "object",
+      "required": ["check", "trust", "reissue", "verified"],
+      "properties": {
+        "check": {"type": "string"},
+        "trust": {"type": "string"},
+        "reissue": {"type": "array", "items": {"type": "string"}},
+        "verified": {"type": "string"},
+        "from": {"$ref": "#/$defs/ProofConsumerResult"},
+        "to": {"$ref": "#/$defs/ProofConsumerResult"}
+      },
+      "additionalProperties": false
+    },
+    "ProofConsumerResult": {
+      "type": "object",
+      "required": ["outcome", "detail"],
+      "properties": {
+        "outcome": {"type": "string"},
+        "detail": {"type": "string"},
+        "trustCertificates": {"type": "array", "items": {"type": "string"}},
+        "trustKeys": {"type": "array", "items": {"type": "string"}},
+        "certificate": {"type": "string"},
+        "certificateKey": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -511,6 +538,15 @@
     "RecordKind": {
       "type": "string",
       "enum": ["candidate", "proposal", "validation", "review-item", "decision", "fact", "proof"]
+    },
+    "ReleaseBounds": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"type": "string"},
+        "to": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "RenderArtifact": {
       "type": "object",
@@ -715,7 +751,8 @@
         "duplicateOf": {"type": "string"},
         "suggestedClass": {"$ref": "#/$defs/ImpactClass"},
         "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
-        "provenance": {"$ref": "#/$defs/Provenance"}
+        "provenance": {"$ref": "#/$defs/Provenance"},
+        "release": {"$ref": "#/$defs/ReleaseBounds"}
       },
       "additionalProperties": false
     },

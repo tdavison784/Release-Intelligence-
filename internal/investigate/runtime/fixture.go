@@ -42,6 +42,9 @@ type FixtureSpec struct {
 	// (e.g. the Secret a subject object's controller writes): observed like
 	// applied objects, their data digested per key.
 	Observe []string
+	// Consumers are consumer observations made at each version
+	// (consumer.go; lane verify2). Optional.
+	Consumers []ConsumerCheck
 }
 
 // FixtureResult is a fixture run with its observations by phase.
@@ -60,6 +63,9 @@ func (v *Validator) RunFixture(ctx context.Context, spec FixtureSpec) (*FixtureR
 	if spec.ID == "" || spec.Product == "" || spec.From == "" || spec.To == "" {
 		return nil, fmt.Errorf("runtime: fixture needs an id, product, from and to")
 	}
+	if err := validateConsumers(spec.Consumers, v.exercises); err != nil {
+		return nil, fmt.Errorf("runtime: fixture: %w", err)
+	}
 	b := &domain.EvidenceBundle{ID: spec.ID}
 	b.Snapshot.KubernetesVersion = spec.KubernetesVersion
 	g := &domain.RelationshipGraph{ID: "fixture", Bundle: spec.ID, Builder: "runtime.fixture@v1"}
@@ -69,7 +75,7 @@ func (v *Validator) RunFixture(ctx context.Context, spec FixtureSpec) (*FixtureR
 		}
 		g.Nodes = append(g.Nodes, domain.GraphNode{ID: domain.NodeID(domain.NodeConfigObject, key), Kind: domain.NodeConfigObject, Key: key})
 	}
-	s := &session{v: v, b: b, g: g, prefix: FixtureClusterPrefix, prepared: true, allConsumed: true,
+	s := &session{v: v, b: b, g: g, prefix: FixtureClusterPrefix, prepared: true, allConsumed: true, consumers: spec.Consumers,
 		run: &Run{SchemaVersion: RunSchemaVersion, Validator: Name, Bundle: spec.ID, Product: spec.Product, From: spec.From, To: spec.To}}
 	s.from, s.to = newManifestSet(), newManifestSet()
 	for _, side := range []struct {
