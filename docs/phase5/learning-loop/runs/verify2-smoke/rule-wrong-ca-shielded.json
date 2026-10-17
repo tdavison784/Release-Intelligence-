@@ -1,0 +1,79 @@
+{
+  "_provenance": "lane verify2 smoke: a DELIBERATELY WRONG negative control derived from rules/rotationpolicy-ca-scoped.json (scratch only, never promoted). It declares a CA Certificate that leaves rotationPolicy unset shielded and non-CA Certificates exposed.",
+  "statement": "(deliberately wrong) Only a non-CA Certificate that leaves spec.privateKey.rotationPolicy unset changes observably; a CA Certificate (spec.isCA: true) is shielded whatever its rotationPolicy.",
+  "assertion": {
+    "subject": {
+      "family": "crd-field",
+      "product": "cert-manager",
+      "group": "cert-manager.io",
+      "kind": "Certificate",
+      "path": "spec.privateKey.rotationPolicy"
+    },
+    "change": {
+      "type": "default-changed",
+      "before": "\"Never\"",
+      "after": "\"Always\""
+    },
+    "applicability": {
+      "exposure": {
+        "op": "resource",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "unset"
+          },
+          {
+            "op": "field",
+            "path": "spec.isCA",
+            "state": "unset"
+          }
+        ]
+      },
+      "overlap": {
+        "op": "resource",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "of": [
+          {
+            "op": "any",
+            "of": [
+              {
+                "op": "field",
+                "path": "spec.privateKey.rotationPolicy",
+                "state": "set"
+              },
+              {
+                "op": "field",
+                "path": "spec.isCA",
+                "state": "equals",
+                "values": [
+                  "true"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "consequence": {
+      "kind": "behavior-change",
+      "exposedClass": "review-required",
+      "severity": "medium",
+      "statement": "(deliberately wrong) A non-CA Certificate without rotationPolicy rotates its key on re-issuance; CA Certificates are not affected.",
+      "remediation": "Set `rotationPolicy: Never` explicitly on CA Certificates, or turn off the feature gate in 1.18 (it is GA in 1.19), before upgrading."
+    },
+    "release": {
+      "from": "1.17.2",
+      "to": "1.18.0",
+      "bounds": "(from, to]"
+    }
+  },
+  "citations": [
+    "ev-c92478af13c4 (release-notes-1.18.md L109-L148)",
+    "ev-9a2f8d3ec5e9 (upgrading-1.17-1.18.md L8-L10)"
+  ],
+  "requestedVerification": "Synthetic fixture only, at FROM (1.17.2) and TO (1.18.0), CA re-issuance then leaf re-issuance. Observable: x509 chain verification of the leaf issued AFTER the CA re-issuance against the ca.crt captured BEFORE it (a consumer holding the old trust bundle). Arm 'shielded': (a) CA isCA:true with rotationPolicy: Never, leaf with rotationPolicy unset; (b) the leaf's own key may change. Arm 'exposed': CA isCA:true with rotationPolicy unset. Confirmed iff the shielded arm verifies at FROM and TO, and the exposed arm verifies at FROM and FAILS at TO. Anything else (including the exposed arm not changing) is not confirmed. A deliberately wrong rule (CA with rotationPolicy unset declared shielded) must be refuted by the same method."
+}

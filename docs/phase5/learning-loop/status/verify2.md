@@ -36,9 +36,16 @@ fallback rule pre-registered". Docs: `docs/INVESTIGATE.md` "Consumer observation
   not agent-proposed, not verified" (author, prompt version, rule file digest shown).
 - Docs: INVESTIGATE.md (two subsections + tests paragraph), README command line, `ri verify` usage.
 
+- **Real `-runtime` smoke** (`runs/verify2-smoke.md`, scratch K0 copy, `-offline`, scratch state): pre-registered rule
+  **confirmed** `pf-57da896bcf53` (230 s, `ri-verify-48e6ace9`: shielded consumer verified at 1.17.2 and 1.18.0 while
+  the leaf's own key rotated; exposed consumer verified at 1.17.2, failed at 1.18.0 — unknown authority); deliberately
+  wrong rule (CA with rotationPolicy unset declared shielded) **refuted** `pf-97c17ca82902` (219 s,
+  `ri-verify-f0fb4407`). Both clusters deleted and verified. Gate on a scratch copy refused the refuted rule and the
+  confirmed one without `supersedes vf-9b9cfa5c9f5f`.
+
 ## In progress
 
-- Real `-runtime` smoke on a scratch K0 copy → `runs/verify2-smoke.md` (see that file when present).
+- Nothing. Lane done.
 
 ## Decisions (with why)
 
@@ -87,7 +94,14 @@ fallback rule pre-registered". Docs: `docs/INVESTIGATE.md` "Consumer observation
   -runtime -kubernetes 1.31`, then the product owner's decision in `ri review serve` must name `vf-9b9cfa5c9f5f` as
   superseded (the gate refuses otherwise). `ri knowledge decide` has no `-supersedes` flag (UI only).
 
+## Cleanup
+
+- Both `ri-verify-*` clusters deleted by the runs (verified; `kind get clusters` empty). Removed `bin/` and the
+  scratch dirs (K0 copies, state with copied caches, downloaded upstream docs). The shared `.ri` was never written.
+
 ## Tests
+
+- `go build ./... && go vet ./... && go test ./...` green (2026-10-17, after the last commit).
 
 - New: `internal/investigate/runtime/consumer_test.go` (real x509 fake: shielded verifies at both versions although
   the leaf key rotates, exposed fails at TO; no key or certificate bytes in any stored artifact; unanswered

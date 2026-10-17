@@ -1,0 +1,273 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proof",
+  "proof": {
+    "id": "pf-97c17ca82902",
+    "hypothesis": "hyp-b5ae21404d96",
+    "reviewItem": "ri-8de20d2775af",
+    "candidateId": "sc-0564d2273368",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "proposedRuleDigest": "e5ddbc0299a4",
+    "methods": [
+      {
+        "method": "citation-check",
+        "producer": "verify.citations@v1",
+        "level": "deterministic",
+        "outcome": "pass",
+        "detail": "2 citations resolve in the evidence cache, contain their passages and lie inside (1.17.2, 1.18.0]; 2 name the subject",
+        "checks": [
+          {
+            "subject": "ev-c92478af13c4",
+            "outcome": "pass",
+            "detail": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md (http-cache, sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a) contains the passage and names 1.18, inside (1.17.2, 1.18.0]"
+          },
+          {
+            "subject": "ev-9a2f8d3ec5e9",
+            "outcome": "pass",
+            "detail": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md (http-cache, sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03) contains the passage and names 1.17, 1.18, inside (1.17.2, 1.18.0]"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-c92478af13c4",
+            "kind": "document",
+            "sourceId": "website-major-themes",
+            "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+            "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+            "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+            "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+            "retrievedAt": "2026-10-02T02:35:39Z"
+          },
+          {
+            "id": "ev-9a2f8d3ec5e9",
+            "kind": "document",
+            "sourceId": "upgrade-guide",
+            "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+            "locator": "L8-L10",
+            "excerpt": "1. We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+            "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+            "retrievedAt": "2026-10-02T02:35:39Z"
+          }
+        ]
+      },
+      {
+        "method": "rule-exercise",
+        "producer": "verify.exercise-consumer@v1",
+        "level": "observed",
+        "outcome": "fail",
+        "detail": "fixture cert-manager 1.17.2 → 1.18.0 in ri-verify-f0fb4407 (completed, 219s), consumer observation: with the mitigating condition the consumer does not verify (condition-present-2 (FROM verified, TO failed)): the condition does not shield its consumers",
+        "checks": [
+          {
+            "subject": "condition-present",
+            "outcome": "pass",
+            "detail": "condition-present (spec.privateKey.rotationPolicy set (set to the previous value \"Never\") (consumer role: spec.isCA = true)): predicted previous-behaviour, observed previous-behaviour; consumer at FROM verified, at TO verified; from: core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before; to: core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before"
+          },
+          {
+            "subject": "condition-present-2",
+            "outcome": "fail",
+            "detail": "condition-present-2 (spec.isCA = true (consumer role: spec.isCA = true)): predicted previous-behaviour, observed new-behaviour; consumer at FROM verified, at TO failed; from: core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before; to: core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] does not verify against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before: x509: certificate signed by unknown authority (possibly because of \"crypto/rsa: verification error\" while trying to verify candidate authority certificate \"ri-arm-present-2.ri-verify.test\")"
+          }
+        ],
+        "arms": [
+          {
+            "name": "condition-present",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+              "core/v1/Secret/ri-verify/ri-arm-present-tls",
+              "cert-manager.io/v1/Issuer/ri-verify/ri-arm-present-ca",
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf",
+              "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls"
+            ],
+            "condition": "spec.privateKey.rotationPolicy set (set to the previous value \"Never\") (consumer role: spec.isCA = true)",
+            "predicted": "previous-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": false,
+            "signatures": [
+              "consumer: FROM verified, TO verified",
+              "data, not decisive for the consumer: core/v1/Secret/ri-verify/ri-arm-present-leaf-tls data:tls.key"
+            ],
+            "observed": "previous-behaviour",
+            "consumer": {
+              "check": "condition-present",
+              "trust": "core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt]",
+              "reissue": [
+                "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+                "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+              ],
+              "verified": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt]",
+              "from": {
+                "outcome": "verified",
+                "detail": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before",
+                "trustCertificates": [
+                  "sha256:f4462d9e628c160e7a7e1980e1ed96ed0b279ee94c6e08990b886570ba3686fd"
+                ],
+                "trustKeys": [
+                  "sha256:f28e186d1e05a702ed1ae695d5583f5d844b76853f502521a9f9401648299553"
+                ],
+                "certificate": "sha256:2739592f1b3d350fd10eeef094eb457c59a589be2aecebf8ae841ef79a57b131",
+                "certificateKey": "sha256:6cd2df7a29791824f95ff90119de7d65e722b523c668e48a12280ee9e9b6cfc3"
+              },
+              "to": {
+                "outcome": "verified",
+                "detail": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before",
+                "trustCertificates": [
+                  "sha256:90ceb149528d8e51aa90341f7e6e9b72ca09db214aff40cbad01a565f8b77636"
+                ],
+                "trustKeys": [
+                  "sha256:f28e186d1e05a702ed1ae695d5583f5d844b76853f502521a9f9401648299553"
+                ],
+                "certificate": "sha256:0e3195e8f109ecf4b1195a6a379789c5d292afa06870a8ea11f85357a2028dc8",
+                "certificateKey": "sha256:dcb38988d6545a6995ca8cdbe91aa9763283d4679ec5a0d5d289a8592667ccd7"
+              }
+            }
+          },
+          {
+            "name": "condition-present-2",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+              "core/v1/Secret/ri-verify/ri-arm-present-2-tls",
+              "cert-manager.io/v1/Issuer/ri-verify/ri-arm-present-2-ca",
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+              "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls"
+            ],
+            "condition": "spec.isCA = true (consumer role: spec.isCA = true)",
+            "predicted": "previous-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": true,
+            "signatures": [
+              "consumer: FROM verified, TO failed",
+              "data, not decisive for the consumer: core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls data:tls.key",
+              "data, not decisive for the consumer: core/v1/Secret/ri-verify/ri-arm-present-2-tls data:tls.key"
+            ],
+            "observed": "new-behaviour",
+            "consumer": {
+              "check": "condition-present-2",
+              "trust": "core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt]",
+              "reissue": [
+                "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+                "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf"
+              ],
+              "verified": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt]",
+              "from": {
+                "outcome": "verified",
+                "detail": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before",
+                "trustCertificates": [
+                  "sha256:dfe18b0099152d7c64a0184ab3e8ed95e64eba8d46f0bccb66875f747d07e422"
+                ],
+                "trustKeys": [
+                  "sha256:f82b75781e7261d956ac6f8335f2db3ca65d830d4e5aa1c5a735ffb097b14b5f"
+                ],
+                "certificate": "sha256:3fb52fb5539afbb9c7165d32d425744ac779bd1542a9fa874e1db4df9b52be8f",
+                "certificateKey": "sha256:d8826e05ae252409b677b29e3b73e86dd205ef6c47120258693640e7a827075e"
+              },
+              "to": {
+                "outcome": "failed",
+                "detail": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] does not verify against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before: x509: certificate signed by unknown authority (possibly because of \"crypto/rsa: verification error\" while trying to verify candidate authority certificate \"ri-arm-present-2.ri-verify.test\")",
+                "trustCertificates": [
+                  "sha256:16dd7ba3a7abff23247900ea05acd2a337134c2ca45cc67a2de8e5bae7198249"
+                ],
+                "trustKeys": [
+                  "sha256:f82b75781e7261d956ac6f8335f2db3ca65d830d4e5aa1c5a735ffb097b14b5f"
+                ],
+                "certificate": "sha256:e193d0f93007c7af0c589f3283e4af9128dc55d2a7a9f7bb0587ee88aae378ae",
+                "certificateKey": "sha256:b094f3f51f9afb9707bf4977c278f197e379087185c3329a13d97452fe29511e"
+              }
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-c0d10e507e20",
+            "kind": "structured",
+            "sourceId": "art-d9cb65b83bb7",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-dd4ceecc6ac3/exercises.json",
+            "locator": "derived/runtime/fx-dd4ceecc6ac3/exercises.json",
+            "excerpt": "runtime derived/runtime/fx-dd4ceecc6ac3/exercises.json",
+            "contentDigest": "sha256:62cd238f03d6e4e4128b811a282a7de8440711d50adf90f0596a4ee8daf84e7b"
+          },
+          {
+            "id": "ev-32e462aa7bdb",
+            "kind": "structured",
+            "sourceId": "art-5d9e0b157596",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-dd4ceecc6ac3/observations.json",
+            "locator": "derived/runtime/fx-dd4ceecc6ac3/observations.json",
+            "excerpt": "runtime derived/runtime/fx-dd4ceecc6ac3/observations.json",
+            "contentDigest": "sha256:5d148b36a04900bc41217aefb92edc346333d1c5e6962b0efb60ee94ce9aee6e"
+          },
+          {
+            "id": "ev-30543d83305e",
+            "kind": "structured",
+            "sourceId": "art-7846744165da",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-dd4ceecc6ac3/run.json",
+            "locator": "derived/runtime/fx-dd4ceecc6ac3/run.json",
+            "excerpt": "runtime derived/runtime/fx-dd4ceecc6ac3/run.json",
+            "contentDigest": "sha256:f883aa61a29a74eaa49a8058d7cc206bb7a81b4b6427a1ca2a06cf403204edd3"
+          }
+        ]
+      }
+    ],
+    "outcome": "refuted",
+    "versionBounds": {
+      "from": "1.17.2",
+      "to": "1.18.0"
+    },
+    "conditions": {
+      "exposure": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "unset"
+          },
+          {
+            "op": "field",
+            "path": "spec.isCA",
+            "state": "unset"
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      },
+      "overlap": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "any",
+            "of": [
+              {
+                "op": "field",
+                "path": "spec.privateKey.rotationPolicy",
+                "state": "set"
+              },
+              {
+                "op": "field",
+                "path": "spec.isCA",
+                "state": "equals",
+                "values": [
+                  "true"
+                ]
+              }
+            ]
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      }
+    },
+    "limitations": [
+      "the rule exercise uses one synthetic subject object per arm in a fresh cluster: other consumers of the subject's outputs, other topologies, pre-existing state and other controller configurations are not covered",
+      "the controller is installed from its chart with the fixture's declared values only; environment-specific controller settings are not exercised",
+      "the citation check proves the passages exist in version-bounded upstream text and name the subject; whether they state the claimed behaviour is the human reviewer's judgement",
+      "a proof never decides whether an environment meets the rule's conditions: the deterministic validators decide that at investigation time",
+      "exposed alternative 1 (spec.isCA unset and spec.privateKey.rotationPolicy unset) is not exercised: it cannot hold in the consumer role (spec.isCA = true)",
+      "no alternative of the exposure condition can be built in the consumer role (spec.isCA = true): the rule can be refuted by this exercise but not confirmed"
+    ],
+    "level": "observed",
+    "producer": "verify.hypothesis@v1",
+    "checkedAt": "2026-10-17T22:04:34Z"
+  }
+}
