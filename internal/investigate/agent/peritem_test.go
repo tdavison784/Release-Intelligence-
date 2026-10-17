@@ -47,7 +47,7 @@ func TestPromptV4(t *testing.T) {
 	}
 	f := newFixture(t, true)
 	agenda := ItemAgenda(f.b, nil)
-	task, err := p.renderItemTask(f.input(investigate.AgentConfig{}), agenda[0], 1, 3, 10, ItemDefaultBudget)
+	task, err := p.renderItemTask(f.input(investigate.AgentConfig{}), agenda[0], 1, 3, 10, ItemDefaultBudget, nil, "")
 	must(t, err)
 	for _, want := range []string{f.behaviour, "item 1 of 3", f.notes.ID, f.rcItem, f.deploy, "exactly one entry"} {
 		if !strings.Contains(task, want) {

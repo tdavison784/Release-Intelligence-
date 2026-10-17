@@ -158,6 +158,10 @@ type Session struct {
 	rcArts    map[string][]string // rendered change -> the render artifacts of its pair
 	sessions  []string            // items given a session, in order
 	claims    []domain.SettingClaim
+
+	// Dossiers, verdicts (prompt features dossier, verdict).
+	dossiers map[string]string // item -> dossier artifact its session started from
+	verdicts []domain.AgentVerdict
 }
 
 // itemStat is what one per-item session cost and how it ended.
@@ -187,7 +191,8 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		nodes: map[string]domain.GraphNode{}, nodeKey: map[string]string{}, edges: map[string]domain.GraphEdge{},
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
-		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{}}
+		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
+		dossiers: map[string]string{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -610,6 +615,15 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		var in investigate.ClaimInput
 		if decode(&in) {
 			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.recordClaim(ctx, in) })
+		}
+	case investigate.ToolGetDossier:
+		if !s.cfg.Prompt.Features.Dossier {
+			_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
+			break
+		}
+		var in getDossierArgs
+		if decode(&in) {
+			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.getDossier(ctx, in.ChangeItem) })
 		}
 	case investigate.ToolSubmitFindings:
 		var in investigate.SubmitInput
