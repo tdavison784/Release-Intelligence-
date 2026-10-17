@@ -135,4 +135,8 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   removal of the `agent: not run` gap and by attached, AI-labelled assertions. Why: running the agent is itself an
   investigation step (Phase 4 design), so its absence is a recorded gap; the policy-relevant fields are the
   invariant, and B0-K0-20261017-d262210d satisfied them on all 36 findings.
+- **2026-10-17 10:03 — F2 = `8286e36f`** (W-0027 merged). Also closes a Phase 4 secret-redaction gap in the render model
+  (credential strings under credential-named maps, e.g. `secretAccessKey`, were readable in renders that reach the
+  agent). Expected effect on deterministic runs: Secret references in environment files become readable, so more
+  graph edges resolve; all bundle/investigation ids change. All arms run on F2.
 

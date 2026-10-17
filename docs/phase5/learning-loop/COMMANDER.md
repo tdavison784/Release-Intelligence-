@@ -15,7 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| redact | ri-redact | Opus | p5ll/redact | .claude/worktrees/p5ll-redact | w1:t1X | working (W-0027, F1 defect fix) |
+| redact | ri-redact | Opus | p5ll/redact | (removed) | (closed) | merged = F2, cleaned up |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | (removed) | (closed) | merged, cleaned up |
@@ -25,6 +25,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log
+
+- 2026-10-17 8286e36f redact (F2): `internal/redaction` shared rule (a) Secret data (b) PEM by content (c) credential-named scalars except object-reference keys (`key` only beside a `name` sibling) (d) under credential maps/lists only bool/null/number + reference keys (e) credential-named env vars; CRD documents only (b); CRD-enum read-back at read time (stored bytes unchanged); pins/schema-compat treat markers as undecidable (two latent fail-opens); dossier@v3 on validate.EffectiveView. bundle.snapshot@v2, bundle.change@v2, renderdiff@v2, override-inspection@v3, schema-compat@v2. 21 mutations caught. Smoke (payments-us offline): dossier shows mesh-root-ca explicit Never, leaves inherited-default. Green. Cleaned up. Accepted residual: {name, key:<secret>} selector shape; env/resources.go (never reaches a model) unchanged.
 
 - 2026-10-17 131d6c2e fixes5: stage memo keys cover each stage's inputs + everything it passes on (wider than reported: build-snapshot and collect too); both orders, both runners, parity; 21 stored runs rescore byte-identical, 160 case records re-derived. Prompt v7 (verdict inherits verified entry citations, `citationsFromEntry`), `-agent-prompt` on investigate/worker/eval. Green. Cleaned up. Pre-existing findings → W-0026. **F1 = 131d6c2e.**
 
