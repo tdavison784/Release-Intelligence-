@@ -1,5 +1,5 @@
 ══ investigation eval — arm B: +agent (driver claude-cli, model claude-sonnet-5-5) — run B-20261017-047cb4ea1c (commit 047cb4ea1c) ══
-n = 21 item decisions over 7 cases (small dataset: every rate below has a wide uncertainty)
+n = 24 item decisions over 8 cases (small dataset: every rate below has a wide uncertainty)
 
 ── runs ──
   cert-manager-1.17-1.18--payments-eu          human-review-required  findings 18 (affected=0 not-affected=1 potentially-affected=17 insufficient-evidence=0)  agent submitted  citations 283/283  reproduced
@@ -16,6 +16,8 @@ n = 21 item decisions over 7 cases (small dataset: every rate below has a wide u
       25 finding(s) on items no expected item selects (unscored), 0 affected
   kube-prometheus-stack-89-90--obs-north       human-review-required  findings 23 (affected=3 not-affected=17 potentially-affected=3 insufficient-evidence=0)  agent submitted  citations 320/320  reproduced
       12 finding(s) on items no expected item selects (unscored), 2 affected: ci-555bf9fefdf5 field-changed: monitoring.coreos.com/v1/ServiceMonitor/kube-prometheus-stack/kube-prometh…; ci-903ca29715e3 field-changed: monitoring.coreos.com/v1/ServiceMonitor/kube-prometheus-stack/kube-prometh…
+  kube-prometheus-stack-89-90--obs-south       human-review-required  findings 23 (affected=0 not-affected=17 potentially-affected=6 insufficient-evidence=0)  agent submitted  citations 316/316  reproduced
+      12 finding(s) on items no expected item selects (unscored), 0 affected
 
 ── item decisions (expected vs system) ──
 ✗  cert-manager-1.17-1.18--payments-eu          B1  expected affected              system potentially-affected  (observed, 2 matched) classify:plausible-impact [controller-behaviour, basis none, ci-86548e9a2300] "The default value of `Certificate.Spec.PrivateKey.RotationP…"
@@ -39,55 +41,58 @@ n = 21 item decisions over 7 cases (small dataset: every rate below has a wide u
 ✓  kube-prometheus-stack-89-90--obs-north       B1  expected affected              system affected              (observed, 5 matched) classify:validated-exposure [rendered-config, basis deterministic, ci-63ebfdbffcaf] "Helm value `coreDns.serviceMonitor.bearerTokenFile` removed"
 ✗  kube-prometheus-stack-89-90--obs-north       B2  expected not-affected          system potentially-affected  (observed, 2 matched) classify:plausible-impact [rendered-config, basis none, ci-aaeb79bed47e] "container-arg-changed: apps/v1/Deployment/kube-prometheus-s…"
 ✓  kube-prometheus-stack-89-90--obs-north       B3  expected not-affected          system not-affected          (render, 4 matched) classify:validated-clear [rendered-config, basis deterministic, ci-1b14cf0134ba] "Helm value `kubeControllerManager.serviceMonitor.insecureSk…"
+✗  kube-prometheus-stack-89-90--obs-south       B1  expected not-affected          system potentially-affected  (observed, 5 matched) classify:plausible-impact [controller-behaviour, basis none, ci-194d5b487655] "From 89.x to 90.x: The control-plane ServiceMonitors (kubel…"
+✗  kube-prometheus-stack-89-90--obs-south       B2  expected not-affected          system potentially-affected  (observed, 2 matched) classify:plausible-impact [rendered-config, basis none, ci-aaeb79bed47e] "container-arg-changed: apps/v1/Deployment/kube-prometheus-s…"
+✓  kube-prometheus-stack-89-90--obs-south       B3  expected not-affected          system not-affected          (render, 4 matched) classify:validated-clear [rendered-config, basis deterministic, ci-1b14cf0134ba] "Helm value `kubeControllerManager.serviceMonitor.insecureSk…"
 
 ── metrics (overall) ──
   falseNegativeRate              0.000 (0/3)
-  unsafeEligibilityRate          0.200 (1/5)
-  falsePositiveRate              0.059 (1/17)
+  unsafeEligibilityRate          0.125 (1/8)
+  falsePositiveRate              0.050 (1/20)
   affectedDetection              1.000 (3/3)
   affectedConfirmation           0.333 (1/3)
-  notAffectedConfirmation        0.059 (1/17)
+  notAffectedConfirmation        0.100 (2/20)
   exposureRecall                 0.857 (6/7)
-  evidenceCoverage               0.403 (25/62)
-  unresolvedRate                 0.000 (0/20)
-  observedAgreement              0.053 (1/19)
-  accuracy                       0.095 (2/21)
-  humanReviewRate                0.952 (20/21)
-  autoApprovalEligibilityRate    0.238 (5/21)
-  itemMatchMisses                0 (of 21)
-  evidenceFileCoverage           0.710 (44/62)
-  citationResolution             1.000 (1945/1945)
-  reproducibility                1.000 (7/7)
-  pipelineFailures               0 (of 7)
-  runHumanReviewRate             1.000 (7/7)
-  runAutoApproveEligibleRate     0.000 (0/7)
+  evidenceCoverage               0.352 (25/71)
+  unresolvedRate                 0.000 (0/23)
+  observedAgreement              0.048 (1/21)
+  accuracy                       0.125 (3/24)
+  humanReviewRate                0.917 (22/24)
+  autoApprovalEligibilityRate    0.333 (8/24)
+  itemMatchMisses                0 (of 24)
+  evidenceFileCoverage           0.704 (50/71)
+  citationResolution             1.000 (2261/2261)
+  reproducibility                1.000 (8/8)
+  pipelineFailures               0 (of 8)
+  runHumanReviewRate             1.000 (8/8)
+  runAutoApproveEligibleRate     0.000 (0/8)
 
 ── splits (decision metrics per subset) ──
-  basis         deterministic          n=3   accuracy 0.667 (2/3); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.500 (1/2); unresolvedRate 0.000 (0/3); exposureRecall 1.000 (4/4); evidenceCoverage 0.091 (1/11)
-  basis         none                   n=18  accuracy 0.000 (0/18); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/15); unresolvedRate 0.000 (0/17); exposureRecall 0.667 (2/3); evidenceCoverage 0.471 (24/51)
-  manifestation controller-behaviour   n=17  accuracy 0.000 (0/17); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/14); unresolvedRate 0.000 (0/16); exposureRecall 0.667 (2/3); evidenceCoverage 0.480 (24/50)
-  manifestation rendered-config        n=4   accuracy 0.500 (2/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.333 (1/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (4/4); evidenceCoverage 0.083 (1/12)
-  verification  observed               n=19  accuracy 0.053 (1/19); falseNegativeRate 0.000 (0/3); affectedDetection 1.000 (3/3); affectedConfirmation 0.333 (1/3); notAffectedConfirmation 0.000 (0/16); unresolvedRate 0.000 (0/19); exposureRecall 0.857 (6/7); evidenceCoverage 0.421 (24/57)
+  basis         deterministic          n=4   accuracy 0.750 (3/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.667 (2/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (4/4); evidenceCoverage 0.077 (1/13)
+  basis         none                   n=20  accuracy 0.000 (0/20); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/17); unresolvedRate 0.000 (0/19); exposureRecall 0.667 (2/3); evidenceCoverage 0.414 (24/58)
+  manifestation controller-behaviour   n=18  accuracy 0.000 (0/18); falseNegativeRate 0.000 (0/2); affectedDetection 1.000 (2/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/15); unresolvedRate 0.000 (0/17); exposureRecall 0.667 (2/3); evidenceCoverage 0.429 (24/56)
+  manifestation rendered-config        n=6   accuracy 0.500 (3/6); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 1.000 (1/1); notAffectedConfirmation 0.400 (2/5); unresolvedRate 0.000 (0/6); exposureRecall 1.000 (4/4); evidenceCoverage 0.067 (1/15)
+  verification  observed               n=21  accuracy 0.048 (1/21); falseNegativeRate 0.000 (0/3); affectedDetection 1.000 (3/3); affectedConfirmation 0.333 (1/3); notAffectedConfirmation 0.000 (0/18); unresolvedRate 0.000 (0/21); exposureRecall 0.857 (6/7); evidenceCoverage 0.375 (24/64)
   verification  observed-alternatives  n=1   accuracy 0.000 (0/1); evidenceCoverage 0.333 (1/3)
-  verification  render                 n=1   accuracy 1.000 (1/1); notAffectedConfirmation 1.000 (1/1); unresolvedRate 0.000 (0/1); evidenceCoverage 0.000 (0/2)
+  verification  render                 n=2   accuracy 1.000 (2/2); notAffectedConfirmation 1.000 (2/2); unresolvedRate 0.000 (0/2); evidenceCoverage 0.000 (0/4)
 
 ── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
 ✗ affectedConfirmation       FAIL              actual 0.333 (1/3)        ≥ 0.50  (minSample 2)
 ✓ affectedDetection          PASS              actual 1.000 (3/3)        ≥ 0.75  (minSample 2)
-✓ citationResolution         PASS              actual 1.000 (1945/1945)  ≥ 1.00  (minSample 1)
-✗ evidenceCoverage           FAIL              actual 0.403 (25/62)      ≥ 0.75  (minSample 4)
+✓ citationResolution         PASS              actual 1.000 (2261/2261)  ≥ 1.00  (minSample 1)
+✗ evidenceCoverage           FAIL              actual 0.352 (25/71)      ≥ 0.75  (minSample 4)
 ✓ exposureRecall             PASS              actual 0.857 (6/7)        ≥ 0.75  (minSample 2)
 ? falseNegativeRate          INSUFFICIENT-DATA actual 0.000 (0/3)        ≤ 0.00  (minSample 4)
-✓ falsePositiveRate          PASS              actual 0.059 (1/17)       ≤ 0.25  (minSample 2)
-✗ notAffectedConfirmation    FAIL              actual 0.059 (1/17)       ≥ 0.50  (minSample 2)
-✗ observedAgreement          FAIL              actual 0.053 (1/19)       ≥ 0.75  (minSample 4)
-✓ pipelineFailures           PASS              actual 0 (of 7)           ≤ 0.00  (minSample 0)
-✓ reproducibility            PASS              actual 1.000 (7/7)        ≥ 1.00  (minSample 1)
-✓ unresolvedRate             PASS              actual 0.000 (0/20)       ≤ 0.50  (minSample 4)
-✗ unsafeEligibilityRate      FAIL              actual 0.200 (1/5)        ≤ 0.00  (minSample 1)
+✓ falsePositiveRate          PASS              actual 0.050 (1/20)       ≤ 0.25  (minSample 2)
+✗ notAffectedConfirmation    FAIL              actual 0.100 (2/20)       ≥ 0.50  (minSample 2)
+✗ observedAgreement          FAIL              actual 0.048 (1/21)       ≥ 0.75  (minSample 4)
+✓ pipelineFailures           PASS              actual 0 (of 8)           ≤ 0.00  (minSample 0)
+✓ reproducibility            PASS              actual 1.000 (8/8)        ≥ 1.00  (minSample 1)
+✓ unresolvedRate             PASS              actual 0.000 (0/23)       ≤ 0.50  (minSample 4)
+✗ unsafeEligibilityRate      FAIL              actual 0.125 (1/8)        ≤ 0.00  (minSample 1)
 
-autonomy (§6.3): eligible=false — observed not-affected 16, observed affected 3
+autonomy (§6.3): eligible=false — observed not-affected 18, observed affected 3
     falseNegativeRate is INSUFFICIENT-DATA
     unsafeEligibilityRate is FAIL
-    16 observed not-affected decisions < 20
+    18 observed not-affected decisions < 20
     3 observed affected/potentially-affected decisions < 20
