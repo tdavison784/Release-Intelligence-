@@ -72,10 +72,12 @@ files, release-scope renders and facts artifact (`bundle.snapshot@v2`, `bundle.c
 - (a) Secret `data`/`stringData` values are withheld.
 - (b) A string holding a PEM private-key block is withheld under any key.
 - (c) A scalar whose own key names a credential is withheld unless it is a boolean or null
-  (`createSecret: true`). **Exception: object-reference keys.** A key that is exactly `name`, `namespace` or
-  `key`, or that ends in `Name`/`Namespace`, holds an object or data-key name, not secret material, so it
-  stays readable (`secretName`, `privateKeySecretRef.name`, `tokenSecretRef.key`, `imagePullSecrets[].name`).
-  The graph keeps resolving them.
+  (`createSecret: true`). **Exception: object-reference keys.** A key that is exactly `name` or `namespace`,
+  or that ends in `Name`/`Namespace`, holds an object name, not secret material, so it stays readable
+  (`secretName`, `privateKeySecretRef.name`, `imagePullSecrets[].name`). `key` is a reference key only in the
+  selector shape `{name, key}` (SecretKeySelector, ConfigMapKeySelector: `tokenSecretRef.key`): its mapping
+  must also have a `name`. A lone `key` (`credentials: {key: …}`) is withheld. The graph keeps resolving
+  references.
 - (d) Below a credential-named key holding a mapping or list (`privateKey:`, `credentials:`), only
   booleans, nulls, numbers and reference keys stay readable; every other string is withheld. v1 wiped such
   a mapping in collected files, so `privateKey.size` and `privateKey.rotationPolicy` were invisible. The

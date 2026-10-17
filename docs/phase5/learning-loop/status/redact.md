@@ -19,8 +19,9 @@ on the two open items (2026-10-17). Ledger W-0027 (F1 defect fix, exposed by `B0
    model.**
    - (a) Secret data/stringData.
    - (b) PEM private keys anywhere, by content.
-   - (c) Own-key credential scalars (bool/null kept), except object-reference keys: `name`, `namespace`, `key`,
-     or ending in `…Name`/`…Namespace`.
+   - (c) Own-key credential scalars (bool/null kept), except object-reference keys: `name`, `namespace`, or ending
+     in `…Name`/`…Namespace`; `key` only beside a `name` in the same mapping (the `{name, key}` selector shape;
+     commander tightening, a812d54d). A lone `key` is withheld.
    - (d) Below a credential-named map **or list**, only bool/null/number and reference keys are kept. Lists are
      walked like maps; otherwise `imagePullSecrets[].name` would vanish from renders.
    - (e) Credential-named env-var values (collector and render; the render model already had this).
@@ -81,7 +82,11 @@ read-back / pins / schema-compat / separator tests.
 Mutants: earlier run (10) + this round's 15. Rule (c): no reference exception; exception for every key; old
 render regex. Rule (d): keep all strings below maps; no reference exception below maps; render maps not
 containers; no CRD exemption; render re-redacts markers. Rule (e): render, collector. Dossier: Go casing kept;
-unverified ⇒ default; unrendered ignored; overlays ignored.
+unverified ⇒ default; unrendered ignored; overlays ignored. `key`/`name` tightening (6, all killed): key always a
+reference key; never; collector, render model or facts ignoring the sibling; facts sibling from another mapping.
+Tests: `credentials: {key: AKIA…}` and `privateKey: {key: …}` withheld, `tokenSecretRef: {name, key}` readable,
+in `TestKeep`, `TestRenderRedactsCredentialsKeepsReferences`, `TestRedactSharedRule`, `TestWithheldFact`,
+`TestRedactedFactsKeyNeedsNameSibling`.
 
 ## Files touched outside ownership (minimal)
 - `internal/render/model.go` (rule now from `internal/redaction`), `internal/investigate/renderdiff/renderer.go`
@@ -94,8 +99,8 @@ unverified ⇒ default; unrendered ignored; overlays ignored.
   paragraph with rules (a)–(e) + the CRD note + read-back.
 
 ## Notes / residual risks for the commander
-- Rule (c)/(d) keep `name`/`key` under a credential map by design. A credential stored under a key literally named
-  `key` (`credentials: {key: AKIA…}`) stays readable unless it is PEM; that follows the decided exception.
+- Rule (c)/(d) keep `name` under a credential map by design, and `key` only in the `{name, key}` selector shape.
+  A credential stored as `{name: …, key: <secret>}` would still be readable; that is the decided shape.
 - The CRD exemption trusts that a CRD document holds no secret material except PEM. A `default:` containing a
   non-PEM credential in an environment-supplied CRD would stay readable.
 - `env/resources.go` (the in-memory facts the impact engine reads, never sent to a model) keeps its own-key rule.
