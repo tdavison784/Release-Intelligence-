@@ -295,3 +295,25 @@ func TestInProcessAndTemporalRecordDigestsMatch(t *testing.T) {
 		t.Fatalf("record digests differ: %s vs %s", a.RecordDigest, b.RecordDigest)
 	}
 }
+
+// Parity with the in-process runner (run.TestAgentRequestsKeepAuditMonotonic):
+// an agent that makes requests yields a valid, time-monotonic record here too.
+func TestAgentRequestsKeepAuditMonotonic(t *testing.T) {
+	h := newHarness(t)
+	h.f.Deps.Now = runtest.TickClock()
+	h.f.Deps.Investigator = &runtest.RequestingAgent{St: h.f.St}
+	dec := runtest.Human(investigate.ReviewApprove)
+	dec.At = runtest.FixedNow.Add(time.Hour) // after every event the ticking clock stamps
+	h.signalAt(time.Hour, dec)
+	in := h.input()
+	in.Request.Config.Agent.Enabled = true
+	h.start(in)
+	res := h.result(t)
+	inv, err := h.f.St.GetInvestigation(context.Background(), res.Investigation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := runtest.CheckAuditMonotonic(inv); err != nil {
+		t.Fatal(err)
+	}
+}
