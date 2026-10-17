@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-17291ce1e760",
+    "reviewItemId": "ri-55fca8c3dfbb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that do not set spec.revisionHistoryLimit now get a default of 1, so only one CertificateRequest revision is kept.",
+        "remediation": "If you need to keep more CertificateRequest revisions, set spec.revisionHistoryLimit explicitly on those Certificates.",
+        "severity": "low"
+      },
+      "statement": "Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions"
+    },
+    "reviewer": "tdavison784",
+    "reviewerKind": "human",
+    "startedAt": "2026-10-17T12:32:49.112157Z",
+    "decidedAt": "2026-10-17T12:33:54.093098Z",
+    "resultingFact": "vf-62c94002eb36",
+    "aspects": [
+      "subject",
+      "change",
+      "applicability",
+      "consequence"
+    ]
+  }
+}
