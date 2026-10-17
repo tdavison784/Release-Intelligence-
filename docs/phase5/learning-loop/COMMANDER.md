@@ -15,6 +15,12 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
+| pins | ri-pins | Opus | p5ll/pins | .claude/worktrees/p5ll-pins | w1:t1P | working (started 07:53) |
+| coverage | ri-coverage | Opus | p5ll/coverage | .claude/worktrees/p5ll-coverage | w1:t1Q | working |
+| verdict | ri-verdict | Opus | p5ll/verdict | .claude/worktrees/p5ll-verdict | w1:t1R | working |
+| verify | ri-verify | Opus | p5ll/verify | .claude/worktrees/p5ll-verify | w1:t1S | working |
+| groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED) | .claude/worktrees/p5ll-groundtruth5 | w1:t1T | working |
+| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | working |
 
 ## Merge log
 
@@ -36,6 +42,5 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 ## Next actions
 
-1. Start wave-1 lanes (tabs, agents, models.txt), restart fleet guard with `--fleet-dir docs/phase5/learning-loop
-   --commander-cwd .claude/worktrees/p5-integration`.
+1. (done 07:53) wave-1 lanes started; fleet guard restarted on Phase 5 paths (pane w1:p1C).
 2. Merge lanes as they finish (review every diff for fail-open behaviour); tell eval5 to merge `verdict` when it lands.
