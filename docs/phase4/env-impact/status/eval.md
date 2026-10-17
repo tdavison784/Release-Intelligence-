@@ -115,6 +115,17 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## LANE DONE (2026-10-17)
+- Arm B accepted and merged by the commander (c2597d56). Lane complete.
+- Cleanup: removed `bin/` (45 MB) and the session scratch (≈105 MB: arm-B work store, diagnostic work stores,
+  scratch state dir of symlinks into the shared `.ri`, logs, helper scripts). The shared `.ri` cache was only read
+  (and its render cache written by the pipeline as for every lane) — untouched otherwise. No kind clusters; no
+  servers started by this lane are running (`bin/ri review serve` pid 19982 belongs to the `human-review` worktree,
+  left alone). Worktree clean. `p4ei/eval` left as is (commander + user decide).
+- Known limitations recorded by the commander: ingress-nginx one-note-three-items granularity; shop-nl B1 FP
+  (ACTION REQUIRED contract); obs-north unsafe-eligibility count from not-rendered per-key items under one coarse
+  expected item; obs-south replay non-determinism (agent owner).
+
 ## ARM B — GO received 2026-10-17 (commander)
 
 **ARM B is claude-only (model under test claude-sonnet-5-5). A GLM continuation must NOT run, resume or re-run any arm B case - its claude -p calls would hit a different model.**
