@@ -135,6 +135,9 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
   The case's records/transcript lived in the temporary work store and are gone; next arm B attempt uses `-work`
   inside the scratchpad so a failed case keeps its transcript. Arm B restarts as a NEW run after the fix (new
   binary; -append refuses a different commit).
+- Commander: stop was correct; lane `auditfix` is fixing it. **WAIT for the explicit "ARM B RESTART" message**
+  (auto-suggestions in the input box are not it). On restart: merge `p4-env-impact`, rebuild clean, new run id,
+  `-work <scratchpad>/bwork`, case 1 with `-save`, cases 2–8 with `-append`, commit after each case.
 
 ## Arms A₅ + C₅ after lane refcheck (2026-10-17) — current reference for arm B
 - Merged `p4-env-impact` (fc0fee09 refcheck) at 0790b001; green. `A-20261017T003437Z-0790b00157`,
