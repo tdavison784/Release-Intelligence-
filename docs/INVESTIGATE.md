@@ -204,14 +204,15 @@ does not cover its request's subjects. Undecided records never count as clearing
 | Constructor | Name | Kind | Applies | Decides |
 |---|---|---|---|---|
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
-| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs |
+| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
 | `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
 | `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
-| `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references along the impact paths after the upgrade |
+| `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
 
 Options: `WithStore(st)` (read artifact bytes — renders, environment files, the upgrade edge, knowledge facts;
 without it a validator that needs bytes is `not-run`), `WithFacts(facts…)` (verified facts the wiring loaded from
-`knowledge/`), `WithReportArtifact(id)` (cite the impact report as an input), `WithClock`. Invalid input (no
+`knowledge/`), `WithReportArtifact(id)` (cite the impact report as an input), `WithRelations(relations.WithCatalog(cat))`
+(the declared relationship rules the reference checks use; `ri investigate` passes the catalog), `WithClock`. Invalid input (no
 bundle, unknown item, a requested path or rendered change that is not the item's) is an error wrapping
 `investigate.ErrNotFound` / `ErrRejected`, never a record. Items are looked up with `EvidenceBundle.Item`, so
 environment-scope items (`EnvironmentItems`, `scope:rendered-unexplained` anchored on an environment rendered
@@ -230,13 +231,16 @@ finding of the item's change (incl. `impact:render-target-rejects`; a model-cons
 `unavailable`) → `not-run`; review-required / informational / unknown or a mix → no record. Record kind follows the
 evidence that decided it (render → render-diff, CRD/API/cluster → schema-compat, else override-inspection).
 
-**RenderDiff** — `fail` only for a *breaking* item (§1.3: declared, computed-breaking, rendered-structural)
-whose environment rendered change is correlated by a rule that ties it to the item's effect (`subject`,
-`values-default`, `artifact`, `release-anchor`, or the item is that change), on a path that is not CRD description
-text; complete pairs decide. `pass` only for a `rendered-config` item when every pair is complete and nothing is
-attributable — or only CRD description text, which is shown harmless and cited. Never a pass for
-`controller-behaviour`/`unknown` items (render silence proves nothing), never a fail for `scope:category` /
-`scope:rendered-unexplained` items (no concrete failure named); text-mention correlations decide nothing.
+**RenderDiff** — exposure is not failure (DESIGN R1 vs R3; see "Reference and schema checks" below). An
+environment rendered change correlated to the item by a rule that ties it to the item's effect (`subject`,
+`values-default`, `artifact`, `release-anchor`, or the item is that change), not CRD description text, is
+**exposure**: `error` (inconclusive — "exposure: <change> reaches <object>"), never a pass, never a fail by itself,
+whatever the item's breaking flag. `fail` only when such a change causes a **concrete failure** in the TO render that
+the FROM render did not have: a reference of or to the changed object that dangles, a custom resource invalid
+against its rendered CRD schema, an apiVersion the rendered CRD no longer serves — each named in the detail.
+`pass` only for a `rendered-config` item when every pair is complete and nothing is attributable — or only CRD
+description text, which is shown harmless and cited. Never a pass for `controller-behaviour`/`unknown` items (render
+silence proves nothing); text-mention correlations decide nothing (`not-run`).
 
 **OverrideInspection** — establishes an explicit environment setting that pins the old behaviour and records
 it as the pass's `PinnedSetting` (kind, subject, path, value, the rendered object it lands in, environment
@@ -267,11 +271,54 @@ removed CRD/version still used, removed field set, removed enum value used, newl
 present), value of the old type → `fail`; all compatible with complete inputs → `pass` for those objects. Default,
 storage and additive changes → `not-run`; no visible object → `not-run` (absence in a repository is not proof).
 
-**StaticReference** — on the item's paths: an edge whose provider the target render no longer renders
-(`resource-removed`) while its consumer survives unchanged → `fail` (dangling reference, named); every edge
-established, no placeholder, no provider removed → `pass` for those paths. Unresolved edges, placeholders, a
-truncated traversal, an incomplete render or a root-only path → `not-run`. The property is references only: it
-never clears a behaviour item and never passes a `scope:rendered-unexplained` item.
+**StaticReference** — references the upgrade breaks. In the renders: a reference of or to an object the item's
+rendered changes touch (`subject`/`values-default`/`artifact`/`release-anchor` correlations, the anchoring change,
+or the requested ones) that resolved at FROM and dangles at TO, or that is new at TO with nothing providing its
+target → `fail`, naming referrer, field path and target kind/namespace/name. On the item's paths (the graph): an
+edge whose provider the TO render no longer renders while its consumer survives unchanged → `fail`; every edge
+established, no placeholder, no provider removed, and no reference of a node on the path newly dangling or
+undecidable → `pass` for those paths. Unresolved edges, placeholders, an undecidable reference on the path, a dangle
+caused by no change of this item, a truncated traversal, an incomplete render or a root-only path → `not-run`. The
+property is references only: it never clears a behaviour item and never passes a `scope:rendered-unexplained`
+item.
+
+### Reference and schema checks (exposure vs failure)
+
+Lane `refcheck`: two environments with the same rendered change must get different classes when the
+consequences differ. Files `validate/refcheck.go`, `validate/crdschema.go`; both RenderDiff and StaticReference
+use them (they need `WithStore`; without it RenderDiff's exposure stays inconclusive and says the checks did not
+run).
+
+- **Views.** `relations.NewViewer(store, opts…).View(ctx, bundle, side)` reads one side of the upgrade — the FROM
+  or TO render of every complete environment pair plus the environment files (one commit: the same at both
+  sides) — with the graph builder's reference extraction and namespace semantics, and resolves every reference:
+  `resolved` (an object of the side, a declared producer's object, or `ServiceAccount default` /
+  `ConfigMap kube-root-ca.crt`, which Kubernetes provides in every namespace), `dangling` (nothing at the side
+  provides it), `unknown` (a name-only match, a namespace that is not known, a controller only presumed by
+  convention to create it, an `optional: true` selector or an image pull secret, a name the render withheld because
+  its key looks like a credential). A view has no nodes for objects of rendered changes, so a reference to a
+  removed object dangles there.
+- **Namespace semantics.** A name resolves in the referrer's effective namespace (declared, else kustomize's or
+  the deploying Application's); a cluster-scoped kind (built-in, declared `scope: cluster`, or a CRD with
+  `scope: Cluster`) in none; an explicit namespace where it says (`namespace/name` formats, a `*Ref`'s
+  `namespace`). A Secret of the same name in another namespace does not provide it.
+- **FROM vs TO.** A TO reference is compared with the same reference (referrer, field, target) at FROM:
+  dangling at TO and resolved at FROM → *regressed*; dangling at TO and absent at FROM → *new*; dangling at both →
+  *pre-existing* (the environment provides it outside the snapshot, or it was already missing — not the
+  upgrade's doing, never a failure); undecidable at either side → *unknown* (decides nothing). Regressed and new
+  dangles are failures.
+- **CRD schema.** A custom resource the item's changes touch — or every custom resource of a CRD they touch —
+  is checked against the CRD the same side renders (or the environment files define), `apiextensions.k8s.io/v1`
+  only: its apiVersion defined and served; its body against the version's structural schema (types incl.
+  `x-kubernetes-int-or-string`, `enum`, `required`, fields the schema does not know — rejected under strict field
+  validation, pruned otherwise; `additionalProperties`, `x-kubernetes-preserve-unknown-fields` and embedded
+  resources respected; subtrees under `anyOf`/`oneOf`/`allOf` without properties are not checked). Only
+  violations the same object did not have at FROM count. A kind whose CRD is not in the view decides nothing.
+- **Classify and `impact:not-joined`.** The join's `impact:not-joined` verdict (`release-knowledge-gap`: a declared
+  change, a diff rule without a join rule, a change without subjects) says what the join does not evaluate, not what
+  the environment lacks. It no longer blocks R2 by itself: an item whose own evidence meets R2.1–R2.8 (for a behaviour
+  item, pinned settings or observed passes over every path, root and rendered change) is cleared; on any finding
+  that is not cleared the gap and its next step stay listed. Every other unknown join verdict still blocks R2.
 
 Tests: `go test ./internal/investigate/validate` (synthetic bundles of a fictional product; every output is
 checked with `Investigation.ValidateAgainst`). Real bundles from the groundtruth inputs (bundle + renderdiff +
@@ -470,7 +517,9 @@ consumer):
 | `renders-to` / `deploys` / `configures` | Application, kustomization, render source → objects; values file → Application | Argo `source.path`, `$values/…` value files, kustomize `resources`, generators, render targets |
 
 Kustomize `namespace:` (outermost wins) and an Application's `destination.namespace` are applied so references
-resolve; kustomize patch files are not objects; `configMapGenerator`/`secretGenerator` outputs are nodes.
+resolve; kustomize patch files are not objects; `configMapGenerator`/`secretGenerator` outputs are nodes. The same
+extraction and resolution, per side and without the graph, is `relations.NewViewer(…).View` (see "Reference and
+schema checks" under Validators).
 
 **Status = how well a relationship is known.** `established` is an explicit name reference or resolved selector in
 the snapshot. A reference to something the snapshot does not contain becomes a **placeholder node** and a `missing`
@@ -516,8 +565,9 @@ relationships:
   kind: produces            # produces | references | selects
   from: {group: cert-manager.io, kind: Certificate}
   to: {kind: Secret}
-  path: spec.secretName     # dotted keys; a key with dots/slashes in brackets: metadata.annotations[a.b/c]
-  format: name              # or namespace/name (default name = namespace of `from`)
+  path: spec.secretName     # dotted keys; a key with dots/slashes in brackets: metadata.annotations[a.b/c];
+                            # `[]` after a key = every list element: spec.endpoints[].tlsConfig.keySecret.name
+  format: name              # or namespace/name, or '[namespace/]name' (either; default name = namespace of `from`)
   scope: namespaced         # or cluster (scope of `to`)
   whenPath: spec.issuerRef.kind   # optional condition on `from`; with whenEquals
   summary: ...
@@ -537,8 +587,14 @@ relations.WithCatalog(cat))` applies the relationships of every product in the c
 environment does not use match no object); `WithRelationships(product, rs...)` and `WithProducesRules` add rules
 directly. Edges carry the rule id `relationship:<product>/<id>`. Shipped: cert-manager (Certificate secret,
 Issuer/ClusterIssuer CA secrets, `issuerRef` to a ClusterIssuer), ingress-nginx (`auth-secret`,
-`auth-tls-secret`, `proxy-ssl-secret` annotations), prometheus-operator (ServiceMonitor, PodMonitor). A ClusterIssuer
-reading its CA Secret stays `inferred`: the issuer does not state the cluster resource namespace.
+`auth-tls-secret`, `proxy-ssl-secret` annotations — `auth-secret` as `[namespace/]name`, the other two as
+`namespace/name`, as the controller parses them), prometheus-operator (ServiceMonitor, PodMonitor selectors; the
+Secrets/ConfigMaps of every endpoint — `authorization.credentials`, `bearerTokenSecret`, `basicAuth`
+username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reading its CA
+Secret stays `inferred`: the issuer does not state the cluster resource namespace. A rendered Ingress's
+`…-secret` annotation values are withheld by the render (credential-looking key), so those references are
+`unknown` in a view (the graph keeps a placeholder); in environment files they resolve. A Certificate whose
+`issuerRef` omits `kind` (default Issuer) is not followed (no false dangle; not checked).
 
 Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
 Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
