@@ -115,6 +115,15 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## Arms A₅ + C₅ after lane refcheck (2026-10-17) — current reference for arm B
+- Merged `p4-env-impact` (fc0fee09 refcheck) at 0790b001; green. `A-20261017T003437Z-0790b00157`,
+  `C-20261017T003511Z-0790b00157`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
+- obs-south B1 FP gone (FP 1/20); obs-north B1 affected on a concrete dangling Secret reference (A: deterministic,
+  C: observed); C: shop-nl B2 not-affected with observed basis (first observed clearing; NA conf. 3/20, observed
+  agreement 2/21). unsafeEligibility contributors unchanged: only the three not-rendered per-key items
+  (kubeDns/kubeProxy/kubeEtcd) under obs-north B1. EVAL-REPORT §2e.
+- **Waiting for ARM B GO.**
+
 ## Arm A⁗ + C′ after lane defaults (2026-10-16)
 - Merged `p4-env-impact` (fd103f0e defaults, 1888a107 runtime attribution) at aa067206; green.
 - `A-20261016T234421Z-aa06720656` and `C-20261016T234455Z-aa06720656`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
