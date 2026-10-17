@@ -121,3 +121,7 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   gates are pre-registered — reusing the frozen Phase 4 gates unchanged is the only choice made without
   knowledge of the held-out outcomes. The held-out set is 10 cases (5 cert-manager, 3 ingress-nginx, 2
   kube-prometheus-stack; decisive items 5 affected / 5 not affected) on sealed branch `p5ll/groundtruth5` @ 2c092bdf.
+- **2026-10-17 08:55 — code freeze F1 = `131d6c2e`** (all wave-1 lanes + fixes5 merged; build/vet/test green). From here
+  until the report, code changes are allowed only to fix a defect a run exposes; each is appended here with the
+  run that exposed it, and every arm affected is re-run on the new binary. Prompt v7 is the frozen agent prompt;
+  the agent model for B0 is `claude-sonnet-5-5` (as Phase 4 arm B, for comparability).

@@ -18,12 +18,14 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | (removed) | (closed) | merged, cleaned up |
-| fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | .claude/worktrees/p5ll-fixes5 | w1:t1W | working (W-0024, W-0025) |
+| fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | (removed) | (closed) | merged 131d6c2e, cleaned up |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED @ 2c092bdf) | .claude/worktrees/p5ll-groundtruth5 (kept, sealed) | (closed) | LANE DONE 08:48 — 10 cases, 5A/5NA decisive; not merged until W-0016 |
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log
+
+- 2026-10-17 131d6c2e fixes5: stage memo keys cover each stage's inputs + everything it passes on (wider than reported: build-snapshot and collect too); both orders, both runners, parity; 21 stored runs rescore byte-identical, 160 case records re-derived. Prompt v7 (verdict inherits verified entry citations, `citationsFromEntry`), `-agent-prompt` on investigate/worker/eval. Green. Cleaned up. Pre-existing findings → W-0026. **F1 = 131d6c2e.**
 
 - 2026-10-17 verdict merged (merge base 578c1a9b): item dossier (deterministic, ≤48 KiB, stored, `ri investigate dossier`), AgentVerdicts on every v6 closing entry (classify/validate never reference them — checked), MitigationSpec on record_hypothesis (shape-checked at record time), `ri investigate export-hypotheses` (proposals + review items, never facts), prompt v6 default; replaced verify's and eval5's local views with real types (eval5 stub would have dropped B0 verdicts). Live smoke (shop-de, sonnet, 137k tokens, 10 sessions): agent potentially-affected on the decisive #11819 item with the right mechanism, not-affected on 9 minor items; 0 mitigations; replay byte-identical. Not tuned. Green. Cleaned up. Follow-ups → lane fixes5 (W-0024, W-0025).
 

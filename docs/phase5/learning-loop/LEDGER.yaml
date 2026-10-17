@@ -96,7 +96,8 @@ items:
   - id: W-0010
     title: Code freeze F1 + PROTOCOL §6 step 1 (record SHA)
     kind: commander-task
-    status: queued
+    status: done
+    result: F1 = 131d6c2e
     depends: [W-0007, W-0024, W-0025]
     providers: [claude]
     glm-executable: false
@@ -104,7 +105,7 @@ items:
   - id: W-0011
     title: Arm A0 + C1-ready deterministic runs on the 8 Phase 4 cases with K0 (PROTOCOL §6 step 2)
     kind: commander-task
-    status: queued
+    status: ready
     depends: [W-0010]
     providers: [claude, glm]  # deterministic, no model under test
     glm-executable: true
@@ -113,7 +114,7 @@ items:
   - id: W-0012
     title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
     kind: commander-task
-    status: queued
+    status: ready
     depends: [W-0010]
     providers: [claude]       # MODEL UNDER TEST: never under GLM
     glm-executable: false
@@ -213,7 +214,7 @@ items:
   - id: W-0024
     title: Fix — investigation id ignores run settings (same bundle + state dir, different -agent/-runtime ⇒ second run silently resumes the first)
     kind: lane
-    status: in-progress
+    status: done
     owner: ri-fixes5
     brief: briefs/fixes5.md
     providers: [claude, glm]
@@ -224,11 +225,20 @@ items:
   - id: W-0025
     title: Verdict inherits the closing entry's verified citations (17% of live calls were one avoidable rejection); tool/prompt v7
     kind: lane
-    status: in-progress
+    status: done
     owner: ri-fixes5
     brief: briefs/fixes5.md
     providers: [claude, glm]
     glm-executable: true
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:40, because: verdict live run 1}
+  - id: W-0026
+    title: Post-experiment reproducibility debts (pre-existing) — AgentRun.WallMillis in the record digest (identical replays differ); config digest includes prompt version with the agent off; two A″ runs at 5d4da376 don't reproduce their stored digest; verdict-live-1 no longer replays at @v2 validators
+    kind: lane
+    status: queued
+    ready-when: Phase 5 report done (changing digests mid-experiment would break run comparability)
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:55, because: fixes5 findings}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
