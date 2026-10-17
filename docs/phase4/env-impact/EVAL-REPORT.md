@@ -405,6 +405,82 @@ granularity the matcher does not model.
 unsafeEligibilityRate are INSUFFICIENT-DATA (= FAIL here); 18 observed not-affected decisions (< 20) and 3
 observed affected decisions (< 20).
 
+## Human-verified facts (2026-10-16)
+
+The product owner human-reviewed the five pin-source items (commit e62355fc, reviewer `tdavison784`): three
+cert-manager 1.18.0 facts (rotationPolicy `Never`→`Always`; two `revisionHistoryLimit` `nil`→`1`) were recorded as
+human-verified, two ingress-nginx 1.12.0 accepts produced no fact. Lane `rescore` scored arms A and C again on
+`p4-env-impact` d1ed12aa with the knowledge store as input (default flags: `-knowledge knowledge`, minimum
+verification `human`; no pipeline, prompt, policy, matcher, FORMAT or expectation change).
+
+Runs (clean tree, binary d1ed12aa8d, all earlier runs kept): `A-20261017T020337Z-d1ed12aa8d`,
+`C-20261017T020532Z-d1ed12aa8d`, and a **control** `A-control-prereview-20261017T020459Z-d1ed12aa8d` = the same code and
+arm A with the knowledge store as it was before the review (`git archive e62355fc^ knowledge`, passed as `-knowledge`).
+The control separates the effect of the review from the 27 commits between A₅/C₅ (0790b001) and this tree.
+
+| Gate | A₅ | **A (new)** | A control (pre-review store) | C₅ | **C (new)** |
+|---|---|---|---|---|---|
+| falseNegativeRate | 0/3 INSUFF. | 0/3 **INSUFFICIENT-DATA** | same | 0/3 INSUFF. | 0/3 **INSUFFICIENT-DATA** |
+| unsafeEligibilityRate | 1/8 FAIL | 1/8 **FAIL** | 1/8 FAIL | 1/9 FAIL | 1/9 **FAIL** (shown 0.111) |
+| falsePositiveRate | 1/20 PASS | 1/20 **PASS** | 1/20 PASS | 1/20 PASS | 1/20 **PASS** |
+| affectedDetection | 3/3 PASS | 3/3 **PASS** | 3/3 PASS | 3/3 PASS | 3/3 **PASS** |
+| affectedConfirmation | 1/3 FAIL | 1/3 **FAIL** | 1/3 FAIL | 1/3 FAIL | 1/3 **FAIL** |
+| notAffectedConfirmation | 2/20 FAIL | 2/20 **FAIL** | 2/20 FAIL | 3/20 FAIL | 3/20 **FAIL** |
+| exposureRecall | 6/7 PASS | 6/7 **PASS** | 6/7 PASS | 6/7 PASS | 6/7 **PASS** |
+| evidenceCoverage | 23/71 FAIL | 23/71 **FAIL** | 23/71 FAIL | 23/71 FAIL | 23/71 **FAIL** |
+| citationResolution | 1999/1999 PASS | 1999/1999 **PASS** | PASS | 3680/3680 PASS | 3680/3680 **PASS** |
+| unresolvedRate | 0/23 PASS | 0/23 **PASS** | 0/23 PASS | 0/23 PASS | 0/23 **PASS** |
+| observedAgreement | 1/21 FAIL | 1/21 **FAIL** | 1/21 FAIL | 2/21 FAIL | 2/21 **FAIL** |
+| reproducibility | 8/8 PASS | 8/8 **PASS** | 8/8 PASS | 8/8 PASS | 8/8 **PASS** |
+| pipelineFailures | 0 PASS | 0 **PASS** | 0 PASS | 0 PASS | 0 **PASS** |
+
+Both new arms: **7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA**, every gate identical to A₅ / C₅.
+
+**Decisions that moved: none.** For all 24 expected items the system class, deciding rule, deciding finding, basis,
+eligibility and correctness are identical to A₅ (arm A) and C₅ (arm C), and identical to the control. The only
+differences in the stored decisions are wording: citation order inside `reasoning` for three arm-A items (shop-nl B1,
+obs-north B3, obs-south B3, same validations, same rules) and `gaps` / `nextSteps` / `reasoning` text for 14 arm-C items
+(runtime validation ids and next-step wording from code merged since 0790b001). The three cert-manager items the
+facts concern stay `potentially-affected` by `classify:plausible-impact` (R3), with no `pin:knowledge-default-changed`
+validation: payments-eu B1 (expected affected, basis none), payments-eu B2, payments-us B1, payments-us B2 (expected
+not-affected).
+
+**Why the human review did not reach the classifier.** Evidence from the store and the code, not from expectations:
+- A fact's level is its **weakest aspect** (`VerifiedFact.Level`, `internal/domain/semantic.go:2352`). The three facts
+  are `subject: deterministic`, `change: consensus` (cross-model for rotationPolicy and one revisionHistoryLimit
+  fact, same-model for the other), `applicability: consensus`, `consequence: human`. Their level is therefore
+  `consensus`; commit e62355fc changed only the consequence aspect.
+- The knowledge query keeps facts `AtLeast(human)` (`internal/knowledge/filestore.go:414`) and the pin rules take only
+  facts whose `Level().Trusted()` (`internal/investigate/validate/override.go:344`; `join.go:222`). Consensus never
+  clears a change (docs/KNOWLEDGE.md). So these facts are not loaded as input at the `human` minimum, as before.
+- The review UI hid the matching items because it judges an item by the aspects that item asked
+  (`trustedAspects`, `internal/reviewui/triage.go`: consequence → human ⇒ "already verified at human or deterministic
+  level"), not by the composed fact's level. The fact itself still has `change` and `applicability` at consensus and no
+  open review item that would raise them (consensus-accepted aspects are not queued), so the UI reports nothing left
+  to do while the fact stays below the gate.
+- Consequently the end-to-end effect of the review is exactly zero today; the pin path (`pin:knowledge-default-changed`
+  / `pin:knowledge-exposure`) was never exercised on real data. To make these facts input, the `change` and `applicability` aspects of each must reach human (or
+  deterministic) level; I found no UI or command path that queues just those two aspects for a fact that is already
+  composed (`review-fact` retracts or corrects a fact; it is not an aspect upgrade). Whether pins would then change a
+  decision is not known from these runs: a pin only clears an item when it finds an explicit old-behaviour setting
+  in the environment, and the stored gaps of the four items name none. **Open question for the commander;
+  nothing in the store was changed here.**
+
+**The two ingress-nginx accepts composed no fact.** Both belong to candidate `sc-298dac696f1a` ("⚠️ Metrics: Disable by
+default", `--enable-metrics`): `rd-ff94bf6fdbf8` accepted the semantic mapping (subject `cli-flag
+--enable-metrics`, change `default-changed "true"→"false"`, review item `ri-29af5ead5e5f`) and `rd-4c1f0155a7eb`
+accepted the applicability (exposure `--enable-metrics` unset, review item `ri-57cfa14b0bff`). A fact needs all four
+aspects; the **consequence** question `ri-246f31433fd5` ("what happens if an exposed environment does nothing…",
+proposed `behavior-change`, `review-required`, severity medium) is still `pending` with route `review`, signal
+`models-disagree`. Nothing else for the candidate is open (`knowledge/ingress-nginx/1.12.0/facts/` does not exist; the
+release has 99 review items, 0 facts). The review UI default view ("Needs your verification") currently lists **0**
+items: `ri-246f31433fd5` is not there, because a consequence-only proposal gives the pin rules no setting to look for
+(`validate.CanBePinSource` false), so it is classed as "Other blocking items" (`?scope=blocking`: 206 items, of which
+the UI lists the first 200 with the default `-limit 200`). Answering it there composes the fact; because the
+change and applicability aspects are then human, the fact would be human at every aspect (this is the case where
+the aspect-level gap above does not arise). Whether a pin then clears shop-nl B2 / shop-de / shop-fr / shop-pl
+`--enable-metrics` items is a separate question the runs here cannot answer.
+
 ## 3. Metrics, split per basis, manifestation and expected verification (arm A)
 
 Overall: accuracy 1/24 (the one correct decision is shop-pl B1, expected `insufficient-evidence`), human

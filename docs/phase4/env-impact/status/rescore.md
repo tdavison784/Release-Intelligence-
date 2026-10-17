@@ -27,5 +27,19 @@ Branch `p4ei/rescore` (from p4-env-impact d1ed12aa). Brief: `briefs/rescore.md`.
   `ri-246f31433fd5` (candidate sc-298dac696f1a) is still `pending` ⇒ no fact composed. It is NOT in the default
   view (0 pin-source items), it is in `?scope=blocking` ("Other blocking items") because its proposed assertion has
   only a consequence so `CanBePinSource` is false.
-## Next
-- Arm C running (`$scratch/c.log`), then save/commit, write EVAL-REPORT section, build/vet/test, cleanup, LANE DONE.
+## Done (lane complete)
+- Arm C `C-20261017T020532Z-d1ed12aa8d`: gates identical to C₅ (7 PASS / 5 FAIL / 1 INSUFF.); 0 class/rule/basis changes;
+  14 items differ in gaps/nextSteps/reasoning wording only. 7/8 cases ran real upgrades, clusters deleted.
+- EVAL-REPORT section "Human-verified facts (2026-10-16)" written (gate table, cause, ingress-nginx explanation).
+- `go build ./... && go vet ./... && go test ./...` green.
+- Cleanup: `bin/` removed, no kind clusters, my review server (port 8499) stopped (pid 19982 on 8484 belongs to
+  another worktree, left alone). Scratch work stores are in the session scratchpad outside the repo.
+
+## Open questions for the commander
+- The 3 cert-manager facts are `consensus` overall (change/applicability aspects still consensus); the review UI
+  hides their items as verified. Raise those aspects to human, or decide the UI should judge the fact level.
+- ingress-nginx `ri-246f31433fd5` (consequence) is the only open question for the --enable-metrics fact; it sits in
+  "Other blocking items", not the default view.
+
+## Files touched outside ownership
+- none.
