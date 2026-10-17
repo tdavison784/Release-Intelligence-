@@ -32,6 +32,9 @@
 - Mutation (b) is the knowledge state after a refused promotion (no fact, item pending); the refusal is lane verify's gate.
 - The first A0 run (binary 19baddab) was deleted before commit and redone on bfebde39: the code gained report fields after it,
   and it was never committed or cited.
+  It showed the same as the kept run: identical 24 item decisions and gate states, same digest `sha256:672a7ce0…74ff5`;
+  the only difference was the missing review/token/hypothesis fields in its score. Deleted by me (`rm -rf` of its own
+  uncommitted results dir) on 2026-10-17; nothing was edited to move a number.
 
 ## Files touched outside ownership
 - `docs/INVESTIGATE.md` (appended subsection, edited 3 example lines) and `README.md` (one command line): docs only.
