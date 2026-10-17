@@ -8,7 +8,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -73,7 +73,7 @@ func readBackNote(r redaction.Recovered) string {
 // reads back and that occurs in the window text. The text itself stays
 // verbatim, so quotes from it still verify.
 func (s *Session) readBack(ctx context.Context, a domain.ArtifactRef, all, window string) []investigate.ReadBack {
-	if !strings.Contains(window, redaction.MarkerPrefix) {
+	if !strings.Contains(window, redaction.MarkerPrefix) && !strings.Contains(window, redaction.RenderMarkerPrefix) {
 		return nil
 	}
 	objs, err := render.ParseObjects([]byte(all))

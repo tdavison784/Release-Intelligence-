@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 // Withheld values (redaction markers) in the effective view, on the

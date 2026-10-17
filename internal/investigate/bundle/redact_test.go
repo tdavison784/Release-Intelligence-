@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -81,14 +81,6 @@ func TestRedactedValueIsStableAndOpaque(t *testing.T) {
 	a, b := redactedValue("hunter2"), redactedValue("hunter2")
 	if a != b || strings.Contains(a, "hunter2") || redactedValue("other") == a {
 		t.Fatalf("bad redaction token %q", a)
-	}
-}
-
-func TestCredentialLastSegment(t *testing.T) {
-	for p, want := range map[string]string{"db.password": "password", "a.b[0].token": "token", "x": "x"} {
-		if got := lastSegment(p); got != want {
-			t.Errorf("lastSegment(%q) = %q, want %q", p, got, want)
-		}
 	}
 }
 
@@ -211,12 +203,13 @@ func TestRedactPrivateKeyAnywhere(t *testing.T) {
 	}
 }
 
-// TestRedactSecretAndOwnKeyUnchanged pins the v1 values for what v2 does not
-// change: Secret data, scalar credentials, credential-named lists.
+// TestRedactSecretAndOwnKeyUnchanged pins the v1 values for what v3 does not
+// change (Secret data, scalar credentials) and the reference-key exception:
+// a credential-named list is walked, its items' names are object names.
 func TestRedactSecretAndOwnKeyUnchanged(t *testing.T) {
 	in := []byte("apiVersion: v1\nkind: Secret\nmetadata:\n  name: db\ndata:\n  password: aHVudGVyMg==\n  port: 5432\nstringData:\n  flag: true\n---\ndb:\n  password: hunter2\n  apiToken: 123456\n  createSecret: true\nimagePullSecrets:\n  - name: regcred\n")
 	want := "apiVersion: v1\nkind: Secret\nmetadata:\n  name: db\ndata:\n  password: \"" + redactedValue("aHVudGVyMg==") + "\"\n  port: \"" + redactedValue("5432") + "\"\nstringData:\n  flag: \"" + redactedValue("true") + "\"\n" +
-		"---\ndb:\n  password: \"" + redactedValue("hunter2") + "\"\n  apiToken: \"" + redactedValue("123456") + "\"\n  createSecret: true\nimagePullSecrets:\n  - name: \"" + redactedValue("regcred") + "\"\n"
+		"---\ndb:\n  password: \"" + redactedValue("hunter2") + "\"\n  apiToken: \"" + redactedValue("123456") + "\"\n  createSecret: true\nimagePullSecrets:\n  - name: regcred\n"
 	out, _ := redactYAML(in)
 	if string(out) != want {
 		t.Fatalf("got:\n%s\nwant:\n%s", out, want)
@@ -226,24 +219,34 @@ func TestRedactSecretAndOwnKeyUnchanged(t *testing.T) {
 func TestWithheldFact(t *testing.T) {
 	for _, c := range []struct {
 		path, value string
+		crd         bool
 		want        bool
 	}{
-		{"replicas", "2", false},
-		{"db.host", `"db.internal"`, false},
-		{"db.password", `"hunter2"`, true},
-		{"db.password", "true", true}, // own key: withheld whatever the value, as before
-		{"spec.credentials.rotation", `"Never"`, true},
-		{"spec.credentials.size", "256", false},
-		{"spec.credentials.enabled", "false", false},
-		{"spec.credentials.note", "null", false},
-		{"spec.privateKey.algorithm", `"ECDSA"`, true},
-		{"tokens[0].weight", "3", true}, // a credential-named list is withheld whole
-		{"spec.tokens[].weight", "3", true},
-		{"ca", `"-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"`, true},
-		{"spec.x", "not json", true},
+		{"replicas", "2", false, false},
+		{"db.host", `"db.internal"`, false, false},
+		{"db.password", `"hunter2"`, false, true},
+		{"db.password", "true", false, false}, // a flag, as in the files
+		{"spec.secretAccessKey", `"AKIAEXAMPLE"`, false, true},
+		{"spec.secretName", `"tls"`, false, false}, // an object reference
+		{"spec.privateKeySecretRef.name", `"ca-key"`, false, false},
+		{"spec.tokenSecretRef.key", `"token"`, false, false},
+		{"spec.credentials.rotation", `"Never"`, false, true},
+		{"spec.credentials.size", "256", false, false},
+		{"spec.credentials.enabled", "false", false, false},
+		{"spec.credentials.note", "null", false, false},
+		{"spec.privateKey.algorithm", `"ECDSA"`, false, true},
+		{"imagePullSecrets[0].name", `"regcred"`, false, false}, // a credential-named list is walked like a map
+		{"tokens[0]", `"abc"`, false, true},
+		{"tokens[0].weight", "3", false, false},
+		{"tokens[0].owner", `"ops"`, false, true},
+		{"ca", `"-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"`, false, true},
+		{"spec.x", "not json", false, true},
+		// a CRD is a schema: only private keys
+		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.properties.rotationPolicy.enum[]", `"Never"`, true, false},
+		{"spec.versions[].schema.openAPIV3Schema.properties.privateKey.default", `"-----BEGIN PRIVATE KEY-----\nx"`, true, true},
 	} {
-		if got := withheldFact(c.path, c.value); got != c.want {
-			t.Errorf("withheldFact(%q, %s) = %v, want %v", c.path, c.value, got, c.want)
+		if got := withheldFact(c.path, c.value, c.crd); got != c.want {
+			t.Errorf("withheldFact(%q, %s, crd=%v) = %v, want %v", c.path, c.value, c.crd, got, c.want)
 		}
 	}
 }
@@ -257,5 +260,51 @@ func TestRedactKeepsDocumentSeparators(t *testing.T) {
 	objs, err := render.ParseObjects(out)
 	if err != nil || len(objs) != 3 {
 		t.Fatalf("the redacted stream must keep its 3 objects, got %d (%v):\n%s", len(objs), err, out)
+	}
+}
+
+// The collector applies the same rule as the render model: credentials by
+// the union of names, references readable, CRDs are schemas, credential env
+// values withheld.
+func TestRedactSharedRule(t *testing.T) {
+	in := []byte(`apiVersion: example.test/v1
+kind: Gadget
+metadata: {name: g}
+spec:
+  secretAccessKey: AKIAEXAMPLESECRET
+  passphrase: open-sesame
+  secretName: gadget-tls
+  privateKeySecretRef: {name: gadget-key}
+  tokenSecretRef: {name: gadget-token, key: token}
+  env:
+    - {name: DB_PASSWORD, value: hunter2}
+    - {name: LOG_LEVEL, value: debug}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: gadgets.example.test}
+spec:
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          privateKey:
+            description: key settings
+            properties:
+              rotationPolicy: {type: string, enum: [Never, Always]}
+`)
+	out, _ := redactYAML(in)
+	s := string(out)
+	for _, leak := range []string{"AKIAEXAMPLESECRET", "open-sesame", "hunter2"} {
+		if strings.Contains(s, leak) {
+			t.Errorf("%q leaked:\n%s", leak, s)
+		}
+	}
+	for _, keep := range []string{"secretName: gadget-tls", "name: gadget-key", "name: gadget-token", "key: token", "value: debug",
+		"description: key settings", "enum: [Never, Always]"} {
+		if !strings.Contains(s, keep) {
+			t.Errorf("%q should stay readable:\n%s", keep, s)
+		}
 	}
 }

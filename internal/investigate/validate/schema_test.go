@@ -5,7 +5,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 func kubeConstraint(kind, constraint string, ev domain.EvidenceID) *domain.CompatibilityConstraint {

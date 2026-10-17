@@ -16,7 +16,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 // SnapshotProducer identifies the snapshot builder in provenance. v2: files
@@ -381,10 +381,10 @@ func dedupeRefs(in []domain.ArtifactRef) []domain.ArtifactRef {
 }
 
 // redactedFacts marshals the parsed environment with credential values
-// withheld as in the files (package redaction): a ValuesKey or field fact
-// whose key names a credential, that sits below a credential-named key or
-// that holds a private key loses its Value, and an evidence excerpt that
-// assigns such a key is replaced.
+// withheld by the rule of the files (package redaction): a ValuesKey or
+// field fact loses its Value (and a text block its lines) when the rule
+// withholds the value at its path, and an evidence excerpt that assigns a
+// credential-named key is replaced.
 func redactedFacts(e *env.Environment) ([]byte, error) {
 	raw, err := json.Marshal(e)
 	if err != nil {
@@ -394,16 +394,31 @@ func redactedFacts(e *env.Environment) ([]byte, error) {
 	if err := json.Unmarshal(raw, &tree); err != nil {
 		return nil, err
 	}
-	walkFacts(tree)
+	walkFacts(tree, false)
 	return json.MarshalIndent(tree, "", "  ")
 }
 
-func walkFacts(n any) {
+// walkFacts applies the rule to every fact below n; crd: n belongs to a
+// CustomResourceDefinition resource (only private keys are withheld).
+func walkFacts(n any, crd bool) {
 	switch v := n.(type) {
 	case map[string]any:
+		if k, _ := v["Kind"].(string); k != "" {
+			g, _ := v["Group"].(string)
+			crd = crd || redaction.CRDDocument(g+"/", k)
+		}
 		if p, ok := v["Path"].(string); ok {
-			if val, ok := v["Value"].(string); ok && val != "" && withheldFact(p, val) {
+			if val, ok := v["Value"].(string); ok && val != "" && withheldFact(p, val, crd) {
 				v["Value"] = redactedValue(val)
+			}
+			if lines, ok := v["Lines"].([]any); ok && !crd && withheldPath(p) {
+				for _, l := range lines {
+					if lm, ok := l.(map[string]any); ok {
+						if t, _ := lm["Text"].(string); t != "" {
+							lm["Text"], lm["Withheld"] = "", true
+						}
+					}
+				}
 			}
 		}
 		for _, k := range []string{"excerpt", "Excerpt"} { // domain.Evidence is tagged, env facts are not
@@ -412,46 +427,84 @@ func walkFacts(n any) {
 			}
 		}
 		for _, c := range v {
-			walkFacts(c)
+			walkFacts(c, crd)
 		}
 	case []any:
+		if !crd {
+			withholdCredentialEnv(v)
+		}
 		for _, c := range v {
-			walkFacts(c)
+			walkFacts(c, crd)
 		}
 	}
 }
 
-// withheldFact applies the file policy to a fact's path and JSON-encoded
-// value: its own key names a credential (any value, as before), it holds a
-// private key, or a key above it names a credential — then only a number,
-// boolean or null below a mapping stays readable.
-func withheldFact(path, encoded string) bool {
-	if sensitiveKey.MatchString(lastSegment(path)) {
-		return true
+// withholdCredentialEnv applies rule (e) to a list of facts: the value of an
+// environment variable (…[i].value) whose sibling …[i].name names a
+// credential.
+func withholdCredentialEnv(facts []any) {
+	names := map[string]bool{}
+	loc := func(m map[string]any) string {
+		if el, _ := m["Element"].(string); el != "" {
+			return el
+		}
+		p, _ := m["Path"].(string)
+		return p
 	}
+	for _, f := range facts {
+		m, ok := f.(map[string]any)
+		if !ok {
+			return
+		}
+		if prefix, ok := strings.CutSuffix(loc(m), ".name"); ok {
+			var name string
+			if val, _ := m["Value"].(string); json.Unmarshal([]byte(val), &name) == nil && redaction.CredentialEnvVar(name) {
+				names[prefix] = true
+			}
+		}
+	}
+	for _, f := range facts {
+		m := f.(map[string]any)
+		if prefix, ok := strings.CutSuffix(loc(m), ".value"); ok && names[prefix] {
+			if val, _ := m["Value"].(string); val != "" {
+				m["Value"] = redactedValue(val)
+			}
+		}
+	}
+}
+
+// pathKeys splits a fact path into its own key and whether a key above it
+// names a credential and holds a mapping or list (rule d).
+func pathKeys(path string) (own string, under bool) {
+	segs := strings.Split(path, ".")
+	for i, seg := range segs {
+		name, _, _ := strings.Cut(seg, "[")
+		if i < len(segs)-1 && redaction.CredentialContainer(name) {
+			under = true
+		}
+		own = name // a list item's key is the list's
+	}
+	return own, under
+}
+
+// withheldFact applies the rule to a fact's path and JSON-encoded value.
+func withheldFact(path, encoded string, crd bool) bool {
 	var v any
 	if err := json.Unmarshal([]byte(encoded), &v); err != nil {
 		return true // not a JSON leaf: nothing proves it harmless
 	}
-	str, isString := v.(string)
-	if isString && redaction.HoldsPrivateKey(str) {
-		return true
+	str, _ := v.(string)
+	if crd {
+		return redaction.HoldsPrivateKey(str)
 	}
-	segs := strings.Split(path, ".")
-	for _, seg := range segs[:len(segs)-1] {
-		name, _, seq := strings.Cut(seg, "[")
-		if sensitiveKey.MatchString(name) && (seq || isString) {
-			return true // a credential-named sequence is withheld whole
-		}
-	}
-	return false
+	own, under := pathKeys(path)
+	return !redaction.Keep(own, redaction.KindOf(v), str, under)
 }
 
-func lastSegment(path string) string {
-	if i := strings.LastIndexAny(path, ".]"); i >= 0 && i < len(path)-1 {
-		return path[i+1:]
-	}
-	return path
+// withheldPath reports whether the rule withholds a string at path.
+func withheldPath(path string) bool {
+	own, under := pathKeys(path)
+	return !redaction.Keep(own, redaction.String, "", under)
 }
 
 // redactEvidence returns the evidence pool, sorted by id, with credential-like

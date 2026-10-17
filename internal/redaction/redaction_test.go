@@ -30,6 +30,19 @@ func TestKeep(t *testing.T) {
 		{"password", String, "hunter2", true, false},
 		{"password", Number, "1234", true, false},
 		{"", String, "item", true, false}, // a sequence item below a credential map
+		// object-reference keys (rule c/d exception)
+		{"secretName", String, "tls", false, true},
+		{"name", String, "ca-key", true, true},
+		{"key", String, "tls.key", true, true},
+		{"namespace", String, "apps", true, true},
+		{"issuerNamespace", String, "apps", true, true},
+		{"secretNames", String, "a", false, false}, // not a reference key
+		// the union of credential names
+		{"secretAccessKey", String, "AKIA", false, false},
+		{"accessKey", String, "AKID", false, false},
+		{"clientSecret", String, "x", false, false},
+		{"passphrase", String, "x", false, false},
+		{"bearer", String, "x", false, false},
 	} {
 		if got := Keep(c.key, c.kind, c.value, c.under); got != c.want {
 			t.Errorf("Keep(%q, %v, %q, under=%v) = %v, want %v", c.key, c.kind, c.value, c.under, got, c.want)
@@ -174,5 +187,18 @@ func TestAddCRDIgnoresOtherObjects(t *testing.T) {
 	ix.AddCRD(map[string]any{"kind": "CustomResourceDefinition", "spec": map[string]any{"group": "g"}})
 	if ix.Len() != 0 {
 		t.Fatalf("indexed %d types", ix.Len())
+	}
+}
+
+// The render model's markers are read back the same way.
+func TestRecoverRenderMarkers(t *testing.T) {
+	ix := NewSchemas()
+	ix.AddCRD(gadgetCRD())
+	body := gadget()
+	creds := body["spec"].(map[string]any)["credentials"].(map[string]any)
+	creds["rotation"], creds["comment"] = RenderMarker("Never"), RenderMarker("rotate by hand, ask ops")
+	got := ix.Recover("example.test", "v1", "Gadget", body)
+	if creds["rotation"] != "Never" || !IsMarker(creds["comment"].(string)) {
+		t.Fatalf("render markers: %v %#v", got, creds)
 	}
 }

@@ -13,7 +13,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
-	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -288,7 +288,7 @@ func redactedValue(v any) bool {
 	if strings.HasPrefix(s, `"`) && json.Unmarshal([]byte(s), &dec) == nil {
 		s = dec
 	}
-	return redaction.IsMarker(s) || strings.HasPrefix(s, "<sensitive sha256:")
+	return redaction.IsMarker(s)
 }
 
 func isCRD(o render.Object) bool {
