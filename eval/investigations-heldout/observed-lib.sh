@@ -56,8 +56,9 @@ key_fp() {
 
 # ca_fp <namespace> <secret>: sha256 of the public key of the Secret's ca.crt (first certificate)
 ca_fp() {
-  kubectl -n "$1" get secret "$2" -o jsonpath='{.data.ca\.crt}' | base64 -d |
-    openssl x509 -noout -pubkey | openssl pkey -pubin -outform DER | openssl sha256 -r | cut -c1-16
+  local pem; pem="$(kubectl -n "$1" get secret "$2" -o jsonpath='{.data.ca\.crt}' | base64 -d)"
+  if [ -z "$pem" ]; then echo "(no ca.crt)"; return 0; fi
+  printf '%s\n' "$pem" | openssl x509 -noout -pubkey | openssl pkey -pubin -outform DER | openssl sha256 -r | cut -c1-16
 }
 
 # show_keys <ns/secret>...: one line per Secret: leaf key, serial, issuer, CA key in ca.crt

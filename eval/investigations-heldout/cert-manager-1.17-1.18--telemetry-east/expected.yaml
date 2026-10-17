@@ -1,0 +1,172 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: cert-manager-1.17-1.18--telemetry-east
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L109-L148"
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. ... Users who want to preserve the old default have two options: 1. Explicitly set `rotationPolicy: Never` on your Certificate resources."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+        lines: "L330-L345"
+        quote: "If set to `Never`, a private key will only be generated if one does not already exist in the target `spec.secretName`. ... If set to `Always`, a private key matching the specified requirements will be generated whenever a re-issuance occurs. Default is `Always`."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/internal/apis/certmanager/v1/defaults.go
+        lines: "L52-L63"
+        quote: "if in.Spec.PrivateKey.RotationPolicy == \"\" { defaultRotationPolicy := cmapi.RotationPolicyNever; if utilfeature.DefaultFeatureGate.Enabled(feature.DefaultPrivateKeyRotationPolicyAlways) { defaultRotationPolicy = cmapi.RotationPolicyAlways } ..."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/controller/certificaterequests/ca/ca.go
+        lines: "L82-L132"
+        quote: "caCerts, caKey, err := kube.SecretTLSKeyPairAndCA(...) ... Certificate: bundle.ChainPEM, CA: bundle.CAPEM,"
+    match:
+      - subject: spec.privateKey.rotationPolicy
+      - text: '(?i)rotation ?policy'
+    components:
+      - ref: {file: env/infrastructure/pki/telemetry-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: telemetry-root-ca}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/infrastructure/cert-manager/helmrelease.yaml, kind: HelmRelease, namespace: cert-manager, name: cert-manager}, relation: deploys}
+          - {ref: {file: env/infrastructure/pki/telemetry-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: telemetry-root-ca}, field: spec.privateKey.rotationPolicy, relation: consumes-api}
+          - {ref: {kind: Secret, namespace: cert-manager, name: telemetry-root-ca}, relation: produces}
+          - {ref: {file: env/infrastructure/pki/telemetry-ca-issuer.yaml, kind: ClusterIssuer, name: telemetry-ca}, relation: references}
+          - {ref: {file: env/apps/telemetry/ingest-certificate.yaml, kind: Certificate, namespace: telemetry, name: ingest-tls}, relation: references}
+          - {ref: {kind: Secret, namespace: telemetry, name: ingest-tls}, relation: produces}
+          - {ref: {file: env/apps/telemetry/ingest-deployment.yaml, kind: Deployment, namespace: telemetry, name: ingest}, relation: references}
+          - {ref: {file: env/apps/edge/gateway.yaml, kind: Deployment, namespace: edge, name: gateway}, relation: references}
+          - {ref: {file: env/apps/edge/rollup.yaml, kind: Deployment, namespace: edge, name: rollup}, relation: references}
+        reason: >-
+          The root CA Certificate sets no rotationPolicy, so from v1.18.0 its next renewal generates a
+          new CA key. The telemetry-ca ClusterIssuer then signs with the new key while every workload
+          still verifies its peers against the ca.crt of its own Secret, which only changes when that
+          workload's certificate is renewed (each one on its own 90-day schedule). Between the CA's
+          renewal and the renewal of the last peer, mutual TLS between renewed and not-yet-renewed
+          workloads fails in both directions (observed: ingest renewed and restarted -> gateway and
+          rollup fail with "unable to get local issuer certificate", and ingest answers 400 to their
+          client certificates; it recovers only after every peer has renewed). The explicit
+          rotationPolicy Never on the three workload certificates does not prevent this: it keeps the
+          workload keys, but their certificates are still re-signed by the new CA key.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/infrastructure/pki/telemetry-root-ca.yaml, object: Certificate/telemetry-root-ca, field: spec.privateKey}
+          - {file: env/infrastructure/pki/telemetry-ca-issuer.yaml, object: ClusterIssuer/telemetry-ca, field: spec.ca.secretName}
+          - {file: env/apps/telemetry/ingest.conf}
+      - ref: {file: env/apps/telemetry/ingest-certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: telemetry, name: ingest-tls}
+        classification: not-affected
+        reason: >-
+          Sets rotationPolicy Never, so its own key is kept across renewals on v1.18.0 as on v1.17.2
+          (observed: same key fingerprint after renewal). Its exposure comes from the root CA above,
+          not from its own policy.
+        mitigation: {ref: {file: env/apps/telemetry/ingest-certificate.yaml, kind: Certificate, namespace: telemetry, name: ingest-tls}, field: spec.privateKey.rotationPolicy, value: Never, kind: override}
+        requiredEvidence:
+          - {file: env/apps/telemetry/ingest-certificate.yaml, object: Certificate/ingest-tls, field: spec.privateKey.rotationPolicy}
+      - ref: {file: env/apps/edge/gateway.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: edge, name: gateway-tls}
+        classification: not-affected
+        reason: Sets rotationPolicy Never (own key kept; observed). Exposed only through the root CA.
+        mitigation: {ref: {file: env/apps/edge/gateway.yaml, kind: Certificate, namespace: edge, name: gateway-tls}, field: spec.privateKey.rotationPolicy, value: Never, kind: override}
+        requiredEvidence:
+          - {file: env/apps/edge/gateway.yaml, object: Certificate/gateway-tls, field: spec.privateKey.rotationPolicy}
+      - ref: {file: env/apps/edge/rollup.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: edge, name: rollup-tls}
+        classification: not-affected
+        reason: Sets rotationPolicy Never (own key kept; observed). Exposed only through the root CA.
+        mitigation: {ref: {file: env/apps/edge/rollup.yaml, kind: Certificate, namespace: edge, name: rollup-tls}, field: spec.privateKey.rotationPolicy, value: Never, kind: override}
+        requiredEvidence:
+          - {file: env/apps/edge/rollup.yaml, object: Certificate/rollup-tls, field: spec.privateKey.rotationPolicy}
+    remediation: >-
+      Set spec.privateKey.rotationPolicy Never on Certificate cert-manager/telemetry-root-ca (the
+      setting on the workload certificates does not protect the CA), or plan the CA key rotation:
+      distribute a bundle with both CA certificates before the CA renews.
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L151-L160"
+        quote: "When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources."
+    match:
+      - subject: spec.revisionHistoryLimit
+      - text: '(?i)revision ?history'
+    components:
+      - ref: {file: env/infrastructure/pki/telemetry-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: telemetry-root-ca}
+        classification: not-affected
+        reason: >-
+          Old CertificateRequests of every Certificate are garbage collected down to one after the
+          upgrade (observed: 2 -> 1), but nothing in the environment reads CertificateRequest
+          history; issuance and renewal are unaffected.
+        mitigation: {ref: {kind: CertificateRequest, namespace: cert-manager}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/infrastructure/pki/telemetry-root-ca.yaml, object: Certificate/telemetry-root-ca}
+      - ref: {file: env/apps/telemetry/ingest-certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: telemetry, name: ingest-tls}
+        classification: not-affected
+        reason: Same as above (observed 2 -> 1 CertificateRequests); no consumer of the history.
+        mitigation: {ref: {kind: CertificateRequest, namespace: telemetry}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/telemetry/ingest-certificate.yaml, object: Certificate/ingest-tls}
+renderedChanges:
+  - diff:
+      - observed/render.diff#L74-L180
+      - observed/render.diff#L240-L307
+      - observed/render.diff#L325-L423
+      - observed/render.diff#L511-L531
+      - observed/render.diff#L591-L611
+      - observed/render.diff#L615-L635
+    object: "ClusterRole+ClusterRoleBinding cert-manager-controller-challenges"
+    change: "split into cert-manager-http01-controller-challenges and cert-manager-dns01-controller-challenges (same rules; ACME challenge RBAC)"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L678-L693
+      - observed/render.diff#L694-L702
+      - observed/render.diff#L769-L782
+      - observed/render.diff#L783-L801
+      - observed/render.diff#L802-L810
+      - observed/render.diff#L811-L819
+      - observed/render.diff#L820-L828
+      - observed/render.diff#L843-L851
+      - observed/render.diff#L852-L860
+      - observed/render.diff#L861-L872
+      - observed/render.diff#L873-L891
+      - observed/render.diff#L892-L900
+      - observed/render.diff#L901-L909
+      - observed/render.diff#L910-L918
+      - observed/render.diff#L919-L930
+      - observed/render.diff#L931-L939
+      - observed/render.diff#L954-L962
+      - observed/render.diff#L963-L971
+      - observed/render.diff#L972-L983
+      - observed/render.diff#L984-L1002
+      - observed/render.diff#L1003-L1011
+      - observed/render.diff#L1012-L1020
+      - observed/render.diff#L1021-L1029
+      - observed/render.diff#L1030-L1041
+      - observed/render.diff#L1042-L1050
+      - observed/render.diff#L1065-L1076
+      - observed/render.diff#L1077-L1085
+    object: "CustomResourceDefinitions certificates, certificaterequests, challenges, clusterissuers, issuers, orders"
+    change: "description edits and new optional fields (ACME profile, Vault serverName, ...); no field removed"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L703-L719
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.privateKey.rotationPolicy description: default documented as Always (was Never); schema unchanged"
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L720-L730
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.revisionHistoryLimit description: default documented as 1 (was unset); schema unchanged"
+    item: B2
+    impact: harmless
+  - diff: observed/render.diff#L731-L754
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "new optional field spec.signatureAlgorithm"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L1186-L1201
+      - observed/render.diff#L1202-L1210
+    object: "Deployment/cert-manager/cert-manager-webhook"
+    change: "liveness/readiness probe port 6080 -> named port healthcheck (same port)"
+    item: null
+    impact: harmless

@@ -1,0 +1,189 @@
+# case ingress-nginx-1.11-1.12--docs-eu; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:31:45Z
+$ kind create cluster --name ri-groundtruth5-docs-eu --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-docs-eu.kubeconfig.XXXXXX.2KPOUBauVV
+Creating cluster "ri-groundtruth5-docs-eu" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 17s 💚
+Set kubectl context to "kind-ri-groundtruth5-docs-eu"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-docs-eu --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-docs-eu.kubeconfig.XXXXXX.2KPOUBauVV
+
+Not sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### FROM: ingress-nginx chart 4.11.5 with platform/ingress-nginx/values.yaml + values-prod.yaml  [13:32:14Z]
+$ helm install ingress-nginx /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/ingress-nginx-4.11.5.tgz -n ingress-nginx --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--docs-eu/env/platform/ingress-nginx/values.yaml -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--docs-eu/env/platform/ingress-nginx/values-prod.yaml --timeout 5m
+NAME: ingress-nginx
+LAST DEPLOYED: Sat Oct 17 08:32:14 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=300s
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 of 2 updated replicas are available...
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx get deploy ingress-nginx-controller -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}{.spec.template.spec.containers[0].args}{"\n"}
+registry.k8s.io/ingress-nginx/controller:v1.11.5@sha256:a1cbad75b0a7098bf9325132794dddf9eef917e8a7fe246749a4cea7ff6f01eb
+["/nginx-ingress-controller","--publish-service=$(POD_NAMESPACE)/ingress-nginx-controller","--election-id=ingress-nginx-leader","--controller-class=k8s.io/ingress-nginx","--ingress-class=nginx","--configmap=$(POD_NAMESPACE)/ingress-nginx-controller","--validating-webhook=:8443","--validating-webhook-certificate=/usr/local/certificates/cert","--validating-webhook-key=/usr/local/certificates/key","--enable-metrics=false"]
+
+### docs Application (sync wave 1)  [13:32:40Z]
+$ kubectl kustomize apps/docs/overlays/prod | kubectl apply --server-side --field-manager=argocd-controller -f -
+namespace/docs serverside-applied
+configmap/docs-content-84486bkbt7 serverside-applied
+configmap/wellknown-content-hh54ghhchd serverside-applied
+service/docs-site serverside-applied
+service/wellknown serverside-applied
+deployment.apps/docs-site serverside-applied
+deployment.apps/wellknown serverside-applied
+Warning: path /.well-known cannot be used with pathType Prefix
+ingress.networking.k8s.io/docs serverside-applied
+  => sync OK
+$ kubectl -n docs rollout status deploy/docs-site --timeout=180s
+Waiting for deployment "docs-site" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "docs-site" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "docs-site" rollout to finish: 2 of 3 updated replicas are available...
+deployment "docs-site" successfully rolled out
+$ kubectl -n docs rollout status deploy/wellknown --timeout=180s
+Waiting for deployment "wellknown" rollout to finish: 0 of 1 updated replicas are available...
+deployment "wellknown" successfully rolled out
+$ kubectl run probe --image=curlimages/curl:8.10.1 --restart=Never --command -- sleep 3600
+pod/probe created
+$ kubectl wait pod/probe --for=condition=Ready --timeout=120s
+pod/probe condition met
+
+### baseline on controller v1.11.5  [13:32:53Z]
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/  ->  200
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/.well-known/security.txt  ->  200
+
+### control on v1.11.5: a later sync of the docs Application, then a change to the Ingress  [13:32:54Z]
+$ kubectl kustomize apps/docs/overlays/prod | kubectl apply --server-side --field-manager=argocd-controller -f -
+namespace/docs serverside-applied
+configmap/docs-content-84486bkbt7 serverside-applied
+configmap/wellknown-content-hh54ghhchd serverside-applied
+service/docs-site serverside-applied
+service/wellknown serverside-applied
+deployment.apps/docs-site serverside-applied
+deployment.apps/wellknown serverside-applied
+Warning: path /.well-known cannot be used with pathType Prefix
+ingress.networking.k8s.io/docs serverside-applied
+  => sync OK
+$ kubectl -n docs annotate ingress docs nginx.ingress.kubernetes.io/proxy-read-timeout=30 --overwrite
+Warning: path /.well-known cannot be used with pathType Prefix
+ingress.networking.k8s.io/docs annotated
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/  ->  200
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/.well-known/security.txt  ->  200
+
+### UPGRADE: helm upgrade to chart 4.12.0 with the same value files  [13:32:55Z]
+$ helm upgrade ingress-nginx /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/ingress-nginx-4.12.0.tgz -n ingress-nginx -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--docs-eu/env/platform/ingress-nginx/values.yaml -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--docs-eu/env/platform/ingress-nginx/values-prod.yaml --timeout 5m
+Release "ingress-nginx" has been upgraded. Happy Helming!
+NAME: ingress-nginx
+LAST DEPLOYED: Sat Oct 17 08:32:55 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=300s
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...

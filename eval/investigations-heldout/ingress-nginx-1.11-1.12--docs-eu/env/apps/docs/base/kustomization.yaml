@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: docs
+resources:
+  - namespace.yaml
+  - docs-site.yaml
+  - wellknown.yaml
+  - ingress.yaml
+configMapGenerator:
+  - name: docs-content
+    files:
+      - content/index.html
+  - name: wellknown-content
+    files:
+      - content/security.txt

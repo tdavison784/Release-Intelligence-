@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: partner-api
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # Contractual quota: 120 requests per minute per partner, across all controller replicas.
+    nginx.ingress.kubernetes.io/global-rate-limit: "120"
+    nginx.ingress.kubernetes.io/global-rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/global-rate-limit-key: "$http_x_partner_id"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.partners.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: partner-api
+                port:
+                  name: http

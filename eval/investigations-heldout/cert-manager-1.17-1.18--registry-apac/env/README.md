@@ -5,7 +5,7 @@ GitOps repository for the `registry-prod-apac` cluster. Argo CD runs in the clus
 
 | Path | What |
 |---|---|
-| `clusters/prod/` | Argo CD `Application`s (the root app points here), ordered by sync wave |
+| `clusters/prod/` | Argo CD `Application`s (the root app points here), ordered by sync wave (Kyverno, cert-manager, policies, PKI, apps) |
 | `platform/kyverno/values.yaml` | Helm values for Kyverno (admission policies only) |
 | `platform/policies/` | the platform's Kyverno policies |
 | `platform/cert-manager/values.yaml` | Helm values for cert-manager |

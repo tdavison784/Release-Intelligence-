@@ -1,0 +1,38 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: ingress-nginx-1.11-1.12--partner-api
+product: ingress-nginx
+chart:
+  repo: https://kubernetes.github.io/ingress-nginx
+  name: ingress-nginx
+from:
+  version: controller-v1.11.5
+  chartVersion: 4.11.5
+to:
+  version: controller-v1.12.0
+  chartVersion: 4.12.0
+environment:
+  id: partner-api-prod
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster of the partner integration API, managed by Argo CD from this repository
+    (app-of-apps rooted at clusters/prod). ingress-nginx is installed from the upstream Helm chart
+    with the values in platform/ingress-nginx/values.yaml; a memcached instance (platform/memcached)
+    runs next to it. The partner API (apps/partner-api) is exposed through one Ingress that carries
+    the partners' contractual request quotas. The controller's metrics endpoint is scraped by the
+    central monitoring through its pod annotations. The repository is the complete declaration of
+    what runs in the cluster; nothing is applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: "Remove global-rate-limit feature (#11851) — config options global-rate-limit-memcached-* and global-rate-limit-status-code, annotations global-rate-limit, -window, -key, -ignored-cidrs"
+    subject: global-rate-limit
+    source: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md#L117-L133
+  - id: B2
+    title: "Metrics: Disable by default (#12153) — --enable-metrics defaults to false; the chart now passes --enable-metrics=true only when controller.metrics.enabled"
+    subject: --enable-metrics
+    source: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md#L51-L55
+withheld: []

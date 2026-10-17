@@ -1,0 +1,165 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: cert-manager-1.17-1.18--search-latam
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L109-L148"
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. ... Users who want to preserve the old default have two options: 1. Explicitly set `rotationPolicy: Never` on your Certificate resources."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+        lines: "L330-L345"
+        quote: "If set to `Never`, a private key will only be generated if one does not already exist in the target `spec.secretName`. ... If set to `Always`, a private key matching the specified requirements will be generated whenever a re-issuance occurs. Default is `Always`."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/internal/apis/certmanager/v1/defaults.go
+        lines: "L52-L63"
+        quote: "if in.Spec.PrivateKey.RotationPolicy == \"\" { defaultRotationPolicy := cmapi.RotationPolicyNever; if utilfeature.DefaultFeatureGate.Enabled(feature.DefaultPrivateKeyRotationPolicyAlways) { defaultRotationPolicy = cmapi.RotationPolicyAlways } ..."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/controller/certificaterequests/ca/ca.go
+        lines: "L82-L132"
+        quote: "caCerts, caKey, err := kube.SecretTLSKeyPairAndCA(...) ... Certificate: bundle.ChainPEM, CA: bundle.CAPEM,"
+    match:
+      - subject: spec.privateKey.rotationPolicy
+      - text: '(?i)rotation ?policy'
+    components:
+      - ref: {file: env/platform/pki/base/search-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: search-root-ca}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}, relation: deploys}
+          - {ref: {file: env/platform/pki/base/search-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: search-root-ca}, field: spec.privateKey.rotationPolicy, relation: consumes-api}
+          - {ref: {kind: Secret, namespace: cert-manager, name: search-root-ca}, relation: produces}
+          - {ref: {file: env/platform/pki/base/search-ca-issuer.yaml, kind: ClusterIssuer, name: search-ca}, relation: references}
+          - {ref: {file: env/apps/search/base/search-api.yaml, kind: Certificate, namespace: search, name: search-api-tls}, relation: references}
+          - {ref: {kind: Secret, namespace: search, name: search-api-tls}, relation: produces}
+          - {ref: {file: env/apps/search/base/search-api.yaml, kind: Deployment, namespace: search, name: search-api}, relation: references}
+          - {ref: {file: env/apps/search/base/indexer.yaml, kind: Deployment, namespace: search, name: indexer}, relation: references}
+          - {ref: {file: env/apps/search/base/query-frontend.yaml, kind: Deployment, namespace: search, name: query-frontend}, relation: references}
+        reason: >-
+          The production overlay means to pin the CA key (patch ca-key-continuity.yaml adds
+          rotationPolicy Never), but its target selects Certificates labelled pki.example.com/tier=ca
+          and the root CA is labelled pki.example.com/tier=root, so the patch applies to nothing and
+          the rendered root CA has no rotationPolicy (observed in the kustomize output and in the
+          cluster). From v1.18.0 the root CA's next renewal therefore generates a new CA key, and mutual
+          TLS between search-api and its callers fails until every one of them has renewed (observed:
+          search-api renewed -> indexer and query-frontend fail with "unable to get local issuer
+          certificate" and are rejected with 400; recovery only after both callers renewed).
+        mitigation: null
+        requiredEvidence:
+          - {file: env/platform/pki/overlays/prod/kustomization.yaml, field: patches}
+          - {file: env/platform/pki/base/search-root-ca.yaml, object: Certificate/search-root-ca, field: metadata.labels}
+          - {file: env/platform/pki/base/search-root-ca.yaml, object: Certificate/search-root-ca, field: spec.privateKey}
+          - {file: env/platform/pki/base/search-ca-issuer.yaml, object: ClusterIssuer/search-ca, field: spec.ca.secretName}
+      - ref: {file: env/apps/search/base/search-api.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: search-api-tls}
+        classification: not-affected
+        reason: New key on each renewal from v1.18.0 (observed); nothing depends on the workload key itself. Exposed through the root CA.
+        mitigation: {ref: {file: env/apps/search/base/search-api.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: search-api-tls}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/search/base/search-api.yaml, object: Certificate/search-api-tls, field: spec.privateKey}
+      - ref: {file: env/apps/search/base/indexer.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: indexer-tls}
+        classification: not-affected
+        reason: New key on each renewal from v1.18.0 (observed); nothing depends on the workload key itself. Exposed through the root CA.
+        mitigation: {ref: {file: env/apps/search/base/indexer.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: indexer-tls}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/search/base/indexer.yaml, object: Certificate/indexer-tls, field: spec.privateKey}
+      - ref: {file: env/apps/search/base/query-frontend.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: query-frontend-tls}
+        classification: not-affected
+        reason: New key on each renewal from v1.18.0 (observed); nothing depends on the workload key itself. Exposed through the root CA.
+        mitigation: {ref: {file: env/apps/search/base/query-frontend.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: query-frontend-tls}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/search/base/query-frontend.yaml, object: Certificate/query-frontend-tls, field: spec.privateKey}
+    remediation: >-
+      Fix the patch target of platform/pki/overlays/prod (labelSelector pki.example.com/tier=root, or
+      a name target) so that the rendered search-root-ca carries rotationPolicy Never, and verify it in
+      the rendered output.
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L151-L160"
+        quote: "When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources."
+    match:
+      - subject: spec.revisionHistoryLimit
+      - text: '(?i)revision ?history'
+    components:
+      - ref: {file: env/platform/pki/base/search-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: search-root-ca}
+        classification: not-affected
+        reason: No revisionHistoryLimit; old CertificateRequests are garbage collected to one after the upgrade (observed 2 -> 1). Nothing reads them.
+        mitigation: {ref: {kind: CertificateRequest, namespace: cert-manager}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/platform/pki/base/search-root-ca.yaml, object: Certificate/search-root-ca}
+      - ref: {file: env/apps/search/base/search-api.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: search-api-tls}
+        classification: not-affected
+        reason: Sets revisionHistoryLimit 2; the new default does not apply (observed 2 kept).
+        mitigation: {ref: {file: env/apps/search/base/search-api.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: search, name: search-api-tls}, field: spec.revisionHistoryLimit, value: 2, kind: override}
+        requiredEvidence:
+          - {file: env/apps/search/base/search-api.yaml, object: Certificate/search-api-tls, field: spec.revisionHistoryLimit}
+renderedChanges:
+  - diff:
+      - observed/render.diff#L74-L180
+      - observed/render.diff#L240-L307
+      - observed/render.diff#L325-L423
+      - observed/render.diff#L511-L531
+      - observed/render.diff#L591-L611
+      - observed/render.diff#L615-L635
+    object: "ClusterRole+ClusterRoleBinding cert-manager-controller-challenges"
+    change: "split into cert-manager-http01-controller-challenges and cert-manager-dns01-controller-challenges (same rules; ACME challenge RBAC)"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L678-L693
+      - observed/render.diff#L694-L702
+      - observed/render.diff#L769-L782
+      - observed/render.diff#L783-L801
+      - observed/render.diff#L802-L810
+      - observed/render.diff#L811-L819
+      - observed/render.diff#L820-L828
+      - observed/render.diff#L843-L851
+      - observed/render.diff#L852-L860
+      - observed/render.diff#L861-L872
+      - observed/render.diff#L873-L891
+      - observed/render.diff#L892-L900
+      - observed/render.diff#L901-L909
+      - observed/render.diff#L910-L918
+      - observed/render.diff#L919-L930
+      - observed/render.diff#L931-L939
+      - observed/render.diff#L954-L962
+      - observed/render.diff#L963-L971
+      - observed/render.diff#L972-L983
+      - observed/render.diff#L984-L1002
+      - observed/render.diff#L1003-L1011
+      - observed/render.diff#L1012-L1020
+      - observed/render.diff#L1021-L1029
+      - observed/render.diff#L1030-L1041
+      - observed/render.diff#L1042-L1050
+      - observed/render.diff#L1065-L1076
+      - observed/render.diff#L1077-L1085
+    object: "CustomResourceDefinitions certificates, certificaterequests, challenges, clusterissuers, issuers, orders"
+    change: "description edits and new optional fields (ACME profile, Vault serverName, ...); no field removed"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L703-L719
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.privateKey.rotationPolicy description: default documented as Always (was Never); schema unchanged"
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L720-L730
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.revisionHistoryLimit description: default documented as 1 (was unset); schema unchanged"
+    item: B2
+    impact: harmless
+  - diff: observed/render.diff#L731-L754
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "new optional field spec.signatureAlgorithm"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L1186-L1201
+      - observed/render.diff#L1202-L1210
+    object: "Deployment/cert-manager/cert-manager-webhook"
+    change: "liveness/readiness probe port 6080 -> named port healthcheck (same port)"
+    item: null
+    impact: harmless

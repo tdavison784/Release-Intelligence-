@@ -1,0 +1,57 @@
+# case cert-manager-1.17-1.18--registry-apac; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:32:26Z
+$ kind create cluster --name ri-groundtruth5-registry-apac --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-registry-apac.kubeconfig.XXXXXX.IPu5xnCxCP
+Creating cluster "ri-groundtruth5-registry-apac" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 16s 💚
+Set kubectl context to "kind-ri-groundtruth5-registry-apac"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-registry-apac --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-registry-apac.kubeconfig.XXXXXX.IPu5xnCxCP
+
+Have a nice day! 👋
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### wave -2: kyverno chart 3.3.7, platform/kyverno/values.yaml  [13:32:55Z]
+$ helm install kyverno /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/kyverno-3.3.7.tgz -n kyverno --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/kyverno/values.yaml --wait --timeout 5m
+NAME: kyverno
+LAST DEPLOYED: Sat Oct 17 08:32:55 2026
+NAMESPACE: kyverno
+STATUS: deployed
+REVISION: 1
+NOTES:
+Chart version: 3.3.7
+Kyverno version: v1.13.4
+
+Thank you for installing kyverno! Your release is named kyverno.
+
+The following components have been installed in your cluster:
+- CRDs
+- Admission controller
+
+
+⚠️  WARNING: Setting the admission controller replica count below 2 means Kyverno is not running in high availability mode.
+
+
+⚠️  WARNING: PolicyExceptions are disabled by default. To enable them, set '--enablePolicyException' to true.
+
+💡 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.
+
+### wave -1: cert-manager chart v1.17.2, platform/cert-manager/values.yaml  [13:33:12Z]
+$ helm install cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.17.2.tgz -n cert-manager --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/cert-manager/values.yaml --wait --timeout 5m

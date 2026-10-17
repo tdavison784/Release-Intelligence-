@@ -15,11 +15,11 @@ checks() { mtls_check builders builder https://artifacts.registry.svc/; }
 
 log "wave -2: kyverno chart 3.3.7, platform/kyverno/values.yaml"
 run helm install kyverno "$CHARTS/kyverno-3.3.7.tgz" -n kyverno --create-namespace -f "$ENV/platform/kyverno/values.yaml" --wait --timeout 5m
-log "wave -1: platform/policies"
+log "wave -1: cert-manager chart v1.17.2, platform/cert-manager/values.yaml"
+run helm install cert-manager "$CHARTS/cert-manager-v1.17.2.tgz" -n cert-manager --create-namespace -f "$ENV/platform/cert-manager/values.yaml" --wait --timeout 5m
+log "wave 0: platform/policies"
 apply_kustomize "$ENV/platform/policies"
 run kubectl wait clusterpolicy --all --for=condition=Ready --timeout=120s
-log "wave 0: cert-manager chart v1.17.2, platform/cert-manager/values.yaml"
-run helm install cert-manager "$CHARTS/cert-manager-v1.17.2.tgz" -n cert-manager --create-namespace -f "$ENV/platform/cert-manager/values.yaml" --wait --timeout 5m
 log "wave 1: platform/pki"
 apply_kustomize "$ENV/platform/pki" cert-manager
 wait_certs cert-manager

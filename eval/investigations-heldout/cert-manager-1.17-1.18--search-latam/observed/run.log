@@ -1,0 +1,331 @@
+# case cert-manager-1.17-1.18--search-latam; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:28:36Z
+$ kind create cluster --name ri-groundtruth5-search-latam --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-search-latam.kubeconfig.XXXXXX.P82mi6UkQD
+Creating cluster "ri-groundtruth5-search-latam" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 17s 💚
+Set kubectl context to "kind-ri-groundtruth5-search-latam"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-search-latam --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-search-latam.kubeconfig.XXXXXX.P82mi6UkQD
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### wave 0: cert-manager chart v1.17.2, platform/cert-manager/values.yaml  [13:29:05Z]
+$ helm install cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.17.2.tgz -n cert-manager --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--search-latam/env/platform/cert-manager/values.yaml --wait --timeout 5m
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:29:05 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+
+### wave 1: platform/pki/overlays/prod  [13:29:25Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--search-latam/env/platform/pki/overlays/prod
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    pki.example.com/tier: root
+  name: search-root-ca
+  namespace: cert-manager
+spec:
+  commonName: search-root-ca
+  duration: 26280h
+  isCA: true
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-bootstrap
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  renewBefore: 4380h
+  secretName: search-root-ca
+  subject:
+    countries:
+    - BR
+    organizations:
+    - Example Search Ltda
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: search-ca
+spec:
+  ca:
+    secretName: search-root-ca
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--search-latam/env/platform/pki/overlays/prod | kubectl apply -n cert-manager -f -
+certificate.cert-manager.io/search-root-ca created
+clusterissuer.cert-manager.io/search-ca created
+clusterissuer.cert-manager.io/selfsigned-bootstrap created
+$ kubectl -n cert-manager wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/search-root-ca condition met
+
+### wave 2: apps/search/overlays/prod  [13:29:25Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--search-latam/env/apps/search/overlays/prod | kubectl apply -f -
+namespace/search created
+configmap/search-api-nginx-bd22hk4ch9 created
+service/search-api created
+deployment.apps/indexer created
+deployment.apps/query-frontend created
+deployment.apps/search-api created
+certificate.cert-manager.io/indexer-tls created
+certificate.cert-manager.io/query-frontend-tls created
+certificate.cert-manager.io/search-api-tls created
+$ kubectl -n search wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/indexer-tls condition met
+certificate.cert-manager.io/query-frontend-tls condition met
+certificate.cert-manager.io/search-api-tls condition met
+$ kubectl -n search rollout status deploy/search-api --timeout=180s
+Waiting for deployment "search-api" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "search-api" rollout to finish: 1 of 2 updated replicas are available...
+deployment "search-api" successfully rolled out
+$ kubectl -n search rollout status deploy/indexer --timeout=180s
+deployment "indexer" successfully rolled out
+$ kubectl -n search rollout status deploy/query-frontend --timeout=180s
+deployment "query-frontend" successfully rolled out
+$ kubectl get certificates -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,LABELS:.metadata.labels,ISCA:.spec.isCA,ROTATION:.spec.privateKey.rotationPolicy,HISTORY:.spec.revisionHistoryLimit
+NS             NAME                 LABELS                           ISCA     ROTATION   HISTORY
+cert-manager   search-root-ca       map[pki.example.com/tier:root]   true     <none>     <none>
+search         indexer-tls          <none>                           <none>   <none>     2
+search         query-frontend-tls   <none>                           <none>   <none>     2
+search         search-api-tls       <none>                           <none>   <none>     2
+
+### baseline on v1.17.2  [13:29:33Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        3720563917bb71ae  3720563917bb71ae  serial=1D0811930D7A8740D652C5FA224637E1 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              56defb171dfe6fc2  3720563917bb71ae  serial=C442428CA466240722228F5B3E77BA issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 c8e39d291a9c574f  3720563917bb71ae  serial=E97BDDCC681E2AAFF097480870CD88DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=query-frontend.search.svc
+  => OK
+
+### control on v1.17.2: scheduled renewal of the root CA, then of search-api (restarts)  [13:29:34Z]
+$ renew cert-manager/search-root-ca (revision 1 -> 2)
+  revision 2 Ready
+$ renew search/search-api-tls (revision 1 -> 2)
+  revision 2 Ready
+$ kubectl -n search rollout restart deploy/search-api
+deployment.apps/search-api restarted
+$ kubectl -n search rollout status deploy/search-api --timeout=120s
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "search-api" rollout to finish: 1 old replicas are pending termination...
+deployment "search-api" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        3720563917bb71ae  3720563917bb71ae  serial=A4F2D221BC98DD391CF96E91E96C72F4 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              56defb171dfe6fc2  3720563917bb71ae  serial=E4C2D483F34A243873F57CBE63C73F91 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 c8e39d291a9c574f  3720563917bb71ae  serial=E97BDDCC681E2AAFF097480870CD88DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=query-frontend.search.svc
+  => OK
+
+### UPGRADE: helm upgrade to chart v1.18.0 with the same values  [13:29:40Z]
+CertificateRequests before:
+     2 search-root-ca
+     1 indexer-tls
+     1 query-frontend-tls
+     2 search-api-tls
+$ helm upgrade cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.18.0.tgz -n cert-manager -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--search-latam/env/platform/cert-manager/values.yaml --wait --timeout 5m
+Release "cert-manager" has been upgraded. Happy Helming!
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:29:40 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+⚠️  WARNING: New default private key rotation policy for Certificate resources.
+The default private key rotation policy for Certificate resources was
+changed to `Always` in cert-manager >= v1.18.0.
+Learn more in the [1.18 release notes](https://cert-manager.io/docs/releases/release-notes/release-notes-1.18).
+
+cert-manager v1.18.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+$ kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
+deployment "cert-manager" successfully rolled out
+CertificateRequests after:
+     1 search-root-ca
+     1 indexer-tls
+     1 query-frontend-tls
+     2 search-api-tls
+
+### after upgrade, before any renewal  [13:30:28Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        3720563917bb71ae  3720563917bb71ae  serial=A4F2D221BC98DD391CF96E91E96C72F4 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              56defb171dfe6fc2  3720563917bb71ae  serial=E4C2D483F34A243873F57CBE63C73F91 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 c8e39d291a9c574f  3720563917bb71ae  serial=E97BDDCC681E2AAFF097480870CD88DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=query-frontend.search.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of the root CA  [13:30:28Z]
+$ renew cert-manager/search-root-ca (revision 2 -> 3)
+  revision 3 Ready
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        031bf3231029388e  031bf3231029388e  serial=35D86825E4FF509E21AEBA21A3898EC5 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              56defb171dfe6fc2  3720563917bb71ae  serial=E4C2D483F34A243873F57CBE63C73F91 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 c8e39d291a9c574f  3720563917bb71ae  serial=E97BDDCC681E2AAFF097480870CD88DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=query-frontend.search.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of search-api (restarts); callers not renewed yet  [13:30:29Z]
+$ renew search/search-api-tls (revision 2 -> 3)
+  revision 3 Ready
+$ kubectl -n search rollout restart deploy/search-api
+deployment.apps/search-api restarted
+$ kubectl -n search rollout status deploy/search-api --timeout=120s
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "search-api" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "search-api" rollout to finish: 1 old replicas are pending termination...
+deployment "search-api" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        031bf3231029388e  031bf3231029388e  serial=35D86825E4FF509E21AEBA21A3898EC5 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              0f80557d1fb84760  031bf3231029388e  serial=D28C3A463713B6A773B5C80F67B51D30 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 c8e39d291a9c574f  3720563917bb71ae  serial=E97BDDCC681E2AAFF097480870CD88DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+
+### on v1.18.0: indexer renews  [13:30:34Z]
+$ renew search/indexer-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/indexer sees the current indexer-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        031bf3231029388e  031bf3231029388e  serial=35D86825E4FF509E21AEBA21A3898EC5 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              0f80557d1fb84760  031bf3231029388e  serial=D28C3A463713B6A773B5C80F67B51D30 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 75efab4a5ba6dec9  031bf3231029388e  serial=F5E79FEF61DA54F174D62394BCFC7E08 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          ed10e953b47afb16  3720563917bb71ae  serial=A26E7BA1A442ACDD486C5B5FD9D0B5DF issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+
+### on v1.18.0: query-frontend renews  [13:30:45Z]
+$ renew search/query-frontend-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/query-frontend sees the current query-frontend-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/search-root-ca        031bf3231029388e  031bf3231029388e  serial=35D86825E4FF509E21AEBA21A3898EC5 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/search-api-tls              0f80557d1fb84760  031bf3231029388e  serial=D28C3A463713B6A773B5C80F67B51D30 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/indexer-tls                 75efab4a5ba6dec9  031bf3231029388e  serial=F5E79FEF61DA54F174D62394BCFC7E08 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+search/query-frontend-tls          531bda91931554d9  031bf3231029388e  serial=26080FB9C4B17F10253A7B421FAC06F1 issuer=C=BR, O=Example Search Ltda, CN=search-root-ca 
+$ kubectl -n search exec deploy/indexer -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=indexer.search.svc
+  => OK
+$ kubectl -n search exec deploy/query-frontend -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://search-api.search.svc/
+search-api ok: client=CN=query-frontend.search.svc
+  => OK
+CertificateRequests at the end:
+     1 search-root-ca
+     2 indexer-tls
+     2 query-frontend-tls
+     2 search-api-tls
+
+### done  [13:32:07Z]
+
+### cleanup  [13:32:07Z]
+Deleting cluster "ri-groundtruth5-search-latam" ...
+Deleted nodes: ["ri-groundtruth5-search-latam-control-plane"]

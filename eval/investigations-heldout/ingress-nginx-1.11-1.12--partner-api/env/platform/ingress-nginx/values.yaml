@@ -1,0 +1,22 @@
+controller:
+  replicaCount: 3
+  ingressClassResource:
+    name: nginx
+    default: true
+  service:
+    type: LoadBalancer
+  config:
+    use-forwarded-headers: "true"
+    # Request counters shared by all controller replicas (see apps/partner-api).
+    global-rate-limit-memcached-host: memcached.ingress-nginx.svc.cluster.local
+    global-rate-limit-memcached-port: "11211"
+    global-rate-limit-status-code: "429"
+  metrics:
+    enabled: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "10254"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
