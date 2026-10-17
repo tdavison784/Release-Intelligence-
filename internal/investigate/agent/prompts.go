@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Earlier versions (v1–v5) stay embedded so their transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v6"
+// none. Earlier versions (v1–v6) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v7"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -76,6 +76,10 @@ type Features struct {
 	// Verdict: every closing entry except not-examined carries the agent's
 	// provisional verdict (verdict.go); never a policy input.
 	Verdict bool `json:"verdict"`
+	// VerdictInheritsCitations: a verdict that states no citations takes
+	// its closing entry's citations once they are checked (never unchecked
+	// ones), marked CitationsFromEntry. Needs Verdict.
+	VerdictInheritsCitations bool `json:"verdictInheritsCitations"`
 	// Mitigation: record_hypothesis takes a structured mitigation, stored
 	// only when well-formed (mitigation.go).
 	Mitigation bool `json:"mitigation"`
@@ -155,6 +159,9 @@ func LoadPrompt(version string) (*Prompt, error) {
 			return nil, fmt.Errorf("agent: prompt %s: feature dossier needs tool %s", version, investigate.ToolGetDossier)
 		}
 		want++
+	}
+	if p.Features.VerdictInheritsCitations && !p.Features.Verdict {
+		return nil, fmt.Errorf("agent: prompt %s: feature verdictInheritsCitations needs feature verdict", version)
 	}
 	if (p.Features.Dossier || p.Features.Verdict || p.Features.Mitigation) && !p.Features.PerItem {
 		return nil, fmt.Errorf("agent: prompt %s: features dossier, verdict and mitigation need per-item sessions", version)

@@ -71,3 +71,22 @@ func TestStoredRunsReverifyTheirDigests(t *testing.T) {
 	}
 	t.Logf("%d stored case records re-verified", checked)
 }
+
+// A replay arm runs under the replayed run's prompt version unless one is
+// asked for (B-replay of a v5 run is v5, not the newest).
+func TestReplayPromptVersionIsTheReplayedRuns(t *testing.T) {
+	dir := filepath.Join("..", "..", "eval", "investigations", "results", "B-20261017-047cb4ea1c")
+	if _, err := os.Stat(dir); err != nil {
+		t.Skip("stored run missing")
+	}
+	meta, err := readInvRunMeta(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v, err := replayPromptVersion(dir, ""); err != nil || v != meta.Config.Agent.PromptVersion || v == "" {
+		t.Fatalf("replayed run's version: %q %v (run has %q)", v, err, meta.Config.Agent.PromptVersion)
+	}
+	if v, _ := replayPromptVersion(dir, "investigate-agent/v7"); v != "investigate-agent/v7" {
+		t.Fatalf("asked version not kept: %q", v)
+	}
+}

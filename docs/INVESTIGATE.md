@@ -931,8 +931,9 @@ structured and checked:
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.
 
-**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`, the default;
-Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps the v5 surface. It adds three things.
+**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7, the default,
+is v6 plus verdict citation inheritance, below; Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
+the v5 surface. It adds three things.
 
 *Item dossier* (`internal/investigate/agent/dossier.go`, `ri.dev/item-dossier/v1`, producer
 `investigate.dossier@v1`). Each item's session starts from a dossier. The dossier is assembled
@@ -989,6 +990,15 @@ overturn it.
 - Citations, verified facts and mitigations are resolved **one by one**. What does not resolve is dropped,
   counted (`droppedCitations`, `droppedVerifiedFacts`) and explained (`dropped`).
 - A verdict other than `insufficient-evidence` needs at least one citation that resolves.
+- **v7** (Phase 5 fix W-0025): a verdict that states **no** citations (omitted or empty) takes its closing
+  entry's citations once they are checked, and is marked `citationsFromEntry`. An entry citation that does not
+  check rejects the call, as it always did, so nothing unchecked is inherited; citations the verdict does state
+  are its own and are never replaced (if none of them resolves, the verdict is still rejected). The tool schema
+  says so. In live run 1 (v6) every first `submit_findings` was rejected for an empty `verdict.citations`
+  (17% of calls). v7 changes only `meta.json` (`verdictInheritsCitations`) and that schema text; system, task
+  and item prompts are v6's byte for byte. A transcript replays only under the version it was recorded with
+  (the replay driver refuses another prompt digest): `ri investigate -agent-prompt investigate-agent/v6 …`
+  pins an earlier version, and a `ri eval -investigations` replay arm defaults to the replayed run's version.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1045,7 +1055,9 @@ the agent's outputs.
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
 v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
-(`get_dossier`), provisional verdicts and structured mitigations.
+(`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
+citations. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:
