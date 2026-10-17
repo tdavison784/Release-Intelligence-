@@ -15,7 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| pins | ri-pins | Opus | p5ll/pins | .claude/worktrees/p5ll-pins | w1:t1P | review: fail-open sent back 08:20 (value predicate on unset field with no CRD default decided, must be undecidable) |
+| pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | .claude/worktrees/p5ll-verdict | w1:t1R | working |
 | verify | ri-verify | Opus | p5ll/verify | .claude/worktrees/p5ll-verify | w1:t1S | working |
@@ -23,6 +23,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
 
 ## Merge log
+
+- 2026-10-17 cbb192c8 pins: scoped applicability (in/out/undecidable; only provably-out objects excluded; value predicates on unset fields need a CRD default or an explicit unset/set leaf in the rule — commander fail-open finding fixed in 79581777 with mutation check), effective object view through kustomize renders (base+patch = one object), release-bounds/contradiction/lifecycle tests, S3 a–h synthetic controls; Phase 4 fail-open fixed (default-change pin ignoring applicability). validate.override-inspection@v2; 152 stored investigations still validate. Green. Cleaned up. Open: reverse-reference leaves not expressible in the fact model (not needed for the dev pair).
 
 - 2026-10-17 ef6b8d04 coverage: `namespaceFrom` on relationship rules (controller flag + documented default + citations; undecidable ⇒ edge stays inferred), cert-manager ClusterIssuer CA-secret rule declares --cluster-resource-namespace; validate.render-diff@v2 documentation-only pass; classify.policy@v2 counts it for R2.2 only (v1 still honoured for stored runs). Reviewed policy diff: doc-only excluded from counts(), re-checked against bundle. Green. Cleaned up (tab w1:t1Q, worktree, branch -d). Follow-ups: DESIGN §2.5/§2.6/§3.1 R2.4 wording proposed in its status (commander applies); stored run C-20261016T234455Z-aa06720656 re-classifies 6/8 at base too (pre-existing; W-0022).
 
