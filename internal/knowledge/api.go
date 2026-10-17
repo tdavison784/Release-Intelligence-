@@ -67,6 +67,9 @@ type Snapshot struct {
 	ReviewItems []domain.ReviewItem
 	Decisions   []domain.ReviewDecision
 	Facts       []domain.VerifiedFact
+	// Proofs are the verifications of hypothesis-sourced rules (PROTOCOL §8);
+	// the promotion gate reads them. CONTRACT-CHANGE(verify): additive.
+	Proofs []domain.ProofRecord
 }
 
 // --- proposals (semantic lane) -------------------------------------------------------
@@ -297,6 +300,10 @@ type ReviewContext struct {
 	// asserted change, from the rendered-diff validations. Nil when no render
 	// validated the candidate. CONTRACT-CHANGE(render).
 	Render *RenderEvidence
+	// Promotion is the promotion gate of an agent-proposed rule
+	// (hypothesis-sourced item): its proofs and whether a human accept may
+	// promote it. Nil for every other item. CONTRACT-CHANGE(verify): additive.
+	Promotion *GateState
 }
 
 // RenderEvidence is the rendered delta shown next to a review item.

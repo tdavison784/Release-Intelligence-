@@ -67,6 +67,13 @@ func (x *index) reasonClear(e *itemEval) string {
 		b.WriteString(" and the environment render is complete")
 	}
 	fmt.Fprintf(&b, "; R2.2 %d correlated environment rendered change(s) shown harmless", len(e.envRCs))
+	if len(e.docs) > 0 {
+		var docs []string
+		for _, v := range e.docs {
+			docs = append(docs, fmt.Sprintf("%s [%s]", v.Validator, v.ID))
+		}
+		fmt.Fprintf(&b, " (documentation-only CRD description changes accounted for by %s — documentation, not a clearance)", strings.Join(docs, "; "))
+	}
 	b.WriteString("; R2.3 the traversal is complete for the item")
 	switch {
 	case len(e.paths) > 0:

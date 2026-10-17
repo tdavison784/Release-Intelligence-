@@ -141,7 +141,7 @@ func TestPerItemSessions(t *testing.T) {
 	}
 	// Notes never reach the classifier as concerns.
 	cls, err := classify.New().Classify(context.Background(), investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: out, Validations: out.Validations,
-		Config: investigate.Config{Policy: "classify.policy@v1"}})
+		Config: investigate.Config{Policy: classify.Policy}})
 	must(t, err)
 	for _, fd := range cls.Findings {
 		for _, g := range fd.Gaps {

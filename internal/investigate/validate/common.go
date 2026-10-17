@@ -18,8 +18,8 @@ import (
 // Validator and provenance producer.
 const (
 	NameJoin               = "validate.join@v1"
-	NameRenderDiff         = "validate.render-diff@v1"
-	NameOverrideInspection = "validate.override-inspection@v1"
+	NameRenderDiff         = "validate.render-diff@v2"
+	NameOverrideInspection = "validate.override-inspection@v2"
 	NameSchemaCompat       = "validate.schema-compat@v1"
 	NameStaticReference    = "validate.static-reference@v1"
 )
@@ -102,6 +102,7 @@ type draft struct {
 	evidence      []domain.EvidenceID
 	pin           *domain.PinnedSetting
 	impactFinding string
+	docOnly       bool // ValidationRecord.DocumentationOnly
 }
 
 // output collects records and the evidence they cite that the bundle pool
@@ -164,9 +165,11 @@ func (o *output) add(d draft) domain.ValidationRecord {
 		},
 		CheckedAt: o.base.cfg.now().UTC().Truncate(time.Second),
 	}
+	r.DocumentationOnly = d.docOnly
 	if req := o.in.Request; req != nil {
 		r.Request = req.ID
-		if req.Hypothesis != "" {
+		// documentation-only coverage tests no hypothesis' claim
+		if req.Hypothesis != "" && !d.docOnly {
 			r.Answers = []string{req.Hypothesis}
 		}
 	}

@@ -30,7 +30,7 @@ func Apply(inv *domain.Investigation, c *investigate.Classification, at time.Tim
 		refs = append(refs, f.ID)
 	}
 	if err := appendEvent(next, domain.AuditEvent{At: at, Stage: domain.StageClassify, Event: "completed", Actor: "system", Refs: refs,
-		Detail: fmt.Sprintf("%s: %d finding(s); decision %s (shadow: automated approval not enacted)", Policy, len(c.Findings), d.Outcome)}); err != nil {
+		Detail: fmt.Sprintf("%s: %d finding(s); decision %s (shadow: automated approval not enacted)", d.Policy, len(c.Findings), d.Outcome)}); err != nil {
 		return err
 	}
 	if err := next.Validate(); err != nil {

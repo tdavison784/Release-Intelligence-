@@ -204,8 +204,8 @@ does not cover its request's subjects. Undecided records never count as clearing
 | Constructor | Name | Kind | Applies | Decides |
 |---|---|---|---|---|
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
-| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
-| `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
+| `RenderDiff(opts…)` | `validate.render-diff@v2` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
+| `OverrideInspection(opts…)` | `validate.override-inspection@v2` | override-inspection | all | an explicit setting pinning the old behaviour |
 | `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
 | `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
 
@@ -239,8 +239,13 @@ whatever the item's breaking flag. `fail` only when such a change causes a **con
 the FROM render did not have: a reference of or to the changed object that dangles, a custom resource invalid
 against its rendered CRD schema, an apiVersion the rendered CRD no longer serves — each named in the detail.
 `pass` only for a `rendered-config` item when every pair is complete and nothing is attributable — or only CRD
-description text, which is shown harmless and cited. Never a pass for `controller-behaviour`/`unknown` items (render
-silence proves nothing); text-mention correlations decide nothing (`not-run`).
+description text, which is shown harmless and cited. For a `controller-behaviour`/`unknown` item render silence
+proves nothing: the only pass is **documentation-only coverage** (rule `render-diff:documentation-only`, record field
+`documentationOnly: true`, @v2) — every pair complete and every rendered change correlated to the item is CRD
+description text in a CRD that changes nothing else in that pair (no schema, default, enum, required, served or
+storage change, correlated to anything or not; `EvidenceBundle.DocumentationOnlyChange`). It names those rendered
+changes and nothing else (no subject, path or answered hypothesis) and never clears behaviour; a description change
+beside any other change of its CRD is `not-run`, naming why. Text-mention correlations decide nothing (`not-run`).
 
 **OverrideInspection** — establishes an explicit environment setting that pins the old behaviour and records
 it as the pass's `PinnedSetting` (kind, subject, path, value, the rendered object it lands in, environment
@@ -251,16 +256,59 @@ record (rule id in the provenance, source in the detail):
 | Rule | Source | Setting |
 |---|---|---|
 | `pin:join-pinned@v1` | the join's own pinned verdict on a computed default change (`impact:values-pinned`, `impact:crd-default-pinned`), with no other non-clear finding of the change | the values keys (every changed key) / the field on every resource; objects only the environment render shows must set it too |
-| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
-| `pin:knowledge-exposure@v1` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` | the explicit setting / one of `V` |
+| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item that states **no applicability**: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
+| `pin:knowledge-exposure@v2` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` — top level, or inside a `resource` scope (directly or under `all`/`any`) | the explicit setting / one of `V`, on the objects of the scope (below); a leaf on the subject's own setting of a default change also accepts the old default |
+
+A fact that states an applicability is decided by it: its default change alone is never a pin (the fact may say
+objects are exposed whatever the setting).
 
 The setting must hold **everywhere it matters**: in every complete environment render target (controller flags,
-env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every visible object of the kind
-(environment files and rendered objects). A setting that is absent, set only on some objects or installs, set only
+env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every object of the kind in the effective
+object view that the rule's scope does not provably exclude. A setting that is absent, set only on some objects or installs, set only
 after the upgrade to a non-old value, or changed across it is never a pass; neither is any rule from a consensus
 or proxy fact, an incomplete render, a partially collected input, or an unparsable environment file that may
 declare objects of the kind. Facts come from the bundle's `knowledge-fact` artifacts related to the item and from
 `WithFacts` (attached through the report's knowledge findings or `impact.AttachedChanges`).
+
+### Pin rule applicability and the effective object view (Phase 5)
+
+**Scope.** An exposure leaf keeps the `resource` scope it sits in (e.g. "Widgets whose `spec.role` equals
+`root` and leave `spec.rotation` unset"). Each object of the kind is decided **three-valued** against the whole
+scope, with the pin leaf taking the value the setting gives it: *false* with the setting pinning it → a pinning
+record; *false* although the setting does not pin it → **provably out of scope**, excluded from the requirement
+and listed (with evidence) in the pass's detail; *true* → a miss (the object is in scope, or in scope through
+another condition); *unknown* → undecidable, never excluded. Leaves follow the impact join's semantics
+(`internal/impact`): field states over what the object states, Kleene `all`/`any`/`not`, `text-line`, and `ref`
+resolving to exactly one object of the view (by name and the kind/group/namespace it states, else the referring
+object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
+object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
+artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
+CRD, a CRD that states no default (the controller may default the field in code), an ancestor default, or a schema
+that does not describe the path, it is undecidable. What an unset field means is decided by the rule only when it
+says so explicitly with an `unset`/`set` leaf (`any{F equals X, F unset}`, `all{F not-equals X, F set}`); and a reference
+resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
+object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
+
+**Effective object view.** The objects are what the environment actually applies: the to side of every complete
+render of the product (from side for the value before the upgrade), the render of every **version-independent
+overlay** (a `not-applicable` kustomize pair: it renders the same objects at both versions), and the environment
+files **no render consumed**. Which files a kustomize render consumed is read from the bundle's own kustomization
+files (`resources`, `bases`, `components`, `crds`, `patchesStrategicMerge`, `patches[].path`,
+`patchesJson6902[].path`, recursively) — so a base object and the overlay patch that sets the pinned field are seen
+as one merged object, never as an unpatched base plus a patch. A file consumed by a render whose objects are not
+available (render failed) is undecidable. Every hit, miss and exclusion names the view the object came from
+(`environment render <target> (to)`, `environment render <target>, version-independent overlay`,
+`environment file <path>, no render consumed it`); a pass lists the files it saw through renders.
+
+**Trust and lifecycle.** Only active facts whose weakest aspect is deterministic or human pin. A fact pins only
+when its `release` lies inside the transition (`from < release ≤ to`, same product); a fact that states no release
+never pins. When an active fact inside the transition about the same subject (any level, attached or not) states a
+different change or applicability than a pin-source fact, nothing pins for the item: `pin:contradicting-facts`.
+
+Reason codes of a `not-run` override inspection (provenance rule): `pin:no-rule` (no rule names a setting —
+includes untrusted, inactive and out-of-transition facts, each noted), `pin:not-established` (a rule's setting
+does not hold everywhere), `pin:applicability-undecidable` (a rule failed only on objects whose scope membership
+cannot be decided), `pin:contradicting-facts`.
 
 **SchemaCompat** — compatibility items: the snapshot's Kubernetes version against the target constraint
 (`upgrade.EvaluatePlatformConstraint`; anchors `<platform>` or `<platform>/<kind>`): inside → `pass`; outside a
@@ -591,15 +639,56 @@ Issuer/ClusterIssuer CA secrets, `issuerRef` to a ClusterIssuer), ingress-nginx 
 `auth-tls-secret`, `proxy-ssl-secret` annotations — `auth-secret` as `[namespace/]name`, the other two as
 `namespace/name`, as the controller parses them), prometheus-operator (ServiceMonitor, PodMonitor selectors; the
 Secrets/ConfigMaps of every endpoint — `authorization.credentials`, `bearerTokenSecret`, `basicAuth`
-username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reading its CA
-Secret stays `inferred`: the issuer does not state the cluster resource namespace. A rendered Ingress's
+username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reads its CA
+Secret from the controller's `--cluster-resource-namespace` (`namespaceFrom`, below). A rendered Ingress's
 `…-secret` annotation values are withheld by the render (credential-looking key), so those references are
 `unknown` in a view (the graph keeps a placeholder); in environment files they resolve. A Certificate whose
 `issuerRef` omits `kind` (default Issuer) is not followed (no false dangle; not checked).
 
+**Cluster-scoped name references** (`namespaceFrom`, Phase 5 lane coverage). A cluster-scoped object that names a
+namespaced one without a namespace is resolved where its controller documents it, when the rule says so:
+
+```yaml
+- id: clusterissuer-ca-secret
+  kind: references          # format name only; declaring namespaceFrom makes `from` cluster-scoped
+  from: {group: cert-manager.io, kind: ClusterIssuer}
+  to: {kind: Secret}
+  path: spec.ca.secretName
+  namespaceFrom:
+    container: cert-manager-controller   # the controller container in the environment's workloads
+    arg: --cluster-resource-namespace    # its value may use $(VAR) from the container's env
+    default: kube-system                 # documented value when the flag is absent (omit if none)
+    configFileArg: --config              # a config file that can also set it (the flag wins)
+    references: [{url: https://…, quote: "…"}]   # required
+```
+
+The graph (and the per-side reference view) decides the namespace from the environment at that side: every
+container of that name in the environment's workloads, the flag's value (`--flag=v` or `--flag v`; `$(VAR)` expanded
+from a literal env value or `fieldRef: metadata.namespace` = the workload's namespace), else the default when no
+`configFileArg` is given. Decided ⇒ the name resolves in that namespace (`established` when the object or a declared
+producer is there, `missing` when not — never a name-only match), and the edge cites the controller render. **Fail
+closed**: no citation, no such container, an env var from `configMapKeyRef`/`secretKeyRef`/`envFrom` or undefined,
+a config file with no flag, a flag without a value or given twice differently, a non-namespace value, or containers
+that disagree ⇒ the reference stays matched by name only (`inferred`), and the edge reason says what was not decided.
+
 Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
 Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
-`scope: cluster` and CRDs in the snapshot.
+`scope: cluster`, a declared `namespaceFrom` (its `from` kind) and CRDs in the snapshot.
+
+### Policy v2: what a behaviour item needs besides its pin (Phase 5, lane coverage)
+
+`classify.policy@v2` changes one thing: a documentation-only render-diff pass (`documentationOnly: true`, see
+RenderDiff) accounts for the CRD description changes it names in **R2.2** ("every correlated rendered change shown
+harmless"), whatever the item's manifestation. Before, a pinned `controller-behaviour` item whose only correlated
+rendered change was the reworded description of its field stayed `potentially-affected` forever (an override
+inspection names no rendered changes; render-diff refused behaviour items). The classifier re-checks the claim against
+the bundle (`EvidenceBundle.DocumentationOnlyChange`) and the run record rejects a false one. Such a record never
+counts for R2.4 (paths/roots/"a passing validation exists"), never answers an agent concern (R2.6) and never clears
+behaviour: a pin or an observed outcome is still required. Agent output is still never an input. A run asking for
+`classify.policy@v1` is classified as v1 (its validators never emitted documentation-only records); a
+documentation-only record under v1 is refused. The other coverage change — cluster-scoped name references resolved
+through a documented controller argument (`namespaceFrom`, under Relationships) — needs no policy change: it turns
+an inferred edge into an established or missing one only when the environment decides it (R2.3).
 
 ## Investigation agent
 
@@ -1000,6 +1089,95 @@ environment and the input path as supplied. The groundtruth environments sit ins
 every commit, and every checkout location, gives a new bundle id. A recorded run then replays only at its
 commit and path: a replay elsewhere is refused for a prompt-digest mismatch, never silently accepted.
 
+## Verifying mitigation hypotheses (Phase 5)
+
+An agent may propose a reusable rule — "this setting preserves the previous behaviour across this transition"
+(a `MitigationSpec` on a hypothesis, exported by `ri investigate export-hypotheses` as an AI proposal plus a
+whole-fact review item). It is never a fact until it is **independently verified and promoted by a human**
+(docs/phase5/learning-loop/PROTOCOL.md §7–§8). Package `internal/investigate/verify`, command:
+
+```
+ri verify hypotheses -knowledge <dir> [-store <state>] [-runtime] [-kubernetes 1.31] [-again] [-json]
+```
+
+For every open hypothesis-sourced fact-review item (`Provenance.Rule = hypothesis:<hyp>@<inv>` on a proposal
+of the item's rule) it writes a **`ProofRecord`** (`internal/domain/proof.go`, knowledge record kind `proof`,
+stored beside the item under `<product>/<release>/proofs/`):
+
+- **Citation check** (`verify.citations@v1`, deterministic). The rule's release bounds — `(From, To]` from the
+  run's mitigation spec — and its upstream citations (the proposal's evidence on the candidate). Each citation
+  must resolve in the evidence cache (the investigation store's CAS by content digest, or the fetch cache by
+  digest, else by URL; a GitHub blob URL also matches its raw form; a cited digest must match exactly), contain
+  its cited passage (whitespace-normalised, as the agent's tools check), and name at least one version and no
+  version outside the bounds (versions are read from the URL; a minor-only token like `1.18` names a release
+  line). Any failure ⇒ `fail`; no bounds or no citation ⇒ `not-run`; no passing passage naming the subject ⇒
+  `inconclusive` (whether the text *states* the behaviour is the reviewer's judgement, listed as a limitation).
+- **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
+  rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
+  in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
+  prerequisites, e.g. an issuer) in two arms — **condition-present** satisfies the rule's mitigating (`overlap`)
+  condition, **condition-absent** its exposure condition — and nothing else. `runtime.Validator.RunFixture`
+  runs the same phases as an environment run (install, exercises at FROM, upgrade to TO, exercises at TO,
+  observation, cleanup on every exit path) in a cluster `ri-verify-<8 hex>`; a fixture run and an environment
+  run never overlap (each refuses while a cluster of either prefix exists). Objects the controller produces
+  from each arm (the product's `produces` relationships) are observed and their data digested per key.
+
+  | condition-present arm | condition-absent arm | exercise outcome |
+  |---|---|---|
+  | unchanged at TO | changed at TO | `pass` — the behaviour change is demonstrated, and the condition preserves the previous behaviour |
+  | changed | changed | `fail` — the condition does not preserve it (refuted) |
+  | changed | unchanged | `fail` — the prediction for the condition arm is contradicted |
+  | unchanged | unchanged | `inconclusive` — the change itself was not demonstrated, so neither is the mitigation |
+
+  "Changed" is any difference the runtime's degradation rules record on the arm's objects (exercise window:
+  what the exercise did at TO that it did not do at FROM; upgrade window). Never a pass: an exercise not answered
+  on every arm at both versions (a quiet window), a run that did not complete, a sandbox problem (image pull),
+  no stored observation artifacts. `not-run`: no fixture for the subject kind, no declared exercise or one
+  without a reaction, or a rule whose conditions cannot be synthesised on the subject object (only `field`
+  leaves `unset` / `set` / `equals` / `not-equals` without list paths, inside `resource` of the subject kind;
+  `set`/`not-equals` use the change's previous value; a rule without an overlap is mitigated by setting an
+  "exposed while unset" field to its previous value) — never approximated.
+
+**Outcome** = `confirmed` only when both methods passed; any `fail` ⇒ `refuted`; otherwise `inconclusive`
+(`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
+exercise without both arms answered, and a level that does not match: `observed` exactly when the exercise
+ran). Each proof lists its limitations (one synthetic object per arm, chart-default controller, other consumers
+and topologies not covered, applicability to an environment decided by the validators, not by the proof). A
+proof whose rule differs from the run's mitigation spec is not written. Items with a confirmed or refuted proof
+are skipped unless `-again`; inconclusive ones are re-verified.
+
+**Fixtures** (`products/exercises/fixtures/<product>.yaml`, kind `ProductFixtures`; own directory so the exercise
+files' digests, recorded by every runtime run, are untouched): `controller.values` (+ upstream references),
+and per subject `target` (group/version/kind), `exercise` (an id from `products/exercises/<product>.yaml`, which
+must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
+name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
+
+### The promotion gate (`internal/knowledge/promote.go`)
+
+`Queue.Decide` refuses, before anything is written, an accept/correct of a hypothesis-sourced item unless:
+the reviewer is **human** (a proxy or the agent never promotes); the item is a whole-fact (`fact-review`) item
+and the decision verifies **all four aspects**; a **confirmed** proof of exactly the decided rule's digest exists
+for the item (a correction that changes the rule needs a new item and a new proof; a prose-only correction keeps
+the digest); **no refuted proof** of that rule exists (a refutation is never outweighed by a later confirmation);
+the proof's bounds contain the item's release; and every other active fact on the same subject is named in the
+decision's `supersedes` (the narrower rule replaces it — it becomes `superseded`) or `coexists` (kept, said
+explicitly) — a refining rule never silently coexists. Reject / need-more-evidence / defer are always allowed.
+Ordinary (non-hypothesis) items are unchanged.
+
+### In the review UI
+
+A hypothesis item's page shows the rule in plain English, the agent's reasoning labelled **AI — not
+verified**, every proof (each method with its level — deterministic / observed — outcome, detail, checks, the
+two arms with their predicted and observed behaviour, evidence links and limitations) and the gate (open /
+closed, with the reason); the decision form asks, per active same-subject fact, *supersede* or *keep beside*.
+The default view lists an agent rule only once its proof is confirmed (then as a pin source: promoting it can
+clear investigated environments); until then it is hidden as "awaiting a confirmed proof".
+
+Tests: `go test ./internal/investigate/verify ./internal/knowledge ./internal/reviewui` (synthetic product
+`acme-ctl`; every gate refusal path, the four arm combinations, citations outside the bounds, a proof digest
+mismatch after a correction) and `go test ./internal/investigate/runtime -run Fixture` (the fake cluster). A
+real run on the cert-manager fixture is recorded in `docs/phase5/learning-loop/runs/verify-smoke.md`.
+
 ## Running an investigation
 
 `ri investigate <product> <from> <to>` runs the whole environment-aware pipeline (DESIGN.md §5):
@@ -1142,12 +1320,13 @@ scores the stored run record:
   (or 0/0) is `INSUFFICIENT-DATA`: printed as such, never a pass, and a FAIL for the autonomy criteria. The
   command exits non-zero unless every gate passes.
 - **Reproducibility** — the stored records are re-classified (`classify.New()`) and must reproduce the
-  findings and decision byte for byte.
+  findings and decision byte for byte. A run whose config asks for `classify.policy@v1` (Phase 4) is
+  re-classified under v1 (same decisions, v1 stamp); see "Policy v2" below.
 
 ```
-ri -state <cache> -offline eval -investigations                    # arm A: deterministic only
-ri eval -investigations -case <id>[,<id>] -o json                   # a subset, JSON score
-ri eval -investigations -save                                       # keep results/<run-id>/ (never overwritten)
+ri -state <cache> -offline eval -investigations -knowledge <snapshot>   # arm A: deterministic only
+ri eval -investigations -knowledge <snapshot> -case <id>[,<id>] -o json # a subset, JSON score
+ri eval -investigations -knowledge <snapshot> -save                                    # keep results/<run-id>/ (never overwritten)
 ri eval -investigations -agent -agent-driver claude-cli -agent-model claude-sonnet-5-5 -save   # arm B
 ri eval -investigations -runtime -save                                  # arm C: + observed validation (one
                                                                        # throwaway kind cluster per case, deleted after)
@@ -1172,3 +1351,27 @@ classifier: a stored run reproduces byte for byte with the binary of its own com
 code shows exactly what a policy change altered.
 Scored runs are kept, never overwritten or cherry-picked; the analysis is
 `docs/phase4/env-impact/EVAL-REPORT.md`.
+
+### Phase 5: pinned knowledge, agent verdicts, comparison
+
+- **Knowledge is pinned.** `ri eval -investigations` refuses to run without an explicit `-knowledge` naming a snapshot,
+  and refuses the live `knowledge/` tree (`./knowledge`, the work tree's, the primary checkout's) unless
+  `-allow-live-knowledge`, so a later knowledge change cannot contaminate an arm. `run.json` records
+  `knowledgeDigest` (sha256 over the sorted relative paths and bytes of every file in the tree; `none` with
+  `-knowledge ""`) and `knowledgeLive`. `-append` refuses a run with a different digest. Runs stored before Phase 5
+  have no digest and still load and re-score. `-rescore`, `-pack` and `-compare` read stored runs and need no snapshot.
+- **Snapshots.** `scripts/phase5/snapshot.sh <sha> <out>` extracts `knowledge/` of a commit with `git archive` and prints
+  the same digest (K0 = `03b6ff43`; K1 = K0 plus the promoted facts, one commit). `scripts/phase5/kbad.sh <K1> <fact-id>
+  <out>` builds the PROTOCOL §5 S3 negative-control trees (proxy-only, refused promotion, release outside the
+  transition, wrong pin, superseded, retracted, undecidable condition, contradicting active fact) as copies of K1; each
+  is documented in `scripts/phase5/kbad/main.go`.
+- **Agent verdicts are scored apart from policy.** The agent's provisional class per item (`AgentVerdict`, PROTOCOL §8) is
+  matched to expected items with the same matcher as policy findings and scored `correct` / `false-safe` (agent
+  not-affected, expected anything else) / `false-alarm` (agent affected, expected not-affected) / `hedged`
+  (potentially-affected or insufficient-evidence, not equal to expected) / `overstated` (agent affected, expected
+  potentially-affected or insufficient-evidence) / `no-verdict`. Ungated; never read by gates or policy metrics; absent
+  from the score when an arm stored no verdicts.
+- **`-compare <run>[,label=<run>…]`** prints Markdown tables for stored runs side by side, first = baseline: policy class
+  per item, safety rows (false negatives, unsafe eligibility, clearances, unsafe clearances, clearances gained/lost),
+  accuracy and coverage/risk detection as separate tables, human-review and cost rows, agent-verdict outcomes. The
+  analysis is `docs/phase5/learning-loop/EVAL-REPORT.md`.

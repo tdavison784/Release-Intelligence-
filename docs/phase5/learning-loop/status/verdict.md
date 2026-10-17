@@ -101,7 +101,21 @@ and mitigation hypotheses (prompt v6)".
   - Workaround: a fresh store/workspace per arm and run.
   - eval5 was told (message 2026-10-17). It matters for A0/B0/C1 if the arms share a store.
 
+## Merge of p5-learning-loop (pins, coverage, eval5 wave 1, verify), 2026-10-17
+- README conflict resolved (both command lines kept). Schemas regenerate identically.
+- Local views replaced with the real types (commander request):
+  - `internal/investigate/verify/verify.go`: `runView` now decodes `[]domain.Hypothesis` and maps
+    `ReleaseBounds` → `ProofBounds` (same `{from,to}`).
+  - `internal/knowledge/promote.go`: the parser's prefix is `domain.HypothesisRuleKind`. Its lenient parsing
+    (a rule without `@<inv>`) is kept on purpose rather than switched to the stricter
+    `domain.ParseHypothesisRule`.
+  - `cmd/ri/eval_investigations_knowledge.go`: eval5's `agentVerdictInputs` stub now reads
+    `inv.AgentVerdicts`, with a test (`cmd/ri/eval_verdicts_test.go`).
+- `go build ./... && go vet ./... && go test ./...` green after the merge.
+
 ## Files touched outside ownership
+- (merge) `internal/investigate/verify/verify.go`, `internal/knowledge/promote.go`,
+  `cmd/ri/eval_investigations_knowledge.go` + `cmd/ri/eval_verdicts_test.go`: the local-view replacements above.
 - `internal/investigate/run/pipeline.go`: +3 lines (store `out.Verdicts`; a comment that `agentOutcome` omits
   them).
 - `README.md`: two command lines.

@@ -31,6 +31,7 @@ var kindDirs = map[domain.RecordKind]string{
 	domain.RecordReviewItem: "reviews",
 	domain.RecordDecision:   "decisions",
 	domain.RecordFact:       "facts",
+	domain.RecordProof:      "proofs",
 }
 
 // idKinds maps an id prefix to the kind it names.
@@ -41,6 +42,7 @@ var idKinds = map[string]domain.RecordKind{
 	domain.ReviewItemIDPrefix: domain.RecordReviewItem,
 	domain.DecisionIDPrefix:   domain.RecordDecision,
 	domain.FactIDPrefix:       domain.RecordFact,
+	domain.ProofIDPrefix:      domain.RecordProof,
 }
 
 // FileStore is the default Store: one JSON file per record under
@@ -96,6 +98,8 @@ func (s *FileStore) path(rec domain.KnowledgeRecord) (string, error) {
 			candidateID = rec.Validation.CandidateID
 		case domain.RecordReviewItem:
 			candidateID = rec.ReviewItem.CandidateID
+		case domain.RecordProof:
+			candidateID = rec.Proof.CandidateID
 		case domain.RecordDecision:
 			item, err := s.getLocked(rec.Decision.ReviewItemID)
 			if err != nil {
@@ -144,6 +148,10 @@ func (s *FileStore) putLocked(rec domain.KnowledgeRecord) error {
 		if err := s.checkFact(*rec.Fact); err != nil {
 			return err
 		}
+	case domain.RecordProof:
+		if err := s.checkProof(*rec.Proof); err != nil {
+			return err
+		}
 	}
 	existing, err := readRecord(path)
 	switch {
@@ -164,6 +172,24 @@ func (s *FileStore) putLocked(rec domain.KnowledgeRecord) error {
 		}
 	}
 	return writeRecord(path, rec)
+}
+
+// checkProof verifies a proof's references: its review item exists, belongs
+// to the proof's candidate and product, and proposes the rule the proof
+// verified (the digest is what the promotion gate matches on).
+func (s *FileStore) checkProof(p domain.ProofRecord) error {
+	rec, err := s.getLocked(p.ReviewItem)
+	if err != nil || rec.ReviewItem == nil {
+		return fmt.Errorf("%w: proof %s names review item %s", ErrOrphan, p.ID, p.ReviewItem)
+	}
+	it := rec.ReviewItem
+	if it.CandidateID != p.CandidateID || it.Product != p.Product {
+		return fmt.Errorf("knowledge: proof %s: review item %s belongs to %s/%s, not %s/%s", p.ID, it.ID, it.Product, it.CandidateID, p.Product, p.CandidateID)
+	}
+	if it.Proposed.Digest() != p.ProposedRuleDigest {
+		return fmt.Errorf("knowledge: proof %s verified rule %s, but review item %s proposes %s", p.ID, p.ProposedRuleDigest, it.ID, it.Proposed.Digest())
+	}
+	return nil
 }
 
 // checkFact verifies the references of a fact (its candidates exist) and
@@ -406,6 +432,8 @@ func (s *FileStore) loadLocked(q Query) (*Snapshot, error) {
 						snap.ReviewItems = append(snap.ReviewItems, *rec.ReviewItem)
 					case domain.RecordDecision:
 						snap.Decisions = append(snap.Decisions, *rec.Decision)
+					case domain.RecordProof:
+						snap.Proofs = append(snap.Proofs, *rec.Proof)
 					case domain.RecordFact:
 						f := *rec.Fact
 						if len(wantStatus) > 0 && !wantStatus[f.Status] {
@@ -445,6 +473,9 @@ func (s *Snapshot) sort() {
 	})
 	sort.Slice(s.Facts, func(i, j int) bool {
 		return lessTimeID(s.Facts[i].CreatedAt.UnixNano(), s.Facts[i].ID, s.Facts[j].CreatedAt.UnixNano(), s.Facts[j].ID)
+	})
+	sort.Slice(s.Proofs, func(i, j int) bool {
+		return lessTimeID(s.Proofs[i].CheckedAt.UnixNano(), s.Proofs[i].ID, s.Proofs[j].CheckedAt.UnixNano(), s.Proofs[j].ID)
 	})
 }
 

@@ -26,6 +26,9 @@ type decisionInput struct {
 	Outcome     string                 // reject only: "rejected" (default) or "duplicate"
 	DuplicateOf string
 	Corrected   *domain.SemanticAssertion
+	// Supersedes / Coexists: the reviewer's choice per active same-subject
+	// fact when promoting an agent-proposed rule (hypothesis.go).
+	Supersedes, Coexists []string
 }
 
 // refuseProxy rejects any attempt to record a non-human decision through the
@@ -145,6 +148,7 @@ func buildDecision(rc *knowledge.ReviewContext, in decisionInput) (domain.Review
 		// accept raises exactly those (DESIGN §2.6, a fact's level is its
 		// weakest aspect)
 		d.Aspects = wholeFactAspects(rc.Item)
+		d.Supersedes, d.Coexists = in.Supersedes, in.Coexists
 	}
 	d.ID = domain.DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt)
 	if err := d.Validate(); err != nil {
@@ -228,6 +232,10 @@ func (s *server) decide(w http.ResponseWriter, r *http.Request) {
 			refuse(http.StatusUnprocessableEntity, err.Error())
 			return
 		}
+	}
+	if in.Supersedes, in.Coexists, err = relations(rc, r.PostForm); err != nil {
+		refuse(http.StatusBadRequest, err.Error())
+		return
 	}
 	d, err := buildDecision(rc, in)
 	if err != nil {

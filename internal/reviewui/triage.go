@@ -47,6 +47,10 @@ const (
 	HiddenParked     = "parked"     // needs-evidence / deferred (a decision parked it)
 	HiddenVerified   = "verified"   // an active fact already holds it at human/deterministic level
 	HiddenSuperseded = "superseded" // replaced, or the fact it audits was retracted / superseded
+	// HiddenAwaitingProof: an agent-proposed rule without a confirmed proof —
+	// the promotion gate refuses any decision that would promote it, so a
+	// decision cannot change a classification yet (`ri verify hypotheses`).
+	HiddenAwaitingProof = "awaiting-proof"
 )
 
 // Triage is the verdict for one review item.
@@ -206,6 +210,19 @@ func triageItems(snap *knowledge.Snapshot, scope BlockingScope) map[string]Triag
 	out := make(map[string]Triage, len(snap.ReviewItems))
 	for _, it := range snap.ReviewItems {
 		t := triageOne(it, cands[it.CandidateID], decs[it.ID], snap.Facts, scope)
+		_, _, hyp := knowledge.HypothesisSource(snap, it)
+		if hyp && t.NeedsReview {
+			if g := knowledge.PromotionGate(snap, it, it.Proposed); !g.Open {
+				t = hide(HiddenAwaitingProof, "agent-proposed rule: "+g.Reason)
+			} else if t.Blocking {
+				// a confirmed rule is a new pin source: promoting it can clear
+				// the investigated environments that meet its conditions
+				t.PinSource = true
+				t.Why = "An agent proposed this rule and independent verification confirmed it (proof " + g.Proof.ID + "). Only a human can promote it; once promoted it is reused for every environment that meets its conditions."
+				out[it.ID] = t
+				continue
+			}
+		}
 		// a pin source by the fact it would verify, not by its own question:
 		// a sibling question (e.g. the consequence of a default-change
 		// candidate) is needed to make the pin-source fact human as well
@@ -265,6 +282,9 @@ func triageOne(it domain.ReviewItem, cand domain.SemanticCandidate, decs []domai
 		// audit verifies the consequence only, a whole-fact review all four)
 		audit := (it.QuestionType == domain.QuestionClassification || it.QuestionType == domain.QuestionFactReview) &&
 			f.Assertion.Digest() == it.Proposed.Digest()
+		if it.QuestionType == domain.QuestionFactReview && !audit {
+			continue // a whole-fact item proposing another rule is not verified by this fact
+		}
 		if audit && f.Status != domain.FactActive {
 			return hide(HiddenSuperseded, "the fact it audits is "+string(f.Status))
 		}

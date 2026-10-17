@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"gopkg.in/yaml.v3"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -100,6 +101,15 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 		return nil, err
 	}
 	notes = append(notes, factNotes...)
+	conflicts, err := v.contradictions(ctx, in.Bundle, facts)
+	if err != nil {
+		return nil, err
+	}
+	if len(conflicts) > 0 {
+		out.notRun(cov, ReasonPinContradictingFacts, property,
+			"active facts contradict each other on the subject of a pin-source fact, so none of them is a pin rule (a gap a human resolves by superseding or retracting one):\n- "+strings.Join(conflicts, "\n- "))
+		return out.result()
+	}
 	var specs []pinSpec
 	for _, f := range facts {
 		s, note := specsFromFact(f.fact, f.artifact)
@@ -109,7 +119,7 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 		}
 	}
 	if len(specs) == 0 {
-		out.notRun(cov, "pin:no-rule", property,
+		out.notRun(cov, ReasonPinNoRule, property,
 			"no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts):\n- "+strings.Join(notes, "\n- "))
 		return out.result()
 	}
@@ -117,6 +127,7 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 	if err != nil {
 		return nil, err
 	}
+	undecidable := false
 	for _, s := range specs {
 		res := s.evaluate(view)
 		label := fmt.Sprintf("%s from fact %s: %s %s", s.rule, s.fact.ID, s.setting(), s.acceptance())
@@ -125,7 +136,16 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 			notes = append(notes, label+" — undecided: "+res.undecided)
 			continue
 		case !res.held:
-			notes = append(notes, label+" — not pinned:\n    "+strings.Join(res.misses, "\n    "))
+			undecidable = undecidable || res.onlyUndecidable()
+			var lines []string
+			lines = append(lines, res.misses...)
+			for _, u := range res.undecidable {
+				lines = append(lines, "undecidable: "+u)
+			}
+			for _, h := range res.excluded {
+				lines = append(lines, fmt.Sprintf("out of scope: %s (%s): %s", h.object, h.view, h.why))
+			}
+			notes = append(notes, label+" — not pinned:\n    "+strings.Join(lines, "\n    "))
 			continue
 		}
 		d := draft{rule: s.rule, outcome: domain.ValidationPass, property: property,
@@ -133,20 +153,29 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 		for _, h := range res.hits {
 			d.evidence = append(d.evidence, out.cite(h.evidence))
 		}
+		for _, h := range res.excluded {
+			d.evidence = append(d.evidence, out.cite(h.evidence))
+		}
+		for _, e := range res.schemaEvidence {
+			d.evidence = append(d.evidence, out.cite(e))
+		}
 		for _, e := range s.fact.Evidence {
 			d.evidence = append(d.evidence, out.cite(e))
 		}
 		d.pin = pinOf(s.kind, pinPath(s), res.hits)
-		d.detail = fmt.Sprintf("pin rule %s, from fact %s (verification %s): %s\nPinning setting: %s, %s — it holds everywhere it matters:\n%s",
-			s.rule, s.fact.ID, s.fact.Level(), factStatement(*s.fact), s.setting(), s.acceptance(), describeHits(res.hits))
+		d.detail = fmt.Sprintf("pin rule %s, from fact %s (verification %s, release %s): %s\nPinning setting: %s, %s — it holds everywhere it matters:\n%s%s",
+			s.rule, s.fact.ID, s.fact.Level(), s.fact.Release, factStatement(*s.fact), s.setting(), s.acceptance(), describeHits(res.hits), describeScope(res))
 		if d.pin.RenderedObject != "" {
 			d.detail += "It lands in the environment render in " + d.pin.RenderedObject + "."
 		}
 		out.add(d)
 		return out.result()
 	}
-	out.notRun(cov, "pin:not-established", property,
-		"no pin rule holds in the environment (an absent setting, one set only on some objects, or a value that changes the behaviour is never a pin):\n- "+strings.Join(notes, "\n- "))
+	reason, why := ReasonPinNotEstablished, "no pin rule holds in the environment (an absent setting, one set only on some objects, or a value that changes the behaviour is never a pin)"
+	if undecidable {
+		reason, why = ReasonPinApplicabilityUndecidable, "no pin rule holds in the environment: a rule's setting is missing on objects whose membership in the rule's scope cannot be decided, and an undecidable object is never excluded"
+	}
+	out.notRun(cov, reason, property, why+":\n- "+strings.Join(notes, "\n- "))
 	return out.result()
 }
 
@@ -333,6 +362,7 @@ func (v *overrideInspection) facts(ctx context.Context, in investigate.Validatio
 	var out []factRef
 	var notes []string
 	seen := map[string]bool{}
+	b := in.Bundle
 	take := func(f domain.VerifiedFact, artifact string) {
 		if seen[f.ID] {
 			return
@@ -344,10 +374,13 @@ func (v *overrideInspection) facts(ctx context.Context, in investigate.Validatio
 		case !f.Level().Trusted():
 			notes = append(notes, fmt.Sprintf("fact %s is verified only at level %s: a consensus or proxy fact is never a pin rule", f.ID, orAny(string(f.Level()))))
 		default:
+			if why := outsideTransition(f, b.Change); why != "" {
+				notes = append(notes, fmt.Sprintf("fact %s %s: a fact whose release does not lie inside the transition is never a pin rule", f.ID, why))
+				return
+			}
 			out = append(out, factRef{fact: f, artifact: artifact})
 		}
 	}
-	b := in.Bundle
 	for _, a := range b.Manifest.Artifacts {
 		if a.Kind != domain.ArtifactKnowledgeFact || !contains(a.ChangeItems, item.ID) {
 			continue
@@ -393,6 +426,90 @@ func (v *overrideInspection) facts(ctx context.Context, in investigate.Validatio
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].fact.ID < out[j].fact.ID })
 	return out, notes, nil
+}
+
+// outsideTransition says why a fact's release does not lie inside the
+// change's FROM → TO transition (from < release ≤ to, same product); "" when
+// it does. A fact that states no release, or a version that does not parse,
+// is never inside.
+func outsideTransition(f domain.VerifiedFact, c domain.ChangeEvidenceRecord) string {
+	if f.Product != c.Product.ID {
+		return fmt.Sprintf("is about product %s, not %s", f.Product, c.Product.ID)
+	}
+	if strings.TrimSpace(f.Release) == "" {
+		return "states no release"
+	}
+	v, err := semver.NewVersion(strings.TrimSpace(f.Release))
+	from, err1 := semver.NewVersion(c.From.Semver)
+	to, err2 := semver.NewVersion(c.To.Semver)
+	if err != nil || err1 != nil || err2 != nil {
+		return fmt.Sprintf("has release %q, which cannot be compared with the transition %s → %s", f.Release, c.From.Semver, c.To.Semver)
+	}
+	if !from.LessThan(v) || to.LessThan(v) {
+		return fmt.Sprintf("has release %s, outside the transition %s → %s", f.Release, c.From.Semver, c.To.Semver)
+	}
+	return ""
+}
+
+// contradictions returns, for each pin-source fact with a subject, the
+// active facts inside the transition about the same subject (every
+// knowledge-fact artifact of the bundle and every WithFacts fact, whatever
+// its level or attachment) that state a different change or applicability.
+func (v *overrideInspection) contradictions(ctx context.Context, b *domain.EvidenceBundle, facts []factRef) ([]string, error) {
+	var sources []factRef
+	for _, f := range facts {
+		if f.fact.Assertion.Subject != nil {
+			sources = append(sources, f)
+		}
+	}
+	if len(sources) == 0 {
+		return nil, nil
+	}
+	var pool []domain.VerifiedFact
+	for _, a := range b.Manifest.Artifacts {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if a.Kind != domain.ArtifactKnowledgeFact {
+			continue
+		}
+		data, _, err := v.cfg.read(ctx, b, a.ID)
+		if err != nil {
+			continue // an unreadable fact is noted by facts() when it matters
+		}
+		if f, err := parseFact(data); err == nil {
+			pool = append(pool, f)
+		}
+	}
+	pool = append(pool, v.cfg.facts...)
+	var out []string
+	for _, s := range sources {
+		key := s.fact.Assertion.Subject.Key()
+		mine := ruleShape(s.fact)
+		seen := map[string]bool{}
+		for _, g := range pool {
+			if g.ID == s.fact.ID || seen[g.ID] || g.Status != domain.FactActive || g.Assertion.Subject == nil ||
+				g.Assertion.Subject.Key() != key || outsideTransition(g, b.Change) != "" {
+				continue
+			}
+			seen[g.ID] = true
+			if ruleShape(g) != mine {
+				out = append(out, fmt.Sprintf("fact %s and fact %s (level %s) are both active for %s %s but state a different change or applicability",
+					s.fact.ID, g.ID, orAny(string(g.Level())), key, g.Release))
+			}
+		}
+	}
+	sort.Strings(out)
+	return out, nil
+}
+
+// ruleShape is what a pin rule rests on: the change and the applicability.
+func ruleShape(f domain.VerifiedFact) string {
+	b, _ := json.Marshal(struct {
+		C *domain.ChangeSpec    `json:"c"`
+		A *domain.Applicability `json:"a"`
+	}{f.Assertion.Change, f.Assertion.Applicability})
+	return string(b)
 }
 
 // edge reads the upgrade edge the change record references.

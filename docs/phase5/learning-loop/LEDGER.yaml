@@ -1,0 +1,222 @@
+# Phase 5 work ledger — work queue + enqueue-time authorization + window history.
+# Adopted 2026-10-17 (product owner: "go ahead and update the ledger"); design:
+# docs/phase4/env-impact/proposals/2026-10-16-window-ledger.md. COMMANDER.md stays the live STATE doc.
+# Rules: ids monotonic, never reused; every change committed; a GLM window executes ONLY items with
+# glm-executable: true; the guard auto-starts only status: ready + glm-executable + auto-start + unowned
+# + kind: lane items. providers: [claude] items are never executed by GLM (model under test / provider data).
+version: 1
+goal: p5-learning-loop
+items:
+  - id: W-0001
+    title: Lane pins — rule applicability conditions + effective object view
+    kind: lane
+    status: done
+    owner: ri-pins
+    merged: cbb192c8
+    brief: briefs/pins.md
+    providers: [claude, glm]
+    glm-executable: true      # GLM continuation glm-pins at a Claude window, as in Phase 4
+    auto-start: false         # already running
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0002
+    title: Lane coverage — inferred-namespace edges + description-only rendered changes
+    kind: lane
+    status: done
+    owner: ri-coverage
+    merged: ef6b8d04
+    brief: briefs/coverage.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0003
+    title: Lane verdict — item dossier, agent provisional verdict, mitigation hypotheses, export
+    kind: lane
+    status: in-progress
+    owner: ri-verdict
+    brief: briefs/verdict.md
+    providers: [claude, glm]
+    glm-executable: true      # code only; its live smoke run must use claude -p (see W-0012 note)
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0004
+    title: Lane verify — proof records, both-arm rule exercise, promotion gate, review UI
+    kind: lane
+    status: done
+    owner: ri-verify
+    brief: briefs/verify.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0005
+    title: Lane groundtruth5 — sealed held-out cases (branch never merged before W-0016)
+    kind: lane
+    status: in-progress
+    owner: ri-groundtruth5
+    brief: briefs/groundtruth5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "sealed: nobody but this lane reads p5ll/groundtruth5 before W-0016"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0006
+    title: Lane eval5 wave 1 — knowledgeDigest, snapshots, agent-verdict scoring, A0 baseline
+    kind: lane
+    status: done
+    merged: e5b3afa7
+    owner: ri-eval5
+    brief: briefs/eval5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0007
+    title: Merge wave-1 lanes (pins, coverage, verdict, verify, eval5) as each reports LANE DONE
+    kind: review
+    status: ready
+    ready-when: the lane reported LANE DONE and is green in its worktree
+    providers: [claude, glm]
+    glm-executable: true      # pre-authorized; the Claude commander reviews every GLM merge at resume
+    auto-start: false
+    integrity: "never merge p5ll/groundtruth5 here"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: ledger adoption decision 2}
+  - id: W-0008
+    title: Fleet guard v4 — read this ledger at handoff/resume
+    kind: lane
+    status: done
+    owner: ri-guard
+    quota-actual: {provider: claude, note: "ri-guard Sonnet session, ~2 min; 23 tests green; reviewed by claude-commander 08:10"}
+    brief: docs/phase4/env-impact/proposals/2026-10-16-window-ledger.md#adoption-steps
+    providers: [claude]
+    glm-executable: false     # the guard is the safety mechanism; Claude only
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: ledger adoption step 3}
+  - id: W-0010
+    title: Code freeze F1 + PROTOCOL §6 step 1 (record SHA)
+    kind: commander-task
+    status: queued
+    depends: [W-0007]
+    providers: [claude]
+    glm-executable: false
+    auto-start: false
+  - id: W-0011
+    title: Arm A0 + C1-ready deterministic runs on the 8 Phase 4 cases with K0 (PROTOCOL §6 step 2)
+    kind: commander-task
+    status: queued
+    depends: [W-0010]
+    providers: [claude, glm]  # deterministic, no model under test
+    glm-executable: true
+    auto-start: false
+    quota-estimate: {provider: any, tokens: ~50k}
+  - id: W-0012
+    title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
+    kind: commander-task
+    status: queued
+    depends: [W-0010]
+    providers: [claude]       # MODEL UNDER TEST: never under GLM
+    glm-executable: false
+    auto-start: false
+    ready-when: a fresh Claude 5h window (Phase 4 arm B used ~825k tokens)
+    quota-estimate: {provider: claude, tokens: ~1M}
+  - id: W-0013
+    title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
+    kind: commander-task
+    status: queued
+    depends: [W-0012]
+    providers: [claude, glm]  # deterministic + observed; no model judgment
+    glm-executable: true
+    auto-start: false
+  - id: W-0014
+    title: Human promotion of confirmed hypotheses in the review UI → K1 SHA (PROTOCOL §6 step 5)
+    kind: decision
+    decision-rights: user
+    status: queued
+    depends: [W-0013]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0015
+    title: Arm C1 + Kbad-* negative controls on the 8 cases (PROTOCOL §6 step 6)
+    kind: commander-task
+    status: queued
+    depends: [W-0014]
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+  - id: W-0016
+    title: Unseal groundtruth5 (merge p5ll/groundtruth5 at F1, no code edits after)
+    kind: decision
+    decision-rights: claude-commander
+    status: queued
+    depends: [W-0005, W-0015]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0017
+    title: Held-out runs A0 / B0 / C1 (B0 part Claude only)
+    kind: commander-task
+    status: queued
+    depends: [W-0016]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0018
+    title: Phase 5 report (EVAL-REPORT.md, SUMMARY.md) + PR
+    kind: commander-task
+    status: queued
+    depends: [W-0017]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0019
+    title: Delete superseded branch p4ei/eval (needs git branch -D)
+    kind: decision
+    decision-rights: user
+    status: ready
+    providers: [claude]
+    glm-executable: false
+  - id: W-0020
+    title: Next fleet on gascity + beads? (proposal "Recommended path" 2)
+    kind: decision
+    decision-rights: user
+    status: queued
+    ready-when: Phase 5 report done (do not re-platform mid-experiment)
+    providers: [claude]
+    glm-executable: false
+  - id: W-0020a
+    title: Evidence-prep for W-0020 — gascity/beads fit, migration cost, what our provider/quota layer must port
+    kind: evidence-prep
+    status: ready
+    providers: [claude, glm]
+    glm-executable: true      # idle-window work: options only, no decision
+    auto-start: true
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: idle GLM windows should do evidence-prep}
+  - id: W-0021
+    title: Remove Phase 4 integration worktree .claude/worktrees/p4-integration (PR #6 merged)
+    kind: commander-task
+    status: queued
+    ready-when: ri-guard no longer runs in it
+    providers: [claude]
+    glm-executable: false
+  - id: W-0022
+    title: Explain why stored Phase 4 run C-20261016T234455Z-aa06720656 re-classifies only 6/8 cases (pre-existing at 73d72aef)
+    kind: commander-task
+    status: ready
+    providers: [claude, glm]
+    glm-executable: true      # investigation + report only; no code change without the commander
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:22, because: coverage lane finding}
+  - id: W-0023
+    title: Apply coverage's proposed DESIGN.md wording (§2.5, §2.6, §3.1 R2.4) — see status/coverage.md in git history
+    kind: commander-task
+    status: ready
+    providers: [claude]
+    glm-executable: false     # contract edits are Claude-commander only
+  - id: W-0024
+    title: Fix — investigation id ignores run settings (same bundle + state dir, different -agent/-runtime ⇒ second run silently resumes the first)
+    kind: lane
+    status: queued
+    ready-when: lane verdict reports LANE DONE (it found the bug; assign to it or a fresh lane)
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "must not change the ids/digests of stored Phase 4 runs; a test runs both orders"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:30, because: verdict lane finding}
+windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
