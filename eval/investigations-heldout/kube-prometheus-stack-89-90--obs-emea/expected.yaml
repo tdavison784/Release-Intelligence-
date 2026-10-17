@@ -1,0 +1,104 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: kube-prometheus-stack-89-90--obs-emea
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md
+        lines: "L3-L19"
+        quote: "The bearer token now comes from a Secret through `authorization`, and the CA from the `kube-root-ca.crt` ConfigMap ... the chart now creates one itself: `prometheus.serviceAccount.createTokenSecret` (default `true`) renders a `kubernetes.io/service-account-token` Secret named `<prometheus service account>-token`. That token is long-lived and does not expire. Disable the value and set the `authorization` of each component if you would rather manage the credential yourself."
+      - url: https://github.com/kubernetes/website/blob/c2f45dad1a42840c53d59e30b7e4d1706392ecea/content/en/docs/reference/access-authn-authz/validating-admission-policy.md
+        lines: "L94-L98"
+        quote: "`validationActions` to declare how `validations` of a policy are enforced. ... The supported `validationActions` are: - `Deny`: Validation failure results in a denied request."
+    match:
+      - subject: kubelet.serviceMonitor.authorization
+      - text: '(?i)authorization|bearerTokenFile|token secret|kube-root-ca'
+    components:
+      - ref: {renderedFrom: env/infrastructure/monitoring/helmrelease.yaml, apiVersion: v1, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/infrastructure/monitoring/helmrelease.yaml, kind: HelmRelease, namespace: monitoring, name: kube-prometheus-stack}, relation: deploys}
+          - {ref: {renderedFrom: env/infrastructure/monitoring/helmrelease.yaml, kind: Secret, namespace: monitoring, name: kube-prometheus-stack-prometheus-token}, relation: renders-to}
+          - {ref: {file: env/infrastructure/policies/deny-service-account-token-secrets.yaml, kind: ValidatingAdmissionPolicy, name: deny-service-account-token-secrets}, relation: references}
+          - {ref: {renderedFrom: env/infrastructure/monitoring/helmrelease.yaml, kind: ServiceMonitor, namespace: monitoring, name: kube-prometheus-stack-kubelet}, field: 'spec.endpoints[0].authorization', relation: references}
+        reason: >-
+          Chart 90.2.0 renders a long-lived kubernetes.io/service-account-token Secret for the
+          Prometheus service account and points the control-plane ServiceMonitors (apiserver, kubelet,
+          CoreDNS) at it. The platform's ValidatingAdmissionPolicy deny-service-account-token-secrets,
+          applied before monitoring, denies exactly that Secret type. The HelmRelease upgrade (helm, as
+          Flux's helm-controller runs it) fails creating the Secret: release revision 2 is "failed", the
+          cluster stays on the 89.2.4 objects and the environment's declared version cannot be reached
+          (observed). The values offer no way around it without changing the policy or replacing the
+          control-plane authorization (UPGRADE.md: disable createTokenSecret and set authorization of each
+          component). Nothing in the rendered manifests shows the conflict: it exists only at admission.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/infrastructure/policies/deny-service-account-token-secrets.yaml, object: ValidatingAdmissionPolicy/deny-service-account-token-secrets, field: spec.validations}
+          - {file: env/infrastructure/monitoring/values.yaml, field: prometheus}
+          - {file: env/clusters/prod/infrastructure.yaml, object: Kustomization/monitoring, field: spec.dependsOn}
+    remediation: >-
+      Before upgrading, set prometheus.serviceAccount.createTokenSecret false and give each enabled
+      control-plane ServiceMonitor an authorization the policy allows (or an exemption in the policy for
+      this Secret), then verify the control-plane targets after the upgrade.
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md
+        lines: "L43-L46"
+        quote: "`prometheusOperator.secretFieldSelector` no longer excludes `kubernetes.io/service-account-token`, so that changes to that Secret trigger a reconciliation. The operator reads Secrets referenced by a ServiceMonitor directly, so scraping also works with the previous value, but the generated configuration is then only refreshed on the next unrelated reconciliation."
+    match:
+      - subject: prometheusOperator.secretFieldSelector
+      - text: '(?i)secret.?field.?selector'
+    components:
+      - ref: {file: env/infrastructure/monitoring/values.yaml}
+        classification: not-affected
+        reason: >-
+          values.yaml pins secretFieldSelector to the previous default (excluding service-account-token
+          Secrets), so the default change does not apply; per UPGRADE.md scraping still works with it.
+          The only consequence is that a change of the token Secret is picked up at the next unrelated
+          reconciliation; the chart-created token does not expire or change.
+        mitigation: {ref: {file: env/infrastructure/monitoring/values.yaml}, field: prometheusOperator.secretFieldSelector, value: "type!=kubernetes.io/dockercfg,type!=kubernetes.io/service-account-token,type!=helm.sh/release.v1", kind: override}
+        requiredEvidence:
+          - {file: env/infrastructure/monitoring/values.yaml, field: prometheusOperator.secretFieldSelector}
+  - item: B3
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/UPGRADE.md
+        lines: "L48-L59"
+        quote: "Removed values, all replaced by the `authorization` and `tlsConfig` blocks of the same component ... `<component>.serviceMonitor.bearerTokenFile` ... `kubelet.serviceMonitor.insecureSkipVerify` ..."
+    match:
+      - subject: kubelet.serviceMonitor.insecureSkipVerify
+      - text: '(?i)removed values|bearerTokenFile|insecureSkipVerify|caSecret'
+    components:
+      - ref: {file: env/infrastructure/monitoring/values.yaml}
+        classification: not-affected
+        reason: values.yaml sets none of the removed keys (only enabled flags for the control-plane components); nothing is silently dropped.
+        mitigation: {ref: {file: env/infrastructure/monitoring/values.yaml}, kind: feature-unused}
+        requiredEvidence:
+          - {file: env/infrastructure/monitoring/values.yaml}
+renderedChanges:
+  - diff: observed/render.diff#L659-L678
+    object: "Secret/monitoring/kube-prometheus-stack-prometheus-token"
+    change: "new kubernetes.io/service-account-token Secret for the Prometheus service account (prometheus.serviceAccount.createTokenSecret default true)"
+    item: B1
+    impact: breaking
+  - diff:
+      - observed/render.diff#L790-L812
+      - observed/render.diff#L813-L824
+      - observed/render.diff#L828-L850
+      - observed/render.diff#L865-L877
+      - observed/render.diff#L878-L896
+      - observed/render.diff#L897-L916
+      - observed/render.diff#L917-L928
+    object: "ServiceMonitor/monitoring/kube-prometheus-stack-{apiserver,coredns,kubelet}"
+    change: "bearerTokenFile -> authorization (Bearer, Secret kube-prometheus-stack-prometheus-token key token); tlsConfig.caFile -> tlsConfig.ca.configMap kube-root-ca.crt/ca.crt"
+    item: B1
+    impact: breaking

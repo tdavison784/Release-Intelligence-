@@ -71,3 +71,101 @@ Visit https://github.com/prometheus-operator/kube-prometheus for instructions on
 $ kubectl -n monitoring rollout status statefulset/prometheus-kube-prometheus-stack-prometheus --timeout=300s
 Waiting for 1 pods to be ready...
 statefulset rolling update complete 1 pods at revision prometheus-kube-prometheus-stack-prometheus-dc6fbc949...
+
+### baseline on chart 89.2.4  [13:40:50Z]
+$ kubectl -n monitoring get servicemonitors
+NAME                                             AGE
+kube-prometheus-stack-apiserver                  97s
+kube-prometheus-stack-coredns                    97s
+kube-prometheus-stack-kube-state-metrics         97s
+kube-prometheus-stack-kubelet                    97s
+kube-prometheus-stack-operator                   97s
+kube-prometheus-stack-prometheus                 97s
+kube-prometheus-stack-prometheus-node-exporter   97s
+$ kubectl -n monitoring get servicemonitor kube-prometheus-stack-kubelet -o jsonpath={.spec.endpoints[0]}
+{"bearerTokenFile":"/var/run/secrets/kubernetes.io/serviceaccount/token","honorLabels":true,"honorTimestamps":true,"metricRelabelings":[{"action":"drop","regex":"(csi_operations|storage_operation_duration)_seconds_bucket;(0.25|2.5|15|25|120|600)(\\.0)?","sourceLabels":["__name__","le"]}],"port":"https-metrics","relabelings":[{"action":"replace","sourceLabels":["__metrics_path__"],"targetLabel":"metrics_path"}],"scheme":"https","tlsConfig":{"caFile":"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt","insecureSkipVerify":true}}
+$ kubectl -n monitoring get secrets --field-selector type=kubernetes.io/service-account-token
+No resources found in monitoring namespace.
+$ kubectl get --raw /api/v1/namespaces/monitoring/services/kube-prometheus-stack-prometheus:http-web/proxy/api/v1/targets | jq <per scrape pool: up/total, last error>
+  serviceMonitor/monitoring/kube-prometheus-stack-apiserver/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-coredns/0  up 2/2  
+  serviceMonitor/monitoring/kube-prometheus-stack-kube-state-metrics/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/1  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/2  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-operator/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus-node-exporter/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/1  up 1/1  
+
+### UPGRADE: helm upgrade to chart 90.2.0 with the same values  [13:40:50Z]
+$ helm upgrade kube-prometheus-stack /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/kube-prometheus-stack-90.2.0.tgz -n monitoring -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/kube-prometheus-stack-89-90--obs-amer/env/infrastructure/monitoring/values.yaml --wait --timeout 8m
+Release "kube-prometheus-stack" has been upgraded. Happy Helming!
+NAME: kube-prometheus-stack
+LAST DEPLOYED: Sat Oct 17 08:40:50 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace monitoring get pods -l "release=kube-prometheus-stack"
+
+Get Grafana 'admin' user password by running:
+
+  kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace monitoring get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=kube-prometheus-stack" -oname)
+  kubectl --namespace monitoring port-forward $POD_NAME 3000
+
+Get your grafana admin user password by running:
+
+  kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
+
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+(exit 0)
+$ helm -n monitoring history kube-prometheus-stack
+REVISION	UPDATED                 	STATUS    	CHART                       	APP VERSION	DESCRIPTION     
+1       	Sat Oct 17 08:39:07 2026	superseded	kube-prometheus-stack-89.2.4	v0.93.1    	Install complete
+2       	Sat Oct 17 08:40:50 2026	deployed  	kube-prometheus-stack-90.2.0	v0.93.1    	Upgrade complete
+$ kubectl -n monitoring get secrets --field-selector type=kubernetes.io/service-account-token
+NAME                                     TYPE                                  DATA   AGE
+kube-prometheus-stack-prometheus-token   kubernetes.io/service-account-token   3      7s
+$ kubectl -n monitoring get servicemonitors
+NAME                                             AGE
+kube-prometheus-stack-apiserver                  110s
+kube-prometheus-stack-coredns                    110s
+kube-prometheus-stack-kube-state-metrics         110s
+kube-prometheus-stack-kubelet                    110s
+kube-prometheus-stack-operator                   110s
+kube-prometheus-stack-prometheus                 110s
+kube-prometheus-stack-prometheus-node-exporter   110s
+$ kubectl -n monitoring get servicemonitor kube-prometheus-stack-kubelet -o jsonpath={.spec.endpoints[0]}
+{"authorization":{"credentials":{"key":"token","name":"kube-prometheus-stack-prometheus-token"},"type":"Bearer"},"honorLabels":true,"honorTimestamps":true,"metricRelabelings":[{"action":"drop","regex":"(csi_operations|storage_operation_duration)_seconds_bucket;(0.25|2.5|15|25|120|600)(\\.0)?","sourceLabels":["__name__","le"]}],"port":"https-metrics","relabelings":[{"action":"replace","sourceLabels":["__metrics_path__"],"targetLabel":"metrics_path"}],"scheme":"https","tlsConfig":{"ca":{"configMap":{"key":"ca.crt","name":"kube-root-ca.crt"}},"insecureSkipVerify":true}}
+
+### after upgrade (scrape interval 30s; waiting for the operator to reconcile and Prometheus to scrape)  [13:41:03Z]
+$ kubectl get --raw /api/v1/namespaces/monitoring/services/kube-prometheus-stack-prometheus:http-web/proxy/api/v1/targets | jq <per scrape pool: up/total, last error>
+  serviceMonitor/monitoring/kube-prometheus-stack-apiserver/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-coredns/0  up 2/2  
+  serviceMonitor/monitoring/kube-prometheus-stack-kube-state-metrics/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/1  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/2  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-operator/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus-node-exporter/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/1  up 1/1  
+
+### prometheus-operator log lines about the control-plane ServiceMonitors  [13:43:03Z]
+ts=2026-10-17T13:40:57.550764836Z level=info caller=/go/pkg/mod/k8s.io/apiserver@v0.36.3/pkg/server/dynamiccertificates/tlsconfig.go:243 msg="Starting DynamicServingCertificateController"
+ts=2026-10-17T13:40:57.551167669Z level=info caller=/workspace/pkg/kubelet/controller.go:228 msg="Starting controller" component=kubelet_endpoints kubelet_object=kube-system/kube-prometheus-stack-kubelet
+ts=2026-10-17T13:40:57.553679877Z level=info caller=/go/pkg/mod/k8s.io/apiserver@v0.36.3/pkg/server/dynamiccertificates/dynamic_serving_content.go:135 msg="Starting controller" name=servingCert::/cert/cert::/cert/key
+
+### done  [13:43:03Z]
+
+### cleanup  [13:43:03Z]
+Deleting cluster "ri-groundtruth5-obs-amer" ...
+Deleted nodes: ["ri-groundtruth5-obs-amer-control-plane"]

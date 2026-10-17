@@ -74,3 +74,75 @@ Get your grafana admin user password by running:
 Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
 $ kubectl -n monitoring rollout status statefulset/prometheus-kube-prometheus-stack-prometheus --timeout=300s
 statefulset rolling update complete 1 pods at revision prometheus-kube-prometheus-stack-prometheus-dc6fbc949...
+
+### baseline on chart 89.2.4  [13:39:54Z]
+$ kubectl -n monitoring get servicemonitors
+NAME                                             AGE
+kube-prometheus-stack-apiserver                  101s
+kube-prometheus-stack-coredns                    101s
+kube-prometheus-stack-kube-state-metrics         101s
+kube-prometheus-stack-kubelet                    101s
+kube-prometheus-stack-operator                   101s
+kube-prometheus-stack-prometheus                 101s
+kube-prometheus-stack-prometheus-node-exporter   101s
+$ kubectl -n monitoring get servicemonitor kube-prometheus-stack-kubelet -o jsonpath={.spec.endpoints[0]}
+{"bearerTokenFile":"/var/run/secrets/kubernetes.io/serviceaccount/token","honorLabels":true,"honorTimestamps":true,"metricRelabelings":[{"action":"drop","regex":"(csi_operations|storage_operation_duration)_seconds_bucket;(0.25|2.5|15|25|120|600)(\\.0)?","sourceLabels":["__name__","le"]}],"port":"https-metrics","relabelings":[{"action":"replace","sourceLabels":["__metrics_path__"],"targetLabel":"metrics_path"}],"scheme":"https","tlsConfig":{"caFile":"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt","insecureSkipVerify":true}}
+$ kubectl -n monitoring get secrets --field-selector type=kubernetes.io/service-account-token
+No resources found in monitoring namespace.
+$ kubectl get --raw /api/v1/namespaces/monitoring/services/kube-prometheus-stack-prometheus:http-web/proxy/api/v1/targets | jq <per scrape pool: up/total, last error>
+  serviceMonitor/monitoring/kube-prometheus-stack-apiserver/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-coredns/0  up 2/2  
+  serviceMonitor/monitoring/kube-prometheus-stack-kube-state-metrics/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/1  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/2  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-operator/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus-node-exporter/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/1  up 1/1  
+
+### UPGRADE: helm upgrade to chart 90.2.0 with the same values  [13:39:54Z]
+$ helm upgrade kube-prometheus-stack /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/kube-prometheus-stack-90.2.0.tgz -n monitoring -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/kube-prometheus-stack-89-90--obs-emea/env/infrastructure/monitoring/values.yaml --wait --timeout 8m
+Error: UPGRADE FAILED: failed to create resource: secrets "kube-prometheus-stack-prometheus-token" is forbidden: ValidatingAdmissionPolicy 'deny-service-account-token-secrets' with binding 'deny-service-account-token-secrets' denied request: Long-lived service account token Secrets are not allowed; use projected service account tokens.
+(exit 1)
+$ helm -n monitoring history kube-prometheus-stack
+REVISION	UPDATED                 	STATUS  	CHART                       	APP VERSION	DESCRIPTION                                                                                                                                                                                                                                                                                                                                                       
+1       	Sat Oct 17 08:38:05 2026	deployed	kube-prometheus-stack-89.2.4	v0.93.1    	Install complete                                                                                                                                                                                                                                                                                                                                                  
+2       	Sat Oct 17 08:39:54 2026	failed  	kube-prometheus-stack-90.2.0	v0.93.1    	Upgrade "kube-prometheus-stack" failed: failed to create resource: secrets "kube-prometheus-stack-prometheus-token" is forbidden: ValidatingAdmissionPolicy 'deny-service-account-token-secrets' with binding 'deny-service-account-token-secrets' denied request: Long-lived service account token Secrets are not allowed; use projected service account tokens.
+$ kubectl -n monitoring get secrets --field-selector type=kubernetes.io/service-account-token
+No resources found in monitoring namespace.
+$ kubectl -n monitoring get servicemonitors
+NAME                                             AGE
+kube-prometheus-stack-apiserver                  107s
+kube-prometheus-stack-coredns                    107s
+kube-prometheus-stack-kube-state-metrics         107s
+kube-prometheus-stack-kubelet                    107s
+kube-prometheus-stack-operator                   107s
+kube-prometheus-stack-prometheus                 107s
+kube-prometheus-stack-prometheus-node-exporter   107s
+$ kubectl -n monitoring get servicemonitor kube-prometheus-stack-kubelet -o jsonpath={.spec.endpoints[0]}
+{"bearerTokenFile":"/var/run/secrets/kubernetes.io/serviceaccount/token","honorLabels":true,"honorTimestamps":true,"metricRelabelings":[{"action":"drop","regex":"(csi_operations|storage_operation_duration)_seconds_bucket;(0.25|2.5|15|25|120|600)(\\.0)?","sourceLabels":["__name__","le"]}],"port":"https-metrics","relabelings":[{"action":"replace","sourceLabels":["__metrics_path__"],"targetLabel":"metrics_path"}],"scheme":"https","tlsConfig":{"caFile":"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt","insecureSkipVerify":true}}
+
+### after upgrade (scrape interval 30s; waiting for the operator to reconcile and Prometheus to scrape)  [13:40:00Z]
+$ kubectl get --raw /api/v1/namespaces/monitoring/services/kube-prometheus-stack-prometheus:http-web/proxy/api/v1/targets | jq <per scrape pool: up/total, last error>
+  serviceMonitor/monitoring/kube-prometheus-stack-apiserver/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-coredns/0  up 2/2  
+  serviceMonitor/monitoring/kube-prometheus-stack-kube-state-metrics/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/1  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-kubelet/2  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-operator/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus-node-exporter/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/0  up 1/1  
+  serviceMonitor/monitoring/kube-prometheus-stack-prometheus/1  up 1/1  
+
+### prometheus-operator log lines about the control-plane ServiceMonitors  [13:42:00Z]
+ts=2026-10-17T13:38:17.076487678Z level=info caller=/go/pkg/mod/k8s.io/apiserver@v0.36.3/pkg/server/dynamiccertificates/tlsconfig.go:243 msg="Starting DynamicServingCertificateController"
+ts=2026-10-17T13:38:17.076521303Z level=info caller=/go/pkg/mod/k8s.io/apiserver@v0.36.3/pkg/server/dynamiccertificates/dynamic_serving_content.go:135 msg="Starting controller" name=servingCert::/cert/cert::/cert/key
+ts=2026-10-17T13:38:17.07704922Z level=info caller=/workspace/pkg/kubelet/controller.go:228 msg="Starting controller" component=kubelet_endpoints kubelet_object=kube-system/kube-prometheus-stack-kubelet
+
+### done  [13:42:00Z]
+
+### cleanup  [13:42:00Z]
+Deleting cluster "ri-groundtruth5-obs-emea" ...
+Deleted nodes: ["ri-groundtruth5-obs-emea-control-plane"]
