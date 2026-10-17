@@ -16,10 +16,12 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
 )
 
-// SnapshotProducer identifies the snapshot builder in provenance.
-const SnapshotProducer = "bundle.snapshot@v1"
+// SnapshotProducer identifies the snapshot builder in provenance. v2: files
+// and facts are redacted with redaction@v2 (redact.go).
+const SnapshotProducer = "bundle.snapshot@v2"
 
 // maxFileBytes bounds one collected environment file; a larger file is a
 // recorded gap, never a silent truncation.
@@ -379,8 +381,10 @@ func dedupeRefs(in []domain.ArtifactRef) []domain.ArtifactRef {
 }
 
 // redactedFacts marshals the parsed environment with credential values
-// withheld: a ValuesKey whose key names a credential loses its Value and an
-// evidence excerpt that assigns such a key is replaced.
+// withheld as in the files (package redaction): a ValuesKey or field fact
+// whose key names a credential, that sits below a credential-named key or
+// that holds a private key loses its Value, and an evidence excerpt that
+// assigns such a key is replaced.
 func redactedFacts(e *env.Environment) ([]byte, error) {
 	raw, err := json.Marshal(e)
 	if err != nil {
@@ -398,7 +402,7 @@ func walkFacts(n any) {
 	switch v := n.(type) {
 	case map[string]any:
 		if p, ok := v["Path"].(string); ok {
-			if val, ok := v["Value"].(string); ok && val != "" && sensitiveKey.MatchString(lastSegment(p)) {
+			if val, ok := v["Value"].(string); ok && val != "" && withheldFact(p, val) {
 				v["Value"] = redactedValue(val)
 			}
 		}
@@ -415,6 +419,32 @@ func walkFacts(n any) {
 			walkFacts(c)
 		}
 	}
+}
+
+// withheldFact applies the file policy to a fact's path and JSON-encoded
+// value: its own key names a credential (any value, as before), it holds a
+// private key, or a key above it names a credential — then only a number,
+// boolean or null below a mapping stays readable.
+func withheldFact(path, encoded string) bool {
+	if sensitiveKey.MatchString(lastSegment(path)) {
+		return true
+	}
+	var v any
+	if err := json.Unmarshal([]byte(encoded), &v); err != nil {
+		return true // not a JSON leaf: nothing proves it harmless
+	}
+	str, isString := v.(string)
+	if isString && redaction.HoldsPrivateKey(str) {
+		return true
+	}
+	segs := strings.Split(path, ".")
+	for _, seg := range segs[:len(segs)-1] {
+		name, _, seq := strings.Cut(seg, "[")
+		if sensitiveKey.MatchString(name) && (seq || isString) {
+			return true // a credential-named sequence is withheld whole
+		}
+	}
+	return false
 }
 
 func lastSegment(path string) string {

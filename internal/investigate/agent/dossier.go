@@ -13,6 +13,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -27,7 +28,7 @@ import (
 
 const (
 	DossierFormat   = "ri.dev/item-dossier/v1"
-	DossierProducer = "investigate.dossier@v1"
+	DossierProducer = "investigate.dossier@v2" // v2: withheld enum values read back (withheld.go)
 	// MaxDossierBytes bounds the dossier's JSON: it is inlined into the task.
 	MaxDossierBytes = 48 << 10
 )
@@ -593,6 +594,8 @@ type viewObject struct {
 	target   string
 	artifact string
 	complete bool
+	// readBack: withheld enum values read back in body (withheld.go).
+	readBack []redaction.Recovered
 }
 
 func (o viewObject) view() string {
@@ -676,7 +679,25 @@ func (db *dossierBuilder) view(ctx context.Context) error {
 		}
 	}
 	sort.SliceStable(db.objs, func(i, j int) bool { return db.objs[i].id.String() < db.objs[j].id.String() })
+	db.readBack(ctx)
 	return nil
+}
+
+// readBack reads back, in every object of the view, the withheld values that
+// are an enum value the bundle's CRDs declare for that exact field
+// (redaction.Schemas.Recover); every other withheld value stays a marker.
+func (db *dossierBuilder) readBack(ctx context.Context) {
+	if len(db.objs) == 0 {
+		return
+	}
+	ix := bundleSchemas(ctx, db.b, db.in.Read)
+	for i := range db.objs {
+		o := &db.objs[i]
+		o.readBack = ix.Recover(o.id.Group, o.id.Version, o.id.Kind, o.body)
+		if o.from != nil {
+			ix.Recover(o.id.Group, o.id.Version, o.id.Kind, o.from)
+		}
+	}
 }
 
 // --- deciding settings -------------------------------------------------------------------
@@ -897,6 +918,11 @@ func (db *dossierBuilder) objectSetting(s settingSpec, roots map[string]bool) Do
 		switch {
 		case len(vals) > 0:
 			obj.State, obj.Value = SettingExplicit, clip(strings.Join(vals, ", "), dossierValue)
+			for _, r := range o.readBack {
+				if r.Path == s.path {
+					obj.Reason = readBackNote(r)
+				}
+			}
 			if o.from != nil {
 				if before := fieldValues(o.from, segs); strings.Join(before, ", ") == strings.Join(vals, ", ") {
 					db.unchanged(DossierUnchanged{Object: o.id.String(), Setting: s.key(), Value: obj.Value, Target: o.target})

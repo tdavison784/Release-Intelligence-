@@ -19,8 +19,8 @@ import (
 const (
 	NameJoin               = "validate.join@v1"
 	NameRenderDiff         = "validate.render-diff@v2"
-	NameOverrideInspection = "validate.override-inspection@v2"
-	NameSchemaCompat       = "validate.schema-compat@v1"
+	NameOverrideInspection = "validate.override-inspection@v3"
+	NameSchemaCompat       = "validate.schema-compat@v2"
 	NameStaticReference    = "validate.static-reference@v1"
 )
 

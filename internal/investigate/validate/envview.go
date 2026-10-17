@@ -13,6 +13,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
+	"github.com/tdavison784/release-intelligence/internal/investigate/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -24,6 +25,9 @@ type objSource struct {
 	side     string // "file" | "from" | "to" | "overlay"
 	target   string // render target (render sides, overlays)
 	objects  []render.Object
+	// readBack: object id → the withheld enum values read back in it
+	// (envView.recoverWithheld).
+	readBack map[string][]redaction.Recovered
 }
 
 // label names the view an object of the source came from (validation
@@ -220,7 +224,63 @@ func loadView(ctx context.Context, c config, b *domain.EvidenceBundle) (*envView
 			v.schemas = append(v.schemas, e)
 		}
 	}
+	v.recoverWithheld()
 	return v, nil
+}
+
+// recoverWithheld reads back, in every object of the view, the values the
+// collector withheld below a credential-named mapping that are one of the
+// string enum values the bundle's CRDs declare for that exact field
+// (redaction.Schemas.Recover): only a schema constant is ever shown;
+// anything else stays withheld.
+func (v *envView) recoverWithheld() {
+	ix := redaction.NewSchemas()
+	for _, e := range v.schemas {
+		ix.AddCRD(e.obj.Body)
+	}
+	if ix.Len() == 0 {
+		return
+	}
+	each := func(src *objSource) {
+		for _, o := range src.objects {
+			r := ix.Recover(o.ID.Group, o.ID.Version, o.ID.Kind, o.Body)
+			if len(r) == 0 {
+				continue
+			}
+			if src.readBack == nil {
+				src.readBack = map[string][]redaction.Recovered{}
+			}
+			src.readBack[o.ID.String()] = append(src.readBack[o.ID.String()], r...)
+		}
+	}
+	for i := range v.files {
+		each(&v.files[i])
+	}
+	for i := range v.renders {
+		each(&v.renders[i].from)
+		each(&v.renders[i].to)
+	}
+	for i := range v.overlays {
+		each(&v.overlays[i])
+	}
+}
+
+// readBackNote says that the value at path of o was read back from its
+// redaction digest ("" when it was not).
+func (s objSource) readBackNote(o render.ObjectID, path string) string {
+	for _, r := range s.readBack[o.String()] {
+		if r.Path == path {
+			return fmt.Sprintf(" (stored redacted as %s: the digest of %q, an enum value its CRD declares)", r.Marker, r.Value)
+		}
+	}
+	return ""
+}
+
+// redactedValue reports whether a value is a redaction marker (the bundle's
+// or the renderer's): what it stands for is not known.
+func redactedValue(v any) bool {
+	s, ok := v.(string)
+	return ok && (redaction.IsMarker(s) || strings.HasPrefix(s, "<sensitive sha256:"))
 }
 
 func isCRD(o render.Object) bool {

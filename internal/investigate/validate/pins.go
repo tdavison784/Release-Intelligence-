@@ -788,6 +788,9 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 		case map[string]any, []any:
 			continue // a predicate on a scalar never holds for a container
 		}
+		if redactedValue(v) {
+			return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s is withheld (redacted as %v) in %s", leaf, c.Path, v, e.src.label())}
+		}
 		enc := encodeJSON(v)
 		stated = append(stated, plainValue(enc))
 		hit = hit || valueHolds(c, enc)
@@ -796,7 +799,7 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 		if len(stated) == 0 {
 			return c.Path + " is unset"
 		}
-		return c.Path + " is " + strings.Join(stated, ", ")
+		return c.Path + " is " + strings.Join(stated, ", ") + e.src.readBackNote(e.obj.ID, c.Path)
 	}
 	// the API server fills what the object leaves unset with the schema
 	// default: needed when nothing stated decides it
@@ -899,6 +902,9 @@ func (sc *scopeEval) textLine(c domain.Condition, e effObj) verdict {
 		s, ok := v.(string)
 		if !ok {
 			continue
+		}
+		if redactedValue(v) {
+			return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s is withheld (redacted) in %s", leaf, c.Path, e.src.label())}
 		}
 		for _, ln := range strings.Split(s, "\n") {
 			matched = matched || re.MatchString(ln)
