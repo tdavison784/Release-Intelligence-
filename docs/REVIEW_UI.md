@@ -19,17 +19,30 @@ Without JavaScript the inbox lists the items, each links to its page, and every 
 
 ## Needs your verification: the default view
 
-The product owner verifies knowledge facts here, so `/` lists **only the items whose human verification would let an
-investigation clear an environment**: pin-source candidates (`validate.CanBePinSource` on the proposed answer, the
-derivation the OverrideInspection pin rules use) of the investigated upgrades. Start it and read the counts off the
-lines it prints:
+The product owner verifies knowledge facts here, so `/` lists **only the questions whose human verification would let an
+investigation clear an environment**, judged by **fact level**. A fact is as trusted as its weakest aspect
+(`VerifiedFact.Level`), so a pin-source fact (`validate.CanBePinSource`, the derivation the OverrideInspection pin rules
+use) of an investigated upgrade needs review while **any** aspect is below human, or while no fact is composed yet
+because a question of its candidate is open. The view lists every open question needed to make each such fact human,
+sibling questions included (the consequence question of a default-change candidate is not a pin source by itself, but
+the fact cannot compose without it), **grouped per fact** under a header with the aspect levels and a one-line
+"N questions left to verify this fact". Start it and read the counts off the lines it prints:
 
 ```
 ri review serve -knowledge knowledge/ -reviewer <your name>
 # review UI on http://127.0.0.1:8484 (knowledge store knowledge/; Ctrl-C to stop)
-# 2 pin-source item(s) need your verification (listed); 206 other blocking and 631 other open item(s) are one link away
-# 3 pin-source fact(s) hold only consensus/proxy verification and have no review item: run `ri review open-audits -knowledge knowledge/ -apply` to open them
+# 4 pin-source fact(s) below human verification, 4 question(s) to verify them (listed); 205 other blocking and 631 other open item(s) are one link away
 ```
+
+**Whole-fact review.** An audit item (a `classification` question on the fact's assertion) verifies only the
+consequence, so accepting it can leave a fact at consensus. For a pin-source fact below human, `ri review open-audits
+-knowledge DIR -apply` opens ONE **whole-fact review** item (question type `fact-review`): its page shows every aspect
+(subject, change, applicability, consequence) with its current level and asks *"Is this whole fact correct?"*.
+**Accept** verifies every aspect the page displayed as a human decision (the decision records them in `aspects`); an
+aspect a validator confirmed stays deterministic and one a human already verified keeps that earlier decision as its
+basis. **Correct** records the corrections per aspect (`wrong-*` labels) and supersedes the fact; **reject** retracts it.
+A proxy decision on it never makes an aspect human. Bulk accept of a whole-fact item needs its page opened first.
+Earlier decisions are never rewritten: a fact whose audit was accepted is re-opened as a new whole-fact item.
 
 Four views, one link apart, never mixed (header counters cover only the listed view):
 
@@ -56,9 +69,11 @@ candidate text records). `-investigations DIR` (default `eval/investigations`) a
 the scope is read; without them nothing blocks and everything open is under "Other open items".
 
 **Facts with no item.** When consensus auto-approves a fact, its questions are superseded and only some facts are sampled
-into audit, so a pin-source fact can sit at consensus level with nothing a human can decide. `ri review open-audits
--knowledge DIR` lists them (dry run) and with `-apply` opens the missing fact-review items (writes review items into the
-store; idempotent); the startup line says how many are waiting.
+into audit, so a pin-source fact can sit below human with nothing a human can decide. The default view lists such a fact
+in a note above the cards, and the startup line says how many are waiting. `ri review open-audits -knowledge DIR` lists
+them (dry run) and with `-apply` opens one whole-fact review item per fact (writes review items only, never decisions or
+facts; idempotent), then prints the default view: every pin-source fact below human, its aspect levels and the
+questions left.
 
 Decisions are unchanged: reviewer recorded with `reviewerKind: human`, labels and reasons as before; a decided item leaves
 the lists at once. Without a snapshot source (a custom `knowledge.Queue` and no `Options.Snapshot`) the inbox lists

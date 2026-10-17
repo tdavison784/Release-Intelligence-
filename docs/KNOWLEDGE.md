@@ -54,7 +54,10 @@ while the fact's weakest aspect is still consensus); a reject retracts the fact,
 
 ## Decisions → facts (`Queue.Decide`, `FactFromDecision`)
 
-Accept/correct verify the aspects the item's question covers; a fact is minted when all four aspects are verified.
+Accept/correct verify the aspects the item's question covers (narrowed to `ReviewDecision.Aspects` when the decision
+records which aspects the reviewer was shown: a whole-fact review); a fact is minted when all four aspects are verified.
+`OpenWholeFactReview` opens the `fact-review` item of an active fact (every aspect; `ri review open-audits`), separate
+from the audit item `OpenFactReview` opens (a `classification` question, consequence only).
 Corrections keep `Original` and `Corrected`. Later decisions override earlier ones per aspect; a validator-confirmed
 identical value stays deterministic; a proxy never overrides a trusted aspect. Reject + `duplicate` adds the
 candidate's anchors to the named fact. Retraction/supersession: `OpenFactReview` / `ri knowledge review-fact`.
