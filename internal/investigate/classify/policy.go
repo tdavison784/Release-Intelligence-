@@ -17,6 +17,13 @@ import (
 // manifestation — and for nothing else (never R2.4, R2.6 or a clearance).
 const Policy = "classify.policy@v2"
 
+// PolicyV1 is the previous version, still honoured when a stored run's
+// Config asks for it (reproducibility of Phase 4 records): its producers
+// (validate.render-diff@v1) never emitted documentation-only records, so on
+// such input v2 decides exactly as v1 did; a documentation-only record under
+// v1 is an invariant violation.
+const PolicyV1 = "classify.policy@v1"
+
 // Rule ids (InvestigationFinding.Rule).
 const (
 	RuleValidatedExposure    = "classify:validated-exposure"
@@ -59,6 +66,7 @@ func (classifier) Classify(ctx context.Context, in investigate.ClassifyInput) (*
 
 type index struct {
 	in     investigate.ClassifyInput
+	policy string // the version decided and stamped (Policy, or PolicyV1 when asked)
 	b      *domain.EvidenceBundle
 	ev     map[domain.EvidenceID]domain.Evidence
 	vals   map[string][]domain.ValidationRecord // by change item, sorted by id
@@ -74,10 +82,20 @@ func newIndex(in investigate.ClassifyInput) (*index, error) {
 	if b == nil {
 		return nil, errors.New("classify: no bundle")
 	}
-	if p := in.Config.Policy; p != "" && p != Policy {
-		return nil, fmt.Errorf("classify: unsupported policy %q (this classifier implements %s)", p, Policy)
+	policy := Policy
+	switch p := in.Config.Policy; p {
+	case "", Policy:
+	case PolicyV1:
+		policy = p
+		for _, v := range in.Validations {
+			if v.DocumentationOnly {
+				return nil, fmt.Errorf("classify: documentation-only validation %s needs %s (the run asks for %s)", v.ID, Policy, p)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("classify: unsupported policy %q (this classifier implements %s and %s)", p, Policy, PolicyV1)
 	}
-	x := &index{in: in, b: b, ev: b.EvidenceByID(), vals: map[string][]domain.ValidationRecord{},
+	x := &index{in: in, b: b, policy: policy, ev: b.EvidenceByID(), vals: map[string][]domain.ValidationRecord{},
 		asrts: map[string][]domain.AgentAssertion{}, hyps: map[string][]domain.Hypothesis{},
 		envRCs: map[string][]string{}, rcs: b.RenderedChanges(), rcPair: map[string]domain.ManifestPair{}}
 	known := func(what, item string) error {
@@ -293,7 +311,7 @@ func (x *index) classify(id string) (domain.InvestigationFinding, error) {
 	}
 	f.Assumptions = e.assume
 	f.ID = domain.InvestigationFindingID(f.Environment, f.ChangeItem, f.Class, f.Rule)
-	f.Provenance = domain.Provenance{Method: domain.MethodComputed, Producer: Policy, Rule: f.Rule, Confidence: confidence(f.Class)}
+	f.Provenance = domain.Provenance{Method: domain.MethodComputed, Producer: x.policy, Rule: f.Rule, Confidence: confidence(f.Class)}
 	f.Evidence = x.findingEvidence(e, f.Validations)
 	f.Artifacts = x.findingArtifacts(e, f.Validations)
 	f.Approval = approval(f)

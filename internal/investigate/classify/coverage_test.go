@@ -212,3 +212,32 @@ func TestDocumentationOnlyRecordShape(t *testing.T) {
 		t.Fatal("a documentation-only record never clears behaviour")
 	}
 }
+
+// A stored Phase 4 run asks for classify.policy@v1: it is re-classified
+// byte-identically to v2 except for the version stamp (its validators never
+// emitted documentation-only records), and a documentation-only record under
+// v1 is refused rather than silently counted as an ordinary pass.
+func TestPolicyV1StillReproduces(t *testing.T) {
+	d := newDocFx(t, behaviour)
+	in := d.f.in(d.tr, nil, d.pin)
+	v2, _ := run(t, in)
+	in.Config.Policy = PolicyV1
+	v1, _ := run(t, in)
+	if v1.Decision.Policy != PolicyV1 || finding(t, v1, d.item).Provenance.Producer != PolicyV1 {
+		t.Fatalf("v1 run stamped %s / %s", v1.Decision.Policy, finding(t, v1, d.item).Provenance.Producer)
+	}
+	a, b := finding(t, v1, d.item), finding(t, v2, d.item)
+	a.Provenance.Producer = b.Provenance.Producer
+	if string(mustJSON(t, a)) != string(mustJSON(t, b)) {
+		t.Fatalf("v1 and v2 decide differently on v1 input:\n%s\n%s", mustJSON(t, a), mustJSON(t, b))
+	}
+	in = d.f.in(d.tr, nil, d.pin, d.doc())
+	in.Config.Policy = PolicyV1
+	if _, err := New().Classify(context.Background(), in); err == nil || !strings.Contains(err.Error(), "needs classify.policy@v2") {
+		t.Fatalf("a documentation-only record under v1 must be refused, got %v", err)
+	}
+	in.Config.Policy = "classify.policy@v0"
+	if _, err := New().Classify(context.Background(), in); err == nil {
+		t.Fatal("an unknown policy version must be refused")
+	}
+}

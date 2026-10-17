@@ -204,7 +204,7 @@ does not cover its request's subjects. Undecided records never count as clearing
 | Constructor | Name | Kind | Applies | Decides |
 |---|---|---|---|---|
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
-| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
+| `RenderDiff(opts…)` | `validate.render-diff@v2` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
 | `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
 | `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
 | `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
@@ -239,8 +239,13 @@ whatever the item's breaking flag. `fail` only when such a change causes a **con
 the FROM render did not have: a reference of or to the changed object that dangles, a custom resource invalid
 against its rendered CRD schema, an apiVersion the rendered CRD no longer serves — each named in the detail.
 `pass` only for a `rendered-config` item when every pair is complete and nothing is attributable — or only CRD
-description text, which is shown harmless and cited. Never a pass for `controller-behaviour`/`unknown` items (render
-silence proves nothing); text-mention correlations decide nothing (`not-run`).
+description text, which is shown harmless and cited. For a `controller-behaviour`/`unknown` item render silence
+proves nothing: the only pass is **documentation-only coverage** (rule `render-diff:documentation-only`, record field
+`documentationOnly: true`, @v2) — every pair complete and every rendered change correlated to the item is CRD
+description text in a CRD that changes nothing else in that pair (no schema, default, enum, required, served or
+storage change, correlated to anything or not; `EvidenceBundle.DocumentationOnlyChange`). It names those rendered
+changes and nothing else (no subject, path or answered hypothesis) and never clears behaviour; a description change
+beside any other change of its CRD is `not-run`, naming why. Text-mention correlations decide nothing (`not-run`).
 
 **OverrideInspection** — establishes an explicit environment setting that pins the old behaviour and records
 it as the pass's `PinnedSetting` (kind, subject, path, value, the rendered object it lands in, environment
@@ -591,15 +596,56 @@ Issuer/ClusterIssuer CA secrets, `issuerRef` to a ClusterIssuer), ingress-nginx 
 `auth-tls-secret`, `proxy-ssl-secret` annotations — `auth-secret` as `[namespace/]name`, the other two as
 `namespace/name`, as the controller parses them), prometheus-operator (ServiceMonitor, PodMonitor selectors; the
 Secrets/ConfigMaps of every endpoint — `authorization.credentials`, `bearerTokenSecret`, `basicAuth`
-username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reading its CA
-Secret stays `inferred`: the issuer does not state the cluster resource namespace. A rendered Ingress's
+username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reads its CA
+Secret from the controller's `--cluster-resource-namespace` (`namespaceFrom`, below). A rendered Ingress's
 `…-secret` annotation values are withheld by the render (credential-looking key), so those references are
 `unknown` in a view (the graph keeps a placeholder); in environment files they resolve. A Certificate whose
 `issuerRef` omits `kind` (default Issuer) is not followed (no false dangle; not checked).
 
+**Cluster-scoped name references** (`namespaceFrom`, Phase 5 lane coverage). A cluster-scoped object that names a
+namespaced one without a namespace is resolved where its controller documents it, when the rule says so:
+
+```yaml
+- id: clusterissuer-ca-secret
+  kind: references          # format name only; declaring namespaceFrom makes `from` cluster-scoped
+  from: {group: cert-manager.io, kind: ClusterIssuer}
+  to: {kind: Secret}
+  path: spec.ca.secretName
+  namespaceFrom:
+    container: cert-manager-controller   # the controller container in the environment's workloads
+    arg: --cluster-resource-namespace    # its value may use $(VAR) from the container's env
+    default: kube-system                 # documented value when the flag is absent (omit if none)
+    configFileArg: --config              # a config file that can also set it (the flag wins)
+    references: [{url: https://…, quote: "…"}]   # required
+```
+
+The graph (and the per-side reference view) decides the namespace from the environment at that side: every
+container of that name in the environment's workloads, the flag's value (`--flag=v` or `--flag v`; `$(VAR)` expanded
+from a literal env value or `fieldRef: metadata.namespace` = the workload's namespace), else the default when no
+`configFileArg` is given. Decided ⇒ the name resolves in that namespace (`established` when the object or a declared
+producer is there, `missing` when not — never a name-only match), and the edge cites the controller render. **Fail
+closed**: no citation, no such container, an env var from `configMapKeyRef`/`secretKeyRef`/`envFrom` or undefined,
+a config file with no flag, a flag without a value or given twice differently, a non-namespace value, or containers
+that disagree ⇒ the reference stays matched by name only (`inferred`), and the edge reason says what was not decided.
+
 Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
 Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
-`scope: cluster` and CRDs in the snapshot.
+`scope: cluster`, a declared `namespaceFrom` (its `from` kind) and CRDs in the snapshot.
+
+### Policy v2: what a behaviour item needs besides its pin (Phase 5, lane coverage)
+
+`classify.policy@v2` changes one thing: a documentation-only render-diff pass (`documentationOnly: true`, see
+RenderDiff) accounts for the CRD description changes it names in **R2.2** ("every correlated rendered change shown
+harmless"), whatever the item's manifestation. Before, a pinned `controller-behaviour` item whose only correlated
+rendered change was the reworded description of its field stayed `potentially-affected` forever (an override
+inspection names no rendered changes; render-diff refused behaviour items). The classifier re-checks the claim against
+the bundle (`EvidenceBundle.DocumentationOnlyChange`) and the run record rejects a false one. Such a record never
+counts for R2.4 (paths/roots/"a passing validation exists"), never answers an agent concern (R2.6) and never clears
+behaviour: a pin or an observed outcome is still required. Agent output is still never an input. A run asking for
+`classify.policy@v1` is classified as v1 (its validators never emitted documentation-only records); a
+documentation-only record under v1 is refused. The other coverage change — cluster-scoped name references resolved
+through a documented controller argument (`namespaceFrom`, under Relationships) — needs no policy change: it turns
+an inferred edge into an established or missing one only when the environment decides it (R2.3).
 
 ## Investigation agent
 
@@ -1043,7 +1089,8 @@ scores the stored run record:
   (or 0/0) is `INSUFFICIENT-DATA`: printed as such, never a pass, and a FAIL for the autonomy criteria. The
   command exits non-zero unless every gate passes.
 - **Reproducibility** — the stored records are re-classified (`classify.New()`) and must reproduce the
-  findings and decision byte for byte.
+  findings and decision byte for byte. A run whose config asks for `classify.policy@v1` (Phase 4) is
+  re-classified under v1 (same decisions, v1 stamp); see "Policy v2" below.
 
 ```
 ri -state <cache> -offline eval -investigations                    # arm A: deterministic only
