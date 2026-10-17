@@ -115,6 +115,15 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## Arm A⁗ + C′ after lane defaults (2026-10-16)
+- Merged `p4-env-impact` (fd103f0e defaults, 1888a107 runtime attribution) at aa067206; green.
+- `A-20261016T234421Z-aa06720656` and `C-20261016T234455Z-aa06720656`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
+  obs-north B1 now affected (R1; basis observed in C′); obs-south B1 now affected = new FP (2/20). unsafeEligibility
+  1/8: obs-north B1 via ci-0f84…/ci-1d8a…/ci-f835… (kubeDns/kubeProxy/kubeEtcd per-key items; components NOT
+  rendered in the FROM render) — reported as a finding, matcher/FORMAT/expectations unchanged. EVAL-REPORT §2d.
+- Routed: observed runtime pass does not clear an item blocked by a join `impact:not-joined` validation gap.
+- **Waiting for the commander's ARM B decision.**
+
 ## Current state (2026-10-16)
 - `p4ei/eval2` MERGED into `p4-env-impact` (cf2b0f29). Keep this worktree on `p4ei/eval2` for the remaining runs;
   `p4ei/eval` left as is (commander + user decide).

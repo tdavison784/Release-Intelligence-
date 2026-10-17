@@ -15,6 +15,8 @@ nothing in this report moved a threshold, an expectation or a pipeline rule.
 | **A′** | deterministic only, after lane `fixes` (4 routed defects fixed) | `results/A-20261016T213500Z-cf761e89e5` (+ identical dirty-tree copy `A-20261016T212406Z-13f9ba749d`, kept) | **scored** (binary cf761e89, clean tree) |
 | **A″** | deterministic only, after fixes2 + values + runtime follow-up (`p4-env-impact` dec9342c; GLM layered-values fix reverted) | `results/A-20261016T231142Z-5d4da37635` (+ replicate `A-20261016T231217Z-5d4da37635`) | **scored** (binary 5d4da37635, clean tree) |
 | **A‴ (reference for the ARM B decision)** | A″ + renderer fix 3b73d721 (Argo valuesObject / plain valueFiles / git-path Helm sources) | `results/A-20261016T231534Z-6b9fd9cc7c` | **scored** (binary 6b9fd9cc7c, clean tree) |
+| **A⁗** | deterministic only, after lane `defaults` (fd103f0e; last pipeline fix) | `results/A-20261016T234421Z-aa06720656` | **scored** (binary aa06720656, clean tree) |
+| **C′** | A⁗ + runtime (attribution precedence 1888a107) | `results/C-20261016T234455Z-aa06720656` | **scored** (binary aa06720656, clean tree) |
 | **B** | A′ + investigation agent (claude-cli, claude-sonnet-5-5, the prompt version named by the commander's ARM B GO; v5 is merged) | — | held until "ARM B GO" (Claude window; ~1M tokens) |
 | **C** | + runtime (observed) validation in throwaway kind clusters | `results/C-20261016T213533Z-cf761e89e5` (+ superseded vacuous `C-20261016T212613Z-13f9ba749d`, kept) | **scored** (binary cf761e89, clean tree) |
 
@@ -106,6 +108,74 @@ for 8/8 cases; the wall-clock times now live in `Investigation.reportStamps`, ou
 artifact. Note for the stored files: these two runs' `run.json` `recordDigest` fields were written by the
 harness's older private digest, which predates `reportStamps` and therefore differs between the runs; the
 harness now uses `run.ContentDigest` (future runs). The stored files are not edited.
+
+## 2d. After lane `defaults` (arm A⁗) and with runtime (arm C′) — basis for the ARM B decision
+
+Runs `A-20261016T234421Z-aa06720656` and `C-20261016T234455Z-aa06720656` (clean tree, merge aa067206 containing
+fd103f0e and 1888a107). Both arms: **7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA**, same numbers per gate.
+
+| Gate | A‴ (ref.) | A⁗ | C′ |
+|---|---|---|---|
+| falseNegativeRate | 0/3 INSUFFICIENT-DATA | 0/3 INSUFFICIENT-DATA | 0/3 INSUFFICIENT-DATA |
+| unsafeEligibilityRate | 1/8 FAIL | 1/8 **FAIL** | 1/8 **FAIL** |
+| falsePositiveRate | 1/20 PASS | **2/20** PASS | 2/20 PASS |
+| affectedDetection | 3/3 PASS | 3/3 PASS | 3/3 PASS |
+| affectedConfirmation | 0/3 FAIL | **1/3** FAIL | 1/3 FAIL |
+| notAffectedConfirmation | 2/20 FAIL | 2/20 FAIL | 2/20 FAIL |
+| exposureRecall | 6/7 PASS | 6/7 PASS | 6/7 PASS |
+| evidenceCoverage | 23/71 FAIL | 23/71 FAIL | 23/71 FAIL |
+| citationResolution | PASS | 1861/1861 PASS | 3503/3503 PASS |
+| unresolvedRate | 0/23 PASS | 0/23 PASS | 0/23 PASS |
+| observedAgreement | 0/21 FAIL | **1/21** FAIL | 1/21 FAIL |
+| reproducibility | 8/8 PASS | 8/8 PASS | 8/8 PASS |
+| pipelineFailures | 0 PASS | 0 PASS | 0 PASS |
+
+**What `defaults` changed (A‴ → A⁗).** Removed values keys whose non-empty FROM default was in effect are now
+join `impact:values-removed-default` (review-required) and the rendered change where that default disappears is
+correlated. Two decisions moved:
+- obs-north B1 potentially-affected → **affected** (R1 `classify:validated-exposure`, deterministic): item
+  `ci-63ebfdbffcaf` "Helm value `coreDns.serviceMonitor.bearerTokenFile` removed" — render-diff `fail` on the
+  correlated `ServiceMonitor kube-system/kube-prometheus-stack-coredns spec.endpoints` change. First confirmed
+  affected decision (affectedConfirmation 1/3, observedAgreement 1/21).
+- obs-south B1 potentially-affected → **affected** — the same item, the same R1 rule, on
+  `ServiceMonitor monitoring/kube-prometheus-stack-coredns spec.endpoints`. Expected not-affected: a **new
+  false positive** (falsePositiveRate 2/20, still within the gate). The deterministic layer still gives the pair
+  identical classes; the difference between the two environments (where the ServiceMonitors render) is not
+  something render-diff evaluates.
+
+**unsafeEligibilityRate 1/8 — the counted decision is obs-north B1** (expected affected; system decision
+`affected`). The eligible not-affected findings matched to it — pipeline output only:
+
+| Finding | Item | Title | Rule | Component in the FROM environment render |
+|---|---|---|---|---|
+| `inf-8584d1f22d6d` | `ci-0f8475f72a68` | Helm value `kubeDns.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-dns object in `derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/from.yaml` (80 objects) |
+| `inf-8bd4c3f5b149` | `ci-1d8a464ef1b7` | Helm value `kubeProxy.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-proxy object |
+| `inf-9d2274eda209` | `ci-f8350fd0b224` | Helm value `kubeEtcd.serviceMonitor.bearerTokenFile` removed | `classify:validated-clear` | **not rendered** — no kube-etcd object |
+
+(For contrast, the coreDns sibling `ci-63ebfdbffcaf`, whose `Service` and `ServiceMonitor kube-prometheus-stack-coredns`
+*are* rendered, is now `affected` and not eligible.) Each of the three has join `impact:values-removed-default`
+(review-required), render-diff `pass`, no correlated rendered change, no exposure root. The FROM render was
+re-read from a diagnostic re-execution whose bundles are byte-identical to the stored run's (`bnd-3345ac2d26f6`,
+`bnd-e7ef20b45a3d`).
+
+**Finding (reported, not changed):** the only remaining unsafe-eligibility count comes from per-key items of
+chart components this environment does not render, matched together with the deciding item to one coarse
+expected item. Their not-affected is plausibly correct per component; the count fires because the metric counts
+a decision eligible when *any* matched finding is. The matcher, FORMAT.md and expectations are unchanged; whether
+to narrow the expected item's `match`, or to score eligibility on the deciding finding, is a groundtruth /
+commander decision. The decision-level class is `affected`, and no investigation is auto-approve-eligible (0/8;
+agent not run).
+
+**Arm C′ (runtime).** Seven cases ran an isolated kind upgrade (~3–4 min each; shop-pl refused, incomplete
+render by design; `kind get clusters` empty afterwards). Only one decision differs from A⁗: **obs-north B1 stays
+`affected`, now with basis `observed`** — attribution precedence puts a runtime `fail` on the matched coreDns item
+(plus the two `scope:rendered-unexplained` ServiceMonitor items, unmatched). Runtime outcomes: obs-north 3 fail /
+1 error; **obs-south 0 fail** (23 not-run) — the runtime layer does tell the kps pair apart, but it can only raise
+a class, so obs-south's deterministic false positive stays. Two runtime `pass` records (shop-fr, shop-nl, item
+"Metrics: Disable by default", controller-behaviour) do not clear the item: its remaining R2 blocker is a
+validation gap from the join's `impact:not-joined` verdict (no machine-comparable subject), which an observed
+pass does not lift — reported for the classify owner. Errors are `Inconclusive: objects on this item's impact
+paths degraded …` (payments-eu/-us 7, shop-de 14, obs-north 1).
 
 ### 2c′. Reference run on 3b73d721 (arm A‴) — the reference for the ARM B decision
 
