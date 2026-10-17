@@ -125,3 +125,14 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   until the report, code changes are allowed only to fix a defect a run exposes; each is appended here with the
   run that exposed it, and every arm affected is re-run on the new binary. Prompt v7 is the frozen agent prompt;
   the agent model for B0 is `claude-sonnet-5-5` (as Phase 4 arm B, for comparability).
+- **2026-10-17 09:10 — F1 defect fix W-0027 (redaction).** Run `B0-K0-20261017-d262210d` exposed that collection
+  redacts the whole subtree of credential-named mapping keys, so `Certificate.spec.privateKey.rotationPolicy` (an
+  enum, not a credential) is withheld from the agent and from the pin validator. Fixed by lane `redact` without
+  weakening secret redaction; F2 = the fix merge. A0 and B0 are re-run on F2; the F1 runs are kept and reported as
+  superseded, with this reason.
+- **2026-10-17 09:10 — §4 wording.** "Findings byte-identical to A0" is replaced by: B0's class, rule, basis,
+  approval eligibility and decision are identical to A0's for every finding; findings may differ only by the
+  removal of the `agent: not run` gap and by attached, AI-labelled assertions. Why: running the agent is itself an
+  investigation step (Phase 4 design), so its absence is a recorded gap; the policy-relevant fields are the
+  invariant, and B0-K0-20261017-d262210d satisfied them on all 36 findings.
+

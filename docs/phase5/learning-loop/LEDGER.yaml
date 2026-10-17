@@ -114,7 +114,8 @@ items:
   - id: W-0012
     title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
     kind: commander-task
-    status: ready
+    status: blocked
+    blocked-by: W-0027 (re-run A0 + B0 dev pair on the fixed binary, then the other 6 cases)
     depends: [W-0010]
     providers: [claude]       # MODEL UNDER TEST: never under GLM
     glm-executable: false
@@ -241,4 +242,15 @@ items:
     glm-executable: true
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:55, because: fixes5 findings}
+  - id: W-0027
+    title: Redaction wipes non-secret settings under credential-named maps (spec.privateKey.rotationPolicy) — exposed by B0 dev pair
+    kind: lane
+    status: in-progress
+    owner: ri-redact
+    brief: briefs/redact.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "secrets must never be weakened (provider data-sharing condition); F1 amendment required"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T09:10, because: B0-K0-20261017-d262210d payments-us verdict 'redacted value that may be Never'}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
