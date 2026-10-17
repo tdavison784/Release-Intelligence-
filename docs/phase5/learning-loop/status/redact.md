@@ -1,106 +1,117 @@
 # Lane `redact` — status
 
-Branch `p5ll/redact` (from `p5-learning-loop` @ af89c6dd). Brief: `briefs/redact.md`. Ledger W-0027 (F1 defect fix,
-exposed by `B0-K0-20261017-d262210d`). **State: done**: build, vet and test are green, and the docs are updated.
+Branch `p5ll/redact` (from `p5-learning-loop` @ af89c6dd). Brief: `briefs/redact.md` plus the commander's decisions
+on the two open items (2026-10-17). Ledger W-0027 (F1 defect fix, exposed by `B0-K0-20261017-d262210d`; this is F2).
+**State: done**: build, vet and test are green, and the docs are updated.
 
-## Root cause (verified on the B0 run's own bundle + a fresh smoke bundle)
-- `bundle/redact.go` `redactNode`: a credential-named key (`sensitiveKey`, unanchored `privatekey`, `secret`, `token`,
-  …) holding a mapping ⇒ `redactAll` wiped every scalar below it. That covers env files (snapshot) and the
-  release-scope renders (change collector). In B0 the agent read `env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml`
-  and saw `rotationPolicy: "<redacted sha256:6300ef800bb8>"`. That marker is `Marker("Never")`.
-- The render model (`internal/render/model.go`) **never wiped mappings**: `sensitiveKey.MatchString(k) && isScalar(x)`
-  only redacts scalars and recurses into maps (probe-tested). So env renders, incl. the pki overlay render, kept
-  `rotationPolicy: Never`. The brief's premise for that file was inaccurate. The pin validator's effective view
-  took `mesh-root-ca` from the overlay render, so it was not blinded there. The agent's raw file reads were.
-- `env/resources.go` field facts also judge each leaf by its own key (`spec.privateKey.rotationPolicy` was visible).
+## Root cause (verified on the B0 run's bundle + fresh smoke bundles)
+- `bundle/redact.go` wiped the whole subtree of a credential-named key that held a mapping. That covered env files
+  and release-scope renders. The B0 agent read `mesh-root-ca-prod.yaml` and saw
+  `rotationPolicy: "<redacted sha256:6300ef800bb8>"`, which is `Marker("Never")`.
+- The render model never wiped mappings, but it kept **every** string below them whose own key missed its
+  expression. A probe kept `credentials.secretAccessKey: AKIA…` in clear in a render. Renders reach the agent.
+- The dossier built its own object view: it ignored version-independent overlay renders and deduplicated a
+  kustomize patch against its base, and it matched upstream-text Go field names case-sensitively. So it showed
+  `mesh-root-ca` from the base file and "unset" everywhere.
 
-## Design (why read-back is a separate step)
-Collection runs before hashing and without a schema. In the payments envs the Certificate CRD comes only from the
-cert-manager chart (env render), which the snapshot stage never sees. So:
-1. **Collection** (`internal/investigate/redaction`, used by `bundle/redact.go` and by `walkFacts` for the facts
-   artifact): Secret data and own-key credential scalars are unchanged (bool/null kept, as v1). A credential-named
-   *list* is withheld whole (as v1). PEM private-key content is withheld under any key (new). Below a
-   credential-named *mapping*, only bool/null/number are kept, and every string stays withheld.
-2. **Read-back** (`redaction.Schemas.Recover`, read time, stored bytes never change): a marker is replaced by a value
-   only if it sits below a credential-named mapping, its own key names no credential, the object is not a core
-   Secret, and **exactly one** string enum value that the bundle's CRDs declare for that exact group/version/kind and
-   field path has that marker. The output is always a schema constant, so nothing else can be re-exposed. With
-   no CRD, a version mismatch, no enum, or a value outside the enum, the marker stays. Applied in:
-   validate `loadView` (all objSources), dossier `view`, `read_artifact` (adds `readBack` beside the verbatim text,
-   so quotes still verify).
-3. Markers that stay are **undecidable**. This fixes two latent fail-opens the work exposed: pins `field`/`textLine`
-   compared a marker as a literal (a scope condition on a withheld value could make an object "provably out of
-   scope" ⇒ clear), and schema-compat's enum check counted an object whose enum value is withheld as compatible
-   (⇒ pass). Now the pin is unknown, and schema-compat gives `not-run` with reason `schema:withheld`.
-4. `redactYAML` dropped the `---` separator of a re-encoded non-first document, merging it into the previous one
-   (duplicate keys ⇒ unparsable file). The separator is kept now. No dev-case env file is multi-document.
+## What changed
+1. **One rule, `internal/redaction` (redaction@v2), shared by the collector, the facts artifact and the render
+   model.**
+   - (a) Secret data/stringData.
+   - (b) PEM private keys anywhere, by content.
+   - (c) Own-key credential scalars (bool/null kept), except object-reference keys: `name`, `namespace`, `key`,
+     or ending in `…Name`/`…Namespace`.
+   - (d) Below a credential-named map **or list**, only bool/null/number and reference keys are kept. Lists are
+     walked like maps; otherwise `imagePullSecrets[].name` would vanish from renders.
+   - (e) Credential-named env-var values (collector and render; the render model already had this).
+   - Credential names are the union of both expressions plus `access[-_]?key`. Neither old expression matched
+     `accessKey`, which the commander listed.
+   - CRD documents are schemas: only (b) applies in them. Otherwise rule (d) would withhold a CRD's `privateKey`
+     property descriptions, types and enum values in renders, breaking the read-back and schema defaults.
+   - The render model leaves existing markers alone (a collected file parses unchanged).
+   - The `---` separator of a re-encoded document is kept (v1 merged documents).
+2. **Read-back** (`Schemas.Recover`, read time, stored bytes unchanged): a marker of either form below a
+   credential-named map or list is read back only to the single string enum value the bundle's CRD declares for
+   that exact group/version/kind and path. Own-key credentials and Secrets are never read back. It runs in the
+   validators' effective view, the dossier, and `read_artifact` (`readBack` beside the verbatim text).
+3. **Markers are undecidable**: pins `field`/`textLine` return unknown; schema-compat returns
+   `not-run`/`schema:withheld` instead of pass. Both were latent fail-opens: comparing a marker as a literal value
+   could exclude an object from a rule's scope, or pass a removed enum value.
+4. **Dossier@v3**: objects come from `validate.EffectiveView` (new export, the pin validator's own view), one
+   entry per object with a render before a file. An object whose consuming render is unavailable is unknown. A
+   Go-cased subject path is resolved via the view's CRD schema (case-insensitive by property); without a
+   confirming CRD it is lowerCamel-cased and marked unverified, so an unset field is unknown, not the default.
 
-Smoke (scratch state cloned from the shared cache, `-offline`, payments-us env, no agent, K0 empty):
-`mesh-root-ca-prod.yaml` is stored with `rotationPolicy: "<redacted sha256:6300ef800bb8>"`, and `checkout-tls`
-keeps `size: 256`. `read_artifact` on it gives readBack `spec.privateKey.rotationPolicy = "Never"` (and
-`algorithm = ECDSA` on the leaf Certificates) from the chart render's Certificate CRD (6 types indexed).
+Smoke (payments-us, `-offline`, no agent, empty knowledge, scratch clone of the shared cache):
+- The pki overlay render stores `rotationPolicy: <sensitive …>`, keeps `size: 256` and `secretName: mesh-root-ca`.
+- The env file keeps `secretName: checkout-tls`.
+- The dossier for `ci-86548e9a2300` shows setting `spec.privateKey.rotationPolicy`: `mesh-root-ca` explicit
+  `"Never"` from `render kustomize:platform/pki/overlays/prod (version-independent overlay)` (read back from the
+  chart CRD's enum), and `checkout-tls`/`ledger-tls` inherited-default from their overlay render.
+- The graph's Secret nodes now carry real names (`core/v1/Secret/payments/ledger-tls`), not markers.
 
-## Versions (bumped)
-- `bundle.snapshot@v1→v2`, `bundle.change@v1→v2`: **every new bundle gets a new id, for every environment**, because
-  the producer string is in every manifest entry. Stored bundles are immutable and keep their ids.
-- `validate.override-inspection@v2→v3`, `validate.schema-compat@v1→v2` (view read-back + marker = undecidable). Run
-  configs list validator names, so new investigations get new ids (expected on F2). Re-validating a stored bundle with
-  v3 reads back old wholesale-wiped markers too (equally sound: same digest format).
-- `investigate.dossier@v1→v2`. Agent producer and prompt unchanged. A `read_artifact` result now carries `readBack`
-  when it applies, so an F1 transcript that read such a file does not replay byte-identically (F1 runs are superseded
-  anyway).
-- Stored runs: `cmd/ri.TestStoredRunsReverifyTheirDigests` passes, 160 case records re-verified. No `internal/domain`
-  change (no schema regen).
+## Versions
+- `bundle.snapshot@v2`, `bundle.change@v2`, `renderdiff@v2`: every new bundle gets a new id, in every environment.
+  Stored bundles and artifacts are immutable and keep their ids. The render cache stores raw tool output and
+  re-normalizes on read, so it needs no invalidation. `render.Producer` (`render@v1`, in Phase 1–3 evidence ids)
+  is unchanged.
+- `validate.override-inspection@v3`, `validate.schema-compat@v2`: run configs list validator names, so new
+  investigations get new ids.
+- `investigate.dossier@v3`. Agent producer and prompt unchanged. `read_artifact` results carry `readBack` when it
+  applies, so F1 transcripts that read such files do not replay byte-identically (F1 runs are superseded).
+- Stored runs: `cmd/ri.TestStoredRunsReverifyTheirDigests` passes (160 case records). No `internal/domain` change.
 
-## Tests (each would fail with the opposite / fail-open implementation; mutation-checked, 10 mutants all killed)
-`redaction`: `TestKeep`, `TestRecoverReadsBackOnlyDeclaredEnumValues` (enum read back; free text, credential-named
-enum field, value outside the enum, credential-named list and a marker outside a credential map are not),
-`TestRecoverNeedsTheExactSchema`, duplicates, `AddCRD`. `bundle`: `TestRedactCredentialMapKeepsOnlyNonStrings`
-(the brief's map: enum + free text + nested PEM + password-like `pin: "0420"` + `password`),
-`TestRedactReadBackOnlySchemaEnum` (full chain redact → parse → read-back: only the enum value comes back),
-`TestRedactPrivateKeyAnywhere`, `TestRedactSecretAndOwnKeyUnchanged` (v1 values pinned byte-exact),
-`TestRedactKeepsDocumentSeparators`, `TestWithheldFact`. `validate`: `TestPinReadsBackWithheldEnumSetting`,
-`TestPinScopeOnWithheldValue` (read back / no enum / outside enum), schema-compat `enum value withheld` cases.
-`agent`: `TestReadArtifactReadsBackSchemaEnumOnly`, `TestDossierReadsBackSchemaEnumOnly`.
-Mutants: keep strings under credential maps; v1 wholesale wipe; no PEM check; read back own-key credentials; read
-back outside credential maps; pins literal compare; schema-compat ignores markers; no view read-back; facts by
-last segment only; separators dropped.
+## Expected behaviour changes on F2 (for the report)
+- Secret references (`secretName`, `…Ref.name/key`, `secretKeyRef`, `imagePullSecrets[].name`) are now readable in
+  collected env files (v1 redacted them via the unanchored `secret`), so graph edges to those Secrets resolve by
+  name.
+- Strings below credential-named maps are withheld in renders (read back where an enum declares them).
+- `existingSecret`-style own-key strings are withheld in both places, as before in at least one of them.
 
-## Files touched outside ownership (minimal, additive)
-- `internal/investigate/validate/{envview,pins,schema,common}.go` (pins/coverage code): view read-back, marker ⇒
-  unknown, read-back note in pin detail/evidence excerpt, validator name bumps.
-- `internal/investigate/agent/{dossier,session,tools_read}.go` + new `withheld.go` (verdict code).
-- `internal/investigate/api.go`: **CONTRACT-CHANGE(redact)**, additive `ReadResult.ReadBack []ReadBack`
-  (`object, path, marker, value, note`, omitempty).
-- `docs/INVESTIGATE.md`: new subsection "Redaction below credential-named maps".
-- Proposed for DESIGN.md §2.3 (commander applies): replace "values-file keys whose last segment matches … likewise"
-  with the v2 rules above, plus one sentence on read-back.
+## Tests (mutation-checked; every mutant killed)
+New: `redaction` (`TestKeep` incl. reference keys + union names, read-back incl. render markers),
+`render.TestRenderRedactsCredentialsKeepsReferences` (secretAccessKey, accessKey, clientSecret, passphrase,
+bearer, existingSecret, PEM, list items, env value withheld; secretName, privateKeySecretRef.name,
+tokenSecretRef.key, imagePullSecrets[].name, secretKeyRef.name, numbers/bools readable),
+`TestRenderCRDKeepsSchemaUnderCredentialProperties`, `TestRenderKeepsExistingMarkers`,
+`relations.TestReferencesBelowCredentialKeysResolve` (secretName + privateKeySecretRef.name resolve, edges
+established, secretAccessKey withheld), `bundle.TestRedactSharedRule`, `TestWithheldFact` (shared rule, CRD),
+`agent.TestDossierEffectiveViewAndJSONPath`, `TestDossierFailsClosed`, `TestLowerCamel`, plus the earlier
+read-back / pins / schema-compat / separator tests.
+Mutants: earlier run (10) + this round's 15. Rule (c): no reference exception; exception for every key; old
+render regex. Rule (d): keep all strings below maps; no reference exception below maps; render maps not
+containers; no CRD exemption; render re-redacts markers. Rule (e): render, collector. Dossier: Go casing kept;
+unverified ⇒ default; unrendered ignored; overlays ignored.
 
-## Open questions / findings for the commander
-1. **Render model is weaker than rule 2 (pre-existing, not changed).** It keeps every string below a
-   credential-named map whose own key misses the render regex. A probe kept `credentials: {secretAccessKey: AKIA…}`
-   in clear (`secretAccessKey` matches none of `secret$`, `secret[-_]?key`, …). Env renders are agent-readable.
-   Applying rule 2 there was **not done**: it would also hide Secret *references* in renders
-   (`volumes[].secret.secretName`, `secretKeyRef.name/key`, `*SecretRef.name`), which the relations graph resolves.
-   That turns edges into "the render withholds the name" ⇒ traversal and coverage change in every case. It is a
-   broad behaviour change, not this F1 fix. It needs a decision (user's data-sharing condition vs graph fidelity)
-   before held-out runs. A narrower option: extend the render key regex for own-key credentials (`secretaccesskey`,
-   `accesskey`, …) only.
-2. **Dossier, not redaction (verdict code), seen in the smoke:** (a) an object-field setting derived from the item
-   subject text keeps its Go casing (`Spec.PrivateKey.RotationPolicy`), and `fieldValues` is case-sensitive, so
-   every object reads "unset". (b) The dossier ignores version-independent overlay renders and dedupes a kustomize
-   patch file against its base (first path wins), so `mesh-root-ca` shows the base file, not the prod overlay. Both
-   fail closed ("unknown"), but the B0 re-run's dossier will still not show the prod value. The agent sees it via
-   `read_artifact` readBack.
-3. schema-compat's `walkSchema` (relations view, `crdIndex.check`) still sees markers in enum fields as enum
-   violations: a pre-existing false alarm (fail-closed), slightly reduced now that numbers are kept. Not touched.
+## Files touched outside ownership (minimal)
+- `internal/render/model.go` (rule now from `internal/redaction`), `internal/investigate/renderdiff/renderer.go`
+  (producer bump).
+- `internal/investigate/validate/{envview,pins,schema,common}.go` + new `effective.go` (exported view).
+- `internal/investigate/agent/{dossier,session,tools_read}.go` + new `withheld.go`.
+- `internal/investigate/relations/redaction_test.go` (new test only).
+- `internal/investigate/api.go`: **CONTRACT-CHANGE(redact)**, additive `ReadResult.ReadBack []ReadBack`.
+- `docs/INVESTIGATE.md` ("One redaction rule" subsection). Proposed for DESIGN.md §2.3: replace the redaction
+  paragraph with rules (a)–(e) + the CRD note + read-back.
+
+## Notes / residual risks for the commander
+- Rule (c)/(d) keep `name`/`key` under a credential map by design. A credential stored under a key literally named
+  `key` (`credentials: {key: AKIA…}`) stays readable unless it is PEM; that follows the decided exception.
+- The CRD exemption trusts that a CRD document holds no secret material except PEM. A `default:` containing a
+  non-PEM credential in an environment-supplied CRD would stay readable.
+- `env/resources.go` (the in-memory facts the impact engine reads, never sent to a model) keeps its own-key rule.
+  Changing it would move A0 classifications and is not a provider-exposure issue.
+- Evidence excerpts (`redactEvidence`, facts excerpts) still replace any excerpt mentioning a credential word,
+  including `secretName: …` excerpts. That is stricter than the rule; unchanged.
+- Dossier dedupe prefers a render's copy of an object over an unconsumed file's copy (as v1/v2 did). The pin
+  validator evaluates both.
 
 ## Integrity notes
-- No `expected.yaml`/NOTES.md/observed opened. One `grep -rn validators eval …` incidentally printed six citation-URL
-  lines from ingress-nginx `expected.yaml` files (URLs only, no labels or outcomes). Later greps exclude
-  `eval/investigations`.
-- No prompt, rule or gate edited. Fixtures are synthetic (`Gadget`/`example.test`, gizmo `Widget`).
+- No `expected.yaml`/NOTES.md/observed opened. Earlier, one `grep -rn validators eval …` incidentally printed six
+  citation-URL lines from ingress-nginx `expected.yaml` files (URLs only, no labels or outcomes).
+- During this round's mutation run, the harness's `git checkout` reverted the then-uncommitted `dossier.go`. It was
+  reapplied from the recorded patch steps; the agent test cache hit confirms byte-identical content.
+- No prompt, rule or gate edited. Fixtures are synthetic (`Gadget`/`example.test`, gizmo `Widget`/`Account`).
 
 ## Cleanup
-`bin/` removed; scratch state (APFS clones of the shared cache) and extracted B0 case removed from the session
-scratchpad. No kind cluster or server was started.
+`bin/` removed; scratch state clones, extracted B0 case and patch scripts removed from the session scratchpad. No
+kind cluster or server was started.

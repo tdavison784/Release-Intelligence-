@@ -62,43 +62,64 @@ names a credential (`password`, `token`, `apiKey`, `privateKey`, `credentials`, 
 withheld from the facts artifact and from evidence excerpts. Files that are not YAML/JSON are stored
 verbatim.
 
-### Redaction below credential-named maps (redaction@v2, Phase 5 lane redact)
+### One redaction rule (redaction@v2, Phase 5 lane redact)
 
-One policy (`internal/investigate/redaction`) covers the environment files, the release-scope renders and
-the facts artifact (`bundle.snapshot@v2`, `bundle.change@v2`):
+One rule (`internal/redaction`) covers everything taken from an environment: the collected environment
+files, release-scope renders and facts artifact (`bundle.snapshot@v2`, `bundle.change@v2`, marker
+`<redacted sha256:…>`), and the render model (`internal/render`; stored env renders `renderdiff@v2`, marker
+`<sensitive sha256:…>`). Renders reach the agent, so they follow the same rule as collected files:
 
-- Secret `data`/`stringData` values and every scalar whose **own** key names a credential stay withheld
-  exactly as before (a boolean or null stays readable: `createSecret: true`); a credential-named **list** is
-  withheld whole.
-- A value holding a PEM private-key block is withheld under any key (new in v2: v1 only checked keys).
-- A credential-named key holding a **mapping** (`spec.privateKey`, `credentials:`) is walked instead of wiped
-  (v1 withheld the whole mapping, so `privateKey.size` and `privateKey.rotationPolicy` were invisible). Below
-  it only a boolean, null or number stays readable. Every string stays withheld, because no schema is known
-  before hashing.
-- A re-encoded document keeps its `---` separator line. v1 dropped it, merging the document into the one
-  before.
+- (a) Secret `data`/`stringData` values are withheld.
+- (b) A string holding a PEM private-key block is withheld under any key.
+- (c) A scalar whose own key names a credential is withheld unless it is a boolean or null
+  (`createSecret: true`). **Exception: object-reference keys.** A key that is exactly `name`, `namespace` or
+  `key`, or that ends in `Name`/`Namespace`, holds an object or data-key name, not secret material, so it
+  stays readable (`secretName`, `privateKeySecretRef.name`, `tokenSecretRef.key`, `imagePullSecrets[].name`).
+  The graph keeps resolving them.
+- (d) Below a credential-named key holding a mapping or list (`privateKey:`, `credentials:`), only
+  booleans, nulls, numbers and reference keys stay readable; every other string is withheld. v1 wiped such
+  a mapping in collected files, so `privateKey.size` and `privateKey.rotationPolicy` were invisible. The
+  render model kept every string there, including `credentials.secretAccessKey`.
+- (e) The `value` of an environment variable whose name names a credential (`- name: DB_PASSWORD`) is
+  withheld.
+- Credential names are the union of the two former expressions plus `accessKey`: `password`, `passwd`,
+  `passphrase`, `secret`, `token`, `api[-_]?key`, `private[-_]?key`, `access[-_]?key`, `credential`, `bearer`
+  (so `secretAccessKey` and `clientSecret` are covered).
+- A `CustomResourceDefinition` is a schema: its property names (`…properties.privateKey`) name fields, so
+  only (b) applies in it. Otherwise its descriptions, types and enum values would be withheld, and the
+  read-back below and schema defaults need them.
+- The render model leaves existing markers alone (a collected file parses unchanged). A re-encoded collected
+  document keeps its `---` separator; v1 dropped it, merging the document into the one before.
 
-**Read-back** (`redaction.Schemas.Recover`): a marker below a credential-named mapping is replaced by a
-string enum value of the bundle's CRDs only when the field's own key names no credential, the object is not
-a core Secret, and exactly one enum value declared for that exact group/version/kind and field path has
-that marker. The CRDs are the upstream CRD artifacts plus those the environment files and environment
-renders declare. So only a constant the schema itself lists is ever shown. Free text, names and anything
-without a declared enum stay withheld. Stored bytes never change. The read-back runs where a schema is at
-hand:
+**Read-back** (`redaction.Schemas.Recover`): a marker (either form) below a credential-named mapping or list
+is replaced by a string enum value of the bundle's CRDs only when all of these hold:
 
-- the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v2`). A pin
-  decided on a read-back value says so in its detail ("stored redacted as …: the digest of "Never", an
-  enum value its CRD declares").
-- the item dossier (`investigate.dossier@v2`, the object's `reason`).
-- `read_artifact`: the text stays verbatim, so quotes still verify. `readBack` lists the markers in the
+- the field's own key names no credential;
+- the object is not a core Secret;
+- exactly one enum value declared for that exact group/version/kind and field path has that marker.
+
+The CRDs are the upstream CRD artifacts plus those the environment files and renders declare. So only a
+constant the schema itself lists is ever shown; free text and anything without a declared enum stay
+withheld. Stored bytes never change. The read-back runs:
+
+- in the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v2`). A pin
+  decided on a read-back value says so in its detail ("stored redacted as …: the digest of "Never", an enum
+  value its CRD declares");
+- in the item dossier (the object's `reason`);
+- in `read_artifact`. The text stays verbatim, so quotes still verify; `readBack` lists the markers in the
   window that were read back (object, path, marker, value).
 
 A marker that is not read back is **undecidable**, never compared as a literal value. A pin scope condition
 on it is unknown (the object is never "provably out of scope"), and a schema-compat check whose value is
 withheld is `not-run` (`schema:withheld`), never a pass.
 
-The renderer's own model (`internal/render`, `<sensitive sha256:…>`) has always judged each scalar by its
-own key (it never wiped a mapping) and is unchanged.
+**Dossier objects (`investigate.dossier@v3`).** The dossier reads the pin validator's effective object view
+(`validate.EffectiveView`): complete product renders, version-independent overlay renders (a kustomize base
+merged with its patches), and the files no render consumed. It keeps one entry per object, a render's before
+a file's. An object whose consuming render is unavailable is `unknown` whatever it states. A setting named
+by Go field names in upstream text (`Certificate.Spec.PrivateKey.RotationPolicy`) is resolved to the JSON
+field path of the view's CRD schema. Without a confirming CRD it is lowerCamel-cased and an unset field is
+`unknown`, never the inherited default.
 
 **Reproducibility.** The bundle id is derived from content only. Wall-clock fields (`generatedAt`,
 `retrievedAt`) are zeroed in the stored edge copy and `CreatedAt` is not part of the id, so two runs over

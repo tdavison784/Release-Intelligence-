@@ -5,7 +5,7 @@
 // sha256:…>"), plus the one schema-aware step that may read a withheld value
 // back.
 //
-// The rule (redaction@v3):
+// The rule (redaction@v2; v1 was the collector's and the render model's separate rules):
 //
 //	(a) Kubernetes Secret data/stringData values are withheld (a
 //	    document-level rule the caller applies);
