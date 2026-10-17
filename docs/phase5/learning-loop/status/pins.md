@@ -10,9 +10,11 @@ Branch `p5ll/pins` (from `p5-learning-loop` @ 73d72aef). Brief: `briefs/pins.md`
    value the setting gives it: false+pinned → hit; false+not pinned → **provably out of scope** (excluded, listed
    with evidence); true → miss; unknown → undecidable (never excluded). Leaf semantics mirror `internal/impact`
    (field states, Kleene all/any/not, text-line, ref → exactly one object). Fail-closed differences: a value
-   predicate on a field the object leaves unset uses a CRD default only when CRDs of the bundle (upstream `crd`
-   artifacts + env files + renders) describe the path and agree — otherwise undecidable; an unresolved/ambiguous
-   ref is undecidable; `undecidable` leaves are unknown. All objects out of scope ⇒ no pin.
+   predicate (equals / not-equals / matches / has-token) on a field the object leaves unset is decided **only** by a
+   schema default that CRDs of the bundle (upstream `crd` artifacts + env files + renders) state and agree on;
+   no CRD, a CRD that states **no** default, disagreeing CRDs, an ancestor default or an undescribed path ⇒
+   undecidable; an unresolved/ambiguous ref is undecidable; `undecidable` leaves are unknown. `unset`/`set` leaves
+   are decided on what the object states. All objects out of scope ⇒ no pin.
    Also: a fact that states an applicability is decided by it — its default change alone no longer yields a pin
    (found by the `any` test: the Phase 4 default-changed derivation ignored the fact's own exposure, fail-open
    against a trusted rule). The exposure leaf on the subject's own setting inherits the old-default acceptance.
@@ -80,6 +82,17 @@ Widgets listed as `out of scope: …`.
 - Contradiction pool includes untrusted active facts (fail-closed; a sloppy consensus fact on the same subject blocks a
   human pin until superseded/retracted). Overlap differences count as different applicability.
 - Exclusion uses the post-upgrade (to) object only.
+- **Commander review fix (2026-10-17): unset field + CRD states no default ⇒ undecidable** for value predicates
+  (previously equals → false and not-equals-with-some-elements-present → true, which could exclude an object).
+  Why: the absence of a schema default does not prove what the controller does with an absent field — controllers
+  default in code (the default-changed pattern this validator exists for). What an unset field means must come from
+  the trusted fact itself, via an explicit leaf: `any{F equals X, F unset}` (unset is in scope) or
+  `all{F not-equals X, F set}` / `all{F equals X, F set}` (unset is out of scope) — tested, decided without any
+  schema. A cited schema default still decides (the API server stores it). Tests:
+  `TestPinScopeUnsetFieldNeedsTheSchema` (equals and not-equals with a no-default CRD upstream or in the env ⇒
+  `pin:applicability-undecidable`; explicit unset/set leaves ⇒ decided both ways; schema default in/out of scope;
+  CRDs disagree). Mutation check (manual, recorded): restoring the old `defaultNone` decisions makes the three
+  no-default cases fail with `outcome pass, want not-run` — i.e. the old code cleared them.
 
 ## Files touched outside ownership
 

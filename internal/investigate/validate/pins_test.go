@@ -356,59 +356,85 @@ func TestPinNonContradictions(t *testing.T) {
 	}
 }
 
-// A scope field the object leaves unset is decided only through a schema
-// default the bundle's CRD states; without a CRD it is undecidable, never
-// "out of scope".
+// A value predicate (equals / not-equals) on a scope field the object leaves
+// unset is decided only by a schema default a CRD of the bundle states. A CRD
+// that states no default does not decide it — the controller may default the
+// field in code — so the object is undecidable; what an unset field means
+// must be stated by the rule itself, with an explicit unset/set leaf.
 func TestPinScopeUnsetFieldNeedsTheSchema(t *testing.T) {
-	setup := func(o *overrideFx) {
-		o.withFact(rootScoped("vf-scoped", domain.VerifiedHuman, o.f.up))
+	setup := func(o *overrideFx, exposure domain.Condition, plainRotation string) {
+		o.withFact(scopedFact("vf-scoped", domain.VerifiedHuman, o.f.up, exposure))
+		plain := map[string]string{"size": "2"} // role unset
+		if plainRotation != "" {
+			plain["rotation"] = plainRotation
+		}
 		o.f.file("apps/w/widgets.yaml", stream(
 			gw("w-root", "apps", map[string]string{"role": "root", "rotation": "Never"}),
-			gw("w-plain", "apps", map[string]string{"size": "2"}))) // role unset
+			gw("w-plain", "apps", plain)))
 		o.f.pair("argocd:apps/gizmo.yaml", controller(), controller())
 	}
-	t.Run("no CRD", func(t *testing.T) {
-		o := newOverrideFx(t)
-		setup(o)
-		r := o.run(t)
-		wantOutcome(t, r, domain.ValidationNotRun, "no CustomResourceDefinition of gizmo.example.io/Widget in the bundle")
-		if r.Provenance.Rule != ReasonPinApplicabilityUndecidable {
-			t.Fatalf("rule %s", r.Provenance.Rule)
-		}
-	})
-	t.Run("CRD states no default", func(t *testing.T) {
-		o := newOverrideFx(t)
-		setup(o)
-		o.f.crd(scopedWidgetCRD(""))
-		r := o.run(t)
-		wantOutcome(t, r, domain.ValidationPass, "states no default")
-		if !strings.Contains(r.Detail, "w-plain") {
-			t.Fatalf("the excluded object is listed: %s", r.Detail)
-		}
-	})
-	t.Run("CRD default puts it in scope", func(t *testing.T) {
-		o := newOverrideFx(t)
-		setup(o)
-		o.f.crd(scopedWidgetCRD("root"))
-		r := o.run(t)
-		wantOutcome(t, r, domain.ValidationNotRun, "w-plain")
-		if r.Provenance.Rule != ReasonPinNotEstablished {
-			t.Fatalf("rule %s", r.Provenance.Rule)
-		}
-	})
-	t.Run("CRDs disagree", func(t *testing.T) {
-		o := newOverrideFx(t)
-		setup(o)
-		o.f.crd(scopedWidgetCRD(""))
-		o.f.put(domain.ArtifactCRDDefinition, domain.OriginUpstream, "upstream/gizmo/v1.0.0/crds.yaml", scopedWidgetCRD("leaf"))
-		wantOutcome(t, o.run(t), domain.ValidationNotRun, "disagree")
-	})
-	t.Run("the environment ships the CRD", func(t *testing.T) {
-		o := newOverrideFx(t)
-		setup(o)
-		o.f.file("crds/widgets.yaml", scopedWidgetCRD(""))
-		wantOutcome(t, o.run(t), domain.ValidationPass, "states no default")
-	})
+	roleUnset := domain.Condition{Op: domain.OpField, Path: "spec.role", State: domain.StateUnset}
+	roleSet := domain.Condition{Op: domain.OpField, Path: "spec.role", State: domain.StateSet}
+	notLeaf := domain.Condition{Op: domain.OpField, Path: "spec.role", State: domain.StateNotEquals, Values: []string{`"leaf"`}}
+	cases := []struct {
+		name     string
+		exposure domain.Condition
+		crd      string // "" none; "-" a CRD stating no default; else the default
+		inEnv    bool   // the CRD ships as an environment file
+		plainRot string
+		want     domain.ValidationOutcomeKind
+		rule     string
+		detail   string
+	}{
+		{"equals, no CRD", widgetScope(rootRole, rotationUnset()), "", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
+			"no CustomResourceDefinition of gizmo.example.io/Widget in the bundle"},
+		// (1) the commander's fail-open: absence of a schema default is no proof
+		{"equals, CRD states no default", widgetScope(rootRole, rotationUnset()), "-", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
+			"states no schema default for spec.role"},
+		{"equals, environment CRD states no default", widgetScope(rootRole, rotationUnset()), "-", true, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
+			"a controller may default it in code"},
+		// (2) not-equals likewise
+		{"not-equals, CRD states no default", widgetScope(notLeaf, rotationUnset()), "-", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
+			"states no schema default for spec.role"},
+		// a cited schema default decides it
+		{"equals, CRD default puts it in scope", widgetScope(rootRole, rotationUnset()), "root", false, "", domain.ValidationNotRun, ReasonPinNotEstablished, "w-plain"},
+		{"equals, CRD default keeps it out", widgetScope(rootRole, rotationUnset()), "leaf", false, "", domain.ValidationPass, "", "defaults to leaf"},
+		{"CRDs disagree", widgetScope(rootRole, rotationUnset()), "disagree", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable, "disagree"},
+		// (3) the rule states what an unset role means: decided without any schema
+		{"explicit: unset role is in scope (any{equals, unset}), not pinned", widgetScope(domain.Condition{Op: domain.OpAny, Of: []domain.Condition{rootRole, roleUnset}}, rotationUnset()),
+			"", false, "", domain.ValidationNotRun, ReasonPinNotEstablished, "w-plain"},
+		{"explicit: unset role is in scope (any{equals, unset}), pinned", widgetScope(domain.Condition{Op: domain.OpAny, Of: []domain.Condition{rootRole, roleUnset}}, rotationUnset()),
+			"", false, "Never", domain.ValidationPass, "", ""},
+		{"explicit: unset role is out of scope (all{not-equals, set})", widgetScope(notLeaf, roleSet, rotationUnset()),
+			"", false, "", domain.ValidationPass, "", "spec.role is unset"},
+		{"explicit: unset role is out of scope (all{equals, set})", widgetScope(rootRole, roleSet, rotationUnset()),
+			"-", false, "", domain.ValidationPass, "", "spec.role is unset"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			o := newOverrideFx(t)
+			setup(o, c.exposure, c.plainRot)
+			switch {
+			case c.crd == "-" && c.inEnv:
+				o.f.file("crds/widgets.yaml", scopedWidgetCRD(""))
+			case c.crd == "-":
+				o.f.crd(scopedWidgetCRD(""))
+			case c.crd == "disagree":
+				o.f.crd(scopedWidgetCRD("root"))
+				o.f.put(domain.ArtifactCRDDefinition, domain.OriginUpstream, "upstream/gizmo/v1.0.0/crds.yaml", scopedWidgetCRD("leaf"))
+			case c.crd != "":
+				o.f.crd(scopedWidgetCRD(c.crd))
+			}
+			r := o.run(t)
+			wantOutcome(t, r, c.want, c.detail)
+			if c.rule != "" && r.Provenance.Rule != c.rule {
+				t.Fatalf("rule %s, want %s:\n%s", r.Provenance.Rule, c.rule, r.Detail)
+			}
+			if c.want != domain.ValidationPass && r.ClearsBehaviour() {
+				t.Fatal("must not clear")
+			}
+		})
+	}
 }
 
 // Scope operators: any, not and ref are decided per object; a reference

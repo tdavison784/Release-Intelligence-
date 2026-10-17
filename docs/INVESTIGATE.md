@@ -278,7 +278,9 @@ resolving to exactly one object of the view (by name and the kind/group/namespac
 object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
 object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
 artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
-CRD, or an ancestor default, or a schema that does not describe the path, it is undecidable; and a reference
+CRD, a CRD that states no default (the controller may default the field in code), an ancestor default, or a schema
+that does not describe the path, it is undecidable. What an unset field means is decided by the rule only when it
+says so explicitly with an `unset`/`set` leaf (`any{F equals X, F unset}`, `all{F not-equals X, F set}`); and a reference
 resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
 object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
 

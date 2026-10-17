@@ -816,10 +816,7 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 			}
 			return verdict{t: tTrue, why: fmt.Sprintf("%s, otherwise defaults to %s (%s), none of %s", is(), plainValue(d.value), d.source, strings.Join(c.Values, ", ")), evidence: d.evidence}
 		case defaultNone:
-			if present {
-				return verdict{t: tTrue, why: fmt.Sprintf("%s (none of %s)", is(), strings.Join(c.Values, ", ")), evidence: d.evidence}
-			}
-			return verdict{t: tFalse, why: fmt.Sprintf("%s and %s states no default", is(), d.source), evidence: d.evidence}
+			return verdict{t: tUnknown, why: noSchemaDefault(c, leaf, is(), d.source)}
 		}
 		return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s, and %s", leaf, is(), d.why)}
 	}
@@ -837,9 +834,19 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 		}
 		return verdict{t: tFalse, why: fmt.Sprintf("%s, otherwise defaults to %s (%s): %s does not hold", is(), plainValue(d.value), d.source, leaf), evidence: d.evidence}
 	case defaultNone:
-		return verdict{t: tFalse, why: fmt.Sprintf("%s and %s states no default: %s does not hold", is(), d.source, leaf), evidence: d.evidence}
+		return verdict{t: tUnknown, why: noSchemaDefault(c, leaf, is(), d.source)}
 	}
 	return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s, and %s", leaf, is(), d.why)}
+}
+
+// noSchemaDefault explains why a value predicate on a field left unset is
+// undecidable although the CRD describes it: without a schema default the
+// controller may still default the field in code (the very pattern of a
+// default change), so what an absent field means must come from the rule
+// itself — an explicit state:unset (or set) leaf on the field.
+func noSchemaDefault(c domain.Condition, leaf, is, source string) string {
+	return fmt.Sprintf("%s: %s and %s states no schema default for %s; a controller may default it in code, so only a rule that states what an unset %s means (a %s unset/set leaf) decides it",
+		leaf, is, source, c.Path, c.Path, c.Path)
 }
 
 // valueHolds reports whether a JSON-encoded scalar satisfies the positive
