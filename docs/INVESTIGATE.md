@@ -1046,9 +1046,9 @@ scores the stored run record:
   findings and decision byte for byte.
 
 ```
-ri -state <cache> -offline eval -investigations                    # arm A: deterministic only
-ri eval -investigations -case <id>[,<id>] -o json                   # a subset, JSON score
-ri eval -investigations -save                                       # keep results/<run-id>/ (never overwritten)
+ri -state <cache> -offline eval -investigations -knowledge <snapshot>   # arm A: deterministic only
+ri eval -investigations -knowledge <snapshot> -case <id>[,<id>] -o json # a subset, JSON score
+ri eval -investigations -knowledge <snapshot> -save                                    # keep results/<run-id>/ (never overwritten)
 ri eval -investigations -agent -agent-driver claude-cli -agent-model claude-sonnet-5-5 -save   # arm B
 ri eval -investigations -runtime -save                                  # arm C: + observed validation (one
                                                                        # throwaway kind cluster per case, deleted after)
@@ -1073,3 +1073,27 @@ classifier: a stored run reproduces byte for byte with the binary of its own com
 code shows exactly what a policy change altered.
 Scored runs are kept, never overwritten or cherry-picked; the analysis is
 `docs/phase4/env-impact/EVAL-REPORT.md`.
+
+### Phase 5: pinned knowledge, agent verdicts, comparison
+
+- **Knowledge is pinned.** `ri eval -investigations` refuses to run without an explicit `-knowledge` naming a snapshot,
+  and refuses the live `knowledge/` tree (`./knowledge`, the work tree's, the primary checkout's) unless
+  `-allow-live-knowledge`, so a later knowledge change cannot contaminate an arm. `run.json` records
+  `knowledgeDigest` (sha256 over the sorted relative paths and bytes of every file in the tree; `none` with
+  `-knowledge ""`) and `knowledgeLive`. `-append` refuses a run with a different digest. Runs stored before Phase 5
+  have no digest and still load and re-score. `-rescore`, `-pack` and `-compare` read stored runs and need no snapshot.
+- **Snapshots.** `scripts/phase5/snapshot.sh <sha> <out>` extracts `knowledge/` of a commit with `git archive` and prints
+  the same digest (K0 = `03b6ff43`; K1 = K0 plus the promoted facts, one commit). `scripts/phase5/kbad.sh <K1> <fact-id>
+  <out>` builds the PROTOCOL §5 S3 negative-control trees (proxy-only, refused promotion, release outside the
+  transition, wrong pin, superseded, retracted, undecidable condition, contradicting active fact) as copies of K1; each
+  is documented in `scripts/phase5/kbad/main.go`.
+- **Agent verdicts are scored apart from policy.** The agent's provisional class per item (`AgentVerdict`, PROTOCOL §8) is
+  matched to expected items with the same matcher as policy findings and scored `correct` / `false-safe` (agent
+  not-affected, expected anything else) / `false-alarm` (agent affected, expected not-affected) / `hedged`
+  (potentially-affected or insufficient-evidence, not equal to expected) / `overstated` (agent affected, expected
+  potentially-affected or insufficient-evidence) / `no-verdict`. Ungated; never read by gates or policy metrics; absent
+  from the score when an arm stored no verdicts.
+- **`-compare <run>[,label=<run>…]`** prints Markdown tables for stored runs side by side, first = baseline: policy class
+  per item, safety rows (false negatives, unsafe eligibility, clearances, unsafe clearances, clearances gained/lost),
+  accuracy and coverage/risk detection as separate tables, human-review and cost rows, agent-verdict outcomes. The
+  analysis is `docs/phase5/learning-loop/EVAL-REPORT.md`.

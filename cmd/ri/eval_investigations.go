@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -50,6 +51,11 @@ type InvRunMeta struct {
 	ConfigDigest string             `json:"configDigest"`
 	GatesDigest  string             `json:"gatesDigest"`
 	Cases        []InvRunMetaCase   `json:"cases"`
+	// KnowledgeDigest is the content digest of the knowledge tree the run
+	// used (PROTOCOL.md §3, §8); "none" when knowledge was switched off.
+	// KnowledgeLive marks a run that used the live tree on request.
+	KnowledgeDigest string `json:"knowledgeDigest,omitempty"`
+	KnowledgeLive   bool   `json:"knowledgeLive,omitempty"`
 	// Appends records every later invocation that added cases to the run
 	// (-append): the run is built case by case, never rewritten.
 	Appends []InvRunAppend `json:"appends,omitempty"`
@@ -115,18 +121,23 @@ func (c *cli) evalInvestigations(args []string) error {
 	work := fs.String("work", "", "investigation store directory (default: a temporary directory, removed afterwards)")
 	rescore := fs.String("rescore", "", "re-classify and re-score a stored run directory offline (no pipeline run)")
 	pack := fs.String("pack", "", "convert a stored run directory from the legacy cases/ layout to cases.tar.gz (contents byte-identical) and exit")
+	compare := fs.String("compare", "", "print the Phase 5 comparison tables (Markdown) for these stored run directories, comma-separated, optional label=dir; the first is the baseline, and exit")
 	knowledge := fs.String("knowledge", "knowledge", "directory of verified knowledge (as for ri investigate)")
 	agentOn := fs.Bool("agent", false, "run the investigation agent (arm B)")
 	driver := fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted")
 	model := fs.String("agent-model", "", "model for the agent driver")
 	replayDir := fs.String("agent-replay-dir", "", "replay driver: a stored run directory whose per-case transcript.jsonl (in cases.tar.gz) is replayed")
 	claudeBin := fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)")
+	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
 	if *pack != "" {
 		return packInvRun(*pack)
+	}
+	if *compare != "" {
+		return c.invCompare(*compare)
 	}
 	gates, err := eval.LoadInvGates(filepath.Join(*dir, eval.InvGatesFileName))
 	if err != nil {
@@ -148,6 +159,15 @@ func (c *cli) evalInvestigations(args []string) error {
 				return fmt.Errorf("%w: -runtime needs %s on PATH", app.ErrUsage, bin)
 			}
 		}
+	}
+	knowledgeSet := false
+	fs.Visit(func(f *flag.Flag) { knowledgeSet = knowledgeSet || f.Name == "knowledge" })
+	if err := checkEvalKnowledge(knowledgeSet, *knowledge, *allowLive, liveKnowledgeRoots()); err != nil {
+		return err
+	}
+	kdigest, err := knowledgeTreeDigest(*knowledge)
+	if err != nil {
+		return err
 	}
 	if *agentOn && *driver == "replay" && *replayDir == "" {
 		return fmt.Errorf("%w: -agent-driver replay needs -agent-replay-dir", app.ErrUsage)
@@ -173,7 +193,8 @@ func (c *cli) evalInvestigations(args []string) error {
 	}
 	commit, dirty := buildCommit()
 	meta := InvRunMeta{Arm: label, ArmDetail: detail, Commit: commit, Dirty: dirty, GoVersion: runtime.Version(),
-		Args: append([]string{"eval", "-investigations"}, args...), StartedAt: time.Now().UTC(), GatesDigest: gates.Digest}
+		Args: append([]string{"eval", "-investigations"}, args...), StartedAt: time.Now().UTC(), GatesDigest: gates.Digest,
+		KnowledgeDigest: kdigest, KnowledgeLive: *allowLive && knowledgeSet && samePathAny(*knowledge, liveKnowledgeRoots())}
 	short := commit
 	if len(short) > 10 {
 		short = short[:10]
@@ -199,6 +220,8 @@ func (c *cli) evalInvestigations(args []string) error {
 		switch {
 		case prior.Arm != label:
 			return fmt.Errorf("-append: run %s is arm %s, this invocation is arm %s", prior.RunID, prior.Arm, label)
+		case prior.KnowledgeDigest != kdigest:
+			return fmt.Errorf("-append: run %s used knowledge %q, this invocation %q — one arm, one knowledge snapshot", prior.RunID, prior.KnowledgeDigest, kdigest)
 		case prior.Commit != commit || prior.Dirty != dirty:
 			return fmt.Errorf("-append: run %s was made by binary %s (dirty=%v), this is %s (dirty=%v): use the same binary", prior.RunID, prior.Commit, prior.Dirty, commit, dirty)
 		}
@@ -409,7 +432,8 @@ func loadInvFromStore(ctx context.Context, st *store.Store, req investigate.Requ
 // evalRun turns the stored records into the scorer's input, re-classifying
 // them (the reproducibility metric).
 func (s *invStored) evalRun(caseID string) *eval.InvRun {
-	run := &eval.InvRun{Case: caseID, Investigation: s.Inv, Bundle: s.Bundle, Graph: s.Graph, ChangeText: s.ChangeText}
+	run := &eval.InvRun{Case: caseID, Investigation: s.Inv, Bundle: s.Bundle, Graph: s.Graph, ChangeText: s.ChangeText,
+		Verdicts: agentVerdictInputs(s)}
 	ok, detail := reclassify(s)
 	run.Reproduced, run.ReproduceDetail = &ok, detail
 	return run
