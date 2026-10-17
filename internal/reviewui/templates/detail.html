@@ -31,13 +31,16 @@
 
     {{with .Hypothesis}}
     <section class="dsec hypothesis" id="hypothesis">
-      <h3>Agent-proposed rule <span class="badge {{if .GateOpen}}ok{{else}}danger{{end}}">promotion gate: {{if .GateOpen}}open{{else}}closed{{end}}</span></h3>
+      <h3>{{if .HumanAuthored}}Human-authored rule{{else}}Agent-proposed rule{{end}} <span class="badge {{if .GateOpen}}ok{{else}}danger{{end}}">promotion gate: {{if .GateOpen}}open{{else}}closed{{end}}</span></h3>
       <p class="small">{{.GateReason}}</p>
       <h4>The rule, in plain English</h4>
       <ul class="rule">{{range .Rule}}<li>{{.}}</li>{{end}}</ul>
-      <h4>The agent's reasoning <span class="badge warn">AI — not verified</span></h4>
+      {{if .HumanAuthored}}<h4>The author's statement <span class="badge warn">human-authored — not agent-proposed, not verified</span></h4>
+      {{range .Agent}}<blockquote class="quote">{{.Text}}<div class="small muted">author: {{.Model}} · {{.Prompt}} · rule file <code>{{.Call}}</code></div></blockquote>{{end}}
+      <p class="small muted">Hypothesis <code>{{.Hypothesis}}</code>, taken in from a rule file. It is gated exactly like an agent-proposed rule: only a human can promote it, and only with a confirmed independent proof of exactly this rule.</p>
+      {{else}}<h4>The agent's reasoning <span class="badge warn">AI — not verified</span></h4>
       {{range .Agent}}<blockquote class="quote ai">{{.Text}}<div class="small muted">{{.Model}} · prompt {{.Prompt}} · call <code>{{.Call}}</code></div></blockquote>{{end}}
-      <p class="small muted">Hypothesis <code>{{.Hypothesis}}</code>{{if .Investigation}} of investigation <code>{{.Investigation}}</code>{{end}}. The agent can propose a rule; only a human can promote it, and only with a confirmed independent proof of exactly this rule.</p>
+      <p class="small muted">Hypothesis <code>{{.Hypothesis}}</code>{{if .Investigation}} of investigation <code>{{.Investigation}}</code>{{end}}. The agent can propose a rule; only a human can promote it, and only with a confirmed independent proof of exactly this rule.</p>{{end}}
       <h4>Independent verification</h4>
       {{if not .Proofs}}<p class="flash flash-warn">No proof record yet — run <code>ri verify hypotheses -knowledge DIR -runtime</code>.</p>{{end}}
       {{range .Proofs}}

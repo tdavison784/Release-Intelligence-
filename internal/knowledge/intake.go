@@ -233,6 +233,9 @@ type IntakeResult struct {
 	ProposedRuleDigest string               `json:"proposedRuleDigest"`
 	Bounds             domain.ReleaseBounds `json:"bounds"`
 	Status             string               `json:"status"`
+	// ItemExisted: a review item proposing exactly this rule was already in
+	// the store (e.g. an exported agent hypothesis) and is reused as it is.
+	ItemExisted bool `json:"itemExisted,omitempty"`
 }
 
 // Intake writes the rule's proposal and whole-fact review item. Idempotent:
@@ -329,6 +332,7 @@ func Intake(ctx context.Context, s Store, r *ParsedRule, o IntakeOptions) (*Inta
 	if err != nil {
 		return nil, err
 	}
+	res.ItemExisted = iExisting
 	if pExisting && iExisting {
 		res.Status = IntakeExisting
 	}

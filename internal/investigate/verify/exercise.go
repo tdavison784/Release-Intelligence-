@@ -138,10 +138,14 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 			if err := write(obj); err != nil {
 				return notRun("fixture object: %v", err)
 			}
+			p.objects = append(p.objects, objectID(obj))
+			if obj["kind"] != fx.Target.Kind || !strings.HasPrefix(objectID(obj), groupOr(fx.Target.Group)+"/") {
+				continue // a consuming object of another kind: its outputs are not declared
+			}
 			produced, notes := Produced(in.Relationships, fx.Target, obj)
 			limitations = append(limitations, notes...)
 			observe = append(observe, produced...)
-			p.objects = append(append(p.objects, objectID(obj)), produced...)
+			p.objects = append(p.objects, produced...)
 		}
 		if cf != nil {
 			c := consumerCheckOf(a, cf, fx, ex.Key())
@@ -270,6 +274,13 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 		m.Evidence = nil
 	}
 	return m
+}
+
+func groupOr(g string) string {
+	if g == "" {
+		return "core"
+	}
+	return g
 }
 
 func armOutcome(a domain.ProofArm) domain.MethodOutcome {
