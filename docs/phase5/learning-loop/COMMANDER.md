@@ -15,7 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| prompt8 | ri-prompt8 | Opus | p5ll/prompt8 | .claude/worktrees/p5ll-prompt8 | w1:t1Y | W-0029 started 10:58 — prompt v8 (F3) |
+| prompt8 | ri-prompt8 | Opus | p5ll/prompt8 | (removed) | (closed) | merged 89328b6f = F3, cleaned up |
 | redact | ri-redact | Opus | p5ll/redact | (removed) | (closed) | merged = F2, cleaned up |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
@@ -23,7 +23,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | (removed) | (closed) | merged 131d6c2e, cleaned up |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED @ 2c092bdf) | .claude/worktrees/p5ll-groundtruth5 (kept, sealed) | (closed) | LANE DONE 08:48 — 10 cases, 5A/5NA decisive; not merged until W-0016 |
-| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | F2 A0/B0 merged; idle until F3 (W-0030) |
+| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | W-0030 A0 + B0-v8 dev pair at F3 |
 
 ## Merge log
 
@@ -42,6 +42,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 - 2026-10-17 e5b3afa7 eval5 wave 1: knowledgeDigest/knowledgeLive in run.json, `-knowledge` mandatory (live tree refused unless -allow-live-knowledge), snapshot.sh + kbad (S3 a–h), ungated agent-verdict table (correct/false-safe/false-alarm/hedged/overstated/no-verdict; stub until verdict merges), `-compare` tables, A0-K0-20261017-bfebde39 (K0 digest sha256:672a7ce0…; 24/24 item decisions identical to Phase 4 arm A; payments-us B1 potentially-affected). Green. Worktree kept. Note: lane deleted one uncommitted earlier A0 run from a pre-commit binary (never cited).
 
 - 2026-10-17 c36e7de1 eval5 F2 runs: A0-K0-20261017-6d2ae5bf (24/24 decisions = F1) and B0-K0-20261017-6d2ae5bf (8/8 agent ran, 1.06M tokens, 1565 s; policy invariant holds; verdicts 11 correct / 12 hedged / 1 no-verdict / 0 false-safe / 0 false-alarm). F1 runs marked superseded. `-work` non-empty guard (+test). **Zero hypotheses** on all 8 cases; export into a K0 copy is empty. payments-us rotationPolicy items: potentially-affected/medium; the agent saw mesh-root-ca `Never` and leaves unset, but left leaf-key consumers open (the static-reference validation could not run: the leaf Secrets are not in the snapshot) and put its mitigation only in prose `wouldOverturn`. Green (build/vet/test after merge). Worktree kept.
+
+- 2026-10-17 89328b6f prompt8 = **F3**: prompt v8 default (system.md/item.md only; tools.json differs from v7 only in the two environmentBasis texts; v1–v7 digest-pinned). Mitigation = release-level rule recorded whether the env meets it on all/some/none; change vs consequence; wouldOverturn consistency; consumer tracing. Commander decision: environmentBasis = evidence of env state w.r.t. the conditions, met or not (non-empty). Reviewed prompt diff (generic, abstract example only). Smoke shop-fr 125k tokens, well-formed, no hypothesis calls. Lane note: smoke ingestion rewrote 3 ingress-nginx release/edge records in the shared `.ri/store`. Green. Cleaned up (tab w1:t1Y, worktree, branch -d).
 
 ## Decisions
 

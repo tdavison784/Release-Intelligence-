@@ -157,3 +157,8 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
      verification and §6 step 5 gate. The claim of §1 is then reported as holding for verification → promotion
      → classifier only; agent discovery is reported as failed.
   4. Held-out B0 (§6 step 7) uses v8 either way. S6 is scored on both the v7 and the v8 dev-pair runs.
+- **2026-10-17 F3 = `89328b6f`** (W-0029, prompt `investigate-agent/v8` now the default; v1–v7 unchanged). Also
+  documents `MitigationSpec.environmentBasis` as the verified evidence of the environment's state with respect to
+  the rule's conditions, met or not (still non-empty; read by no validator, verifier or gate). v8 is frozen from
+  here. The lane's one smoke run (ingress-nginx shop-fr, 125k tokens) used a pre-final v8 text (basis wording
+  only) and made no `record_hypothesis` call, so the structured-mitigation path is covered live only by W-0030.
