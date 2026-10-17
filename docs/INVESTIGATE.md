@@ -901,6 +901,95 @@ environment and the input path as supplied. The groundtruth environments sit ins
 every commit, and every checkout location, gives a new bundle id. A recorded run then replays only at its
 commit and path: a replay elsewhere is refused for a prompt-digest mismatch, never silently accepted.
 
+## Verifying mitigation hypotheses (Phase 5)
+
+An agent may propose a reusable rule — "this setting preserves the previous behaviour across this transition"
+(a `MitigationSpec` on a hypothesis, exported by `ri investigate export-hypotheses` as an AI proposal plus a
+whole-fact review item). It is never a fact until it is **independently verified and promoted by a human**
+(docs/phase5/learning-loop/PROTOCOL.md §7–§8). Package `internal/investigate/verify`, command:
+
+```
+ri verify hypotheses -knowledge <dir> [-store <state>] [-runtime] [-kubernetes 1.31] [-again] [-json]
+```
+
+For every open hypothesis-sourced fact-review item (`Provenance.Rule = hypothesis:<hyp>@<inv>` on a proposal
+of the item's rule) it writes a **`ProofRecord`** (`internal/domain/proof.go`, knowledge record kind `proof`,
+stored beside the item under `<product>/<release>/proofs/`):
+
+- **Citation check** (`verify.citations@v1`, deterministic). The rule's release bounds — `(From, To]` from the
+  run's mitigation spec — and its upstream citations (the proposal's evidence on the candidate). Each citation
+  must resolve in the evidence cache (the investigation store's CAS by content digest, or the fetch cache by
+  digest, else by URL; a GitHub blob URL also matches its raw form; a cited digest must match exactly), contain
+  its cited passage (whitespace-normalised, as the agent's tools check), and name at least one version and no
+  version outside the bounds (versions are read from the URL; a minor-only token like `1.18` names a release
+  line). Any failure ⇒ `fail`; no bounds or no citation ⇒ `not-run`; no passing passage naming the subject ⇒
+  `inconclusive` (whether the text *states* the behaviour is the reviewer's judgement, listed as a limitation).
+- **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
+  rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
+  in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
+  prerequisites, e.g. an issuer) in two arms — **condition-present** satisfies the rule's mitigating (`overlap`)
+  condition, **condition-absent** its exposure condition — and nothing else. `runtime.Validator.RunFixture`
+  runs the same phases as an environment run (install, exercises at FROM, upgrade to TO, exercises at TO,
+  observation, cleanup on every exit path) in a cluster `ri-verify-<8 hex>`; a fixture run and an environment
+  run never overlap (each refuses while a cluster of either prefix exists). Objects the controller produces
+  from each arm (the product's `produces` relationships) are observed and their data digested per key.
+
+  | condition-present arm | condition-absent arm | exercise outcome |
+  |---|---|---|
+  | unchanged at TO | changed at TO | `pass` — the behaviour change is demonstrated, and the condition preserves the previous behaviour |
+  | changed | changed | `fail` — the condition does not preserve it (refuted) |
+  | changed | unchanged | `fail` — the prediction for the condition arm is contradicted |
+  | unchanged | unchanged | `inconclusive` — the change itself was not demonstrated, so neither is the mitigation |
+
+  "Changed" is any difference the runtime's degradation rules record on the arm's objects (exercise window:
+  what the exercise did at TO that it did not do at FROM; upgrade window). Never a pass: an exercise not answered
+  on every arm at both versions (a quiet window), a run that did not complete, a sandbox problem (image pull),
+  no stored observation artifacts. `not-run`: no fixture for the subject kind, no declared exercise or one
+  without a reaction, or a rule whose conditions cannot be synthesised on the subject object (only `field`
+  leaves `unset` / `set` / `equals` / `not-equals` without list paths, inside `resource` of the subject kind;
+  `set`/`not-equals` use the change's previous value; a rule without an overlap is mitigated by setting an
+  "exposed while unset" field to its previous value) — never approximated.
+
+**Outcome** = `confirmed` only when both methods passed; any `fail` ⇒ `refuted`; otherwise `inconclusive`
+(`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
+exercise without both arms answered, and a level that does not match: `observed` exactly when the exercise
+ran). Each proof lists its limitations (one synthetic object per arm, chart-default controller, other consumers
+and topologies not covered, applicability to an environment decided by the validators, not by the proof). A
+proof whose rule differs from the run's mitigation spec is not written. Items with a confirmed or refuted proof
+are skipped unless `-again`; inconclusive ones are re-verified.
+
+**Fixtures** (`products/exercises/fixtures/<product>.yaml`, kind `ProductFixtures`; own directory so the exercise
+files' digests, recorded by every runtime run, are untouched): `controller.values` (+ upstream references),
+and per subject `target` (group/version/kind), `exercise` (an id from `products/exercises/<product>.yaml`, which
+must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
+name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
+
+### The promotion gate (`internal/knowledge/promote.go`)
+
+`Queue.Decide` refuses, before anything is written, an accept/correct of a hypothesis-sourced item unless:
+the reviewer is **human** (a proxy or the agent never promotes); the item is a whole-fact (`fact-review`) item
+and the decision verifies **all four aspects**; a **confirmed** proof of exactly the decided rule's digest exists
+for the item (a correction that changes the rule needs a new item and a new proof; a prose-only correction keeps
+the digest); **no refuted proof** of that rule exists (a refutation is never outweighed by a later confirmation);
+the proof's bounds contain the item's release; and every other active fact on the same subject is named in the
+decision's `supersedes` (the narrower rule replaces it — it becomes `superseded`) or `coexists` (kept, said
+explicitly) — a refining rule never silently coexists. Reject / need-more-evidence / defer are always allowed.
+Ordinary (non-hypothesis) items are unchanged.
+
+### In the review UI
+
+A hypothesis item's page shows the rule in plain English, the agent's reasoning labelled **AI — not
+verified**, every proof (each method with its level — deterministic / observed — outcome, detail, checks, the
+two arms with their predicted and observed behaviour, evidence links and limitations) and the gate (open /
+closed, with the reason); the decision form asks, per active same-subject fact, *supersede* or *keep beside*.
+The default view lists an agent rule only once its proof is confirmed (then as a pin source: promoting it can
+clear investigated environments); until then it is hidden as "awaiting a confirmed proof".
+
+Tests: `go test ./internal/investigate/verify ./internal/knowledge ./internal/reviewui` (synthetic product
+`acme-ctl`; every gate refusal path, the four arm combinations, citations outside the bounds, a proof digest
+mismatch after a correction) and `go test ./internal/investigate/runtime -run Fixture` (the fake cluster). A
+real run on the cert-manager fixture is recorded in `docs/phase5/learning-loop/runs/verify-smoke.md`.
+
 ## Running an investigation
 
 `ri investigate <product> <from> <to>` runs the whole environment-aware pipeline (DESIGN.md §5):

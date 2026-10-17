@@ -381,3 +381,37 @@ func TestGateIgnoresOrdinaryItems(t *testing.T) {
 		t.Fatalf("ordinary item refused: %v", err)
 	}
 }
+
+// Agent-proposed rules never reach a fact through routing: two separate
+// agent calls agreeing on the rule, with every other aspect validator
+// confirmed, mint nothing and open no item (the exported whole-fact item and
+// the gate are the only path).
+func TestRoutingIgnoresHypothesisProposals(t *testing.T) {
+	c := gateCandidate()
+	v := domain.ValidationResult{CandidateID: c.ID, Validator: "semvalidate.crd@v1", Assertion: narrowRule(),
+		Evidence: []domain.Evidence{gateEvidence()}, CheckedAt: t0.Add(2 * time.Minute)}
+	for _, x := range []domain.Aspect{domain.AspectSubject, domain.AspectChange, domain.AspectApplicability} {
+		v.Checks = append(v.Checks, domain.AspectCheck{Aspect: x, Outcome: domain.OutcomeConfirmed, Rule: "test:" + string(x)})
+	}
+	v.ID = domain.ValidationID(v.CandidateID, v.Validator, v.Assertion)
+	var ps []domain.SemanticProposal
+	for _, call := range []string{"hypothesis:hyp-0123456789ab@inv-0123456789ab", "hypothesis:hyp-ba9876543210@inv-ba9876543210"} {
+		p := domain.SemanticProposal{CandidateID: c.ID, Task: domain.TaskFull, Provider: "anthropic", Assertion: narrowRule(),
+			Citations: []domain.EvidenceID{gateEvidence().ID}, Provenance: gateProv(call)}
+		p.ID = domain.ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
+		ps = append(ps, p)
+	}
+	for _, policy := range []AutoApprovePolicy{nil, DefaultAutoApprove} {
+		res := RouteWith(policy, c, ps, []domain.ValidationResult{v})
+		if res.Fact != nil {
+			t.Fatalf("a fact was minted from agent hypotheses: %+v", res.Fact)
+		}
+		for _, it := range res.ReviewItems {
+			for _, id := range it.Proposals {
+				if id == ps[0].ID || id == ps[1].ID {
+					t.Fatalf("routing opened an item on an agent hypothesis: %+v", it)
+				}
+			}
+		}
+	}
+}
