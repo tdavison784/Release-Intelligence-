@@ -15,6 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
+| redact | ri-redact | Opus | p5ll/redact | .claude/worktrees/p5ll-redact | w1:t1X | working (W-0027, F1 defect fix) |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | (removed) | (closed) | merged, cleaned up |
@@ -38,6 +39,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 - 2026-10-17 e5b3afa7 eval5 wave 1: knowledgeDigest/knowledgeLive in run.json, `-knowledge` mandatory (live tree refused unless -allow-live-knowledge), snapshot.sh + kbad (S3 a–h), ungated agent-verdict table (correct/false-safe/false-alarm/hedged/overstated/no-verdict; stub until verdict merges), `-compare` tables, A0-K0-20261017-bfebde39 (K0 digest sha256:672a7ce0…; 24/24 item decisions identical to Phase 4 arm A; payments-us B1 potentially-affected). Green. Worktree kept. Note: lane deleted one uncommitted earlier A0 run from a pre-commit binary (never cited).
 
 ## Decisions
+
+- 2026-10-17 09:10 B0 dev pair (B0-K0-20261017-d262210d, 339k tokens): eu verdict affected (correct), us hedged because `mesh-root-ca`'s rotationPolicy is REDACTED in the bundle; 0 hypotheses on either env. Root cause = collection redacts whole credential-named maps (`privateKey`). Generic defect ⇒ lane redact, F2, re-run A0/B0. Without it no correct rule could ever apply (pin validator: withheld ⇒ undecidable). A0 on F1 (A0-K0-20261017-d262210d): 24/24 decisions identical to wave-1 A0; gap text only.
 
 - 2026-10-17 Phase 5 branches from `p4-env-impact` @ 03b6ff43 (PR #6 open, not merged into main): Phase 5 needs
   Phase 4 code + the product owner's verified knowledge.
