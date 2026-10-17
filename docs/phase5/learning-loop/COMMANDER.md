@@ -18,7 +18,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
 | coverage | ri-coverage | Opus | p5ll/coverage | (removed) | (closed) | merged ef6b8d04, cleaned up |
 | verdict | ri-verdict | Opus | p5ll/verdict | (removed) | (closed) | merged, cleaned up |
-| fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | .claude/worktrees/p5ll-fixes5 | (new) | working (W-0024, W-0025) |
+| fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | .claude/worktrees/p5ll-fixes5 | w1:t1W | working (W-0024, W-0025) |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED) | .claude/worktrees/p5ll-groundtruth5 | w1:t1T | working |
 | eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | wave 1 merged; idle, kept for waves 2–3 |
