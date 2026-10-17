@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 
 	"gopkg.in/yaml.v3"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/validate"
 	"github.com/tdavison784/release-intelligence/internal/redaction"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
@@ -28,7 +32,7 @@ import (
 
 const (
 	DossierFormat   = "ri.dev/item-dossier/v1"
-	DossierProducer = "investigate.dossier@v2" // v2: withheld enum values read back (withheld.go)
+	DossierProducer = "investigate.dossier@v3" // v3: the pin validator's effective object view; JSON field paths
 	// MaxDossierBytes bounds the dossier's JSON: it is inlined into the task.
 	MaxDossierBytes = 48 << 10
 )
@@ -359,8 +363,9 @@ type dossierBuilder struct {
 	objs  []viewObject
 	// complete: at least one environment render pair is complete.
 	complete bool
-	envText  []textArt // environment files (text)
-	toText   []textArt // complete environment renders, to side
+	envText  []textArt       // environment files (text)
+	schemas  []render.Object // CRDs of the effective view (objectSpec)
+	toText   []textArt       // complete environment renders, to side
 }
 
 type textArt struct {
@@ -593,20 +598,33 @@ type viewObject struct {
 	from     map[string]any // the same object in the from render (complete pairs only)
 	target   string
 	artifact string
+	// complete: seen through a render (the effective object); an unset
+	// field there means the shipped default applies.
 	complete bool
-	// readBack: withheld enum values read back in body (withheld.go).
+	label    string // the view label, when not a product render's or a file's
+	// unrendered: why its effective state is unknown (it decides nothing).
+	unrendered string
+	// readBack: withheld enum values read back in body.
 	readBack []redaction.Recovered
 }
 
 func (o viewObject) view() string {
+	if o.label != "" {
+		return o.label
+	}
 	if o.complete {
 		return "render " + o.target + " (complete)"
 	}
 	return "file " + o.target
 }
 
+// view reads the environment the dossier states settings from: the texts of
+// the environment files and complete renders (values keys, tokens), and the
+// objects of the effective object view the pin validator decides on
+// (validate.EffectiveView: complete product renders, version-independent
+// overlay renders — a kustomize base merged with its patches — and the files
+// no render consumed), withheld enum values read back.
 func (db *dossierBuilder) view(ctx context.Context) error {
-	seen := map[string]bool{}
 	pairs := append([]domain.ManifestPair(nil), db.b.Renders...)
 	sort.Slice(pairs, func(i, j int) bool { return pairs[i].Target < pairs[j].Target })
 	for _, p := range pairs {
@@ -623,26 +641,8 @@ func (db *dossierBuilder) view(ctx context.Context) error {
 			continue
 		}
 		db.toText = append(db.toText, textArt{art: toA, text: string(toB)})
-		to, err := render.ParseObjects(toB)
-		if err != nil {
+		if _, err := render.ParseObjects(toB); err != nil {
 			db.gap(GapPartial, "render "+p.Target, "the to render does not parse: "+err.Error())
-			continue
-		}
-		from := map[string]map[string]any{}
-		if fb, _, err := db.read(ctx, p.From); err == nil {
-			if objs, err := render.ParseObjects(fb); err == nil {
-				for _, o := range objs {
-					from[o.ID.String()] = o.Body
-				}
-			}
-		}
-		for _, o := range to {
-			k := o.ID.String()
-			if seen[k] {
-				continue
-			}
-			seen[k] = true
-			db.objs = append(db.objs, viewObject{id: o.ID, body: o.Body, from: from[k], target: p.Target, artifact: p.To, complete: true})
 		}
 	}
 	var envArts []domain.ArtifactRef
@@ -661,43 +661,74 @@ func (db *dossierBuilder) view(ctx context.Context) error {
 			db.gap(GapMissing, "environment file "+a.Path, "unreadable: "+err.Error())
 			continue
 		}
-		if isBinary(data) {
-			continue
-		}
-		db.envText = append(db.envText, textArt{art: a, text: string(data)})
-		objs, err := render.ParseObjects(data)
-		if err != nil {
-			continue // values files and other non-manifest YAML
-		}
-		for _, o := range objs {
-			k := o.ID.String()
-			if seen[k] {
-				continue // a complete render already shows the effective object
-			}
-			seen[k] = true
-			db.objs = append(db.objs, viewObject{id: o.ID, body: o.Body, target: strings.TrimPrefix(a.Path, "env/"), artifact: a.ID})
+		if !isBinary(data) {
+			db.envText = append(db.envText, textArt{art: a, text: string(data)})
 		}
 	}
-	sort.SliceStable(db.objs, func(i, j int) bool { return db.objs[i].id.String() < db.objs[j].id.String() })
-	db.readBack(ctx)
+	ev, err := validate.EffectiveView(ctx, readStore{db.in.Read}, db.b)
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		db.gap(GapMissing, "effective object view", err.Error())
+		return nil
+	}
+	for _, g := range ev.Gaps {
+		db.gap(GapPartial, "effective object view", g)
+	}
+	db.schemas = ev.Schemas
+	// one entry per object: a render's (product, then version-independent
+	// overlay) before a file's — a render shows the effective object
+	rank := map[string]int{"to": 0, "overlay": 1, "file": 2}
+	eff := append([]validate.EffectiveObject(nil), ev.Objects...)
+	sort.SliceStable(eff, func(i, j int) bool {
+		if a, b := eff[i].Object.ID.String(), eff[j].Object.ID.String(); a != b {
+			return a < b
+		}
+		if rank[eff[i].Side] != rank[eff[j].Side] {
+			return rank[eff[i].Side] < rank[eff[j].Side]
+		}
+		return eff[i].Target+eff[i].Artifact.Path < eff[j].Target+eff[j].Artifact.Path
+	})
+	seen := map[string]bool{}
+	for _, e := range eff {
+		k := e.Object.ID.String()
+		if seen[k] {
+			continue
+		}
+		seen[k] = true
+		o := viewObject{id: e.Object.ID, body: e.Object.Body, target: e.Target, artifact: e.Artifact.ID,
+			complete: e.Rendered, unrendered: e.Unrendered, readBack: e.ReadBack}
+		switch e.Side {
+		case "file":
+			o.target = strings.TrimPrefix(e.Artifact.Path, "env/")
+		case "overlay":
+			o.label = "render " + e.Target + " (version-independent overlay)"
+		}
+		if e.From != nil && !e.SameSides {
+			o.from = e.From.Body
+		}
+		db.objs = append(db.objs, o)
+	}
 	return nil
 }
 
-// readBack reads back, in every object of the view, the withheld values that
-// are an enum value the bundle's CRDs declare for that exact field
-// (redaction.Schemas.Recover); every other withheld value stays a marker.
-func (db *dossierBuilder) readBack(ctx context.Context) {
-	if len(db.objs) == 0 {
-		return
+// readStore serves the dossier's reader as a read-only artifact store (the
+// effective view reads by digest).
+type readStore struct {
+	read func(context.Context, domain.ArtifactRef) ([]byte, error)
+}
+
+func (r readStore) Put(context.Context, investigate.ArtifactSpec, []byte) (domain.ArtifactRef, error) {
+	return domain.ArtifactRef{}, errors.New("dossier: read-only store")
+}
+
+func (r readStore) Open(ctx context.Context, digest string) (io.ReadCloser, error) {
+	b, err := r.read(ctx, domain.ArtifactRef{Digest: digest})
+	if err != nil {
+		return nil, err
 	}
-	ix := bundleSchemas(ctx, db.b, db.in.Read)
-	for i := range db.objs {
-		o := &db.objs[i]
-		o.readBack = ix.Recover(o.id.Group, o.id.Version, o.id.Kind, o.body)
-		if o.from != nil {
-			ix.Recover(o.id.Group, o.id.Version, o.id.Kind, o.from)
-		}
-	}
+	return io.NopCloser(bytes.NewReader(b)), nil
 }
 
 // --- deciding settings -------------------------------------------------------------------
@@ -709,6 +740,9 @@ type settingSpec struct {
 	path         string
 	token        string
 	from         string
+	// unverified: path was converted from Go field names (upstream text)
+	// and no CRD of the bundle confirms it, so an unset field proves nothing.
+	unverified bool
 }
 
 func (s settingSpec) key() string {
@@ -728,6 +762,100 @@ func (s settingSpec) key() string {
 }
 
 var upperRe = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
+
+// objectSpec is the object-field setting a "Kind.field.path" subject names,
+// its path as the object's JSON/YAML field path: upstream text often names
+// Go fields (Certificate.Spec.PrivateKey.RotationPolicy). A Go-cased path is
+// resolved against the CRD schemas of the view (case-insensitively, by
+// property); without one confirming it, lowerCamel case is assumed and the
+// setting is marked unverified.
+func (db *dossierBuilder) objectSpec(segs []string, from string) settingSpec {
+	s := settingSpec{kind: "object-field", objKd: segs[0], path: strings.Join(segs[1:], "."), from: from}
+	goCased := false
+	for _, seg := range segs[1:] {
+		if seg != "" && unicode.IsUpper(rune(seg[0])) {
+			goCased = true
+		}
+	}
+	if !goCased {
+		return s
+	}
+	resolved := map[string]bool{}
+	for _, crd := range db.schemas {
+		spec, _ := crd.Body["spec"].(map[string]any)
+		names, _ := spec["names"].(map[string]any)
+		if k, _ := names["kind"].(string); k != segs[0] {
+			continue
+		}
+		versions, _ := spec["versions"].([]any)
+		for _, v := range versions {
+			vm, _ := v.(map[string]any)
+			sch, _ := vm["schema"].(map[string]any)
+			root, _ := sch["openAPIV3Schema"].(map[string]any)
+			if p, ok := schemaPath(root, segs[1:]); ok {
+				resolved[p] = true
+			}
+		}
+	}
+	if len(resolved) == 1 {
+		for p := range resolved {
+			s.path = p
+		}
+		return s
+	}
+	out := make([]string, 0, len(segs)-1)
+	for _, seg := range segs[1:] {
+		out = append(out, lowerCamel(seg))
+	}
+	s.path, s.unverified = strings.Join(out, "."), true
+	return s
+}
+
+// schemaPath resolves Go-cased segments to the schema's property names
+// (case-insensitively, through array items).
+func schemaPath(node map[string]any, segs []string) (string, bool) {
+	var out []string
+	for _, seg := range segs {
+		for node != nil && node["type"] == "array" {
+			node, _ = node["items"].(map[string]any)
+		}
+		props, _ := node["properties"].(map[string]any)
+		var hit string
+		for k := range props {
+			if strings.EqualFold(k, seg) {
+				if hit != "" {
+					return "", false // ambiguous
+				}
+				hit = k
+			}
+		}
+		if hit == "" {
+			return "", false
+		}
+		out = append(out, hit)
+		node, _ = props[hit].(map[string]any)
+	}
+	return strings.Join(out, "."), true
+}
+
+// lowerCamel is the conventional JSON name of a Go field (RotationPolicy →
+// rotationPolicy, TLSConfig → tlsConfig).
+func lowerCamel(s string) string {
+	r := []rune(s)
+	n := 0
+	for n < len(r) && unicode.IsUpper(r[n]) {
+		n++
+	}
+	switch {
+	case n == 0:
+		return s
+	case n == len(r):
+		return strings.ToLower(s)
+	case n > 1:
+		n-- // the last capital starts the next word
+	}
+	return strings.ToLower(string(r[:n])) + string(r[n:])
+}
 
 // deriveSettings lists the settings the evidence names for the item, in a
 // fixed order of trust: attached knowledge facts (subject and the settable
@@ -797,7 +925,7 @@ func (db *dossierBuilder) deriveSettings() {
 		case strings.HasPrefix(sub, "-"):
 			add(settingSpec{kind: "token", token: sub, from: "item subject"})
 		case valuesKeyRe.MatchString(sub) && upperRe.MatchString(segs[0]):
-			add(settingSpec{kind: "object-field", objKd: segs[0], path: strings.Join(segs[1:], "."), from: "item subject"})
+			add(db.objectSpec(segs, "item subject"))
 		case valuesKeyRe.MatchString(sub):
 			add(settingSpec{kind: "values-key", path: sub, from: "item subject"})
 		case identRe.MatchString(sub):
@@ -812,7 +940,7 @@ func (db *dossierBuilder) deriveSettings() {
 		segs := strings.Split(key, ".")
 		switch {
 		case valuesKeyRe.MatchString(key) && upperRe.MatchString(segs[0]):
-			add(settingSpec{kind: "object-field", objKd: segs[0], path: strings.Join(segs[1:], "."), from: "upstream text"})
+			add(db.objectSpec(segs, "upstream text"))
 		case valuesKeyRe.MatchString(key):
 			add(settingSpec{kind: "key-path", path: key, from: "upstream text"})
 		case identRe.MatchString(key) && strings.ContainsAny(key, "-_"):
@@ -916,6 +1044,8 @@ func (db *dossierBuilder) objectSetting(s settingSpec, roots map[string]bool) Do
 		obj := DossierObject{Object: o.id.String(), Setting: s.key(), View: o.view(), Artifact: o.artifact, Root: roots[o.id.String()]}
 		vals := fieldValues(o.body, segs)
 		switch {
+		case o.unrendered != "":
+			obj.State, obj.Reason = SettingUnknown, o.unrendered
 		case len(vals) > 0:
 			obj.State, obj.Value = SettingExplicit, clip(strings.Join(vals, ", "), dossierValue)
 			for _, r := range o.readBack {
@@ -928,8 +1058,10 @@ func (db *dossierBuilder) objectSetting(s settingSpec, roots map[string]bool) Do
 					db.unchanged(DossierUnchanged{Object: o.id.String(), Setting: s.key(), Value: obj.Value, Target: o.target})
 				}
 			}
+		case o.complete && s.unverified:
+			obj.State, obj.Reason = SettingUnknown, "unset at "+s.path+", a path converted from the upstream text's Go field names that no CRD in the bundle confirms"
 		case o.complete:
-			obj.State, obj.Reason = SettingInheritedDefault, "unset in the complete rendered object: the shipped default applies"
+			obj.State, obj.Reason = SettingInheritedDefault, "unset in the effective (rendered) object: the shipped default applies"
 		default:
 			obj.State, obj.Reason = SettingUnknown, "unset in the file as declared; no complete render shows the effective object (an overlay or patch may set it)"
 		}
