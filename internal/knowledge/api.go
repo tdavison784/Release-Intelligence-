@@ -300,6 +300,10 @@ type ReviewContext struct {
 	// asserted change, from the rendered-diff validations. Nil when no render
 	// validated the candidate. CONTRACT-CHANGE(render).
 	Render *RenderEvidence
+	// Promotion is the promotion gate of an agent-proposed rule
+	// (hypothesis-sourced item): its proofs and whether a human accept may
+	// promote it. Nil for every other item. CONTRACT-CHANGE(verify): additive.
+	Promotion *GateState
 }
 
 // RenderEvidence is the rendered delta shown next to a review item.
