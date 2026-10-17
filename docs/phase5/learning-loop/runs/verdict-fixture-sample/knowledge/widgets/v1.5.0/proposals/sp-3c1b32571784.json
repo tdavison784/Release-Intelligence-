@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3c1b32571784",
+    "candidateId": "sc-99caa632eab3",
+    "task": "full",
+    "provider": "test",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "widgets",
+        "group": "example.dev",
+        "kind": "Widget",
+        "path": "spec.cleanup.policy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Retain\"",
+        "after": "\"Purge\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.cleanup.policy",
+              "state": "unset"
+            }
+          ],
+          "group": "example.dev",
+          "kind": "Widget"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required"
+      },
+      "statement": "A Widget that sets spec.cleanup.policy keeps its behaviour; one that leaves it unset is purged on deletion."
+    },
+    "citations": [
+      "ev-638e1b29f99b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "investigate.agent@v1",
+      "rule": "hypothesis:hyp-2cf02db0930c@inv-0ea015d9bc88",
+      "confidence": "low",
+      "model": "test-model",
+      "modelVersion": "test-model-1",
+      "promptVersion": "investigate-agent/v6",
+      "promptDigest": "sha256:73123350c567fb14542b565955b9e208bb62e3f8864f0d609979ad76d14f50e7",
+      "inputEvidence": [
+        "ev-638e1b29f99b"
+      ],
+      "generatedAt": "2026-10-16T12:00:00Z",
+      "callId": "call-w",
+      "provider": "test"
+    }
+  }
+}

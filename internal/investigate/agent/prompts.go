@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Earlier versions (v1–v4) stay embedded so their transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v5"
+// none. Earlier versions (v1–v5) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v6"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -69,6 +69,16 @@ type Features struct {
 	// environment claims, claims.go); agent free text is labelled
 	// unverified AI prose.
 	Claims bool `json:"claims"`
+	// Dossier: each item's session starts from its dossier (dossier.go),
+	// inlined into the item task and stored as a run artifact; get_dossier
+	// serves any item's.
+	Dossier bool `json:"dossier"`
+	// Verdict: every closing entry except not-examined carries the agent's
+	// provisional verdict (verdict.go); never a policy input.
+	Verdict bool `json:"verdict"`
+	// Mitigation: record_hypothesis takes a structured mitigation, stored
+	// only when well-formed (mitigation.go).
+	Mitigation bool `json:"mitigation"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -139,6 +149,15 @@ func LoadPrompt(version string) (*Prompt, error) {
 			return nil, fmt.Errorf("agent: prompt %s: feature claims needs tool %s", version, investigate.ToolRecordClaim)
 		}
 		want++
+	}
+	if p.Features.Dossier {
+		if !have[investigate.ToolGetDossier] {
+			return nil, fmt.Errorf("agent: prompt %s: feature dossier needs tool %s", version, investigate.ToolGetDossier)
+		}
+		want++
+	}
+	if (p.Features.Dossier || p.Features.Verdict || p.Features.Mitigation) && !p.Features.PerItem {
+		return nil, fmt.Errorf("agent: prompt %s: features dossier, verdict and mitigation need per-item sessions", version)
 	}
 	if len(p.Tools) != want {
 		return nil, fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", version, len(p.Tools), want)
@@ -400,10 +419,12 @@ type itemTaskData struct {
 	PathLines                                                 []string
 	Renders                                                   []string
 	Budget                                                    string
+	// Dossier is the item's dossier JSON (feature dossier) and its artifact.
+	Dossier, DossierArtifact string
 }
 
 // renderItemTask renders the task of one per-item session.
-func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget) (string, error) {
+func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget, dossier []byte, dossierArt string) (string, error) {
 	if p.item == nil {
 		return "", fmt.Errorf("agent: prompt %s has no per-item task", p.Version)
 	}
@@ -414,7 +435,8 @@ func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.Agenda
 	}
 	d := itemTaskData{Product: full.Product, From: full.From, To: full.To, Environment: full.Environment, KubernetesVersion: full.KubernetesVersion,
 		Bundle: b.ID, Position: position, Total: total, Cap: cap, Rule: e.PriorityRule, Renders: full.Renders,
-		Budget: fmt.Sprintf("%d tool calls, %d KiB returned, %d turns, %d s", budget.MaxToolCalls, budget.MaxReadBytes>>10, budget.MaxTurns, budget.MaxSeconds)}
+		Budget:  fmt.Sprintf("%d tool calls, %d KiB returned, %d turns, %d s", budget.MaxToolCalls, budget.MaxReadBytes>>10, budget.MaxTurns, budget.MaxSeconds),
+		Dossier: strings.TrimSpace(string(dossier)), DossierArtifact: dossierArt}
 	for _, ti := range full.Items {
 		if ti.ID == e.ChangeItem {
 			d.Item = ti

@@ -146,6 +146,8 @@ ri worker && ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo 
 ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
 ri verify hypotheses -knowledge <dir> -runtime  # independently verify agent-proposed rules (citation check + two-arm fixture in a throwaway kind cluster); proof records gate human promotion (docs/INVESTIGATE.md "Verifying mitigation hypotheses")
 ri investigate mcp --run <inv-id>             # serve a stored investigation's agent tools over MCP stdio, read-only (docs/INVESTIGATE.md)
+ri investigate dossier <inv-id> <item>        # the item dossier an agent session started from, rebuilt read-only (docs/INVESTIGATE.md)
+ri investigate export-hypotheses <inv-id> -knowledge <dir>   # agent mitigation hypotheses → proposals + whole-fact review items (never facts)
 ri eval -investigations -knowledge <snapshot> [-save] [-agent] [-compare runs]  # score investigations against the blind ground truth in eval/investigations (gates.yaml; docs/INVESTIGATE.md "Evaluation")
 ri impact cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31 --render # impact report + what actually changes in your rendered deployment
 ri impact cert-manager v1.17.0 v1.17.2 --repo ./customer-repo --kubernetes 1.31 --render --tier-policy default # + tiered verdict: auto-pass | review | block (docs/POLICY.md)

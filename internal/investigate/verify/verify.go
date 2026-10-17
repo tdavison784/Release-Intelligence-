@@ -20,7 +20,7 @@ import (
 const Producer = "verify.hypothesis@v1"
 
 // Mitigation is what the run record states about a hypothesis' proposed rule
-// (lane verdict's MitigationSpec, read through a local view).
+// (lane verdict's domain.MitigationSpec).
 type Mitigation struct {
 	Rule     *domain.SemanticAssertion
 	Bounds   *domain.ProofBounds
@@ -37,20 +37,11 @@ type StateRuns struct{ Dir string }
 
 var recordID = regexp.MustCompile(`^[a-z]+-[0-9a-f]{6,64}$`)
 
-// runView is the part of an investigation record verify reads
-// (hypotheses[].mitigation.proposedRule.{assertion,release}).
+// runView is the part of an investigation record verify reads: its
+// hypotheses (lane verdict's domain.Hypothesis with its MitigationSpec).
 type runView struct {
-	ID         string `json:"id"`
-	Hypotheses []struct {
-		ID         string `json:"id"`
-		Mitigation *struct {
-			ProposedRule struct {
-				Assertion *domain.SemanticAssertion `json:"assertion"`
-				Release   *domain.ProofBounds       `json:"release"`
-			} `json:"proposedRule"`
-		} `json:"mitigation"`
-		MitigationRejected string `json:"mitigationRejected"`
-	} `json:"hypotheses"`
+	ID         string              `json:"id"`
+	Hypotheses []domain.Hypothesis `json:"hypotheses"`
 }
 
 func (r StateRuns) Mitigation(ctx context.Context, inv, hyp string) (*Mitigation, error) {
@@ -75,10 +66,12 @@ func (r StateRuns) Mitigation(ctx context.Context, inv, hyp string) (*Mitigation
 		if h.ID != hyp {
 			continue
 		}
-		if h.Mitigation == nil {
+		m := h.Mitigation
+		if m == nil {
 			return &Mitigation{Rejected: h.MitigationRejected}, nil
 		}
-		return &Mitigation{Rule: h.Mitigation.ProposedRule.Assertion, Bounds: h.Mitigation.ProposedRule.Release}, nil
+		rule := m.ProposedRule.Assertion
+		return &Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}, nil
 	}
 	return nil, fmt.Errorf("verify: run %s has no hypothesis %s", inv, hyp)
 }

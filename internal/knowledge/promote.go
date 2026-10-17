@@ -22,9 +22,10 @@ import (
 // the decision with a reason before anything is written.
 
 // hypothesisRulePrefix starts the provenance rule of a proposal exported from
-// an agent hypothesis: "hypothesis:<hyp-id>@<inv-id>" (agreed with lane
-// verdict, which owns the writer; domain.ParseHypothesisRule on its branch).
-const hypothesisRulePrefix = "hypothesis:"
+// an agent hypothesis: "hypothesis:<hyp-id>@<inv-id>" (lane verdict's
+// domain.HypothesisRule writes it; this parser also accepts a rule without
+// the investigation).
+const hypothesisRulePrefix = domain.HypothesisRuleKind
 
 // ParseHypothesisRule splits a proposal's provenance rule
 // "hypothesis:<hyp-id>@<inv-id>"; ok is false for any other rule.

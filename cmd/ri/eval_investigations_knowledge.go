@@ -126,12 +126,19 @@ func checkEvalKnowledge(explicit bool, dir string, allowLive bool, liveRoots []s
 	return nil
 }
 
-// agentVerdictInputs extracts the agent's provisional verdicts from a stored
-// investigation for scoring. STUB: PROTOCOL §8 Investigation.AgentVerdicts
-// is added by lane `verdict`; until that merges there is nothing to read, so
-// arms store no verdicts and the verdict table stays empty. Replace the body
-// with a loop over inv.AgentVerdicts (item, class, confidence, mechanism).
-func agentVerdictInputs(s *invStored) []eval.VerdictInput { return nil }
+// agentVerdictInputs extracts the agent's provisional verdicts
+// (PROTOCOL §8 Investigation.AgentVerdicts) from a stored investigation for
+// scoring.
+func agentVerdictInputs(s *invStored) []eval.VerdictInput {
+	if s == nil || s.Inv == nil {
+		return nil
+	}
+	var out []eval.VerdictInput
+	for _, v := range s.Inv.AgentVerdicts {
+		out = append(out, eval.VerdictInput{Item: v.ChangeItem, Class: v.Class, Confidence: string(v.Confidence), Mechanism: v.Mechanism})
+	}
+	return out
+}
 
 func samePathAny(dir string, roots []string) bool {
 	for _, r := range roots {

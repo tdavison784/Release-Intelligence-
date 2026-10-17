@@ -1,0 +1,134 @@
+{
+ "format": "ri.dev/item-dossier/v1",
+ "producer": "investigate.dossier@v1",
+ "bundle": "bnd-82092377020c",
+ "snapshot": "snap-fef4dbaf373c",
+ "item": "ci-4c7ec4dac2e0",
+ "product": "ingress-nginx",
+ "from": "controller-v1.11.5",
+ "to": "controller-v1.12.0",
+ "environment": "shop-prod-de",
+ "change": {
+  "title": "⚠️ Chart: Remove Pod Security Policy",
+  "family": "behavior",
+  "manifestation": "controller-behaviour",
+  "manifestationRule": "manifest:declared-behaviour",
+  "scope": "scope:breaking",
+  "breaking": true,
+  "actionRequired": true,
+  "category": "removal",
+  "release": "1.12.0",
+  "detail": "⚠️ Chart: Remove Pod Security Policy. (#11971) ⚠️ This removes Pod Security Policies and related resources from the chart.",
+  "links": [
+   "https://github.com/kubernetes/ingress-nginx/issues/11971"
+  ],
+  "upstream": [
+   {
+    "id": "ev-2522062fed21",
+    "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md",
+    "locator": "L92-L94 (Changelog › All changes:)",
+    "excerpt": "* ⚠️ Chart: Remove Pod Security Policy. (#11971) ⚠️ This removes Pod Security Policies and related resources from the chart."
+   }
+  ],
+  "sources": [
+   {
+    "id": "art-0e59aea382fd",
+    "path": "upstream/ingress-nginx/raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md",
+    "uri": "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md"
+   }
+  ],
+  "joinFindings": [
+   {
+    "id": "imp-ff02d7d2c661",
+    "classification": "unknown",
+    "rule": "impact:not-joined",
+    "title": "Not evaluated for this environment: ⚠️ Chart: Remove Pod Security Policy"
+   }
+  ]
+ },
+ "settings": [],
+ "exposed": [],
+ "roots": [
+  {
+   "node": "gn-b4fe86317723",
+   "key": "networking.k8s.io/v1/Ingress/storefront/storefront",
+   "rule": "exposure:product-reconciles"
+  },
+  {
+   "node": "gn-e3822e9e260e",
+   "key": "networking.k8s.io/v1/Ingress/catalog-api/catalog-api",
+   "rule": "exposure:product-reconciles"
+  }
+ ],
+ "renderedChanges": [],
+ "unchanged": [],
+ "knowledge": [],
+ "validations": [
+  {
+   "id": "vr-3a907ef2cc24",
+   "validator": "validate.override-inspection@v1",
+   "kind": "override-inspection",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  },
+  {
+   "id": "vr-449a03a70c0e",
+   "validator": "validate.render-diff@v1",
+   "kind": "render-diff",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "id": "vr-74f87cd71157",
+   "validator": "validate.static-reference@v1",
+   "kind": "static-reference",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "an unresolved relationship decides nothing: - ip-99ea2093ff18: the path is its root alone: there is no reference on it to check - ip-ebb7fbd801ba: the path is its root alone: there is no reference on it to check"
+  }
+ ],
+ "relations": {
+  "roots": 2,
+  "paths": 2,
+  "unresolvedPaths": 0
+ },
+ "gaps": [
+  {
+   "kind": "missing",
+   "subject": "deciding setting",
+   "detail": "neither an attached knowledge fact, the join nor the item's subjects name a setting the dossier can check; read the upstream text (get_change_item, read_artifact) for the setting that decides the item"
+  },
+  {
+   "kind": "missing",
+   "subject": "source migration-guide",
+   "detail": "the product definition declares no upgrade guide source"
+  },
+  {
+   "kind": "missing",
+   "subject": "source source-diff",
+   "detail": "no source-diff collector in milestone 1 (DESIGN.md §0 §A1); an agent may request a linked PR as evidence"
+  },
+  {
+   "kind": "partial",
+   "subject": "source advisories",
+   "detail": "the security advisories source was consulted but cites no retrievable document"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-3a907ef2cc24",
+   "detail": "validate.override-inspection@v1 did not decide (not-run): no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-449a03a70c0e",
+   "detail": "validate.render-diff@v1 did not decide (not-run): the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-74f87cd71157",
+   "detail": "validate.static-reference@v1 did not decide (not-run): an unresolved relationship decides nothing: - ip-99ea2093ff18: the path is its root alone: there is no reference on it to check - ip-ebb7fbd801ba: the path is its root alone: there is no reference on it to check"
+  }
+ ]
+}

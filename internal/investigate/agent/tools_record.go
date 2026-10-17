@@ -47,6 +47,21 @@ type recordView struct {
 	Citations    []domain.EvidenceID `json:"citations"`
 	ProposedEdge string              `json:"proposedEdge,omitempty"`
 	Existing     bool                `json:"existing,omitempty"` // the same record was already made in this call
+	// Mitigation says what became of a structured mitigation (feature mitigation).
+	Mitigation string `json:"mitigation,omitempty"`
+}
+
+// mitigationState tells the model what became of the mitigation it gave.
+func mitigationState(h domain.Hypothesis, given bool) string {
+	switch {
+	case !given:
+		return ""
+	case h.Mitigation != nil:
+		return "recorded: proposed rule " + h.Mitigation.ProposedRule.Digest() + " (a proposal for independent verification; it changes no class)"
+	case h.MitigationRejected != "":
+		return "not recorded (the hypothesis is kept as free text): " + h.MitigationRejected + " — to retry, record the hypothesis again with the corrected mitigation and a revised statement"
+	}
+	return "not recorded: this hypothesis already exists without a mitigation; record a hypothesis with a revised statement"
 }
 
 // requestView is what the model receives for a request.
@@ -174,20 +189,27 @@ func (s *Session) recordHypothesis(ctx context.Context, in investigate.Hypothesi
 	if err != nil {
 		return nil, err
 	}
+	if in.Mitigation != nil && !s.cfg.Prompt.Features.Mitigation {
+		return nil, rejectf("this prompt version (%s) takes no structured mitigation", s.cfg.Prompt.Version)
+	}
 	id := domain.AgentRecordID(domain.HypothesisIDPrefix, it.ID, stmt, s.call.ID)
 	for i := range s.hyps {
 		if s.hyps[i].ID == id {
 			h := s.hyps[i]
-			return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: h.Citations, Existing: true}}, nil
+			return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: h.Citations, Existing: true,
+				Mitigation: mitigationState(h, in.Mitigation != nil)}}, nil
 		}
 	}
 	cites := evidenceIDs(evs)
 	h := domain.Hypothesis{ID: id, ChangeItem: it.ID, Statement: stmt, Subjects: subjects, Citations: cites, StatementKind: s.proseKind(),
 		Provenance: s.aiProvenance(append(append([]domain.EvidenceID(nil), cites...), it.Evidence...))}
+	if in.Mitigation != nil {
+		h.Mitigation, h.MitigationRejected = s.mitigationSpec(ctx, it, *in.Mitigation, evs)
+	}
 	if err := invalid(func() error { c := h; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {
 		return nil, err
 	}
-	return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: cites}, commit: func() {
+	return &outcome{value: &h, view: recordView{ID: id, ChangeItem: it.ID, Citations: cites, Mitigation: mitigationState(h, in.Mitigation != nil)}, commit: func() {
 		s.hyps = append(s.hyps, h)
 		s.cite(it.ID, evs)
 		for _, e := range evs {
@@ -699,10 +721,23 @@ func (s *Session) requestValidation(ctx context.Context, in investigate.Validati
 // --- submit_findings --------------------------------------------------------------------
 
 type submitView struct {
-	Submitted  bool        `json:"submitted"`
-	Assertions []string    `json:"assertions"`
-	Note       string      `json:"note"`
-	Agenda     *agendaView `json:"agenda,omitempty"` // prompt feature agenda
+	Submitted  bool          `json:"submitted"`
+	Assertions []string      `json:"assertions"`
+	Note       string        `json:"note"`
+	Agenda     *agendaView   `json:"agenda,omitempty"`   // prompt feature agenda
+	Verdicts   []verdictView `json:"verdicts,omitempty"` // prompt feature verdict
+}
+
+// verdictView is what the model receives for a recorded verdict: what
+// resolved and what was dropped.
+type verdictView struct {
+	ID                   string              `json:"id"`
+	ChangeItem           string              `json:"changeItem"`
+	Class                domain.FindingClass `json:"class"`
+	Citations            int                 `json:"citations"`
+	DroppedCitations     int                 `json:"droppedCitations,omitempty"`
+	DroppedVerifiedFacts int                 `json:"droppedVerifiedFacts,omitempty"`
+	Dropped              []string            `json:"dropped,omitempty"`
 }
 
 type agendaView struct {
@@ -734,6 +769,7 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		return nil, rejectf("this session closes exactly one item, %s: submit_findings needs one entry for it", s.focus)
 	}
 	var notes []domain.AgentNote
+	var verdicts []domain.AgentVerdict
 	seen := map[string]bool{}
 	var made []domain.AgentAssertion
 	var evs []domain.Evidence
@@ -784,6 +820,21 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		counts[string(disp)]++
 		sum.Disposition, sum.Summary = disp, stmt
 		closing[it.ID] = sum
+		if s.cfg.Prompt.Features.Verdict {
+			switch {
+			case sum.Verdict == nil && disp != domain.CoverNotExamined:
+				return nil, rejectf("items[%d]: verdict is required: your provisional class (affected, not-affected, potentially-affected, insufficient-evidence), mechanism, environmentReasoning, citations, verifiedFacts, assumptions, mitigations, uncertainty, proposedValidations, wouldOverturn", i)
+			case sum.Verdict != nil:
+				v, vevs, err := s.verdictOf(ctx, it, *sum.Verdict)
+				if err != nil {
+					return nil, fmt.Errorf("items[%d]: %w", i, err)
+				}
+				verdicts = append(verdicts, v)
+				evs = append(evs, vevs...)
+			}
+		} else if sum.Verdict != nil {
+			return nil, rejectf("items[%d]: this prompt version (%s) takes no verdict", i, s.cfg.Prompt.Version)
+		}
 		if !closes {
 			if len(sum.Citations) > 0 { // optional; checked when given
 				cs, err := s.citations(ctx, sum.Citations)
@@ -873,6 +924,10 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		return nil, err
 	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
+	for _, v := range verdicts {
+		view.Verdicts = append(view.Verdicts, verdictView{ID: v.ID, ChangeItem: v.ChangeItem, Class: v.Class, Citations: len(v.Citations),
+			DroppedCitations: v.DroppedCitations, DroppedVerifiedFacts: v.DroppedVerifiedFacts, Dropped: v.Dropped})
+	}
 	if agenda && !perItem {
 		var missing []string
 		for _, e := range s.cfg.Agenda {
@@ -906,6 +961,7 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		for _, n := range notes {
 			s.addNote(n, nil)
 		}
+		s.verdicts = append(s.verdicts, verdicts...)
 		s.submitted = true
 	}}, nil
 }

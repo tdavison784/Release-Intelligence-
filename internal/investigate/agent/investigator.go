@@ -262,6 +262,13 @@ func (s *Session) outcome(ctx context.Context, st investigate.ArtifactStore, dri
 		fill(&c.Provenance)
 		out.Claims = append(out.Claims, c)
 	}
+	droppedCites, droppedFacts := 0, 0
+	for _, v := range s.verdicts {
+		fill(&v.Provenance)
+		out.Verdicts = append(out.Verdicts, v)
+		droppedCites += v.DroppedCitations
+		droppedFacts += v.DroppedVerifiedFacts
+	}
 	out.ProposedNodes = append(out.ProposedNodes, s.propNodes...)
 	out.AnswerLinks = append(out.AnswerLinks, s.links...)
 	for _, id := range s.runEvIDs {
@@ -283,7 +290,8 @@ func (s *Session) outcome(ctx context.Context, st investigate.ArtifactStore, dri
 	out.Artifacts = append([]domain.ArtifactRef{ref}, s.runArts...)
 	out.Run = domain.AgentRun{Status: status, Reason: reason, Model: model, Provider: dr.Provider, PromptVersion: s.cfg.Prompt.Version,
 		PromptDigest: s.cfg.PromptDigest, CallID: dr.CallID, Budget: s.cfg.Budget, Turns: dr.Turns, ToolCalls: s.toolCalls,
-		Tokens: dr.Tokens, Transcript: ref.ID, Coverage: s.coverage(status, reason), BudgetRule: s.cfg.BudgetRule, ItemCap: s.cfg.ItemCap}
+		Tokens: dr.Tokens, Transcript: ref.ID, Coverage: s.coverage(status, reason), BudgetRule: s.cfg.BudgetRule, ItemCap: s.cfg.ItemCap,
+		Sessions: len(s.sessions), DroppedCitations: droppedCites, DroppedVerifiedFacts: droppedFacts}
 	return out, nil
 }
 
@@ -311,6 +319,11 @@ func validateOutcome(out *investigate.AgentOutcome) []error {
 	}
 	for _, c := range out.Claims {
 		if err := c.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	for _, v := range out.Verdicts {
+		if err := v.Validate(); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -406,6 +419,12 @@ func (s *Session) coverage(status domain.AgentRunStatus, reason string) []domain
 			c.CallID, c.SessionStatus, c.SessionReason = st.CallID, st.Status, st.Reason
 			c.Turns, c.ToolCalls, c.Tokens = st.Turns, st.ToolCalls, st.Tokens
 		}
+		c.Dossier = s.dossiers[e.ChangeItem]
+		for _, v := range s.verdicts {
+			if v.ChangeItem == e.ChangeItem {
+				c.Verdict = v.ID
+			}
+		}
 		c.Records = uniqSorted(records[e.ChangeItem])
 		c.Examined, c.Inspections = s.examined[e.ChangeItem], s.inspections[e.ChangeItem]
 		for _, r := range s.valReqs {
@@ -450,15 +469,28 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 	}
 	var digests []string
 	agg := investigate.DriverResult{Provider: ""}
+	started := time.Now() // wall time is a cost metric, never part of a record's identity
 	for k := 0; k < n; k++ {
 		e := agenda[k]
-		task, err := p.renderItemTask(in, e, k+1, n, cap, base.Budget)
+		var dossier *Dossier
+		var dossierBytes []byte
+		var dossierRef domain.ArtifactRef
+		if p.Features.Dossier {
+			var err error
+			if dossier, dossierBytes, dossierRef, err = itemDossier(ctx, i.st, in, e.ChangeItem); err != nil {
+				return nil, err
+			}
+		}
+		task, err := p.renderItemTask(in, e, k+1, n, cap, base.Budget, dossierBytes, dossierRef.ID)
 		if err != nil {
 			return nil, investigate.PermanentError(domain.StageInvestigate, err)
 		}
 		digest := p.Digest(task)
 		digests = append(digests, digest)
 		s.BeginItem(e.ChangeItem, base.Budget, digest)
+		if dossier != nil {
+			s.StartFrom(dossier, dossierRef)
+		}
 		as := base
 		as.Task, as.PromptDigest, as.ChangeItem = task, digest, e.ChangeItem
 		runCtx, cancel := context.WithTimeout(ctx, time.Duration(base.Budget.MaxSeconds)*time.Second)
@@ -489,7 +521,31 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 	s.cfg.PromptDigest = domain.Digest([]byte(strings.Join(digests, "\n")))
 	s.mu.Unlock()
 	status, reason := s.aggregateStatus()
-	return s.outcome(ctx, i.st, in.Config.Driver, agg, status, reason)
+	out, err := s.outcome(ctx, i.st, in.Config.Driver, agg, status, reason)
+	if err != nil {
+		return nil, err
+	}
+	out.Run.WallMillis = time.Since(started).Milliseconds()
+	return out, nil
+}
+
+// itemDossier builds and stores one item's dossier from the deterministic
+// pass's view of the run (the same input every replay sees).
+func itemDossier(ctx context.Context, st investigate.ArtifactStore, in investigate.InvestigateInput, item string) (*Dossier, []byte, domain.ArtifactRef, error) {
+	d, err := BuildDossier(ctx, DossierInput{Bundle: in.Bundle, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
+		Validations: in.Validations, Read: StoreReader(st)}, item)
+	if err != nil {
+		return nil, nil, domain.ArtifactRef{}, investigate.TransientError(domain.StageInvestigate, fmt.Errorf("agent: dossier of %s: %w", item, err))
+	}
+	data, err := d.Encode()
+	if err != nil {
+		return nil, nil, domain.ArtifactRef{}, investigate.PermanentError(domain.StageInvestigate, err)
+	}
+	ref, err := StoreDossier(ctx, st, d)
+	if err != nil {
+		return nil, nil, domain.ArtifactRef{}, investigate.TransientError(domain.StageInvestigate, fmt.Errorf("agent: store dossier of %s: %w", item, err))
+	}
+	return d, data, ref, nil
 }
 
 // aggregateStatus is the worst per-item session status (failed >

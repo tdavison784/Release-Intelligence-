@@ -116,6 +116,10 @@ const (
 	ArtifactGraph             ArtifactKind = "graph"              // a RelationshipGraph JSON
 	ArtifactValidationOutput  ArtifactKind = "validation-output"  // raw output of a validator run
 	ArtifactAgentTranscript   ArtifactKind = "agent-transcript"   // the recorded tool calls/results of an agent run (JSONL)
+	// ArtifactItemDossier is the change-scoped impact dossier of one item: the
+	// agent's initial context, assembled deterministically from the bundle and
+	// the run. CONTRACT-CHANGE(verdict): additive.
+	ArtifactItemDossier ArtifactKind = "item-dossier"
 )
 
 // ArtifactKinds lists every kind.
@@ -123,7 +127,7 @@ var ArtifactKinds = []ArtifactKind{
 	ArtifactUpgradeEdge, ArtifactUpstreamDocument, ArtifactSourceDiff, ArtifactChartArchive, ArtifactChartValues,
 	ArtifactCRDDefinition, ArtifactRenderedManifests, ArtifactRenderDiff, ArtifactEnvironmentFile,
 	ArtifactEnvironmentFacts, ArtifactInventory, ArtifactLiveObservation, ArtifactImpactReport,
-	ArtifactKnowledgeFact, ArtifactGraph, ArtifactValidationOutput, ArtifactAgentTranscript,
+	ArtifactKnowledgeFact, ArtifactGraph, ArtifactValidationOutput, ArtifactAgentTranscript, ArtifactItemDossier,
 }
 
 // ArtifactOrigin says where an artifact's bytes come from. It decides the
@@ -1893,7 +1897,13 @@ type Hypothesis struct {
 	Subjects      []string     `json:"subjects,omitempty"` // graph node ids
 	Citations     []EvidenceID `json:"citations"`
 	StatementKind string       `json:"statementKind,omitempty"` // see AgentAssertion; CONTRACT-CHANGE(agent)
-	Provenance    Provenance   `json:"provenance"`              // method ai
+	// Mitigation is the structured mitigation the hypothesis proposes, stored
+	// only when well-formed; MitigationRejected says why a spec the agent
+	// gave was not (the hypothesis is then free text only).
+	// CONTRACT-CHANGE(verdict): additive (PROTOCOL §8).
+	Mitigation         *MitigationSpec `json:"mitigation,omitempty"`
+	MitigationRejected string          `json:"mitigationRejected,omitempty"`
+	Provenance         Provenance      `json:"provenance"` // method ai
 }
 
 // AssertionStance is what an agent assertion does to a finding (DESIGN.md
@@ -2111,6 +2121,17 @@ func (h Hypothesis) Validate() error {
 	}
 	if strings.TrimSpace(h.Statement) == "" || len(h.Citations) == 0 {
 		errs = append(errs, fmt.Errorf("hypothesis %s: statement and citations are required", h.ID))
+	}
+	if m := h.Mitigation; m != nil {
+		if err := m.Validate(); err != nil {
+			errs = append(errs, fmt.Errorf("hypothesis %s: %w", h.ID, err))
+		}
+		if m.Item != h.ChangeItem {
+			errs = append(errs, fmt.Errorf("hypothesis %s: mitigation item %s is not the hypothesis item", h.ID, m.Item))
+		}
+		if h.MitigationRejected != "" {
+			errs = append(errs, fmt.Errorf("hypothesis %s: a mitigation is either stored or rejected", h.ID))
+		}
 	}
 	return errors.Join(errs...)
 }
@@ -2506,6 +2527,13 @@ type AgentRun struct {
 	// feature perItem); agenda items beyond it are closed not-examined by the
 	// runner. CONTRACT-CHANGE(agent): additive.
 	ItemCap int `json:"itemCap,omitempty"`
+	// Cost of the investigation (lane eval5): per-item sessions run, wall
+	// time, and citations / verified facts the tool layer dropped from
+	// verdicts. CONTRACT-CHANGE(verdict): additive.
+	Sessions             int   `json:"sessions,omitempty"`
+	WallMillis           int64 `json:"wallMillis,omitempty"`
+	DroppedCitations     int   `json:"droppedCitations,omitempty"`
+	DroppedVerifiedFacts int   `json:"droppedVerifiedFacts,omitempty"`
 }
 
 // CoverageDisposition is how the agent closed an agenda item.
@@ -2567,6 +2595,11 @@ type AgendaCoverage struct {
 	// SummaryKind labels an agent-written Summary ("unverified-ai-prose");
 	// empty for runner-written summaries. CONTRACT-CHANGE(agent): additive.
 	SummaryKind string `json:"summaryKind,omitempty"`
+	// Dossier is the item-dossier artifact the item's session started from;
+	// Verdict the agent's provisional verdict on the item.
+	// CONTRACT-CHANGE(verdict): additive.
+	Dossier string `json:"dossier,omitempty"`
+	Verdict string `json:"verdict,omitempty"`
 }
 
 // AgentNote is an investigation-level remark of the agent: a concern that
@@ -2680,7 +2713,11 @@ type Investigation struct {
 	AgentNotes []AgentNote `json:"agentNotes,omitempty"`
 	// AgentClaims: the agent's verified environment claims.
 	// CONTRACT-CHANGE(agent): additive.
-	AgentClaims        []SettingClaim         `json:"agentClaims,omitempty"`
+	AgentClaims []SettingClaim `json:"agentClaims,omitempty"`
+	// AgentVerdicts: the agent's provisional verdicts, one per investigated
+	// item; never read by the classification policy (PROTOCOL §8).
+	// CONTRACT-CHANGE(verdict): additive.
+	AgentVerdicts      []AgentVerdict         `json:"agentVerdicts,omitempty"`
 	EvidenceRequests   []EvidenceRequest      `json:"evidenceRequests,omitempty"`
 	ValidationRequests []ValidationRequest    `json:"validationRequests,omitempty"`
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
@@ -2790,6 +2827,26 @@ func (inv *Investigation) Validate() error {
 		for _, c := range a.Claims {
 			if !claims[c] {
 				bad("assertion %s names unknown setting claim %s", a.ID, c)
+			}
+		}
+	}
+	verdictItems := map[string]bool{}
+	for _, v := range inv.AgentVerdicts {
+		if err := v.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if verdictItems[v.ChangeItem] {
+			bad("two agent verdicts for change item %s", v.ChangeItem)
+		}
+		verdictItems[v.ChangeItem] = true
+		for _, h := range v.Mitigations {
+			if !hyps[h] {
+				bad("agent verdict %s names unknown hypothesis %s", v.ID, h)
+			}
+		}
+		for _, f := range v.VerifiedFacts {
+			if strings.HasPrefix(f, SettingClaimIDPrefix) && !claims[f] {
+				bad("agent verdict %s names unknown setting claim %s", v.ID, f)
 			}
 		}
 	}
@@ -3233,6 +3290,13 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	for _, n := range inv.AgentNotes {
 		item("agent note "+n.ID, n.About)
 		evid("agent note "+n.ID, n.Citations)
+	}
+	for _, v := range inv.AgentVerdicts {
+		item("agent verdict "+v.ID, v.ChangeItem)
+		evid("agent verdict "+v.ID, v.Citations)
+		if v.Dossier != "" {
+			art("agent verdict "+v.ID, v.Dossier)
+		}
 	}
 	for _, c := range inv.AgentClaims {
 		item("setting claim "+c.ID, c.ChangeItem)

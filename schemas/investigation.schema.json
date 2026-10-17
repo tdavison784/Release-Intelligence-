@@ -39,7 +39,9 @@
         "turns": {"type": "integer"},
         "toolCalls": {"type": "integer"},
         "tokens": {"type": "integer"},
-        "summaryKind": {"type": "string"}
+        "summaryKind": {"type": "string"},
+        "dossier": {"type": "string"},
+        "verdict": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -113,11 +115,59 @@
         "transcript": {"type": "string"},
         "coverage": {"type": "array", "items": {"$ref": "#/$defs/AgendaCoverage"}},
         "budgetRule": {"type": "string"},
-        "itemCap": {"type": "integer"}
+        "itemCap": {"type": "integer"},
+        "sessions": {"type": "integer"},
+        "wallMillis": {"type": "integer"},
+        "droppedCitations": {"type": "integer"},
+        "droppedVerifiedFacts": {"type": "integer"}
       },
       "additionalProperties": false
     },
     "AgentRunStatus": {"type": "string", "enum": ["not-run", "submitted", "budget-exhausted", "failed"]},
+    "AgentVerdict": {
+      "type": "object",
+      "required": [
+        "id",
+        "changeItem",
+        "class",
+        "confidence",
+        "mechanism",
+        "environmentReasoning",
+        "wouldOverturn",
+        "provenance"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^avd-"},
+        "changeItem": {"type": "string", "pattern": "^ci-"},
+        "class": {"$ref": "#/$defs/FindingClass"},
+        "confidence": {"$ref": "#/$defs/Confidence"},
+        "mechanism": {"type": "string"},
+        "environmentReasoning": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "verifiedFacts": {"type": "array", "items": {"type": "string"}},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "mitigations": {"type": "array", "items": {"type": "string"}},
+        "uncertainty": {"type": "string"},
+        "proposedValidations": {"type": "array", "items": {"type": "string"}},
+        "wouldOverturn": {"type": "string"},
+        "droppedCitations": {"type": "integer"},
+        "droppedVerifiedFacts": {"type": "integer"},
+        "dropped": {"type": "array", "items": {"type": "string"}},
+        "dossier": {"type": "string"},
+        "statementKind": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "Applicability": {
+      "type": "object",
+      "required": ["exposure"],
+      "properties": {
+        "exposure": {"$ref": "#/$defs/Condition"},
+        "overlap": {"$ref": "#/$defs/Condition"}
+      },
+      "additionalProperties": false
+    },
     "ApprovalEligibility": {
       "type": "object",
       "required": ["eligible", "requiresHumanReview"],
@@ -147,7 +197,8 @@
         "knowledge-fact",
         "graph",
         "validation-output",
-        "agent-transcript"
+        "agent-transcript",
+        "item-dossier"
       ]
     },
     "ArtifactOrigin": {"type": "string", "enum": ["upstream", "environment", "derived"]},
@@ -186,8 +237,107 @@
       },
       "additionalProperties": false
     },
+    "ChangeKind": {
+      "type": "string",
+      "enum": [
+        "added",
+        "removed",
+        "renamed",
+        "default-changed",
+        "value-changed",
+        "behavior-changed",
+        "deprecated",
+        "now-required",
+        "validation-tightened",
+        "requirement-changed",
+        "migration-required"
+      ]
+    },
+    "ChangeSpec": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"$ref": "#/$defs/ChangeKind"},
+        "before": {"type": "string"},
+        "after": {"type": "string"},
+        "replacedBy": {"$ref": "#/$defs/Subject"}
+      },
+      "additionalProperties": false
+    },
     "ClaimKind": {"type": "string", "enum": ["absent", "present", "value"]},
+    "Condition": {
+      "type": "object",
+      "required": ["op"],
+      "properties": {
+        "op": {"$ref": "#/$defs/ConditionOp"},
+        "of": {"type": "array", "items": {"$ref": "#/$defs/Condition"}},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "name": {"type": "string"},
+        "path": {"type": "string"},
+        "component": {"type": "string"},
+        "state": {"$ref": "#/$defs/FieldState"},
+        "values": {"type": "array", "items": {"type": "string"}},
+        "pattern": {"type": "string"},
+        "separator": {"type": "string"},
+        "range": {"type": "string"},
+        "reason": {"$ref": "#/$defs/UnknownReason"},
+        "needed": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ConditionOp": {
+      "type": "string",
+      "enum": [
+        "all",
+        "any",
+        "not",
+        "resource",
+        "field",
+        "text-line",
+        "ref",
+        "values-key",
+        "gvk-in-use",
+        "image-in-use",
+        "cli-flag",
+        "env-var",
+        "feature-gate",
+        "product-version",
+        "cluster-version",
+        "edge-from-version",
+        "rendered-change",
+        "undecidable"
+      ]
+    },
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "Consequence": {
+      "type": "object",
+      "required": ["kind", "exposedClass"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/ConsequenceKind"},
+        "exposedClass": {"$ref": "#/$defs/ImpactClass"},
+        "statement": {"type": "string"},
+        "remediation": {"type": "string"},
+        "severity": {"$ref": "#/$defs/ImpactSeverity"}
+      },
+      "additionalProperties": false
+    },
+    "ConsequenceKind": {
+      "type": "string",
+      "enum": [
+        "upgrade-blocked",
+        "resource-rejected",
+        "setting-ignored",
+        "behavior-change",
+        "permission-lost",
+        "workload-failure",
+        "migration-required",
+        "deprecation",
+        "superseded-upstream",
+        "none"
+      ]
+    },
     "CoverageDisposition": {
       "type": "string",
       "enum": ["raises-concern", "claims-mitigation", "explains", "examined-no-concern", "not-examined"]
@@ -325,6 +475,28 @@
       },
       "additionalProperties": false
     },
+    "FieldState": {
+      "type": "string",
+      "enum": [
+        "unset",
+        "set",
+        "equals",
+        "not-equals",
+        "matches",
+        "has-token",
+        "has-token-key",
+        "enabled",
+        "disabled",
+        "in-range",
+        "out-of-range",
+        "exists",
+        "none",
+        "changed",
+        "unchanged",
+        "added",
+        "removed"
+      ]
+    },
     "FindingClass": {
       "type": "string",
       "enum": ["affected", "not-affected", "potentially-affected", "insufficient-evidence"]
@@ -380,6 +552,8 @@
           "uniqueItems": true
         },
         "statementKind": {"type": "string"},
+        "mitigation": {"$ref": "#/$defs/MitigationSpec"},
+        "mitigationRejected": {"type": "string"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
@@ -412,6 +586,7 @@
       },
       "additionalProperties": false
     },
+    "ImpactSeverity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
     "Investigation": {
       "type": "object",
       "description": "The run record of one environment-aware breaking-change investigation (Phase 4): the bundle it investigated, the bounded DFS traversal, agent hypotheses/assertions/requests (AI provenance, never validation results), deterministic or observed validation records, the four-class findings computed by the deterministic policy, the approval decision, the human review and a hash-chained append-only audit trail (docs/phase4/env-impact/DESIGN.md §2–§5).",
@@ -446,6 +621,7 @@
         "assertions": {"type": "array", "items": {"$ref": "#/$defs/AgentAssertion"}},
         "agentNotes": {"type": "array", "items": {"$ref": "#/$defs/AgentNote"}},
         "agentClaims": {"type": "array", "items": {"$ref": "#/$defs/SettingClaim"}},
+        "agentVerdicts": {"type": "array", "items": {"$ref": "#/$defs/AgentVerdict"}},
         "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
         "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
@@ -510,6 +686,17 @@
     },
     "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "MitigationSpec": {
+      "type": "object",
+      "required": ["item", "proposedRule", "environmentBasis", "requestedVerification"],
+      "properties": {
+        "item": {"type": "string"},
+        "proposedRule": {"$ref": "#/$defs/ProposedRule"},
+        "environmentBasis": {"type": "array", "items": {"type": "string"}},
+        "requestedVerification": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "PinKind": {
       "type": "string",
       "enum": ["values-key", "field", "annotation", "flag", "env-var", "config-key"]
@@ -539,6 +726,16 @@
       "additionalProperties": false
     },
     "PolicyOutcome": {"type": "string", "enum": ["auto-approve-eligible", "human-review-required"]},
+    "ProductID": {"type": "string"},
+    "ProposedRule": {
+      "type": "object",
+      "required": ["assertion", "release"],
+      "properties": {
+        "assertion": {"$ref": "#/$defs/SemanticAssertion"},
+        "release": {"$ref": "#/$defs/ReleaseBounds"}
+      },
+      "additionalProperties": false
+    },
     "Provenance": {
       "type": "object",
       "description": "How a Change, note classification, compatibility constraint or Enrichment was produced. This is the generic shape; documents use DeterministicProvenance where only deterministic methods are allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and AIProvenance for Enrichment.provenance.",
@@ -589,6 +786,15 @@
         },
         "callId": {"type": "string"},
         "provider": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ReleaseBounds": {
+      "type": "object",
+      "required": ["from", "to"],
+      "properties": {
+        "from": {"type": "string"},
+        "to": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -650,6 +856,17 @@
       "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "SemanticAssertion": {
+      "type": "object",
+      "properties": {
+        "subject": {"$ref": "#/$defs/Subject"},
+        "change": {"$ref": "#/$defs/ChangeSpec"},
+        "applicability": {"$ref": "#/$defs/Applicability"},
+        "consequence": {"$ref": "#/$defs/Consequence"},
+        "statement": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "SettingClaim": {
       "type": "object",
       "required": ["id", "kind", "setting", "input", "verifier", "checked", "detail", "provenance"],
@@ -680,6 +897,41 @@
         "validate",
         "classify",
         "human-review"
+      ]
+    },
+    "Subject": {
+      "type": "object",
+      "required": ["family", "product"],
+      "properties": {
+        "family": {"$ref": "#/$defs/SubjectFamily"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "component": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SubjectFamily": {
+      "type": "string",
+      "enum": [
+        "crd-field",
+        "helm-value",
+        "gvk",
+        "feature-gate",
+        "image",
+        "config-key",
+        "rbac-permission",
+        "cli-flag",
+        "env-var",
+        "compatibility-boundary",
+        "api-endpoint",
+        "protocol-behavior",
+        "terraform-attribute",
+        "product-relationship",
+        "migration"
       ]
     },
     "TraversalBound": {

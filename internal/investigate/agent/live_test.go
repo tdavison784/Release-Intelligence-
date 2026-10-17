@@ -156,7 +156,7 @@ func TestLiveAgentRun(t *testing.T) {
 		}
 		must(t, os.MkdirAll(filepath.Join(outDir, "tasks"), 0o755))
 		for k := 0; k < n; k++ {
-			task, err := p.renderItemTask(input, agenda[k], k+1, n, cap, as.Budget)
+			task, err := p.renderItemTask(input, agenda[k], k+1, n, cap, as.Budget, nil, "")
 			must(t, err)
 			itemTasks[agenda[k].ChangeItem] = p.Digest(task)
 			write(fmt.Sprintf("tasks/%02d-%s.md", k+1, agenda[k].ChangeItem), []byte(task))
