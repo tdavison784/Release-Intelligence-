@@ -281,6 +281,10 @@ func AssembleContext(snap *Snapshot, id string) (*ReviewContext, error) {
 			}
 		}
 	}
+	if _, _, ok := HypothesisSource(snap, *item); ok {
+		g := PromotionGate(snap, *item, item.Proposed)
+		rc.Promotion = &g
+	}
 	return rc, nil
 }
 

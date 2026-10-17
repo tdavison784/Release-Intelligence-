@@ -140,11 +140,15 @@ ri review serve -demo                           # engineering review UI for the 
 ri review open-audits -knowledge knowledge/ -apply   # open a whole-fact review for each pin-source fact below human verification
 ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --agent   # environment-aware investigation: bundle, rendered diff, graph, validators, agent, classification, human review (docs/INVESTIGATE.md "Running an investigation")
 ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --runtime # + an isolated upgrade in a throwaway kind cluster (observed-level validation; docs/INVESTIGATE.md "Runtime validation")
+ri investigate … --agent --agent-driver replay --agent-replay t.jsonl --agent-prompt investigate-agent/v6   # replay a transcript under the prompt version it was recorded with (default: the newest, v7)
 ri investigate review <inv-id> approve --reviewer me                         # record the human decision on an in-process run
 ri investigate serve -store eval/investigations/results                      # per-upgrade view: what was checked, verdicts, human review, export (docs/INVESTIGATE.md)
 ri worker && ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --temporal   # the same pipeline as a durable Temporal workflow
 ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
+ri verify hypotheses -knowledge <dir> -runtime  # independently verify agent-proposed rules (citation check + two-arm fixture in a throwaway kind cluster); proof records gate human promotion (docs/INVESTIGATE.md "Verifying mitigation hypotheses")
 ri investigate mcp --run <inv-id>             # serve a stored investigation's agent tools over MCP stdio, read-only (docs/INVESTIGATE.md)
+ri investigate dossier <inv-id> <item>        # the item dossier an agent session started from, rebuilt read-only (docs/INVESTIGATE.md)
+ri investigate export-hypotheses <inv-id> -knowledge <dir>   # agent mitigation hypotheses → proposals + whole-fact review items (never facts)
 ri eval -investigations -knowledge <snapshot> [-save] [-agent] [-compare runs]  # score investigations against the blind ground truth in eval/investigations (gates.yaml; docs/INVESTIGATE.md "Evaluation")
 ri impact cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31 --render # impact report + what actually changes in your rendered deployment
 ri impact cert-manager v1.17.0 v1.17.2 --repo ./customer-repo --kubernetes 1.31 --render --tier-policy default # + tiered verdict: auto-pass | review | block (docs/POLICY.md)

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "ri.dev/runtime-run/v1alpha1",
+  "validator": "runtime.isolated-upgrade@v1",
+  "bundle": "fx-b285a23b1c60",
+  "product": "cert-manager",
+  "from": "1.17.2",
+  "to": "1.18.0",
+  "status": "completed",
+  "cluster": "ri-verify-f58409c8",
+  "nodeImage": "kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865",
+  "kubernetesVersion": "1.31",
+  "tools": {
+    "docker": "29.0.1",
+    "kind": "kind v0.24.0 go1.22.6 darwin/arm64",
+    "kubectl": "v1.34.1"
+  },
+  "freeDiskBytes": 29858533376,
+  "startedAt": "2026-10-17T13:18:24.769833Z",
+  "finishedAt": "2026-10-17T13:21:51.615784Z",
+  "durationSeconds": 206.845951,
+  "budgetSeconds": 900,
+  "targets": [
+    {
+      "target": "controller@1.17.2",
+      "status": "ok",
+      "product": true,
+      "from": "",
+      "namespace": "cert-manager",
+      "objects": 52,
+      "verified": true
+    },
+    {
+      "target": "controller@1.18.0",
+      "status": "ok",
+      "product": true,
+      "from": "",
+      "namespace": "cert-manager",
+      "objects": 54,
+      "verified": true
+    },
+    {
+      "target": "fixture",
+      "status": "not-applicable",
+      "product": false,
+      "from": "",
+      "namespace": "ri-verify",
+      "objects": 3,
+      "verified": true
+    }
+  ],
+  "phases": [
+    {
+      "phase": "from",
+      "started": "2026-10-17T13:18:55.14923Z",
+      "finished": "2026-10-17T13:19:24.238345Z",
+      "applied": 57,
+      "retries": 4
+    },
+    {
+      "phase": "to",
+      "started": "2026-10-17T13:20:31.548132Z",
+      "finished": "2026-10-17T13:20:44.36799Z",
+      "applied": 112,
+      "pruned": [
+        "rbac.authorization.k8s.io/v1/ClusterRole//cert-manager-controller-challenges",
+        "rbac.authorization.k8s.io/v1/ClusterRoleBinding//cert-manager-controller-challenges"
+      ],
+      "hooks": [
+        "batch/v1/Job/cert-manager/cert-manager-startupapicheck",
+        "core/v1/ServiceAccount/cert-manager/cert-manager-startupapicheck",
+        "rbac.authorization.k8s.io/v1/Role/cert-manager/cert-manager-startupapicheck:create-cert",
+        "rbac.authorization.k8s.io/v1/RoleBinding/cert-manager/cert-manager-startupapicheck:create-cert"
+      ],
+      "reconciled": true
+    }
+  ],
+  "exercises": [
+    {
+      "exercise": "cert-manager/certificate-renewal",
+      "phase": "from",
+      "action": "status-condition",
+      "targets": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ],
+      "executed": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ],
+      "settleSeconds": 45,
+      "reaction": "field status.revision changes",
+      "reacted": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ]
+    },
+    {
+      "exercise": "cert-manager/certificate-renewal",
+      "phase": "to",
+      "action": "status-condition",
+      "targets": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ],
+      "executed": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ],
+      "settleSeconds": 45,
+      "reaction": "field status.revision changes",
+      "reacted": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present"
+      ]
+    }
+  ],
+  "upgradeCompleted": true,
+  "degradations": [
+    {
+      "object": "core/v1/Secret/ri-verify/ri-arm-absent-tls",
+      "window": "exercise",
+      "signature": "data:tls.key",
+      "detail": "data key \"tls.key\" changed under a consumer (digest hmac-sha256:46fd82f29cce07a0e986b3ee8fa4f24f217363a15eebfbb1fab0463e3f39822b → hmac-sha256:5e9ab2da6b3fafb1550193b1b56a105af98a867ccd0cd64ba745e8214bb63171; values are never recorded) — during the exercises at the TO version; the same exercises at the FROM version did not do this; no consumer of it is a cluster object, no degradation observed",
+      "inconclusive": true
+    }
+  ],
+  "cleanup": {
+    "cluster": "ri-verify-f58409c8",
+    "deleted": true,
+    "verified": true
+  }
+}

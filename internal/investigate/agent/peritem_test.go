@@ -47,7 +47,7 @@ func TestPromptV4(t *testing.T) {
 	}
 	f := newFixture(t, true)
 	agenda := ItemAgenda(f.b, nil)
-	task, err := p.renderItemTask(f.input(investigate.AgentConfig{}), agenda[0], 1, 3, 10, ItemDefaultBudget)
+	task, err := p.renderItemTask(f.input(investigate.AgentConfig{}), agenda[0], 1, 3, 10, ItemDefaultBudget, nil, "")
 	must(t, err)
 	for _, want := range []string{f.behaviour, "item 1 of 3", f.notes.ID, f.rcItem, f.deploy, "exactly one entry"} {
 		if !strings.Contains(task, want) {
@@ -141,7 +141,7 @@ func TestPerItemSessions(t *testing.T) {
 	}
 	// Notes never reach the classifier as concerns.
 	cls, err := classify.New().Classify(context.Background(), investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: out, Validations: out.Validations,
-		Config: investigate.Config{Policy: "classify.policy@v1"}})
+		Config: investigate.Config{Policy: classify.Policy}})
 	must(t, err)
 	for _, fd := range cls.Findings {
 		for _, g := range fd.Gaps {

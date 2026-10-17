@@ -1,0 +1,41 @@
+# Synthetic fixtures for cert-manager (lane verify, internal/investigate/verify/fixtures.go;
+# docs/INVESTIGATE.md "Verifying mitigation hypotheses"). Release-level, cited from upstream
+# documentation, never from an evaluation case: how to install the controller for a throwaway
+# test, and a minimal valid object per subject kind that the declared exercise makes the
+# controller act on. `ri verify hypotheses -runtime` builds the two arms of a rule from these
+# (the rule's mitigating condition present / absent) and nothing else.
+apiVersion: ri.dev/v1alpha1
+kind: ProductFixtures
+product: cert-manager
+controller:
+  # the chart installs no CRDs by default; a fresh test cluster needs them
+  values:
+    crds:
+      enabled: true
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml
+    quote: This option decides if the CRDs should be installed
+subjects:
+- id: certificate
+  target: {group: cert-manager.io, version: v1, kind: Certificate}
+  exercise: certificate-renewal
+  namespace: ri-verify
+  prerequisites:
+  - apiVersion: cert-manager.io/v1
+    kind: Issuer
+    metadata: {name: ri-verify-selfsigned}
+    spec: {selfSigned: {}}
+  template:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata: {name: placeholder}
+    spec:
+      secretName: "{{name}}-tls"
+      commonName: "{{name}}.ri-verify.test"
+      dnsNames: ["{{name}}.ri-verify.test"]
+      issuerRef: {name: ri-verify-selfsigned, kind: Issuer}
+  references:
+  - url: https://github.com/cert-manager/website/blob/master/content/docs/configuration/selfsigned.md
+    quote: The `SelfSigned` issuer doesn't represent a certificate authority as such
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+    quote: Name of the Secret resource that will be automatically created and managed by this Certificate resource.

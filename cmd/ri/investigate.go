@@ -40,6 +40,7 @@ type invFlags struct {
 	agent                                                                 *bool
 	runtime                                                               *bool // opt-in observed validator (nil = off; `ri eval -investigations -runtime` sets it)
 	driver, model, exchange, replay, script, claudeBin                    *string
+	prompt                                                                *string // agent prompt version (nil or "" = agent.DefaultPromptVersion)
 }
 
 func addInvFlags(c *cli, fs interface {
@@ -65,6 +66,7 @@ func addInvFlags(c *cli, fs interface {
 		replay:     fs.String("agent-replay", "", "replay driver: transcript file of an earlier session"),
 		script:     fs.String("agent-script", "", "scripted driver: JSON file [{\"tool\":…,\"args\":{…}}, …] played as the model's tool calls (deterministic runs, live checks without a model)"),
 		claudeBin:  fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)"),
+		prompt:     fs.String("agent-prompt", agent.DefaultPromptVersion, "agent prompt version (part of the config digest); an earlier one replays that version's transcripts"),
 	}
 }
 
@@ -105,6 +107,12 @@ func (f invFlags) request() (investigate.Request, error) {
 		Render:     *f.render, KubeVersion: *f.kubernetes,
 		Agent: investigate.AgentConfig{Enabled: *f.agent, Driver: *f.driver, Model: *f.model,
 			PromptVersion: agent.DefaultPromptVersion, Budget: agent.Budget(domain.AgentBudget{})},
+	}
+	if f.prompt != nil && *f.prompt != "" {
+		if _, err := agent.LoadPrompt(*f.prompt); err != nil {
+			return r, fmt.Errorf("%w: -agent-prompt: %v", app.ErrUsage, err)
+		}
+		r.Config.Agent.PromptVersion = *f.prompt
 	}
 	if f.runtime != nil && *f.runtime {
 		r.Config.Validators = append(r.Config.Validators, rtval.Name)

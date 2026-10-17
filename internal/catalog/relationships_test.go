@@ -17,6 +17,13 @@ func validProduces() Relationship {
 		Summary: "a Cert creates its Secret", Path: "spec.secretName", References: relRef}
 }
 
+func validNamespaceFrom() Relationship {
+	return Relationship{ID: "cluster-ca", Kind: RelReferences, From: ObjectType{Group: "demo.io", Kind: "ClusterSigner"}, To: ObjectType{Kind: "Secret"},
+		Summary: "a cluster signer reads its Secret from the controller's resource namespace", Path: "spec.secretName", References: relRef,
+		NamespaceFrom: &NamespaceSource{Container: "controller", Arg: "--resource-namespace", Default: "demo-system", ConfigFileArg: "--config",
+			References: []ConfigReference{{URL: "https://example.io/docs/flags", Quote: "--resource-namespace: where cluster signers read Secrets (default demo-system)"}}}}
+}
+
 func relDef(rs ...Relationship) *ProductDefinition {
 	d := lifecycleDef()
 	d.Relationships = rs
@@ -30,7 +37,8 @@ func TestRelationshipsValid(t *testing.T) {
 		Summary: "annotation names a Secret", Path: "metadata.annotations[example.io/secret]", Format: RelFormatNamespaceName, References: relRef}
 	cond := validProduces()
 	cond.ID, cond.Kind, cond.Scope, cond.WhenPath, cond.WhenEquals = "cond", RelReferences, "cluster", "spec.kind", "Cluster"
-	if rep := Validate(relDef(validProduces(), sel, ref, cond)); !rep.OK() {
+	nsRef := validNamespaceFrom()
+	if rep := Validate(relDef(validProduces(), sel, ref, cond, nsRef)); !rep.OK() {
 		t.Fatalf("valid relationships rejected: %v", rep.Errors())
 	}
 }
@@ -38,6 +46,13 @@ func TestRelationshipsValid(t *testing.T) {
 func TestRelationshipsRejectBadRules(t *testing.T) {
 	mut := func(f func(*Relationship)) Relationship {
 		r := validProduces()
+		f(&r)
+		return r
+	}
+	nsm := func(f func(*Relationship)) Relationship {
+		r := validNamespaceFrom()
+		ns := *r.NamespaceFrom
+		r.NamespaceFrom = &ns
 		f(&r)
 		return r
 	}
@@ -68,10 +83,18 @@ func TestRelationshipsRejectBadRules(t *testing.T) {
 		"eval citation": {[]Relationship{mut(func(r *Relationship) {
 			r.References = []ConfigReference{{URL: "https://github.com/o/r/blob/main/eval/investigations/x/expected.yaml", Quote: "q"}}
 		})}, "evaluation data"},
-		"empty quote":          {[]Relationship{mut(func(r *Relationship) { r.References = []ConfigReference{{URL: "https://x.io", Quote: " "}} })}, "quote"},
-		"selects without path": {[]Relationship{sel(func(r *Relationship) { r.SelectorPath = "" })}, "required for kind selects"},
-		"selects with path":    {[]Relationship{sel(func(r *Relationship) { r.Path = "spec.x" })}, "not fields of kind selects"},
-		"selects wrong target": {[]Relationship{sel(func(r *Relationship) { r.To.Kind = "Secret" })}, "Service or Pod"},
+		"empty quote":                         {[]Relationship{mut(func(r *Relationship) { r.References = []ConfigReference{{URL: "https://x.io", Quote: " "}} })}, "quote"},
+		"selects without path":                {[]Relationship{sel(func(r *Relationship) { r.SelectorPath = "" })}, "required for kind selects"},
+		"selects with path":                   {[]Relationship{sel(func(r *Relationship) { r.Path = "spec.x" })}, "not fields of kind selects"},
+		"selects wrong target":                {[]Relationship{sel(func(r *Relationship) { r.To.Kind = "Secret" })}, "Service or Pod"},
+		"namespaceFrom on produces":           {[]Relationship{nsm(func(r *Relationship) { r.Kind = RelProduces })}, "only a references relationship"},
+		"namespaceFrom with namespace format": {[]Relationship{nsm(func(r *Relationship) { r.Format = RelFormatOptionalNamespace })}, "only a references relationship"},
+		"namespaceFrom to a cluster kind":     {[]Relationship{nsm(func(r *Relationship) { r.Scope = "cluster" })}, "no namespace to resolve"},
+		"namespaceFrom without container":     {[]Relationship{nsm(func(r *Relationship) { r.NamespaceFrom.Container = "" })}, "namespaceFrom.container"},
+		"namespaceFrom bad arg":               {[]Relationship{nsm(func(r *Relationship) { r.NamespaceFrom.Arg = "resource-namespace" })}, "command-line flag"},
+		"namespaceFrom bad config arg":        {[]Relationship{nsm(func(r *Relationship) { r.NamespaceFrom.ConfigFileArg = "config" })}, "command-line flag"},
+		"namespaceFrom bad default":           {[]Relationship{nsm(func(r *Relationship) { r.NamespaceFrom.Default = "Demo_System" })}, "namespace name"},
+		"namespaceFrom without citation":      {[]Relationship{nsm(func(r *Relationship) { r.NamespaceFrom.References = nil })}, "namespaceFrom.references"},
 	}
 	for name, c := range cases {
 		rep := Validate(relDef(c.rs...))
@@ -171,6 +194,33 @@ relationships:
 	d, err := Parse([]byte(doc))
 	if err != nil || len(d.Relationships) != 1 || d.Relationships[0].Path != "spec.secretName" {
 		t.Fatalf("parse: %v %+v", err, d)
+	}
+	nsDoc := doc + `  - id: cluster-ca
+    kind: references
+    from: {group: demo.io, kind: ClusterSigner}
+    to: {kind: Secret}
+    path: spec.secretName
+    summary: a cluster signer reads its Secret from the resource namespace
+    namespaceFrom:
+      container: controller
+      arg: --resource-namespace
+      default: demo-system
+      configFileArg: --config
+      references:
+        - url: https://example.io/docs/flags
+          quote: where cluster signers read Secrets
+    references:
+      - url: https://example.io/docs/api
+        quote: spec.secretName names the Secret.
+`
+	if err := check(nsDoc); err != nil {
+		t.Fatalf("schema rejects a valid namespaceFrom: %v", err)
+	}
+	if d, err := Parse([]byte(nsDoc)); err != nil || d.Relationships[1].NamespaceFrom == nil || d.Relationships[1].NamespaceFrom.Arg != "--resource-namespace" {
+		t.Fatalf("parse namespaceFrom: %v %+v", err, d)
+	}
+	if err := check(strings.Replace(nsDoc, "      references:\n        - url: https://example.io/docs/flags\n          quote: where cluster signers read Secrets\n", "", 1)); err == nil {
+		t.Fatal("schema accepts a namespaceFrom without citation")
 	}
 	for name, bad := range map[string]string{
 		"unknown kind":   strings.Replace(doc, "kind: produces", "kind: owns", 1),

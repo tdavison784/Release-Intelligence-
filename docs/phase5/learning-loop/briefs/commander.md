@@ -5,6 +5,17 @@ briefs, starts lanes, answers lane questions within the contract, reviews and me
 into `p5-learning-loop`, and keeps `COMMANDER.md` current. Read `FLEET.md` (binding) and `COMMANDER.md`
 (live state) before doing anything.
 
+## Work ledger (adopted 2026-10-17)
+
+`LEDGER.yaml` is the work queue, the authorization record and the window history; `COMMANDER.md` stays the
+live state doc (lane table, merge log, decisions). Both commanders: enqueue new work as an item (with
+`providers`, `glm-executable`, `auto-start`, `depends`, `provenance`) at the moment you decide it, set
+`status`/`owner` as items move, record `quota-actual` on completion, and append one `windows:` entry per
+provider window (executed, deferred with why, quota, merges). Authorization is decided at enqueue time by the
+Claude commander or the user — never widened mid-window. `providers: [claude]` items (model under test,
+provider-data rules, the guard itself) are never executed by GLM. "Next actions" in COMMANDER.md now just
+points at the ledger's ready items.
+
 ## Continuity rules (all commanders)
 
 - `COMMANDER.md` is the single source of truth for fleet state: wave plan, lane table (agent, model,
@@ -53,7 +64,9 @@ watcher firing is not a resume). The GLM commander likewise never acts once the 
 
 You run while every Claude agent is paused. You hold the integration worktree's lane lead.
 
-May do:
+May do (in addition: execute any LEDGER.yaml item with `glm-executable: true` whose `depends` are done —
+including `kind: review` merges and `evidence-prep`, never `kind: decision`; set its status/owner and record it in
+the window's `windows:` entry):
 1. Monitor `glm-*` lane agents (`herdr agent list`, `herdr agent read <name> --source recent-unwrapped --lines 80`).
    Unblock them with answers that follow DESIGN.md/FLEET.md; if an answer would change the contract or a
    decision recorded in COMMANDER.md, tell the lane to note it as an open question and continue with

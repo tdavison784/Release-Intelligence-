@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-6af5bfcc7e50",
+    "candidateId": "sc-99caa632eab3",
+    "product": "widgets",
+    "release": "v1.5.0",
+    "questionType": "fact-review",
+    "question": "Agent-proposed mitigation rule (AI, unverified; hypothesis hyp-2cf02db0930c of investigation inv-0ea015d9bc88): A Widget that sets spec.cleanup.policy keeps its behaviour; one that leaves it unset is purged on deletion. Release bounds (1.4.0, 1.5.0]. Is this whole rule correct — subject, change, applicability and consequence? Requested verification: delete a Widget with and without spec.cleanup.policy: Retain after upgrading the controller; storage is kept only with it Accepting or correcting it needs a confirmed proof record for this exact rule.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "widgets",
+        "group": "example.dev",
+        "kind": "Widget",
+        "path": "spec.cleanup.policy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Retain\"",
+        "after": "\"Purge\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.cleanup.policy",
+              "state": "unset"
+            }
+          ],
+          "group": "example.dev",
+          "kind": "Widget"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required"
+      },
+      "statement": "A Widget that sets spec.cleanup.policy keeps its behaviour; one that leaves it unset is purged on deletion."
+    },
+    "proposals": [
+      "sp-3c1b32571784"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-16T12:00:00Z"
+  }
+}
