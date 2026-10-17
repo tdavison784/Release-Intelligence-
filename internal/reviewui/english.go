@@ -573,6 +573,9 @@ func plainQuestion(it domain.ReviewItem) string {
 		}
 		return fmt.Sprintf("Is the %s change to %s something to act on, or just to know?", head, subjectPhrase(a.Subject))
 	case domain.QuestionFactReview:
+		if a.Subject != nil {
+			return fmt.Sprintf("Is the whole fact about %s in %s correct — what it is, what changed, who is exposed and what happens?", subjectPhrase(a.Subject), head)
+		}
 		return fmt.Sprintf("Is this whole fact about %s correct — what it is, what changed, who is exposed and what happens?", head)
 	case domain.QuestionRelationship:
 		if a.Subject != nil && a.Subject.Name != "" {
