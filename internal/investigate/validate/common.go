@@ -11,6 +11,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 )
 
 // Validator names (component@vN). A validator's name is its records'
@@ -31,6 +32,8 @@ type config struct {
 	now            func() time.Time
 	facts          []domain.VerifiedFact
 	reportArtifact string
+	relations      []relations.Option
+	cache          *views
 }
 
 // WithStore gives the validator read access to the bundle's artifact bytes
@@ -54,7 +57,7 @@ func WithFacts(facts ...domain.VerifiedFact) Option {
 func WithReportArtifact(id string) Option { return func(c *config) { c.reportArtifact = id } }
 
 func newConfig(opts []Option) config {
-	c := config{now: time.Now}
+	c := config{now: time.Now, cache: &views{}}
 	for _, o := range opts {
 		o(&c)
 	}
