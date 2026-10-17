@@ -111,7 +111,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 21:05 USER reviewed the 5 pin-source items (all accept, reviewer tdavison784, human; commit e62355fc). 3 cert-manager facts consensus → human. 2 ingress-nginx accepts composed no fact (open sibling questions?) → lane rescore investigates. USER NOTES (product feedback): rotationPolicy — 'route as a change to be rolled out with the upgrade… filed as a suggested change and the engineer should take that serious and implement'; revisionHistoryLimit — 'minor, good to get review on but acceptable'. → follow-up idea: accepted behaviour-change facts become suggested changes (remediation) routed to the upgrading engineer in the investigation report.
 - 2026-10-16 LESSON: GLM-window merges passed every test yet two of three carried fail-open or exposure-dropping defects; the mandatory Claude review at resume is the safety net and stays mandatory (ledger proposal decision 2).
 - 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
-- 2026-10-16 Nothing is pushed and no PR is opened without asking the user.
+- 2026-10-16 Nothing is pushed and no PR is opened without asking the user. (User asked at ~21:15: pushed p4-env-impact, opened PR #6.)
 
 ## Merge log
 
@@ -159,7 +159,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 
 Phase 4 milestone work is COMPLETE (see SUMMARY.md). All lanes merged and cleaned up; only the integration worktree remains. Waiting on the user for:
 1. Verifying the 5 pin-source review items (`go run ./cmd/ri review serve -knowledge knowledge -reviewer <name> -addr 127.0.0.1:8485` from p4-integration) → commit their decisions, re-score A/C (new small eval lane).
-2. Push branch / open PR p4-env-impact → main (nothing pushed yet).
+2. ~~Push / PR~~ DONE 2026-10-16 (user asked): PR #6 https://github.com/tdavison784/Release-Intelligence-/pull/6 (p4-env-impact → main). Push later integration commits (e.g. the rescore results) to the same branch.
 3. Ledger proposal sign-off (4 decisions) → guard v4 + LEDGER.yaml via ri-guard.
 4. Delete superseded branch p4ei/eval (58 MB uncompressed history; needs -D) — only with user OK.
 5. Follow-ups proposed in SUMMARY.md (agent pin-rule proposals into the review queue; ≥4 affected cases; blind granularity refinement).
