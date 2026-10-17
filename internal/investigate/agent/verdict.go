@@ -71,8 +71,10 @@ func (s *Session) GetDossier(ctx context.Context, item string) (*Dossier, error)
 }
 
 // verdictOf builds the verdict of a closing entry (caller holds s.mu, inside
-// a tool implementation: nothing is committed here).
-func (s *Session) verdictOf(ctx context.Context, it domain.ChangeItem, in investigate.VerdictInput) (domain.AgentVerdict, []domain.Evidence, error) {
+// a tool implementation: nothing is committed here). inherited are the
+// entry's checked citations, used when the verdict states none (feature
+// verdictInheritsCitations; nil otherwise).
+func (s *Session) verdictOf(ctx context.Context, it domain.ChangeItem, in investigate.VerdictInput, inherited []domain.Evidence) (domain.AgentVerdict, []domain.Evidence, error) {
 	var v domain.AgentVerdict
 	if !oneOfClass(in.Class) {
 		return v, nil, rejectf("verdict.class %q: want affected, not-affected, potentially-affected or insufficient-evidence", in.Class)
@@ -126,6 +128,9 @@ func (s *Session) verdictOf(ctx context.Context, it domain.ChangeItem, in invest
 			continue
 		}
 		evs = append(evs, e...)
+	}
+	if len(in.Citations) == 0 && len(inherited) > 0 {
+		evs, v.CitationsFromEntry = inherited, true
 	}
 	v.Citations = evidenceIDs(evs)
 	for _, id := range uniqSorted(in.VerifiedFacts) {

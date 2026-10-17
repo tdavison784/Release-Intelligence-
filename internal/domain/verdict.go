@@ -37,6 +37,10 @@ type AgentVerdict struct {
 	EnvironmentReasoning string     `json:"environmentReasoning"`
 	// Citations are checked citations (evidence ids in the run pool).
 	Citations []EvidenceID `json:"citations,omitempty"`
+	// CitationsFromEntry: the verdict stated no citations, so Citations are
+	// its closing entry's checked citations (prompt v7 onwards).
+	// CONTRACT-CHANGE(fixes5): additive.
+	CitationsFromEntry bool `json:"citationsFromEntry,omitempty"`
 	// VerifiedFacts are the ids of verified setting claims (clm-…) and
 	// validation records (vr-…) of this run the verdict rests on.
 	VerifiedFacts []string `json:"verifiedFacts,omitempty"`

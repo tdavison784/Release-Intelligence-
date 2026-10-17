@@ -825,7 +825,15 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			case sum.Verdict == nil && disp != domain.CoverNotExamined:
 				return nil, rejectf("items[%d]: verdict is required: your provisional class (affected, not-affected, potentially-affected, insufficient-evidence), mechanism, environmentReasoning, citations, verifiedFacts, assumptions, mitigations, uncertainty, proposedValidations, wouldOverturn", i)
 			case sum.Verdict != nil:
-				v, vevs, err := s.verdictOf(ctx, it, *sum.Verdict)
+				// A verdict stating no citations takes the entry's, checked here
+				// exactly as below (an unchecked one rejects the call).
+				var inherit []domain.Evidence
+				if s.cfg.Prompt.Features.VerdictInheritsCitations && len(sum.Verdict.Citations) == 0 && len(sum.Citations) > 0 {
+					if inherit, err = s.citations(ctx, sum.Citations); err != nil {
+						return nil, fmt.Errorf("items[%d]: %w", i, err)
+					}
+				}
+				v, vevs, err := s.verdictOf(ctx, it, *sum.Verdict, inherit)
 				if err != nil {
 					return nil, fmt.Errorf("items[%d]: %w", i, err)
 				}

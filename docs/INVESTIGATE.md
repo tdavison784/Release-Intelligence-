@@ -931,8 +931,9 @@ structured and checked:
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.
 
-**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`, the default;
-Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps the v5 surface. It adds three things.
+**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7, the default,
+is v6 plus verdict citation inheritance, below; Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
+the v5 surface. It adds three things.
 
 *Item dossier* (`internal/investigate/agent/dossier.go`, `ri.dev/item-dossier/v1`, producer
 `investigate.dossier@v1`). Each item's session starts from a dossier. The dossier is assembled
@@ -989,6 +990,15 @@ overturn it.
 - Citations, verified facts and mitigations are resolved **one by one**. What does not resolve is dropped,
   counted (`droppedCitations`, `droppedVerifiedFacts`) and explained (`dropped`).
 - A verdict other than `insufficient-evidence` needs at least one citation that resolves.
+- **v7** (Phase 5 fix W-0025): a verdict that states **no** citations (omitted or empty) takes its closing
+  entry's citations once they are checked, and is marked `citationsFromEntry`. An entry citation that does not
+  check rejects the call, as it always did, so nothing unchecked is inherited; citations the verdict does state
+  are its own and are never replaced (if none of them resolves, the verdict is still rejected). The tool schema
+  says so. In live run 1 (v6) every first `submit_findings` was rejected for an empty `verdict.citations`
+  (17% of calls). v7 changes only `meta.json` (`verdictInheritsCitations`) and that schema text; system, task
+  and item prompts are v6's byte for byte. A transcript replays only under the version it was recorded with
+  (the replay driver refuses another prompt digest): `ri investigate -agent-prompt investigate-agent/v6 …`
+  pins an earlier version, and a `ri eval -investigations` replay arm defaults to the replayed run's version.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1045,7 +1055,9 @@ the agent's outputs.
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
 v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
-(`get_dossier`), provisional verdicts and structured mitigations.
+(`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
+citations. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:
@@ -1227,7 +1239,14 @@ them first; see TEMPORAL.md).
 Both paths call the same `run.Pipeline`, so for the same inputs, configuration and a scripted/replay
 agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
 its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
-first result without repeating side effects, in particular without calling the agent again.
+first result without repeating side effects, in particular without calling the agent again. Because a
+repeated key returns the first result's refs too, each key covers every input its stage reads and every ref
+its output carries on (change, snapshot, bundle, investigation, previous round, and the pre-record audit by
+content, not time); build-graph's covers the run record it writes, collect's the render setting. So two
+runs on one state dir that differ only in their settings (e.g. without and then with `--agent`) are two
+investigations, each run to the end with its own config (Phase 5 fix W-0024; before it, the second run
+continued the first run's investigation from build-graph on). Keys live only in the workspace memo, never
+in a run record: no stored id or digest changed. Memos written under the old keys are simply not hit.
 
 **Snapshot identity.** A repository input is identified by the content of the environment directory (tree digest of its collected files and
 their repo-relative paths): the same content in another checkout, path or commit is the same snapshot and bundle (same ids, same bytes). The

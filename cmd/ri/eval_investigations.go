@@ -127,6 +127,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	driver := fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted")
 	model := fs.String("agent-model", "", "model for the agent driver")
 	replayDir := fs.String("agent-replay-dir", "", "replay driver: a stored run directory whose per-case transcript.jsonl (in cases.tar.gz) is replayed")
+	prompt := fs.String("agent-prompt", "", "agent prompt version (default: the newest; with -agent-replay-dir, the replayed run's)")
 	claudeBin := fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)")
 	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")
@@ -171,6 +172,11 @@ func (c *cli) evalInvestigations(args []string) error {
 	}
 	if *agentOn && *driver == "replay" && *replayDir == "" {
 		return fmt.Errorf("%w: -agent-driver replay needs -agent-replay-dir", app.ErrUsage)
+	}
+	if *agentOn && *driver == "replay" {
+		if *prompt, err = replayPromptVersion(*replayDir, *prompt); err != nil {
+			return err
+		}
 	}
 	label, detail := "A", "deterministic only (no agent, no runtime)"
 	switch {
@@ -241,7 +247,7 @@ func (c *cli) evalInvestigations(args []string) error {
 		t0 := time.Now()
 		fmt.Fprintf(c.err, "· %s …\n", cs.ID)
 		s, run, err := c.invRunCase(cs, workDir, invCaseFlags{knowledge: *knowledge, agent: *agentOn, driver: *driver, model: *model,
-			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn})
+			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt})
 		m := InvRunMetaCase{ID: cs.ID, InputDigest: cs.InputDigest, EnvDigest: cs.EnvDigest, ExpectedDigest: cs.ExpectedDigest,
 			Seconds: int(time.Since(t0).Seconds())}
 		if err != nil {
@@ -309,6 +315,7 @@ type invCaseFlags struct {
 	agent                               bool
 	runtime                             bool
 	driver, model, replayDir, claudeBin string
+	prompt                              string // agent prompt version ("" = default)
 }
 
 // invRunCase runs one case through the real pipeline and loads what it stored.
@@ -339,6 +346,7 @@ func (c *cli) invRunCase(cs *eval.InvCase, workDir string, cf invCaseFlags) (*in
 		inventory: str(req0.Environment.Inventory), kubernetes: str(req0.Environment.KubernetesVersion), envName: str(req0.Environment.Name),
 		knowledge: str(cf.knowledge), minVerification: str(""), render: b(true), agent: b(cf.agent), runtime: b(cf.runtime),
 		driver: str(cf.driver), model: str(cf.model), exchange: str(""), replay: str(replay), script: str(""), claudeBin: str(cf.claudeBin),
+		prompt: str(cf.prompt),
 	}
 	req, err := f.request()
 	if err != nil {
@@ -471,6 +479,20 @@ func reclassify(s *invStored) (bool, string) {
 // recordDigest is the run package's content digest of the record (no audit,
 // no wall-clock stamps), so two runs of the same inputs compare equal.
 func recordDigest(inv *domain.Investigation) string { return runpkg.ContentDigest(inv) }
+
+// replayPromptVersion is the prompt version of a replay arm: the one asked
+// for, else the replayed run's. A transcript replays byte-identically only
+// under the prompt version it was recorded with.
+func replayPromptVersion(replayDir, asked string) (string, error) {
+	if asked != "" {
+		return asked, nil
+	}
+	prior, err := readInvRunMeta(replayDir)
+	if err != nil {
+		return "", err
+	}
+	return prior.Config.Agent.PromptVersion, nil
+}
 
 func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[string]*invStored, text []byte, prior map[string][]byte) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
