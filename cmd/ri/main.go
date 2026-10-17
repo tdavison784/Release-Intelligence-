@@ -69,6 +69,7 @@ Commands:
   render diff <product> <from> <to> render source/target with your configuration; semantic object diff
   knowledge <subcommand>            the learning loop: route, decide, export, metrics (ri knowledge help)
   review serve                      engineering review UI for the learning loop (-demo for fixtures); investigations under /investigations
+  review open-audits [-apply]       open one whole-fact review per pin-source fact below human verification
   semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
   evidence link ...                 learning loop: attach the linked PR / commit text of an edge's notes to stored candidates
   investigate <product> <from> <to> environment-aware investigation: evidence bundle, rendered diff, graph, validators, agent, classification, human review (--agent, --temporal; docs/INVESTIGATE.md)

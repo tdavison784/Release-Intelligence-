@@ -343,6 +343,15 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Return: r.URL.RequestURI(), Total: len(in.Items), Matches: in.Matches,
 		Enums: enums(), NeedsView: needs, Hidden: hidden,
 	}
+	var groups []PinGroup
+	if needs && form.View == "" {
+		groups = pinGroupsFrom(snap, s.opts.Scope, tr)
+		for _, g := range groups {
+			if len(g.Open) == 0 {
+				v.Unopened = append(v.Unopened, newGroupHead(g))
+			}
+		}
+	}
 	if needs {
 		switch form.View {
 		case "blocking":
@@ -358,6 +367,11 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	if v.Matches < v.Total {
 		v.Matches = v.Total
 	}
+	heads := map[string]*groupHead{}
+	for _, g := range groups {
+		heads[g.Key] = newGroupHead(g)
+	}
+	prev := ""
 	for _, row := range in.Items {
 		rv := newRowView(row, r.URL.RequestURI())
 		if t, ok := tr[row.Item.ID]; ok {
@@ -365,6 +379,10 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 			if !t.NeedsReview {
 				rv.HiddenText = t.HiddenText
 			}
+			if h := heads[t.Group]; h != nil && t.Group != prev {
+				rv.GroupHead = h
+			}
+			prev = t.Group
 		}
 		v.Rows = append(v.Rows, rv)
 	}
@@ -440,7 +458,20 @@ func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form 
 		}
 		return 2
 	}
-	sort.SliceStable(rows, func(i, j int) bool { return rank(rows[i].Item.ID) < rank(rows[j].Item.ID) })
+	// pin sources come grouped per fact, in PinGroups order (product,
+	// release, fact); priority order is kept inside a group
+	group := func(r knowledge.InboxRow) string {
+		if t := tr[r.Item.ID]; t.PinSource {
+			return string(r.Item.Product) + "\x00" + r.Item.Release + "\x00" + t.Group
+		}
+		return ""
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		if ri, rj := rank(rows[i].Item.ID), rank(rows[j].Item.ID); ri != rj {
+			return ri < rj
+		}
+		return group(rows[i]) < group(rows[j])
+	})
 	out.Matches = len(rows)
 	if limit > 0 && len(rows) > limit {
 		rows = rows[:limit]

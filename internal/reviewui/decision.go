@@ -140,6 +140,12 @@ func buildDecision(rc *knowledge.ReviewContext, in decisionInput) (domain.Review
 	default:
 		return d, fmt.Errorf("unknown action %q", in.Action)
 	}
+	if in.Action == domain.ActionAccept || in.Action == domain.ActionCorrect {
+		// a whole-fact review records the aspects its page displayed: the
+		// accept raises exactly those (DESIGN §2.6, a fact's level is its
+		// weakest aspect)
+		d.Aspects = wholeFactAspects(rc.Item)
+	}
 	d.ID = domain.DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt)
 	if err := d.Validate(); err != nil {
 		return d, cleanErr(err)

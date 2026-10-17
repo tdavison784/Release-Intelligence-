@@ -441,6 +441,58 @@ func OpenFactReview(ctx context.Context, s Store, factID string, now time.Time) 
 	return OpenFactReviewWith(ctx, s, factID, now, nil)
 }
 
+// OpenWholeFactReview opens the whole-fact review item of an active fact: a
+// fact-review question proposing exactly the fact's assertion, so a human
+// accept verifies every aspect at once (DESIGN §2.6: a fact is as trusted as
+// its weakest aspect, and the classification audit item verifies only the
+// consequence). Idempotent (the id derives from candidate, question and
+// assertion); it never touches the fact or earlier decisions.
+func OpenWholeFactReview(ctx context.Context, s Store, factID string, now time.Time) (*domain.ReviewItem, error) {
+	r, err := s.Get(ctx, factID)
+	if err != nil {
+		return nil, err
+	}
+	if r.Fact == nil {
+		return nil, fmt.Errorf("knowledge: %s is not a fact", factID)
+	}
+	f := r.Fact
+	if f.Status != domain.FactActive {
+		return nil, fmt.Errorf("knowledge: fact %s is %s", f.ID, f.Status)
+	}
+	cid := f.Candidates[0]
+	id := domain.ReviewItemID(cid, domain.QuestionFactReview, f.Assertion)
+	if prev, err := s.Get(ctx, id); err == nil && prev.ReviewItem != nil {
+		return prev.ReviewItem, nil // already open (or decided): never re-created
+	}
+	var below []string
+	for _, x := range domain.Aspects {
+		if l := f.AspectLevel(x); !l.Trusted() {
+			below = append(below, fmt.Sprintf("%s %s", x, l))
+		}
+	}
+	it := domain.ReviewItem{
+		ID:           id,
+		CandidateID:  cid,
+		Product:      f.Product,
+		Release:      f.Release,
+		QuestionType: domain.QuestionFactReview,
+		Question: fmt.Sprintf("Is this whole fact correct: subject, change, applicability and consequence? Fact %s (%s); not yet verified by a human: %s. Accept verifies every aspect; correct supersedes the fact; reject retracts it.",
+			f.ID, f.Assertion.Statement, strings.Join(below, ", ")),
+		Proposed:  f.Assertion,
+		Routing:   domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal},
+		Status:    domain.ReviewPending,
+		CreatedAt: now,
+	}
+	rec, err := domain.NewRecord(it)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.Put(ctx, rec); err != nil {
+		return nil, err
+	}
+	return &it, nil
+}
+
 // OpenFactReviewWith is OpenFactReview recording routing signals on the item
 // (the audit item of an auto-approved fact carries the policy and consensus
 // signals; a consensus-action fact's audit is high priority).

@@ -67,6 +67,9 @@ func bulkGuard(rc *knowledge.ReviewContext) string {
 	if disagrees(rc) {
 		why = append(why, "the models' proposals disagree")
 	}
+	if rc.Item.QuestionType == domain.QuestionFactReview {
+		why = append(why, "it verifies a whole fact (every aspect is shown on its page)")
+	}
 	if len(why) == 0 {
 		return ""
 	}

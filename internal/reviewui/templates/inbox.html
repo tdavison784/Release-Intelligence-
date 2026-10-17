@@ -76,9 +76,17 @@
   </div>
   {{if gt .Matches .Total}}<div class="truncated" role="note">Showing the first {{.Total}} of {{.Matches}} matching items, highest priority first — narrow the filters to reach the rest. Bulk actions cover the items shown above.</div>{{end}}
 
+  {{if .Unopened}}<div class="unopened" role="note" id="unopened"><b>{{len .Unopened}} pin-source fact{{if ne (len .Unopened) 1}}s{{end}} below human verification with no open question.</b> Run <code>ri review open-audits -knowledge DIR -apply</code> to open one whole-fact review per fact.
+    <ul>{{range .Unopened}}<li><code>{{.Key}}</code> {{.Product}} {{.Release}}: {{.Statement}} <span class="small muted">({{.Levels}})</span></li>{{end}}</ul></div>{{end}}
   {{if not .Rows}}<div class="empty"><h2>Nothing here</h2><p>No review items match this filter.</p></div>{{end}}
   <ol class="cards" id="cards">
   {{range .Rows}}
+    {{with .GroupHead}}<li class="grouphead" data-group="{{.Key}}">
+      <span class="badge accent">{{.Product}}{{if .Release}} {{.Release}}{{end}}</span>
+      <b class="gtitle">{{if .IsFact}}Fact <code>{{.Key}}</code>{{else}}Change <code>{{.Key}}</code> (no fact yet){{end}}: {{.Statement}}</b>
+      <span class="glevels small muted">{{.Levels}}</span>
+      <span class="gleft">{{.Left}}</span>
+    </li>{{end}}
     <li class="card prio-{{.Row.Item.Routing.Priority}}" data-id="{{.Row.Item.ID}}" tabindex="-1">
       <div class="card-head">
         <input type="checkbox" class="sel" name="item" value="{{.Row.Item.ID}}" form="bulkform" aria-label="Select {{.Row.Item.ID}}" {{if not (eq .Row.Item.Status "pending" "needs-evidence" "deferred")}}disabled{{end}}>

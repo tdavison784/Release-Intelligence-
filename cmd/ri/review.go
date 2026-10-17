@@ -82,9 +82,10 @@ func (c *cli) reviewServe(args []string) error {
 	if snap != nil {
 		if sn, err := snap(c.ctx); err == nil {
 			pins, blocking, others := reviewui.CountViews(sn, scope)
-			waiting = fmt.Sprintf("%d pin-source item(s) need your verification (listed); %d other blocking and %d other open item(s) are one link away", pins, blocking, others)
+			waiting = fmt.Sprintf("%d pin-source fact(s) below human verification, %d question(s) to verify them (listed); %d other blocking and %d other open item(s) are one link away",
+				len(reviewui.PinGroups(sn, scope)), pins, blocking, others)
 			if n := len(reviewui.UnreviewedPinFacts(sn, scope)); n > 0 {
-				waiting += fmt.Sprintf("\n%d pin-source fact(s) hold only consensus/proxy verification and have no review item: run `ri review open-audits -knowledge %s -apply` to open them", n, *dir)
+				waiting += fmt.Sprintf("\n%d pin-source fact(s) below human have no whole-fact review item: run `ri review open-audits -knowledge %s -apply` to open them", n, *dir)
 			}
 		}
 	}
@@ -110,10 +111,13 @@ func (c *cli) reviewServe(args []string) error {
 	return nil
 }
 
-// reviewOpenAudits opens fact-review items for the pin-source facts that
-// investigations need but no human can decide yet (consensus auto-approval
-// left them without a review item). Dry run unless -apply: it writes review
-// items into the knowledge store.
+// reviewOpenAudits opens one whole-fact (fact-review) item for every
+// pin-source fact below human verification that has none: a fact is as
+// trusted as its weakest aspect, and consensus auto-approval or an audit that
+// verified only the consequence can leave it there with nothing a human can
+// decide. Dry run unless -apply: it writes review items into the knowledge
+// store (never decisions or facts). It then prints the default view: every
+// pin-source fact below human with the questions left to verify it.
 func (c *cli) reviewOpenAudits(args []string) error {
 	fs := c.flags("review open-audits", "")
 	dir := fs.String("knowledge", knowledge.DefaultDir, "knowledge store directory")
@@ -127,11 +131,12 @@ func (c *cli) reviewOpenAudits(args []string) error {
 	if err != nil {
 		return err
 	}
-	facts := reviewui.UnreviewedPinFacts(snap, reviewui.ScopeFromInvestigations(*invDir, c.g.products))
+	scope := reviewui.ScopeFromInvestigations(*invDir, c.g.products)
+	facts := reviewui.UnreviewedPinFacts(snap, scope)
 	for _, f := range facts {
 		fmt.Fprintf(c.out, "%s %s %s: %s\n", f.ID, f.Product, f.Release, f.Assertion.Statement)
 		if *apply {
-			if _, err := knowledge.OpenFactReview(c.ctx, st, f.ID, time.Now()); err != nil {
+			if _, err := knowledge.OpenWholeFactReview(c.ctx, st, f.ID, time.Now()); err != nil {
 				return err
 			}
 		}
@@ -139,7 +144,22 @@ func (c *cli) reviewOpenAudits(args []string) error {
 	verb := "would open"
 	if *apply {
 		verb = "opened"
+		if snap, err = st.Load(c.ctx, knowledge.Query{}); err != nil {
+			return err
+		}
 	}
-	fmt.Fprintf(c.out, "%s %d fact-review item(s)\n", verb, len(facts))
+	fmt.Fprintf(c.out, "%s %d whole-fact review item(s)\n", verb, len(facts))
+	titles := map[string]string{}
+	for _, it := range snap.ReviewItems {
+		titles[it.ID] = fmt.Sprintf("%s [%s] %s", it.ID, it.QuestionType, it.Question)
+	}
+	groups := reviewui.PinGroups(snap, scope)
+	fmt.Fprintf(c.out, "\nneeds your verification (default view): %d pin-source fact(s) below human\n", len(groups))
+	for _, g := range groups {
+		fmt.Fprintf(c.out, "- %s %s %s: %s\n  %s\n  %s\n", g.Key, g.Product, g.Release, g.Statement, g.LevelLine(), g.LeftLine())
+		for _, id := range g.Open {
+			fmt.Fprintf(c.out, "    %s\n", titles[id])
+		}
+	}
 	return nil
 }
