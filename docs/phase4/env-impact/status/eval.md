@@ -115,6 +115,15 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
 - EVAL-REPORT §2c written. Arm B HELD (until ARM B GO); arm C waits for the runtime attribution-precedence
   follow-up.
 
+## ARM B — GO received 2026-10-17 (commander)
+
+**ARM B is claude-only (model under test claude-sonnet-5-5). A GLM continuation must NOT run, resume or re-run any arm B case - its claude -p calls would hit a different model.**
+
+- Reference: A₅ tree (0790b001; this branch adds only docs/results on top). claude-cli driver, claude-sonnet-5-5,
+  newest merged prompt (version + digest recorded per case in run.json). One run per case, case by case, commit
+  after each case. If the fleet guard pauses this lane (Esc) or a HANDBACK/handoff happens: STOP arm B.
+- Progress (cases done): see `eval/investigations/results/B-*/run.json` `cases`.
+
 ## Arms A₅ + C₅ after lane refcheck (2026-10-17) — current reference for arm B
 - Merged `p4-env-impact` (fc0fee09 refcheck) at 0790b001; green. `A-20261017T003437Z-0790b00157`,
   `C-20261017T003511Z-0790b00157`: both 7 PASS / 5 FAIL / 1 INSUFFICIENT-DATA.
