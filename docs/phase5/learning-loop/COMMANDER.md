@@ -36,11 +36,14 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
   never inside, policy inputs.
 - 2026-10-17 Promotion is the product owner's click (human level), gated on a confirmed proof record.
 
+- 2026-10-17 PR #6 merged into main by the product owner (merge commit bebbeb2c, history preserved: this branch's
+  base 03b6ff43 is in main). Window ledger ADOPTED (product owner) → `LEDGER.yaml`; guard v4 queued (W-0008).
+
 ## Open questions for the user
 
-- (Phase 4 carry-over) delete superseded branch `p4ei/eval` (needs -D); window-ledger proposal sign-off.
+- W-0019 delete superseded branch `p4ei/eval` (needs -D). W-0020 gascity/beads for the next fleet (after the report).
 
 ## Next actions
 
-1. (done 07:53) wave-1 lanes started; fleet guard restarted on Phase 5 paths (pane w1:p1C).
-2. Merge lanes as they finish (review every diff for fail-open behaviour); tell eval5 to merge `verdict` when it lands.
+The queue is `LEDGER.yaml` (ready items, their depends and who may execute them). Guard v4 (W-0008) in
+progress with ri-guard; until it merges, handoffs use guard v3 and the GLM commander reads LEDGER.yaml by hand.
