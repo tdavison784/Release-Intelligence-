@@ -317,3 +317,54 @@ func TestAgentRequestsKeepAuditMonotonic(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// Parity with run.TestSecondRunWithOtherConfigIsItsOwnInvestigation: two
+// workflows on one store whose requests differ only in the agent setting (both
+// orders) are two investigations, each with its own config, and the ids and
+// record digests equal the in-process runner's for the same sequence.
+func TestSecondRunWithOtherConfigIsItsOwnInvestigation(t *testing.T) {
+	approve := runtest.Human(investigate.ReviewApprove)
+	for _, order := range [][2]bool{{false, true}, {true, false}} {
+		inproc := runtest.New(t)
+		inproc.Deps.Investigator = &runtest.RequestingAgent{St: inproc.St}
+		temporal := runtest.New(t)
+		temporal.Repo = inproc.Repo // the repo path is part of the snapshot, hence of the ids
+		temporal.Deps.Investigator = &runtest.RequestingAgent{St: temporal.St}
+		var ids [2]string
+		for i, agentOn := range order {
+			req := inproc.Request()
+			req.Config.Agent.Enabled = agentOn
+			r := &run.Runner{P: run.New(inproc.Deps), Sleep: func(time.Duration) {},
+				Review: func(context.Context, *domain.Investigation) (*investigate.ReviewDecision, error) { return approve, nil }}
+			a, err := r.Run(context.Background(), req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var ts testsuite.WorkflowTestSuite
+			h := &harness{f: temporal, env: ts.NewTestWorkflowEnvironment()}
+			h.signalAt(time.Hour, approve)
+			in := h.input()
+			in.Request.Config.Agent.Enabled = agentOn
+			h.start(in)
+			b := h.result(t)
+			if a.Investigation != b.Investigation || a.RecordDigest == "" || a.RecordDigest != b.RecordDigest {
+				t.Fatalf("order %v run %d: in-process %s %s, temporal %s %s", order, i, a.Investigation, a.RecordDigest, b.Investigation, b.RecordDigest)
+			}
+			inv, err := temporal.St.GetInvestigation(context.Background(), b.Investigation)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := domain.AgentNotRun
+			if agentOn {
+				want = domain.AgentSubmitted
+			}
+			if inv.Config != in.Request.Config.Digest() || inv.Status != domain.InvestigationCompleted || inv.Agent == nil || inv.Agent.Status != want {
+				t.Fatalf("order %v run %d: config %s status %s agent %+v", order, i, inv.Config, inv.Status, inv.Agent)
+			}
+			ids[i] = b.Investigation
+		}
+		if ids[0] == ids[1] {
+			t.Fatalf("order %v: both workflows ran investigation %s", order, ids[0])
+		}
+	}
+}

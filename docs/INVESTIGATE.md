@@ -1227,7 +1227,14 @@ them first; see TEMPORAL.md).
 Both paths call the same `run.Pipeline`, so for the same inputs, configuration and a scripted/replay
 agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
 its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
-first result without repeating side effects, in particular without calling the agent again.
+first result without repeating side effects, in particular without calling the agent again. Because a
+repeated key returns the first result's refs too, each key covers every input its stage reads and every ref
+its output carries on (change, snapshot, bundle, investigation, previous round, and the pre-record audit by
+content, not time); build-graph's covers the run record it writes, collect's the render setting. So two
+runs on one state dir that differ only in their settings (e.g. without and then with `--agent`) are two
+investigations, each run to the end with its own config (Phase 5 fix W-0024; before it, the second run
+continued the first run's investigation from build-graph on). Keys live only in the workspace memo, never
+in a run record: no stored id or digest changed. Memos written under the old keys are simply not hit.
 
 **Snapshot identity.** A repository input is identified by the content of the environment directory (tree digest of its collected files and
 their repo-relative paths): the same content in another checkout, path or commit is the same snapshot and bundle (same ids, same bytes). The
