@@ -86,3 +86,24 @@ func TestScoreVerdictsFailedRun(t *testing.T) {
 		}
 	}
 }
+
+func TestWriteInvComparison(t *testing.T) {
+	c := loadSynth(t)
+	base := ScoreInvestigations([]*InvCase{c}, map[string]*InvRun{c.ID: synthRun(domain.FindingPotentiallyAffected, domain.FindingPotentiallyAffected)}, nil)
+	// B1 expected affected: clearing it is an UNSAFE clearance and must be flagged.
+	next := ScoreInvestigations([]*InvCase{c}, map[string]*InvRun{c.ID: synthRun(domain.FindingNotAffected, domain.FindingNotAffected)}, nil)
+	var buf bytes.Buffer
+	WriteInvComparison(&buf, []ComparedRun{{Label: "A0", RunID: "r0", Score: base, Knowledge: "sha256:k0"}, {Label: "C1", RunID: "r1", Score: next, Knowledge: "sha256:k1"}})
+	out := buf.String()
+	for _, want := range []string{"UNSAFE", "clearances gained", "### Accuracy", "### Coverage and risk detection", "sha256:k1", "unsafe clearances"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("report lacks %q:\n%s", want, out)
+		}
+	}
+	if cl := CountClearances(next.Decisions); cl.Unsafe == 0 || cl.Cleared == 0 {
+		t.Fatalf("an expected-affected item cleared must count as unsafe: %+v", cl)
+	}
+	if cl := CountClearances(base.Decisions); cl.Cleared != 0 {
+		t.Fatalf("baseline clears nothing: %+v", cl)
+	}
+}

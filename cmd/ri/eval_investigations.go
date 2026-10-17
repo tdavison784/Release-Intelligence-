@@ -121,6 +121,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	work := fs.String("work", "", "investigation store directory (default: a temporary directory, removed afterwards)")
 	rescore := fs.String("rescore", "", "re-classify and re-score a stored run directory offline (no pipeline run)")
 	pack := fs.String("pack", "", "convert a stored run directory from the legacy cases/ layout to cases.tar.gz (contents byte-identical) and exit")
+	compare := fs.String("compare", "", "print the Phase 5 comparison tables (Markdown) for these stored run directories, comma-separated, optional label=dir; the first is the baseline, and exit")
 	knowledge := fs.String("knowledge", "knowledge", "directory of verified knowledge (as for ri investigate)")
 	agentOn := fs.Bool("agent", false, "run the investigation agent (arm B)")
 	driver := fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted")
@@ -134,6 +135,9 @@ func (c *cli) evalInvestigations(args []string) error {
 	}
 	if *pack != "" {
 		return packInvRun(*pack)
+	}
+	if *compare != "" {
+		return c.invCompare(*compare)
 	}
 	gates, err := eval.LoadInvGates(filepath.Join(*dir, eval.InvGatesFileName))
 	if err != nil {

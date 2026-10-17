@@ -132,6 +132,12 @@ type RunScore struct {
 	EnvRenderComplete bool                        `json:"envRenderComplete"`
 	Uncorrelated      int                         `json:"uncorrelated"`
 	TraversalComplete bool                        `json:"traversalComplete"`
+	// ReviewFindings counts findings that require human review; AgentTokens
+	// and Hypotheses are the agent's cost and output (0 for arms without an
+	// agent). Phase 5 report inputs; ungated.
+	ReviewFindings int `json:"reviewFindings,omitempty"`
+	AgentTokens    int `json:"agentTokens,omitempty"`
+	Hypotheses     int `json:"hypotheses,omitempty"`
 	// UnmatchedFindings counts findings on in-scope items no expected item
 	// selects (not scored); UnmatchedAffected lists the affected ones —
 	// reviewer noise or exposure the dataset does not label.
@@ -178,7 +184,14 @@ func ScoreInvCase(c *InvCase, r *InvRun) ([]ItemDecision, RunScore) {
 	rs.ClassCounts = map[domain.FindingClass]int{}
 	for _, f := range inv.Findings {
 		rs.ClassCounts[f.Class]++
+		if f.Approval.RequiresHumanReview {
+			rs.ReviewFindings++
+		}
 	}
+	if inv.Agent != nil {
+		rs.AgentTokens = inv.Agent.Tokens
+	}
+	rs.Hypotheses = len(inv.Hypotheses)
 	for _, p := range b.Renders {
 		if p.Status == domain.CollectionOK {
 			rs.EnvRenderComplete = true
