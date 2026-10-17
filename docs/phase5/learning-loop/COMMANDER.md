@@ -15,7 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| verify2 | ri-verify2 | Opus | p5ll/verify2 | .claude/worktrees/p5ll-verify2 | (new) | W-0032 consumer-observation arm + rule intake (F4) |
+| verify2 | ri-verify2 | Opus | p5ll/verify2 | .claude/worktrees/p5ll-verify2 | w1:t1Z | W-0032 consumer-observation arm + rule intake (F4) |
 | prompt8 | ri-prompt8 | Opus | p5ll/prompt8 | (removed) | (closed) | merged 89328b6f = F3, cleaned up |
 | redact | ri-redact | Opus | p5ll/redact | (removed) | (closed) | merged = F2, cleaned up |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
