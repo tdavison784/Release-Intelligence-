@@ -60,7 +60,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 | refcheck | — | claude-opus-5-5 | (removed) | (closed) | MERGED fc0fee09 + cleaned up |
 | rescore | ri-rescore | claude-sonnet-5-5 | .claude/worktrees/p4ei-rescore | (new tab) | started 21:06: arms A + C with human-verified facts; why ingress accepts composed no fact |
 | report | — | claude-opus-5-5 | (removed) | (closed) | MERGED + cleaned up: /investigations view, what-was-checked checklist, human review, HTML export |
-| factlevel | ri-factlevel | claude-opus-5-5 | .claude/worktrees/p4ei-factlevel | (new tab) | started 21:35: review must verify whole pin-source facts |
+| factlevel | — | claude-opus-5-5 | (removed) | (closed) | MERGED fbb9d82c + cleaned up: fact-level triage, whole-fact review items |
 | guard | ri-guard | claude-sonnet-5-5 | edits ~/.claude/fleet-guard (no git); shell cwd = p4-integration, read-only | pane w1:p2D (tab w1:tN, right split; left pane w1:p1C reserved for the guard process) | DONE — v3 (16 tests) running since 2026-10-16 12:50 in pane w1:p1C; agent idle, kept for guard fixes |
 
 ## Decisions
@@ -114,6 +114,7 @@ needs design judgement, Sonnet where it is mostly mechanical against a settled c
 - 2026-10-16 USER DIRECTION: (a) agent-made safe/unsafe verdicts = a LATER opt-in mode (not now); (b) humans semi in the loop: a per-upgrade view showing everything checked, all verdicts and decisions, before each release → lane report (investigations list + investigation page + human approve/reject + exportable record).
 - 2026-10-16 89a22587 rescore: the product owner's review changed NO decision — their accepts raised only the consequence aspect; fact level = weakest aspect, so the 3 cert-manager facts stay consensus; the review UI hid the remaining aspects (judged items by their own aspect). ingress consequence question pending under 'Other blocking'. → lane factlevel (fact-level triage, whole-fact verification item, no silent upgrade of past decisions).
 - 2026-10-16 report merged: `ri investigate serve -store …` or `ri review serve … -investigation-store eval/investigations/results` → /investigations (128 stored investigations, read-only for eval runs). User's server on :8485 (tab ri-review-p4, pane w1:p36) restarted with it.
+- 2026-10-16 fbb9d82c factlevel: pin-source facts judged by weakest aspect; whole-fact review question type (ReviewDecision.Aspects, additive); user's past decisions byte-identical; open-audits opened 3 whole-fact items (vf-62c94002eb36, vf-9b9cfa5c9f5f rotationPolicy, vf-b577957e2615) + ingress consequence question ri-246f31433fd5 now in the default view. Possible duplicate: the two revisionHistoryLimit facts.
 - 2026-10-16 LESSON: GLM-window merges passed every test yet two of three carried fail-open or exposure-dropping defects; the mandatory Claude review at resume is the safety net and stays mandatory (ledger proposal decision 2).
 - 2026-10-16 'ARM B GO' text seen in ri-eval's input box was a Claude Code auto-suggestion, never sent; ignore such text.
 - 2026-10-16 Nothing is pushed and no PR is opened without asking the user. (User asked at ~21:15: pushed p4-env-impact, opened PR #6.)
