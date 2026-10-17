@@ -162,3 +162,18 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   the rule's conditions, met or not (still non-empty; read by no validator, verifier or gate). v8 is frozen from
   here. The lane's one smoke run (ingress-nginx shop-fr, 125k tokens) used a pre-final v8 text (basis wording
   only) and made no `record_hypothesis` call, so the structured-mitigation path is covered live only by W-0030.
+- **2026-10-17 — B0-v8 outcome; fallback rule pre-registered (W-0031; product owner decision).** Run
+  `B0-K0-20261017-edb21ed9-v8` (dev pair, prompt v8): zero `record_hypothesis` calls; payments-eu verdict
+  `affected` (correct), payments-us `potentially-affected` (hedged; consumers not traced). Agent discovery has
+  failed on v7 and v8; the fallback applies. Finding that shapes it: K0 already holds the trusted fact
+  `vf-9b9cfa5c9f5f` (exposure = Certificate with rotationPolicy unset; overlap = set), under which payments-us'
+  two leaf Certificates stay exposed, so no rule that the current verifier can confirm (it observes only whether
+  `tls.key` changes) can clear payments-us. Decision (product owner): extend §7.1's runtime exercise with a
+  **consumer observation** — x509 verification of a leaf issued after a CA re-issuance against the `ca.crt`
+  captured before it — on the synthetic fixture (lane `verify2`, F4), and verify the rule pre-registered here:
+  `rules/rotationpolicy-ca-scoped.json` (sha256 `659b125555e9696f376598547b41cd4130a14e74a9e0eb8ce16728b5cc506e6f`),
+  commander-drafted, label-aware, with its assumption stated (no consumer pins a leaf key). Its confirmation
+  criterion is in the file and is fixed now, before the method exists. Its promotion must supersede
+  `vf-9b9cfa5c9f5f` (two active facts on the subject ⇒ `pin:contradicting-facts`). If it is not confirmed, it is
+  not promoted, C1 = K0 and S1 is reported as failed. The S4 held-out set (5 blind cert-manager cases) is the
+  test of whether the rule's scope over-generalizes.
