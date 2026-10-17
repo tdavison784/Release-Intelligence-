@@ -122,7 +122,9 @@ Continued the lane across two usage-limit windows. Commits f0736ae0..4e05c478 (a
   1/8: obs-north B1 via ci-0f84…/ci-1d8a…/ci-f835… (kubeDns/kubeProxy/kubeEtcd per-key items; components NOT
   rendered in the FROM render) — reported as a finding, matcher/FORMAT/expectations unchanged. EVAL-REPORT §2d.
 - Routed: observed runtime pass does not clear an item blocked by a join `impact:not-joined` validation gap.
-- **Waiting for the commander's ARM B decision.**
+- Commander: report accepted; granularity finding recorded as reported (no re-matching). **HOLD**: lane `refcheck`
+  fixes RenderDiff (exposure ⇒ inconclusive; dangling references in the TO render ⇒ fail; cause of the obs-south
+  FP). After it merges: `git merge p4-env-impact`, score A and C once more, then ARM B (only on the commander's go).
 
 ## Current state (2026-10-16)
 - `p4ei/eval2` MERGED into `p4-env-impact` (cf2b0f29). Keep this worktree on `p4ei/eval2` for the remaining runs;
