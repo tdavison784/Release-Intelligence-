@@ -810,7 +810,7 @@ The tools are unchanged and still bundle-scoped.
 - **Transcript:** one `item` line per session (item, prompt digest, budget), then its calls and envelope. Replay
   walks the segments in order and must reproduce each byte for byte.
 
-**Setting claims (prompt `investigate-agent/v5`, the default; commander decision 2026-10-16).** Live run 4
+**Setting claims (prompt `investigate-agent/v5` and later; commander decision 2026-10-16).** Live run 4
 showed the remaining gap: citations are checked, prose is not — a session closed
 `raises-concern` while its summary said the environment does not set a key that
 `values-prod.yaml` sets to `true` (fail-safe, but unverified). v5 makes environment facts
@@ -842,6 +842,104 @@ structured and checked:
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.
 
+**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`, the default;
+Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps the v5 surface. It adds three things.
+
+*Item dossier* (`internal/investigate/agent/dossier.go`, `ri.dev/item-dossier/v1`, producer
+`investigate.dossier@v1`). Each item's session starts from a dossier. The dossier is assembled
+deterministically from the bundle and the run, with no new store and no model:
+
+- the change: title, family, manifestation, release, upstream detail and links, evidence excerpts, source
+  artifacts, join findings;
+- the **settings that decide it**, with their effective state on every exposed object;
+- the correlated rendered changes, and the relevant **unchanged** configuration (explicit settings identical in
+  the from and to renders);
+- the knowledge facts attached to the item, with status, verification level and release;
+- the validations already run (with pins, and whether they clear behaviour);
+- the relations: roots, paths, unresolved edges;
+- an explicit list of **gaps**.
+
+Settings are derived in a fixed order of trust:
+
+1. the subject of an attached active fact, and the settable leaves of its exposure condition;
+2. the join's values-key matches;
+3. the item's subjects (`Kind.path` → an object field, `a.b` → a values key, `--flag` → a token);
+4. code spans in the upstream text.
+
+Each setting has a state per object or input:
+
+| State | Meaning |
+|---|---|
+| `explicit` | set, with the value and where it comes from (render target or file, line) |
+| `inherited-default` | unset in a **complete** render (or absent from every file and complete render): the shipped default applies |
+| `unknown` | it cannot be decided, with the reason |
+
+An unset field seen only in a file as declared is `unknown`, never `inherited-default`: an overlay or patch may
+set it (fail closed). Summary states are `mixed` (objects differ) and `no-objects`.
+
+Gaps are `contradictory` (two active facts disagreeing on a subject, values set differently in several files,
+validations both passing and failing), `missing` (no upstream evidence, no deciding setting, an unknown
+setting, an unavailable source or render) or `partial` (a partial render or source, an undecided validation,
+unresolved or truncated relations, uncorrelated rendered changes). Not-applicable renders are not gaps.
+
+Same inputs ⇒ byte-identical dossier. It is bounded at 48 KiB: lists are capped, and what was cut is listed in
+`truncated`. The dossier is stored as a content-addressed run artifact (`item-dossier`,
+`derived/dossier/<item>/<hash>.json`, named in `AgendaCoverage.Dossier`) and inlined into the item task, so the
+session's prompt digest pins it. The item counts as examined, and the artifacts it quotes count as retrieved in
+that session. `get_dossier` serves any item's dossier. `ri investigate dossier <inv-id> <item>` rebuilds it
+read-only from a stored run (the deterministic pass's validations, as the agent saw them) and says whether it
+matches the stored one.
+
+*Provisional verdict* (`verdict.go`). Every closing entry except `not-examined` carries the agent's own
+assessment: one of the four classes, confidence, mechanism, environment reasoning, citations, verified facts
+(`clm-…` / `vr-…`), assumptions, mitigations (`hyp-…`), uncertainty, proposed validations and what would
+overturn it.
+
+- A malformed verdict rejects the call (unknown class or confidence, a missing mechanism / reasoning /
+  overturn).
+- Citations, verified facts and mitigations are resolved **one by one**. What does not resolve is dropped,
+  counted (`droppedCitations`, `droppedVerifiedFacts`) and explained (`dropped`).
+- A verdict other than `insufficient-evidence` needs at least one citation that resolves.
+
+Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
+`unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
+pipeline does not pass them to classify. A test shows findings, decision and eligibility are byte-identical with
+and without verdicts, including an adversarial `not-affected` verdict on an affected item. The agent may say
+`not-affected` where the policy cannot; the two are scored separately (lane eval5).
+
+*Structured mitigation hypotheses* (`mitigation.go`). `record_hypothesis` takes an optional `mitigation`:
+
+- `proposedRule`: a complete `SemanticAssertion` (subject, change, applicability, consequence) plus `release`
+  bounds `{from, to}` (from exclusive, to inclusive);
+- `environmentBasis`: claim ids, validation ids or object references;
+- `requestedVerification`.
+
+It is checked when recorded: the grammar is complete and **decidable** (no `undecidable` leaf); the subject
+belongs to the product and its identifying words occur together in a bundle artifact; the bounds parse (tags
+like `controller-v1.12.0` too) and lie within the run's FROM→TO; every basis reference resolves in the run; at
+least one citation is upstream text. A malformed spec is not stored. The hypothesis stays as free text with
+`mitigationRejected` saying why, and the model is told. A stored spec is a proposal only: nothing wires it into
+a pin; the agent never chooses the pin rule.
+
+*Export* (`export.go`). `ri investigate export-hypotheses <inv-id> -knowledge <dir>` writes each well-formed
+mitigation into a knowledge directory as:
+
+- a `SemanticProposal`: task `full`, AI provenance with rule `hypothesis:<hyp>@<inv>`
+  (`domain.ParseHypothesisRule`), citations limited to upstream evidence and appended to the change's
+  candidate;
+- a whole-fact `fact-review` item proposing exactly the rule, pending, on the candidate of the item's upstream
+  change.
+
+It never writes a fact or a decision. Records are content-addressed and an existing review item is left
+untouched, so re-export is a no-op. A hypothesis is skipped, with the reason, when it has no well-formed
+mitigation, its item has no upstream change, the change's release is outside the rule's bounds, it has no
+upstream citation, or another mitigation of the same model call already became the proposal for that
+candidate. Lane verify attaches proof records to these items; promotion needs a confirmed proof record and a
+human.
+
+*Cost* (`AgentRun`): `sessions`, `wallMillis`, `droppedCitations` and `droppedVerifiedFacts`, beside the
+existing turns, tool calls and tokens.
+
 **Environment-scope items.** Items anchored on environment-only rendered changes
 (`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
 iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
@@ -857,7 +955,8 @@ the agent's outputs.
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
-v5 adds setting claims (`record_claim`) and the prose labels.
+v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
+(`get_dossier`), provisional verdicts and structured mitigations.
 Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:

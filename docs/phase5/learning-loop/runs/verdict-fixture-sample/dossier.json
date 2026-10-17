@@ -1,0 +1,157 @@
+{
+ "format": "ri.dev/item-dossier/v1",
+ "producer": "investigate.dossier@v1",
+ "bundle": "bnd-33ed913c4115",
+ "snapshot": "snap-2d1129d082aa",
+ "item": "ci-95ee70ce5e0e",
+ "product": "widgets",
+ "from": "v1.4.0",
+ "to": "v1.5.0",
+ "environment": "shop",
+ "change": {
+  "title": "Default cleanup policy is Purge",
+  "family": "behavior",
+  "manifestation": "controller-behaviour",
+  "manifestationRule": "manifest:declared-behaviour",
+  "scope": "scope:breaking",
+  "breaking": true,
+  "category": "behavior",
+  "release": "v1.5.0",
+  "detail": "Set `spec.cleanup.policy: Retain` on a Widget to keep the previous behaviour.",
+  "subjects": [
+   "Widget.spec.cleanup.policy"
+  ],
+  "upstream": [
+   {
+    "id": "ev-c72da2df3f66",
+    "artifact": "art-616e81c9cdd3",
+    "uri": "https://example.dev/widgets/releases/v1.5.0",
+    "locator": "## Breaking changes",
+    "excerpt": "The widget controller now purges a widget's storage when the widget is deleted"
+   }
+  ],
+  "sources": [
+   {
+    "id": "art-616e81c9cdd3",
+    "path": "upstream/widgets/v1.5.0/release-notes.md",
+    "uri": "https://example.dev/widgets/releases/v1.5.0"
+   }
+  ]
+ },
+ "settings": [
+  {
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "kind": "object-field",
+   "from": "knowledge fact vf-c3b61898394b (subject)",
+   "state": "mixed",
+   "detail": "3 Widget object(s): 2 explicit, 1 inherited-default, 0 unknown"
+  },
+  {
+   "setting": "key spec.cleanup.policy",
+   "kind": "key-path",
+   "from": "upstream text",
+   "state": "explicit",
+   "detail": "set explicitly to \"Retain\" at 4 place(s); a key path names no object kind, so objects that leave it unset are not listed here",
+   "where": [
+    "art-2d1fc1007db8 (derived/render/env/argocd-widgets/to.yaml) L23: policy: Retain",
+    "art-2d1fc1007db8 (derived/render/env/argocd-widgets/to.yaml) L34: policy: Retain",
+    "art-9d2551fd2138 (env/apps/shop/widgets.yaml) L10: policy: Retain",
+    "art-9d2551fd2138 (env/apps/shop/widgets.yaml) L21: policy: Retain"
+   ]
+  }
+ ],
+ "exposed": [
+  {
+   "object": "example.dev/v1/Widget/shop/cache",
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "state": "inherited-default",
+   "view": "render argocd:apps/widgets.yaml (complete)",
+   "artifact": "art-2d1fc1007db8",
+   "root": true,
+   "reason": "unset in the complete rendered object: the shipped default applies"
+  },
+  {
+   "object": "example.dev/v1/Widget/shop/ledger",
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "state": "explicit",
+   "value": "\"Retain\"",
+   "view": "render argocd:apps/widgets.yaml (complete)",
+   "artifact": "art-2d1fc1007db8",
+   "root": true
+  },
+  {
+   "object": "example.dev/v1/Widget/shop/orders",
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "state": "explicit",
+   "value": "\"Retain\"",
+   "view": "render argocd:apps/widgets.yaml (complete)",
+   "artifact": "art-2d1fc1007db8",
+   "root": true
+  }
+ ],
+ "roots": [
+  {
+   "node": "gn-0d2f78547bc7",
+   "key": "example.dev/v1/Widget/shop/ledger",
+   "rule": "exposure:join-match"
+  },
+  {
+   "node": "gn-254aadef0b03",
+   "key": "example.dev/v1/Widget/shop/cache",
+   "rule": "exposure:join-match"
+  },
+  {
+   "node": "gn-8f0c6a2f1503",
+   "key": "example.dev/v1/Widget/shop/orders",
+   "rule": "exposure:join-match"
+  }
+ ],
+ "renderedChanges": [
+  {
+   "id": "rc-0ac8ba19541f",
+   "scope": "environment",
+   "target": "argocd:apps/widgets.yaml",
+   "class": "image-changed",
+   "object": "apps/v1/Deployment/widgets/widget-controller",
+   "path": "spec.template.spec.containers[name=controller].image",
+   "before": "\"example.dev/widget-controller:v1.4.0\"",
+   "after": "\"example.dev/widget-controller:v1.5.0\"",
+   "correlation": "subject"
+  }
+ ],
+ "unchanged": [
+  {
+   "object": "example.dev/v1/Widget/shop/ledger",
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "value": "\"Retain\"",
+   "target": "argocd:apps/widgets.yaml"
+  },
+  {
+   "object": "example.dev/v1/Widget/shop/orders",
+   "setting": "example.dev/Widget spec.cleanup.policy",
+   "value": "\"Retain\"",
+   "target": "argocd:apps/widgets.yaml"
+  }
+ ],
+ "knowledge": [
+  {
+   "fact": "vf-c3b61898394b",
+   "artifact": "art-715f2b66995e",
+   "status": "active",
+   "level": "consensus",
+   "release": "v1.5.0",
+   "subject": "crd-field:widgets|group=example.dev|kind=Widget|path=spec.cleanup.policy",
+   "change": "default-changed \"Retain\" → \"Purge\"",
+   "consequence": "behavior-change",
+   "exposure": "{\"op\":\"resource\",\"of\":[{\"op\":\"field\",\"path\":\"spec.cleanup.policy\",\"state\":\"unset\"}],\"group\":\"example.dev\",\"kind\":\"Widget\"}",
+   "statement": "Widgets that leave spec.cleanup.policy unset are purged on deletion after the upgrade."
+  }
+ ],
+ "validations": [],
+ "relations": {
+  "roots": 3,
+  "paths": 3,
+  "unresolvedPaths": 0
+ },
+ "gaps": []
+}

@@ -1,0 +1,99 @@
+[
+  {
+    "id": "hyp-2cf02db0930c",
+    "changeItem": "ci-95ee70ce5e0e",
+    "statement": "widgets that set the policy keep their storage",
+    "citations": [
+      "ev-638e1b29f99b"
+    ],
+    "statementKind": "unverified-ai-prose",
+    "mitigation": {
+      "item": "ci-95ee70ce5e0e",
+      "proposedRule": {
+        "assertion": {
+          "subject": {
+            "family": "crd-field",
+            "product": "widgets",
+            "group": "example.dev",
+            "kind": "Widget",
+            "path": "spec.cleanup.policy"
+          },
+          "change": {
+            "type": "default-changed",
+            "before": "\"Retain\"",
+            "after": "\"Purge\""
+          },
+          "applicability": {
+            "exposure": {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.cleanup.policy",
+                  "state": "unset"
+                }
+              ],
+              "group": "example.dev",
+              "kind": "Widget"
+            }
+          },
+          "consequence": {
+            "kind": "behavior-change",
+            "exposedClass": "review-required"
+          },
+          "statement": "A Widget that sets spec.cleanup.policy keeps its behaviour; one that leaves it unset is purged on deletion."
+        },
+        "release": {
+          "from": "1.4.0",
+          "to": "1.5.0"
+        }
+      },
+      "environmentBasis": [
+        "Widget/shop/orders"
+      ],
+      "requestedVerification": "delete a Widget with and without spec.cleanup.policy: Retain after upgrading the controller; storage is kept only with it"
+    },
+    "provenance": {
+      "method": "ai",
+      "producer": "investigate.agent@v1",
+      "confidence": "low",
+      "model": "test-model",
+      "modelVersion": "test-model-1",
+      "promptVersion": "investigate-agent/v6",
+      "promptDigest": "sha256:73123350c567fb14542b565955b9e208bb62e3f8864f0d609979ad76d14f50e7",
+      "inputEvidence": [
+        "ev-638e1b29f99b",
+        "ev-c72da2df3f66"
+      ],
+      "generatedAt": "2026-10-16T12:00:00Z",
+      "callId": "call-w",
+      "provider": "test"
+    }
+  },
+  {
+    "id": "hyp-ac0f093048f4",
+    "changeItem": "ci-95ee70ce5e0e",
+    "statement": "the same, for a later release",
+    "citations": [
+      "ev-638e1b29f99b"
+    ],
+    "statementKind": "unverified-ai-prose",
+    "mitigationRejected": "release bounds (1.5.0, 1.6.0] are not within this run's transition v1.4.0 → v1.5.0",
+    "provenance": {
+      "method": "ai",
+      "producer": "investigate.agent@v1",
+      "confidence": "low",
+      "model": "test-model",
+      "modelVersion": "test-model-1",
+      "promptVersion": "investigate-agent/v6",
+      "promptDigest": "sha256:73123350c567fb14542b565955b9e208bb62e3f8864f0d609979ad76d14f50e7",
+      "inputEvidence": [
+        "ev-638e1b29f99b",
+        "ev-c72da2df3f66"
+      ],
+      "generatedAt": "2026-10-16T12:00:00Z",
+      "callId": "call-w",
+      "provider": "test"
+    }
+  }
+]
