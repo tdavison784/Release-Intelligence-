@@ -56,10 +56,22 @@ func TestE2EImpactRepo(t *testing.T) {
 	if fs := byRule[impact.RuleKubernetesBelow]; len(fs) != 1 || fs[0].Classification != domain.ImpactActionRequired {
 		t.Fatalf("kubernetes-below = %+v", byRule[impact.RuleKubernetesBelow])
 	}
-	// the prod values file pins prometheus.servicemonitor.targetPort
-	fs := byRule[impact.RuleValuesPinned]
-	if len(fs) != 1 || !slicesContains(matchSubjectsOf(fs[0]), "prometheus.servicemonitor.targetPort") {
-		t.Fatalf("values-pinned = %+v", fs)
+	// the prod values file pins prometheus.servicemonitor.targetPort — but only
+	// for the helmfile release that applies it; the fixture's Argo CD, Flux
+	// and dev-file releases of cert-manager leave it unset and get the new
+	// default. A pin never speaks for another release: no values-pinned, an
+	// unknown that says the decision is per release instead
+	if fs := byRule[impact.RuleValuesPinned]; len(fs) != 0 {
+		t.Fatalf("values-pinned = %+v, want none (only one of four releases pins the key)", fs)
+	}
+	perRelease := false
+	for _, f := range byRule[impact.RuleInsufficientVisibility] {
+		if strings.Contains(f.Title, "only some releases of the product pin") && strings.Contains(f.Title, "prometheus.servicemonitor.targetPort") {
+			perRelease = true
+		}
+	}
+	if !perRelease {
+		t.Errorf("targetPort default change: want the per-release unknown, got %+v", byRule[impact.RuleInsufficientVisibility])
 	}
 	// global.rbac.disableHTTPChallengesRole is new in v1.18.0 and set in the
 	// discovered values file
@@ -119,7 +131,7 @@ func TestE2EImpactRepo(t *testing.T) {
 
 	// repo-mode warnings travel into the report
 	joined := strings.Join(rep.Warnings, "\n")
-	if !strings.Contains(joined, "is not built with kustomize") || !strings.Contains(joined, "values files") {
+	if !strings.Contains(joined, "is not built with kustomize") || !strings.Contains(joined, "releases deploy cert-manager with different effective values") {
 		t.Errorf("repo warnings missing from the report: %v", rep.Warnings)
 	}
 

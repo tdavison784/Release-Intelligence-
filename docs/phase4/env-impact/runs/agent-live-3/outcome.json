@@ -1,0 +1,675 @@
+{
+  "run": {
+    "status": "submitted",
+    "model": "claude-sonnet-5-5",
+    "provider": "anthropic",
+    "promptVersion": "investigate-agent/v3",
+    "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+    "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+    "budget": {
+      "maxTurns": 88,
+      "maxToolCalls": 168,
+      "maxTokens": 930000,
+      "maxReadBytes": 6160384,
+      "maxSeconds": 1860
+    },
+    "turns": 13,
+    "toolCalls": 12,
+    "tokens": 57785,
+    "transcript": "art-50091c85fec2",
+    "coverage": [
+      {
+        "changeItem": "ci-0a5e2fb2331c",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "Same 90.x credential change as ci-194d5b487655 for kube-controller-manager SM; env uses ignoreNamespaceSelectors: true so the chart-created Secret is in the wrong namespace.",
+        "assertion": "asr-c83640008145",
+        "records": [
+          "asr-c83640008145"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-1871449ec07f",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "coredns SM now uses authorization via the prometheus-token Secret; SM lives in kube-system while Secret is in monitoring.",
+        "assertion": "asr-90080ab25c5a",
+        "records": [
+          "asr-90080ab25c5a"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-194d5b487655",
+        "priority": 0,
+        "priorityRule": "agenda:behaviour",
+        "disposition": "raises-concern",
+        "summary": "Upstream states that with ignoreNamespaceSelectors the chart-created Secret is in the wrong namespace; env sets it true. Override-inspection found no pin.",
+        "assertion": "asr-c960f44501d9",
+        "records": [
+          "asr-6d8b1a5c9a7a",
+          "asr-c960f44501d9"
+        ],
+        "citations": [
+          "ev-f03f43337042"
+        ],
+        "examined": true,
+        "inspections": 1,
+        "validationRequests": 1
+      },
+      {
+        "changeItem": "ci-1e94c8421137",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "kube-scheduler SM: same credential/namespace mismatch risk.",
+        "assertion": "asr-27ca3ce04406",
+        "records": [
+          "asr-27ca3ce04406"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-1f035001bfe6",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "kube-etcd SM: same credential/namespace mismatch risk.",
+        "assertion": "asr-5d9960d07a5d",
+        "records": [
+          "asr-5d9960d07a5d"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-51933c83f5d4",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "kube-proxy SM: same credential/namespace mismatch risk.",
+        "assertion": "asr-d7f277c05ed5",
+        "records": [
+          "asr-d7f277c05ed5"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-555bf9fefdf5",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "apiserver SM in namespace default references Secret rendered in monitoring.",
+        "assertion": "asr-6fed440e1767",
+        "records": [
+          "asr-6fed440e1767"
+        ],
+        "citations": [
+          "ev-39fe2a0ec724"
+        ]
+      },
+      {
+        "changeItem": "ci-903ca29715e3",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "kubelet SM in kube-system references Secret kube-prometheus-stack-prometheus-token rendered in monitoring.",
+        "assertion": "asr-a42f0d090aba",
+        "records": [
+          "asr-a42f0d090aba"
+        ],
+        "citations": [
+          "ev-4722c6a37c10"
+        ]
+      },
+      {
+        "changeItem": "ci-a56630d1b23c",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "not-examined",
+        "summary": "Grafana grafana.ini change appears only in chart-default render, not environment render; not examined."
+      },
+      {
+        "changeItem": "ci-aaeb79bed47e",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "Operator --secret-field-selector no longer excludes service-account-token Secrets, so the operator now watches them (needed for the new token Secret); broadens operator secret visibility.",
+        "assertion": "asr-a81c176db9de",
+        "records": [
+          "asr-a81c176db9de"
+        ],
+        "citations": [
+          "ev-ead0aff6dc1f"
+        ]
+      },
+      {
+        "changeItem": "ci-ac26042a3a1c",
+        "priority": 0,
+        "priorityRule": "agenda:rendered-unexplained",
+        "disposition": "raises-concern",
+        "summary": "New long-lived non-expiring SA-token Secret in monitoring; not usable by SMs in kube-system/default under ignoreNamespaceSelectors.",
+        "assertion": "asr-38ddacef414c",
+        "records": [
+          "asr-38ddacef414c"
+        ],
+        "citations": [
+          "ev-89271ba4a764"
+        ]
+      },
+      {
+        "changeItem": "ci-0f8475f72a68",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join says value unset in env (not-affected); not examined further.",
+        "examined": true,
+        "inspections": 1
+      },
+      {
+        "changeItem": "ci-186eefc98ab9",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-1b14cf0134ba",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-1d8a464ef1b7",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-2ecd3769e47d",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-337251f802e5",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-4fafc7794273",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-5df55229fb90",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-63ebfdbffcaf",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-779e8207da5f",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-93f70f86bcd3",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-9d2d9680733c",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Default change of secretFieldSelector is visible as the operator arg change (see ci-aaeb79bed47e); not separately examined."
+      },
+      {
+        "changeItem": "ci-b798ed2dd1af",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-f08ea0fa28f6",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      },
+      {
+        "changeItem": "ci-f8350fd0b224",
+        "priority": 1,
+        "priorityRule": "agenda:pass-to-scrutinise",
+        "disposition": "not-examined",
+        "summary": "Join: value unset; not examined further."
+      }
+    ],
+    "budgetRule": "agenda@v1 n=26: max(configured, 12+6n calls, 10+3n turns, 150000+30000n tokens, 1MiB+192KiB·n bytes, 300+60n s), capped at 400 calls/200 turns/3000000 tokens/16MiB/3600 s → 168 calls, 88 turns, 930000 tokens, 6160384 bytes, 1860 s"
+  },
+  "assertions": [
+    {
+      "id": "asr-6d8b1a5c9a7a",
+      "changeItem": "ci-194d5b487655",
+      "stance": "raises-concern",
+      "statement": "Env sets ignoreNamespaceSelectors: true, so control-plane ServiceMonitors render in kube-system/default while the chart-created token Secret is in monitoring; upstream says the Secret is then in the wrong namespace and the targets lose auth.",
+      "citations": [
+        "ev-39fe2a0ec724",
+        "ev-f03f43337042"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-75ebb2851d6e",
+          "ev-f03f43337042"
+        ],
+        "generatedAt": "2026-10-16T19:52:50Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-c83640008145",
+      "changeItem": "ci-0a5e2fb2331c",
+      "stance": "raises-concern",
+      "statement": "Same 90.x credential change as ci-194d5b487655 for kube-controller-manager SM; env uses ignoreNamespaceSelectors: true so the chart-created Secret is in the wrong namespace.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "noValidationReason": "rendered-config; covered by validation on ci-194d5b487655",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-90080ab25c5a",
+      "changeItem": "ci-1871449ec07f",
+      "stance": "raises-concern",
+      "statement": "coredns SM now uses authorization via the prometheus-token Secret; SM lives in kube-system while Secret is in monitoring.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-c960f44501d9",
+      "changeItem": "ci-194d5b487655",
+      "stance": "raises-concern",
+      "statement": "Upstream states that with ignoreNamespaceSelectors the chart-created Secret is in the wrong namespace; env sets it true. Override-inspection found no pin.",
+      "citations": [
+        "ev-f03f43337042"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-75ebb2851d6e",
+          "ev-f03f43337042"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-27ca3ce04406",
+      "changeItem": "ci-1e94c8421137",
+      "stance": "raises-concern",
+      "statement": "kube-scheduler SM: same credential/namespace mismatch risk.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-5d9960d07a5d",
+      "changeItem": "ci-1f035001bfe6",
+      "stance": "raises-concern",
+      "statement": "kube-etcd SM: same credential/namespace mismatch risk.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-d7f277c05ed5",
+      "changeItem": "ci-51933c83f5d4",
+      "stance": "raises-concern",
+      "statement": "kube-proxy SM: same credential/namespace mismatch risk.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-6fed440e1767",
+      "changeItem": "ci-555bf9fefdf5",
+      "stance": "raises-concern",
+      "statement": "apiserver SM in namespace default references Secret rendered in monitoring.",
+      "citations": [
+        "ev-39fe2a0ec724"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-39fe2a0ec724",
+          "ev-46baa887bb1c"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-a42f0d090aba",
+      "changeItem": "ci-903ca29715e3",
+      "stance": "raises-concern",
+      "statement": "kubelet SM in kube-system references Secret kube-prometheus-stack-prometheus-token rendered in monitoring.",
+      "citations": [
+        "ev-4722c6a37c10"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-4722c6a37c10"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-a81c176db9de",
+      "changeItem": "ci-aaeb79bed47e",
+      "stance": "raises-concern",
+      "statement": "Operator --secret-field-selector no longer excludes service-account-token Secrets, so the operator now watches them (needed for the new token Secret); broadens operator secret visibility.",
+      "citations": [
+        "ev-ead0aff6dc1f"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-ead0aff6dc1f"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    },
+    {
+      "id": "asr-38ddacef414c",
+      "changeItem": "ci-ac26042a3a1c",
+      "stance": "raises-concern",
+      "statement": "New long-lived non-expiring SA-token Secret in monitoring; not usable by SMs in kube-system/default under ignoreNamespaceSelectors.",
+      "citations": [
+        "ev-89271ba4a764"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-46baa887bb1c",
+          "ev-89271ba4a764"
+        ],
+        "generatedAt": "2026-10-16T19:53:23Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    }
+  ],
+  "validationRequests": [
+    {
+      "id": "vrq-4b771f05c63f",
+      "changeItem": "ci-194d5b487655",
+      "kind": "override-inspection",
+      "subjects": [
+        "gn-004906487a76",
+        "gn-25954107a7c0"
+      ],
+      "status": "fulfilled",
+      "result": "vr-99475deee0c2",
+      "provenance": {
+        "method": "ai",
+        "producer": "investigate.agent@v1",
+        "confidence": "low",
+        "model": "claude-sonnet-5-5",
+        "modelVersion": "claude-sonnet-5-5",
+        "promptVersion": "investigate-agent/v3",
+        "promptDigest": "sha256:8db9e388e3e83a706659ade7440afa5a2f974f0e22a0989f9576165311e9b91f",
+        "inputEvidence": [
+          "ev-75ebb2851d6e"
+        ],
+        "generatedAt": "2026-10-16T19:52:48Z",
+        "callId": "28365859-f078-45b4-b944-b3668c7bd4e6",
+        "provider": "anthropic"
+      }
+    }
+  ],
+  "validations": [
+    {
+      "id": "vr-99475deee0c2",
+      "validator": "validate.override-inspection@v1",
+      "kind": "override-inspection",
+      "level": "deterministic",
+      "changeItem": "ci-194d5b487655",
+      "subjects": [
+        "gn-004906487a76",
+        "gn-25954107a7c0"
+      ],
+      "property": "An explicit setting in the environment pins the old behaviour, so the item does not reach it (From 89.x to 90.x: The control-plane ServiceMonitors (kubelet, kube-apiserver, kube-controller-manager, kube-scheduler, kube-etcd, kube-proxy, coredns…)",
+      "inputs": null,
+      "outcome": "not-run",
+      "detail": "no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts):\n- no verified fact is attached to the item",
+      "request": "vrq-4b771f05c63f",
+      "provenance": {
+        "method": "computed",
+        "producer": "validate.override-inspection@v1",
+        "rule": "pin:no-rule",
+        "confidence": "high"
+      },
+      "checkedAt": "2026-10-16T19:52:48Z"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "art-50091c85fec2",
+      "kind": "agent-transcript",
+      "mediaType": "application/x-ndjson",
+      "digest": "sha256:5c81c5afa29c6b4c85abf44866b20de6d4b55d8ba80c5ad1d55628c1c649d3b2",
+      "size": 23044,
+      "path": "derived/agent/79938267634a/transcript.jsonl",
+      "origin": "derived",
+      "uri": "ri:investigate.agent@v1",
+      "producer": "investigate.agent@v1",
+      "tags": [
+        "agent-transcript",
+        "claude-cli",
+        "claude-sonnet-5-5"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-39fe2a0ec724",
+      "kind": "local-file",
+      "sourceId": "art-5480a5c38daa",
+      "uri": "/Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p4ei-agent/eval/investigations/kube-prometheus-stack-89-90--obs-north/env/platform/monitoring/values-prod.yaml",
+      "excerpt": "ignoreNamespaceSelectors: true",
+      "contentDigest": "sha256:c4dc6facf1948bf9f4d741cf33b1d5a07e22dd27b57314eee3f0aa6ab82eb34e"
+    },
+    {
+      "id": "ev-4722c6a37c10",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "excerpt": "name: kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-89271ba4a764",
+      "kind": "document",
+      "sourceId": "art-b5ced75b1ff9",
+      "uri": "https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-90.0.0/charts/kube-prometheus-stack/UPGRADE.md",
+      "excerpt": "That token is long-lived and does not expire.",
+      "contentDigest": "sha256:4e84eda679fca6edb73c60a85425cb548e243c6d207bff37dcb1b861e2ab0109"
+    },
+    {
+      "id": "ev-ead0aff6dc1f",
+      "kind": "rendered",
+      "sourceId": "art-9cf391c1dcc3",
+      "uri": "ri:renderdiff@v1/derived/render/env/argocd-clusters-prod-kube-prometheus-stack-yaml-0-spec-sources-0-412bebba/to.yaml",
+      "excerpt": "kube-prometheus-stack-prometheus-token",
+      "contentDigest": "sha256:a64e2a16a72471c9b140324c043859cddf23c52126c953191729f47f74601fa1"
+    },
+    {
+      "id": "ev-f03f43337042",
+      "kind": "document",
+      "sourceId": "art-b5ced75b1ff9",
+      "uri": "https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-90.0.0/charts/kube-prometheus-stack/UPGRADE.md",
+      "excerpt": "the chart-created Secret is in the\nwrong namespace and you have to supply your own",
+      "contentDigest": "sha256:4e84eda679fca6edb73c60a85425cb548e243c6d207bff37dcb1b861e2ab0109"
+    }
+  ]
+}

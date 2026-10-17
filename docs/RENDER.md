@@ -62,10 +62,10 @@ secrets) mark the target **INCOMPLETE**: an absence of change in an incomplete r
 
 | Target | Source | Notes |
 |---|---|---|
-| `values-files` | `--values`, or a repo-local values file naming the product | |
-| `argocd` | Argo CD Application | values, `valuesObject`, parameters, `$values/` valueFiles; other value sources ⇒ incomplete |
+| `values-files` | `--values`, or a repo-local values file naming the product (not one an Argo CD / Flux / Helmfile target already layers) | |
+| `argocd` | Argo CD Application (a chart source, or a git `path` source holding a Helm chart in this repo) | layered exactly as `env` stacks it (docs/IMPACT.md "Values are per release"): `valueFiles` in declared order (`$ref/…` from the repo root; a plain path relative to the source path in this repo), then `valuesObject` — or `values` when no `valuesObject` is set (otherwise ignored, with a note) —, then `parameters` with Helm's `--set` typing; a plain path of a Helm-repository chart (inside the chart package), a remote, missing or unknown-ref file, `fileParameters` ⇒ incomplete |
 | `flux` | Flux HelmRelease | `spec.values`; `valuesFrom` ⇒ incomplete |
-| `helmfile` | Helmfile release | files/inline/set; templated/secrets ⇒ incomplete |
+| `helmfile` | Helmfile release | values entries in order (files, inline maps), then `set` — its value is the scalar's text as written (`1.50`, `0123`, a quoted `"12"`), typed by Helm's `--set` rules exactly as the `env` stack does; templated/secrets, a `set` entry with `values:`/`file:` or list syntax ⇒ incomplete |
 | `kustomize` | Kustomize overlay | tied to the environment (Argo source path, `--overlay`, else top-level kustomizations referencing the product); rendered with the product version substituted (recorded); an overlay that does not pin the version is `not-applicable` |
 | `chart-defaults` | `--chart-defaults` | release level |
 
@@ -95,7 +95,13 @@ accepts the `Pattern` form):
 
 - **Correlation** (`Correlate`): each rendered change is correlated with the edge's changelog entries
   (rules: subject, mentions-name/-permission/-object/-api-version/-field, values-default, artifact);
-  undocumented rendered changes are listed.
+  undocumented rendered changes are listed. `values-default` links a helm-values change either by the
+  new value its text states, or — for a removed / default-changed key — by its **source default
+  disappearing**: the rendered change's before holds, under a field named like the key's last segment,
+  the key's source default (or its redaction digest for a credential-named field) more often than its
+  after does, and the key's top-level section names the object (name, kind or a rendered path segment).
+  Booleans, null, empty values, strings under 4 characters, single-digit numbers and tiny maps/lists
+  never link (minimum specificity).
 - **Evidence** (`Pair.Evidence`): `EvidenceRenderedDiff` records citing the object, path, change,
   provenance and digests. Release-scope evidence may back knowledge; environment-scope evidence backs
   impact findings only, values hidden unless `--show-values`.
@@ -190,7 +196,8 @@ bounded R8 counterfactual, one render per change and per customer Helm deploymen
 | renders succeeded with complete values, nothing attributable | `impact:values-default-no-effect`, NOT AFFECTED, with a `render` check: `render.outcome: no-attributable-change`, `key`, `counterfactual: true`, citing the environment-render state records of the target and the counterfactual |
 | render unavailable (no `--render`, a failed pair, incomplete values, no Helm deployment, a counterfactual the chart cannot render) | `impact:values-default-unrendered`, NOT AFFECTED (product-owner choice), with a `render` check: `render.outcome: unavailable` and a `reason` |
 
-`impact:values-unset` now covers removed keys only. Without `--render`, an unset changed default or new key
+`impact:values-unset` now covers removed keys only (and only those whose source default is empty: a removed key
+left unset with a non-empty default is `impact:values-removed-default`, review-required — docs/IMPACT.md). Without `--render`, an unset changed default or new key
 is `values-default-unrendered` with reason "rendering was not requested (run ri impact with --render)".
 That renames the rule in knowledge-free reports; the class (not-affected) is unchanged, and the eval shows
 no regression against `eval/results`.

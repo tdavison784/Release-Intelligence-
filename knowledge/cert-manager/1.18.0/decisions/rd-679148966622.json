@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-679148966622",
+    "reviewItemId": "ri-a9b7c410b5ba",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade to 1.18, cert-manager garbage-collects all stale CertificateRequest resources for Certificates that do not explicitly set revisionHistoryLimit. Only the latest revision is kept. The release notes flag this as a potentially breaking change.",
+        "remediation": "To keep more CertificateRequest history, set spec.revisionHistoryLimit explicitly on Certificate resources before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information."
+    },
+    "reviewer": "tdavison784",
+    "reviewerKind": "human",
+    "reason": "its a minor finding, good to get review on but acceptable",
+    "startedAt": "2026-10-17T01:58:28.292347Z",
+    "decidedAt": "2026-10-17T01:59:07.498721Z",
+    "resultingFact": "vf-b577957e2615"
+  }
+}

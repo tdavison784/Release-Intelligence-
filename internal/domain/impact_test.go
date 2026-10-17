@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
@@ -62,5 +63,71 @@ func TestImpactReportValidateRejectsBrokenChains(t *testing.T) {
 		if err := r.Validate(); err == nil {
 			t.Errorf("%s: expected a validation error", name)
 		}
+	}
+}
+
+// IdentifiedContent strips the wall-clock stamps (GeneratedAt, evidence
+// RetrievedAt) without touching anything the report is identified by:
+// evidence ids stay (they never covered RetrievedAt), the caller's report is
+// not mutated, and everything else is carried over verbatim.
+func TestImpactReportIdentifiedContent(t *testing.T) {
+	up := NewEvidence(EvidenceDocument, "notes", "https://example/notes.md", "L1", "upstream", "sha256:u", time.Unix(1700000000, 0))
+	local := NewEvidence(EvidenceLocalFile, "", "values.yaml", "L3", "replicaCount: 2", "sha256:x", time.Unix(1700000099, 0))
+	r := ImpactReport{
+		SchemaVersion:       ImpactReportSchemaVersion,
+		GeneratedAt:         time.Unix(1700000500, 0),
+		Evidence:            []Evidence{up},
+		EnvironmentEvidence: []Evidence{local},
+	}
+	c := r.IdentifiedContent()
+	if !c.GeneratedAt.IsZero() || !c.Evidence[0].RetrievedAt.IsZero() || !c.EnvironmentEvidence[0].RetrievedAt.IsZero() {
+		t.Fatalf("stamps survived: generatedAt=%v evidence=%v env=%v", c.GeneratedAt, c.Evidence[0].RetrievedAt, c.EnvironmentEvidence[0].RetrievedAt)
+	}
+	if c.Evidence[0].ID != up.ID || c.EnvironmentEvidence[0].ID != local.ID {
+		t.Fatalf("evidence ids changed: %s / %s", c.Evidence[0].ID, c.EnvironmentEvidence[0].ID)
+	}
+	if !r.GeneratedAt.Equal(time.Unix(1700000500, 0)) || !r.Evidence[0].RetrievedAt.Equal(time.Unix(1700000000, 0)) || !r.EnvironmentEvidence[0].RetrievedAt.Equal(time.Unix(1700000099, 0)) {
+		t.Fatal("IdentifiedContent mutated the original report")
+	}
+	// nil evidence stays nil (not an empty slice): the copy marshals the same.
+	if r.Evidence == nil || r.EnvironmentEvidence == nil {
+		t.Fatal("precondition: fixtures must carry evidence")
+	}
+	var zero ImpactReport
+	if z := zero.IdentifiedContent(); z.Evidence != nil || z.EnvironmentEvidence != nil {
+		t.Fatal("a report without evidence must not gain empty slices")
+	}
+}
+
+// The run's wall-clock stamps leave the identified content but are not
+// dropped: Stamps keeps them (report GeneratedAt and each evidence
+// RetrievedAt, by id) and WithStamps restores the original exactly. The
+// enrichment's AI GeneratedAt (the model answer's own time) stays in the
+// identified content, which therefore still validates (AI provenance needs
+// it).
+func TestImpactReportStampsRoundTrip(t *testing.T) {
+	gen, got := time.Date(2026, 10, 16, 9, 0, 0, 0, time.UTC), time.Date(2026, 10, 16, 9, 0, 1, 0, time.UTC)
+	answered := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
+	up := NewEvidence(EvidenceDocument, "notes", "https://example/notes.md", "L1", "upstream", "sha256:u", got)
+	local := NewEvidence(EvidenceLocalFile, "", "values.yaml", "L1", "a: 1", "sha256:l", time.Time{})
+	rep := &ImpactReport{GeneratedAt: gen, Evidence: []Evidence{up}, EnvironmentEvidence: []Evidence{local},
+		Enrichments: []Enrichment{{ID: "enr-1", Provenance: Provenance{Method: MethodAI, GeneratedAt: &answered}}}}
+	id := rep.IdentifiedContent()
+	s := rep.Stamps()
+	if !id.GeneratedAt.IsZero() || !id.Evidence[0].RetrievedAt.IsZero() {
+		t.Fatalf("stamps left in the identified content: %+v", id)
+	}
+	if !s.GeneratedAt.Equal(gen) || len(s.RetrievedAt) != 1 || !s.RetrievedAt[up.ID].Equal(got) {
+		t.Fatalf("stamps = %+v", s)
+	}
+	if g := id.Enrichments[0].Provenance.GeneratedAt; g == nil || !g.Equal(answered) {
+		t.Fatalf("the enrichment's AI generatedAt must stay in the identified content: %v", g)
+	}
+	back := id.WithStamps(s)
+	if !reflect.DeepEqual(&back, rep) {
+		t.Fatalf("WithStamps(Stamps()) is not the original:\n%+v\n%+v", back, *rep)
+	}
+	if !rep.Evidence[0].RetrievedAt.Equal(got) {
+		t.Fatal("the caller's report was mutated")
 	}
 }

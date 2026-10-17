@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: checkout
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: shop
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: checkout
+  source:
+    repoURL: https://git.example.com/platform/gitops-obs-south.git
+    targetRevision: main
+    path: apps/checkout/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

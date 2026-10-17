@@ -1,0 +1,186 @@
+### 17:59:04Z case cert-manager-1.17-1.18--payments-us, cluster ri-groundtruth-cm-us, kind v0.24.0 go1.22.6 darwin/arm64
+Creating cluster "ri-groundtruth-cm-us" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 3m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 3m0s for control-plane = Ready ⏳
+ • Ready after 15s 💚
+Set kubectl context to "kind-ri-groundtruth-cm-us"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth-cm-us
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+### 17:59:31Z render-level diff of the cert-manager release (helm template v1.17.2 vs v1.18.0, same values)
+69:-                    `--feature-gates=AdditionalCertificateOutputFormats=false` option set on both
+91:+                        `--feature-gates=DefaultPrivateKeyRotationPolicyAlways=false` option on
+### 17:59:31Z phase 0: install cert-manager v1.17.2 (Application cert-manager) + platform/pki/overlays/prod + apps/payments/overlays/prod
+Release "cert-manager" does not exist. Installing it now.
+NAME: cert-manager
+LAST DEPLOYED: Fri Oct 16 12:59:31 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+certificate.cert-manager.io/mesh-root-ca created
+clusterissuer.cert-manager.io/mesh-ca created
+clusterissuer.cert-manager.io/selfsigned-bootstrap created
+certificate.cert-manager.io/mesh-root-ca condition met
+namespace/payments created
+configmap/ledger-nginx-dm8g5bfhbf created
+service/ledger created
+deployment.apps/checkout created
+deployment.apps/ledger created
+certificate.cert-manager.io/checkout-tls created
+certificate.cert-manager.io/ledger-tls created
+certificate.cert-manager.io/ledger-tls condition met
+certificate.cert-manager.io/checkout-tls condition met
+Waiting for deployment "ledger" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "ledger" rollout to finish: 1 of 2 updated replicas are available...
+deployment "ledger" successfully rolled out
+deployment "checkout" successfully rolled out
+NS             NAME           READY   ROTATION
+cert-manager   mesh-root-ca   True    Never
+payments       checkout-tls   True    <none>
+payments       ledger-tls     True    <none>
+### 17:59:55Z fingerprints (v1.17.2 initial issuance)
+cert-manager/mesh-root-ca pubkey-sha256=e84693142a49f4cabaccd758f275971eba279b1bbbe299ced68ef1b98f025d90 serial=7AC05782501FF3B7BA123B701E312799
+payments/ledger-tls pubkey-sha256=cc48987491199584e2a14fc28305781171c7f0cc0b3fbcf6cc7dfbaba88b6a65 serial=CD2850D8CCA2F01B299486F9E0C4A380
+payments/checkout-tls pubkey-sha256=5932bdc28fdfb35e876bfb77890576fe5eb51a8a84b577f28fbeef5bba800372 serial=2F57B2A5E3B593099A238BC9DE269C32
+### 17:59:55Z checkout -> ledger call (v1.17.2 initial)
+ledger ok: client=CN=checkout.payments.svc
+attempt=1 exit=0
+### 17:59:55Z phase 1 (control, still v1.17.2): re-issue the root CA
+certificate.cert-manager.io/mesh-root-ca patched
+certificate.cert-manager.io/mesh-root-ca condition met
+### 17:59:55Z renewed cert-manager/mesh-root-ca: revision 1 -> 2
+### 17:59:55Z fingerprints (v1.17.2 after root CA re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=e84693142a49f4cabaccd758f275971eba279b1bbbe299ced68ef1b98f025d90 serial=64777EB3EF024226F7DBCDCF36D12C43
+payments/ledger-tls pubkey-sha256=cc48987491199584e2a14fc28305781171c7f0cc0b3fbcf6cc7dfbaba88b6a65 serial=CD2850D8CCA2F01B299486F9E0C4A380
+payments/checkout-tls pubkey-sha256=5932bdc28fdfb35e876bfb77890576fe5eb51a8a84b577f28fbeef5bba800372 serial=2F57B2A5E3B593099A238BC9DE269C32
+### 17:59:56Z CertificateRequests (v1.17.2)
+cert-manager   mesh-root-ca-1   1
+cert-manager   mesh-root-ca-2   2
+payments       checkout-tls-1   1
+payments       ledger-tls-1     1
+### 17:59:56Z phase 2: upgrade cert-manager to v1.18.0 (Application targetRevision bump, same values)
+Release "cert-manager" has been upgraded. Happy Helming!
+NAME: cert-manager
+LAST DEPLOYED: Fri Oct 16 12:59:56 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+⚠️  WARNING: New default private key rotation policy for Certificate resources.
+The default private key rotation policy for Certificate resources was
+changed to `Always` in cert-manager >= v1.18.0.
+Learn more in the [1.18 release notes](https://cert-manager.io/docs/releases/release-notes/release-notes-1.18).
+
+cert-manager v1.18.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+NAME                      IMAGE
+cert-manager              quay.io/jetstack/cert-manager-controller:v1.18.0
+cert-manager-cainjector   quay.io/jetstack/cert-manager-cainjector:v1.18.0
+cert-manager-webhook      quay.io/jetstack/cert-manager-webhook:v1.18.0
+NS             NAME           READY   ROTATION
+cert-manager   mesh-root-ca   True    Never
+payments       checkout-tls   True    <none>
+payments       ledger-tls     True    <none>
+### 18:00:14Z checkout -> ledger call (v1.18.0 right after upgrade, nothing re-issued yet)
+ledger ok: client=CN=checkout.payments.svc
+attempt=1 exit=0
+### 18:00:14Z phase 3: root CA reaches its renewal window (forced) on v1.18.0
+certificate.cert-manager.io/mesh-root-ca patched
+certificate.cert-manager.io/mesh-root-ca condition met
+### 18:00:28Z renewed cert-manager/mesh-root-ca: revision 2 -> 3
+### 18:00:28Z fingerprints (v1.18.0 after root CA re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=e84693142a49f4cabaccd758f275971eba279b1bbbe299ced68ef1b98f025d90 serial=69BB1E813040D61CF78CC9FDECA2D592
+payments/ledger-tls pubkey-sha256=cc48987491199584e2a14fc28305781171c7f0cc0b3fbcf6cc7dfbaba88b6a65 serial=CD2850D8CCA2F01B299486F9E0C4A380
+payments/checkout-tls pubkey-sha256=5932bdc28fdfb35e876bfb77890576fe5eb51a8a84b577f28fbeef5bba800372 serial=2F57B2A5E3B593099A238BC9DE269C32
+### 18:00:29Z phase 4: ledger's leaf reaches its renewal window (forced); ledger pods restart and load it
+certificate.cert-manager.io/ledger-tls patched
+certificate.cert-manager.io/ledger-tls condition met
+### 18:00:29Z renewed payments/ledger-tls: revision 1 -> 2
+deployment.apps/ledger restarted
+Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ledger" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ledger" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ledger" rollout to finish: 1 old replicas are pending termination...
+deployment "ledger" successfully rolled out
+### 18:00:31Z fingerprints (v1.18.0 after ledger leaf re-issuance)
+cert-manager/mesh-root-ca pubkey-sha256=e84693142a49f4cabaccd758f275971eba279b1bbbe299ced68ef1b98f025d90 serial=69BB1E813040D61CF78CC9FDECA2D592
+payments/ledger-tls pubkey-sha256=60d26f074869317fc52fca987b619f3088e737ea2a4c9d9495cfafbc24f4f2ff serial=88FA370B85BDEF5FF4226921961B88BC
+payments/checkout-tls pubkey-sha256=5932bdc28fdfb35e876bfb77890576fe5eb51a8a84b577f28fbeef5bba800372 serial=2F57B2A5E3B593099A238BC9DE269C32
+### 18:00:31Z openssl cross-verification (ledger re-issued, checkout not yet)
+ledger trusts checkout leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.RBIK1rXh1z/checkout-tls.tls.crt: OK 
+checkout trusts ledger leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.RBIK1rXh1z/ledger-tls.tls.crt: OK 
+### 18:00:31Z checkout -> ledger call (ledger re-issued after CA re-issuance, checkout still on its earlier certificate)
+ledger ok: client=CN=checkout.payments.svc
+attempt=1 exit=0
+### 18:00:32Z phase 5: checkout's leaf is re-issued too and checkout restarts
+certificate.cert-manager.io/checkout-tls patched
+certificate.cert-manager.io/checkout-tls condition met
+### 18:00:32Z renewed payments/checkout-tls: revision 1 -> 2
+deployment.apps/checkout restarted
+Waiting for deployment "checkout" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "checkout" rollout to finish: 1 old replicas are pending termination...
+deployment "checkout" successfully rolled out
+### 18:00:33Z openssl cross-verification (both leaves re-issued)
+ledger trusts checkout leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.l030RmwZG2/checkout-tls.tls.crt: OK 
+checkout trusts ledger leaf:  /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/tmp.l030RmwZG2/ledger-tls.tls.crt: OK 
+### 18:00:33Z checkout -> ledger call (both leaves re-issued)
+ledger ok: client=CN=checkout.payments.svc
+attempt=1 exit=0
+### 18:00:33Z CertificateRequests (v1.18.0)
+cert-manager   mesh-root-ca-3   3
+payments       checkout-tls-2   2
+payments       ledger-tls-2     2
+### 18:00:33Z controller log lines mentioning private keys
+### 18:00:33Z done; deleting cluster
+Deleting cluster "ri-groundtruth-cm-us" ...
+Deleted nodes: ["ri-groundtruth-cm-us-control-plane"]

@@ -1,0 +1,18 @@
+| # | item | agenda rule | disposition | records | summary |
+|---|---|---|---|---|---|
+| 1 | ci-043695bb193e | agenda:rendered-unexplained | explains | 1 | Webhook readinessProbe port changes from numeric 6080 to the named port 'healthcheck' (rc-4af333c330fb). Chart-internal change in the same release. I did not check that the container declares a port named healthcheck, so… |
+| 2 | ci-145265d231e5 | agenda:rendered-unexplained | examined-no-concern | 1 | The new ClusterRole is the ACME http01 challenge split of the old combined challenges role. The environment's only issuer is a CA type, with no ACME. |
+| 3 | ci-25e3f7619968 | agenda:behaviour | raises-concern | 1 | The environment's Certificates do not set revisionHistoryLimit, so they take the new default of 1. Old CertificateRequests will be garbage-collected. This matters if an audit trail of requests is needed. No pin is set. |
+| 4 | ci-28c673fd340e | agenda:rendered-unexplained | examined-no-concern | 1 | The new dns01 ClusterRoleBinding is part of the RBAC split of the challenges role. The rendered replacement is paired with removal of the old binding, which is covered by other failing items. The environment has no ACME … |
+| 5 | ci-2a481c9a7ff3 | agenda:rendered-unexplained | examined-no-concern | 1 | The new http01 ClusterRoleBinding is part of the RBAC split of the challenges role. The environment has no ACME issuer. |
+| 6 | ci-3211afab6562 | agenda:rendered-unexplained | explains | 1 | Same as the readiness probe: the liveness probe port changes from 6080 to the named port 'healthcheck' (rc-20475b41f0be). It is valid only if the container declares that port; I did not verify this. |
+| 7 | ci-4f7919826dd5 | agenda:rendered-unexplained | examined-no-concern | 1 | The new dns01 ClusterRole is part of the RBAC split of the challenges role. The environment has no ACME issuer. |
+| 8 | ci-4ff47b85d497 | agenda:behaviour | examined-no-concern | 1 | This advisory concerns ACME DNS01 solvers on ClusterIssuers. The environment's ClusterIssuers are CA or selfsigned, so I see no exposure. That is not proof of safety, because 1.18.0 is within the vulnerable range of the … |
+| 9 | ci-5571bb810111 | agenda:behaviour | examined-no-concern | 1 | This item applies to ACME HTTP01 Ingress challenges. No ACME issuer is present in the environment files. |
+| 10 | ci-791a7adbcb62 | agenda:behaviour | examined-no-concern | 1 | My search of the environment files found no ValidateCAA feature gate. Setting it would only produce a warning. |
+| 11 | ci-86548e9a2300 | agenda:behaviour | raises-concern | 1 | checkout-tls sets privateKey algorithm and size but no rotationPolicy. The default changes from Never to Always, so every reissue will generate a new private key. This affects mesh consumers that pin keys. The fix is to … |
+| 12 | ci-93299c596271 | agenda:behaviour | raises-concern | 1 | Same as ci-86548e9a2300. rotationPolicy is unset in the Certificates, so the new default of Always applies to the next renewal. |
+| 13 | ci-f86a125e0d17 | agenda:behaviour | raises-concern | 1 | Same as ci-25e3f7619968. checkout-tls and the other Certificates leave revisionHistoryLimit unset, so they are exposed to the new default of 1. |
+| 14 | ci-a731eaaa4a97 | agenda:pass-to-scrutinise | examined-no-concern | 1 | The environment leaves prometheus.servicemonitor.targetPort unset. The deterministic join and render-diff both passed. |
+
+Totals: raises-concern 4; claims-mitigation 0; explains 2; examined-no-concern 8; not-examined 0; budget rule: agenda@v1 n=14: max(configured, 12+6n calls, 10+3n turns, 150000+30000n tokens, 1MiB+192KiB·n bytes, 300+60n s), capped at 400 calls/200 turns/3000000 tokens/16MiB/3600 s → 96 calls, 52 turns, 600000 tokens, 4194304 bytes, 1200 s

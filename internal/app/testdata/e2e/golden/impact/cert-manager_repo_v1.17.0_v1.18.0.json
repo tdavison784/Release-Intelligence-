@@ -64,7 +64,7 @@
         "digest": "sha256:413269160df56b49638692294ef950bfd96733f6811183984defd81de40c4ac4"
       }
     ],
-    "valuesKeys": 9,
+    "valuesKeys": 7,
     "manifestDocs": 6,
     "apiVersions": 5,
     "crds": 1,
@@ -161,19 +161,19 @@
       "skipped ../env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)",
       "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
       "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
-      "repo mode found 2 values files; all are applied, the last one wins per key",
-      "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files",
+      "values of Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml): HelmRelease cert-manager: spec.valuesFrom ConfigMap cert-manager-values references a cluster object no input defines; those values are not readable from files",
+      "4 releases deploy cert-manager with different effective values (helmfile release cert-manager (../env/testdata/customer-repo/helmfile.yaml); Argo CD Application cert-manager (../env/testdata/customer-repo/apps/cert-manager-argocd.yaml); Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml); values files ../env/testdata/customer-repo/clusters/dev/values-cert-manager.yaml): values are per release and never merged across them — a value that holds for one release is not assumed for another",
       "detected-flux \"cert-manager\": version \"1.*\" is not a parsable version; kept as stated, it cannot be range-checked"
     ]
   },
   "summary": {
     "upstreamChanges": 51,
-    "affectEnvironment": 10,
+    "affectEnvironment": 9,
     "actionRequired": 1,
     "reviewRequired": 3,
-    "informational": 6,
+    "informational": 5,
     "notAffected": 3,
-    "unknown": 45
+    "unknown": 46
   },
   "findings": [
     {
@@ -401,39 +401,6 @@
       }
     },
     {
-      "id": "imp-6cae808def98",
-      "classification": "informational",
-      "severity": "low",
-      "rule": "impact:values-pinned",
-      "title": "You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you",
-      "detail": "You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.",
-      "changeId": "chg-917796919822",
-      "changeTitle": "Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → \"http-metrics\"",
-      "changeCategory": "helm-values",
-      "matches": [
-        {
-          "kind": "values-key",
-          "subject": "prometheus.servicemonitor.targetPort",
-          "evidence": [
-            "ev-185f2a535264"
-          ]
-        }
-      ],
-      "upstreamEvidence": [
-        "ev-717ddb6f40cd",
-        "ev-7a67f12867b2"
-      ],
-      "environmentEvidence": [
-        "ev-185f2a535264"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:values-pinned",
-        "confidence": "high"
-      }
-    },
-    {
       "id": "imp-c01afd290322",
       "classification": "unknown",
       "rule": "impact:insufficient-visibility",
@@ -451,6 +418,39 @@
       },
       "neededToDetermine": [
         "openshift cluster version not supplied"
+      ],
+      "unknownReason": "environment-visibility-gap"
+    },
+    {
+      "id": "imp-2e812d5e8628",
+      "classification": "unknown",
+      "rule": "impact:insufficient-visibility",
+      "title": "Cannot tell whether this affects you: only some releases of the product pin `prometheus.servicemonitor.targetPort`",
+      "detail": "Some releases deploying this product set prometheus.servicemonitor.targetPort explicitly and keep their value; others leave it unset and get the new default of v1.18.0. Evaluate each release on its own.",
+      "changeId": "chg-917796919822",
+      "changeTitle": "Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → \"http-metrics\"",
+      "changeCategory": "helm-values",
+      "upstreamEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:insufficient-visibility",
+        "confidence": "high"
+      },
+      "checks": [
+        {
+          "dimension": "values",
+          "facts": 7,
+          "subjects": [
+            "prometheus.servicemonitor.targetPort"
+          ]
+        }
+      ],
+      "neededToDetermine": [
+        "a per-release decision: values of Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml): HelmRelease cert-manager: spec.valuesFrom ConfigMap cert-manager-values references a cluster object no input defines; those values are not readable from files"
       ],
       "unknownReason": "environment-visibility-gap"
     },
@@ -2245,14 +2245,6 @@
       "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
     },
     {
-      "id": "ev-185f2a535264",
-      "kind": "local-file",
-      "uri": "../env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
-      "locator": "$.prometheus.servicemonitor.targetPort (L8)",
-      "excerpt": "prometheus.servicemonitor.targetPort: 9402",
-      "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
-    },
-    {
       "id": "ev-c20cbc61dfd4",
       "kind": "local-file",
       "uri": "../env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
@@ -2331,10 +2323,10 @@
     "skipped ../env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)",
     "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
     "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
-    "repo mode found 2 values files; all are applied, the last one wins per key",
-    "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files",
+    "values of Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml): HelmRelease cert-manager: spec.valuesFrom ConfigMap cert-manager-values references a cluster object no input defines; those values are not readable from files",
+    "4 releases deploy cert-manager with different effective values (helmfile release cert-manager (../env/testdata/customer-repo/helmfile.yaml); Argo CD Application cert-manager (../env/testdata/customer-repo/apps/cert-manager-argocd.yaml); Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml); values files ../env/testdata/customer-repo/clusters/dev/values-cert-manager.yaml): values are per release and never merged across them — a value that holds for one release is not assumed for another",
     "detected-flux \"cert-manager\": version \"1.*\" is not a parsable version; kept as stated, it cannot be range-checked"
   ],
   "generatedAt": "2026-10-01T12:00:00Z",
-  "definitionDigest": "sha256:4fad4f35dd9e74fe604b543dff35b8c4b181f5c8c83ddbf6520f524be48504f5"
+  "definitionDigest": "sha256:c8c8a939b1d42c88ea053e758ffed0f497f335e5ee2645ce232032fcb8ed7ce9"
 }

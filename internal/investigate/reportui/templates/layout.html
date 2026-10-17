@@ -1,0 +1,27 @@
+{{define "head"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · Release Intelligence investigations</title>
+<script>try{var t=localStorage.getItem("ri-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="stylesheet" href="{{.Base}}/static/report.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-row">
+    <a class="brand" href="{{.Base}}">Release Intelligence <span>investigations</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="{{.Base}}" class="here">Investigations</a>
+      {{range .Nav}}<a href="{{.Href}}">{{.Label}}</a>{{end}}
+    </nav>
+  </div>
+</header>
+{{end}}
+{{define "foot"}}
+</body>
+</html>
+{{end}}
+{{define "error"}}{{template "head" .}}
+<main class="page"><div class="flash flash-error" role="alert">{{.Text}}</div><p><a href="{{.Base}}">Back to the investigations</a></p></main>
+{{template "foot" .}}{{end}}

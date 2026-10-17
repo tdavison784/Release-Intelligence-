@@ -912,24 +912,30 @@ func refTarget(ref env.Ref, c domain.Condition) string {
 // per values file that was read (the file and its digest), or the --values
 // input when no file yielded a key.
 func (ev *evaluator) valuesAbsence(c domain.Condition) ([]domain.ImpactMatch, []domain.Evidence) {
+	return valuesAbsence(ev.env, ev.ix, c.Path)
+}
+
+// valuesAbsence is the evidence that the environment's values do not set
+// path (ix indexes the environment's evidence by id).
+func valuesAbsence(en *env.Environment, ix map[domain.EvidenceID]domain.Evidence, path string) ([]domain.ImpactMatch, []domain.Evidence) {
 	var recs []domain.Evidence
 	seen := map[string]bool{}
 	digest := map[string]string{}
-	for _, f := range ev.env.Files {
+	for _, f := range en.Files {
 		digest[f.Path] = f.Digest
 	}
-	for _, k := range ev.env.ValuesKeys {
+	for _, k := range en.ValuesKeys {
 		for _, id := range k.Evidence {
-			e, ok := ev.ix[id]
+			e, ok := ix[id]
 			if !ok || seen[e.URI] {
 				continue
 			}
 			seen[e.URI] = true
 			recs = append(recs, domain.NewEvidence(domain.EvidenceLocalFile, "", e.URI, "",
-				fmt.Sprintf("%s does not set %s (or anything below it)", e.URI, c.Path), digest[e.URI], time.Time{}))
+				fmt.Sprintf("%s does not set %s (or anything below it)", e.URI, path), digest[e.URI], time.Time{}))
 		}
 	}
-	if len(recs) == 0 && ev.env.Supplied.Values {
+	if len(recs) == 0 && en.Supplied.Values {
 		recs = append(recs, domain.NewEvidence(domain.EvidenceInput, "", "flag:--values", "",
 			"the supplied values set no keys", domain.Digest([]byte("flag:--values:none")), time.Time{}))
 	}
@@ -940,7 +946,7 @@ func (ev *evaluator) valuesAbsence(c domain.Condition) ([]domain.ImpactMatch, []
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	return []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: "values do not set " + c.Path, Evidence: ids}}, recs
+	return []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: "values do not set " + path, Evidence: ids}}, recs
 }
 
 func (ev *evaluator) valuesKey(c domain.Condition) ConditionResult {

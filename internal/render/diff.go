@@ -37,6 +37,13 @@ const (
 	AnnotationAdded       ChangeClass = "annotation-added"
 	AnnotationRemoved     ChangeClass = "annotation-removed"
 	AnnotationChanged     ChangeClass = "annotation-changed"
+	// CRDDescriptionChanged is a difference of OpenAPI description text
+	// inside a CustomResourceDefinition's schema (added, removed or
+	// reworded): it documents the API for humans — kubectl shows it,
+	// nothing configures by it. One class covers every presence shape, the
+	// way image-changed does: the semantics are "this schema node's
+	// documentation differs", never an effect on rendered configuration.
+	CRDDescriptionChanged ChangeClass = "crd-description-changed"
 )
 
 // ChangeClasses lists every class.
@@ -45,6 +52,7 @@ var ChangeClasses = []ChangeClass{
 	RBACPermissionAdded, RBACPermissionRemoved, ServicePortAdded, ServicePortRemoved, ServicePortChanged,
 	ContainerArgAdded, ContainerArgRemoved, ContainerArgChanged, EnvVarAdded, EnvVarRemoved, EnvVarChanged,
 	LabelAdded, LabelRemoved, LabelChanged, AnnotationAdded, AnnotationRemoved, AnnotationChanged,
+	CRDDescriptionChanged,
 }
 
 // Presence is the contract-level shape of a change at its path: what the
@@ -384,6 +392,12 @@ func (d *differ) keyed(path, pattern, key string, a, b any) {
 	if reflect.DeepEqual(a, b) {
 		return
 	}
+	if isSchemaDescription(d.kind, pattern, a, b) {
+		// OpenAPI description text inside a CRD schema documents the API;
+		// it configures nothing (crd-description-changed, not field-*).
+		d.emit(Change{Class: CRDDescriptionChanged, Path: path, Pattern: pattern, Name: key, Before: enc(a), After: enc(b)})
+		return
+	}
 	parent := lastSeg(trimLastSeg(pattern))
 	if parent == "labels" || parent == "annotations" {
 		var class ChangeClass
@@ -473,6 +487,53 @@ func containerOf(path string) string {
 		}
 	}
 	return ""
+}
+
+// isSchemaDescription reports whether a keyed difference is the OpenAPI
+// `description` keyword of a CustomResourceDefinition schema: the key is
+// "description" below openAPIV3Schema, it is not a property NAME (a field
+// called "description" sits directly under "properties" and is structure),
+// and both sides are text or absent (a schema node, map or list is never
+// documentation).
+func isSchemaDescription(kind, pattern string, a, b any) bool {
+	if kind != "CustomResourceDefinition" || lastSeg(pattern) != "description" || !strings.Contains(pattern, "openAPIV3Schema") {
+		return false
+	}
+	if lastSeg(trimLastSeg(pattern)) == "properties" {
+		return false
+	}
+	return (a == nil || isScalar(a)) && (b == nil || isScalar(b))
+}
+
+// DocumentedField returns the schema field whose documentation a
+// crd-description-changed change rewords: the property name the description
+// keyword belongs to, looking through a list's `items` and a map's
+// `additionalProperties` schema to the field that declares them
+// ("…properties.privateKey.properties.rotationPolicy.description" →
+// "rotationPolicy"). "" for any other change, and for documentation that
+// belongs to no named property (the schema root, a composition branch).
+func DocumentedField(c Change) string {
+	if c.Class != CRDDescriptionChanged {
+		return ""
+	}
+	p := c.Pattern
+	if p == "" {
+		p = c.Path
+	}
+	p = trimLastSeg(p) // the "description" keyword itself
+	for {
+		switch lastSeg(p) {
+		case "items", "additionalProperties":
+			p = trimLastSeg(p)
+			continue
+		}
+		break
+	}
+	field := lastSeg(p)
+	if field == "" || lastSeg(trimLastSeg(p)) != "properties" {
+		return ""
+	}
+	return field
 }
 
 func lastSeg(p string) string {

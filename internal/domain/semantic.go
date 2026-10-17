@@ -1767,12 +1767,17 @@ const (
 	QuestionRelationship        QuestionType = "relationship"
 	QuestionDuplicate           QuestionType = "duplicate"
 	QuestionEvidenceSufficiency QuestionType = "evidence-sufficiency"
+	// QuestionFactReview asks a human whether a whole existing fact is
+	// correct: the item shows every aspect and proposes exactly the fact's
+	// assertion, so an accept verifies all four at once (a fact's level is its
+	// weakest aspect). CONTRACT-CHANGE(factlevel): additive question type.
+	QuestionFactReview QuestionType = "fact-review"
 )
 
 // QuestionTypes lists every question type.
 var QuestionTypes = []QuestionType{
 	QuestionSemanticMapping, QuestionApplicability, QuestionConsequence, QuestionClassification,
-	QuestionRelationship, QuestionDuplicate, QuestionEvidenceSufficiency,
+	QuestionRelationship, QuestionDuplicate, QuestionEvidenceSufficiency, QuestionFactReview,
 }
 
 // QuestionAspects returns the aspects an accept/correct decision on a
@@ -1788,6 +1793,8 @@ func QuestionAspects(q QuestionType) []Aspect {
 		return []Aspect{AspectConsequence}
 	case QuestionRelationship:
 		return []Aspect{AspectSubject, AspectChange, AspectApplicability}
+	case QuestionFactReview:
+		return []Aspect{AspectSubject, AspectChange, AspectApplicability, AspectConsequence}
 	case QuestionDuplicate, QuestionEvidenceSufficiency:
 		return []Aspect{}
 	}
@@ -2039,6 +2046,27 @@ type ReviewDecision struct {
 	// gets its own decision. Corrections are individual-only.
 	BatchID   string `json:"batchId,omitempty"`
 	BatchSize int    `json:"batchSize,omitempty"`
+	// Aspects are the aspects the reviewer was shown and verified, when the
+	// page displayed them explicitly (a whole-fact review); only those are
+	// verified by an accept/correct. Empty means the item's question aspects.
+	// CONTRACT-CHANGE(factlevel): additive field.
+	Aspects []Aspect `json:"aspects,omitempty"`
+}
+
+// Verifies returns the aspects an accept/correct decision on item verifies:
+// the question's aspects, narrowed to Aspects when the decision records them.
+func (d ReviewDecision) Verifies(item ReviewItem) []Aspect {
+	asked := item.Aspects()
+	if len(d.Aspects) == 0 {
+		return asked
+	}
+	var out []Aspect
+	for _, x := range asked {
+		if containsAspect(d.Aspects, x) {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 // BatchIDPrefix starts every review-batch id.
@@ -2120,6 +2148,19 @@ func (d ReviewDecision) Validate() error {
 		bad("decidedAt is required")
 	}
 	decisive := d.Action == ActionAccept || d.Action == ActionCorrect || d.Action == ActionReject
+	if len(d.Aspects) > 0 && d.Action != ActionAccept && d.Action != ActionCorrect {
+		bad("aspects are recorded only on accept/correct (what was verified)")
+	}
+	seenAspect := map[Aspect]bool{}
+	for _, x := range d.Aspects {
+		if !x.Valid() || seenAspect[x] {
+			bad("unknown or repeated aspect %q", x)
+		}
+		seenAspect[x] = true
+		if d.Final() != nil && !d.Final().Has(x) {
+			bad("records aspect %s, which the assertion does not state", x)
+		}
+	}
 	if decisive && d.StartedAt.IsZero() {
 		bad("startedAt is required for %s (time to decision is measured)", d.Action)
 	}
@@ -2566,6 +2607,8 @@ func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 					bad("%s: decision %s's review item %s does not resolve", v.Aspect, id, d.ReviewItemID)
 				} else if !containsAspect(item.Aspects(), v.Aspect) {
 					bad("%s: decision %s answered a %s question, which does not verify %s", v.Aspect, id, item.QuestionType, v.Aspect)
+				} else if !containsAspect(d.Verifies(item), v.Aspect) {
+					bad("%s: decision %s records that it verified only %v", v.Aspect, id, d.Aspects)
 				}
 				if fin := d.Final(); fin == nil || fin.AspectDigest(v.Aspect) != want {
 					bad("%s: decision %s settled on a different %s", v.Aspect, id, v.Aspect)

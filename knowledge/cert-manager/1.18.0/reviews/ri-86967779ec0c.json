@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-86967779ec0c",
+    "candidateId": "sc-292ab9525adb",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "fact-review",
+    "question": "Is this whole fact correct: subject, change, applicability and consequence? Fact vf-b577957e2615 (We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.); not yet verified by a human: change consensus, applicability consensus. Accept verifies every aspect; correct supersedes the fact; reject retracts it.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade to 1.18, cert-manager garbage-collects all stale CertificateRequest resources for Certificates that do not explicitly set revisionHistoryLimit. Only the latest revision is kept. The release notes flag this as a potentially breaking change.",
+        "remediation": "To keep more CertificateRequest history, set spec.revisionHistoryLimit explicitly on Certificate resources before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information."
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "decided",
+    "createdAt": "2026-10-16T21:44:17.337009-05:00"
+  }
+}

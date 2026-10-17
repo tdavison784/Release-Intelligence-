@@ -58,12 +58,23 @@ type filterForm struct {
 	Product, Release, Subject, Question, Severity, Confidence string
 	Model, Disagreement, Source, Reviewer, Priority           string
 	Status                                                    []string // selected; "all" = every status
+	// All is the explicit "Show all staged data" scope (?scope=all); Blocking
+	// narrows the default view to items that block investigations
+	// (?blocking=yes); Triage says the server can tell what needs review.
+	All, Triage bool
+	// View is the needs-review sub-view: "" (pin sources, the default),
+	// "blocking" (other blocking items) or "other" (the remaining open items).
+	View string
 }
 
 func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, s) }
 
 // Active reports whether anything but the default status is filtered.
 func (f filterForm) Active() bool {
+	if f.Triage && !f.All {
+		// the default view has no status filter: only the other filters count
+		return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != ""
+	}
 	return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" ||
 		!(len(f.Status) == 1 && f.Status[0] == string(domain.ReviewPending))
 }
@@ -74,6 +85,11 @@ func parseFilter(q url.Values, limit int) (knowledge.InboxFilter, filterForm) {
 		Product: g("product"), Release: g("release"), Subject: g("subject"), Question: g("question"),
 		Severity: g("severity"), Confidence: g("confidence"), Model: g("model"), Disagreement: g("disagreement"),
 		Source: g("source"), Reviewer: g("reviewer"), Priority: g("priority"),
+	}
+	form.All = g("scope") == "all"
+	switch g("scope") {
+	case "blocking", "other":
+		form.View = g("scope")
 	}
 	f := knowledge.InboxFilter{
 		Product: domain.ProductID(form.Product), Release: form.Release, SubjectType: domain.SubjectFamily(form.Subject),
@@ -142,7 +158,91 @@ func tiles(c knowledge.InboxCounts) []tile {
 	}
 }
 
+// hiddenSummary is what the default view leaves out: Total items by reason
+// (ByReason keys are the Hidden* constants), and how many of the items it does
+// show block investigations.
+type hiddenSummary struct {
+	Total    int
+	ByReason map[string]int
+	Pin      int            // pin-source items: the default view
+	Blocking int            // the other blocking items (?scope=blocking)
+	Other    int            // the remaining open items (?scope=other)
+	Products map[string]int // items of the listed view per product
+}
+
+// ProductLine is "cert-manager 3, ingress-nginx 2" for the listed view.
+func (h hiddenSummary) ProductLine() string {
+	var ps []string
+	for p := range h.Products {
+		ps = append(ps, p)
+	}
+	sort.Strings(ps)
+	var out []string
+	for _, p := range ps {
+		out = append(out, fmt.Sprintf("%s %d", p, h.Products[p]))
+	}
+	return strings.Join(out, ", ")
+}
+
+// Lines lists the reasons with counts, largest first, for the header note.
+func (h hiddenSummary) Lines() []string {
+	label := map[string]string{
+		HiddenProxy: "acted on by an AI proxy", HiddenDecided: "already decided", HiddenParked: "parked (deferred / needs evidence)",
+		HiddenVerified: "already verified", HiddenSuperseded: "superseded or retracted",
+	}
+	var keys []string
+	for k := range h.ByReason {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if h.ByReason[keys[i]] != h.ByReason[keys[j]] {
+			return h.ByReason[keys[i]] > h.ByReason[keys[j]]
+		}
+		return keys[i] < keys[j]
+	})
+	var out []string
+	for _, k := range keys {
+		name := label[k]
+		if name == "" {
+			name = k
+		}
+		out = append(out, fmt.Sprintf("%d %s", h.ByReason[k], name))
+	}
+	return out
+}
+
+// needsTiles are the header counters of the default view; every one counts
+// only items that need review.
+func needsTiles(c knowledge.InboxCounts, label, scope string) []tile {
+	href := func(kv ...string) string {
+		v := url.Values{}
+		for i := 0; i < len(kv); i += 2 {
+			v.Add(kv[i], kv[i+1])
+		}
+		if scope != "" {
+			v.Set("scope", scope)
+		}
+		return "/?" + v.Encode()
+	}
+	base := href()
+	return []tile{
+		{label, base, "open questions waiting for a human decision in this view", c.Pending, "accent"},
+		{"High priority", href("priority", "high"), "route priority high", c.HighPriority, "warn"},
+		{"Model disagreement", href("disagreement", "yes"), "proposals disagree on an aspect", c.ModelDisagreement, ""},
+		{"Needs semantic mapping", href("question", "semantic-mapping"), "what changed, exactly?", c.NeedsSemanticMapping, ""},
+		{"Applicability", href("question", "applicability"), "who is exposed?", c.ApplicabilityQuestions, ""},
+	}
+}
+
 type rowView struct {
+	// Blocking / BlockWhy: the item blocks investigations, and the one plain
+	// sentence why. HiddenText is set only in the "show all" view, on items
+	// the default view hides, and says why.
+	Blocking   bool
+	BlockWhy   string
+	HiddenText string
+	// GroupHead starts the rows of one pin-source fact (default view).
+	GroupHead *groupHead
 	Row       knowledge.InboxRow
 	Href      string
 	Severity  string
@@ -208,6 +308,13 @@ type inboxView struct {
 	// list was truncated by Options.InboxLimit and the page must say so.
 	Matches int
 	Enums   enumView
+	// NeedsView: this is the default "needs review" view; Hidden is what it
+	// leaves out (reachable with ?scope=all).
+	NeedsView bool
+	Hidden    hiddenSummary
+	// Unopened are the pin-source facts below human with no open question
+	// (default view): they need `ri review open-audits -apply` first.
+	Unopened []*groupHead
 }
 
 // --- item ----------------------------------------------------------------------------------
@@ -258,6 +365,7 @@ type itemView struct {
 	Facts       []domain.VerifiedFact
 	Rendered    *RenderedDelta
 	Correction  *correctionView // nil when the question states nothing to correct
+	WholeFact   *wholeFactView  // fact-review items: every aspect and its level
 	Editable    bool            // the item can still be decided
 	Disagrees   bool
 	// ConsensusAction: separate calls agree on an action-eligible consequence
@@ -306,7 +414,7 @@ type aspectText struct {
 
 func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values) *itemView {
 	v := &itemView{Ctx: rc, Item: rc.Item, Candidate: rc.Candidate, Related: rc.RelatedDecisions, Facts: rc.RelatedFacts,
-		Rendered: rd, Editable: eligible(rc.Item.Status), Disagrees: disagrees(rc), Form: form}
+		Rendered: rd, Editable: decidable(rc), Disagrees: disagrees(rc), Form: form}
 	// evidence, with who cited what
 	cited := map[domain.EvidenceID][]string{}
 	modelOf := map[string]string{}
@@ -391,6 +499,9 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 		}
 	}
 	v.PrimaryLabel, v.PrimaryAction = "Accept suggested answer", "accept"
+	if v.WholeFact = newWholeFactView(rc); v.WholeFact != nil {
+		v.PrimaryLabel = "Yes — the whole fact is correct"
+	}
 	if rc.Item.QuestionType == domain.QuestionEvidenceSufficiency {
 		v.PrimaryLabel, v.PrimaryAction = "Send back — need more evidence", "need-more-evidence"
 	}

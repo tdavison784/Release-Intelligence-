@@ -2,13 +2,13 @@ cert-manager v1.17.0 → v1.18.0 — impact on this environment
 51 upstream changes analyzed
 ACTION REQUIRED:    1
 REVIEW REQUIRED:    3
-INFORMATIONAL:    6
+INFORMATIONAL:    5
 NOT AFFECTED:    3
-UNKNOWN:   45
+UNKNOWN:   46
 
 Environment
   kubernetes 1.28
-  values: 9 keys set
+  values: 7 keys set
   manifests: 6 docs, 5 apiVersions, 45 field paths
   installed CRDs: 1
   images: 5
@@ -58,7 +58,7 @@ Review required (3)
      environment: values-key global.rbac.disableHTTPChallengesRole  (ev-694d57a19d89)
      upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
 
-Informational (6)
+Informational (5)
   1. Security fix ships with v1.18.0: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` [imp-d076732b11f9]
      evidence: upstream: release-notes-1.18 L350-L350 (v1.18.0 › Bug or Regression)
      upstream change: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` (security) [chg-6db1e2247a3e]
@@ -84,19 +84,14 @@ Informational (6)
      upstream change: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`) (security) [chg-1b9f0e5312e3]
      The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22870.
      upstream evidence: ev-bfe1f4f54646, ev-cb5102bd647d
-  6. You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you [imp-6cae808def98]
-     evidence: upstream: deploy/charts/cert-manager/values.yaml · +1 more · environment: values-cert-manager.yaml:$.prometheus.servicemonitor.targetPort (L8)
-     upstream change: Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → "http-metrics" (helm-values) [chg-917796919822]
-     You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.
-     environment: values-key prometheus.servicemonitor.targetPort  (ev-185f2a535264)
-     upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
 
-Unknown — insufficient evidence (45)
+Unknown — insufficient evidence (46)
   · 40 × note-derived changes the deterministic join cannot compare (release-knowledge-gap)
       run -enrich for AI suggestions on these
   · 4 × computed diff rules without a join rule (release-knowledge-gap)
+  · 1 × environment dimension not supplied: a per-release decision: values of Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml): HelmRelease cert-manager: spec.valuesFrom ConfigMap cert-manager-values references a cluster object no input defines; those values are not readable from files (environment-visibility-gap)
   · 1 × environment dimension not supplied: openshift cluster version (environment-visibility-gap)
-  45 total — render with --show-unknown to list every item
+  46 total — render with --show-unknown to list every item
 
 Warnings (8)
   · Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
@@ -104,8 +99,8 @@ Warnings (8)
   · skipped ../env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)
   · helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file
   · kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied
-  · repo mode found 2 values files; all are applied, the last one wins per key
-  · HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files
+  · values of Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml): HelmRelease cert-manager: spec.valuesFrom ConfigMap cert-manager-values references a cluster object no input defines; those values are not readable from files
+  · 4 releases deploy cert-manager with different effective values (helmfile release cert-manager (../env/testdata/customer-repo/helmfile.yaml); Argo CD Application cert-manager (../env/testdata/customer-repo/apps/cert-manager-argocd.yaml); Flux HelmRelease cert-manager (../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml); values files ../env/testdata/customer-repo/clusters/dev/values-cert-manager.yaml): values are per release and never merged across them — a value that holds for one release is not assumed for another
   · detected-flux "cert-manager": version "1.*" is not a parsable version; kept as stated, it cannot be range-checked
 
 Evidence
@@ -113,7 +108,6 @@ Evidence
   ev-514080d44846  local-file  ../env/testdata/customer-repo/.github/workflows/mirror.yaml  L12
   ev-c7b1f7efbd0a  local-file  ../env/testdata/customer-repo/.github/workflows/mirror.yaml  L16
   ev-694d57a19d89  local-file  ../env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml  $.global.rbac.disableHTTPChallengesRole (L11)
-  ev-185f2a535264  local-file  ../env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml  $.prometheus.servicemonitor.targetPort (L8)
   ev-94a8abc4e147  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L306
   ev-904e0ae133bd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L307
   ev-87e79b56b7a6  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13047

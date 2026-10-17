@@ -761,3 +761,72 @@ func sampleRelease() *domain.Release {
 		DefinitionDigest: "sha256:def0",
 	}
 }
+
+// TestInvestigationSamplesValidate checks the Phase 4 sample documents
+// (written from the Go-valid fixture in internal/domain/investigation_test.go)
+// against the generated schemas, so a schema patch can never reject a
+// document the Go validators accept.
+func TestInvestigationSamplesValidate(t *testing.T) {
+	for sample, schemaFile := range map[string]string{
+		"sample-evidence-bundle.json":     "evidence-bundle.schema.json",
+		"sample-investigation.json":       "investigation.schema.json",
+		"sample-investigation-graph.json": "investigation-graph.schema.json",
+	} {
+		schema := compile(t, schemaFile)
+		f, err := os.Open(filepath.Join(repoRoot(t), "internal", "domain", "testdata", sample))
+		if err != nil {
+			t.Fatal(err)
+		}
+		inst, err := jsonschema.UnmarshalJSON(f)
+		f.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := schema.Validate(inst); err != nil {
+			t.Errorf("%s does not match %s: %v", sample, schemaFile, err)
+		}
+	}
+}
+
+// TestInvestigationSchemaRejects is the schema half of the Phase 4
+// provenance separation: findings and validation records are never AI
+// output, agent assertions always are.
+func TestInvestigationSchemaRejects(t *testing.T) {
+	schema := compile(t, "investigation.schema.json")
+	raw, err := os.ReadFile(filepath.Join(repoRoot(t), "internal", "domain", "testdata", "sample-investigation.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases := map[string]func(doc map[string]any){
+		"ai finding": func(doc map[string]any) {
+			f := doc["findings"].([]any)[0].(map[string]any)
+			f["provenance"].(map[string]any)["method"] = "ai"
+		},
+		"ai validation": func(doc map[string]any) {
+			v := doc["validations"].([]any)[0].(map[string]any)
+			v["provenance"].(map[string]any)["method"] = "ai"
+		},
+		"deterministic assertion": func(doc map[string]any) {
+			a := doc["assertions"].([]any)[0].(map[string]any)
+			a["provenance"] = map[string]any{"method": "computed", "producer": "x@v1", "confidence": "high"}
+		},
+		"uncited assertion": func(doc map[string]any) {
+			doc["assertions"].([]any)[0].(map[string]any)["citations"] = []any{}
+		},
+		"fifth class": func(doc map[string]any) {
+			doc["findings"].([]any)[0].(map[string]any)["class"] = "action-required"
+		},
+	}
+	for name, mut := range cases {
+		t.Run(name, func(t *testing.T) {
+			var doc map[string]any
+			if err := json.Unmarshal(raw, &doc); err != nil {
+				t.Fatal(err)
+			}
+			mut(doc)
+			if err := schema.Validate(toInstance(t, doc)); err == nil {
+				t.Fatal("the schema accepted it")
+			}
+		})
+	}
+}

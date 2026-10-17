@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-246f31433fd5",
+    "candidateId": "sc-298dac696f1a",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"⚠️ Metrics: Disable by default\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Controllers that do not pass --enable-metrics explicitly now run with metrics disabled by default.",
+        "remediation": "If you rely on controller metrics, set --enable-metrics=true explicitly before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In ingress-nginx 1.12.0 the controller CLI argument --enable-metrics is now disabled by default, so metrics are off unless the flag is set explicitly."
+    },
+    "proposals": [
+      "sp-67b334b9a097",
+      "sp-71a22284a331"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-16T22:54:30Z"
+  }
+}

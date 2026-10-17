@@ -121,6 +121,33 @@ var enums = []enumSet{
 	enumOf(domain.RenderConfirmed, domain.RenderNotVisible, domain.RenderContradicted, domain.RenderNotApplicable),
 	enumOf(domain.RenderVerifiable, domain.RenderPartiallyVerifiable, domain.RenderNotVerifiable),
 	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
+	// --- phase 4 investigation (internal/domain/investigation.go) ---
+	enumOf(domain.CollectionStatuses...),
+	enumOf(domain.ArtifactKinds...),
+	enumOf(domain.ArtifactOrigins...),
+	enumOf(domain.ChangeSourceKinds...),
+	enumOf(domain.ChangeItemFamilies...),
+	enumOf(domain.SnapshotInputKinds...),
+	enumOf(domain.NodeKinds...),
+	enumOf(domain.EdgeKinds...),
+	enumOf(domain.EdgeStatuses...),
+	enumOf(domain.ValidationKinds...),
+	enumOf(domain.ValidationLevels...),
+	enumOf(domain.ValidationOutcomeKinds...),
+	enumOf(domain.AssertionStances...),
+	enumOf(domain.EvidenceRequestKinds...),
+	enumOf(domain.RequestStatuses...),
+	enumOf(domain.FindingClasses...),
+	enumOf(domain.GapKinds...),
+	enumOf(domain.PolicyOutcomes...),
+	enumOf(domain.ReviewStates...),
+	enumOf(domain.InvestigationStatuses...),
+	enumOf(domain.AgentRunStatuses...),
+	enumOf(domain.Stages...),
+	enumOf(domain.Manifestations...),
+	enumOf(domain.PinKinds...),
+	enumOf(domain.CoverageDispositions...),
+	enumOf(domain.ClaimKinds...),
 }
 
 // notSerialised names typed-constant sets that never appear in the JSON
@@ -177,6 +204,33 @@ var fieldPatches = map[string]obj{
 	"ImpactFinding.title":               o("pattern", `\S`),
 	"ImpactMatch.evidence":              o("minItems", 1),
 	"ImpactCheck.subjects":              o("minItems", 1),
+
+	// Phase 4 investigation (docs/phase4/env-impact/DESIGN.md §2): validation
+	// records and findings are deterministic; agent records are AI output.
+	// Referential rules (ids resolve, one finding per in-scope item, the §3
+	// policy) are checked by Investigation.ValidateAgainst().
+	"EvidenceBundle.schemaVersion":    o("const", domain.EvidenceBundleSchemaVersion),
+	"EvidenceBundle.id":               o("pattern", "^"+domain.BundleIDPrefix),
+	"Investigation.schemaVersion":     o("const", domain.InvestigationSchemaVersion),
+	"Investigation.id":                o("pattern", "^"+domain.InvestigationIDPrefix),
+	"ValidationRecord.provenance":     o("$ref", "#/$defs/"+defDeterminist),
+	"InvestigationFinding.provenance": o("$ref", "#/$defs/"+defDeterminist),
+	"InvestigationFinding.evidence":   o("minItems", 1, "uniqueItems", true),
+	"AgentAssertion.provenance":       o("$ref", "#/$defs/"+defAI),
+	"AgentAssertion.citations":        o("minItems", 1, "uniqueItems", true),
+	"Hypothesis.provenance":           o("$ref", "#/$defs/"+defAI),
+	"Hypothesis.citations":            o("minItems", 1, "uniqueItems", true),
+	"EvidenceRequest.provenance":      o("$ref", "#/$defs/"+defAI),
+	"ValidationRequest.provenance":    o("$ref", "#/$defs/"+defAI),
+	"ChangeItem.evidence":             o("minItems", 1),
+	"ChangeItem.manifestationRule":    o("pattern", "^manifest:"),
+	"ChangeItem.scopeRule":            o("pattern", "^scope:"),
+	"PinnedSetting.evidence":          o("minItems", 1),
+	"ArtifactRef.digest":              o("pattern", "^sha256:[0-9a-f]{64}$"),
+	"ArtifactRef.id":                  o("pattern", "^"+domain.ArtifactIDPrefix),
+	"ChangeEvidenceRecord.sources":    o("minItems", len(domain.ChangeSourceKinds), "maxItems", len(domain.ChangeSourceKinds)),
+	"InvestigationFinding.changeItem": o("pattern", "^"+domain.ChangeItemIDPrefix),
+	"ValidationRecord.changeItem":     o("pattern", "^"+domain.ChangeItemIDPrefix),
 }
 
 // typePatches are appended to the schema generated for a whole struct,
@@ -186,6 +240,10 @@ var typePatches = map[string]obj{
 	// The action-classification contract (docs/ACTION_CLASSIFICATION.md):
 	// which provenance each class must carry.
 	"ImpactFinding": o("allOf", impactClassRules()),
+	// DESIGN.md §1.3 amendment: items of the rendered-change scope rules are
+	// anchored on the rendered change, family rendered, rendered-config;
+	// unexplained ones are in scope, self-artifact bumps are not.
+	"ChangeItem": o("allOf", renderedScopeRules()),
 	// "Exactly one of the typed payloads is set", and it is the one that
 	// matches kind.
 	"Snapshot": o(
@@ -202,6 +260,26 @@ var typePatches = map[string]obj{
 			snapshotKindRule(domain.SnapshotLines, "lines"),
 		},
 	),
+}
+
+// renderedScopeRules encodes ChangeItem's rendered-change scope rules
+// (domain.ChangeItem.renderedScopeErrors) as conditionals.
+func renderedScopeRules() []any {
+	rule := func(scope string, inScope bool) obj {
+		return o(
+			"if", o("properties", o("scopeRule", o("const", scope)), "required", []string{"scopeRule"}),
+			"then", o(
+				"required", []string{"renderedChange"},
+				"properties", o(
+					"renderedChange", o("minLength", 1),
+					"family", o("const", string(domain.FamilyRendered)),
+					"manifestation", o("const", string(domain.ManifestRenderedConfig)),
+					"inScope", o("const", inScope),
+				),
+			),
+		)
+	}
+	return []any{rule(domain.ScopeRenderedUnexplained, true), rule(domain.ScopeRoutineSelfArtifact, false)}
 }
 
 // impactClassRules encodes the per-class provenance rules of
@@ -337,6 +415,18 @@ func snapshotKindRule(kind domain.SnapshotKind, payload string) obj {
 // "Type" for a type and "Type.jsonName" for a field. Only the fields whose
 // meaning is not obvious from the name are documented.
 var descriptions = map[string]string{
+	"EvidenceBundle": "A reproducible, change- and environment-scoped evidence bundle (Phase 4 P1): the structured " +
+		"breaking-change evidence record, the environment snapshot, environment-scope renders, the searchable manifest of " +
+		"content-addressed artifacts and the evidence pool every cited id resolves in. Immutable once written " +
+		"(docs/phase4/env-impact/DESIGN.md §2).",
+	"Investigation": "The run record of one environment-aware breaking-change investigation (Phase 4): the bundle it " +
+		"investigated, the bounded DFS traversal, agent hypotheses/assertions/requests (AI provenance, never validation " +
+		"results), deterministic or observed validation records, the four-class findings computed by the deterministic " +
+		"policy, the approval decision, the human review and a hash-chained append-only audit trail " +
+		"(docs/phase4/env-impact/DESIGN.md §2–§5).",
+	"RelationshipGraph": "The dependency, configuration and consumption graph of one evidence bundle (Phase 4 §A3). " +
+		"Edges point in the direction impact propagates (from = provider, to = consumer) and carry a verification " +
+		"status: established (from evidence), inferred or missing (both unresolved for fail-closed purposes).",
 	// --- envelopes ---------------------------------------------------------
 	"UpgradeEdge": "Everything relevant to upgrading a product from one version to another: the release " +
 		"path that was traversed, the deterministic changes found along it (each with provenance and " +

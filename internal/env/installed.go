@@ -15,7 +15,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
-	"github.com/tdavison784/release-intelligence/internal/normalize"
 )
 
 // Sources of installed-product facts.
@@ -52,8 +51,12 @@ func (l *loader) detectInstalled(d doc) {
 	switch {
 	case kind == "Application" && group == "argoproj.io":
 		l.detectArgoApplication(d)
+		l.argoDocs = append(l.argoDocs, d) // its values stacks: values.go
 	case kind == "HelmRelease" && group == "helm.toolkit.fluxcd.io":
 		l.detectFluxHelmRelease(d)
+		l.fluxDocs = append(l.fluxDocs, d)
+	case kind == "ConfigMap" && group == "":
+		l.cfgDocs = append(l.cfgDocs, d) // a Flux valuesFrom source
 	}
 }
 
@@ -158,9 +161,8 @@ func (l *loader) detectAppLabels(d doc) {
 }
 
 // detectArgoApplication reads spec.source (and spec.sources[]) of an Argo CD
-// Application: chart/path identity, targetRevision as the installed version,
-// and the inline Helm values — which ARE the customer's values, so they join
-// the values inventory exactly like a values file.
+// Application: chart/path identity and targetRevision as the installed
+// version. Its Helm values are the release's values stack (values.go).
 func (l *loader) detectArgoApplication(d doc) {
 	appName := scalarOf(d.node, "metadata", "name")
 	var sources []*yaml.Node
@@ -177,6 +179,14 @@ func (l *loader) detectArgoApplication(d doc) {
 		chart := scalarOf(s, "chart")
 		path := scalarOf(s, "path")
 		revision, rvLine := scalarLine(s, "targetRevision")
+		// A source that only supplies values (it has a `ref:` and no chart, and
+		// is referenced as $<ref>/path from another source's helm.valueFiles) never carries the
+		// deployed version: its targetRevision is the values repository's
+		// revision. The version comes from the chart source (Argo CD multiple
+		// sources).
+		if scalarOf(s, "ref") != "" && chart == "" {
+			continue
+		}
 		if chart == "" && path == "" && revision == "" {
 			continue
 		}
@@ -199,21 +209,13 @@ func (l *loader) detectArgoApplication(d doc) {
 			Product: product, Version: revision, Chart: chartIdentity,
 			Source: InstalledArgoCD, Evidence: ev,
 		})
-		if helm := fieldOf(s, "helm"); helm != nil {
-			prefix := "$." + helmPaths[i]
-			if v := fieldOf(helm, "values"); v != nil {
-				l.inlineValues(d.file, prefix+".values", v)
-			}
-			if v := fieldOf(helm, "valuesObject"); v != nil {
-				l.inlineValues(d.file, prefix+".valuesObject", v)
-			}
-			l.parametersToValues(d.file, prefix+".parameters", fieldOf(helm, "parameters"))
-		}
 	}
 }
 
-// detectFluxHelmRelease reads a Flux HelmRelease: chart identity, the
-// (possibly ranged) version pin and spec.values — the customer's values.
+// detectFluxHelmRelease reads a Flux HelmRelease: chart identity and the
+// (possibly ranged) version pin; its values stack is built in values.go. The
+// version is the chart's (spec.chart.spec.version); a GitRepository the
+// values come from, or its branch, is never the deployed version.
 func (l *loader) detectFluxHelmRelease(d doc) {
 	name := scalarOf(d.node, "metadata", "name")
 	chart, chLine := scalarLine(fieldOf(d.node, "spec", "chart", "spec"), "chart")
@@ -236,98 +238,6 @@ func (l *loader) detectFluxHelmRelease(d doc) {
 		Product: product, Version: version, Chart: chart,
 		Source: InstalledFlux, Evidence: ev,
 	})
-	if values := fieldOf(d.node, "spec", "values"); values != nil {
-		l.inlineValues(d.file, "$.spec.values", values)
-	}
-	if vf := fieldOf(d.node, "spec", "valuesFrom"); mappingOrSequence(vf) != nil {
-		l.warnf(DimValues, "HelmRelease %s uses spec.valuesFrom, which references cluster objects; those values are not readable from files", name)
-	}
-}
-
-// inlineValues flattens an inline values mapping (or a values string holding
-// YAML) into the values inventory, with the same path syntax and value
-// encoding as parsed values files. Lines come from the original nodes where
-// possible and from the inline node itself otherwise.
-func (l *loader) inlineValues(file, locatorPrefix string, node *yaml.Node) {
-	node = resolveAlias(node)
-	if node == nil {
-		return
-	}
-	add := func(flat []normalize.FlattenedValue, lines map[string]int) {
-		for _, kv := range flat {
-			line := node.Line
-			if ln, ok := lines[kv.Path]; ok && ln > 0 {
-				line = ln
-			}
-			l.addValuesKey(ValuesKey{
-				Path: kv.Path, Value: kv.Value, Line: line,
-				Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s.%s (L%d)", locatorPrefix, kv.Path, line), kv.Path+": "+kv.Value)},
-			})
-		}
-	}
-	switch {
-	case node.Kind == yaml.MappingNode:
-		b, err := yaml.Marshal(node)
-		if err != nil {
-			l.warnf(DimValues, "%s: inline values at L%d were not serializable: %v", file, node.Line, err)
-			return
-		}
-		flat, err := normalize.FlattenValues(b)
-		if err != nil {
-			l.warnf(DimValues, "%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
-			return
-		}
-		lines := map[string]int{}
-		walkFieldPaths(node, "", func(p string, v *yaml.Node) {
-			if v != nil {
-				lines[p] = v.Line
-			}
-		})
-		add(flat, lines)
-	case node.Kind == yaml.ScalarNode && node.Tag != "!!null":
-		flat, err := normalize.FlattenValues([]byte(node.Value))
-		if err != nil {
-			l.warnf(DimValues, "%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
-			return
-		}
-		add(flat, nil)
-	}
-}
-
-// parametersToValues converts an Argo helm.parameters list
-// ([- name: x, value: y]) into values keys.
-func (l *loader) parametersToValues(file, locatorPrefix string, parameters *yaml.Node) {
-	for _, item := range itemsOf(parameters) {
-		name := scalarOf(item, "name")
-		if name == "" {
-			continue
-		}
-		// Re-marshal the item so the value gets the exact encoding of a
-		// parsed values leaf, then re-map its "value" entry under the
-		// parameter name.
-		b, err := yaml.Marshal(item)
-		if err != nil {
-			continue
-		}
-		flat, err := normalize.FlattenValues(b)
-		if err != nil {
-			continue
-		}
-		for _, kv := range flat {
-			switch {
-			case kv.Path == "value":
-				l.addValuesKey(ValuesKey{
-					Path: name, Value: kv.Value, Line: item.Line,
-					Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), name+": "+kv.Value)},
-				})
-			case strings.HasPrefix(kv.Path, "value."):
-				l.addValuesKey(ValuesKey{
-					Path: name + "." + strings.TrimPrefix(kv.Path, "value."), Value: kv.Value, Line: item.Line,
-					Evidence: []domain.EvidenceID{l.ev(file, fmt.Sprintf("%s[%s] (L%d)", locatorPrefix, name, item.Line), name+"."+kv.Path+": "+kv.Value)},
-				})
-			}
-		}
-	}
 }
 
 // mappingOrSequence returns the node when it is a mapping with content or a

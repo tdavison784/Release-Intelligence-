@@ -1,0 +1,38 @@
+{{define "list"}}{{template "head" .}}
+<main class="page">
+  <h1>Investigations</h1>
+  <p class="muted small">Every investigated upgrade, newest first: what was decided for which environment, and whether a human has reviewed it. Source: {{.Source}}.</p>
+  {{range .Problems}}<div class="flash flash-warn">Could not read {{.}}</div>{{end}}
+  <form class="filters" method="get" action="{{.Base}}" aria-label="Filters">
+    <label>Product<select name="product"><option value="">all</option>{{range .Options.Products}}<option{{if sel . $.Filter.Product}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Environment<select name="env"><option value="">all</option>{{range .Options.Envs}}<option{{if sel . $.Filter.Env}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <label>Decision<select name="decision">
+      <option value="">all</option>
+      <option value="review"{{if sel "review" .Filter.Decision}} selected{{end}}>needs human review</option>
+      <option value="eligible"{{if sel "eligible" .Filter.Decision}} selected{{end}}>eligible (not enacted)</option>
+      <option value="none"{{if sel "none" .Filter.Decision}} selected{{end}}>not classified</option>
+    </select></label>
+    {{if .Options.Runs}}<label>Evaluation run<select name="run"><option value="">all</option>{{range .Options.Runs}}<option value="{{.Value}}"{{if sel .Value $.Filter.Run}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>{{end}}
+    <button class="btn" type="submit">Filter</button>
+    {{if or .Filter.Product .Filter.Env .Filter.Decision .Filter.Run}}<a class="btn" href="{{.Base}}">Clear</a>{{end}}
+  </form>
+  <p class="totals"><span class="badge"><span class="n">{{len .Rows}}</span> of {{.All}} investigation{{if ne .All 1}}s{{end}}</span>
+    {{range .Totals}}<span class="badge {{.Tone}}"><span class="n">{{.N}}</span> {{.Label | printf "%s"}}</span>{{end}}<span class="muted small">items, across the listed investigations</span></p>
+  {{if .Rows}}
+  <div class="tablewrap"><table id="investigations">
+    <thead><tr><th>Upgrade</th><th>Environment</th><th>Run date</th><th>Decision</th><th>Review</th><th>Items by class</th>{{if .Options.Runs}}<th>Evaluation run</th>{{end}}</tr></thead>
+    <tbody>
+    {{range .Rows}}<tr data-key="{{.Key}}">
+      <td><a class="upgrade" href="{{$.Base}}/view/{{.Key}}">{{.Product}} <span class="arrow">{{.From}} → {{.To}}</span></a><div class="muted small mono">{{.ID}}</div></td>
+      <td>{{.Env}}</td>
+      <td class="n">{{date .Date}}</td>
+      <td><span class="badge {{.OutcomeTone}}">{{.OutcomeLabel}}</span></td>
+      <td><span class="badge {{.ReviewTone}}">{{.ReviewLabel}}</span>{{if .Reviewer}}<div class="muted small">{{.Reviewer}}</div>{{end}}</td>
+      <td class="counts">{{range nonzero .Counts}}<span class="badge {{.Tone}}" title="{{.Label}}"><span class="n">{{.N}}</span> {{.Label}}</span>{{end}}</td>
+      {{if $.Options.Runs}}<td class="small">{{.RunID}}{{if .Agent}} <span class="badge ai">agent</span>{{end}}</td>{{end}}
+    </tr>{{end}}
+    </tbody>
+  </table></div>
+  {{else}}<div class="empty">{{if .All}}No investigation matches these filters.{{else}}No investigations in this store yet. Run <code>ri investigate &lt;product&gt; &lt;from&gt; &lt;to&gt; --repo &lt;gitops-repo&gt;</code>.{{end}}</div>{{end}}
+</main>
+{{template "foot" .}}{{end}}

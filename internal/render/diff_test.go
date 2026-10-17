@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/tdavison784/release-intelligence/internal/domain"
 	"sort"
 	"strings"
 	"testing"
@@ -179,4 +180,177 @@ func TestParseObjectsRejectsGarbage(t *testing.T) {
 	if err != nil || len(o) != 1 || o[0].ID.Kind != "ConfigMap" {
 		t.Fatalf("list expansion: %v %+v", err, o)
 	}
+}
+
+// crdObjects is a CustomResourceDefinition whose schema carries description
+// text (root and per-property) and, when deprecated, one more schema field.
+func crdObjects(t *testing.T, schemaDesc, modeDesc, modeExtra string) []Object {
+	t.Helper()
+	extra := ""
+	if modeExtra != "" {
+		extra = "          " + modeExtra + "\n"
+	}
+	return objs(t, `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: widgets.demo.example.org}
+spec:
+  group: demo.example.org
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: `+schemaDesc+`
+          properties:
+            spec:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  description: `+modeDesc+`
+`+extra)
+}
+
+// OpenAPI description text inside a CRD schema is its own declared class — it
+// documents the API, it configures nothing. Everything else in the schema
+// keeps its ordinary class, and a "description" field of a non-CRD object is
+// an ordinary field change.
+func TestCRDDescriptionIsItsOwnClass(t *testing.T) {
+	d := Diff(crdObjects(t, `"Widgets v1"`, `"defaults to safe"`, ""),
+		crdObjects(t, `"The Widget API"`, `"defaults to fast"`, ""), DiffOptions{})
+	if len(d.Changes) != 2 {
+		t.Fatalf("changes = %s", changeSummaries(d))
+	}
+	for _, c := range d.Changes {
+		if c.Class != CRDDescriptionChanged || c.Name != "description" {
+			t.Errorf("description diff = %s, want crd-description-changed", c.Summary(true))
+		}
+		if !strings.Contains(c.Path, "openAPIV3Schema") {
+			t.Errorf("description class applied outside the schema: %s", c.Path)
+		}
+	}
+}
+
+// A real schema difference beside a reworded description keeps its ordinary
+// class: the description class must swallow documentation, not structure.
+func TestCRDDescriptionDoesNotSwallowSchemaChanges(t *testing.T) {
+	d := Diff(crdObjects(t, `"Widgets"`, `"safe"`, ""),
+		crdObjects(t, `"Widgets"`, `"fast"`, "deprecated: true"), DiffOptions{})
+	classes := map[ChangeClass]int{}
+	for _, c := range d.Changes {
+		classes[c.Class]++
+	}
+	if classes[CRDDescriptionChanged] != 1 || classes[FieldAdded] != 1 || len(d.Changes) != 2 {
+		t.Fatalf("classes = %v (%s)", classes, changeSummaries(d))
+	}
+}
+
+// crdWithDescriptionField is a CRD whose spec declares a real FIELD named
+// "description" (schema node fieldSchema) next to documented text.
+func crdWithDescriptionField(t *testing.T, fieldSchema string) []Object {
+	t.Helper()
+	field := ""
+	if fieldSchema != "" {
+		field = "                description: " + fieldSchema + "\n"
+	}
+	return objs(t, `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: widgets.demo.example.org}
+spec:
+  group: demo.example.org
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+`+field+`                mode: {type: string}
+`)
+}
+
+// A schema property NAMED "description" is API structure, not documentation:
+// adding, removing or retyping the field keeps the ordinary field classes —
+// only the `description` keyword with text (or absent) values is the
+// documentation class.
+func TestCRDFieldNamedDescriptionIsStructure(t *testing.T) {
+	cases := []struct {
+		name     string
+		from, to string
+		want     ChangeClass
+	}{
+		{"field added", "", "{type: string, description: \"what the widget is for\"}", FieldAdded},
+		{"field removed", "{type: string}", "", FieldRemoved},
+		{"field retyped", "{type: string}", "{type: integer}", FieldChanged},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			d := Diff(crdWithDescriptionField(t, c.from), crdWithDescriptionField(t, c.to), DiffOptions{})
+			if len(d.Changes) != 1 || d.Changes[0].Class != c.want {
+				t.Fatalf("changes = %s, want one %s", changeSummaries(d), c.want)
+			}
+		})
+	}
+	// …while the field's own documentation keyword is still documentation
+	d := Diff(crdWithDescriptionField(t, "{type: string, description: old}"), crdWithDescriptionField(t, "{type: string, description: new}"), DiffOptions{})
+	if len(d.Changes) != 1 || d.Changes[0].Class != CRDDescriptionChanged || DocumentedField(d.Changes[0]) != "description" {
+		t.Fatalf("documentation of a field named description = %s", changeSummaries(d))
+	}
+}
+
+// DocumentedField names the property a description keyword documents,
+// through list items and map values; "" where no named property owns it.
+func TestDocumentedField(t *testing.T) {
+	const root = "spec.versions[].schema.openAPIV3Schema."
+	cases := map[string]string{
+		root + "properties.spec.properties.privateKey.properties.rotationPolicy.description": "rotationPolicy",
+		root + "properties.spec.properties.solvers.items.description":                        "solvers",
+		root + "properties.spec.properties.labels.additionalProperties.description":          "labels",
+		root + "properties.spec.description":                                                 "spec",
+		root + "description":                                                                 "",
+		root + "properties.spec.allOf[].description":                                         "",
+	}
+	for pattern, want := range cases {
+		if got := DocumentedField(Change{Class: CRDDescriptionChanged, Pattern: pattern}); got != want {
+			t.Errorf("%s: %q, want %q", pattern, got, want)
+		}
+	}
+	if got := DocumentedField(Change{Class: FieldChanged, Pattern: root + "properties.spec.properties.mode.description"}); got != "" {
+		t.Errorf("not a documentation change: %q", got)
+	}
+}
+
+// The domain names the documentation class without importing render.
+func TestDocumentationClassMatchesDomain(t *testing.T) {
+	if string(CRDDescriptionChanged) != domain.RenderedClassDocumentation {
+		t.Fatalf("render %q != domain %q", CRDDescriptionChanged, domain.RenderedClassDocumentation)
+	}
+}
+
+// A "description" field of a non-CRD object is data, not schema documentation.
+func TestDescriptionFieldOfNonCRDStaysAFieldChange(t *testing.T) {
+	from := objs(t, "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: c}\ndata:\n  description: old\n")
+	to := objs(t, "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: c}\ndata:\n  description: new\n")
+	d := Diff(from, to, DiffOptions{})
+	if len(d.Changes) != 1 || d.Changes[0].Class != FieldChanged {
+		t.Fatalf("changes = %s", changeSummaries(d))
+	}
+}
+
+func changeSummaries(d DiffResult) string {
+	var out []string
+	for _, c := range d.Changes {
+		out = append(out, c.Summary(true))
+	}
+	return strings.Join(out, "; ")
 }

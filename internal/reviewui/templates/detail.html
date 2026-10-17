@@ -17,6 +17,18 @@
       {{if .Inline}}<h2 class="question">{{.Question}}</h2>{{else}}<h1 class="question">{{.Question}}</h1>{{end}}
     </div>
 
+    {{with .WholeFact}}
+    <section class="dsec wholefact" id="wholefact">
+      <h3>The whole fact, every aspect {{if .FactLevel}}<span class="badge soft">fact level now: {{.FactLevel}}</span>{{end}}</h3>
+      <p class="small">A fact is only as trusted as its weakest aspect. <b>Accept</b> verifies every aspect shown here as a human decision (those already verified keep their level); <b>correct</b> records your corrections per aspect and supersedes the fact; <b>reject</b> retracts it.</p>
+      <table class="wf">
+        <thead><tr><th>Aspect</th><th>The fact says</th><th>Verified now</th><th>On accept</th></tr></thead>
+        <tbody>{{range .Rows}}<tr class="{{if .Trusted}}trusted{{else}}open{{end}}" data-aspect="{{.Aspect}}"><th scope="row">{{.Aspect}}<span class="small muted"> — {{.Word}}</span></th><td data-label="The fact says">{{.Text}}</td><td data-label="Verified now">{{.Level}}</td><td data-label="On accept">{{.Effect}}</td></tr>{{end}}</tbody>
+      </table>
+      <p class="small muted">Fact <code>{{.FactID}}</code></p>
+    </section>
+    {{end}}
+
     <section class="dsec upstream">
       <h3><span class="num">2</span> What changed upstream</h3>
       {{if .UpQuote}}

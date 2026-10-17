@@ -19,6 +19,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -46,8 +47,24 @@ type Options struct {
 	Demo bool
 	// InboxLimit caps the inbox rows (default 200).
 	InboxLimit int
+	// Snapshot returns the store's records (decisions, facts, candidates) for
+	// the "needs review" default view; a queue that implements SnapshotSource
+	// needs none. Without either, the inbox lists everything the queue holds
+	// (no default filter, no toggle).
+	Snapshot func(ctx context.Context) (*knowledge.Snapshot, error)
+	// Scope says which products feed investigations, to rank the items that
+	// block them first (see ScopeFromInvestigations).
+	Scope BlockingScope
 	// Logf receives server-side problems (default log.Printf).
 	Logf func(format string, args ...any)
+	// Links adds links to the top bar (e.g. the investigations view that
+	// `ri review serve` mounts under /investigations).
+	Links []Link
+}
+
+// Link is a top-bar link.
+type Link struct {
+	Label, Href string
 }
 
 type server struct {
@@ -92,6 +109,7 @@ func NewServer(q knowledge.Queue, opts Options) http.Handler {
 	s := &server{q: q, opts: opts, sessions: map[string]*session{}, mux: http.NewServeMux()}
 	fm := funcs()
 	fm["demo"] = func() bool { return opts.Demo }
+	fm["toplinks"] = func() []Link { return opts.Links }
 	s.tpl = template.Must(template.New("").Funcs(fm).ParseFS(templateFS, "templates/*.html"))
 	static, _ := fs.Sub(staticFS, "static")
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
@@ -242,17 +260,78 @@ func (s *server) renderedDelta(ctx context.Context, id string, rc *knowledge.Rev
 	return deltaFromContext(rc.Render)
 }
 
-// eligible reports whether an item can still be decided.
+// decidable reports whether a human can still decide the item: it is open, or
+// a proxy settled it (a proxy decision is never human verification, so the
+// item stays open for a human; any human decision closes it).
+func decidable(rc *knowledge.ReviewContext) bool {
+	if eligible(rc.Item.Status) {
+		return true
+	}
+	if rc.Item.Status != domain.ReviewDecided {
+		return false
+	}
+	proxy := false
+	for _, d := range rc.RelatedDecisions {
+		if d.ReviewItemID != rc.Item.ID {
+			continue
+		}
+		if d.ReviewerKind == domain.ReviewerHuman {
+			return false
+		}
+		proxy = true
+	}
+	return proxy
+}
+
+// eligible reports whether an item's status is open for decisions.
 func eligible(st domain.ReviewStatus) bool {
 	return st == domain.ReviewPending || st == domain.ReviewNeedsEvidence || st == domain.ReviewDeferred
 }
 
 // --- inbox -----------------------------------------------------------------------------
 
+func (s *server) snapshot(ctx context.Context) *knowledge.Snapshot {
+	var (
+		snap *knowledge.Snapshot
+		err  error
+	)
+	switch {
+	case s.opts.Snapshot != nil:
+		snap, err = s.opts.Snapshot(ctx)
+	default:
+		src, ok := s.q.(SnapshotSource)
+		if !ok {
+			return nil
+		}
+		snap, err = src.Snapshot(ctx)
+	}
+	if err != nil {
+		s.opts.Logf("reviewui: snapshot for the needs-review view: %v", err)
+		return nil
+	}
+	return snap
+}
+
 func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	ss := s.session(w, r)
 	f, form := parseFilter(r.URL.Query(), s.opts.InboxLimit)
-	in, err := s.q.Inbox(r.Context(), f)
+	snap := s.snapshot(r.Context())
+	var tr map[string]Triage
+	if snap != nil {
+		tr = triageItems(snap, s.opts.Scope)
+	}
+	form.Triage = tr != nil
+	needs := tr != nil && !form.All // default (blocking) or ?scope=other
+	var (
+		in     *knowledge.Inbox
+		hidden hiddenSummary
+		err    error
+	)
+	if needs {
+		in, hidden, err = s.needsReview(r.Context(), f, form, tr)
+	} else {
+		in, err = s.q.Inbox(r.Context(), f)
+	}
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -262,17 +341,143 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 		Filter: form, Counts: in.Counts, Tiles: tiles(in.Counts), Flashes: s.takeFlashes(ss),
 		Reviewer: reviewer, Started: s.opts.Now().UTC().Format(time.RFC3339Nano),
 		Return: r.URL.RequestURI(), Total: len(in.Items), Matches: in.Matches,
-		Enums: enums(),
+		Enums: enums(), NeedsView: needs, Hidden: hidden,
+	}
+	var groups []PinGroup
+	if needs && form.View == "" {
+		groups = pinGroupsFrom(snap, s.opts.Scope, tr)
+		for _, g := range groups {
+			if len(g.Open) == 0 {
+				v.Unopened = append(v.Unopened, newGroupHead(g))
+			}
+		}
+	}
+	if needs {
+		switch form.View {
+		case "blocking":
+			v.Tiles = needsTiles(in.Counts, "Other blocking items", "blocking")
+		case "other":
+			v.Tiles = needsTiles(in.Counts, "Other open items", "other")
+		default:
+			v.Tiles = needsTiles(in.Counts, "Needs your verification", "")
+		}
 	}
 	// a Queue implementor that ignores Matches (zero) must not make the page
 	// claim truncation
 	if v.Matches < v.Total {
 		v.Matches = v.Total
 	}
+	heads := map[string]*groupHead{}
+	for _, g := range groups {
+		heads[g.Key] = newGroupHead(g)
+	}
+	prev := ""
 	for _, row := range in.Items {
-		v.Rows = append(v.Rows, newRowView(row, r.URL.RequestURI()))
+		rv := newRowView(row, r.URL.RequestURI())
+		if t, ok := tr[row.Item.ID]; ok {
+			rv.Blocking, rv.BlockWhy = t.Blocking, t.Why
+			if !t.NeedsReview {
+				rv.HiddenText = t.HiddenText
+			}
+			if h := heads[t.Group]; h != nil && t.Group != prev {
+				rv.GroupHead = h
+			}
+			prev = t.Group
+		}
+		v.Rows = append(v.Rows, rv)
 	}
 	s.render(w, http.StatusOK, "inbox.html", v)
+}
+
+// needsReview builds one of the three needs-review views: the pin-source items
+// whose human verification would let an investigation clear an environment
+// (default), ?scope=blocking the other blocking items, ?scope=other the
+// remaining open items. Counters cover just the listed set. The queue is asked for every status with the user's
+// other filters (so the counts and the hidden tally respect them); the
+// priority and blocking filters and the limit apply afterwards, so the counts
+// stay independent of them, as in the full view.
+func (s *server) needsReview(ctx context.Context, f knowledge.InboxFilter, form filterForm, tr map[string]Triage) (*knowledge.Inbox, hiddenSummary, error) {
+	prio, limit := f.Priority, f.Limit
+	f.Status, f.Priority, f.Limit = nil, "", 0
+	all, err := s.q.Inbox(ctx, f)
+	if err != nil {
+		return nil, hiddenSummary{}, err
+	}
+	out := &knowledge.Inbox{}
+	hidden := hiddenSummary{ByReason: map[string]int{}, Products: map[string]int{}}
+	var rows []knowledge.InboxRow
+	for _, row := range all.Items {
+		t, ok := tr[row.Item.ID]
+		if ok && !t.NeedsReview { // an item the snapshot does not know is shown, never hidden
+			hidden.Total++
+			hidden.ByReason[t.Hidden]++
+			continue
+		}
+		it := row.Item
+		// the sub-view the item belongs to: pin sources (default), other
+		// blockers, the rest; the three never mix
+		view := "other"
+		switch {
+		case ok && t.PinSource:
+			view = ""
+			hidden.Pin++
+		case ok && t.Blocking:
+			view = "blocking"
+			hidden.Blocking++
+		default:
+			hidden.Other++
+		}
+		if view != form.View {
+			continue
+		}
+		hidden.Products[string(it.Product)]++
+		out.Counts.Pending++
+		if it.Routing.Priority == domain.PriorityHigh {
+			out.Counts.HighPriority++
+		}
+		if row.Disagreement {
+			out.Counts.ModelDisagreement++
+		}
+		switch it.QuestionType {
+		case domain.QuestionSemanticMapping, domain.QuestionRelationship:
+			out.Counts.NeedsSemanticMapping++
+		case domain.QuestionApplicability:
+			out.Counts.ApplicabilityQuestions++
+		}
+		if prio != "" && it.Routing.Priority != prio {
+			continue
+		}
+		rows = append(rows, row)
+	}
+	rank := func(id string) int { // stable sort: priority order is kept inside each rank
+		switch t := tr[id]; {
+		case t.PinSource:
+			return 0
+		case t.Blocking:
+			return 1
+		}
+		return 2
+	}
+	// pin sources come grouped per fact, in PinGroups order (product,
+	// release, fact); priority order is kept inside a group
+	group := func(r knowledge.InboxRow) string {
+		if t := tr[r.Item.ID]; t.PinSource {
+			return string(r.Item.Product) + "\x00" + r.Item.Release + "\x00" + t.Group
+		}
+		return ""
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		if ri, rj := rank(rows[i].Item.ID), rank(rows[j].Item.ID); ri != rj {
+			return ri < rj
+		}
+		return group(rows[i]) < group(rows[j])
+	})
+	out.Matches = len(rows)
+	if limit > 0 && len(rows) > limit {
+		rows = rows[:limit]
+	}
+	out.Items = rows
+	return out, hidden, nil
 }
 
 // --- item page and fragment ------------------------------------------------------

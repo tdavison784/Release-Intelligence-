@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-678efb8f46f4",
+    "product": "ingress-nginx",
+    "release": "1.12.0",
+    "anchors": [
+      {
+        "release": "1.12.0",
+        "evidenceKeys": [
+          "ek-49fcd8294bfe"
+        ],
+        "statementKeys": [
+          "sk-df8d00b22aa4"
+        ],
+        "changeIds": [
+          "chg-fd19e1fa12db"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-298dac696f1a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "ingress-nginx",
+        "name": "--enable-metrics"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"true\"",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Controllers that do not pass --enable-metrics explicitly now run with metrics disabled by default.",
+        "remediation": "If you rely on controller metrics, set --enable-metrics=true explicitly before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "⚠️ Metrics: Disable by default"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "human",
+        "basis": [
+          "rd-ff94bf6fdbf8"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "human",
+        "basis": [
+          "rd-ff94bf6fdbf8"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "human",
+        "basis": [
+          "rd-4c1f0155a7eb"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "human",
+        "basis": [
+          "rd-534483080aad"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-66c015b6a2c7",
+        "kind": "document",
+        "sourceId": "controller-changelog",
+        "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md",
+        "locator": "L51-L55 (Changelog › All changes:)",
+        "excerpt": "* ⚠️ Metrics: Disable by default. (#12153) ⚠️\n\n  This changes the default of the following CLI arguments:\n\n  * `--enable-metrics` gets disabled by default.",
+        "contentDigest": "sha256:6ca39f3352fed0ac15e1e211b92934e63fb4332e0a702132c7937b0d0919e143",
+        "retrievedAt": "2026-10-16T18:23:45Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-17T12:35:09.370963Z"
+  }
+}

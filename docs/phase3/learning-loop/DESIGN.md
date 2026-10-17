@@ -466,6 +466,7 @@ Validations, Routing, Context?, Status, CreatedAt}`.
 | `relationship` | subject, change, applicability | "Does v1.18 require ingress-nginx ≥ X for HTTP01?" |
 | `duplicate` | – (adds the candidate's anchor to a fact) | "Is this the same change as vf-…?" |
 | `evidence-sufficiency` | – (a gate) | "Is the cited text enough to decide?" |
+| `fact-review` | subject, change, applicability, consequence | "Is this whole fact correct?" (CONTRACT-CHANGE(factlevel): additive; opened for a pin-source fact below human, P4) |
 
 `Proposed` must state every aspect its question verifies. `Context` (optional
 `{Label, Digest}`) records an environment illustration. Items are
@@ -494,6 +495,9 @@ ProxyProvenance, Reason, StartedAt, DecidedAt, ResultingFact, DuplicateOf}`.
 - `ReviewerKind human | proxy`: a proxy **must** carry complete AI
   `ProxyProvenance`, and a human must not. No field lets a proxy claim to be
   human, and the fact basis check re-proves this from records (§2.6).
+- `Aspects` (optional, accept/correct only; CONTRACT-CHANGE(factlevel), additive) records the aspects the
+  reviewer was shown and verified (a whole-fact review); only those are verified, and an `rd-` fact basis must
+  name one of them. Empty means the item's question aspects.
 - `StartedAt`/`DecidedAt` are required for accept/correct/reject (time to
   decision, G24). Rejections are retained negative examples (G11).
 - **Bulk review** (product-owner request): decisions submitted together by one

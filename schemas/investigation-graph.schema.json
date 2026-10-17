@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/investigation-graph/v1alpha1.json",
+  "title": "RelationshipGraph",
+  "description": "The dependency, configuration and consumption graph of one evidence bundle (Phase 4 §A3). Edges point in the direction impact propagates (from = provider, to = consumer) and carry a verification status: established (from evidence), inferred or missing (both unresolved for fail-closed purposes).",
+  "$ref": "#/$defs/RelationshipGraph",
+  "$defs": {
+    "EdgeKind": {
+      "type": "string",
+      "enum": [
+        "deploys",
+        "renders-to",
+        "configures",
+        "overrides",
+        "references",
+        "selects",
+        "serves-api",
+        "consumes-api",
+        "produces",
+        "depends-on"
+      ]
+    },
+    "EdgeStatus": {"type": "string", "enum": ["established", "inferred", "missing"]},
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "GraphEdge": {
+      "type": "object",
+      "required": ["id", "kind", "from", "to", "status", "rule"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"$ref": "#/$defs/EdgeKind"},
+        "from": {"type": "string"},
+        "to": {"type": "string"},
+        "status": {"$ref": "#/$defs/EdgeStatus"},
+        "rule": {"type": "string"},
+        "detail": {"type": "string"},
+        "reason": {"type": "string"},
+        "mitigates": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "assertion": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "GraphNode": {
+      "type": "object",
+      "required": ["id", "kind", "key"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"$ref": "#/$defs/NodeKind"},
+        "key": {"type": "string"},
+        "placeholder": {"type": "boolean"},
+        "artifacts": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "NodeKind": {
+      "type": "string",
+      "enum": [
+        "product-release",
+        "helm-release",
+        "gitops-application",
+        "kustomization",
+        "values-source",
+        "workload",
+        "service",
+        "ingress",
+        "config-object",
+        "api-type",
+        "custom-resource",
+        "rbac",
+        "resource",
+        "external"
+      ]
+    },
+    "RelationshipGraph": {
+      "type": "object",
+      "description": "The dependency, configuration and consumption graph of one evidence bundle (Phase 4 §A3). Edges point in the direction impact propagates (from = provider, to = consumer) and carry a verification status: established (from evidence), inferred or missing (both unresolved for fail-closed purposes).",
+      "required": ["id", "bundle", "builder", "nodes", "edges"],
+      "properties": {
+        "id": {"type": "string"},
+        "bundle": {"type": "string"},
+        "builder": {"type": "string"},
+        "nodes": {"type": "array", "items": {"$ref": "#/$defs/GraphNode"}},
+        "edges": {"type": "array", "items": {"$ref": "#/$defs/GraphEdge"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

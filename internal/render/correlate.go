@@ -13,7 +13,7 @@ import (
 type ChangeLink struct {
 	ChangeID string `json:"changeId"`
 	Title    string `json:"title"`
-	Rule     string `json:"rule"` // subject | mentions-name | mentions-permission | mentions-object | mentions-api-version | mentions-field | artifact
+	Rule     string `json:"rule"` // subject | mentions-name | mentions-permission | mentions-object | mentions-api-version | mentions-field | documents-field | artifact
 }
 
 // Correlated is one rendered change with the edge changes that restate it.
@@ -50,8 +50,14 @@ var genericKinds = map[string]bool{
 //   - mentions-api-version: the text names the kind and either apiVersion;
 //   - mentions-field: the text names the last path segment (an identifier of
 //     6+ characters);
+//   - documents-field: a crd-description-changed change, whose documented
+//     field (DocumentedField, an identifier of 6+ characters) the text names
+//     — the only rule that links schema documentation;
 //   - values-default: a helm-values change whose subject ends in a key that
-//     changed in the rendered object and whose text states the new value;
+//     changed in the rendered object and whose text states the new value —
+//     or a removed / default-changed key whose source default the rendered
+//     change's before holds and its after no longer does (fromDefaultGone:
+//     the default the customer relied on disappears from their render);
 //   - artifact: an image change (or an argument carrying an image reference) whose repository is an artifact the edge
 //     records as changed (a version bump documented by the artifact delta).
 func Correlate(d *DiffResult, edge *domain.UpgradeEdge) Correlation {
@@ -162,6 +168,18 @@ func changedLeaves(rc Change) map[string]any {
 }
 
 func match(rc Change, c domain.Change, text string) string {
+	if rc.Class == CRDDescriptionChanged {
+		// Schema documentation belongs to the field it documents: it links
+		// only to a change that names that field — never through the
+		// keyword "description" itself, nor through any other rule.
+		if f := DocumentedField(rc); len(f) >= 6 && identifier.MatchString(f) && mentions(text, f) {
+			return "documents-field"
+		}
+		return ""
+	}
+	if fromDefaultGone(rc, c) {
+		return "values-default"
+	}
 	if c.Category == domain.CategoryHelmValues && rc.Class.Presence() == PresenceChanged {
 		// values-default: the values change names a key whose rendered leaf
 		// changed, and states the new rendered value

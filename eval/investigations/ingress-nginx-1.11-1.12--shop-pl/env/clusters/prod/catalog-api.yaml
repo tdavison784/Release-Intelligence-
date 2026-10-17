@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: catalog-api
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: shop
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: catalog-api
+  source:
+    repoURL: https://git.example.com/platform/gitops-shop-pl.git
+    targetRevision: main
+    path: apps/catalog-api/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

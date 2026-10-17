@@ -66,6 +66,14 @@ func chartDefaults(ctx context.Context, e *Engine, product, version string) (map
 	return out, ""
 }
 
+// ChartDefaults returns the flattened default values of the product's chart
+// at version (flattened path → JSON), exactly as the coverage checks read
+// them, or the reason they cannot be read. Exported for the pair-level
+// chart coverage of environment renders (internal/investigate/renderdiff).
+func (e *Engine) ChartDefaults(ctx context.Context, product, version string) (map[string]string, string) {
+	return chartDefaults(ctx, e, product, version)
+}
+
 // liftDefaultsWrap unwraps istio's values-wrapper convention: when the whole
 // values document is exactly one top-level map key named `defaults`
 // (istio ≤1.23) or `_internal_defaults_do_not_set` (1.24+), the chart's real

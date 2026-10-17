@@ -32,6 +32,22 @@ type DemoQueue struct {
 }
 
 var _ knowledge.Queue = (*DemoQueue)(nil)
+var _ SnapshotSource = (*DemoQueue)(nil)
+
+// Snapshot implements SnapshotSource: the fixtures as a knowledge snapshot.
+func (q *DemoQueue) Snapshot(context.Context) (*knowledge.Snapshot, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	snap := &knowledge.Snapshot{Decisions: append([]domain.ReviewDecision(nil), q.decisions...), Facts: append([]domain.VerifiedFact(nil), q.facts...)}
+	for _, id := range q.order {
+		it := q.items[id]
+		snap.ReviewItems = append(snap.ReviewItems, it)
+	}
+	for _, c := range q.candidates {
+		snap.Candidates = append(snap.Candidates, c)
+	}
+	return snap, nil
+}
 
 // Decisions returns every decision recorded so far (oldest first).
 func (q *DemoQueue) Decisions() []domain.ReviewDecision {
@@ -98,6 +114,17 @@ func Agreement(props []domain.SemanticProposal) []knowledge.AspectAgreement {
 }
 
 // --- the knowledge.Queue implementation ----------------------------------------------
+
+// humanDecided reports whether a human decision is recorded on the item (a
+// proxy decision leaves it open for a human, as the knowledge queue does).
+func (q *DemoQueue) humanDecided(id string) bool {
+	for _, d := range q.decisions {
+		if d.ReviewItemID == id && d.ReviewerKind == domain.ReviewerHuman {
+			return true
+		}
+	}
+	return false
+}
 
 // Inbox implements knowledge.Queue.
 func (q *DemoQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledge.Inbox, error) {
@@ -293,7 +320,7 @@ func (q *DemoQueue) Decide(_ context.Context, ds []domain.ReviewDecision) ([]kno
 		switch {
 		case !ok:
 			return nil, fmt.Errorf("decision %s: %w: %s", d.ID, knowledge.ErrNotFound, d.ReviewItemID)
-		case it.Status == domain.ReviewDecided || it.Status == domain.ReviewSuperseded:
+		case it.Status == domain.ReviewSuperseded || (it.Status == domain.ReviewDecided && q.humanDecided(it.ID)):
 			return nil, fmt.Errorf("decision %s: item %s is already %s", d.ID, it.ID, it.Status)
 		case seen[d.ReviewItemID]:
 			return nil, fmt.Errorf("two decisions for item %s in one call", it.ID)

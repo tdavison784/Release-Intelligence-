@@ -293,7 +293,7 @@ func TestBulkIsAtomicWhenTheQueueRefuses(t *testing.T) {
 
 func TestInboxOffersBulkControlsButNotBulkCorrect(t *testing.T) {
 	r := newRig(t)
-	_, body := r.get("/")
+	_, body := r.getAll("/")
 	contains(t, body, `id="bulkform"`, `name="action" value="accept"`, `name="action" value="reject"`, `name="action" value="defer"`,
 		`name="action" value="need-more-evidence"`, `name="started"`, `form="bulkform"`, "Correct is per item only")
 	lacks(t, body, `name="action" value="correct"`)

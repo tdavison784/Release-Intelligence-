@@ -1,0 +1,221 @@
+# GROUND TRUTH — authored blind by the groundtruth lane from upstream sources and an observed
+# upgrade in an isolated kind cluster (see NOTES.md). Pipeline and agent lanes must not read this
+# file (docs/phase4/env-impact/FLEET.md, "Evaluation integrity").
+case: cert-manager-1.17-1.18--payments-us
+authoredAt: "2026-10-16"
+authoredBy: groundtruth lane (Claude Opus 5.5), blind
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # phases 1, 3, 4, 5
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md#L109-L136
+        lines: L109-L136
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`."
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md#L122-L136
+        lines: L122-L136
+        quote: "Users who want to preserve the old default have two options: 1. Explicitly set `rotationPolicy: Never` on your Certificate resources. 2. Turn off the feature gate"
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/usage/certificate.md#L519-L527
+        lines: L519-L527
+        quote: "In cert-manager `>= v1.18.0` the default is `rotationPolicy: Always`; the private key **is** rotated automatically."
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/configuration/ca.md#L112-L124
+        lines: L112-L124
+        quote: "Updating the secret used for the CA certificate won't trigger re-issuance of leaf certificates"
+    components:
+      - ref: {file: env/apps/payments/base/checkout-deployment.yaml, kind: Deployment, namespace: payments, name: checkout}
+        classification: not-affected
+        reason: >-
+          The only certificate whose key stability the payments services depend on is the root CA
+          cert-manager/mesh-root-ca (both services trust exactly the ca.crt in their own Secret). The
+          prod overlay patch platform/pki/overlays/prod/mesh-root-ca-prod.yaml sets
+          spec.privateKey.rotationPolicy: Never on it, so the new default never applies to it: the CA
+          keeps its key across re-issuance under v1.18.0, every leaf (old or new) verifies against
+          every CA certificate (old or new), and checkout keeps reaching ledger.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/platform/pki/base/mesh-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+            field: spec.privateKey.rotationPolicy
+            relation: produces
+          - ref: {kind: Secret, namespace: cert-manager, name: mesh-root-ca}
+            relation: references  # referenced by ClusterIssuer mesh-ca spec.ca.secretName
+          - ref: {file: env/platform/pki/base/mesh-ca-issuer.yaml, kind: ClusterIssuer, name: mesh-ca}
+            field: spec.ca.secretName
+            relation: references  # referenced by the leaf Certificate's spec.issuerRef
+          - ref: {file: env/apps/payments/base/checkout-certificate.yaml, kind: Certificate, namespace: payments, name: checkout-tls}
+            field: spec.issuerRef
+            relation: produces
+          - ref: {kind: Secret, namespace: payments, name: checkout-tls}
+            relation: references  # mounted by the Deployment (volume tls)
+          - ref: {file: env/apps/payments/base/checkout-deployment.yaml, kind: Deployment, namespace: payments, name: checkout}
+        mitigation:
+          kind: override
+          ref: {file: env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+          field: spec.privateKey.rotationPolicy
+          value: Never
+        requiredEvidence:
+          - {file: env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml, object: Certificate/cert-manager/mesh-root-ca, field: spec.privateKey.rotationPolicy}
+          - {file: env/platform/pki/overlays/prod/kustomization.yaml, object: Kustomization, field: patches}
+          - {file: env/clusters/prod/pki.yaml, object: Application/argocd/pki, field: spec.source.path}
+      - ref: {file: env/apps/payments/base/ledger-deployment.yaml, kind: Deployment, namespace: payments, name: ledger}
+        classification: not-affected
+        reason: Same override seen from the server side — ledger verifies clients against a CA whose key does not change.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/platform/pki/base/mesh-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+            field: spec.privateKey.rotationPolicy
+            relation: produces
+          - ref: {kind: Secret, namespace: cert-manager, name: mesh-root-ca}
+            relation: references  # referenced by ClusterIssuer mesh-ca spec.ca.secretName
+          - ref: {file: env/platform/pki/base/mesh-ca-issuer.yaml, kind: ClusterIssuer, name: mesh-ca}
+            field: spec.ca.secretName
+            relation: references  # referenced by the leaf Certificate's spec.issuerRef
+          - ref: {file: env/apps/payments/base/ledger-certificate.yaml, kind: Certificate, namespace: payments, name: ledger-tls}
+            field: spec.issuerRef
+            relation: produces
+          - ref: {kind: Secret, namespace: payments, name: ledger-tls}
+            relation: references  # mounted by the Deployment (volume tls)
+          - ref: {file: env/apps/payments/base/ledger-deployment.yaml, kind: Deployment, namespace: payments, name: ledger}
+        mitigation:
+          kind: override
+          ref: {file: env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+          field: spec.privateKey.rotationPolicy
+          value: Never
+        requiredEvidence:
+          - {file: env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml, object: Certificate/cert-manager/mesh-root-ca, field: spec.privateKey.rotationPolicy}
+      - ref: {file: env/apps/payments/base/ledger-certificate.yaml, kind: Certificate, namespace: payments, name: ledger-tls}
+        classification: not-affected
+        reason: >-
+          The leaf's own rotationPolicy is unset too, so under v1.18.0 ledger's private key also rotates
+          on every re-issuance. Nothing in the environment pins a leaf key: peers verify leaves through
+          the CA chain, and ledger reads tls.crt/tls.key together from its Secret at start. Leaf key
+          rotation alone changes nothing observable (observed here: ledger's and
+          checkout's leaves were re-issued with new keys and calls kept working).
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/apps/payments/base/ledger-certificate.yaml, kind: Certificate, namespace: payments, name: ledger-tls}
+            field: spec.privateKey.rotationPolicy
+            relation: produces
+          - ref: {kind: Secret, namespace: payments, name: ledger-tls}
+            relation: references  # mounted by the Deployment (volume tls)
+          - ref: {file: env/apps/payments/base/ledger-deployment.yaml, kind: Deployment, namespace: payments, name: ledger}
+        mitigation:
+          kind: relationship-absent
+          detail: no consumer pins the leaf key (no SPKI pin, no copied certificate); trust goes through the CA chain
+        requiredEvidence:
+          - {file: env/apps/payments/base/ledger-certificate.yaml, object: Certificate/payments/ledger-tls, field: spec.privateKey}
+      - ref: {file: env/apps/payments/base/checkout-certificate.yaml, kind: Certificate, namespace: payments, name: checkout-tls}
+        classification: not-affected
+        reason: Same as ledger-tls — leaf key rotation with no consumer that pins the leaf key.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/apps/payments/base/checkout-certificate.yaml, kind: Certificate, namespace: payments, name: checkout-tls}
+            field: spec.privateKey.rotationPolicy
+            relation: produces
+          - ref: {kind: Secret, namespace: payments, name: checkout-tls}
+            relation: references  # mounted by the Deployment (volume tls)
+          - ref: {file: env/apps/payments/base/checkout-deployment.yaml, kind: Deployment, namespace: payments, name: checkout}
+        mitigation:
+          kind: relationship-absent
+          detail: no consumer pins the leaf key; trust goes through the CA chain
+        requiredEvidence:
+          - {file: env/apps/payments/base/checkout-certificate.yaml, object: Certificate/payments/checkout-tls, field: spec.privateKey}
+    remediation: none required for this item.
+    match:
+      - subject: spec.privateKey.rotationPolicy
+      - text: '(?i)rotation ?policy'
+      - text: '(?i)DefaultPrivateKeyRotationPolicyAlways'
+
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log # "CertificateRequests (v1.17.2)" vs "CertificateRequests (v1.18.0)"
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md#L151-L160
+        lines: L151-L160
+        quote: "When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources."
+    components:
+      - ref: {file: env/platform/pki/base/mesh-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+        classification: not-affected
+        reason: >-
+          With revisionHistoryLimit unset, v1.18.0 keeps only the latest CertificateRequest per
+          Certificate (observed: mesh-root-ca-1/-2 kept on v1.17.2, only mesh-root-ca-3 left on v1.18.0).
+          Nothing in this environment reads CertificateRequest history (no tooling, policy or audit
+          job references CertificateRequests), so the cleanup has no consumer to break.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/platform/pki/base/mesh-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: mesh-root-ca}
+            field: spec.revisionHistoryLimit
+        mitigation:
+          kind: feature-unused
+          detail: no object in the environment consumes CertificateRequest resources
+        requiredEvidence:
+          - {file: env/platform/pki/base/mesh-root-ca.yaml, object: Certificate/cert-manager/mesh-root-ca, field: spec.revisionHistoryLimit}
+      - ref: {file: env/apps/payments/base/ledger-certificate.yaml, kind: Certificate, namespace: payments, name: ledger-tls}
+        classification: not-affected
+        reason: Same as mesh-root-ca — history pruned, no consumer of CertificateRequests.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/apps/payments/base/ledger-certificate.yaml, kind: Certificate, namespace: payments, name: ledger-tls}
+            field: spec.revisionHistoryLimit
+        mitigation: {kind: feature-unused, detail: no object in the environment consumes CertificateRequest resources}
+        requiredEvidence: []
+      - ref: {file: env/apps/payments/base/checkout-certificate.yaml, kind: Certificate, namespace: payments, name: checkout-tls}
+        classification: not-affected
+        reason: Same as mesh-root-ca — history pruned, no consumer of CertificateRequests.
+        impactPath:
+          - ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}
+            relation: deploys
+          - ref: {file: env/apps/payments/base/checkout-certificate.yaml, kind: Certificate, namespace: payments, name: checkout-tls}
+            field: spec.revisionHistoryLimit
+        mitigation: {kind: feature-unused, detail: no object in the environment consumes CertificateRequest resources}
+        requiredEvidence: []
+    match:
+      - subject: spec.revisionHistoryLimit
+      - text: '(?i)revision ?history ?limit'
+
+# Every non-noise hunk of observed/render.diff (the cert-manager release rendered with this
+# environment's values; the environment's own Kustomize output is identical in both versions and has
+# no diff). `impact` is the effect of applying that rendered change by itself. Release noise not
+# listed: chart/app version labels and image tags (incl. the --acme-http01-solver-image arg, L1003-L1018).
+# Every hunk is harmless by itself; the decisive override (rotationPolicy: Never) is in the
+# environment's Kustomize output, which does not change between versions.
+renderedChanges:
+  - diff: observed/render.diff#L83-L95
+    object: CustomResourceDefinition/certificates.cert-manager.io
+    change: "spec.privateKey.rotationPolicy description: \"Default is `Never` for backward compatibility.\" -> \"Default is `Always`. The default was changed from `Never` to `Always` in cert-manager >=v1.18.0 ... --feature-gates=DefaultPrivateKeyRotationPolicyAlways=false\""
+    item: B1
+    impact: harmless # documentation text; the new default itself is compiled into the controller
+  - diff: observed/render.diff#L96-L105
+    object: CustomResourceDefinition/certificates.cert-manager.io
+    change: "spec.revisionHistoryLimit description: \"Default value is `nil`.\" -> \"Default value is `1`.\""
+    item: B2
+    impact: harmless # documentation text; the new default itself is compiled into the controller
+  - diff: [observed/render.diff#L63-L82, observed/render.diff#L140-L196, observed/render.diff#L217-L225, observed/render.diff#L238-L282, observed/render.diff#L295-L303, observed/render.diff#L324-L332, observed/render.diff#L345-L389, observed/render.diff#L402-L410, observed/render.diff#L435-L443]
+    object: CustomResourceDefinitions (cert-manager.io, acme.cert-manager.io)
+    change: description wording only (e.g. "e.g." -> "e.g.,", "can not" -> "cannot", Venafi default URL text, AdditionalCertificateOutputFormats beta note removed)
+    item: null
+    impact: harmless
+  - diff: [observed/render.diff#L106-L127, observed/render.diff#L197-L216, observed/render.diff#L226-L237, observed/render.diff#L283-L294, observed/render.diff#L304-L323, observed/render.diff#L333-L344, observed/render.diff#L390-L401, observed/render.diff#L423-L434]
+    object: CustomResourceDefinitions (cert-manager.io, acme.cert-manager.io)
+    change: new optional schema fields (signatureAlgorithm, ACME profile, Vault serverName) and shortNames ciss/iss
+    item: null
+    impact: harmless # additive; the environment uses none of them
+  - diff: [observed/render.diff#L504-L584, observed/render.diff#L729-L792]
+    object: ClusterRole/ClusterRoleBinding cert-manager-controller-challenges
+    change: challenges RBAC split into cert-manager-http01-controller-challenges and cert-manager-dns01-controller-challenges (+ challenges/finalizers update rule)
+    item: null
+    impact: harmless
+  - diff: [observed/render.diff#L970-L978, observed/render.diff#L1019-L1027, observed/render.diff#L1061-L1078, observed/render.diff#L1079-L1087, observed/render.diff#L1181-L1186]
+    object: Deployments cert-manager, cert-manager-cainjector, cert-manager-webhook; Job cert-manager-startupapicheck
+    change: nodeSelector value quoted ("linux"); webhook probes use the named port healthcheck instead of 6080
+    item: null
+    impact: harmless

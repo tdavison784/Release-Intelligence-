@@ -112,6 +112,8 @@ func questionWord(q domain.QuestionType) string {
 		return "Compatibility question"
 	case domain.QuestionDuplicate:
 		return "Duplicate check"
+	case domain.QuestionFactReview:
+		return "Whole-fact review"
 	}
 	return strings.ReplaceAll(string(q), "-", " ")
 }
@@ -195,6 +197,16 @@ func avatarOf(model string) avatar {
 
 // --- subjects, changes, consequences ----------------------------------------------------
 
+// flagText writes a CLI flag: a stored name that carries its dashes
+// ("--enable-metrics", "-v") as stored, a bare one ("enable-metrics") as
+// "--enable-metrics" — never "----enable-metrics".
+func flagText(name string) string {
+	if strings.HasPrefix(name, "-") {
+		return name
+	}
+	return "--" + name
+}
+
 func subjectPhrase(s *domain.Subject) string {
 	if s == nil {
 		return "this"
@@ -208,9 +220,9 @@ func subjectPhrase(s *domain.Subject) string {
 		return fmt.Sprintf("the %s field `%s`", kind, s.Path)
 	case domain.SubjectCLIFlag:
 		if s.Component != "" {
-			return fmt.Sprintf("the %s flag `--%s`", s.Component, s.Name)
+			return fmt.Sprintf("the %s flag `%s`", s.Component, flagText(s.Name))
 		}
-		return fmt.Sprintf("the flag `--%s`", s.Name)
+		return fmt.Sprintf("the flag `%s`", flagText(s.Name))
 	case domain.SubjectHelmValue:
 		return fmt.Sprintf("the Helm value `%s`", s.Path)
 	case domain.SubjectConfigKey:
@@ -560,6 +572,11 @@ func plainQuestion(it domain.ReviewItem) string {
 			return fmt.Sprintf("Is the %s change something to act on, or just to know?", head)
 		}
 		return fmt.Sprintf("Is the %s change to %s something to act on, or just to know?", head, subjectPhrase(a.Subject))
+	case domain.QuestionFactReview:
+		if a.Subject != nil {
+			return fmt.Sprintf("Is the whole fact about %s in %s correct — what it is, what changed, who is exposed and what happens?", subjectPhrase(a.Subject), head)
+		}
+		return fmt.Sprintf("Is this whole fact about %s correct — what it is, what changed, who is exposed and what happens?", head)
 	case domain.QuestionRelationship:
 		if a.Subject != nil && a.Subject.Name != "" {
 			return fmt.Sprintf("Does %s change how it works together with %s — and which environments are exposed?", head, a.Subject.Name)

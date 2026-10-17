@@ -67,6 +67,9 @@ func bulkGuard(rc *knowledge.ReviewContext) string {
 	if disagrees(rc) {
 		why = append(why, "the models' proposals disagree")
 	}
+	if rc.Item.QuestionType == domain.QuestionFactReview {
+		why = append(why, "it verifies a whole fact (every aspect is shown on its page)")
+	}
 	if len(why) == 0 {
 		return ""
 	}
@@ -98,7 +101,7 @@ func (s *server) planBulk(r *http.Request, ss *session, ids []string, in decisio
 		row.Priority = rc.Item.Routing.Priority
 		row.Disagrees = disagrees(rc)
 		switch {
-		case !eligible(rc.Item.Status):
+		case !decidable(rc):
 			row.State, row.Why = bulkInvalid, fmt.Sprintf("already %s", rc.Item.Status)
 		default:
 			d, err := buildDecision(rc, in)
