@@ -1,0 +1,73 @@
+# case kube-prometheus-stack-89-90--obs-amer; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:38:37Z
+$ kind create cluster --name ri-groundtruth5-obs-amer --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-obs-amer.kubeconfig.XXXXXX.3UkrYJMQf8
+Creating cluster "ri-groundtruth5-obs-amer" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 17s 💚
+Set kubectl context to "kind-ri-groundtruth5-obs-amer"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-obs-amer --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-obs-amer.kubeconfig.XXXXXX.3UkrYJMQf8
+
+Thanks for using kind! 😊
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### Kustomization policies  [13:39:05Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/kube-prometheus-stack-89-90--obs-amer/env/infrastructure/policies | kubectl apply -f -
+validatingadmissionpolicy.admissionregistration.k8s.io/deny-nodeport-services created
+validatingadmissionpolicybinding.admissionregistration.k8s.io/deny-nodeport-services created
+$ kubectl get validatingadmissionpolicies,validatingadmissionpolicybindings
+NAME                                                                            VALIDATIONS   PARAMKIND   AGE
+validatingadmissionpolicy.admissionregistration.k8s.io/deny-nodeport-services   1             <unset>     0s
+
+NAME                                                                                   POLICYNAME               PARAMREF   AGE
+validatingadmissionpolicybinding.admissionregistration.k8s.io/deny-nodeport-services   deny-nodeport-services   <unset>    0s
+
+### Kustomization monitoring: HelmRelease kube-prometheus-stack, chart 89.2.4, values from ConfigMap kube-prometheus-stack-values  [13:39:05Z]
+$ kubectl create namespace monitoring
+namespace/monitoring created
+$ helm install kube-prometheus-stack /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/kube-prometheus-stack-89.2.4.tgz -n monitoring -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/kube-prometheus-stack-89-90--obs-amer/env/infrastructure/monitoring/values.yaml --wait --timeout 8m
+NAME: kube-prometheus-stack
+LAST DEPLOYED: Sat Oct 17 08:39:07 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace monitoring get pods -l "release=kube-prometheus-stack"
+
+Get Grafana 'admin' user password by running:
+
+  kubectl --namespace monitoring get secrets kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace monitoring get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=kube-prometheus-stack" -oname)
+  kubectl --namespace monitoring port-forward $POD_NAME 3000
+
+Get your grafana admin user password by running:
+
+  kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
+
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+$ kubectl -n monitoring rollout status statefulset/prometheus-kube-prometheus-stack-prometheus --timeout=300s
+Waiting for 1 pods to be ready...
+statefulset rolling update complete 1 pods at revision prometheus-kube-prometheus-stack-prometheus-dc6fbc949...

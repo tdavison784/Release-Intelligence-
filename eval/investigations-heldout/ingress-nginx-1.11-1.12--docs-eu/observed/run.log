@@ -187,3 +187,75 @@ Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 
 Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
 Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
 Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx get deploy ingress-nginx-controller -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}{.spec.template.spec.containers[0].args}{"\n"}
+registry.k8s.io/ingress-nginx/controller:v1.12.0@sha256:e6b8de175acda6ca913891f0f727bca4527e797d52688cbe9fec9040d6f6b6fa
+["/nginx-ingress-controller","--publish-service=$(POD_NAMESPACE)/ingress-nginx-controller","--election-id=ingress-nginx-leader","--controller-class=k8s.io/ingress-nginx","--ingress-class=nginx","--configmap=$(POD_NAMESPACE)/ingress-nginx-controller","--validating-webhook=:8443","--validating-webhook-certificate=/usr/local/certificates/cert","--validating-webhook-key=/usr/local/certificates/key"]
+
+### after upgrade: requests to the existing Ingress  [13:33:45Z]
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/  ->  200
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/.well-known/security.txt  ->  200
+
+### after upgrade: the next sync of the docs Application (no change in the repository)  [13:33:45Z]
+$ kubectl kustomize apps/docs/overlays/prod | kubectl apply --server-side --field-manager=argocd-controller -f -
+namespace/docs serverside-applied
+configmap/docs-content-84486bkbt7 serverside-applied
+configmap/wellknown-content-hh54ghhchd serverside-applied
+service/docs-site serverside-applied
+service/wellknown serverside-applied
+deployment.apps/docs-site serverside-applied
+deployment.apps/wellknown serverside-applied
+Warning: path /.well-known cannot be used with pathType Prefix
+Error from server (BadRequest): admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: ingress contains invalid paths: path /.well-known cannot be used with pathType Prefix
+  => sync FAILED
+
+### after upgrade: a change to the Ingress  [13:33:45Z]
+$ kubectl -n docs annotate ingress docs nginx.ingress.kubernetes.io/proxy-read-timeout=60 --overwrite
+Warning: path /.well-known cannot be used with pathType Prefix
+Error from server (BadRequest): admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: ingress contains invalid paths: path /.well-known cannot be used with pathType Prefix
+(exit 1)
+
+### after upgrade: the controller restarts  [13:33:45Z]
+$ kubectl -n ingress-nginx rollout restart deploy/ingress-nginx-controller
+deployment.apps/ingress-nginx-controller restarted
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+deployment "ingress-nginx-controller" successfully rolled out
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/  ->  200
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/.well-known/security.txt  ->  200
+
+### after upgrade: the Ingress is re-created (e.g. the Application is re-synced into a rebuilt cluster)  [13:34:16Z]
+$ kubectl -n docs delete ingress docs
+ingress.networking.k8s.io "docs" deleted from docs namespace
+$ kubectl kustomize apps/docs/overlays/prod | kubectl apply --server-side --field-manager=argocd-controller -f -
+namespace/docs serverside-applied
+configmap/docs-content-84486bkbt7 serverside-applied
+configmap/wellknown-content-hh54ghhchd serverside-applied
+service/docs-site serverside-applied
+service/wellknown serverside-applied
+deployment.apps/docs-site serverside-applied
+deployment.apps/wellknown serverside-applied
+Warning: path /.well-known cannot be used with pathType Prefix
+Error from server (BadRequest): admission webhook "validate.nginx.ingress.kubernetes.io" denied the request: ingress contains invalid paths: path /.well-known cannot be used with pathType Prefix
+  => sync FAILED
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/  ->  404
+$ curl -H "Host: docs.example.com" http://ingress-nginx-controller.ingress-nginx.svc/.well-known/security.txt  ->  404
+$ kubectl -n docs get ingress
+No resources found in docs namespace.
+
+### controller log lines about the docs Ingress  [13:34:22Z]
+Found 2 pods, using pod/ingress-nginx-controller-65fc5b4786-szlq4
+I1017 13:33:47.565363      10 store.go:440] "Found valid IngressClass" ingress="docs/docs" ingressclass="nginx"
+
+### done  [13:34:22Z]
+
+### cleanup  [13:34:22Z]
+Deleting cluster "ri-groundtruth5-docs-eu" ...
+Deleted nodes: ["ri-groundtruth5-docs-eu-control-plane"]

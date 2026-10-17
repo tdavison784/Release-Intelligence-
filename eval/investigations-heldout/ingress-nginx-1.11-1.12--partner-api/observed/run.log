@@ -1,5 +1,5 @@
-# case ingress-nginx-1.11-1.12--partner-api; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:30:40Z
-$ kind create cluster --name ri-groundtruth5-partner-api --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-partner-api.kubeconfig.XXXXXX.jtRH6LIq1e
+# case ingress-nginx-1.11-1.12--partner-api; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:34:23Z
+$ kind create cluster --name ri-groundtruth5-partner-api --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-partner-api.kubeconfig.XXXXXX.xkvNn85xfF
 Creating cluster "ri-groundtruth5-partner-api" ...
  • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
  ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
@@ -15,11 +15,11 @@ Creating cluster "ri-groundtruth5-partner-api" ...
  ✓ Installing StorageClass 💾
  • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
  ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
- • Ready after 16s 💚
+ • Ready after 18s 💚
 Set kubectl context to "kind-ri-groundtruth5-partner-api"
 You can now use your cluster with:
 
-kubectl cluster-info --context kind-ri-groundtruth5-partner-api --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-partner-api.kubeconfig.XXXXXX.jtRH6LIq1e
+kubectl cluster-info --context kind-ri-groundtruth5-partner-api --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-partner-api.kubeconfig.XXXXXX.xkvNn85xfF
 
 Thanks for using kind! 😊
 $ kubectl version
@@ -28,11 +28,204 @@ Kustomize Version: v5.7.1
 Server Version: v1.31.0
 Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
 
-### wave -1: platform/memcached  [13:31:10Z]
+### wave -1: platform/memcached (Application option CreateNamespace=true)  [13:34:50Z]
+$ kubectl create namespace ingress-nginx
+namespace/ingress-nginx created
 $ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--partner-api/env/platform/memcached | kubectl apply -f -
-Error from server (NotFound): error when creating "STDIN": namespaces "ingress-nginx" not found
-Error from server (NotFound): error when creating "STDIN": namespaces "ingress-nginx" not found
+service/memcached created
+deployment.apps/memcached created
 
-### cleanup  [13:31:10Z]
+### wave 0: ingress-nginx chart 4.11.5, platform/ingress-nginx/values.yaml  [13:34:51Z]
+$ helm install ingress-nginx /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/ingress-nginx-4.11.5.tgz -n ingress-nginx --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--partner-api/env/platform/ingress-nginx/values.yaml --timeout 5m
+NAME: ingress-nginx
+LAST DEPLOYED: Sat Oct 17 08:34:51 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=300s
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 2 of 3 updated replicas are available...
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx rollout status deploy/memcached --timeout=120s
+deployment "memcached" successfully rolled out
+$ kubectl -n ingress-nginx get deploy ingress-nginx-controller -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}{.spec.template.spec.containers[0].args}{"\n"}
+registry.k8s.io/ingress-nginx/controller:v1.11.5@sha256:a1cbad75b0a7098bf9325132794dddf9eef917e8a7fe246749a4cea7ff6f01eb
+["/nginx-ingress-controller","--publish-service=$(POD_NAMESPACE)/ingress-nginx-controller","--election-id=ingress-nginx-leader","--controller-class=k8s.io/ingress-nginx","--ingress-class=nginx","--configmap=$(POD_NAMESPACE)/ingress-nginx-controller","--validating-webhook=:8443","--validating-webhook-certificate=/usr/local/certificates/cert","--validating-webhook-key=/usr/local/certificates/key"]
+$ kubectl -n ingress-nginx get configmap ingress-nginx-controller -o jsonpath={.data}{"\n"}
+{"allow-snippet-annotations":"false","global-rate-limit-memcached-host":"memcached.ingress-nginx.svc.cluster.local","global-rate-limit-memcached-port":"11211","global-rate-limit-status-code":"429","use-forwarded-headers":"true"}
+
+### wave 1: apps/partner-api/overlays/prod  [13:35:20Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--partner-api/env/apps/partner-api/overlays/prod | kubectl apply -f -
+namespace/partner-api created
+configmap/partner-api-nginx-h56k6tgtd8 created
+service/partner-api created
+deployment.apps/partner-api created
+ingress.networking.k8s.io/partner-api created
+$ kubectl -n partner-api rollout status deploy/partner-api --timeout=180s
+Waiting for deployment "partner-api" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "partner-api" rollout to finish: 1 of 2 updated replicas are available...
+deployment "partner-api" successfully rolled out
+$ kubectl run probe --image=curlimages/curl:8.10.1 --restart=Never --command -- sleep 3600
+pod/probe created
+$ kubectl wait pod/probe --for=condition=Ready --timeout=120s
+pod/probe condition met
+
+### baseline on controller v1.11.5: 130 requests in a burst from one partner (quota 120/min)  [13:35:36Z]
+$ 130 x curl -H "Host: api.partners.example.com" -H "X-Partner-Id: partner-a" http://ingress-nginx-controller.ingress-nginx.svc/
+   120 200
+    10 429
+$ 20 x curl -H "Host: api.partners.example.com" -H "X-Partner-Id: partner-b" http://ingress-nginx-controller.ingress-nginx.svc/
+    20 200
+$ curl http://<controller pod>:10254/metrics | grep -c ^nginx_ingress_controller_  ->  126
+$ kubectl -n ingress-nginx exec <controller pod> -- grep -c global_throttle /etc/nginx/nginx.conf  ->  4
+
+### UPGRADE: helm upgrade to chart 4.12.0 with the same value file  [13:35:37Z]
+$ helm upgrade ingress-nginx /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/ingress-nginx-4.12.0.tgz -n ingress-nginx -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/ingress-nginx-1.11-1.12--partner-api/env/platform/ingress-nginx/values.yaml --timeout 5m
+Release "ingress-nginx" has been upgraded. Happy Helming!
+NAME: ingress-nginx
+LAST DEPLOYED: Sat Oct 17 08:35:37 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the load balancer IP to be available.
+You can watch the status by running 'kubectl get service --namespace ingress-nginx ingress-nginx-controller --output wide --watch'
+
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: example
+    namespace: foo
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: exampleService
+                  port:
+                    number: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+      - hosts:
+        - www.example.com
+        secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=300s
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 2 out of 3 new replicas have been updated...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingress-nginx-controller" rollout to finish: 1 old replicas are pending termination...
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
+deployment "ingress-nginx-controller" successfully rolled out
+$ kubectl -n ingress-nginx get deploy ingress-nginx-controller -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}{.spec.template.spec.containers[0].args}{"\n"}
+registry.k8s.io/ingress-nginx/controller:v1.12.0@sha256:e6b8de175acda6ca913891f0f727bca4527e797d52688cbe9fec9040d6f6b6fa
+["/nginx-ingress-controller","--publish-service=$(POD_NAMESPACE)/ingress-nginx-controller","--election-id=ingress-nginx-leader","--controller-class=k8s.io/ingress-nginx","--ingress-class=nginx","--configmap=$(POD_NAMESPACE)/ingress-nginx-controller","--validating-webhook=:8443","--validating-webhook-certificate=/usr/local/certificates/cert","--validating-webhook-key=/usr/local/certificates/key","--enable-metrics=true"]
+$ kubectl -n ingress-nginx get configmap ingress-nginx-controller -o jsonpath={.data}{"\n"}
+{"global-rate-limit-memcached-host":"memcached.ingress-nginx.svc.cluster.local","global-rate-limit-memcached-port":"11211","global-rate-limit-status-code":"429","use-forwarded-headers":"true"}
+
+### after upgrade: the same burst from a partner with no requests so far  [13:36:34Z]
+$ 130 x curl -H "Host: api.partners.example.com" -H "X-Partner-Id: partner-c" http://ingress-nginx-controller.ingress-nginx.svc/
+   130 200
+
+### after upgrade: partner-a again (its window from the baseline burst has expired)  [13:36:35Z]
+$ 130 x curl -H "Host: api.partners.example.com" -H "X-Partner-Id: partner-a" http://ingress-nginx-controller.ingress-nginx.svc/
+   130 200
+$ curl http://<controller pod>:10254/metrics | grep -c ^nginx_ingress_controller_  ->  121
+
+### after upgrade: a change to the partner-api Ingress is admitted  [13:37:35Z]
+$ kubectl -n partner-api annotate ingress partner-api example.com/reviewed=yes --overwrite
+ingress.networking.k8s.io/partner-api annotated
+(exit 0)
+
+### controller configuration and log lines about global rate limiting  [13:37:36Z]
+$ kubectl -n ingress-nginx exec <controller pod> -- grep -c global_throttle /etc/nginx/nginx.conf  ->  0
+command terminated with exit code 1
+Found 3 pods, using pod/ingress-nginx-controller-5cf86db4c4-9cjhq
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.000 200 dd069686d70bf97daaf2d30ce950437a
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.001 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.000 200 f31ec7167904a61f933978c97bc9be82
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.000 200 02bc73a046df6e13989baf9cc15ddaee
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.000 200 754982e5dfea881a8c1d52d6232260d7
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.000 200 586934e66fa9120bcafb92453884dae4
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.001 200 ada841107841478da9d09e453f7a52cd
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.000 200 24a417a793fc198009008b22cf3e9c11
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.001 200 7ce1eb83a016971933c06005f93b84ea
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.001 200 f2b6e45d01a7851169b4479dcf73319e
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.001 200 cb4b07eb84192054bf58522a6eeb6a37
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.001 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.000 200 58a6c7427b96a3535ea04331a8dd69bb
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.000 200 2eb699decdb0054dd590104b3179762d
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.000 [partner-api-partner-api-http] [] 10.244.0.11:8080 16 0.001 200 4c4f6b36ef22e56adb978dc724f23a22
+10.244.0.13 - - [17/Oct/2026:13:37:35 +0000] "GET / HTTP/1.1" 200 16 "-" "curl/8.10.1" 113 0.001 [partner-api-partner-api-http] [] 10.244.0.12:8080 16 0.000 200 509ae6f7cdf0364164083b8e7a58278e
+I1017 13:37:36.037267      10 event.go:377] Event(v1.ObjectReference{Kind:"Ingress", Namespace:"partner-api", Name:"partner-api", UID:"84619b1d-7b81-4d27-84ef-a9a71e746bdd", APIVersion:"networking.k8s.io/v1", ResourceVersion:"1230", FieldPath:""}): type: 'Normal' reason: 'Sync' Scheduled for sync
+
+### done  [13:37:36Z]
+
+### cleanup  [13:37:36Z]
 Deleting cluster "ri-groundtruth5-partner-api" ...
 Deleted nodes: ["ri-groundtruth5-partner-api-control-plane"]
