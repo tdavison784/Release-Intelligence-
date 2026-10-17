@@ -135,6 +135,9 @@ func (p *Pipeline) Run(ctx context.Context, in StageInput) (StageOutput, error) 
 		return StageOutput{}, err
 	}
 
+	// The completed event is stamped when it is appended (below), after a stage's
+	// apply has added its own events (the agent's `requested` events), so the
+	// trail stays monotonic. Times are not identity, so digests are unaffected.
 	done := ev("completed", res.detail, res.refsIn)
 	out := StageOutput{Stage: in.Stage, Key: in.Key, Refs: res.refs, Detail: res.detail, Outcome: res.outcome, Review: res.review}
 	switch {
@@ -159,6 +162,7 @@ func (p *Pipeline) Run(ctx context.Context, in StageInput) (StageOutput, error) 
 			}
 		}
 		inv.AppendAudit(startedEv)
+		done.At = p.now()
 		inv.AppendAudit(done)
 		if err := p.d.Records.PutInvestigation(ctx, inv); err != nil {
 			return StageOutput{}, investigate.PermanentError(in.Stage, err)
@@ -173,6 +177,7 @@ func (p *Pipeline) Run(ctx context.Context, in StageInput) (StageOutput, error) 
 					return err
 				}
 			}
+			done.At = p.now()
 			inv.AppendAudit(done)
 			return nil
 		})

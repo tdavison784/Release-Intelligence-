@@ -261,3 +261,27 @@ func TestAgentNotesAndClaimsReachTheRecord(t *testing.T) {
 		t.Fatalf("notes %+v claims %+v", inv.AgentNotes, inv.AgentClaims)
 	}
 }
+
+// An agent that makes evidence and validation requests appends `requested`
+// events inside the investigate stage; the stage's `completed` event must be
+// stamped after them so the record validates with monotonic audit times.
+func TestAgentRequestsKeepAuditMonotonic(t *testing.T) {
+	f := runtest.New(t)
+	f.Deps.Now = runtest.TickClock()
+	f.Deps.Investigator = &runtest.RequestingAgent{St: f.St}
+	req := f.Request()
+	req.Config.Agent.Enabled = true
+	dec := runtest.Human(investigate.ReviewApprove)
+	dec.At = runtest.FixedNow.Add(time.Hour) // after every event the ticking clock stamps
+	res, err := runner(f, once(dec)).Run(context.Background(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inv, err := f.St.GetInvestigation(context.Background(), res.Investigation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := runtest.CheckAuditMonotonic(inv); err != nil {
+		t.Fatal(err)
+	}
+}
