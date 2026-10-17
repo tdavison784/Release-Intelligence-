@@ -140,6 +140,7 @@ ri review serve -demo                           # engineering review UI for the 
 ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --agent   # environment-aware investigation: bundle, rendered diff, graph, validators, agent, classification, human review (docs/INVESTIGATE.md "Running an investigation")
 ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --runtime # + an isolated upgrade in a throwaway kind cluster (observed-level validation; docs/INVESTIGATE.md "Runtime validation")
 ri investigate review <inv-id> approve --reviewer me                         # record the human decision on an in-process run
+ri investigate serve -store eval/investigations/results                      # per-upgrade view: what was checked, verdicts, human review, export (docs/INVESTIGATE.md)
 ri worker && ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --temporal   # the same pipeline as a durable Temporal workflow
 ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
 ri investigate mcp --run <inv-id>             # serve a stored investigation's agent tools over MCP stdio, read-only (docs/INVESTIGATE.md)

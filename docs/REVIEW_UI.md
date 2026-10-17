@@ -10,7 +10,14 @@ ri review serve -demo                 # fixture items, in-memory (nothing persis
 ri review serve -demo -limit 3        # cap the inbox rows, to see the "first N of M" notice
 ri review serve -addr 127.0.0.1:8484 -reviewer dana -demo
 ri review serve -knowledge knowledge/ # the learning loop's file-backed queue (knowledge.NewQueue over NewFileStore)
+ri review serve -knowledge knowledge/ -investigation-store eval/investigations/results   # + the stored evaluation runs under /investigations
 ```
+
+The same server also shows **investigations** under `/investigations` (top-bar link "Investigations"; back via
+"Knowledge review"): every investigated upgrade, what was checked, every verdict, and the human approve / reject /
+request-more-evidence decision with its audit trail. `-investigation-store` picks what it shows (default: the
+investigation store in the global `-state`; reviews are recorded there; stored evaluation runs are read-only). The
+pages and routes are described in docs/INVESTIGATE.md, "Investigation report"; `ri investigate serve` serves them alone.
 
 Stdlib only (`net/http`, `html/template`, `embed`); hand-written CSS with design tokens and about 200
 lines of vanilla JS, vendored inside the binary — no CDN, no npm, no third-party code. There is no
@@ -73,6 +80,7 @@ everything as before. An item the snapshot does not know is shown, never hidden.
 | `GET /items/{id}/detail` | the same detail as an HTML fragment (inline expansion) |
 | `POST /items/{id}/decision` | one decision: `accept`, `reject`, `correct`, `need-more-evidence`, `defer` |
 | `POST /bulk` | a bulk action over the selected items (see below) |
+| `GET /investigations…` | the investigation report (list, page, review, export; docs/INVESTIGATE.md "Investigation report") |
 
 ## The inbox
 

@@ -1,0 +1,25 @@
+{{define "page"}}{{template "head" .}}
+<main class="page">
+  <p class="small"><a href="{{.Base}}">← All investigations</a></p>
+  {{if .Flash}}<div class="flash flash-ok" role="status">{{.Flash}}</div>{{end}}
+  {{if .Error}}<div class="flash flash-error" role="alert" id="review-error">Not recorded: {{.Error}}</div>{{end}}
+  {{template "sections" .}}
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "export"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · investigation report</title>
+<style>{{.CSS}}</style>
+</head>
+<body class="offline">
+<main class="page">
+  <p class="muted small">Release Intelligence · investigation report · exported {{date .Generated}} · a self-contained copy of the stored run record: it does not change when the record does.
+    <a href="{{.RecordURL}}" download="{{.RecordAs}}">Run record (JSON)</a></p>
+  {{template "sections" .}}
+</main>
+</body>
+</html>{{end}}

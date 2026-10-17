@@ -68,11 +68,12 @@ Commands:
   eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
   render diff <product> <from> <to> render source/target with your configuration; semantic object diff
   knowledge <subcommand>            the learning loop: route, decide, export, metrics (ri knowledge help)
-  review serve                      engineering review UI for the learning loop (-demo for fixtures)
+  review serve                      engineering review UI for the learning loop (-demo for fixtures); investigations under /investigations
   semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
   evidence link ...                 learning loop: attach the linked PR / commit text of an edge's notes to stored candidates
   investigate <product> <from> <to> environment-aware investigation: evidence bundle, rendered diff, graph, validators, agent, classification, human review (--agent, --temporal; docs/INVESTIGATE.md)
   investigate review|state <id>     apply a human-review decision / show the run (in-process, or --temporal)
+  investigate serve                 per-upgrade investigation view: what was checked, verdicts, human review, export (-store DIR; also /investigations in review serve)
   worker                            Temporal worker for investigations (task queue ri-investigation)
   investigate mcp --run <inv-id>    serve an investigation's agent tools over MCP stdio (read-only; docs/INVESTIGATE.md)
 

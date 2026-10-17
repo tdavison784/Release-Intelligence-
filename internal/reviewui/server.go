@@ -57,6 +57,14 @@ type Options struct {
 	Scope BlockingScope
 	// Logf receives server-side problems (default log.Printf).
 	Logf func(format string, args ...any)
+	// Links adds links to the top bar (e.g. the investigations view that
+	// `ri review serve` mounts under /investigations).
+	Links []Link
+}
+
+// Link is a top-bar link.
+type Link struct {
+	Label, Href string
 }
 
 type server struct {
@@ -101,6 +109,7 @@ func NewServer(q knowledge.Queue, opts Options) http.Handler {
 	s := &server{q: q, opts: opts, sessions: map[string]*session{}, mux: http.NewServeMux()}
 	fm := funcs()
 	fm["demo"] = func() bool { return opts.Demo }
+	fm["toplinks"] = func() []Link { return opts.Links }
 	s.tpl = template.Must(template.New("").Funcs(fm).ParseFS(templateFS, "templates/*.html"))
 	static, _ := fs.Sub(staticFS, "static")
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))

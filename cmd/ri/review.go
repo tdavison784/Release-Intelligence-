@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
+	"github.com/tdavison784/release-intelligence/internal/investigate/classify"
+	"github.com/tdavison784/release-intelligence/internal/investigate/reportui"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/reviewui"
 )
@@ -36,6 +38,7 @@ func (c *cli) reviewServe(args []string) error {
 	limit := fs.Int("limit", 0, "cap the inbox rows (default 200; try -limit 3 with -demo to see the truncation notice)")
 	reviewer := fs.String("reviewer", "", "pre-fill the reviewer name")
 	invDir := fs.String("investigations", "eval/investigations", "investigation case directory: its products' items that block investigations are listed first")
+	invStore := fs.String("investigation-store", "", "investigations shown under /investigations: a state directory (default: the global -state; reviews are recorded) or stored evaluation runs (e.g. eval/investigations/results; read-only)")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -63,7 +66,18 @@ func (c *cli) reviewServe(args []string) error {
 		q = reviewui.NewDemoQueue()
 	}
 	scope := reviewui.ScopeFromInvestigations(*invDir, c.g.products)
-	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer, Demo: *demo, InboxLimit: *limit, Snapshot: snap, Scope: scope})
+	reports, err := c.reportSource(*invStore)
+	if err != nil {
+		return err
+	}
+	rh := reportui.NewServer(reports, reportui.Options{Reviewer: classify.NewReviewApplier(), DefaultReviewer: *reviewer,
+		Nav: []reportui.NavLink{{Label: "Knowledge review", Href: "/"}}})
+	mux := http.NewServeMux()
+	mux.Handle("/investigations", rh)
+	mux.Handle("/investigations/", rh)
+	mux.Handle("/", reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer, Demo: *demo, InboxLimit: *limit, Snapshot: snap, Scope: scope,
+		Links: []reviewui.Link{{Label: "Investigations", Href: "/investigations"}}}))
+	var h http.Handler = mux
 	var waiting string
 	if snap != nil {
 		if sn, err := snap(c.ctx); err == nil {
@@ -79,6 +93,7 @@ func (c *cli) reviewServe(args []string) error {
 		return err
 	}
 	fmt.Fprintf(c.out, "review UI on http://%s (%s; Ctrl-C to stop)\n", ln.Addr(), source)
+	fmt.Fprintf(c.out, "investigations on http://%s/investigations (%s)\n", ln.Addr(), reports.Describe())
 	if waiting != "" {
 		fmt.Fprintf(c.out, "%s\n", waiting)
 	}
