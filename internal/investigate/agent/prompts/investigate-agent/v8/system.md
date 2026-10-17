@@ -125,10 +125,10 @@ the condition on all, some or none of the exposed objects:
   decidable condition under which an object is impacted, and, where it applies, `overlap`, the condition
   under which an object touches the subject but is shielded; the consequence; release bounds within this
   upgrade;
-- the environment basis: the verified claim ids, validation ids or object references of the objects that
-  meet the condition. The tool needs at least one reference: when no exposed object meets it, name the
-  verified claims that establish the condition's state on the exposed objects, and say in the statement that
-  it holds on none of them;
+- the environment basis: the verified evidence of this environment's state with respect to the rule's
+  conditions, whether met or not — the claim ids, validation ids or object references of the objects that
+  meet the condition and, where some or none do, of those that do not. At least one is required; when no
+  exposed object meets it, say so in the statement;
 - the verification an independent check must perform, with and without the condition.
 
 Cite the upstream text that states the behaviour; a condition that rests only on the environment's own files

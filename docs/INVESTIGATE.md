@@ -1066,15 +1066,17 @@ overturn it.
   in `wouldOverturn` / `proposedValidations`, conditions under which the change would not reach an object (the
   field set to the old value on some objects, a feature disabled, nothing depending on the changed property).
   The v7 trigger ("when you believe a setting or condition in the environment preserves the old behaviour") was
-  read as "only when the environment meets it for the whole item". v8 changes `system.md` and `item.md` only;
-  `tools.json`, `meta.json` and `task.md` are v7's byte for byte (no tool, validator, policy, budget or verdict
-  schema change). It says:
+  read as "only when the environment meets it for the whole item". v8 changes `system.md`, `item.md` and the
+  `environmentBasis` wording of `tools.json` (the schema is v7's); `meta.json` and `task.md` are v7's byte for
+  byte (no tool, validator, policy, budget or verdict schema change). It says:
   - a mitigation is a **release-level rule**: record it whenever upstream text supports a condition under which
     an exposed object is not impacted, whether the environment meets it on all, some or none of the exposed
-    objects — the validator decides per object afterwards. `environmentBasis` lists the claims/objects that
-    meet it; when none does, the tool still needs one reference, so it names the verified claims that establish
-    the condition's state and the statement says it holds on none (a field-semantics question raised with the
-    commander; the basis is not a policy input);
+    objects — the validator decides per object afterwards. **`environmentBasis`** is the verified evidence of
+    this environment's state with respect to the rule's conditions, **whether met or not** (commander decision
+    2026-10-17, W-0029; documented on `domain.MitigationSpec` and in the v8 tool schema): the claims/objects that
+    meet the condition and those that do not; when none meets it the statement says so. It stays non-empty
+    (a mitigation with no environment evidence is rejected, unchanged). It is not an applicability decision:
+    only the recorder and storage read it — not export, verification, the promotion gate or policy;
   - **change vs consequence**: distinguish the objects whose setting changes from those where a consumer can
     observe the change, and scope the rule's applicability and consequence to the latter as a decidable
     predicate over the subject's fields and the references it states (`field` / `ref` inside `resource`),
@@ -1088,9 +1090,12 @@ overturn it.
     and reasoned about from what references it.
 
   The revision was made after seeing in-sample v7 results and is reported as such (PROTOCOL amendment).
-  Tests: v8 is the default and v1–v7 are frozen by a files digest; v8's text names no evaluation product,
-  environment, kind or field (a word list plus every token of the case directory names); a v8 session that
-  records a mitigation whose basis covers only some exposed objects stores it.
+  Tests: v8 is the default and v1–v7 are frozen by a files digest; v8's tools.json differs from v7's only by
+  the basis wording; v8's text names no evaluation product, environment, kind or field (a word list plus every
+  token of the case directory names); a v8 session that records a mitigation whose basis covers only some (or
+  none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
+  case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
+  was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the

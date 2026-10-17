@@ -60,7 +60,8 @@ deciding setting on every exposed object. Gaps: what is missing, partial or cont
 4. If an upstream source states a condition under which an exposed object is not impacted, record the
    mitigation (`record_hypothesis` with `mitigation`) whether the environment meets it on all, some or none
    of the exposed objects: scope it to the objects where the change has a consequence a consumer can
-   observe, and list in `environmentBasis` the claims or objects that meet it.
+   observe, and list in `environmentBasis` the verified evidence of the environment's state with respect to
+   its conditions (the claims or objects that meet it, and those that do not).
 5. End with `submit_findings` holding exactly one entry: this item, with its disposition and your `verdict`
    (class, mechanism, environment reasoning, verified facts vs assumptions, mitigations, uncertainty, proposed
    validations, and what would overturn it). Every upstream-supported, environment-checkable condition in

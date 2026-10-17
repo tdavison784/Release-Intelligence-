@@ -5,12 +5,14 @@ Branch `p5ll/prompt8`. Brief: `briefs/prompt8.md`. Ledger W-0029; mandate: PROTO
 
 ## Done
 - **Prompt `investigate-agent/v8`** (now `DefaultPromptVersion`). A copy of v7 with `system.md` and `item.md`
-  revised; `tools.json`, `meta.json`, `task.md` are v7's byte for byte (tested). No tool, validator, policy,
+  revised and the `environmentBasis` wording of `tools.json` changed (record_hypothesis description + the field
+  description; schema identical); `meta.json`, `task.md` are v7's byte for byte (tested). No tool, validator, policy,
   budget or verdict-schema change; feature flags unchanged. What changed (from the transcript-level failure of
   `B0-K0-20261017-6d2ae5bf`: zero `record_hypothesis` calls while verdicts named overturning conditions in prose):
   - Mitigation trigger: a mitigation is a release-level rule; record it whenever upstream text supports a condition
     under which an exposed object is not impacted, whether the environment meets it on all, some or none of the
-    exposed objects (the validator decides per object). `environmentBasis` lists the claims/objects that meet it.
+    exposed objects (the validator decides per object). `environmentBasis` = the verified evidence of the
+    environment's state with respect to the conditions, whether met or not (commander decision, below).
   - Change vs consequence: objects whose setting changes vs objects where a consumer observes the change; scope
     applicability/consequence to the latter as a decidable predicate (`field` / `ref` inside `resource`), name when
     it does not hold. Abstract symbolic example (`K`, `spec.a`, `spec.b`), no product.
@@ -35,11 +37,21 @@ Branch `p5ll/prompt8`. Brief: `briefs/prompt8.md`. Ledger W-0029; mandate: PROTO
   `verdict_v7_test.go`: dropped the "v7 is the default" assertion (now v8's test); nothing else.
 - **Docs**: v8 entry in `docs/INVESTIGATE.md` (agent section, after v7; prompts paragraph).
 
-## In progress
-- Smoke (one live session-set, `ingress-nginx-1.11-1.12--shop-fr`, not cert-manager): see "Smoke" below.
-
-## Smoke
-(pending)
+## Smoke (done; the only live run of this lane)
+- `ingress-nginx-1.11-1.12--shop-fr` (Phase 4 regression case, not cert-manager), `ri -offline investigate … -agent
+  -agent-model claude-sonnet-5-5`, K0 knowledge, inv-c81dc69a70a2: status submitted, 10 sessions (cap 10 of 27
+  agenda items), 45 tool calls, 61 turns, **125,231 tokens** (≤150k), 144 s. Ran on the v8 text at 3e36fd91
+  (prompt digest sha256:d3b16185…), i.e. **before** the basis-wording edit; the final v8 differs only in the
+  environmentBasis wording (system.md bullet, item.md step 4, tools.json descriptions), so its digest differs.
+- Well-formedness: every call accepted except one `submit_findings` rejected by the existing depth rule
+  (`depth:unshared-citation`), retried and accepted. Calls: submit_findings 11, record_claim 10, get_change_item 9,
+  search_manifest 9, read_artifact 5, get_rendered_object 1. 10 claims, 10 assertions, 10 verdicts, 0 dropped.
+- **No `record_hypothesis` call** on this case (all verdicts not-affected), so v8's mitigation calls are not
+  exercised live by this smoke; the structured path is covered by the fake-model test. Not checked against labels.
+- Consistency instruction observed: every `wouldOverturn` carries a not-expressible / no-upstream-rule reason.
+  Two reasons look weak (reported, not acted on — no iteration allowed): one says an explicit-false setting
+  "does not fit the fact grammar's pin rule" (it is expressible as a field/values-key condition), one says it
+  could not be expressed "because I made no record". Worth watching in the scored W-0030 run.
 
 ## Decisions
 - tools.json kept identical to v7 (the record_hypothesis description already says "showing this environment
@@ -53,21 +65,26 @@ Branch `p5ll/prompt8`. Brief: `briefs/prompt8.md`. Ledger W-0029; mandate: PROTO
   `ri eval` (which would score against expected and iterate all cases, including cert-manager).
 
 ## Contract questions (for the commander)
-1. **`environmentBasis` when no exposed object meets the rule.** Partial basis is accepted (tested); an empty
-   basis is rejected (`mitigation: environmentBasis is required (… showing this environment meets the
-   conditions)`). Under v8 a "holds on none" rule is recorded with basis = claims that establish the condition's
-   state (the tool accepts any resolving reference). That stretches the field's documented meaning ("showing this
-   environment meets the conditions"). No safety effect: `EnvironmentBasis` has no consumer besides storage
-   (not export, verify, policy or UI — grep). Options: accept as is (document the field as "claims/objects that
-   establish the condition's state"), or allow an empty basis with an explicit `meetsOn: none` — a tool-layer
-   change I did not make (brief §5).
+1. **`environmentBasis` when no exposed object meets the rule — DECIDED 2026-10-17 by the commander: accept the
+   basis-as-claims reading, no tool change.** `environmentBasis` = "the verified evidence of this environment's
+   state with respect to the rule's conditions, whether met or not"; non-empty stays required. Documented in
+   `internal/domain/verdict.go` (MitigationSpec comment only; schemagen output unchanged), v8 `tools.json`
+   (v8 only; v7 byte-identical, golden-tested) and the v8 entry of `docs/INVESTIGATE.md`. v8 system.md/item.md
+   aligned to the same wording. The domain validation message ("… showing this environment meets the
+   conditions") is unchanged (code, not comment) — cosmetic, left as is.
 
 ## Files touched outside ownership
 - `internal/investigate/agent/verdict_v7_test.go` (one assertion removed: v7 is no longer the default).
+- `internal/domain/verdict.go` (comment on `MitigationSpec.EnvironmentBasis`, per commander decision).
 - `docs/INVESTIGATE.md` (v8 entry; prompts paragraph; v6 heading wording).
 
 ## Versions
 - `DefaultPromptVersion` investigate-agent/v7 → v8. No producer or policy version bump.
 
 ## Tests
-- `go build ./... && go vet ./... && go test ./...` green at 3e36fd91.
+- `go build ./... && go vet ./... && go test ./...` green after the basis-wording change (final commit).
+
+## Cleanup
+- No kind cluster or server started. Removed `bin/` and the scratch state/K0/smoke output (scratchpad outside
+  the worktree). The shared `.ri` was used through symlinks: no investigation record was written there; ingestion
+  re-wrote the 3 ingress-nginx release/edge records in `.ri/store` (normal `ri` behaviour; nothing deleted).

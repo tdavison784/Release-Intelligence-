@@ -62,8 +62,9 @@ func TestEarlierPromptVersionsAreFrozen(t *testing.T) {
 	}
 }
 
-// v8 is v7 with a revised system prompt and item task: same features, same
-// tool schemas, same whole-agenda task; it is the default.
+// v8 is v7 with a revised system prompt and item task and the
+// environmentBasis wording of the tool schemas: same features, same schema,
+// same whole-agenda task; it is the default.
 func TestPromptV8(t *testing.T) {
 	v7, err := LoadPrompt(promptV7)
 	must(t, err)
@@ -72,13 +73,34 @@ func TestPromptV8(t *testing.T) {
 	if v8.Features != v7.Features || !v8.Features.Mitigation || !v8.Features.Claims || !v8.Features.PerItem {
 		t.Fatalf("features: v7 %+v, v8 %+v", v7.Features, v8.Features)
 	}
-	for _, name := range []string{"tools.json", "meta.json", "task.md"} {
+	// tools.json differs only by the environmentBasis wording (commander
+	// decision 2026-10-17: the basis is the environment's state with respect
+	// to the conditions, whether met or not); the schema is v7's.
+	basisV7 := []string{
+		`verified claim ids (clm-…), validation ids (vr-…) or object references (Kind/namespace/name, node ids) showing this environment meets the rule's conditions`,
+		`(verified claim ids, validation ids or object references showing this environment meets the rule's conditions)`,
+	}
+	basisV8 := []string{
+		`the verified evidence of this environment's state with respect to the rule's conditions, whether met or not: verified claim ids (clm-…), validation ids (vr-…) or object references (Kind/namespace/name, node ids). At least one is required. Whether the environment meets the rule is decided per object by the deterministic validator, not by this list`,
+		`(verified claim ids, validation ids or object references: the evidence of this environment's state with respect to the rule's conditions, whether met or not)`,
+	}
+	tools := string(v8.ToolsJSON)
+	for i := range basisV8 {
+		if strings.Count(tools, basisV8[i]) != 1 {
+			t.Fatalf("v8 tools.json lacks the basis wording %q", basisV8[i])
+		}
+		tools = strings.Replace(tools, basisV8[i], basisV7[i], 1)
+	}
+	if tools != string(v7.ToolsJSON) {
+		t.Error("v8 tools.json differs from v7 beyond the environmentBasis wording")
+	}
+	for _, name := range []string{"meta.json", "task.md"} {
 		a, err := promptFS.ReadFile("prompts/" + promptV7 + "/" + name)
 		must(t, err)
 		b, err := promptFS.ReadFile("prompts/" + promptV8 + "/" + name)
 		must(t, err)
 		if !bytes.Equal(a, b) {
-			t.Errorf("v8 %s differs from v7: v8 changes no tool, feature or whole-agenda task", name)
+			t.Errorf("v8 %s differs from v7: v8 changes no feature or whole-agenda task", name)
 		}
 	}
 	for _, name := range []string{"system.md", "item.md"} {
@@ -91,9 +113,9 @@ func TestPromptV8(t *testing.T) {
 	// the revision's instructions are present
 	for _, want := range []string{
 		"whether the environment meets\nthe condition on all, some or none of the exposed objects", // mitigation trigger
-		"when no exposed object meets it",                    // basis when it holds nowhere
-		"consequence a consumer can observe",                 // change vs consequence
-		"name the condition under\nwhich it does NOT hold",   // scoped rule
+		"whether met or not",                                       // basis: the state, met or not
+		"consequence a consumer can observe",                       // change vs consequence
+		"name the condition under\nwhich it does NOT hold",         // scoped rule
 		"Every\ncondition named there that upstream text supports", // wouldOverturn consistency
 		"Trace the consumers with the tools before you settle on `potentially-affected`",
 		"produced at runtime by a controller and is absent from the snapshot",
@@ -162,8 +184,9 @@ func TestPromptV8IsGeneric(t *testing.T) {
 // Under v8 a mitigation whose condition this environment meets on only some
 // exposed objects is stored, with the basis naming those objects; one that
 // holds on none is stored when its basis names the objects whose state was
-// established. An empty basis is still rejected by the unchanged tool layer
-// (the hypothesis stays free text and the model is told why).
+// established (the basis is the environment's state with respect to the
+// conditions, met or not). An empty basis is still rejected by the unchanged
+// tool layer (the hypothesis stays free text and the model is told why).
 func TestV8MitigationWithPartialBasisIsStored(t *testing.T) {
 	f := newWidgetFixture(t, widgetOpts{})
 	if len(f.explicit) == 0 || len(f.unset) == 0 {
