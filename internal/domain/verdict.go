@@ -123,7 +123,12 @@ type MitigationSpec struct {
 	Item         string       `json:"item"`
 	ProposedRule ProposedRule `json:"proposedRule"`
 	// EnvironmentBasis are setting claim ids (clm-…), validation record ids
-	// (vr-…) or object references the tool layer resolved in the run.
+	// (vr-…) or object references the tool layer resolved in the run: the
+	// verified evidence of this environment's state with respect to the
+	// rule's conditions, whether met or not (commander decision 2026-10-17,
+	// W-0029). Non-empty is required. It is not an applicability decision:
+	// whether the environment meets the rule is decided per object by the
+	// deterministic validator; only the recorder and storage read this field.
 	EnvironmentBasis      []string `json:"environmentBasis"`
 	RequestedVerification string   `json:"requestedVerification"`
 }

@@ -992,8 +992,9 @@ structured and checked:
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.
 
-**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7, the default,
-is v6 plus verdict citation inheritance, below; Phase 5, `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
+**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
+verdict citation inheritance, and v8, the default, revises the mitigation instructions, both below; Phase 5,
+`docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
 the v5 surface. It adds three things.
 
 *Item dossier* (`internal/investigate/agent/dossier.go`, `ri.dev/item-dossier/v1`, producer
@@ -1060,6 +1061,41 @@ overturn it.
   and item prompts are v6's byte for byte. A transcript replays only under the version it was recorded with
   (the replay driver refuses another prompt digest): `ri investigate -agent-prompt investigate-agent/v6 …`
   pins an earlier version, and a `ri eval -investigations` replay arm defaults to the replayed run's version.
+- **v8** (Phase 5 W-0029, PROTOCOL amendment 2026-10-17 10:55; one revision, then frozen). Run
+  `B0-K0-20261017-6d2ae5bf` (v7, 8 cases) made **zero** `record_hypothesis` calls, although many verdicts named,
+  in `wouldOverturn` / `proposedValidations`, conditions under which the change would not reach an object (the
+  field set to the old value on some objects, a feature disabled, nothing depending on the changed property).
+  The v7 trigger ("when you believe a setting or condition in the environment preserves the old behaviour") was
+  read as "only when the environment meets it for the whole item". v8 changes `system.md`, `item.md` and the
+  `environmentBasis` wording of `tools.json` (the schema is v7's); `meta.json` and `task.md` are v7's byte for
+  byte (no tool, validator, policy, budget or verdict schema change). It says:
+  - a mitigation is a **release-level rule**: record it whenever upstream text supports a condition under which
+    an exposed object is not impacted, whether the environment meets it on all, some or none of the exposed
+    objects — the validator decides per object afterwards. **`environmentBasis`** is the verified evidence of
+    this environment's state with respect to the rule's conditions, **whether met or not** (commander decision
+    2026-10-17, W-0029; documented on `domain.MitigationSpec` and in the v8 tool schema): the claims/objects that
+    meet the condition and those that do not; when none meets it the statement says so. It stays non-empty
+    (a mitigation with no environment evidence is rejected, unchanged). It is not an applicability decision:
+    only the recorder and storage read it — not export, verification, the promotion gate or policy;
+  - **change vs consequence**: distinguish the objects whose setting changes from those where a consumer can
+    observe the change, and scope the rule's applicability and consequence to the latter as a decidable
+    predicate over the subject's fields and the references it states (`field` / `ref` inside `resource`),
+    naming when it does not hold (an abstract example, no product);
+  - **consistency**: every upstream-supported, environment-checkable condition in `wouldOverturn` is a recorded
+    mitigation named in the verdict's `mitigations`, or carries a one-line reason it is not expressible in the
+    fact grammar;
+  - **consumers**: when the open question is whether anything depends on the changed property, trace what
+    references the object (or what it produces) and what it reads, record that as claims and assertions before
+    settling on `potentially-affected`; a runtime-produced object absent from the snapshot is said to be absent
+    and reasoned about from what references it.
+
+  The revision was made after seeing in-sample v7 results and is reported as such (PROTOCOL amendment).
+  Tests: v8 is the default and v1–v7 are frozen by a files digest; v8's tools.json differs from v7's only by
+  the basis wording; v8's text names no evaluation product, environment, kind or field (a word list plus every
+  token of the case directory names); a v8 session that records a mitigation whose basis covers only some (or
+  none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
+  case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
+  was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1117,7 +1153,7 @@ the agent's outputs.
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
 v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
-citations. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 

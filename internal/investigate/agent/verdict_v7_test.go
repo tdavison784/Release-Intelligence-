@@ -52,8 +52,8 @@ func TestPromptV7(t *testing.T) {
 	if v6.Digest("t") == v7.Digest("t") {
 		t.Error("v6 and v7 share a prompt digest")
 	}
-	if _, err := LoadPrompt(promptV7); err != nil || DefaultPromptVersion != promptV7 {
-		t.Fatalf("default %s: %v", DefaultPromptVersion, err)
+	if _, err := LoadPrompt(promptV7); err != nil {
+		t.Fatalf("%s: %v", promptV7, err)
 	}
 }
 
