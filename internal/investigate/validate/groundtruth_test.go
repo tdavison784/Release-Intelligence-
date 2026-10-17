@@ -124,8 +124,8 @@ func TestGroundtruthBundles(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			vals := []investigate.Validator{JoinVerdicts(rep, WithStore(st)), RenderDiff(WithStore(st)),
-				OverrideInspection(WithStore(st), WithFacts(facts...)), SchemaCompat(WithStore(st)), StaticReference(WithStore(st))}
+			vals := []investigate.Validator{JoinVerdicts(rep, WithStore(st)), RenderDiff(WithStore(st), WithRelations(relations.WithCatalog(a.Catalog))),
+				OverrideInspection(WithStore(st), WithFacts(facts...)), SchemaCompat(WithStore(st)), StaticReference(WithStore(st), WithRelations(relations.WithCatalog(a.Catalog)))}
 			counts := map[string]int{}
 			var lines []string
 			for _, it := range b.Change.Items {

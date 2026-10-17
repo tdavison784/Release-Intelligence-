@@ -227,3 +227,19 @@ func TestRenderDiffDeclaredReferenceDangles(t *testing.T) {
 		})
 	}
 }
+
+// A list reordering (a removed volume shifts the others) does not make a
+// pre-existing dangle new: references are compared by target, and a target
+// that dangled at FROM too (e.g. a Secret a hook Job creates at runtime) is
+// not the upgrade's doing — also for a new referrer naming it.
+func TestRenderDiffReorderedPreexistingReferenceDoesNotFail(t *testing.T) {
+	two := strings.Replace(webDeploy("hook-made"), "      volumes:\n", "      volumes:\n        - name: otel\n          configMap: {name: otel}\n", 1)
+	other := strings.Replace(webDeploy("hook-made"), "name: web,", "name: web2,", 1)
+	f, item := renderFx(t)
+	f.pair("argocd:apps/web.yaml", stream(two, configMap("otel", "apps", map[string]string{"a": "b"})), stream(webDeploy("hook-made"), other),
+		rc("field-removed", webKey, "spec.template.spec.volumes[name=otel]", "", "", "values-default", item),
+		rc("resource-added", "apps/v1/Deployment/apps/web2", "", "", "", "values-default", item))
+	b := f.bundle()
+	r := one(t, run(t, RenderDiff(WithStore(f.st)), investigate.ValidationInput{Bundle: b, ChangeItem: item}))
+	wantOutcome(t, r, domain.ValidationError, "dangled at FROM too")
+}

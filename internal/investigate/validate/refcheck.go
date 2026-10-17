@@ -74,11 +74,11 @@ func (r refCheck) line() string {
 	s := fmt.Sprintf("%s (%s) %s → %s [%s]: ", ref.Referrer, where, ref.Field, ref.TargetString(), ref.Rule)
 	switch r.state {
 	case refNew:
-		s += "a reference the upgrade introduces, and nothing at TO provides its target (not rendered, not an environment file, no declared producer)"
+		s += "a reference the upgrade introduces to a target nothing referenced at FROM, and nothing at TO provides it (not rendered, not an environment file, no declared producer)"
 	case refRegressed:
 		s += fmt.Sprintf("resolved at FROM (to %s); at TO nothing provides it (not rendered, not an environment file, no declared producer)", r.from.Target)
 	case refPreexisting:
-		s += "dangled at FROM too (the environment provides it outside the snapshot, or it was already missing): not the upgrade's doing"
+		s += "dangled at FROM too (the environment provides it outside the snapshot — e.g. a hook or controller creates it at runtime — or it was already missing): not the upgrade's doing"
 	case refUnknown:
 		s += "cannot be decided: " + firstNonEmpty(ref.Reason, fromReason(r.from))
 	case refResolved:
@@ -99,20 +99,29 @@ func firstNonEmpty(xs ...string) string {
 	return ""
 }
 
-// compareRefs classifies every TO reference that relevant selects against
-// the same reference (referrer, field, target) at FROM.
+// compareRefs classifies every TO reference that relevant selects by what
+// the FROM render says about its target (kind, namespace, name — not the
+// field or list position, which a reordering upgrade shifts): a target some
+// FROM reference resolved and TO no longer provides is regressed; one FROM
+// references dangled at too is pre-existing (the environment provides it
+// outside the snapshot — a hook or a controller creates it at runtime — or it
+// was already missing); one no FROM reference names is new.
 func compareRefs(from, to *relations.View, relevant func(relations.Reference) bool) []refCheck {
-	atFrom := map[string]*relations.Reference{}
+	rank := map[relations.Resolution]int{relations.RefResolved: 3, relations.RefDangling: 2, relations.RefUnknown: 1}
+	atFrom := map[string]*relations.Reference{} // target → the most telling FROM reference to it
 	for i := range from.References {
 		r := &from.References[i]
-		atFrom[r.Identity()] = r
+		k := r.TargetIdentity()
+		if cur := atFrom[k]; cur == nil || rank[r.Resolution] > rank[cur.Resolution] {
+			atFrom[k] = r
+		}
 	}
 	var out []refCheck
 	for _, r := range to.References {
 		if !relevant(r) {
 			continue
 		}
-		c := refCheck{ref: r, from: atFrom[r.Identity()]}
+		c := refCheck{ref: r, from: atFrom[r.TargetIdentity()]}
 		switch r.Resolution {
 		case relations.RefResolved:
 			c.state = refResolved

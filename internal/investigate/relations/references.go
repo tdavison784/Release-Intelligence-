@@ -81,6 +81,12 @@ func (r Reference) Identity() string {
 	return r.Referrer + "|" + r.Field + "|" + r.Kind + "|" + r.Namespace + "|" + r.Name
 }
 
+// TargetIdentity names the target alone (kind, namespace, name): the same
+// at both sides whatever refers to it, from which field or list position.
+func (r Reference) TargetIdentity() string {
+	return r.Kind + "|" + r.Namespace + "|" + r.Name
+}
+
 // TargetMatches reports whether the reference names the object with key
 // (render object id form), ignoring the API version (a reference never
 // states it).
