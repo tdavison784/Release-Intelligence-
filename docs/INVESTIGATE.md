@@ -205,7 +205,7 @@ does not cover its request's subjects. Undecided records never count as clearing
 |---|---|---|---|---|
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
 | `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
-| `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
+| `OverrideInspection(opts…)` | `validate.override-inspection@v2` | override-inspection | all | an explicit setting pinning the old behaviour |
 | `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
 | `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
 
@@ -251,16 +251,57 @@ record (rule id in the provenance, source in the detail):
 | Rule | Source | Setting |
 |---|---|---|
 | `pin:join-pinned@v1` | the join's own pinned verdict on a computed default change (`impact:values-pinned`, `impact:crd-default-pinned`), with no other non-clear finding of the change | the values keys (every changed key) / the field on every resource; objects only the environment render shows must set it too |
-| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
-| `pin:knowledge-exposure@v1` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` | the explicit setting / one of `V` |
+| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item that states **no applicability**: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
+| `pin:knowledge-exposure@v2` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` — top level, or inside a `resource` scope (directly or under `all`/`any`) | the explicit setting / one of `V`, on the objects of the scope (below); a leaf on the subject's own setting of a default change also accepts the old default |
+
+A fact that states an applicability is decided by it: its default change alone is never a pin (the fact may say
+objects are exposed whatever the setting).
 
 The setting must hold **everywhere it matters**: in every complete environment render target (controller flags,
-env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every visible object of the kind
-(environment files and rendered objects). A setting that is absent, set only on some objects or installs, set only
+env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every object of the kind in the effective
+object view that the rule's scope does not provably exclude. A setting that is absent, set only on some objects or installs, set only
 after the upgrade to a non-old value, or changed across it is never a pass; neither is any rule from a consensus
 or proxy fact, an incomplete render, a partially collected input, or an unparsable environment file that may
 declare objects of the kind. Facts come from the bundle's `knowledge-fact` artifacts related to the item and from
 `WithFacts` (attached through the report's knowledge findings or `impact.AttachedChanges`).
+
+### Pin rule applicability and the effective object view (Phase 5)
+
+**Scope.** An exposure leaf keeps the `resource` scope it sits in (e.g. "Widgets whose `spec.role` equals
+`root` and leave `spec.rotation` unset"). Each object of the kind is decided **three-valued** against the whole
+scope, with the pin leaf taking the value the setting gives it: *false* with the setting pinning it → a pinning
+record; *false* although the setting does not pin it → **provably out of scope**, excluded from the requirement
+and listed (with evidence) in the pass's detail; *true* → a miss (the object is in scope, or in scope through
+another condition); *unknown* → undecidable, never excluded. Leaves follow the impact join's semantics
+(`internal/impact`): field states over what the object states, Kleene `all`/`any`/`not`, `text-line`, and `ref`
+resolving to exactly one object of the view (by name and the kind/group/namespace it states, else the referring
+object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
+object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
+artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
+CRD, or an ancestor default, or a schema that does not describe the path, it is undecidable; and a reference
+resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
+object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
+
+**Effective object view.** The objects are what the environment actually applies: the to side of every complete
+render of the product (from side for the value before the upgrade), the render of every **version-independent
+overlay** (a `not-applicable` kustomize pair: it renders the same objects at both versions), and the environment
+files **no render consumed**. Which files a kustomize render consumed is read from the bundle's own kustomization
+files (`resources`, `bases`, `components`, `crds`, `patchesStrategicMerge`, `patches[].path`,
+`patchesJson6902[].path`, recursively) — so a base object and the overlay patch that sets the pinned field are seen
+as one merged object, never as an unpatched base plus a patch. A file consumed by a render whose objects are not
+available (render failed) is undecidable. Every hit, miss and exclusion names the view the object came from
+(`environment render <target> (to)`, `environment render <target>, version-independent overlay`,
+`environment file <path>, no render consumed it`); a pass lists the files it saw through renders.
+
+**Trust and lifecycle.** Only active facts whose weakest aspect is deterministic or human pin. A fact pins only
+when its `release` lies inside the transition (`from < release ≤ to`, same product); a fact that states no release
+never pins. When an active fact inside the transition about the same subject (any level, attached or not) states a
+different change or applicability than a pin-source fact, nothing pins for the item: `pin:contradicting-facts`.
+
+Reason codes of a `not-run` override inspection (provenance rule): `pin:no-rule` (no rule names a setting —
+includes untrusted, inactive and out-of-transition facts, each noted), `pin:not-established` (a rule's setting
+does not hold everywhere), `pin:applicability-undecidable` (a rule failed only on objects whose scope membership
+cannot be decided), `pin:contradicting-facts`.
 
 **SchemaCompat** — compatibility items: the snapshot's Kubernetes version against the target constraint
 (`upgrade.EvaluatePlatformConstraint`; anchors `<platform>` or `<platform>/<kind>`): inside → `pass`; outside a

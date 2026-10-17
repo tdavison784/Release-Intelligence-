@@ -33,7 +33,7 @@ const (
 	// setting (or a value in V) falsifies the exposure. A leaf inside a
 	// resource scope keeps the scope: only the objects the scope's other
 	// conditions do not provably exclude must carry the setting.
-	RulePinExposure = "pin:knowledge-exposure@v1"
+	RulePinExposure = "pin:knowledge-exposure@v2"
 )
 
 // Reason codes of an override inspection that establishes no pin (the
@@ -142,17 +142,24 @@ func orAny(s string) string {
 
 // specsFromFact derives the pin specs a trusted fact supports, with a note
 // when it supports none.
+//
+// A fact that states an applicability is decided by it: its exposure leaves
+// are the specs (a leaf on the subject's own setting also accepts the old
+// default of a default change), and the default change alone is never a
+// pin — the fact may say that objects are exposed whatever the setting. A
+// fact without applicability pins through its default change.
 func specsFromFact(f domain.VerifiedFact, artifact string) ([]pinSpec, string) {
 	a := f.Assertion
 	var specs []pinSpec
 	var notes []string
+	var def *pinSpec
 	if a.Subject != nil && a.Change != nil && a.Change.Type == domain.ChangeKindDefaultChanged {
 		s, why := specFromSubject(*a.Subject)
 		if why != "" {
 			notes = append(notes, why)
 		} else {
 			s.rule, s.before = RulePinDefaultChanged, a.Change.Before
-			specs = append(specs, s)
+			def = &s
 		}
 	}
 	if a.Applicability != nil {
@@ -161,8 +168,16 @@ func specsFromFact(f domain.VerifiedFact, artifact string) ([]pinSpec, string) {
 		}
 		for _, s := range specsFromExposure(a.Applicability.Exposure) {
 			s.rule = RulePinExposure
+			if def != nil && len(s.equals) == 0 && sameSetting(s, *def) {
+				s.before = def.before
+			}
 			specs = append(specs, s)
 		}
+		if len(specs) == 0 && def != nil {
+			notes = append(notes, "the fact's exposure condition names no setting whose explicit value falsifies it, so its default change alone is no pin (the applicability decides who is exposed)")
+		}
+	} else if def != nil {
+		specs = append(specs, *def)
 	}
 	for i := range specs {
 		specs[i].fact, specs[i].factArtifact = &f, artifact
@@ -171,6 +186,17 @@ func specsFromFact(f domain.VerifiedFact, artifact string) ([]pinSpec, string) {
 		notes = append(notes, "neither a default change of a settable subject nor an exposure leaf an explicit setting falsifies")
 	}
 	return specs, strings.Join(notes, "; ")
+}
+
+// sameSetting reports whether two specs name the same setting.
+func sameSetting(a, b pinSpec) bool {
+	if a.kind != b.kind {
+		return false
+	}
+	if a.container != nil || b.container != nil {
+		return a.container != nil && b.container != nil && a.container.Name == b.container.Name && a.container.Component == b.container.Component
+	}
+	return a.objKind == b.objKind && a.group == b.group && a.path == b.path
 }
 
 // specFromSubject maps a settable subject to a spec.
