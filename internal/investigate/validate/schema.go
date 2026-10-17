@@ -264,7 +264,7 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 			}
 		}
 	}
-	var violations, checked []string
+	var violations, checked, withheld []string
 	var vEvidence, cEvidence []domain.Evidence
 	var vObjects, cObjects []string
 	for _, o := range objs {
@@ -274,7 +274,7 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 			}
 			return artifactEvidence(domain.EvidenceLocalFile, o.src.artifact, o.obj.ID.String()+" "+path, excerpt, nil)
 		}
-		var bad []string
+		var bad, hidden []string
 		switch aspect {
 		case aspectKind:
 			bad = append(bad, fmt.Sprintf("is a %s, whose CRD %s the target no longer ships", kind, name))
@@ -292,6 +292,10 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 			for p, removed := range enums {
 				vals, _ := lookup(o.obj.Body, p)
 				for _, val := range vals {
+					if redactedValue(val) {
+						hidden = append(hidden, p)
+						continue
+					}
 					for _, r := range removed {
 						if sameValue(val, r) {
 							bad = append(bad, fmt.Sprintf("sets %s to %s, a value the target no longer allows", p, val))
@@ -315,6 +319,10 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 			for p, want := range types {
 				vals, _ := lookup(o.obj.Body, p)
 				for _, val := range vals {
+					if redactedValue(val) {
+						hidden = append(hidden, p)
+						continue
+					}
 					if got := jsonKind(val); got != "" && !typeFits(got, want) {
 						bad = append(bad, fmt.Sprintf("sets %s to a %s, but the target schema wants %s", p, got, want))
 					}
@@ -322,11 +330,15 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 			}
 		}
 		where := fmt.Sprintf("%s (%s)", o.obj.ID, o.src.artifact.Path)
-		if len(bad) > 0 {
+		switch {
+		case len(bad) > 0:
 			violations = append(violations, where+" "+strings.Join(bad, "; "))
 			vEvidence = append(vEvidence, ev("", strings.Join(bad, "; ")))
 			vObjects = append(vObjects, o.obj.ID.String())
-		} else {
+		case len(hidden) > 0:
+			// a withheld value may be the very value the target rejects
+			withheld = append(withheld, where+" "+strings.Join(hidden, ", "))
+		default:
 			checked = append(checked, where)
 			cEvidence = append(cEvidence, ev("", "compatible with "+string(change.Provenance.Rule)))
 			cObjects = append(cObjects, o.obj.ID.String())
@@ -346,6 +358,9 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 		return nil
 	}
 	switch {
+	case len(withheld) > 0:
+		out.notRun(cov, "schema:withheld", property, fmt.Sprintf("the value the change is about is withheld (redacted) in %d %s object(s), so their compatibility is unknown: %s",
+			len(withheld), kind, strings.Join(withheld, "; ")))
 	case len(checked) == 0:
 		out.notRun(cov, "schema:no-objects", property, fmt.Sprintf(
 			"no %s/%s %s object is visible in the environment files or renders; absence in the repository is not proof of absence (objects can be created by controllers or out of band)",

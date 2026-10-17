@@ -2,31 +2,35 @@ package bundle
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
-// Redaction (DESIGN.md §2.3), applied at collection, before hashing:
+// Redaction (DESIGN.md §2.3), applied at collection, before hashing, with the
+// rule of package redaction (shared with the render model):
 //
 //   - Kubernetes Secret data/stringData values become "<redacted sha256:…>"
 //     (keys kept);
-//   - values whose key's last path segment names a credential (password,
-//     token, apikey, privatekey, …) likewise.
+//   - values whose own key names a credential (password, token, apikey,
+//     privatekey, accessKey, …) likewise, unless the key is an object
+//     reference's (secretName, …Ref.name, …Ref.key); any value holding a
+//     private key; the value of a credential-named environment variable;
+//   - below a credential-named key holding a mapping or list, only booleans,
+//     nulls, numbers and reference keys stay readable (v1 withheld the whole
+//     mapping, so `privateKey: {size: 256}` lost its size);
+//   - a CustomResourceDefinition is a schema: only private-key content is
+//     withheld in it.
 //
 // A document that needs no redaction is returned byte for byte; only a
 // changed document is re-encoded, so ordinary files keep their text.
 
-var sensitiveKey = regexp.MustCompile(`(?i)password|passwd|secret|token|apikey|api_key|privatekey|private_key|credentials?`)
+var sensitiveKey = redaction.SensitiveKey
 
-func redactedValue(raw string) string {
-	sum := sha256.Sum256([]byte(raw))
-	return "<redacted sha256:" + hex.EncodeToString(sum[:])[:12] + ">"
-}
+func redactedValue(raw string) string { return redaction.Marker(raw) }
 
 // redactable reports whether the file extension is one redaction understands.
 func redactable(name string) bool {
@@ -49,8 +53,11 @@ func redactYAML(in []byte) (out []byte, redacted bool) {
 			buf.Write(d)
 			continue
 		}
-		if redactNode(root.Content[0], "", isSecretDoc(root.Content[0])) {
+		if secret, crd := docKind(root.Content[0]); redactNode(root.Content[0], "", false, secret, crd) {
 			var enc bytes.Buffer
+			if nl := bytes.IndexByte(d, '\n'); nl >= 0 && isSeparator(d[:nl]) {
+				enc.Write(d[:nl+1]) // v1 dropped it, merging the document into the one before
+			}
 			e := yaml.NewEncoder(&enc)
 			e.SetIndent(2)
 			if err := e.Encode(&root); err == nil && e.Close() == nil {
@@ -84,7 +91,7 @@ func splitDocs(in []byte) [][]byte {
 		} else {
 			line = in[pos:]
 		}
-		if (bytes.HasPrefix(line, []byte("---")) && len(bytes.TrimSpace(line[3:])) == 0) && pos > start {
+		if isSeparator(line) && pos > start {
 			docs = append(docs, in[start:pos])
 			start = pos
 		}
@@ -96,9 +103,16 @@ func splitDocs(in []byte) [][]byte {
 	return docs
 }
 
-func isSecretDoc(n *yaml.Node) bool {
+// isSeparator reports whether line is a document separator line.
+func isSeparator(line []byte) bool {
+	return bytes.HasPrefix(line, []byte("---")) && len(bytes.TrimSpace(line[3:])) == 0
+}
+
+// docKind reports whether a document is a core Secret or a
+// CustomResourceDefinition.
+func docKind(n *yaml.Node) (secret, crd bool) {
 	if n.Kind != yaml.MappingNode {
-		return false
+		return false, false
 	}
 	var kind, api string
 	for i := 0; i+1 < len(n.Content); i += 2 {
@@ -109,39 +123,65 @@ func isSecretDoc(n *yaml.Node) bool {
 			api = n.Content[i+1].Value
 		}
 	}
-	return kind == "Secret" && (api == "v1" || api == "")
+	return kind == "Secret" && (api == "v1" || api == ""), redaction.CRDDocument(api, kind)
 }
 
-// redactNode walks n; key is the last mapping key on the way down. In a
-// Secret document everything below data/stringData is redacted. It reports
-// whether it changed anything.
-func redactNode(n *yaml.Node, key string, secretDoc bool) bool {
+// redactNode walks n; key is the nearest mapping key on the way down and
+// under reports that a key further up names a credential and holds a
+// mapping or list. In a Secret document everything below data/stringData is
+// redacted; in a CRD only private keys are. It reports whether it changed
+// anything.
+func redactNode(n *yaml.Node, key string, under, secretDoc, crd bool) bool {
 	changed := false
 	switch n.Kind {
 	case yaml.MappingNode:
+		envName, hasName := "", false
+		for i := 0; i+1 < len(n.Content); i += 2 {
+			if n.Content[i].Value == "name" {
+				hasName = true
+				if n.Content[i+1].Kind == yaml.ScalarNode {
+					envName = n.Content[i+1].Value
+				}
+			}
+		}
 		for i := 0; i+1 < len(n.Content); i += 2 {
 			k, v := n.Content[i].Value, n.Content[i+1]
 			switch {
 			case secretDoc && (k == "data" || k == "stringData") && v.Kind == yaml.MappingNode:
 				changed = redactAll(v) || changed
-			case sensitiveKey.MatchString(k) && !isBoolLike(v):
-				changed = redactAll(v) || changed
+			case !crd && k == "value" && v.Kind == yaml.ScalarNode && envName != "" && redaction.CredentialEnvVar(envName):
+				changed = redactScalar(v) || changed
+			case !crd && (v.Kind == yaml.MappingNode || v.Kind == yaml.SequenceNode) && redaction.CredentialContainer(k):
+				changed = redactNode(v, k, true, secretDoc, crd) || changed
+			case v.Kind == yaml.ScalarNode:
+				changed = redactLeaf(v, k, under, crd, hasName) || changed
 			default:
-				changed = redactNode(v, k, secretDoc) || changed
+				changed = redactNode(v, k, under, secretDoc, crd) || changed
 			}
 		}
 	case yaml.SequenceNode:
 		for _, c := range n.Content {
-			changed = redactNode(c, key, secretDoc) || changed
+			changed = redactNode(c, key, under, secretDoc, crd) || changed
 		}
+	case yaml.ScalarNode:
+		changed = redactLeaf(n, key, under, crd, false) // a list item
 	}
 	return changed
 }
 
-// isBoolLike keeps flags such as `createSecret: true` readable: a secret is
-// never a boolean.
-func isBoolLike(v *yaml.Node) bool {
-	return v.Kind == yaml.ScalarNode && (v.Tag == "!!bool" || v.Tag == "!!null")
+// redactLeaf applies the rule to one scalar; nameSibling: its mapping has a
+// "name" key.
+func redactLeaf(n *yaml.Node, key string, under, crd, nameSibling bool) bool {
+	kind := redaction.KindOfTag(n.ShortTag())
+	switch {
+	case crd:
+		if kind == redaction.String && redaction.HoldsPrivateKey(n.Value) {
+			return redactScalar(n)
+		}
+	case !redaction.Keep(key, kind, n.Value, under, nameSibling):
+		return redactScalar(n)
+	}
+	return false
 }
 
 // redactAll replaces every scalar below n.
@@ -149,10 +189,7 @@ func redactAll(n *yaml.Node) bool {
 	changed := false
 	switch n.Kind {
 	case yaml.ScalarNode:
-		if n.Value != "" && !strings.HasPrefix(n.Value, "<redacted sha256:") {
-			n.Value, n.Tag, n.Style = redactedValue(n.Value), "!!str", yaml.DoubleQuotedStyle
-			changed = true
-		}
+		changed = redactScalar(n)
 	case yaml.MappingNode:
 		for i := 1; i < len(n.Content); i += 2 {
 			changed = redactAll(n.Content[i]) || changed
@@ -163,4 +200,12 @@ func redactAll(n *yaml.Node) bool {
 		}
 	}
 	return changed
+}
+
+func redactScalar(n *yaml.Node) bool {
+	if n.Value == "" || redaction.IsMarker(n.Value) {
+		return false
+	}
+	n.Value, n.Tag, n.Style = redactedValue(n.Value), "!!str", yaml.DoubleQuotedStyle
+	return true
 }

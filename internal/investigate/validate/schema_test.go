@@ -5,6 +5,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 func kubeConstraint(kind, constraint string, ev domain.EvidenceID) *domain.CompatibilityConstraint {
@@ -115,6 +116,9 @@ func TestSchemaCRDObjects(t *testing.T) {
 		{"removed version unused", versionRemoved, []string{widgetV("w1", "v1", "")}, "", domain.ValidationPass, ""},
 		{"removed enum value used", enum, []string{widgetV("w1", "v1", "  rotation: Hourly\n")}, "", domain.ValidationFail, "no longer allows"},
 		{"enum value still allowed", enum, []string{widgetV("w1", "v1", "  rotation: Never\n")}, "", domain.ValidationPass, ""},
+		// a withheld (redacted) value may be the removed one: never compatible
+		{"enum value withheld", enum, []string{widgetV("w1", "v1", "  rotation: \""+redaction.Marker("Hourly")+"\"\n")}, "", domain.ValidationNotRun, "withheld (redacted) in 1 Widget object(s)"},
+		{"enum value withheld, another removed", enum, []string{widgetV("w1", "v1", "  rotation: \""+redaction.Marker("Never")+"\"\n"), widgetV("w2", "v1", "  rotation: Hourly\n")}, "", domain.ValidationFail, "w2"},
 		{"newly required omitted", required, []string{widgetV("w1", "v1", "")}, "", domain.ValidationFail, "omits spec.owner"},
 		{"newly required set", required, []string{widgetV("w1", "v1", "  owner: team\n")}, "", domain.ValidationPass, ""},
 		{"removed CRD still used", crdRemoved, []string{widgetV("w1", "v1", "")}, "", domain.ValidationFail, "no longer ships"},

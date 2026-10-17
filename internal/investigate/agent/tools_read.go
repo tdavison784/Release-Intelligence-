@@ -359,6 +359,7 @@ func (s *Session) readArtifact(ctx context.Context, r investigate.ReadRequest) (
 		res.Truncated = true
 	}
 	res.ToLine, res.Text = end, b.String()
+	res.ReadBack = s.readBack(ctx, a, text, res.Text)
 	return &outcome{value: res, commit: s.retrieve(nil, a.ID)}, nil
 }
 

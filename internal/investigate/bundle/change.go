@@ -20,8 +20,9 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
-// ChangeProducer identifies the change collector in provenance.
-const ChangeProducer = "bundle.change@v1"
+// ChangeProducer identifies the change collector in provenance. v2: release
+// renders are redacted with redaction@v2 (redact.go).
+const ChangeProducer = "bundle.change@v2"
 
 const (
 	maxDocsPerSource = 25      // documents fetched per change source kind

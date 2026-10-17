@@ -602,6 +602,20 @@ type ReadResult struct {
 	TotalLines int                `json:"totalLines"`
 	Text       string             `json:"text"`
 	Truncated  bool               `json:"truncated,omitempty"`
+	// ReadBack: the withheld values in Text that are a schema enum value,
+	// read back from their redaction digest (the text stays verbatim).
+	ReadBack []ReadBack `json:"readBack,omitempty"`
+}
+
+// ReadBack is one redaction marker read back: the one string enum value the
+// bundle's CRDs declare for the field whose digest the marker is
+// (redaction.Schemas.Recover). CONTRACT-CHANGE(redact): additive.
+type ReadBack struct {
+	Object string `json:"object"`
+	Path   string `json:"path"`
+	Marker string `json:"marker"`
+	Value  string `json:"value"`
+	Note   string `json:"note"`
 }
 
 // ExpandRequest returns the neighbourhood of a node.
