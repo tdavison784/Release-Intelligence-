@@ -62,6 +62,44 @@ names a credential (`password`, `token`, `apiKey`, `privateKey`, `credentials`, 
 withheld from the facts artifact and from evidence excerpts. Files that are not YAML/JSON are stored
 verbatim.
 
+### Redaction below credential-named maps (redaction@v2, Phase 5 lane redact)
+
+One policy (`internal/investigate/redaction`) covers the environment files, the release-scope renders and
+the facts artifact (`bundle.snapshot@v2`, `bundle.change@v2`):
+
+- Secret `data`/`stringData` values and every scalar whose **own** key names a credential stay withheld
+  exactly as before (a boolean or null stays readable: `createSecret: true`); a credential-named **list** is
+  withheld whole.
+- A value holding a PEM private-key block is withheld under any key (new in v2: v1 only checked keys).
+- A credential-named key holding a **mapping** (`spec.privateKey`, `credentials:`) is walked instead of wiped
+  (v1 withheld the whole mapping, so `privateKey.size` and `privateKey.rotationPolicy` were invisible). Below
+  it only a boolean, null or number stays readable. Every string stays withheld, because no schema is known
+  before hashing.
+- A re-encoded document keeps its `---` separator line. v1 dropped it, merging the document into the one
+  before.
+
+**Read-back** (`redaction.Schemas.Recover`): a marker below a credential-named mapping is replaced by a
+string enum value of the bundle's CRDs only when the field's own key names no credential, the object is not
+a core Secret, and exactly one enum value declared for that exact group/version/kind and field path has
+that marker. The CRDs are the upstream CRD artifacts plus those the environment files and environment
+renders declare. So only a constant the schema itself lists is ever shown. Free text, names and anything
+without a declared enum stay withheld. Stored bytes never change. The read-back runs where a schema is at
+hand:
+
+- the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v2`). A pin
+  decided on a read-back value says so in its detail ("stored redacted as …: the digest of "Never", an
+  enum value its CRD declares").
+- the item dossier (`investigate.dossier@v2`, the object's `reason`).
+- `read_artifact`: the text stays verbatim, so quotes still verify. `readBack` lists the markers in the
+  window that were read back (object, path, marker, value).
+
+A marker that is not read back is **undecidable**, never compared as a literal value. A pin scope condition
+on it is unknown (the object is never "provably out of scope"), and a schema-compat check whose value is
+withheld is `not-run` (`schema:withheld`), never a pass.
+
+The renderer's own model (`internal/render`, `<sensitive sha256:…>`) has always judged each scalar by its
+own key (it never wiped a mapping) and is unchanged.
+
 **Reproducibility.** The bundle id is derived from content only. Wall-clock fields (`generatedAt`,
 `retrievedAt`) are zeroed in the stored edge copy and `CreatedAt` is not part of the id, so two runs over
 the same upstream evidence, repository state and renders yield the same bundle id; a changed file, a
