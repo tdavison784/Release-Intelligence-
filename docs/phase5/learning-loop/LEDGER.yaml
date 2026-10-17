@@ -319,10 +319,23 @@ items:
   - id: W-0033
     title: "Check: v8 agent saw mesh-root-ca rotationPolicy as a redacted digest — residual redaction gap in some read path?"
     kind: commander-task
-    status: ready
+    status: done
+    owner: ri-eval5
+    result: "agent tool search_manifest (tools_read.go:163) returns raw matching lines without CRD-enum read-back (read_artifact and the dossier apply it); the agent saw <redacted sha256:…> for rotationPolicy/algorithm in the raw files but the dossier showed explicit Never. Pin validator unaffected (envview recoverWithheld; mesh-root-ca decided explicit Never). Agent-view only, no policy effect."
+    follow-up: W-0034
     depends: []
     providers: [claude, glm]
     glm-executable: true
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: "inv-377edfda16af verdict: 'its value is redacted but is the digest of Never'"}
+  - id: W-0034
+    title: "search_manifest: apply CRD-enum read-back to matched lines (agent view only)"
+    kind: lane
+    status: queued
+    depends: [W-0018]
+    note: "deferred until after the report: fixing it before the held-out B0 would make held-out and dev-pair B0 conditions differ; disclosed as a limitation (the dossier showed the correct value)"
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: W-0033}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}
