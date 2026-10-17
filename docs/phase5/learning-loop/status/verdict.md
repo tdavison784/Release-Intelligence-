@@ -68,10 +68,19 @@ and mitigation hypotheses (prompt v6)".
    hypotheses (one exported, one rejected with "release bounds (1.5.0, 1.6.0] are not within this run's
    transition"), a verdict, the export result and the knowledge records written.
 
+8. **Live smoke run 1** (`docs/phase5/learning-loop/runs/verdict-live-1/`): `ingress-nginx-1.11-1.12--shop-de`,
+   inputs only, `claude-sonnet-5-5`, prompt v6.
+   - Submitted: 10 sessions, 60 tool calls, 137 737 tokens, 210 s.
+   - 10 verdicts with 0 drops: agent not-affected on 9 items where the policy says potentially-affected, and
+     agreement on 1.
+   - No mitigation was proposed.
+   - The dossier command matches the stored dossiers; replay is byte-identical.
+   - **Observation, not tuned:** all 10 first submits were rejected because `verdict.citations` was empty
+     (citations were on the entry instead), costing 17% of calls. Candidate fix for a later prompt version:
+     require `verdict.citations` in the schema, or default to the entry's citations.
+
 ## In progress (exact next step)
-- Live smoke run 1 (`ingress-nginx-1.11-1.12--shop-de`, inputs only, `claude-sonnet-5-5`, prompt v6) in a scratch
-  state dir. Next: copy the transcript and outcome to `docs/phase5/learning-loop/runs/verdict-live-1/`, run
-  export-hypotheses and dossier on it, check the replay, and write the README.
+- none: lane done.
 
 ## Decisions
 - Verdict class = `FindingClass` (same matcher as findings for eval5).

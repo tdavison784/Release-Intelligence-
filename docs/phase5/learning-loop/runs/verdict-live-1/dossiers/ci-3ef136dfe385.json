@@ -1,0 +1,184 @@
+{
+ "format": "ri.dev/item-dossier/v1",
+ "producer": "investigate.dossier@v1",
+ "bundle": "bnd-82092377020c",
+ "snapshot": "snap-fef4dbaf373c",
+ "item": "ci-3ef136dfe385",
+ "product": "ingress-nginx",
+ "from": "controller-v1.11.5",
+ "to": "controller-v1.12.0",
+ "environment": "shop-prod-de",
+ "change": {
+  "title": "⚠️ Metrics: Disable by default",
+  "family": "behavior",
+  "manifestation": "controller-behaviour",
+  "manifestationRule": "manifest:declared-behaviour",
+  "scope": "scope:breaking",
+  "breaking": true,
+  "actionRequired": true,
+  "category": "configuration",
+  "release": "1.12.0",
+  "detail": "⚠️ Metrics: Disable by default. (#12153) ⚠️ This changes the default of the following CLI arguments: * `--enable-metrics` gets disabled by default.",
+  "links": [
+   "https://github.com/kubernetes/ingress-nginx/issues/12153"
+  ],
+  "upstream": [
+   {
+    "id": "ev-66c015b6a2c7",
+    "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md",
+    "locator": "L51-L55 (Changelog › All changes:)",
+    "excerpt": "* ⚠️ Metrics: Disable by default. (#12153) ⚠️ This changes the default of the following CLI arguments: * `--enable-metrics` gets disabled by default."
+   }
+  ],
+  "sources": [
+   {
+    "id": "art-0e59aea382fd",
+    "path": "upstream/ingress-nginx/raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md",
+    "uri": "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md"
+   }
+  ],
+  "joinFindings": [
+   {
+    "id": "imp-39926b33cd76",
+    "classification": "review-required",
+    "rule": "impact:knowledge-exposed",
+    "title": "Applies to you: ⚠️ Metrics: Disable by default"
+   }
+  ]
+ },
+ "settings": [
+  {
+   "setting": "token --enable-metrics",
+   "kind": "token",
+   "from": "knowledge fact vf-678efb8f46f4 (subject)",
+   "state": "inherited-default",
+   "detail": "the token occurs in no complete environment render nor environment file: the shipped default applies"
+  }
+ ],
+ "exposed": [],
+ "roots": [
+  {
+   "node": "gn-b4fe86317723",
+   "key": "networking.k8s.io/v1/Ingress/storefront/storefront",
+   "rule": "exposure:product-reconciles"
+  },
+  {
+   "node": "gn-e0ae30ac10f5",
+   "key": "apps/v1/Deployment/ingress-nginx/ingress-nginx-controller",
+   "rule": "exposure:rendered-change"
+  },
+  {
+   "node": "gn-e3822e9e260e",
+   "key": "networking.k8s.io/v1/Ingress/catalog-api/catalog-api",
+   "rule": "exposure:product-reconciles"
+  }
+ ],
+ "renderedChanges": [
+  {
+   "id": "rc-bdff3c8a666f",
+   "scope": "environment",
+   "target": "argocd:clusters/prod/ingress-nginx.yaml#0/$.spec.sources[0]",
+   "class": "container-arg-removed",
+   "object": "apps/v1/Deployment/ingress-nginx/ingress-nginx-controller",
+   "path": "spec.template.spec.containers[name=controller].args[=--enable-metrics]",
+   "before": "\"--enable-metrics=false\"",
+   "correlation": "mentions-name"
+  },
+  {
+   "id": "rc-7d7e70909529",
+   "scope": "release",
+   "target": "chart-defaults",
+   "class": "container-arg-removed",
+   "object": "apps/v1/Deployment/ingress-nginx/ingress-nginx-controller",
+   "path": "spec.template.spec.containers[name=controller].args[=--enable-metrics]",
+   "before": "\"--enable-metrics=false\"",
+   "correlation": "mentions-name"
+  }
+ ],
+ "unchanged": [],
+ "knowledge": [
+  {
+   "fact": "vf-678efb8f46f4",
+   "artifact": "art-bbaca2921298",
+   "status": "active",
+   "level": "human",
+   "release": "1.12.0",
+   "subject": "cli-flag:ingress-nginx|name=--enable-metrics",
+   "change": "default-changed \"true\" → \"false\"",
+   "consequence": "behavior-change",
+   "exposure": "{\"op\":\"cli-flag\",\"name\":\"--enable-metrics\",\"state\":\"unset\"}",
+   "statement": "⚠️ Metrics: Disable by default"
+  }
+ ],
+ "validations": [
+  {
+   "id": "vr-0db0c3f35227",
+   "validator": "validate.static-reference@v1",
+   "kind": "static-reference",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "an unresolved relationship decides nothing: - ip-177df45d48ea: the path is its root alone: there is no reference on it to check - ip-b9706c331161: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "id": "vr-13603a1ddc25",
+   "validator": "validate.static-reference@v1",
+   "kind": "static-reference",
+   "level": "deterministic",
+   "outcome": "pass",
+   "detail": "2 paths: every edge established, no placeholder, the complete environment renders (argocd:clusters/prod/ingress-nginx.yaml#0/$.spec.sources[0]) remove no provider on them"
+  },
+  {
+   "id": "vr-7fad8edacd5b",
+   "validator": "validate.render-diff@v1",
+   "kind": "render-diff",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "id": "vr-f1399cabf081",
+   "validator": "validate.override-inspection@v1",
+   "kind": "override-inspection",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "no pin rule holds in the environment (an absent setting, one set only on some objects, or a value that changes the behaviour is never a pin): - pin:knowledge-default-changed@v1 from fact vf-678efb8f46f4: flag --enable-metrics set explicitly to the old default \"true\" (or to a value stated identically before and after the upgrade) — not pinned: render argocd:clusters/prod/ingress-nginx.yaml#0/$.sp…"
+  }
+ ],
+ "relations": {
+  "roots": 3,
+  "paths": 4,
+  "unresolvedPaths": 0
+ },
+ "gaps": [
+  {
+   "kind": "missing",
+   "subject": "source migration-guide",
+   "detail": "the product definition declares no upgrade guide source"
+  },
+  {
+   "kind": "missing",
+   "subject": "source source-diff",
+   "detail": "no source-diff collector in milestone 1 (DESIGN.md §0 §A1); an agent may request a linked PR as evidence"
+  },
+  {
+   "kind": "partial",
+   "subject": "source advisories",
+   "detail": "the security advisories source was consulted but cites no retrievable document"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-0db0c3f35227",
+   "detail": "validate.static-reference@v1 did not decide (not-run): an unresolved relationship decides nothing: - ip-177df45d48ea: the path is its root alone: there is no reference on it to check - ip-b9706c331161: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-7fad8edacd5b",
+   "detail": "validate.render-diff@v1 did not decide (not-run): the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-f1399cabf081",
+   "detail": "validate.override-inspection@v1 did not decide (not-run): no pin rule holds in the environment (an absent setting, one set only on some objects, or a value that changes the behaviour is never a pin): - pin:knowledge-default-changed@v1 from fact vf-678efb8f46f4: flag --enable-metrics set explicitly to the old default \"true\" (or to a value stated identically before and after the upgrade) — not pin…"
+  }
+ ]
+}
