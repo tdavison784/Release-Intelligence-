@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -138,13 +139,28 @@ type ReleaseBounds struct {
 	To   string `json:"to"`
 }
 
+// releaseVersionRe finds the version in a release tag with a prefix
+// ("controller-v1.12.0", "chart-4.12.0").
+var releaseVersionRe = regexp.MustCompile(`v?(\d+\.\d+(\.\d+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?)$`)
+
+// ParseReleaseVersion parses a version or a release tag that ends in one.
+func ParseReleaseVersion(s string) (*semver.Version, error) {
+	if v, err := semver.NewVersion(s); err == nil {
+		return v, nil
+	}
+	if m := releaseVersionRe.FindStringSubmatch(s); m != nil {
+		return semver.NewVersion(m[1])
+	}
+	return nil, fmt.Errorf("%q is not a version or a release tag ending in one", s)
+}
+
 // Versions parses the bounds.
 func (r ReleaseBounds) Versions() (*semver.Version, *semver.Version, error) {
-	from, err := semver.NewVersion(r.From)
+	from, err := ParseReleaseVersion(r.From)
 	if err != nil {
 		return nil, nil, fmt.Errorf("release bounds: from %q: %v", r.From, err)
 	}
-	to, err := semver.NewVersion(r.To)
+	to, err := ParseReleaseVersion(r.To)
 	if err != nil {
 		return nil, nil, fmt.Errorf("release bounds: to %q: %v", r.To, err)
 	}
@@ -160,7 +176,7 @@ func (r ReleaseBounds) Contains(v string) bool {
 	if err != nil {
 		return false
 	}
-	x, err := semver.NewVersion(v)
+	x, err := ParseReleaseVersion(v)
 	if err != nil {
 		return false
 	}

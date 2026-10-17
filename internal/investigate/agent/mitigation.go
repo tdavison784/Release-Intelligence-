@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
-
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 )
@@ -111,8 +109,8 @@ func (s *Session) boundsWithinRun(r domain.ReleaseBounds) string {
 	if err != nil {
 		return err.Error()
 	}
-	runFrom, err1 := semver.NewVersion(s.cfg.Bundle.Change.From.Tag)
-	runTo, err2 := semver.NewVersion(s.cfg.Bundle.Change.To.Tag)
+	runFrom, err1 := domain.ParseReleaseVersion(s.cfg.Bundle.Change.From.Tag)
+	runTo, err2 := domain.ParseReleaseVersion(s.cfg.Bundle.Change.To.Tag)
 	if err1 != nil || err2 != nil {
 		return fmt.Sprintf("this run's versions %s → %s are not semver: the release bounds cannot be checked", s.cfg.Bundle.Change.From.Tag, s.cfg.Bundle.Change.To.Tag)
 	}

@@ -55,7 +55,7 @@ func TestMitigationSpecValidate(t *testing.T) {
 
 func TestReleaseBoundsContains(t *testing.T) {
 	r := ReleaseBounds{From: "1.4.0", To: "1.5.0"}
-	for v, want := range map[string]bool{"1.4.0": false, "1.4.1": true, "1.5.0": true, "v1.5.0": true, "1.5.1": false, "x": false} {
+	for v, want := range map[string]bool{"1.4.0": false, "1.4.1": true, "1.5.0": true, "v1.5.0": true, "controller-v1.5.0": true, "chart-1.4.0": false, "1.5.1": false, "x": false} {
 		if got := r.Contains(v); got != want {
 			t.Errorf("Contains(%s) = %v, want %v", v, got, want)
 		}
