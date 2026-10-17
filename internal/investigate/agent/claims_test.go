@@ -211,7 +211,7 @@ func TestRenderedTextLabelsProseAndShowsClaims(t *testing.T) {
 		&Scripted{Model: "test-model", ModelVersion: "v", ByItem: script})
 	inv := runRecord(t, f, out)
 	c, err := classify.New().Classify(context.Background(), investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: out, Validations: out.Validations,
-		Config: investigate.Config{Policy: "classify.policy@v1"}})
+		Config: investigate.Config{Policy: classify.Policy}})
 	must(t, err)
 	inv.Findings = c.Findings
 	var buf strings.Builder

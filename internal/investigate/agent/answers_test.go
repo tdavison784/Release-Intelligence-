@@ -37,7 +37,7 @@ func concern(t *testing.T, s *Session, f *fixture, statement string, extra map[s
 func unanswered(t *testing.T, f *fixture, out *investigate.AgentOutcome, vals []domain.ValidationRecord, assertion string) bool {
 	t.Helper()
 	c, err := classify.New().Classify(context.Background(), investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: out, Validations: vals,
-		Config: investigate.Config{Policy: "classify.policy@v1"}})
+		Config: investigate.Config{Policy: classify.Policy}})
 	must(t, err)
 	for _, fd := range c.Findings {
 		if fd.ChangeItem != f.behaviour {

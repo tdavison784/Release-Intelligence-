@@ -12,8 +12,10 @@ import (
 )
 
 // Policy is the policy version this package implements (Config.Policy and
-// every finding's provenance producer).
-const Policy = "classify.policy@v1"
+// every finding's provenance producer). v2: a documentation-only render-diff
+// pass accounts for the CRD description changes it names (R2.2) for any
+// manifestation — and for nothing else (never R2.4, R2.6 or a clearance).
+const Policy = "classify.policy@v2"
 
 // Rule ids (InvestigationFinding.Rule).
 const (
@@ -165,7 +167,10 @@ type itemEval struct {
 	hyps    []domain.Hypothesis
 	joins   []domain.ImpactFinding
 	counted []domain.ValidationRecord // passing validations that count for R2 (R2.4 manifestation rule)
-	covered map[string]bool           // "path:<id>", "rc:<id>", "root:<node>", "answer:<assertion>"
+	// docs are documentation-only passes that account for at least one
+	// rendered change (R2.2 only; never counted for R2.4 or R2.6).
+	docs    []domain.ValidationRecord
+	covered map[string]bool // "path:<id>", "rc:<id>", "root:<node>", "answer:<assertion>"
 	gaps    []domain.EvidenceGap
 	steps   []string
 	assume  []string // claims-mitigation assertions no counting validation established
@@ -180,7 +185,7 @@ type itemEval struct {
 // a pass, and — for an item that does not manifest in rendered configuration
 // — one that clears behaviour (an established pin or an observed outcome).
 func (e *itemEval) counts(v domain.ValidationRecord) bool {
-	if v.Outcome != domain.ValidationPass {
+	if v.Outcome != domain.ValidationPass || v.DocumentationOnly {
 		return false
 	}
 	return e.item.Manifestation.RenderDecisive() || v.ClearsBehaviour()
@@ -203,6 +208,21 @@ func (x *index) classify(id string) (domain.InvestigationFinding, error) {
 		e.joins = joinFindings(x.in.Report, it)
 	}
 	for _, v := range e.vals {
+		if v.Outcome == domain.ValidationPass && v.DocumentationOnly {
+			// R2.2 only, and only for what the bundle itself shows is
+			// documentation-only (the record's claim is re-checked).
+			n := 0
+			for _, rc := range v.RenderedChanges {
+				if ok, _ := x.b.DocumentationOnlyChange(rc); ok {
+					e.covered["rc:"+rc] = true
+					n++
+				}
+			}
+			if n > 0 {
+				e.docs = append(e.docs, v)
+			}
+			continue
+		}
 		if !e.counts(v) {
 			continue
 		}
@@ -254,8 +274,9 @@ func (x *index) classify(id string) (domain.InvestigationFinding, error) {
 		f.NextSteps = x.nextSteps(e, false)
 	case len(e.gaps) == 0 && len(e.assume) == 0: // R2
 		f.Class, f.Rule = domain.FindingNotAffected, RuleValidatedClear
-		f.Validations = ids(e.counted)
-		f.Basis = strongest(e.counted)
+		cited := append(append([]domain.ValidationRecord(nil), e.counted...), e.docs...)
+		f.Validations = ids(cited)
+		f.Basis = strongest(cited)
 		f.Reasoning = x.reasonClear(e)
 	default:
 		if signals := x.plausible(e); len(signals) > 0 { // R3

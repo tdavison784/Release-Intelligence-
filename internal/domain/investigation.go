@@ -1708,6 +1708,14 @@ type ValidationRecord struct {
 	// established (required for that pass to clear a controller-behaviour
 	// item; DESIGN.md §3.1 R2.4).
 	Pin *PinnedSetting `json:"pin,omitempty"`
+	// DocumentationOnly marks a render-diff pass that covers its
+	// RenderedChanges only as documentation-only CRD changes
+	// (EvidenceBundle.DocumentationOnlyChange). It accounts for those
+	// rendered changes (DESIGN.md §3.1 R2.2) whatever the item's
+	// manifestation, and nothing else: it names no subject, path or concern,
+	// counts for no R2.4 coverage and never clears behaviour.
+	// CONTRACT-CHANGE(coverage): additive.
+	DocumentationOnly bool `json:"documentationOnly,omitempty"`
 	// ImpactFinding is set when the record wraps a verdict of the
 	// deterministic ImpactReport (e.g. a not-affected render check).
 	ImpactFinding string     `json:"impactFinding,omitempty"`
@@ -1804,6 +1812,14 @@ func (v ValidationRecord) Validate() error {
 	if v.Provenance.Producer != v.Validator {
 		bad("provenance producer %q must equal validator %q", v.Provenance.Producer, v.Validator)
 	}
+	if v.DocumentationOnly {
+		if v.Kind != ValidationRenderDiff || v.Outcome != ValidationPass || v.Level != LevelDeterministic || v.Pin != nil {
+			bad("documentation-only coverage is a deterministic render-diff pass without a pin")
+		}
+		if len(v.RenderedChanges) == 0 || len(v.Subjects) > 0 || len(v.Paths) > 0 || len(v.Answers) > 0 {
+			bad("documentation-only coverage names the rendered changes it covers and no subject, path or answered assertion")
+		}
+	}
 	if p := v.Pin; p != nil {
 		if v.Kind != ValidationOverrideInspection || v.Outcome != ValidationPass {
 			bad("a pinned setting is established only by a passing override-inspection")
@@ -1823,6 +1839,46 @@ func (v ValidationRecord) Validate() error {
 // override inspection that established an explicit pinned setting.
 func (v ValidationRecord) ClearsBehaviour() bool {
 	return v.Outcome == ValidationPass && (v.Level == LevelObserved || (v.Kind == ValidationOverrideInspection && v.Pin != nil))
+}
+
+// RenderedClassCRDDescription is the rendered-change class of OpenAPI
+// description text inside a CustomResourceDefinition schema
+// (render.CRDDescriptionChanged): documentation, never configuration.
+const RenderedClassCRDDescription = "crd-description-changed"
+
+// DocumentationOnlyChange reports whether environment rendered change id is
+// a documentation-only CRD change: description text (class
+// crd-description-changed) of a complete environment pair, in a CRD whose
+// every other change in that pair is description text too — a schema,
+// default, enum, required, served or storage change beside it (correlated
+// to anything or not) disqualifies the whole CRD. When it is not, why says
+// what disqualifies it.
+func (b *EvidenceBundle) DocumentationOnlyChange(id string) (ok bool, why string) {
+	for _, p := range b.Renders {
+		for _, c := range p.Changes {
+			if c.ID != id {
+				continue
+			}
+			if p.Status != CollectionOK {
+				return false, fmt.Sprintf("render %s is %s", p.Target, p.Status)
+			}
+			if c.Class != RenderedClassCRDDescription {
+				return false, fmt.Sprintf("%s is a %s change, not CRD description text", id, c.Class)
+			}
+			var other []string
+			for _, o := range p.Changes {
+				if o.Object == c.Object && o.Class != RenderedClassCRDDescription {
+					other = append(other, fmt.Sprintf("%s (%s %s)", o.ID, o.Class, o.Path))
+				}
+			}
+			if len(other) > 0 {
+				sort.Strings(other)
+				return false, fmt.Sprintf("%s also changes beyond description text in render %s: %s", c.Object, p.Target, strings.Join(other, ", "))
+			}
+			return true, ""
+		}
+	}
+	return false, fmt.Sprintf("%s is not an environment rendered change of the bundle", id)
 }
 
 // --- agent records (§A4, P3) --------------------------------------------------------------
@@ -2967,6 +3023,14 @@ func (inv *Investigation) validateFindingRefs(f InvestigationFinding, paths map[
 		// R2.4: for an item whose effect is not in rendered configuration, a
 		// render that shows nothing proves nothing; only an established pin or
 		// an observed outcome covers paths, roots, rendered changes or concerns.
+		// A documentation-only pass accounts for its rendered changes (R2.2)
+		// and nothing else, for any manifestation.
+		if v.DocumentationOnly {
+			for _, rc := range v.RenderedChanges {
+				covered["rc:"+rc] = true
+			}
+			continue
+		}
 		if !f.Manifestation.RenderDecisive() && !v.ClearsBehaviour() {
 			continue
 		}
@@ -3188,6 +3252,13 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		art("validation "+v.ID, v.Inputs...)
 		art("validation "+v.ID, v.Outputs...)
 		rendered("validation "+v.ID, v.RenderedChanges)
+		if v.DocumentationOnly {
+			for _, rc := range v.RenderedChanges {
+				if ok, why := b.DocumentationOnlyChange(rc); !ok {
+					bad("validation %s: documentation-only coverage of %s: %s", v.ID, rc, why)
+				}
+			}
+		}
 		if p := v.Pin; p != nil {
 			if p.RenderedObject != "" {
 				found := false
