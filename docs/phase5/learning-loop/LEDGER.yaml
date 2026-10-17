@@ -105,8 +105,10 @@ items:
   - id: W-0011
     title: Arm A0 + C1-ready deterministic runs on the 8 Phase 4 cases with K0 (PROTOCOL §6 step 2)
     kind: commander-task
-    status: in-progress
+    status: done
     owner: ri-eval5
+    merged: c36e7de1
+    result: "A0-K0-20261017-6d2ae5bf (F2): 24/24 decisions identical to F1; 2 clearances, 0 unsafe"
     depends: [W-0010]
     providers: [claude, glm]  # deterministic, no model under test
     glm-executable: true
@@ -115,8 +117,10 @@ items:
   - id: W-0012
     title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
     kind: commander-task
-    status: in-progress
+    status: done
     owner: ri-eval5
+    merged: c36e7de1
+    result: "B0-K0-20261017-6d2ae5bf: 1.06M tokens, 1565 s; policy invariant holds; verdicts 11 correct / 12 hedged / 1 no-verdict / 0 false-safe; ZERO hypotheses recorded (payments-us rotationPolicy hedged: agent saw mesh-root-ca Never + leaves unset but did not infer that leaf rotation is harmless when trust goes through the CA chain)"
     depends: [W-0010]
     providers: [claude]       # MODEL UNDER TEST: never under GLM
     glm-executable: false
@@ -127,7 +131,8 @@ items:
     title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
     kind: commander-task
     status: queued
-    depends: [W-0012]
+    depends: [W-0012, W-0028]
+    note: "export ran and was empty (no hypotheses); verification has no input until W-0028 is decided"
     providers: [claude, glm]  # deterministic + observed; no model judgment
     glm-executable: true
     auto-start: false
@@ -255,4 +260,14 @@ items:
     auto-start: false
     integrity: "secrets must never be weakened (provider data-sharing condition); F1 amendment required"
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T09:10, because: B0-K0-20261017-d262210d payments-us verdict 'redacted value that may be Never'}
+  - id: W-0028
+    title: "Protocol decision: B0 proposed no mitigation hypothesis — where does K1's input come from?"
+    kind: decision
+    decision-rights: user
+    status: ready
+    depends: [W-0012]
+    providers: [claude]
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:50, because: "B0-K0-20261017-6d2ae5bf export-hypotheses empty on all 8 cases"}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}

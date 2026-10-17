@@ -40,6 +40,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 - 2026-10-17 e5b3afa7 eval5 wave 1: knowledgeDigest/knowledgeLive in run.json, `-knowledge` mandatory (live tree refused unless -allow-live-knowledge), snapshot.sh + kbad (S3 a–h), ungated agent-verdict table (correct/false-safe/false-alarm/hedged/overstated/no-verdict; stub until verdict merges), `-compare` tables, A0-K0-20261017-bfebde39 (K0 digest sha256:672a7ce0…; 24/24 item decisions identical to Phase 4 arm A; payments-us B1 potentially-affected). Green. Worktree kept. Note: lane deleted one uncommitted earlier A0 run from a pre-commit binary (never cited).
 
+- 2026-10-17 c36e7de1 eval5 F2 runs: A0-K0-20261017-6d2ae5bf (24/24 decisions = F1) and B0-K0-20261017-6d2ae5bf (8/8 agent ran, 1.06M tokens, 1565 s; policy invariant holds; verdicts 11 correct / 12 hedged / 1 no-verdict / 0 false-safe / 0 false-alarm). F1 runs marked superseded. `-work` non-empty guard (+test). **Zero hypotheses** on all 8 cases; export into a K0 copy is empty. payments-us rotationPolicy items: potentially-affected/medium; the agent saw mesh-root-ca `Never` and leaves unset, but left leaf-key consumers open (the static-reference validation could not run: the leaf Secrets are not in the snapshot) and put its mitigation only in prose `wouldOverturn`. Green (build/vet/test after merge). Worktree kept.
+
 ## Decisions
 
 - 2026-10-17 09:40 Redaction rule (commander decision, lane redact): ONE rule for collection and the render model — Secret data redacted; private-key material redacted by content anywhere; credential-named scalars redacted except Kubernetes object-reference keys (`name`, `namespace`, `key`, `*Name`, `*Namespace`: object/data-key names, not secret material); below credential-named maps keep bool/null/number + reference keys + CRD-enum read-back, everything else redacted; credential-name regex = union of both. Why: the render model left e.g. `credentials.secretAccessKey` in clear (renders reach the agent ⇒ provider — violates the product owner's data-sharing condition; Phase 4 gap), while a blunt rule would hide Secret names the graph needs. Dossier path casing + effective view fixed in the same lane.
@@ -61,6 +63,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 ## Open questions for the user
 
+- **W-0028 (blocking):** B0 proposed no mitigation hypothesis; where does K1's input come from? (asked 2026-10-17 10:50)
 - W-0019 delete superseded branch `p4ei/eval` (needs -D). W-0020 gascity/beads for the next fleet (after the report).
 
 ## Next actions
