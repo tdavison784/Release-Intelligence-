@@ -281,7 +281,17 @@ func (t *tree) reissue(f *domain.VerifiedFact, a domain.SemanticAssertion, rel s
 			return "", err
 		}
 	}
-	for _, e := range []any{item, dec, nf} {
+	// the original item may already be the one the reissue derives (its id
+	// hashes candidate, question and assertion): keep it, mint the rest
+	existing := false
+	for _, it := range t.snap.ReviewItems {
+		existing = existing || it.ID == item.ID
+	}
+	mint := []any{item, dec, nf}
+	if existing {
+		mint = []any{dec, nf}
+	}
+	for _, e := range mint {
 		rec, err := domain.NewRecord(e)
 		if err != nil {
 			return "", err
