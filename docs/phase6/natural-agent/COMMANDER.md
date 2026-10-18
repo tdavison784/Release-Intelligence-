@@ -39,3 +39,11 @@ handoffs in Phase 0.
   a 30-minute Monitor, which would have killed any run still going when it expired. The commander stopped it about
   10 s into P-US C-whole r1. That session had produced tool calls and no assessment. It is kept unscored under
   `runs/aborted/` and was not read. The driver was restarted under `nohup`, and r1 re-ran from scratch.
+- **Harness defect H1 (P-US C-item r3).** The session's last allowed Bash call, `cd <ws>/rendered; sed …`, left the
+  session's cwd there. So the relative allow rule `Write(./scratch/**)` stopped matching, and the final Write of
+  `scratch/assessment.md` was denied after the investigation was complete.
+  - The run is kept, not retried. The assessment was restored from the session's own denied Write, verbatim, by
+    `scripts/phase6/recover-denied-write.py` (recorded in meta.json `assessmentRecovered`), then extracted.
+  - The harness stays unchanged for the rest of the autonomous runs (C, C-raw), so conditions are constant. Any
+    further H1 runs get the same recovery.
+  - Before arm D, `lib.sh` gets absolute-path allow rules for the live `scratch/`, and the canary is re-run.
