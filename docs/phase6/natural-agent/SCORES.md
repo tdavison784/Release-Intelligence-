@@ -60,3 +60,22 @@ False-safes in total: A 0 · B 1 · C-whole 1 · C-item 1. False alarms: none in
   `Read`/`Grep`. This cost turns, not evidence.
 - D-EU's ORIENTATION mentions `/.well-known` (A1 §4). Arm C still mis-stated the rule in 5 of 6 runs, so the hint did
   not decide B3.
+
+## Supplementary: C-raw (PROTOCOL A1 §2; enters no reading rule)
+
+P-US, C-whole prompt, environment files and renders as authored (no redaction markers).
+
+| P-US B1 | r1 | r2 | r3 |
+|---|---|---|---|
+| C-raw | E | E | CU |
+| C-whole (read-back) | E | H | E |
+
+- r1: "platform/pki/overlays/prod/mesh-root-ca-prod.yaml sets privateKey.rotationPolicy: Never explicitly"; "Nothing in
+  the repo does this" (leaf pinning).
+- r2: "The root CA is protected"; "Neither ledger.conf, the Deployments nor the Services contain any key or fingerprint
+  pinning."
+- r3 (CU): the CA's Never and the ca.crt trust are stated, but there is no statement that nothing pins a leaf key.
+  The leaf consequence is framed as a cert/key swap race.
+
+Reading: no visible effect of the markers at n = 3, consistent with RI's read-back having given the values all
+along. Redaction is not a Phase 0 cause.

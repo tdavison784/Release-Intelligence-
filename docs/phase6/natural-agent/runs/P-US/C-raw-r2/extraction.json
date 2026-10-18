@@ -1,0 +1,387 @@
+{
+  "mechanisms": [
+    {
+      "name": "privateKey.rotationPolicy default flips from Never to Always (breaking)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Yes, for `ledger-tls` and `checkout-tls`.",
+      "resourcesConsumers": [
+        "ledger-tls Certificate",
+        "checkout-tls Certificate",
+        "mesh-root-ca Certificate / Secret (root CA, pinned)",
+        "mesh-ca ClusterIssuer",
+        "ledger nginx (ledger.conf, ssl_client_certificate /tls/ca.crt)",
+        "checkout (curl --cacert /tls/ca.crt)",
+        "ledger Deployment (2 replicas in prod)",
+        "Deployments and Services"
+      ],
+      "mechanism": "The two mesh leaf certificates do not set rotationPolicy, so under the new default they will rotate their private key on every renewal. With 720h duration and 240h renewBefore, the first renewal under 1.18 happens within about 20 days of the last issuance. The new default only matters at the next reissuance; changing targetRevision triggers no reissue. If the root CA key rotated, every existing leaf would stop chaining to the CA that ledger and checkout trust.",
+      "mitigationOrNoExposure": "The root CA is protected: platform/pki/overlays/prod/mesh-root-ca-prod.yaml pins rotationPolicy: Never, and clusters/prod/pki.yaml points at that overlay. Do not remove the overlay patch or point any app at platform/pki/base, which has no pin. Leaf consumers look tolerant of key rotation: trust is anchored on ca.crt, there is no key or fingerprint pinning, and key and cert are updated together in one Secret. Both ledger replicas mount the same Secret, so there is no per-replica key divergence. 'I found nothing that pins a key, so I don't expect an outage.' Residual risk, not new: ledger nginx reads /tls/* only at start or reload, and no reloader, sidecar or checksum annotation is visible. A renewed leaf is therefore not served until the pod restarts, the same as for same-key renewals under 1.17. Checkout's curl re-reads files on every call. Setting rotationPolicy: Never on the leaves is a short-term hold. The better fix is to confirm rotation is safe and then set Always explicitly.",
+      "citedEvidence": [
+        "upstream/.../upgrading-1.17-1.18.md",
+        "release-notes-1.18.md",
+        "rendered/manifest.diff",
+        "env/apps/payments/base/ledger-certificate.yaml",
+        "checkout-certificate.yaml",
+        "privateKey: {algorithm: ECDSA, size: 256} with no rotationPolicy; duration 720h, renewBefore 240h",
+        "platform/pki/overlays/prod/mesh-root-ca-prod.yaml (rotationPolicy: Never)",
+        "clusters/prod/pki.yaml points at platform/pki/overlays/prod",
+        "ledger.conf (ssl_client_certificate /tls/ca.crt)",
+        "checkout --cacert /tls/ca.crt",
+        "ledger-replicas.yaml (2 replicas in prod)",
+        "values.yaml sets no feature gates (DefaultPrivateKeyRotationPolicyAlways=true by default)"
+      ],
+      "assumptions": [
+        "Leaf consumers 'look tolerant' of key rotation based on there being no key or fingerprint pinning in the repo",
+        "Rendered/overlay evidence is taken to show the root CA stays pinned; the live state has not been confirmed",
+        "Ledger and checkout runtime behaviour could not be verified from the repo alone"
+      ],
+      "missingEvidence": [
+        "Ledger and checkout runtime behaviour under rotation (not verifiable from the repo alone)",
+        "How ledger picks up renewed certs (reloader, restart-on-secret-change, or scheduled rollout); this is not in the repo",
+        "Whether the live root CA Certificate/Secret matches the pinned state, and its next renewal date",
+        "Full rendered CRD YAML and the remaining sections of the 1.18 notes were not read line by line"
+      ],
+      "recommendedValidation": [
+        "Rehearse a leaf renewal under 1.18 in a non-prod cluster with the same issuer chain (cmctl renew ledger-tls checkout-tls -n payments, or wait for the real renewal). Confirm a new key is issued, ca.crt is unchanged, checkout still gets 'ledger ok', and no handshake failures appear in mesh logs",
+        "Find out how ledger picks up renewed certs. If there is no mechanism, fix it independently of this upgrade",
+        "Check kubectl get certificate mesh-root-ca -n cert-manager -o yaml for rotationPolicy: Never and that the Secret's key is the one in use. Confirm the next renewal date (1y duration, 30d renewBefore)",
+        "Do not remove the overlay pin. Do not point any app at platform/pki/base",
+        "After confirming rotation is safe, set rotationPolicy: Always explicitly"
+      ]
+    },
+    {
+      "name": "revisionHistoryLimit default nil -> 1 (potentially breaking)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Yes, as a quiet behaviour change.",
+      "resourcesConsumers": [
+        "CertificateRequests",
+        "External tooling and audit pipelines (unknown)",
+        "Audit, compliance export, alerting"
+      ],
+      "mechanism": "Old CertificateRequests are garbage collected.",
+      "mitigationOrNoExposure": "Nothing in env/ reads them (grep found no CertificateRequest references). External tooling and audit pipelines are unknown. revisionHistoryLimit can be set explicitly if history is needed.",
+      "citedEvidence": [
+        "grep found no CertificateRequest references in env/",
+        "upstream/.../upgrading-1.17-1.18.md",
+        "release-notes-1.18.md"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether anything outside this repo reads CertificateRequests",
+        "Live cluster resources not declared in the repo"
+      ],
+      "recommendedValidation": [
+        "Before garbage collection runs, check for anything outside this repo that reads CertificateRequests (audit, compliance export, alerting), or set revisionHistoryLimit explicitly if history is needed",
+        "Check the live cluster for resources not declared here"
+      ]
+    },
+    {
+      "name": "ACME HTTP01 Ingress uses pathType: Exact",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No.",
+      "resourcesConsumers": [
+        "Issuers (selfSigned and ca only)"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The only issuers are selfSigned and ca. There is no ACME issuer and no Ingress in the repo.",
+      "citedEvidence": [
+        "Issuers in the repo are only selfSigned and ca",
+        "No Ingress in the repo"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "New RBAC: controller-challenges split into http01- and dns01-controller-challenges",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No functional impact seen.",
+      "resourcesConsumers": [
+        "cert-manager-controller-challenges role and binding",
+        "http01-controller-challenges and dns01-controller-challenges roles and bindings",
+        "cert-manager ServiceAccount",
+        "Argo CD Application (prune: true)"
+      ],
+      "mechanism": "The old role and binding are removed and new ones are added. The ordering of the old role's pruning relative to the creation of the new roles could cause RBAC errors.",
+      "mitigationOrNoExposure": "The diff shows the new role and binding added, all bound to the same cert-manager ServiceAccount. Argo has prune: true, so the old objects get removed.",
+      "citedEvidence": [
+        "rendered/manifest.diff (old role/binding removed, new ones added, bound to cert-manager ServiceAccount)",
+        "Argo prune: true"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether pruning happens after the new roles exist (to be confirmed by dry-run)"
+      ],
+      "recommendedValidation": [
+        "Dry-run the Argo sync: confirm cert-manager-controller-challenges is pruned after the new roles exist and that the controller logs no RBAC errors"
+      ]
+    },
+    {
+      "name": "Webhook probes use named port healthcheck instead of 6080",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No.",
+      "resourcesConsumers": [
+        "cert-manager webhook"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "to.yaml declares containerPort: 6080 named healthcheck, so the probes resolve.",
+      "citedEvidence": [
+        "to.yaml declares containerPort: 6080 named healthcheck"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "During the Argo sync dry-run, confirm the webhook becomes ready (the startupapicheck job passes)"
+      ]
+    },
+    {
+      "name": "CRD schema additions: signatureAlgorithm, ACME profile, Vault serverName, shortNames ciss/iss",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "These are additive and the repo uses none of them.",
+      "resourcesConsumers": [
+        "cert-manager CRDs",
+        "Other installed CRDs (potential shortName collision)"
+      ],
+      "mechanism": "The new shortNames are a theoretical collision risk with another CRD.",
+      "mitigationOrNoExposure": "The additions are additive and the repo uses none of them. CRDs are handled by the chart (ServerSideApply=true, crds.enabled: true, crds.keep: true), so there is no separate CRD step. The CRD diff is additive.",
+      "citedEvidence": [
+        "rendered/manifest.diff (CRD diff is additive)",
+        "cert-manager Argo Application: ServerSideApply=true, crds.enabled: true, crds.keep: true"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether live CRDs have iss/ciss collisions",
+        "Full rendered CRD YAML was not read line by line"
+      ],
+      "recommendedValidation": [
+        "Check live CRDs for iss/ciss collisions: kubectl api-resources | grep -E '\\b(iss|ciss)\\b'"
+      ]
+    },
+    {
+      "name": "OperatorHub packages discontinued",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No.",
+      "resourcesConsumers": [
+        "cert-manager install (Helm chart)"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The install is from the Helm chart.",
+      "citedEvidence": [
+        "Install is from the Helm chart"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Feature gates",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "values.yaml"
+      ],
+      "mechanism": "values.yaml sets no feature gates, so all defaults apply, including DefaultPrivateKeyRotationPolicyAlways=true.",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "values.yaml sets no feature gates"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "issuerRef re-issuance bug fixed in v1.18.3",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "does not apply",
+      "resourcesConsumers": [
+        "issuerRefs on Certificates"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The issuerRefs are fully explicit (group, kind, name).",
+      "citedEvidence": [
+        "issuerRefs are fully explicit (group, kind, name)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Advisory GHSA-8rvj-mm4h-c258 (v1.18 line not a good long-term target)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "not exploitable here as configured",
+      "resourcesConsumers": [
+        "ACME Challenge objects",
+        "Issuer DNS01 solver policy",
+        "ClusterIssuer DNS credentials"
+      ],
+      "mechanism": "The advisory lists affected versions >= 1.18.0, <= 1.20.2, with fixes only in 1.19.6 and 1.20.3, so no 1.18.x release is patched. It concerns direct ACME Challenge objects bypassing Issuer DNS01 solver policy to use ClusterIssuer DNS credentials. A 1.18.0 pin carries it. Later 1.18 patch releases (e.g. 1.18.6) carry fixes for Go CVEs and a DoS bug (GHSA-gx3x-vq4p-mhhv).",
+      "mitigationOrNoExposure": "There is no ACME or DNS01 issuer.",
+      "citedEvidence": [
+        "Bundled advisory GHSA-8rvj-mm4h-c258 (affected >= 1.18.0, <= 1.20.2; fixed in 1.19.6 and 1.20.3)",
+        "GHSA-gx3x-vq4p-mhhv",
+        "Upstream notes covering 1.18.1 through 1.18.6"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "rendered/ covers only v1.18.0"
+      ],
+      "recommendedValidation": [
+        "If 1.18.x is only a step, plan the follow-on upgrade",
+        "If the target is flexible, use a later 1.18 patch release (e.g. 1.18.6)",
+        "Decide the target patch version and re-render for that version"
+      ]
+    },
+    {
+      "name": "rotationPolicy default becomes permanent in 1.19 (Always GA, gate cannot be turned off)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "ledger-tls",
+        "checkout-tls"
+      ],
+      "mechanism": "Per the notes, 1.19 makes Always GA and removes the ability to turn the gate off, so setting rotationPolicy: Never explicitly on the leaves is a short-term hold, not a permanent opt-out.",
+      "mitigationOrNoExposure": "The better fix is to confirm rotation is safe and then set Always explicitly.",
+      "citedEvidence": [
+        "release notes"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "Confirm rotation is safe, then set rotationPolicy: Always explicitly"
+      ]
+    },
+    {
+      "name": "ACME, Ingress, Gateway, DNS01, Vault and Venafi paths",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "no such issuers or resources exist in `env/`",
+      "resourcesConsumers": [
+        "env/"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No such issuers or resources exist in env/.",
+      "citedEvidence": [
+        "env/ contains no such issuers or resources"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Live cluster resources not declared in the repo"
+      ],
+      "recommendedValidation": [
+        "Check the live cluster for resources not declared here"
+      ]
+    },
+    {
+      "name": "Prometheus / ServiceMonitor / metrics changes",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "no ServiceMonitor or metrics changes matter",
+      "resourcesConsumers": [
+        "Prometheus"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "prometheus.enabled: false.",
+      "citedEvidence": [
+        "prometheus.enabled: false"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Chart values",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "all of which the 1.18 chart still has",
+      "resourcesConsumers": [
+        "values.yaml (crds, replicaCount, prometheus, resources, webhook.replicaCount, cainjector.replicaCount)"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "All values used are still present in the 1.18 chart. The rendered diff shows no unexpected value-driven changes.",
+      "citedEvidence": [
+        "values.yaml",
+        "rendered/manifest.diff shows no unexpected value-driven changes"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "The full upstream values.yaml was not diffed"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Kubernetes 1.31 support for 1.18",
+      "claimedClass": "insufficient-evidence",
+      "claimedClassQuote": "I could not verify this",
+      "resourcesConsumers": [
+        "Kubernetes 1.31 cluster"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "The upstream compatibility page is not among the provided documents"
+      ],
+      "recommendedValidation": [
+        "Confirm Kubernetes 1.31 support for 1.18"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Proceed with conditions. No repo change is required to keep the platform working, but the rotationPolicy breaking change applies, so test before prod and complete the 'Needed before proceeding' items: rehearse a leaf renewal in non-prod, establish ledger cert reload, confirm the live root CA pin, check external CertificateRequest readers, check iss/ciss collisions, confirm K8s 1.31 support, dry-run the Argo sync, plan rollback, and choose and re-render a target patch version (a later 1.18 patch, or plan a follow-on upgrade because no 1.18.x release fixes GHSA-8rvj-mm4h-c258).",
+    "quote": "No change in this repo is required to keep the platform working, but one documented breaking change does apply to it."
+  }
+}
