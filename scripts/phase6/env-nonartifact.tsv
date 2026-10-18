@@ -1,0 +1,12 @@
+# Files under a case's env/ that RI did not ingest as an environment-file artifact, and whether the
+# workspace carries them (PROTOCOL §3: everything RI's agent could reach, nothing more). build-workspace.sh
+# refuses to build a case whose env/ holds such a file not listed here.
+# case-id	path-under-env	decision	reason
+cert-manager-1.17-1.18--payments-us	apps/payments/base/ledger.conf	include	configMapGenerator input; RI's render of apps/payments/overlays/prod carries its full text (ConfigMap ledger-nginx), and kustomize needs it
+cert-manager-1.17-1.18--payments-us	README.md	exclude	not ingested and not reachable through any RI tool (repository overview)
+cert-manager-1.17-1.18--payments-eu	apps/payments/base/ledger.conf	include	configMapGenerator input; RI's render of apps/payments/overlays/prod carries its full text (ConfigMap ledger-nginx), and kustomize needs it
+cert-manager-1.17-1.18--payments-eu	README.md	exclude	not ingested and not reachable through any RI tool (repository overview)
+ingress-nginx-1.11-1.12--docs-eu	apps/docs/base/content/index.html	include	configMapGenerator input; RI's render of apps/docs/overlays/prod carries its full text (ConfigMap docs-content), and kustomize needs it
+ingress-nginx-1.11-1.12--docs-eu	apps/docs/base/content/security.txt	include	configMapGenerator input; RI's render of apps/docs/overlays/prod carries its full text (ConfigMap wellknown-content), and kustomize needs it
+ingress-nginx-1.11-1.12--docs-eu	README.md	exclude	not ingested and not reachable through any RI tool (repository overview)
+ingress-nginx-1.11-1.12--shop-de	README.md	exclude	not ingested and not reachable through any RI tool (repository overview)

@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mechanisms", "overall"],
+  "properties": {
+    "mechanisms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "claimedClass", "claimedClassQuote", "resourcesConsumers", "mechanism",
+                     "mitigationOrNoExposure", "citedEvidence", "assumptions", "missingEvidence", "recommendedValidation"],
+        "properties": {
+          "name": {"type": "string", "description": "the change or behaviour, as the assessment names it"},
+          "claimedClass": {"type": "string", "enum": ["affected", "potentially-affected", "not-affected", "insufficient-evidence", "not-stated"]},
+          "claimedClassQuote": {"type": "string"},
+          "resourcesConsumers": {"type": "array", "items": {"type": "string"}, "description": "resources and consumers the assessment names as affected or examined"},
+          "mechanism": {"type": "string", "description": "how the change would break the environment, per the assessment"},
+          "mitigationOrNoExposure": {"type": "string", "description": "what the assessment says mitigates it or why the environment is not exposed"},
+          "citedEvidence": {"type": "array", "items": {"type": "string"}},
+          "assumptions": {"type": "array", "items": {"type": "string"}},
+          "missingEvidence": {"type": "array", "items": {"type": "string"}},
+          "recommendedValidation": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "overall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendation", "quote"],
+      "properties": {
+        "recommendation": {"type": "string"},
+        "quote": {"type": "string"}
+      }
+    }
+  }
+}
