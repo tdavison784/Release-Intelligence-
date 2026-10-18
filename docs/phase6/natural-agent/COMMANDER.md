@@ -32,3 +32,10 @@ handoffs in Phase 0.
   - ws6 was sent the follow-up to build read-back mode.
 - Lane fleetpilot started (tab w1:t22, pane w1:p3Q, Opus): beads mirror + gascity toy pilot, isolated under
   ~/fleetpilot and a separate Herdr session. Ledger X-0007, decision X-0008 (user).
+
+- ws6 follow-ups merged (c3af67a9, 494b5831). Readback values match RI's read-back. Workspace digests verified
+  against ws6's record. Lane ws6 closed (tab, worktree and branch -d).
+- X-0003 started: `scripts/phase6/run-phase0.sh`. **Harness abort, disclosed:** the first driver ran as a child of
+  a 30-minute Monitor, which would have killed any run still going when it expired. The commander stopped it about
+  10 s into P-US C-whole r1. That session had produced tool calls and no assessment. It is kept unscored under
+  `runs/aborted/` and was not read. The driver was restarted under `nohup`, and r1 re-ran from scratch.
