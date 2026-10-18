@@ -33,7 +33,8 @@ With this mapping `bd ready` equals the fleet guard's is_ready() set: open (= le
 every blocker closed (= ledger done); frozen statuses never count as resolved. --compare-guard
 loads the guard read-only and checks that equality plus its two provider-filtered views.
 
-Run bd with BD_DISABLE_METRICS=1: bd sends anonymous usage metrics by default.
+bd sends anonymous usage metrics by default and its embedded Dolt writes ~/.dolt; the script runs bd
+with BD_DISABLE_METRICS=1 and (unless set) DOLT_ROOT_PATH=~/fleetpilot/doltroot.
 """
 import argparse
 import importlib.util
@@ -158,6 +159,7 @@ def carried_fields(d):
 
 def bd(bd_bin, cwd, *args, stdin=None):
     env = dict(os.environ, BD_DISABLE_METRICS="1", DO_NOT_TRACK="1", BD_NON_INTERACTIVE="1")
+    env.setdefault("DOLT_ROOT_PATH", os.path.expanduser("~/fleetpilot/doltroot"))  # embedded Dolt writes ~/.dolt otherwise
     r = subprocess.run([bd_bin, *args], cwd=cwd, input=stdin, capture_output=True, text=True, env=env)
     if r.returncode != 0:
         raise RuntimeError(f"bd {' '.join(args)} failed ({r.returncode}): {r.stderr.strip()[-500:]}")
