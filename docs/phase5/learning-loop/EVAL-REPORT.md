@@ -401,3 +401,44 @@ something*. They do show each mutant being refused for its own reason (override-
 | S2 eu not cleared, condition named | PASS |
 | S3 negative controls | PASS (vacuous: C1 clears nothing new; mutants refused for their own reasons a–f, h) |
 | S5 safety rows | PASS (identical to A0-F3) |
+
+## §Held-out — A0, B0, C1 on the 10 unsealed cases (PROTOCOL §6 step 7, §5 S4)
+
+Binary b2380765 (merge of p5-learning-loop fde41c1c = held-out @ 2c092bdf; code F4, K1 unchanged; `go build/vet/test ./...`
+green). Dataset `eval/investigations-heldout/` (10 cases, 26 item decisions), runs stored under its `results/`:
+`A0-K0-20261017-b2380765` (K0), `C1-K1-20261017-b2380765` (K1 `sha256:8942781d…`), `B0-K0-20261017-b2380765` (K0,
+`-agent -agent-model claude-sonnet-5-5`, prompt v8, case by case with `-append`; my first append attempts were refused by the CLI for
+a flag mistake before any agent ran, so no tokens were spent on them). Fresh `-work` per arm.
+
+| | A0 | B0 | C1 |
+|---|---|---|---|
+| clearances (system not-affected) | 0 | 0 | 0 |
+| unsafe clearances (not expected not-affected) | 0 | 0 | 0 |
+| clearances gained vs A0 | – | none | none |
+| falseNegativeRate / unsafeEligibilityRate | 0/5, 0/2 | 0/5, 0/2 | 0/5, 0/2 |
+| accuracy (class = expected) | 0/26 | 0/26 | 0/26 |
+| affectedDetection / exposureRecall | 4/5, 2/5 | same | same |
+| human-review item decisions | 26 | 26 | 26 |
+| agent tokens / wall | 0 / 27 s | 1,323,782 / 1,630 s | 0 / 24 s |
+| hypotheses proposed | 0 | 0 | 0 |
+
+**S4: met.** C1 has 0 unsafe clearances; it gains no clearance over A0 (no item differs between A0 and C1; every item is
+`potentially-affected` or `insufficient-evidence`, with the same basis and rule). The promoted K1 fact did not fire on any
+held-out cert-manager case. **S5-style safety rows:** unchanged across arms. B0's policy decisions are identical to A0's
+on all 26 items (class, rule, basis, eligibility, decision).
+
+B0 per-case agent tokens: billing-nordics 149,140; registry-apac 144,584; search-latam 165,059; telemetry-east 139,083;
+telemetry-west 136,323; docs-eu 96,202; docs-us 94,709; partner-api 105,284; obs-amer 149,342; obs-emea 144,056.
+All sessions `submitted`. Under the 1.5M stop line.
+
+### Agent verdicts (scored separately, ungated)
+correct 11, **false-safe 1**, false-alarm 0, hedged 11, overstated 0, no-verdict 3.
+- cert-manager (10 items): 1 correct (search-latam B1, affected), 9 hedged `potentially-affected`.
+- ingress-nginx docs-eu/docs-us/partner-api: agent `not-affected` on all items it judged: 7 correct, **1 false-safe
+  (docs-eu B3, expected affected)**, partner-api B1 (expected affected) no-verdict.
+- kube-prometheus-stack: obs-amer B2 and obs-emea B2 correct, obs-amer B1 and obs-emea B1 hedged, B3 on both no-verdict.
+The false-safe is an agent claim only: it never reaches the policy (B0 clearances = 0, class unchanged), which is exactly what
+the separation is for, but it is the reportable risk of the agent arm on this set. I did not investigate its cause here.
+
+### Hypotheses
+0 recorded in B0 on all 10 cases; nothing to export.

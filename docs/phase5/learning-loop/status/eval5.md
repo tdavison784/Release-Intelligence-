@@ -54,3 +54,5 @@
 - F3 (89328b6f): A0-K0-20261017-edb21ed9 (8 cases, identical to A0-F2) and B0-K0-20261017-edb21ed9-v8 (dev pair, prompt v8, one run): 301,442 tokens, 0 record_hypothesis calls, verdicts 1 correct / 3 hedged. Idle.
 
 - K1 (752e030a, merged as e9f08c5c; digest 8942781d…): C1-K1-20261017-e9f08c5c and Kbad-a…h-K1-20261017-e9f08c5c stored. S1 FAIL (spec.isCA equals true undecidable on checkout-tls/ledger-tls; no default declared), S2 PASS, S3 holds (vacuous), S5 holds. kbad tool fix for mutation a (keep existing review item). Idle.
+
+- Held-out (b2380765, p5-learning-loop fde41c1c): A0/B0/C1 stored under eval/investigations-heldout/results/. S4 met (C1 unsafe clearances 0, none gained); B0 1,323,782 tokens, verdicts 11 correct / 1 false-safe (docs-eu B3) / 11 hedged / 3 no-verdict, 0 hypotheses. Idle.
