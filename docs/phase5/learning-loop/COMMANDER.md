@@ -24,7 +24,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | (removed) | (closed) | merged 131d6c2e, cleaned up |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED @ 2c092bdf) | .claude/worktrees/p5ll-groundtruth5 (kept, sealed) | (closed) | LANE DONE 08:48 — 10 cases, 5A/5NA decisive; not merged until W-0016 |
-| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | W-0030 done (B0-v8: no hypotheses); idle |
+| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | W-0015 C1 + Kbad-* on K1 (in progress) |
 
 ## Merge log
 
@@ -47,6 +47,8 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 - 2026-10-17 89328b6f prompt8 = **F3**: prompt v8 default (system.md/item.md only; tools.json differs from v7 only in the two environmentBasis texts; v1–v7 digest-pinned). Mitigation = release-level rule recorded whether the env meets it on all/some/none; change vs consequence; wouldOverturn consistency; consumer tracing. Commander decision: environmentBasis = evidence of env state w.r.t. the conditions, met or not (non-empty). Reviewed prompt diff (generic, abstract example only). Smoke shop-fr 125k tokens, well-formed, no hypothesis calls. Lane note: smoke ingestion rewrote 3 ingress-nginx release/edge records in the shared `.ri/store`. Green. Cleaned up (tab w1:t1Y, worktree, branch -d).
 
 - 2026-10-17 48a87f69 verify2 = **F4**: consumer observation (crypto/x509 chain check of the post-re-issuance leaf against the pre-re-issuance ca.crt; PEM certs only, outcomes + digests stored), arms from the rule (role field spec.isCA), outcome logic = the pre-registered criterion (reviewed: shielded fail ⇒ refuted; undetermined/no exposed arm/no baseline/quiet exposed ⇒ inconclusive; pass needs stored evidence). `ri knowledge intake-rule -dir D -author A F`. Supersede choice only in the review UI. Smoke: rule confirmed pf-57da896bcf53, wrong rule refuted pf-97c17ca82902; clusters deleted; shared .ri not written. Green. Cleaned up (tab w1:t1Z, worktree, branch -d).
+
+- 2026-10-17 752e030a **K1** (W-0014, product owner, human): accepted ri-612fd8261e22 as a whole fact (decision rd-e42da65009c3, aspects subject/change/applicability/consequence) → vf-e60a2f78af06, supersedes vf-9b9cfa5c9f5f (now `superseded`). Six records copied byte-identically from the scratch knowledge the review UI wrote (decision, both facts, proof pf-23e47aa9c6a9, proposal sp-0c1da90e5697, review item). Snapshot digest sha256:8942781d4784c55a1ef27c5e8b19858aca1af1ebeae09342aaa7139bf3ecde8f. Reviewer's reason (verbatim, for the report): "I agree with the suggested answer, I think this is good to keep in this state where this setting should always require an engineer signoff there is a good amount of implication that the team should talk about first to ensure this should stay enabled/disabled. So calling it out for an engineer to review is great." :8486 review server stopped, tab w1:t10 closed. C1 + Kbad → eval5 (W-0015).
 
 ## Decisions
 
