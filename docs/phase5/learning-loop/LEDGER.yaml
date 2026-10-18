@@ -130,8 +130,10 @@ items:
   - id: W-0013
     title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
     kind: commander-task
-    status: queued
-    depends: [W-0012, W-0030]
+    status: done
+    owner: claude-commander
+    result: "F4 binary, scratch K0 copy: intake-rule → hyp-8fb090745e65 / ri-612fd8261e22 / rule 7089555d9e86; ri verify hypotheses -runtime -kubernetes 1.31 → CONFIRMED (observed) pf-23e47aa9c6a9 (citation-check pass, consumer rule-exercise pass, 226 s, cluster deleted). Agent hypotheses: none (v7, v8). Record: runs/w0013-verify/"
+    depends: [W-0012, W-0031, W-0032]
     note: "export ran and was empty (no hypotheses); verification has no input until W-0028 is decided"
     providers: [claude, glm]  # deterministic + observed; no model judgment
     glm-executable: true
@@ -140,7 +142,8 @@ items:
     title: Human promotion of confirmed hypotheses in the review UI → K1 SHA (PROTOCOL §6 step 5)
     kind: decision
     decision-rights: user
-    status: queued
+    status: ready
+    note: "review UI http://127.0.0.1:8486/items/ri-612fd8261e22 (tab w1:t10, scratch K1 candidate); promotion must choose supersede for vf-9b9cfa5c9f5f"
     depends: [W-0013]
     providers: [claude]
     glm-executable: false
@@ -287,8 +290,9 @@ items:
   - id: W-0030
     title: A0 + B0-v8 on the dev pair at F3, K0 (PROTOCOL amendment 10:55 step 2), then export-hypotheses
     kind: commander-task
-    status: in-progress
+    status: done
     owner: ri-eval5
+    result: "A0-K0-20261017-edb21ed9 (= F2 on all 24 items); B0-K0-20261017-edb21ed9-v8: 0 record_hypothesis calls; eu affected (correct), us potentially-affected (hedged); ~150k tokens/case"
     depends: [W-0029]
     providers: [claude]       # MODEL UNDER TEST
     glm-executable: false
@@ -297,10 +301,45 @@ items:
   - id: W-0031
     title: "Fallback: human-authored rotationPolicy mitigation rule → §7 verification (only if W-0030 yields none confirmed)"
     kind: commander-task
-    status: queued
-    depends: [W-0030]
+    status: done
+    note: "rule pre-registered: rules/rotationpolicy-ca-scoped.json (commander-drafted, label-aware); verification needs W-0032"
+    depends: [W-0030, W-0032]
     providers: [claude, glm]
     glm-executable: false     # authoring the rule is a knowledge judgment
     auto-start: false
     provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: pre-registered fallback}
+  - id: W-0032
+    title: Lane verify2 — consumer-observation arm for §7.1 (CA-chain verification across re-issuance) + human-authored rule intake (F4)
+    kind: lane
+    status: done
+    owner: ri-verify2
+    merged: 48a87f69
+    brief: briefs/verify2.md
+    depends: [W-0030]
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: "product owner: add consumer fixture"}
+  - id: W-0033
+    title: "Check: v8 agent saw mesh-root-ca rotationPolicy as a redacted digest — residual redaction gap in some read path?"
+    kind: commander-task
+    status: done
+    owner: ri-eval5
+    result: "agent tool search_manifest (tools_read.go:163) returns raw matching lines without CRD-enum read-back (read_artifact and the dossier apply it); the agent saw <redacted sha256:…> for rotationPolicy/algorithm in the raw files but the dossier showed explicit Never. Pin validator unaffected (envview recoverWithheld; mesh-root-ca decided explicit Never). Agent-view only, no policy effect."
+    follow-up: W-0034
+    depends: []
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: "inv-377edfda16af verdict: 'its value is redacted but is the digest of Never'"}
+  - id: W-0034
+    title: "search_manifest: apply CRD-enum read-back to matched lines (agent view only)"
+    kind: lane
+    status: queued
+    depends: [W-0018]
+    note: "deferred until after the report: fixing it before the held-out B0 would make held-out and dev-pair B0 conditions differ; disclosed as a limitation (the dossier showed the correct value)"
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: W-0033}
 windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}

@@ -136,6 +136,7 @@ ri knowledge route                              # learning loop: route candidate
 ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
 ri knowledge export -o feedback.jsonl           # the human-feedback dataset
+ri knowledge intake-rule -dir <copy> -author A rule.json  # a human-authored rule file → proposal + whole-fact review item, gated and verified like an agent hypothesis
 ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
 ri review open-audits -knowledge knowledge/ -apply   # open a whole-fact review for each pin-source fact below human verification
 ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --agent   # environment-aware investigation: bundle, rendered diff, graph, validators, agent, classification, human review (docs/INVESTIGATE.md "Running an investigation")

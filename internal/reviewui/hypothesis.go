@@ -20,12 +20,15 @@ import (
 
 type hypothesisView struct {
 	Hypothesis, Investigation string
-	Rule                      []string // plain-English lines of the proposed rule
-	Agent                     []agentReasoning
-	Proofs                    []proofView
-	GateOpen                  bool
-	GateReason                string
-	Related                   []relatedFact
+	// HumanAuthored: the rule was taken in from a human-authored rule file
+	// (`ri knowledge intake-rule`), not proposed by the agent.
+	HumanAuthored bool
+	Rule          []string // plain-English lines of the proposed rule
+	Agent         []agentReasoning
+	Proofs        []proofView
+	GateOpen      bool
+	GateReason    string
+	Related       []relatedFact
 }
 
 type agentReasoning struct {
@@ -78,6 +81,7 @@ func newHypothesisView(rc *knowledge.ReviewContext, form url.Values) *hypothesis
 		if text == "" {
 			text = "(no statement)"
 		}
+		v.HumanAuthored = v.HumanAuthored || knowledge.HumanAuthored(p.Provenance.Rule)
 		v.Agent = append(v.Agent, agentReasoning{Text: text, Model: p.Provenance.Model, Prompt: p.Provenance.PromptVersion, Call: p.Provenance.CallID})
 	}
 	for i := len(g.Proofs) - 1; i >= 0; i-- {

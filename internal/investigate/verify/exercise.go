@@ -2,6 +2,7 @@ package verify
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -47,7 +48,9 @@ type ExerciseInput struct {
 type armPlan struct {
 	Arm
 	subject string   // live id of the subject object
-	objects []string // subject + produced
+	objects []string // subject + produced (+ consuming objects and theirs)
+	// consumer is the arm's consumer check (consumer observation only).
+	consumer *runtime.ConsumerCheck
 }
 
 // ExerciseRule runs the two-arm exercise of a rule. It never runs against an
@@ -88,12 +91,27 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 	case ex.Exercise.Reaction == nil:
 		return notRun("exercise %s declares no controller reaction: it can never show that the controller acted", ex.Key())
 	}
-	arms, why := BuildArms(in.Rule, fx)
+	cf, why := consumerFor(in.Rule, fx)
 	if why != "" {
-		return notRun("the rule cannot be synthesised on a fixture: %s", why)
+		return notRun("%s", why)
 	}
+	var arms []consumerArm
 	var limitations []string
+	if cf != nil {
+		if arms, limitations, why = BuildConsumerArms(in.Rule, fx, cf); why != "" {
+			return notRun("the rule cannot be synthesised on the consumer observation %s: %s", cf.ID, why)
+		}
+	} else {
+		plain, why := BuildArms(in.Rule, fx)
+		if why != "" {
+			return notRun("the rule cannot be synthesised on a fixture: %s", why)
+		}
+		for _, a := range plain {
+			arms = append(arms, consumerArm{Arm: a})
+		}
+	}
 	var plans []armPlan
+	var consumers []runtime.ConsumerCheck
 	var stream strings.Builder
 	write := func(obj map[string]any) error {
 		b, err := yaml.Marshal(obj)
@@ -115,13 +133,26 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 	}
 	var observe []string
 	for _, a := range arms {
-		if err := write(a.Object); err != nil {
-			return notRun("fixture object: %v", err)
+		p := armPlan{Arm: a.Arm, subject: objectID(a.Object)}
+		for _, obj := range append([]map[string]any{a.Object}, a.consumers...) {
+			if err := write(obj); err != nil {
+				return notRun("fixture object: %v", err)
+			}
+			p.objects = append(p.objects, objectID(obj))
+			if obj["kind"] != fx.Target.Kind || !strings.HasPrefix(objectID(obj), groupOr(fx.Target.Group)+"/") {
+				continue // a consuming object of another kind: its outputs are not declared
+			}
+			produced, notes := Produced(in.Relationships, fx.Target, obj)
+			limitations = append(limitations, notes...)
+			observe = append(observe, produced...)
+			p.objects = append(p.objects, produced...)
 		}
-		produced, notes := Produced(in.Relationships, fx.Target, a.Object)
-		limitations = append(limitations, notes...)
-		observe = append(observe, produced...)
-		plans = append(plans, armPlan{Arm: a, subject: objectID(a.Object), objects: append([]string{objectID(a.Object)}, produced...)})
+		if cf != nil {
+			c := consumerCheckOf(a, cf, fx, ex.Key())
+			p.consumer = &c
+			consumers = append(consumers, c)
+		}
+		plans = append(plans, p)
 	}
 	from, err := in.Renderer.RenderController(ctx, in.Product, in.Bounds.From, in.Fixtures.Controller)
 	if err != nil {
@@ -132,12 +163,20 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return notRun("the controller at %s cannot be rendered: %v", in.Bounds.To, err)
 	}
 	objects := stream.String()
-	spec := runtime.FixtureSpec{ID: "fx-" + domain.ShortHash(in.Product, in.Bounds.From, in.Bounds.To, in.Fixtures.Digest(), objects),
+	idParts := []string{in.Product, in.Bounds.From, in.Bounds.To, in.Fixtures.Digest(), objects}
+	if len(consumers) > 0 {
+		b, _ := json.Marshal(consumers)
+		idParts = append(idParts, string(b))
+	}
+	spec := runtime.FixtureSpec{ID: "fx-" + domain.ShortHash(idParts...),
 		Product: in.Product, From: in.Bounds.From, To: in.Bounds.To, KubernetesVersion: in.KubernetesVersion,
-		FromController: from, ToController: to, Objects: []byte(objects), Namespace: fx.Namespace, Observe: observe}
+		FromController: from, ToController: to, Objects: []byte(objects), Namespace: fx.Namespace, Observe: observe, Consumers: consumers}
 	res, err := in.Runner.RunFixture(ctx, spec)
 	if err != nil {
 		return notRun("the fixture run could not start: %v", err)
+	}
+	if cf != nil {
+		return EvaluateConsumerArms(res, plans), limitations
 	}
 	m = EvaluateArms(res, plans, ex.Key())
 	return m, limitations
@@ -235,6 +274,13 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 		m.Evidence = nil
 	}
 	return m
+}
+
+func groupOr(g string) string {
+	if g == "" {
+		return "core"
+	}
+	return g
 }
 
 func armOutcome(a domain.ProofArm) domain.MethodOutcome {

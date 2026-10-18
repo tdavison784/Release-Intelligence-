@@ -15,6 +15,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
+| verify2 | ri-verify2 | Opus | p5ll/verify2 | (removed) | (closed) | merged 48a87f69 = F4, cleaned up |
 | prompt8 | ri-prompt8 | Opus | p5ll/prompt8 | (removed) | (closed) | merged 89328b6f = F3, cleaned up |
 | redact | ri-redact | Opus | p5ll/redact | (removed) | (closed) | merged = F2, cleaned up |
 | pins | ri-pins | Opus | p5ll/pins | (removed) | (closed) | merged cbb192c8, cleaned up |
@@ -23,7 +24,7 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 | fixes5 | ri-fixes5 | Opus | p5ll/fixes5 | (removed) | (closed) | merged 131d6c2e, cleaned up |
 | verify | ri-verify | Opus | p5ll/verify | (removed) | (closed) | merged, cleaned up |
 | groundtruth5 | ri-groundtruth5 | Opus | p5ll/groundtruth5 (SEALED @ 2c092bdf) | .claude/worktrees/p5ll-groundtruth5 (kept, sealed) | (closed) | LANE DONE 08:48 — 10 cases, 5A/5NA decisive; not merged until W-0016 |
-| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | W-0030 A0 + B0-v8 dev pair at F3 |
+| eval5 | ri-eval5 | Sonnet | p5ll/eval5 | .claude/worktrees/p5ll-eval5 | w1:t1V | W-0030 done (B0-v8: no hypotheses); idle |
 
 ## Merge log
 
@@ -45,8 +46,11 @@ Experiment: `PROTOCOL.md` (pre-registered 2026-10-17, never edited; amendments a
 
 - 2026-10-17 89328b6f prompt8 = **F3**: prompt v8 default (system.md/item.md only; tools.json differs from v7 only in the two environmentBasis texts; v1–v7 digest-pinned). Mitigation = release-level rule recorded whether the env meets it on all/some/none; change vs consequence; wouldOverturn consistency; consumer tracing. Commander decision: environmentBasis = evidence of env state w.r.t. the conditions, met or not (non-empty). Reviewed prompt diff (generic, abstract example only). Smoke shop-fr 125k tokens, well-formed, no hypothesis calls. Lane note: smoke ingestion rewrote 3 ingress-nginx release/edge records in the shared `.ri/store`. Green. Cleaned up (tab w1:t1Y, worktree, branch -d).
 
+- 2026-10-17 48a87f69 verify2 = **F4**: consumer observation (crypto/x509 chain check of the post-re-issuance leaf against the pre-re-issuance ca.crt; PEM certs only, outcomes + digests stored), arms from the rule (role field spec.isCA), outcome logic = the pre-registered criterion (reviewed: shielded fail ⇒ refuted; undetermined/no exposed arm/no baseline/quiet exposed ⇒ inconclusive; pass needs stored evidence). `ri knowledge intake-rule -dir D -author A F`. Supersede choice only in the review UI. Smoke: rule confirmed pf-57da896bcf53, wrong rule refuted pf-97c17ca82902; clusters deleted; shared .ri not written. Green. Cleaned up (tab w1:t1Z, worktree, branch -d).
+
 ## Decisions
 
+- 2026-10-17 16:30 (product owner): B0-v8 also proposed nothing → fallback. K0's vf-9b9cfa5c9f5f keeps payments-us' leaves exposed and today's verifier (tls.key change only) cannot confirm a consequence-scoped rule → extend §7.1 with a consumer observation (lane verify2, F4) and verify the pre-registered, commander-drafted, label-aware rule `rules/rotationpolicy-ca-scoped.json` (CA-scoped exposure; assumption: no consumer pins a leaf key). Held-out S4 tests over-generalization. W-0033 queued: residual redaction display in some agent read path.
 - 2026-10-17 10:53 W-0028 (product owner): B0-F2 proposed no hypothesis → one prompt revision v8 (lane prompt8, F3) + one B0-v8 dev-pair run; pre-registered fallback = human-authored rule through the same §7 verification and promotion gate (PROTOCOL amendment 10:55, which also discloses that the commander's label knowledge shaped two generic v8 instructions).
 - 2026-10-17 09:40 Redaction rule (commander decision, lane redact): ONE rule for collection and the render model — Secret data redacted; private-key material redacted by content anywhere; credential-named scalars redacted except Kubernetes object-reference keys (`name`, `namespace`, `key`, `*Name`, `*Namespace`: object/data-key names, not secret material); below credential-named maps keep bool/null/number + reference keys + CRD-enum read-back, everything else redacted; credential-name regex = union of both. Why: the render model left e.g. `credentials.secretAccessKey` in clear (renders reach the agent ⇒ provider — violates the product owner's data-sharing condition; Phase 4 gap), while a blunt rule would hide Secret names the graph needs. Dossier path casing + effective view fixed in the same lane.
 

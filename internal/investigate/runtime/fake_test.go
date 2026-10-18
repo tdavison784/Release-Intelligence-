@@ -146,6 +146,9 @@ type fakeCluster struct {
 	logAtV2Renew   bool
 	renewals       int
 	consumerFailed bool
+	pki            map[string]*badgePKI // Badge Secret id -> its key pair (consumer_test.go)
+	// keyLeaked lets a Badge's ca.crt carry its private key (refusal test)
+	keyLeaked bool
 }
 
 func newGizmoCluster(name string) *fakeCluster {
@@ -365,6 +368,8 @@ func (c *fakeCluster) reconcile() {
 					"state": map[string]any{"waiting": map[string]any{"reason": waiting}}}}
 			}
 			c.objs[ObjectRef{Version: "v1", Kind: "Pod", Namespace: r.Namespace, Name: r.Name + "-abc"}.String()] = pod
+		case r.Group == "gizmo.io" && r.Kind == "Badge":
+			c.reconcileBadge(r, o)
 		case r.Group == "gizmo.io" && r.Kind == "Widget":
 			if ver == "" {
 				continue
@@ -394,6 +399,10 @@ func (c *fakeCluster) reconcile() {
 // react is the controllers' response to a patch: a Widget marked Issuing is
 // re-issued (crt always; key too at v2 unless pinned to Never).
 func (c *fakeCluster) react(ref ObjectRef, obj map[string]any) {
+	if ref.Kind == "Badge" {
+		c.reactBadge(ref, obj)
+		return
+	}
 	if ref.Kind != "Widget" {
 		return
 	}

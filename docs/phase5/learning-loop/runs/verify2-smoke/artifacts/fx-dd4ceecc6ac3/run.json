@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "ri.dev/runtime-run/v1alpha1",
+  "validator": "runtime.isolated-upgrade@v1",
+  "bundle": "fx-dd4ceecc6ac3",
+  "product": "cert-manager",
+  "from": "1.17.2",
+  "to": "1.18.0",
+  "status": "completed",
+  "cluster": "ri-verify-f0fb4407",
+  "nodeImage": "kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865",
+  "kubernetesVersion": "1.31",
+  "tools": {
+    "docker": "29.0.1",
+    "kind": "kind v0.24.0 go1.22.6 darwin/arm64",
+    "kubectl": "v1.34.1"
+  },
+  "freeDiskBytes": 24835944448,
+  "startedAt": "2026-10-17T22:00:55.050864Z",
+  "finishedAt": "2026-10-17T22:04:34.163019Z",
+  "durationSeconds": 219.112155,
+  "budgetSeconds": 900,
+  "targets": [
+    {
+      "target": "controller@1.17.2",
+      "status": "ok",
+      "product": true,
+      "from": "",
+      "namespace": "cert-manager",
+      "objects": 52,
+      "verified": true
+    },
+    {
+      "target": "controller@1.18.0",
+      "status": "ok",
+      "product": true,
+      "from": "",
+      "namespace": "cert-manager",
+      "objects": 54,
+      "verified": true
+    },
+    {
+      "target": "fixture",
+      "status": "not-applicable",
+      "product": false,
+      "from": "",
+      "namespace": "ri-verify",
+      "objects": 7,
+      "verified": true
+    }
+  ],
+  "phases": [
+    {
+      "phase": "from",
+      "started": "2026-10-17T22:01:21.050372Z",
+      "finished": "2026-10-17T22:01:44.614643Z",
+      "applied": 61,
+      "retries": 3
+    },
+    {
+      "phase": "to",
+      "started": "2026-10-17T22:03:04.41086Z",
+      "finished": "2026-10-17T22:03:13.476198Z",
+      "applied": 120,
+      "pruned": [
+        "rbac.authorization.k8s.io/v1/ClusterRole//cert-manager-controller-challenges",
+        "rbac.authorization.k8s.io/v1/ClusterRoleBinding//cert-manager-controller-challenges"
+      ],
+      "hooks": [
+        "batch/v1/Job/cert-manager/cert-manager-startupapicheck",
+        "core/v1/ServiceAccount/cert-manager/cert-manager-startupapicheck",
+        "rbac.authorization.k8s.io/v1/Role/cert-manager/cert-manager-startupapicheck:create-cert",
+        "rbac.authorization.k8s.io/v1/RoleBinding/cert-manager/cert-manager-startupapicheck:create-cert"
+      ],
+      "reconciled": true
+    }
+  ],
+  "exercises": [
+    {
+      "exercise": "cert-manager/certificate-renewal",
+      "phase": "from",
+      "action": "status-condition",
+      "targets": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "executed": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "settleSeconds": 45,
+      "reaction": "field status.revision changes",
+      "reacted": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ]
+    },
+    {
+      "exercise": "cert-manager/certificate-renewal",
+      "phase": "to",
+      "action": "status-condition",
+      "targets": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "executed": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "settleSeconds": 45,
+      "reaction": "field status.revision changes",
+      "reacted": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ]
+    }
+  ],
+  "upgradeCompleted": true,
+  "degradations": [
+    {
+      "object": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls",
+      "window": "exercise",
+      "signature": "data:tls.key",
+      "detail": "data key \"tls.key\" changed under a consumer (digest hmac-sha256:d2664c4291f949b096461bf91aedcd5140f6a127debeef9d61f962dfae298216 → hmac-sha256:8522817a9de3da47b0de787cfe61cf39672c8d3256914a378f986e07d4b33989; values are never recorded) — during the exercises at the TO version; the same exercises at the FROM version did not do this; no consumer of it is a cluster object, no degradation observed",
+      "inconclusive": true
+    },
+    {
+      "object": "core/v1/Secret/ri-verify/ri-arm-present-2-tls",
+      "window": "exercise",
+      "signature": "data:tls.key",
+      "detail": "data key \"tls.key\" changed under a consumer (digest hmac-sha256:701ff8d7194fbd8d458a4022c1f1bcdc4f1d7aeeefcb34f0dce18516360226f0 → hmac-sha256:63bdeca4550b98b13f701a2d23df3fbe6df37dc9a876acb701102ab39d0eef5c; values are never recorded) — during the exercises at the TO version; the same exercises at the FROM version did not do this; no consumer of it is a cluster object, no degradation observed",
+      "inconclusive": true
+    },
+    {
+      "object": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls",
+      "window": "exercise",
+      "signature": "data:tls.key",
+      "detail": "data key \"tls.key\" changed under a consumer (digest hmac-sha256:9de8f9bc8e53aa81fb734a2ec1c0584f8e331f0af6b82c165b73b58ca7b6e8b7 → hmac-sha256:62d7e1e270c914865c7e0073881226d97cf0ac70a6954a44cf0a9ea14e075d9b; values are never recorded) — during the exercises at the TO version; the same exercises at the FROM version did not do this; no consumer of it is a cluster object, no degradation observed",
+      "inconclusive": true
+    }
+  ],
+  "consumers": [
+    {
+      "check": "condition-present",
+      "phase": "from",
+      "outcome": "verified",
+      "detail": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before",
+      "reissued": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "trustCertificates": [
+        "sha256:f4462d9e628c160e7a7e1980e1ed96ed0b279ee94c6e08990b886570ba3686fd"
+      ],
+      "trustKeys": [
+        "sha256:f28e186d1e05a702ed1ae695d5583f5d844b76853f502521a9f9401648299553"
+      ],
+      "certificate": "sha256:2739592f1b3d350fd10eeef094eb457c59a589be2aecebf8ae841ef79a57b131",
+      "certificateKey": "sha256:6cd2df7a29791824f95ff90119de7d65e722b523c668e48a12280ee9e9b6cfc3"
+    },
+    {
+      "check": "condition-present-2",
+      "phase": "from",
+      "outcome": "verified",
+      "detail": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before",
+      "reissued": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf"
+      ],
+      "trustCertificates": [
+        "sha256:dfe18b0099152d7c64a0184ab3e8ed95e64eba8d46f0bccb66875f747d07e422"
+      ],
+      "trustKeys": [
+        "sha256:f82b75781e7261d956ac6f8335f2db3ca65d830d4e5aa1c5a735ffb097b14b5f"
+      ],
+      "certificate": "sha256:3fb52fb5539afbb9c7165d32d425744ac779bd1542a9fa874e1db4df9b52be8f",
+      "certificateKey": "sha256:d8826e05ae252409b677b29e3b73e86dd205ef6c47120258693640e7a827075e"
+    },
+    {
+      "check": "condition-present",
+      "phase": "to",
+      "outcome": "verified",
+      "detail": "core/v1/Secret/ri-verify/ri-arm-present-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf] verifies against core/v1/Secret/ri-verify/ri-arm-present-tls[ca.crt] captured before",
+      "reissued": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-leaf"
+      ],
+      "trustCertificates": [
+        "sha256:90ceb149528d8e51aa90341f7e6e9b72ca09db214aff40cbad01a565f8b77636"
+      ],
+      "trustKeys": [
+        "sha256:f28e186d1e05a702ed1ae695d5583f5d844b76853f502521a9f9401648299553"
+      ],
+      "certificate": "sha256:0e3195e8f109ecf4b1195a6a379789c5d292afa06870a8ea11f85357a2028dc8",
+      "certificateKey": "sha256:dcb38988d6545a6995ca8cdbe91aa9763283d4679ec5a0d5d289a8592667ccd7"
+    },
+    {
+      "check": "condition-present-2",
+      "phase": "to",
+      "outcome": "failed",
+      "detail": "core/v1/Secret/ri-verify/ri-arm-present-2-leaf-tls[tls.crt] issued after re-issuing [cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2 cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf] does not verify against core/v1/Secret/ri-verify/ri-arm-present-2-tls[ca.crt] captured before: x509: certificate signed by unknown authority (possibly because of \"crypto/rsa: verification error\" while trying to verify candidate authority certificate \"ri-arm-present-2.ri-verify.test\")",
+      "reissued": [
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2",
+        "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present-2-leaf"
+      ],
+      "trustCertificates": [
+        "sha256:16dd7ba3a7abff23247900ea05acd2a337134c2ca45cc67a2de8e5bae7198249"
+      ],
+      "trustKeys": [
+        "sha256:f82b75781e7261d956ac6f8335f2db3ca65d830d4e5aa1c5a735ffb097b14b5f"
+      ],
+      "certificate": "sha256:e193d0f93007c7af0c589f3283e4af9128dc55d2a7a9f7bb0587ee88aae378ae",
+      "certificateKey": "sha256:b094f3f51f9afb9707bf4977c278f197e379087185c3329a13d97452fe29511e"
+    }
+  ],
+  "cleanup": {
+    "cluster": "ri-verify-f0fb4407",
+    "deleted": true,
+    "verified": true
+  }
+}

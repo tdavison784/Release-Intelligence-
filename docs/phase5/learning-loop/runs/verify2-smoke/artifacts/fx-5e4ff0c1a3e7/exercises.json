@@ -1,0 +1,169 @@
+[
+  {
+    "product": "cert-manager",
+    "digest": "sha256:35bbd2b121a532918e477db1a23b53dc5b7e5ddb9772b21e2eb145d5e52ea430",
+    "exercise": {
+      "id": "certificate-renewal",
+      "summary": "Re-issue every Certificate the way `cmctl renew` does (status condition Issuing=True, reason ManuallyTriggered). Issuance is where the controller applies a Certificate's defaults and private-key handling, so behaviour and CRD-default changes manifest here.",
+      "target": {
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      },
+      "action": "status-condition",
+      "condition": {
+        "type": "Issuing",
+        "status": "True",
+        "reason": "ManuallyTriggered",
+        "message": "Certificate re-issuance manually triggered"
+      },
+      "families": [
+        "behavior",
+        "procedure",
+        "api-schema"
+      ],
+      "reaction": {
+        "kind": "field-changed",
+        "path": "status.revision"
+      },
+      "settleSeconds": 45,
+      "references": [
+        {
+          "url": "https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/reference/cmctl.md",
+          "quote": "`cmctl` allows you to manually trigger a renewal of a specific certificate."
+        },
+        {
+          "url": "https://github.com/cert-manager/cmctl/blob/8254a8a61bfaff5d13f48ceb68de76e8f5674536/pkg/renew/renew.go",
+          "quote": "apiutil.SetCertificateCondition(crt, crt.Generation, cmapi.CertificateConditionIssuing, cmmeta.ConditionTrue, \"ManuallyTriggered\", \"Certificate re-issuance manually triggered\")"
+        },
+        {
+          "url": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go",
+          "quote": "Upon issuance, this field will be set to the value of the annotation"
+        }
+      ]
+    }
+  },
+  {
+    "product": "ingress-nginx",
+    "digest": "sha256:4251eff65a43d69eecbbecff3cf2befbb7ffc082cc7b95552629f325ef038b41",
+    "exercise": {
+      "id": "ingress-update",
+      "summary": "Update every Ingress (an annotation the controller does not read): the controller's validating admission webhook validates the Ingress definition again and the controller re-syncs it, so changed validation and processing defaults manifest on existing Ingresses.",
+      "target": {
+        "group": "networking.k8s.io",
+        "kind": "Ingress"
+      },
+      "action": "annotate",
+      "annotation": "ri.dev/runtime-exercise",
+      "families": [
+        "behavior",
+        "procedure"
+      ],
+      "reaction": {
+        "kind": "event",
+        "reason": "Sync"
+      },
+      "settleSeconds": 30,
+      "references": [
+        {
+          "url": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/deploy/index.md",
+          "quote": "to validate Ingress definitions."
+        },
+        {
+          "url": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/cli-arguments.md",
+          "quote": "The address to start an admission controller on to validate incoming ingresses."
+        },
+        {
+          "url": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/store/store.go",
+          "quote": "recorder.Eventf(curIng, corev1.EventTypeNormal, \"Sync\", \"Scheduled for sync\")"
+        }
+      ]
+    }
+  },
+  {
+    "product": "prometheus-operator",
+    "digest": "sha256:defcce0997c69fd488860811ad16568c5f2f1690fab932ba3bfebfc11d5e18b6",
+    "exercise": {
+      "id": "podmonitor-update",
+      "summary": "Update every PodMonitor (an annotation the operator does not read): the operator detects the change, regenerates the Prometheus configuration, and rejects an invalid resource with a Kubernetes Event.",
+      "target": {
+        "group": "monitoring.coreos.com",
+        "kind": "PodMonitor"
+      },
+      "action": "annotate",
+      "annotation": "ri.dev/runtime-exercise",
+      "families": [
+        "behavior",
+        "procedure"
+      ],
+      "settleSeconds": 30,
+      "references": [
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/README.md",
+          "quote": "The Prometheus operator automatically detects changes in the Kubernetes API server to any of the above objects, and ensures that"
+        },
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/troubleshooting.md",
+          "quote": "The Prometheus Operator will reject invalid resources and not reconcile them in the Prometheus configuration. When it happens the Operator emits a Kubernetes Event detailing the issue."
+        }
+      ]
+    }
+  },
+  {
+    "product": "prometheus-operator",
+    "digest": "sha256:defcce0997c69fd488860811ad16568c5f2f1690fab932ba3bfebfc11d5e18b6",
+    "exercise": {
+      "id": "prometheusrule-update",
+      "summary": "Update every PrometheusRule (an annotation the operator does not read): the operator reconciles the rules into the rule files Prometheus loads, and rejects an invalid resource with a Kubernetes Event.",
+      "target": {
+        "group": "monitoring.coreos.com",
+        "kind": "PrometheusRule"
+      },
+      "action": "annotate",
+      "annotation": "ri.dev/runtime-exercise",
+      "families": [
+        "behavior",
+        "procedure"
+      ],
+      "settleSeconds": 30,
+      "references": [
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/getting-started/design.md",
+          "quote": "Alerts and recording rules are reconciled by the Operator and dynamically loaded without requiring a restart of Prometheus or Thanos Ruler."
+        },
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/troubleshooting.md",
+          "quote": "The Prometheus Operator will reject invalid resources and not reconcile them in the Prometheus configuration. When it happens the Operator emits a Kubernetes Event detailing the issue."
+        }
+      ]
+    }
+  },
+  {
+    "product": "prometheus-operator",
+    "digest": "sha256:defcce0997c69fd488860811ad16568c5f2f1690fab932ba3bfebfc11d5e18b6",
+    "exercise": {
+      "id": "servicemonitor-update",
+      "summary": "Update every ServiceMonitor (an annotation the operator does not read): the operator detects the change, regenerates the Prometheus configuration, and rejects an invalid resource with a Kubernetes Event.",
+      "target": {
+        "group": "monitoring.coreos.com",
+        "kind": "ServiceMonitor"
+      },
+      "action": "annotate",
+      "annotation": "ri.dev/runtime-exercise",
+      "families": [
+        "behavior",
+        "procedure"
+      ],
+      "settleSeconds": 30,
+      "references": [
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/README.md",
+          "quote": "The Prometheus operator automatically detects changes in the Kubernetes API server to any of the above objects, and ensures that"
+        },
+        {
+          "url": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/troubleshooting.md",
+          "quote": "The Prometheus Operator will reject invalid resources and not reconcile them in the Prometheus configuration. When it happens the Operator emits a Kubernetes Event detailing the issue."
+        }
+      ]
+    }
+  }
+]
