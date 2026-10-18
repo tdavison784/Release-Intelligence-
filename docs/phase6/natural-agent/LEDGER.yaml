@@ -5,17 +5,19 @@ items:
     kind: lane
     lane: ws6
     status: in-progress
+    note: "first pass done 9ef57a4f; follow-up (read-back mode, PROTOCOL A1) sent 2026-10-18"
     providers: [claude]
     glm-executable: false
   - id: X-0002
     title: Commander review of the EVIDENCE.md tables and the canary (gate before any Phase 0 run)
     kind: commander-task
-    status: queued
+    status: in-progress
+    note: "canary reviewed: PASS accepted. D1 decided in PROTOCOL A1 (943c75b3); waiting on ws6 read-back follow-up"
     depends: [X-0001]
     providers: [claude]
     glm-executable: false
   - id: X-0003
-    title: Phase 0 runs — C-whole and C-item, 3 repeats x 3 cases (PROTOCOL §4, §9), then extraction
+    title: Phase 0 runs — C-whole and C-item, 3 repeats x 3 cases, plus C-raw P-US x3 (PROTOCOL §4, §9, A1), then extraction
     kind: commander-task
     status: queued
     depends: [X-0002]
@@ -41,5 +43,21 @@ items:
     kind: commander-task
     status: queued
     depends: [X-0005]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0007
+    title: Lane fleetpilot — beads mirror of this ledger + gascity toy-fleet pilot; report and port estimate
+    kind: lane
+    lane: fleetpilot
+    status: in-progress
+    providers: [claude]
+    glm-executable: false
+    note: "product owner approved 2026-10-18 ('perform the proper steps'); does not switch the live fleet"
+  - id: X-0008
+    title: Decide whether the next fleet runs on gascity + beads (from fleetpilot REPORT.md)
+    kind: decision
+    decision-rights: user
+    status: queued
+    depends: [X-0007]
     providers: [claude]
     glm-executable: false
