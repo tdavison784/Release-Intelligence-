@@ -114,6 +114,8 @@ Also outside the bundle manifest and not in the workspace: change items, finding
 
    **Remaining difference.** RI gives a read-back value as a separate structured field of the tool result (`readBack`: object, path, marker, value, note), next to the verbatim text and only when the window read holds the marker; the workspace gives it as an inline YAML comment on the marker's line, wherever the file is read (`kubectl kustomize` output drops comments, as it would any). The note's wording is RI's, including the marker.
 
+   **Raw mode (C-raw, PROTOCOL A1; `P6_ENV=raw`).** The env files are as authored, so they hold no markers. In the renders, each marker RI reads back is replaced by its plain value, with no comment. The difference from as-authored: 4 render lines keep their marker, because RI does not read it back and its value is not in env/: `metadata.annotations.cert-manager.io/inject-ca-from-secret`. These lines are identical in every mode.
+
 2. **Environment description.** `ORIENTATION.md` carries `environment.description` verbatim, as PROTOCOL §3 prescribes. RI's agent request had **no** description (the arm-B `request.json` holds product, versions, environment name, repository and Kubernetes version only), so the natural agent has this orientation text and RI's agent did not.
 
 3. **Release-scope (chart-default) renders.** RI's agent could read renders of each chart version with default values (`list_renders`, scope release). The workspace has only the environment's renders (PROTOCOL §3); the chart's own `values.yaml` for both versions is in `upstream/`.

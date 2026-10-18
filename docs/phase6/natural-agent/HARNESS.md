@@ -61,7 +61,10 @@ rest (decision D1, X-0002):
   `redaction.Schemas.Recover`, and the text of `readBackNote`. Markers RI does not read back stay masked, with no
   comment. `manifest.diff` is the diff of the annotated renders;
 - `ri`: RI's bytes only, with no comments, which is less than RI's agent had;
-- `raw`: env files as authored; renders as in `ri`. A file under the case's `env/` that RI never
+- `raw` (C-raw, PROTOCOL A1): env files as authored. In the renders, each marker RI reads back is replaced by its
+  plain value (`readback -plain`), with no comment. The one residual: markers RI does not read back stay masked,
+  because their value is not in `env/`. In the cert-manager cases this is the chart's
+  `cert-manager.io/inject-ca-from-secret` annotation (`<sensitive sha256:7cad1bd4f4a792e5>`, 4 lines in P-US). A file under the case's `env/` that RI never
 ingested must be decided in `env-nonartifact.tsv`, or the build fails. Builds are reproducible: the same inputs give
 the same `MANIFEST.sha256`.
 

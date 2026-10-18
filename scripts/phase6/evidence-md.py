@@ -179,7 +179,8 @@ if rows:
                     "(`scripts/phase6/readback`), as a YAML comment to each line whose marker RI reads back; a marker "
                     "RI does not read back stays masked with no comment.",
         "ri": "keeps RI's bytes only, without the read-back: less than RI's agent had.",
-        "raw": "has the env files as authored (no markers there) and RI's renders as stored."}[mode] +
+        "raw": "has the env files as authored and RI's renders with each marker RI reads back replaced by its "
+               "value."}[mode] +
       f" {len(rows)} marker lines, {back} read back:\n")
     w("   | workspace file | line | field | as authored | as RI stored it | RI read-back |\n   |---|---|---|---|---|---|")
     for f, i, path, src, stored, rb in sorted(rows, key=lambda r: (not r[0].startswith("env/"), r[0], r[1])):
@@ -189,6 +190,13 @@ if rows:
       "holds the marker; the workspace gives it as an inline YAML comment on the marker's line, wherever the file "
       "is read (`kubectl kustomize` output drops comments, as it would any). The note's wording is RI's, "
       "including the marker.\n")
+    left = sorted({r[2] for r in rows if r[5] == "not read back"})
+    w("   **Raw mode (C-raw, PROTOCOL A1; `P6_ENV=raw`).** The env files are as authored, so they hold no markers. In "
+      "the renders, each marker RI reads back is replaced by its plain value, with no comment. " +
+      (f"The difference from as-authored: {sum(1 for r in rows if r[5] == 'not read back')} render lines keep "
+       f"their marker, because RI does not read it back and its value is not in env/: "
+       + ", ".join(f"`{x}`" for x in left) + ". These lines are identical in every mode.\n" if left else
+       "No marker is left.\n"))
     n += 1
 else:
     w(f"{n}. **RI's redaction markers and its read-back (decision D1, X-0002).** None: no env file or render RI "

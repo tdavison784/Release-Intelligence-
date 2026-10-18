@@ -10,8 +10,9 @@
 // marker RI reads back gets a YAML comment carrying RI's note. The schema
 // index and the read-back are RI's: the CRDs bundleSchemas indexes
 // (internal/investigate/agent/withheld.go), redaction.Schemas.Recover on the
-// objects render.ParseObjects parses, and readBackNote's text. Markers RI does
-// not read back stay as they are. -tsv lists every marker line (read back or
+// objects render.ParseObjects parses, and readBackNote's text. With -plain
+// (raw mode) each marker read back is replaced by its value instead, with no
+// comment. Markers RI does not read back stay as they are. -tsv lists every marker line (read back or
 // not); -authored only fills that list's as-authored column, by matching each
 // marker against RI's own marker of every string in the authored env files.
 package main
@@ -25,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -41,18 +43,19 @@ func main() {
 	out := flag.String("out", "", "output dir")
 	tsv := flag.String("tsv", "", "marker list (TSV)")
 	authored := flag.String("authored", "", "the case's authored env root (as-authored column only)")
+	plain := flag.Bool("plain", false, "replace each marker read back by its value, with no comment (raw mode)")
 	flag.Parse()
 	if *evidence == "" || *out == "" || *tsv == "" {
 		fmt.Fprintln(os.Stderr, "usage: readback -evidence <dir> -out <dir> -tsv <file> [-authored <env-root>] <path>...")
 		os.Exit(2)
 	}
-	if err := run(*evidence, *out, *tsv, *authored, flag.Args()); err != nil {
+	if err := run(*evidence, *out, *tsv, *authored, *plain, flag.Args()); err != nil {
 		fmt.Fprintln(os.Stderr, "readback:", err)
 		os.Exit(1)
 	}
 }
 
-func run(evidence, out, tsvPath, authoredRoot string, paths []string) error {
+func run(evidence, out, tsvPath, authoredRoot string, plain bool, paths []string) error {
 	ix, err := schemas(evidence)
 	if err != nil {
 		return err
@@ -69,7 +72,7 @@ func run(evidence, out, tsvPath, authoredRoot string, paths []string) error {
 		if err != nil {
 			return err
 		}
-		annotated, rs, err := annotate(ix, data)
+		annotated, rs, err := annotate(ix, data, plain)
 		if err != nil {
 			return fmt.Errorf("%s: %w", p, err)
 		}
@@ -153,11 +156,12 @@ type markerLine struct {
 // annotate splits data into documents as render.ParseObjects does, reads
 // back each document's objects, and comments the lines of the markers read
 // back (located by field path and marker in the document's YAML nodes).
-func annotate(ix *redaction.Schemas, data []byte) ([]byte, []markerLine, error) {
+func annotate(ix *redaction.Schemas, data []byte, plain bool) ([]byte, []markerLine, error) {
 	lines := strings.SplitAfter(string(data), "\n")
 	notes := map[int]string{}
 	paths := map[int]string{}
 	values := map[int]string{}
+	marks := map[int]string{}
 	start := 0
 	flush := func(end int) error {
 		doc := strings.Join(lines[start:end], "")
@@ -174,7 +178,7 @@ func annotate(ix *redaction.Schemas, data []byte) ([]byte, []markerLine, error) 
 				found := false
 				for _, n := range nodes {
 					if n.path == r.Path && n.marker == r.Marker {
-						notes[start+n.line], values[start+n.line], found = readBackNote(r), r.Value, true
+						notes[start+n.line], values[start+n.line], marks[start+n.line], found = readBackNote(r), r.Value, r.Marker, true
 					}
 				}
 				if !found {
@@ -203,13 +207,25 @@ func annotate(ix *redaction.Schemas, data []byte) ([]byte, []markerLine, error) 
 		for _, m := range markerRE.FindAllString(body, -1) {
 			rs = append(rs, markerLine{line: i + 1, path: paths[i], marker: m, value: values[i], note: notes[i]})
 		}
-		if n, ok := notes[i]; ok {
+		if n, ok := notes[i]; ok && plain {
+			b.WriteString(plainValue(body, marks[i], values[i]) + l[len(body):])
+		} else if ok {
 			b.WriteString(body + "  # " + n + l[len(body):])
 		} else {
 			b.WriteString(l)
 		}
 	}
 	return []byte(b.String()), rs, nil
+}
+
+// plainValue puts value where line has marker: inside the marker's quotes,
+// or as a YAML scalar that reads back as that string.
+func plainValue(line, marker, value string) string {
+	if q := `"` + marker + `"`; strings.Contains(line, q) {
+		return strings.Replace(line, q, strconv.Quote(value), 1)
+	}
+	y, _ := yaml.Marshal(value)
+	return strings.Replace(line, marker, strings.TrimSuffix(string(y), "\n"), 1)
 }
 
 type node struct {
