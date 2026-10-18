@@ -352,6 +352,27 @@ so the item keeps 14 validation gaps (CRD description change not shown harmless;
 validation of a controller-behaviour item) and R3 plausible-impact. Nothing else was needed to be examined: the
 failing condition is the first one. Not changed, per instruction.
 
+**Commander addendum (from the stored record and the code; corrects "downstream consequences all follow from it").** S1 has
+a **second, independent** blocker. Even with a pin that holds, R2.2 would stay unmet. The item's one correlated environment
+rendered change, `rc-e29bdc87967c` (`crd-description-changed` on
+`…privateKey.properties.rotationPolicy.description`, the upstream text documenting the default change), is shown harmless
+by no validation:
+- an override-inspection pass covers only subjects and paths (`validate/override.go` draft; `validate/common.go`
+  `coverageOf`), never rendered changes;
+- the render-diff documentation-only pass refuses, because the same CRD render also adds `spec.signatureAlgorithm`
+  (`rc-bd816cf121d0`, correlated to another item).
+
+So S1 needs both a rule that states what an unset `spec.isCA` means (a `spec.isCA set` leaf in the exposure; the rule's
+`overlap` already lists `isCA unset` as shielded, but the pin validator reads only the exposure) **and** a coverage rule for a
+description change on the pinned field itself. The product owner chose to report this negative result rather than amend
+post hoc (COMMANDER.md, decision 2026-10-17). The rule-encoding miss is the commander's: the pins lane had documented that
+value predicates on unset fields need a CRD default or an explicit unset/set leaf. The verifier's synthetic fixture sets
+`isCA` explicitly on every arm, so verification could not catch it (a limitation of §7 as built: confirmed in a fixture ≠
+decidable in an environment).
+
+Kbad-d note: the mutation replaced the first value leaf of the exposure, which is `spec.isCA equals ["true"]`, not the
+pinned rotationPolicy value. It is still a wrong-value control, but on the scope predicate.
+
 ### S2 — PASSES
 payments-eu: both items remain `potentially-affected` under C1. The record names the failed conditions: in the pin rule's
 scope, `mesh-root-ca` (isCA true) leaves rotationPolicy unset ("not pinned"), and `checkout-tls`/`ledger-tls` are
