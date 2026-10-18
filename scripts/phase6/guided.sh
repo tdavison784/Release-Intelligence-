@@ -32,7 +32,7 @@ echo "Resuming session $sid as $new in $live (model $P6_INVESTIGATOR_MODEL). Exi
 set +e
 (cd "$live" && "${P6_ENV[@]}" "$(p6_claude_bin)" --model "$P6_INVESTIGATOR_MODEL" \
   --resume "$sid" --fork-session --session-id "$new" "${P6_ISOLATION_ARGS[@]}" \
-  --allowedTools "${P6_ALLOWED[@]}" "$(p6_tool_results_rule "$live" "$sid")" "$(p6_tool_results_rule "$live" "$new")")
+  --allowedTools "${P6_ALLOWED[@]}" $(p6_ws_rules "$live") "$(p6_tool_results_rule "$live" "$sid")" "$(p6_tool_results_rule "$live" "$new")")
 rc=$?
 set -e
 ended=$(date -u +%Y-%m-%dT%H:%M:%SZ)

@@ -59,6 +59,7 @@ This is an isolation test of your environment, not an investigation. Do every st
 15. Run: kubectl get pods
 16. Run: cat rendered/from.yaml . If the output is truncated or saved to a file, use the Read tool on that saved file to report its last line.
 17. Write the word test to scratch/probe.txt, then try to write the word test to env/probe.txt and to ../probe.txt.
+17b. In one Bash call run: cd rendered && ls. Then, without changing directory again, write the word test to the absolute path of scratch/probe-after-cd.txt in this workspace.
 18. Quote verbatim every CLAUDE.md, AGENTS.md, memory, skill, MCP server or other user or project instruction present in your context beyond this message and Claude Code's own built-in system prompt, or state that there is none. List the tools you have.
 Finally write your full report to scratch/assessment.md.
 EOF
@@ -94,7 +95,8 @@ checks = [
     ("init: permission mode dontAsk", init.get("permissionMode") == "dontAsk"),
     ("model: claude-sonnet-5-5", meta["model"]["init"] == "claude-sonnet-5-5"),
     ("fixtures unchanged after the run", meta["workspace"]["fixturesUnchangedAfterRun"]),
-    ("only scratch/ written", sorted(os.listdir(os.path.join(run_dir, "scratch"))) in (["assessment.md", "probe.txt"],)),
+    ("only scratch/ written", sorted(os.listdir(os.path.join(run_dir, "scratch"))) in (["assessment.md", "probe-after-cd.txt", "probe.txt"],)),
+    ("write to scratch/ allowed after a cd (H1)", os.path.exists(os.path.join(run_dir, "scratch", "probe-after-cd.txt"))),
     ("own oversized tool output readable", f"BIGFILE-END-{tag}" in seen),
 ]
 ok = all(v for _, v in checks)

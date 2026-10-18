@@ -62,7 +62,7 @@ p6_env "$live/tmp"
 set +e
 (cd "$live/ws" && python3 "$here/session.py" "$run_dir" "$P6_BUDGET_TOKENS" "$run_dir/prompt.txt" -- \
   "${P6_ENV[@]}" "$claude" -p --model "$P6_INVESTIGATOR_MODEL" --output-format stream-json --verbose \
-  --session-id "$sid" "${P6_ISOLATION_ARGS[@]}" --allowedTools "${P6_ALLOWED[@]}" "$(p6_tool_results_rule "$live/ws" "$sid")")
+  --session-id "$sid" "${P6_ISOLATION_ARGS[@]}" --allowedTools "${P6_ALLOWED[@]}" $(p6_ws_rules "$live/ws") "$(p6_tool_results_rule "$live/ws" "$sid")")
 rc=$?
 set -e
 

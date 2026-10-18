@@ -30,6 +30,10 @@ p6_env() { # <tmpdir> -> sets the array P6_ENV (prefix a command with "${P6_ENV[
 # saves under <project>/<session>/tool-results/ (outside the workspace).
 p6_project_dir() { echo "$HOME/.claude/projects/$(echo "$1" | sed 's/[^A-Za-z0-9]/-/g')"; }
 p6_tool_results_rule() { echo "Read(/$(p6_project_dir "$1")/$2/tool-results/**)"; } # <cwd> <session-id>
+# Absolute-path twins of the relative workspace rules (harness defect H1, COMMANDER.md 2026-10-18): a persistent
+# `cd <ws>/<subdir>` moves the session cwd, after which ./ rules no longer cover the workspace root. Added after
+# the 21 autonomous Phase 0 runs; used by arm D and any later run. "//" = absolute path in permission rules.
+p6_ws_rules() { printf '%s\n' "Read(/$1/**)" "Write(/$1/scratch/**)" "Edit(/$1/scratch/**)"; } # <live ws dir>
 
 # Settings passed with --settings (user/project/local settings are not loaded).
 P6_SETTINGS='{"enabledPlugins":{"agents-md@builtin":false,"telemetry@builtin":false,"plugin-authoring@builtin":false,"diff@builtin":false},"autoMemoryEnabled":false,"includeCoAuthoredBy":false,"attribution":{"commit":"","pr":""}}'
