@@ -76,7 +76,7 @@ The commander found that RI's read tools read back withheld CRD enum values (`re
   | P-US | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us` | readback | `7cb31daa22c2c0ed3a786c30a3acd0ff3e1fc93431ad9e12025fb4bd4718ceb2` |
   | P-EU | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-eu` | readback | `0e1e4db0274499dfdb2945bce8ce486246f3bf7a6e3d2fbc9ba2449042afa32f` |
   | D-EU | `~/ri-p6/ws/ingress-nginx-1.11-1.12--docs-eu` | readback | `5aacc2ff7dd206faf6d0c528b878f96e85064f7e98a94c926622a12e6c849da9` (unchanged: no markers) |
-  | P-US raw | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us.raw` | raw | `e78642e35e2c293fe2a8ece4defdcce51b6b2d73e76c8e43d6de92a7b83c2dc8` |
+  | P-US raw | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us.raw` | raw | `e78642e3…`, superseded by follow-up 2 (`9b74ba87…`) |
 
   - A second P-US build gave the same digest.
   - shop-de (smoke) rebuilds with an identical digest (`db53ec9f…`), since it has nothing to read back.
@@ -85,6 +85,20 @@ The commander found that RI's read tools read back withheld CRD enum values (`re
   - The comments themselves show that a value was read back, which is the intent.
 - The canary was not re-run, because the isolation flags and `run-natural.sh` are unchanged. No Phase 0 case was
   run.
+
+## Follow-up 2 X-0002: raw mode per PROTOCOL A1 (C-raw)
+
+- `P6_ENV=raw` now replaces, in the renders, every marker RI reads back with its plain value, with no comment
+  (`scripts/phase6/readback -plain`). It quotes the value only where the marker was quoted, so the YAML reads it as
+  the same string. `manifest.diff` is regenerated from those renders. The env files stay as authored.
+- The only residual marker is the chart's `cert-manager.io/inject-ca-from-secret` (`<sensitive
+  sha256:7cad1bd4f4a792e5>`, 4 lines in `rendered/{from,to}.yaml`). RI does not read it back, and its value is not
+  in `env/`. It is recorded in HARNESS.md and in P-US EVIDENCE.md §6 ("Raw mode"); P-EU's §6 gets the same
+  generated paragraph.
+- P-US raw workspace `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us.raw`, `MANIFEST.sha256` digest
+  `9b74ba874f63a13537a6325b1190b64dd6d03e5fd6ba5602f23a80649b6f43d9`. Rebuilding gives the same digest.
+- The readback and ri modes are unchanged: P-US readback still builds `7cb31daa…` and ri `bdc1571a…`. No Phase 0
+  case was run.
 
 ## Decisions (local)
 

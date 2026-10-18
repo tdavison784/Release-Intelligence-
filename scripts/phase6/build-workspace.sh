@@ -21,7 +21,9 @@
 #   note, computed by RI's own code (readback/main.go). RI's agent got the same
 #   value as a separate readBack field (decision D1, X-0002).
 # P6_ENV=ri: RI's bytes only, no comments (less than RI's agent had).
-# P6_ENV=raw: env files as authored in the case; renders as in ri.
+# P6_ENV=raw: env files as authored in the case; in the renders every marker RI
+#   reads back is replaced by its plain value (no comment), and only markers RI
+#   does not read back stay masked (PROTOCOL A1, C-raw).
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/lib.sh"
@@ -44,16 +46,19 @@ case "$(cd "$(dirname "$out")" && pwd)/" in "$repo"/*) echo "workspace must live
 mkdir -p "$out"/{env,upstream,rendered,scratch}
 out=$(cd "$out" && pwd)
 
-# files/: RI's stored bytes, or (readback) RI's bytes with read-back comments.
+# files/: RI's stored bytes, or RI's bytes with read-back comments (readback)
+# or with the values read back in place of their markers (raw; renders only
+# are used from it).
 files=$ev/files
-if [ "$mode" = readback ]; then
+if [ "$mode" != ri ]; then
   tmp=$(mktemp -d "${TMPDIR:-/tmp}/p6-readback.XXXXXX")
   trap 'rm -rf "${tmp:?}"' EXIT
   (cd "$repo" && go build -o "$tmp/readback" ./scripts/phase6/readback)
   { awk -F'\t' 'NR>1 && $4=="environment" {print $1}' "$ev/artifacts.tsv"
     cut -f3,4 "$ev/renders.tsv" | tr '\t' '\n' | sed '/^$/d'; } | sort -u >"$tmp/paths"
   set --; while read -r p; do set -- "$@" "$p"; done <"$tmp/paths"
-  "$tmp/readback" -evidence "$ev" -out "$tmp/files" -tsv "$tmp/markers.tsv" "$@"
+  plain=; [ "$mode" = raw ] && plain=-plain
+  "$tmp/readback" $plain -evidence "$ev" -out "$tmp/files" -tsv "$tmp/markers.tsv" "$@"
   files=$tmp/files
 fi
 
