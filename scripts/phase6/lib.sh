@@ -19,15 +19,20 @@ p6_claude_bin() {
 
 # A scrubbed environment: nothing inherited from the calling Claude Code
 # session (CLAUDE_*, effort, messaging socket), no kube context, no tokens.
-p6_clean() { # <tmpdir> <command...>
-  local tmp=$1; shift
-  env -i "HOME=$HOME" "USER=$USER" "LOGNAME=$USER" \
-    "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin" \
-    "LANG=en_US.UTF-8" "TERM=${TERM:-xterm-256color}" "TMPDIR=$tmp" "KUBECONFIG=/dev/null" "$@"
+p6_env() { # <tmpdir> -> sets the array P6_ENV (prefix a command with "${P6_ENV[@]}")
+  P6_ENV=(env -i "HOME=$HOME" "USER=$USER" "LOGNAME=$USER"
+    "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin"
+    "LANG=en_US.UTF-8" "TERM=${TERM:-xterm-256color}" "TMPDIR=$1" "KUBECONFIG=/dev/null")
 }
 
+# Claude Code's per-project directory for a working directory, and the rule
+# that lets a session read back its own oversized tool outputs, which the CLI
+# saves under <project>/<session>/tool-results/ (outside the workspace).
+p6_project_dir() { echo "$HOME/.claude/projects/$(echo "$1" | sed 's/[^A-Za-z0-9]/-/g')"; }
+p6_tool_results_rule() { echo "Read(/$(p6_project_dir "$1")/$2/tool-results/**)"; } # <cwd> <session-id>
+
 # Settings passed with --settings (user/project/local settings are not loaded).
-P6_SETTINGS='{"enabledPlugins":{"agents-md@builtin":false,"telemetry@builtin":false,"plugin-authoring@builtin":false,"diff@builtin":false},"autoMemoryEnabled":false}'
+P6_SETTINGS='{"enabledPlugins":{"agents-md@builtin":false,"telemetry@builtin":false,"plugin-authoring@builtin":false,"diff@builtin":false},"autoMemoryEnabled":false,"includeCoAuthoredBy":false,"attribution":{"commit":"","pr":""}}'
 
 # Isolation and tool limits (PROTOCOL §5). In dontAsk mode anything not
 # allowed here is denied; Read rules also govern Grep and Glob, and Claude
@@ -38,11 +43,14 @@ P6_ISOLATION_ARGS=(
   --settings "$P6_SETTINGS"
   --tools "Read,Grep,Glob,Bash,Write,Edit"
   --disallowedTools "WebFetch" "WebSearch" "Task" "Agent"
-  --allowedTools "Read(./**)"
+  --permission-mode dontAsk
+)
+# Passed last, as --allowedTools "${P6_ALLOWED[@]}" <tool-results rule> (the option takes a list).
+P6_ALLOWED=(
+  "Read(./**)"
   "Bash(ls:*)" "Bash(cat:*)" "Bash(head:*)" "Bash(tail:*)" "Bash(wc:*)" "Bash(find:*)"
   "Bash(grep:*)" "Bash(diff:*)" "Bash(jq:*)" "Bash(yq:*)" "Bash(kubectl kustomize:*)"
   "Write(./scratch/**)" "Edit(./scratch/**)"
-  --permission-mode dontAsk
 )
 
 p6_sha256() { shasum -a 256 "$1" | cut -d' ' -f1; }
