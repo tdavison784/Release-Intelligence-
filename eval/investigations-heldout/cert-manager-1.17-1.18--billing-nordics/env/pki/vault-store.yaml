@@ -1,0 +1,17 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: vault-security
+spec:
+  provider:
+    vault:
+      server: https://vault.security.example.com
+      path: pki-material
+      version: v2
+      auth:
+        kubernetes:
+          mountPath: kubernetes-billing-prod-nordics
+          role: external-secrets
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets

@@ -1,0 +1,94 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: ingress-nginx-1.11-1.12--partner-api
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L117-L133"
+        quote: "⚠️ Remove global-rate-limit feature (#11851) ⚠️ This removes the following configuration options: `global-rate-limit-memcached-host` `global-rate-limit-memcached-port` ... `global-rate-limit-status-code` It also removes the following annotations: `global-rate-limit` `global-rate-limit-window` `global-rate-limit-key` `global-rate-limit-ignored-cidrs`"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/docs/user-guide/nginx-configuration/annotations.md
+        lines: "L580-L613"
+        quote: "Global Rate Limiting overcome this by using lua-resty-global-throttle. lua-resty-global-throttle shares its counters via a central store such as memcached. ... `nginx.ingress.kubernetes.io/global-rate-limit`: Configures maximum allowed number of requests per window. Required."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/controller.go
+        lines: "L313-L392"
+        quote: "CheckIngress ... for key, value := range ing.ObjectMeta.GetAnnotations() { ... } ... parsed, err := annotations.NewAnnotationExtractor(n.store).Extract(ing)"
+    match:
+      - subject: global-rate-limit
+      - text: '(?i)global.?rate.?limit'
+    components:
+      - ref: {file: env/apps/partner-api/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: partner-api, name: partner-api}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}, relation: deploys}
+          - {ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ConfigMap, namespace: ingress-nginx, name: ingress-nginx-controller}, field: data.global-rate-limit-memcached-host, relation: configures}
+          - {ref: {file: env/apps/partner-api/base/ingress.yaml, kind: Ingress, namespace: partner-api, name: partner-api}, field: metadata.annotations.nginx.ingress.kubernetes.io/global-rate-limit, relation: consumes-api}
+          - {ref: {file: env/apps/partner-api/base/service.yaml, kind: Service, namespace: partner-api, name: partner-api}, relation: references}
+        reason: >-
+          The partner quota (120 requests per minute per X-Partner-Id, counted across the three
+          controller replicas in memcached) is implemented only by the global-rate-limit annotations and
+          the global-rate-limit-memcached-* configuration, both removed in v1.12.0. Nothing fails
+          visibly: the ConfigMap keys and the annotations render and apply unchanged, the admission
+          webhook accepts the Ingress (removed annotations are no longer known, so they are not
+          validated), and the controller simply no longer generates the throttle. Observed: a burst of
+          130 requests from one partner got 120x200 + 10x429 on v1.11.5 and 130x200 on v1.12.0, and
+          the global_throttle configuration disappeared from nginx.conf. The contractual quota is no
+          longer enforced.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/apps/partner-api/base/ingress.yaml, object: Ingress/partner-api, field: metadata.annotations}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.config}
+    remediation: >-
+      Replace the global rate limit before upgrading (e.g. the local limit-rpm/limit-rps annotations
+      scaled to the replica count, or rate limiting in the API backend or a gateway), or stay on
+      controller v1.11.x until that is in place.
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L51-L55"
+        quote: "⚠️ Metrics: Disable by default. (#12153) ⚠️ This changes the default of the following CLI arguments: `--enable-metrics` gets disabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/pkg/flags/flags.go
+        lines: "L177"
+        quote: "enableMetrics = flags.Bool(\"enable-metrics\", false,"
+    match:
+      - subject: --enable-metrics
+      - text: '(?i)enable.?metrics|metrics.*disable'
+    components:
+      - ref: {file: env/platform/ingress-nginx/values.yaml}
+        classification: not-affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}, relation: deploys}
+          - {ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: Deployment, namespace: ingress-nginx, name: ingress-nginx-controller}, field: 'spec.template.spec.containers[0].args', relation: configures}
+        reason: >-
+          controller.metrics.enabled is true, so chart 4.12.0 passes --enable-metrics=true explicitly
+          (rendered change) and the changed controller default does not apply; the metrics endpoint
+          scraped through the pod annotations keeps serving (observed on v1.12.0).
+        mitigation: {ref: {file: env/platform/ingress-nginx/values.yaml}, field: controller.metrics.enabled, value: true, kind: override}
+        requiredEvidence:
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.metrics.enabled}
+renderedChanges:
+  - diff: observed/render.diff#L60-L66
+    object: "ConfigMap/ingress-nginx/ingress-nginx-controller"
+    change: "key allow-snippet-annotations: 'false' no longer rendered (the controller default is false in both versions)"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L102-L109
+    object: "Deployment/ingress-nginx/ingress-nginx-controller"
+    change: "arg --enable-metrics=true now rendered (controller.metrics.enabled true; the controller default became false)"
+    item: B2
+    impact: harmless
+  - diff:
+      - observed/render.diff#L119-L126
+      - observed/render.diff#L175-L182
+      - observed/render.diff#L217-L224
+    object: "Deployment/ingress-nginx-controller, Jobs ingress-nginx-admission-create/-patch"
+    change: "securityContext.runAsGroup added (82 for the controller, 65532 for the admission jobs)"
+    item: null
+    impact: harmless

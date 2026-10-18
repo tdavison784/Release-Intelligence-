@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: search-root-ca
+  namespace: cert-manager
+  labels:
+    pki.example.com/tier: root
+spec:
+  isCA: true
+  commonName: search-root-ca
+  secretName: search-root-ca
+  duration: 26280h # 3y
+  renewBefore: 4380h
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-bootstrap

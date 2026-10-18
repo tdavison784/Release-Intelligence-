@@ -1,0 +1,33 @@
+# Dashboards and alert routing are central.
+grafana:
+  enabled: false
+alertmanager:
+  enabled: false
+
+# Managed control plane: only the API server, kubelets and CoreDNS can be scraped.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheusOperator:
+  # Do not cache Secrets the operator never needs.
+  secretFieldSelector: "type!=kubernetes.io/dockercfg,type!=kubernetes.io/service-account-token,type!=helm.sh/release.v1"
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    externalLabels:
+      cluster: obs-prod-emea
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false

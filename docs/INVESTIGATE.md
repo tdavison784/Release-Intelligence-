@@ -1569,3 +1569,12 @@ Scored runs are kept, never overwritten or cherry-picked; the analysis is
   per item, safety rows (false negatives, unsafe eligibility, clearances, unsafe clearances, clearances gained/lost),
   accuracy and coverage/risk detection as separate tables, human-review and cost rows, agent-verdict outcomes. The
   analysis is `docs/phase5/learning-loop/EVAL-REPORT.md`.
+
+### Held-out ground truth (Phase 5)
+
+`eval/investigations-heldout/` holds ten further cases (cert-manager 1.17.2 → 1.18.0, ingress-nginx
+4.11.5 → 4.12.0, kube-prometheus-stack 89.2.4 → 90.2.0) in the same format, authored blind by lane
+`groundtruth5` on a sealed branch and confirmed by observed upgrades in kind (`README.md` there: case
+index and re-run commands; no expected class is stated outside `expected.yaml`). It is the held-out
+measurement of `docs/phase5/learning-loop/PROTOCOL.md` §5 S4, scored with `ri eval -investigations -dir
+eval/investigations-heldout` once the gates file for it is in place (commander-owned, PROTOCOL §5).

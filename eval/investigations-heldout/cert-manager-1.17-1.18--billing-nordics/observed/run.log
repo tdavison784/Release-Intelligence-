@@ -1,0 +1,251 @@
+# case cert-manager-1.17-1.18--billing-nordics; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:34:58Z
+$ kind create cluster --name ri-groundtruth5-billing-nordics --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-billing-nordics.kubeconfig.XXXXXX.Dm5fBxmT0u
+Creating cluster "ri-groundtruth5-billing-nordics" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 16s 💚
+Set kubectl context to "kind-ri-groundtruth5-billing-nordics"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-billing-nordics --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-billing-nordics.kubeconfig.XXXXXX.Dm5fBxmT0u
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### FROM: helmfile release cert-manager, chart v1.17.2, values/cert-manager.yaml + values/cert-manager-prod.yaml  [13:35:26Z]
+$ helm install cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.17.2.tgz -n cert-manager --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--billing-nordics/env/values/cert-manager.yaml -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--billing-nordics/env/values/cert-manager-prod.yaml --wait --timeout 5m
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:35:26 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+
+### stand-in for the external-secrets sync of cert-manager/billing-ca-keypair  [13:35:49Z]
+$ openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-384 -nodes -days 3650 -subj /O=Example Billing/CN=billing-ca -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign,cRLSign -keyout /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/billing-ca.XXXXXX.a8OgPR6mJr/ca.key -out /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/billing-ca.XXXXXX.a8OgPR6mJr/ca.crt
+-----
+$ kubectl -n cert-manager create secret tls billing-ca-keypair --cert /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/billing-ca.XXXXXX.a8OgPR6mJr/ca.crt --key /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/billing-ca.XXXXXX.a8OgPR6mJr/ca.key
+secret/billing-ca-keypair created
+
+### kubectl apply -k clusters/prod (without the external-secrets objects, see above)  [13:35:49Z]
+$ kubectl kustomize clusters/prod | <drop ClusterSecretStore, ExternalSecret> | kubectl apply -f -
+namespace/billing created
+configmap/invoicing-nginx-g5t5hdkmdc created
+service/invoicing created
+deployment.apps/dunning created
+deployment.apps/invoicing created
+deployment.apps/ledger-export created
+certificate.cert-manager.io/dunning-tls created
+certificate.cert-manager.io/invoicing-tls created
+certificate.cert-manager.io/ledger-export-tls created
+clusterissuer.cert-manager.io/billing-ca created
+$ kubectl -n billing wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/dunning-tls condition met
+certificate.cert-manager.io/invoicing-tls condition met
+certificate.cert-manager.io/ledger-export-tls condition met
+$ kubectl -n billing rollout status deploy/invoicing --timeout=180s
+Waiting for deployment "invoicing" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "invoicing" rollout to finish: 1 of 2 updated replicas are available...
+deployment "invoicing" successfully rolled out
+$ kubectl -n billing rollout status deploy/dunning --timeout=180s
+Waiting for deployment "dunning" rollout to finish: 0 of 1 updated replicas are available...
+deployment "dunning" successfully rolled out
+$ kubectl -n billing rollout status deploy/ledger-export --timeout=180s
+deployment "ledger-export" successfully rolled out
+$ kubectl get certificates -A -o wide
+NAMESPACE   NAME                READY   SECRET              ISSUER       STATUS                                          AGE
+billing     dunning-tls         True    dunning-tls         billing-ca   Certificate is up to date and has not expired   6s
+billing     invoicing-tls       True    invoicing-tls       billing-ca   Certificate is up to date and has not expired   6s
+billing     ledger-export-tls   True    ledger-export-tls   billing-ca   Certificate is up to date and has not expired   6s
+
+### baseline on v1.17.2  [13:35:55Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              fb3bfe277a273736  ceb6f7325ce85dd9  serial=88CFB39224BDE48447D1CE241A00ADE8 issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                06e0d878cb79cf78  ceb6f7325ce85dd9  serial=571A8F9EBE548CA739A09E7D28C5A812 issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6604b9eda13d1fdb  ceb6f7325ce85dd9  serial=6066DB8AF226C8180E49DB93A9847F72 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+
+### control on v1.17.2: scheduled renewal of invoicing (restarts) and of dunning  [13:35:56Z]
+$ renew billing/invoicing-tls (revision 1 -> 2)
+  revision 2 Ready
+$ kubectl -n billing rollout restart deploy/invoicing
+deployment.apps/invoicing restarted
+$ kubectl -n billing rollout status deploy/invoicing --timeout=120s
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "invoicing" rollout to finish: 1 old replicas are pending termination...
+deployment "invoicing" successfully rolled out
+$ renew billing/dunning-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/dunning sees the current dunning-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              22404f4e6b7bd474  ceb6f7325ce85dd9  serial=EB607629153249F01CCCE460CDBA3ADA issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                06e0d878cb79cf78  ceb6f7325ce85dd9  serial=6EFBDF0FBDE9CDA9D1658B2B06CECDD3 issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6604b9eda13d1fdb  ceb6f7325ce85dd9  serial=6066DB8AF226C8180E49DB93A9847F72 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+
+### UPGRADE: helm upgrade to chart v1.18.0 with the same value files  [13:37:21Z]
+CertificateRequests before:
+     2 dunning-tls
+     2 invoicing-tls
+     1 ledger-export-tls
+$ helm upgrade cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.18.0.tgz -n cert-manager -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--billing-nordics/env/values/cert-manager.yaml -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--billing-nordics/env/values/cert-manager-prod.yaml --wait --timeout 5m
+Release "cert-manager" has been upgraded. Happy Helming!
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:37:21 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+⚠️  WARNING: New default private key rotation policy for Certificate resources.
+The default private key rotation policy for Certificate resources was
+changed to `Always` in cert-manager >= v1.18.0.
+Learn more in the [1.18 release notes](https://cert-manager.io/docs/releases/release-notes/release-notes-1.18).
+
+cert-manager v1.18.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+$ kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
+deployment "cert-manager" successfully rolled out
+CertificateRequests after:
+     1 dunning-tls
+     2 invoicing-tls
+     1 ledger-export-tls
+
+### after upgrade, before any renewal  [13:38:05Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              22404f4e6b7bd474  ceb6f7325ce85dd9  serial=EB607629153249F01CCCE460CDBA3ADA issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                06e0d878cb79cf78  ceb6f7325ce85dd9  serial=6EFBDF0FBDE9CDA9D1658B2B06CECDD3 issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6604b9eda13d1fdb  ceb6f7325ce85dd9  serial=6066DB8AF226C8180E49DB93A9847F72 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of invoicing (restarts); callers not renewed yet  [13:38:06Z]
+$ renew billing/invoicing-tls (revision 2 -> 3)
+  revision 3 Ready
+$ kubectl -n billing rollout restart deploy/invoicing
+deployment.apps/invoicing restarted
+$ kubectl -n billing rollout status deploy/invoicing --timeout=120s
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "invoicing" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "invoicing" rollout to finish: 1 old replicas are pending termination...
+deployment "invoicing" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              666f00ebd64824da  ceb6f7325ce85dd9  serial=CE080249F3BA511D217E72A31D2D56BC issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                06e0d878cb79cf78  ceb6f7325ce85dd9  serial=6EFBDF0FBDE9CDA9D1658B2B06CECDD3 issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6604b9eda13d1fdb  ceb6f7325ce85dd9  serial=6066DB8AF226C8180E49DB93A9847F72 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+
+### on v1.18.0: dunning renews  [13:38:11Z]
+$ renew billing/dunning-tls (revision 2 -> 3)
+  revision 3 Ready
+  (deploy/dunning sees the current dunning-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              666f00ebd64824da  ceb6f7325ce85dd9  serial=CE080249F3BA511D217E72A31D2D56BC issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                d004ff5132dcf49f  ceb6f7325ce85dd9  serial=7CA7C5B0DD30D384BEE69EBB3BB2FD3F issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6604b9eda13d1fdb  ceb6f7325ce85dd9  serial=6066DB8AF226C8180E49DB93A9847F72 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+
+### on v1.18.0: ledger-export renews  [13:38:24Z]
+$ renew billing/ledger-export-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/ledger-export sees the current ledger-export-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/billing-ca-keypair    ceb6f7325ce85dd9  (no ca.crt)       serial=3DCA89B18CF70A319770C0009CA04D231FA57FC3 issuer=O=Example Billing, CN=billing-ca 
+billing/invoicing-tls              666f00ebd64824da  ceb6f7325ce85dd9  serial=CE080249F3BA511D217E72A31D2D56BC issuer=O=Example Billing, CN=billing-ca 
+billing/dunning-tls                d004ff5132dcf49f  ceb6f7325ce85dd9  serial=7CA7C5B0DD30D384BEE69EBB3BB2FD3F issuer=O=Example Billing, CN=billing-ca 
+billing/ledger-export-tls          6046bc6976ab28ad  ceb6f7325ce85dd9  serial=83BE4A3F69C9F3D1D09458EE96154680 issuer=O=Example Billing, CN=billing-ca 
+$ kubectl -n billing exec deploy/dunning -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=dunning.billing.svc
+  => OK
+$ kubectl -n billing exec deploy/ledger-export -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://invoicing.billing.svc/
+invoicing ok: client=CN=ledger-export.billing.svc
+  => OK
+CertificateRequests at the end:
+     1 dunning-tls
+     3 invoicing-tls
+     1 ledger-export-tls
+
+### done  [13:38:36Z]
+
+### cleanup  [13:38:36Z]
+Deleting cluster "ri-groundtruth5-billing-nordics" ...
+Deleted nodes: ["ri-groundtruth5-billing-nordics-control-plane"]

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: docs
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: web
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: docs
+  source:
+    repoURL: https://git.example.com/web/gitops-docs-us.git
+    targetRevision: main
+    path: apps/docs/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,54 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ledger-export-tls
+spec:
+  secretName: ledger-export-tls
+  commonName: ledger-export.billing.svc
+  duration: 720h # 30d
+  renewBefore: 240h
+  usages:
+    - client auth
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: billing-ca
+---
+# Calls invoicing over mutual TLS; trusts the CA certificate from its own Secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-export
+  labels:
+    app: ledger-export
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ledger-export
+  template:
+    metadata:
+      labels:
+        app: ledger-export
+    spec:
+      containers:
+        - name: worker
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                curl -sS --max-time 5 \
+                  --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key \
+                  https://invoicing.billing.svc/ || echo "invoicing call failed"
+                sleep 30
+              done
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: ledger-export-tls

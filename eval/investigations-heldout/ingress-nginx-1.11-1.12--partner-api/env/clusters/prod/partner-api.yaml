@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: partner-api
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: api
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: partner-api
+  source:
+    repoURL: https://git.example.com/api/gitops-partner-api.git
+    targetRevision: main
+    path: apps/partner-api/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wellknown
+  labels:
+    app: wellknown
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wellknown
+  template:
+    metadata:
+      labels:
+        app: wellknown
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html/.well-known
+              readOnly: true
+      volumes:
+        - name: content
+          configMap:
+            name: wellknown-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wellknown
+spec:
+  selector:
+    app: wellknown
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

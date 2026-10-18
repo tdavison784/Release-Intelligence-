@@ -1,0 +1,57 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gateway-tls
+spec:
+  secretName: gateway-tls
+  commonName: gateway.edge.svc
+  duration: 2160h # 90d
+  renewBefore: 360h
+  usages:
+    - client auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: telemetry-ca
+---
+# Pushes to ingest over mutual TLS; trusts the CA certificate from its own Secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: push
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                curl -sS --max-time 5 \
+                  --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key \
+                  https://ingest.telemetry.svc/ || echo "push failed"
+                sleep 15
+              done
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: gateway-tls

@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: docs
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: docs.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs-site
+                port:
+                  name: http
+          # RFC 8615 well-known URIs are served by their own small service.
+          - path: /.well-known
+            pathType: Prefix
+            backend:
+              service:
+                name: wellknown
+                port:
+                  name: http

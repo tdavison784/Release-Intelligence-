@@ -185,3 +185,9 @@ Field names may be adjusted by the owning lane; the shape may not shrink.
   alternatives `isCA unset` / `isCA: false` are not exercised as separate arms; they are covered only by the leaf
   present in every arm. The lane's mechanism smoke (`runs/verify2-smoke.md`) confirmed the rule (pf-57da896bcf53)
   and refuted the wrong rule (pf-97c17ca82902) on a scratch K0; the scored verification is W-0013 at F4.
+- **2026-10-17 — Unseal (W-0016), after C1/Kbad and before any held-out run.** C1 failed S1. It has two blockers,
+  recorded in EVAL-REPORT §C1 and the commander addendum. The product owner chose to report the negative result with no
+  amendment, so the held-out arms run on code F4 `48a87f69` with K1 = `752e030a` unchanged. `p5ll/groundtruth5` @ 2c092bdf
+  is merged; its INVESTIGATE.md section conflicted with eval5's, and both are kept. `eval/investigations-heldout/gates.yaml`
+  is a byte-identical copy of `eval/investigations/gates.yaml` (sha256 prefix `8e7a008efcde4f41`, as pre-registered). From
+  here, no prompt, validator, rule or knowledge edit is made before the report.

@@ -1,0 +1,26 @@
+# The billing CA's certificate and private key, owned by the security team (Vault
+# pki-material/billing-ca). The ClusterIssuer below signs with it.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: billing-ca-keypair
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault-security
+  target:
+    name: billing-ca-keypair
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/tls
+  data:
+    - secretKey: tls.crt
+      remoteRef:
+        key: billing-ca
+        property: certificate
+    - secretKey: tls.key
+      remoteRef:
+        key: billing-ca
+        property: private_key

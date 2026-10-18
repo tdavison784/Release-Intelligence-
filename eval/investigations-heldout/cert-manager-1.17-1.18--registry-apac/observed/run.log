@@ -1,0 +1,264 @@
+# case cert-manager-1.17-1.18--registry-apac; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:32:26Z
+$ kind create cluster --name ri-groundtruth5-registry-apac --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-registry-apac.kubeconfig.XXXXXX.IPu5xnCxCP
+Creating cluster "ri-groundtruth5-registry-apac" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 16s 💚
+Set kubectl context to "kind-ri-groundtruth5-registry-apac"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-registry-apac --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-registry-apac.kubeconfig.XXXXXX.IPu5xnCxCP
+
+Have a nice day! 👋
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### wave -2: kyverno chart 3.3.7, platform/kyverno/values.yaml  [13:32:55Z]
+$ helm install kyverno /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/kyverno-3.3.7.tgz -n kyverno --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/kyverno/values.yaml --wait --timeout 5m
+NAME: kyverno
+LAST DEPLOYED: Sat Oct 17 08:32:55 2026
+NAMESPACE: kyverno
+STATUS: deployed
+REVISION: 1
+NOTES:
+Chart version: 3.3.7
+Kyverno version: v1.13.4
+
+Thank you for installing kyverno! Your release is named kyverno.
+
+The following components have been installed in your cluster:
+- CRDs
+- Admission controller
+
+
+⚠️  WARNING: Setting the admission controller replica count below 2 means Kyverno is not running in high availability mode.
+
+
+⚠️  WARNING: PolicyExceptions are disabled by default. To enable them, set '--enablePolicyException' to true.
+
+💡 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.
+
+### wave -1: cert-manager chart v1.17.2, platform/cert-manager/values.yaml  [13:33:12Z]
+$ helm install cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.17.2.tgz -n cert-manager --create-namespace -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/cert-manager/values.yaml --wait --timeout 5m
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:33:12 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+
+### wave 0: platform/policies  [13:33:30Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/policies | kubectl apply -f -
+Warning: system:serviceaccount:kyverno:kyverno-reports-controller requires permissions get,list,watch for resource Deployment
+clusterpolicy.kyverno.io/default-pull-policy created
+Warning: system:serviceaccount:kyverno:kyverno-reports-controller requires permissions get,list,watch for resource cert-manager.io/v1/Certificate
+clusterpolicy.kyverno.io/pki-ca-keys created
+$ kubectl wait clusterpolicy --all --for=condition=Ready --timeout=120s
+clusterpolicy.kyverno.io/default-pull-policy condition met
+clusterpolicy.kyverno.io/pki-ca-keys condition met
+
+### wave 1: platform/pki  [13:33:31Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/pki | kubectl apply -n cert-manager -f -
+certificate.cert-manager.io/build-root-ca created
+clusterissuer.cert-manager.io/build-ca created
+clusterissuer.cert-manager.io/selfsigned-bootstrap created
+$ kubectl -n cert-manager wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/build-root-ca condition met
+
+### wave 2: apps/registry, apps/builders  [13:33:31Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/apps/registry | kubectl apply -f -
+namespace/registry created
+configmap/artifacts-nginx-28ft8d879h created
+service/artifacts created
+deployment.apps/artifacts created
+certificate.cert-manager.io/artifacts-tls created
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/apps/builders | kubectl apply -f -
+namespace/builders created
+deployment.apps/builder created
+certificate.cert-manager.io/builder-tls created
+$ kubectl -n registry wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/artifacts-tls condition met
+$ kubectl -n builders wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/builder-tls condition met
+$ kubectl -n registry rollout status deploy/artifacts --timeout=180s
+Waiting for deployment "artifacts" rollout to finish: 0 of 1 updated replicas are available...
+deployment "artifacts" successfully rolled out
+$ kubectl -n builders rollout status deploy/builder --timeout=180s
+deployment "builder" successfully rolled out
+
+### the root CA as declared in the repository vs as stored in the cluster  [13:33:38Z]
+$ grep -A3 privateKey /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/pki/build-root-ca.yaml
+  privateKey:
+    algorithm: RSA
+    size: 3072
+  issuerRef:
+$ kubectl -n cert-manager get certificate build-root-ca -o jsonpath={.spec.privateKey}{"\n"}
+{"algorithm":"RSA","rotationPolicy":"Never","size":3072}
+$ kubectl get certificates -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,ISCA:.spec.isCA,ROTATION:.spec.privateKey.rotationPolicy
+NS             NAME            ISCA     ROTATION
+builders       builder-tls     <none>   <none>
+cert-manager   build-root-ca   true     Never
+registry       artifacts-tls   <none>   <none>
+
+### baseline on v1.17.2  [13:33:38Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=BB7586391E0C38350E8D9CBFDAD2AD7A issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             830702716fd9e645  13e250e06006aece  serial=7A7F4A99BC6DF59197E7600C49BC9C8C issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               d1ec1681c70f5aae  13e250e06006aece  serial=E8D0E40CF0F1AFAB09B24E979BCD0112 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### control on v1.17.2: scheduled renewal of the root CA, then of artifacts (restarts)  [13:33:38Z]
+$ renew cert-manager/build-root-ca (revision 1 -> 2)
+  revision 2 Ready
+$ renew registry/artifacts-tls (revision 1 -> 2)
+  revision 2 Ready
+$ kubectl -n registry rollout restart deploy/artifacts
+deployment.apps/artifacts restarted
+$ kubectl -n registry rollout status deploy/artifacts --timeout=120s
+Waiting for deployment "artifacts" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "artifacts" rollout to finish: 1 old replicas are pending termination...
+deployment "artifacts" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=4CC184D7C4A2857863FFA0FB3B04B3CB issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             830702716fd9e645  13e250e06006aece  serial=CE764CDA98DDBFA755537DF7671291B5 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               d1ec1681c70f5aae  13e250e06006aece  serial=E8D0E40CF0F1AFAB09B24E979BCD0112 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### UPGRADE: helm upgrade to chart v1.18.0 with the same values  [13:33:43Z]
+CertificateRequests before:
+     2 build-root-ca
+     2 artifacts-tls
+     1 builder-tls
+$ helm upgrade cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.18.0.tgz -n cert-manager -f /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--registry-apac/env/platform/cert-manager/values.yaml --wait --timeout 5m
+Release "cert-manager" has been upgraded. Happy Helming!
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:33:43 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+⚠️  WARNING: New default private key rotation policy for Certificate resources.
+The default private key rotation policy for Certificate resources was
+changed to `Always` in cert-manager >= v1.18.0.
+Learn more in the [1.18 release notes](https://cert-manager.io/docs/releases/release-notes/release-notes-1.18).
+
+cert-manager v1.18.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+$ kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
+deployment "cert-manager" successfully rolled out
+CertificateRequests after:
+     1 build-root-ca
+     1 artifacts-tls
+     1 builder-tls
+
+### after upgrade, before any renewal  [13:34:31Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=4CC184D7C4A2857863FFA0FB3B04B3CB issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             830702716fd9e645  13e250e06006aece  serial=CE764CDA98DDBFA755537DF7671291B5 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               d1ec1681c70f5aae  13e250e06006aece  serial=E8D0E40CF0F1AFAB09B24E979BCD0112 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of the root CA  [13:34:31Z]
+$ renew cert-manager/build-root-ca (revision 2 -> 3)
+  revision 3 Ready
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=D4E9193A76A984CF1CFA2742E1EC3C51 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             830702716fd9e645  13e250e06006aece  serial=CE764CDA98DDBFA755537DF7671291B5 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               d1ec1681c70f5aae  13e250e06006aece  serial=E8D0E40CF0F1AFAB09B24E979BCD0112 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of artifacts (restarts); builder not renewed yet  [13:34:34Z]
+$ renew registry/artifacts-tls (revision 2 -> 3)
+  revision 3 Ready
+$ kubectl -n registry rollout restart deploy/artifacts
+deployment.apps/artifacts restarted
+$ kubectl -n registry rollout status deploy/artifacts --timeout=120s
+Waiting for deployment "artifacts" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "artifacts" rollout to finish: 1 old replicas are pending termination...
+deployment "artifacts" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=D4E9193A76A984CF1CFA2742E1EC3C51 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             a0ae9afbc56ace9d  13e250e06006aece  serial=A0017C8C6B56F11C037C45D7B3B97CF3 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               d1ec1681c70f5aae  13e250e06006aece  serial=E8D0E40CF0F1AFAB09B24E979BCD0112 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### on v1.18.0: builder renews  [13:34:40Z]
+$ renew builders/builder-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/builder sees the current builder-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=D4E9193A76A984CF1CFA2742E1EC3C51 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             a0ae9afbc56ace9d  13e250e06006aece  serial=A0017C8C6B56F11C037C45D7B3B97CF3 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               e3a26612bb1e3369  13e250e06006aece  serial=1547BD9F51800A28C6EE6B3556DB7982 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+$ kubectl -n builders exec deploy/builder -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://artifacts.registry.svc/
+artifacts ok: client=CN=builder.builders.svc
+  => OK
+
+### on v1.18.0: the root CA renews once more  [13:34:55Z]
+$ renew cert-manager/build-root-ca (revision 3 -> 4)
+  revision 4 Ready
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/build-root-ca         13e250e06006aece  13e250e06006aece  serial=76DF3AA61922289D6172C2C32BAB6573 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+registry/artifacts-tls             a0ae9afbc56ace9d  13e250e06006aece  serial=A0017C8C6B56F11C037C45D7B3B97CF3 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+builders/builder-tls               e3a26612bb1e3369  13e250e06006aece  serial=1547BD9F51800A28C6EE6B3556DB7982 issuer=O=Example Build Infrastructure, CN=build-root-ca 
+
+### done  [13:34:58Z]
+
+### cleanup  [13:34:58Z]
+Deleting cluster "ri-groundtruth5-registry-apac" ...
+Deleted nodes: ["ri-groundtruth5-registry-apac-control-plane"]

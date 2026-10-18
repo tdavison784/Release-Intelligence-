@@ -1,0 +1,25 @@
+# Build agents and the registry front end always pull their images.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: default-pull-policy
+spec:
+  background: false
+  rules:
+    - name: always-pull
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              namespaces:
+                - registry
+                - builders
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - (name): "*"
+                    imagePullPolicy: Always

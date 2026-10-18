@@ -1,0 +1,154 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: cert-manager-1.17-1.18--billing-nordics
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L109-L148"
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. ... Users who want to preserve the old default have two options: 1. Explicitly set `rotationPolicy: Never` on your Certificate resources."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+        lines: "L330-L345"
+        quote: "If set to `Never`, a private key will only be generated if one does not already exist in the target `spec.secretName`. ... If set to `Always`, a private key matching the specified requirements will be generated whenever a re-issuance occurs. Default is `Always`."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/internal/apis/certmanager/v1/defaults.go
+        lines: "L52-L63"
+        quote: "if in.Spec.PrivateKey.RotationPolicy == \"\" { ... defaultRotationPolicy := cmapi.RotationPolicyNever ... if utilfeature.DefaultFeatureGate.Enabled(feature.DefaultPrivateKeyRotationPolicyAlways) { ... defaultRotationPolicy = cmapi.RotationPolicyAlways"
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/controller/certificaterequests/ca/ca.go
+        lines: "L82-L132"
+        quote: "caCerts, caKey, err := kube.SecretTLSKeyPairAndCA(...) ... Certificate: bundle.ChainPEM, CA: bundle.CAPEM,"
+    match:
+      - subject: spec.privateKey.rotationPolicy
+      - text: '(?i)rotation ?policy'
+    components:
+      - ref: {file: env/apps/invoicing/dunning.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: dunning-tls}
+        classification: not-affected
+        impactPath:
+          - {ref: {file: env/helmfile.yaml}, relation: deploys}
+          - {ref: {file: env/apps/invoicing/dunning.yaml, kind: Certificate, namespace: billing, name: dunning-tls}, field: spec.privateKey.rotationPolicy, relation: consumes-api}
+          - {ref: {kind: Secret, namespace: billing, name: dunning-tls}, relation: produces}
+          - {ref: {file: env/apps/invoicing/dunning.yaml, kind: Deployment, namespace: billing, name: dunning}, relation: references}
+        reason: >-
+          No rotationPolicy, so from v1.18.0 every renewal generates a new key (observed: the key was
+          kept on renewal under v1.17.2 and changed under v1.18.0). Nothing depends on the key:
+          invoicing verifies dunning's certificate against the billing CA, which cert-manager never
+          re-issues (its key pair comes from Vault through external-secrets, pki/billing-ca-keypair.yaml),
+          and dunning loads its new key together with its new certificate (observed: calls succeed).
+        mitigation: {ref: {file: env/pki/billing-ca-issuer.yaml, kind: ClusterIssuer, name: billing-ca}, field: spec.ca.secretName, value: billing-ca-keypair, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/invoicing/dunning.yaml, object: Certificate/dunning-tls, field: spec.issuerRef}
+          - {file: env/pki/billing-ca-issuer.yaml, object: ClusterIssuer/billing-ca, field: spec.ca.secretName}
+          - {file: env/pki/billing-ca-keypair.yaml, object: ExternalSecret/billing-ca-keypair}
+      - ref: {file: env/apps/invoicing/ledger-export.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: ledger-export-tls}
+        classification: not-affected
+        reason: Same as dunning-tls (new key per renewal from v1.18.0, observed; trust is anchored in the externally managed billing CA).
+        mitigation: {ref: {file: env/pki/billing-ca-issuer.yaml, kind: ClusterIssuer, name: billing-ca}, field: spec.ca.secretName, value: billing-ca-keypair, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/invoicing/ledger-export.yaml, object: Certificate/ledger-export-tls, field: spec.issuerRef}
+          - {file: env/pki/billing-ca-keypair.yaml, object: ExternalSecret/billing-ca-keypair}
+      - ref: {file: env/apps/invoicing/invoicing.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: invoicing-tls}
+        classification: not-affected
+        reason: >-
+          Sets rotationPolicy Always explicitly, so its behaviour is the same before and after the
+          upgrade (observed: new key on renewal under both versions); callers verify it through the CA.
+        mitigation: {ref: {file: env/apps/invoicing/invoicing.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: invoicing-tls}, field: spec.privateKey.rotationPolicy, value: Always, kind: override}
+        requiredEvidence:
+          - {file: env/apps/invoicing/invoicing.yaml, object: Certificate/invoicing-tls, field: spec.privateKey.rotationPolicy}
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L151-L160"
+        quote: "When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources."
+    match:
+      - subject: spec.revisionHistoryLimit
+      - text: '(?i)revision ?history'
+    components:
+      - ref: {file: env/apps/invoicing/invoicing.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: invoicing-tls}
+        classification: not-affected
+        reason: Sets revisionHistoryLimit 3 explicitly; the new default does not apply (observed 2 CertificateRequests kept, 3 at the end).
+        mitigation: {ref: {file: env/apps/invoicing/invoicing.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: invoicing-tls}, field: spec.revisionHistoryLimit, value: 3, kind: override}
+        requiredEvidence:
+          - {file: env/apps/invoicing/invoicing.yaml, object: Certificate/invoicing-tls, field: spec.revisionHistoryLimit}
+      - ref: {file: env/apps/invoicing/dunning.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: billing, name: dunning-tls}
+        classification: not-affected
+        reason: Old CertificateRequests are garbage collected to one after the upgrade (observed 2 -> 1); nothing in the environment reads them.
+        mitigation: {ref: {kind: CertificateRequest, namespace: billing}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/invoicing/dunning.yaml, object: Certificate/dunning-tls}
+renderedChanges:
+  - diff:
+      - observed/render.diff#L74-L180
+      - observed/render.diff#L240-L307
+      - observed/render.diff#L325-L423
+      - observed/render.diff#L511-L531
+      - observed/render.diff#L591-L611
+      - observed/render.diff#L615-L635
+    object: "ClusterRole+ClusterRoleBinding cert-manager-controller-challenges"
+    change: "split into cert-manager-http01-controller-challenges and cert-manager-dns01-controller-challenges (same rules; ACME challenge RBAC)"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L678-L693
+      - observed/render.diff#L694-L702
+      - observed/render.diff#L769-L782
+      - observed/render.diff#L783-L801
+      - observed/render.diff#L802-L810
+      - observed/render.diff#L811-L819
+      - observed/render.diff#L820-L828
+      - observed/render.diff#L843-L851
+      - observed/render.diff#L852-L860
+      - observed/render.diff#L861-L872
+      - observed/render.diff#L873-L891
+      - observed/render.diff#L892-L900
+      - observed/render.diff#L901-L909
+      - observed/render.diff#L910-L918
+      - observed/render.diff#L919-L930
+      - observed/render.diff#L931-L939
+      - observed/render.diff#L954-L962
+      - observed/render.diff#L963-L971
+      - observed/render.diff#L972-L983
+      - observed/render.diff#L984-L1002
+      - observed/render.diff#L1003-L1011
+      - observed/render.diff#L1012-L1020
+      - observed/render.diff#L1021-L1029
+      - observed/render.diff#L1030-L1041
+      - observed/render.diff#L1042-L1050
+      - observed/render.diff#L1065-L1076
+      - observed/render.diff#L1077-L1085
+    object: "CustomResourceDefinitions certificates, certificaterequests, challenges, clusterissuers, issuers, orders"
+    change: "description edits and new optional fields (ACME profile, Vault serverName, ...); no field removed"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L703-L719
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.privateKey.rotationPolicy description: default documented as Always (was Never); schema unchanged"
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L720-L730
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.revisionHistoryLimit description: default documented as 1 (was unset); schema unchanged"
+    item: B2
+    impact: harmless
+  - diff: observed/render.diff#L731-L754
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "new optional field spec.signatureAlgorithm"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L1186-L1201
+      - observed/render.diff#L1202-L1210
+    object: "Deployment/cert-manager/cert-manager-webhook"
+    change: "liveness/readiness probe port 6080 -> named port healthcheck (same port)"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L1427-L1435
+    object: "Service/cert-manager/cert-manager"
+    change: "metrics targetPort 9402 -> named port http-metrics (same port)"
+    item: null
+    impact: harmless

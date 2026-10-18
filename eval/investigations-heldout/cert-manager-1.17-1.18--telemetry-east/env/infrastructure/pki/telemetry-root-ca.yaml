@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: telemetry-root-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: telemetry-root-ca
+  secretName: telemetry-root-ca
+  duration: 8760h # 1y
+  renewBefore: 720h
+  subject:
+    organizations:
+      - Example Fleet Telemetry
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-bootstrap

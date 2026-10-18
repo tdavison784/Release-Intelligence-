@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: builder-tls
+spec:
+  secretName: builder-tls
+  commonName: builder.builders.svc
+  duration: 720h # 30d
+  renewBefore: 240h
+  usages:
+    - client auth
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: build-ca

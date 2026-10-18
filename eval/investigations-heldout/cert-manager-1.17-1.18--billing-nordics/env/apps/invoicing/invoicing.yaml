@@ -1,0 +1,72 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: invoicing-tls
+spec:
+  secretName: invoicing-tls
+  commonName: invoicing.billing.svc
+  dnsNames:
+    - invoicing.billing.svc
+    - invoicing.billing.svc.cluster.local
+  duration: 720h # 30d
+  renewBefore: 240h
+  revisionHistoryLimit: 3
+  usages:
+    - server auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always # security baseline: new key on every issuance
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: billing-ca
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoicing
+  labels:
+    app: invoicing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: invoicing
+  template:
+    metadata:
+      labels:
+        app: invoicing
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - name: https
+              containerPort: 8443
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: invoicing-tls
+        - name: conf
+          configMap:
+            name: invoicing-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoicing
+spec:
+  selector:
+    app: invoicing
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
