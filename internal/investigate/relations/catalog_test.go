@@ -76,8 +76,8 @@ func TestCatalogProducesMakesCertificatePathComplete(t *testing.T) {
 	if !reached {
 		t.Error("the Deployment mounting the produced Secret must lie on a path")
 	}
-	// The CA issuer reads the Secret a Certificate produces; its cluster resource namespace is not
-	// stated on the issuer, so that link stays honestly inferred.
+	// The CA issuer reads the Secret a Certificate produces from the controller's cluster resource
+	// namespace (namespaceFrom); this fixture renders no controller, so that link stays inferred.
 	v.wantEdge(domain.EdgeReferences, "core/v1/Secret/cert-manager/mesh-root-ca", "cert-manager.io/v1/ClusterIssuer//mesh-ca", domain.EdgeInferred)
 }
 

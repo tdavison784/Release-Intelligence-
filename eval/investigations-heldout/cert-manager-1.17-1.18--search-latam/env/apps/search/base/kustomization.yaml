@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: search
+resources:
+  - namespace.yaml
+  - search-api.yaml
+  - indexer.yaml
+  - query-frontend.yaml
+configMapGenerator:
+  - name: search-api-nginx
+    files:
+      - search-api.conf

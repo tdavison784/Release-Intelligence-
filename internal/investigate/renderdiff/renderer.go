@@ -24,7 +24,7 @@ import (
 
 // Producer is the producer string of every artifact and evidence record this
 // package derives.
-const Producer = "renderdiff@v1"
+const Producer = "renderdiff@v2" // v2: render model on the shared redaction rule (internal/redaction)
 
 // Renderer implements investigate.EnvironmentRenderer over internal/render.
 type Renderer struct {

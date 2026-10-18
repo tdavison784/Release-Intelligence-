@@ -188,7 +188,7 @@ func (h hiddenSummary) ProductLine() string {
 func (h hiddenSummary) Lines() []string {
 	label := map[string]string{
 		HiddenProxy: "acted on by an AI proxy", HiddenDecided: "already decided", HiddenParked: "parked (deferred / needs evidence)",
-		HiddenVerified: "already verified", HiddenSuperseded: "superseded or retracted",
+		HiddenVerified: "already verified", HiddenSuperseded: "superseded or retracted", HiddenAwaitingProof: "agent-proposed rules awaiting a confirmed proof",
 	}
 	var keys []string
 	for k := range h.ByReason {
@@ -366,6 +366,7 @@ type itemView struct {
 	Rendered    *RenderedDelta
 	Correction  *correctionView // nil when the question states nothing to correct
 	WholeFact   *wholeFactView  // fact-review items: every aspect and its level
+	Hypothesis  *hypothesisView // agent-proposed rules: reasoning (AI), proofs, the promotion gate
 	Editable    bool            // the item can still be decided
 	Disagrees   bool
 	// ConsensusAction: separate calls agree on an action-eligible consequence
@@ -501,6 +502,12 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 	v.PrimaryLabel, v.PrimaryAction = "Accept suggested answer", "accept"
 	if v.WholeFact = newWholeFactView(rc); v.WholeFact != nil {
 		v.PrimaryLabel = "Yes — the whole fact is correct"
+	}
+	if v.Hypothesis = newHypothesisView(rc, form); v.Hypothesis != nil {
+		v.PrimaryLabel = "Yes — promote this verified rule"
+		if !v.Hypothesis.GateOpen {
+			v.PrimaryLabel, v.PrimaryAction = "Not promotable yet — defer", "defer"
+		}
 	}
 	if rc.Item.QuestionType == domain.QuestionEvidenceSufficiency {
 		v.PrimaryLabel, v.PrimaryAction = "Send back — need more evidence", "need-more-evidence"

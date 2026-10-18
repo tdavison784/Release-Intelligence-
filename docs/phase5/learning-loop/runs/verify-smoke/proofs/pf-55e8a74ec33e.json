@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proof",
+  "proof": {
+    "id": "pf-55e8a74ec33e",
+    "hypothesis": "hyp-5a0e00000002",
+    "investigation": "inv-5a0e00000002",
+    "reviewItem": "ri-c30a28aa20db",
+    "candidateId": "sc-0564d2273368",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "proposedRuleDigest": "4fbef2200d4d",
+    "methods": [
+      {
+        "method": "citation-check",
+        "producer": "verify.citations@v1",
+        "level": "deterministic",
+        "outcome": "pass",
+        "detail": "1 citations resolve in the evidence cache, contain their passages and lie inside (1.17.2, 1.18.0]; 1 name the subject",
+        "checks": [
+          {
+            "subject": "ev-c92478af13c4",
+            "outcome": "pass",
+            "detail": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md (http-cache, sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a) contains the passage and names 1.18, inside (1.17.2, 1.18.0]"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-c92478af13c4",
+            "kind": "document",
+            "sourceId": "website-major-themes",
+            "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+            "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+            "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+            "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+            "retrievedAt": "2026-10-02T02:35:39Z"
+          }
+        ]
+      },
+      {
+        "method": "rule-exercise",
+        "producer": "verify.exercise@v1",
+        "level": "observed",
+        "outcome": "fail",
+        "detail": "fixture cert-manager 1.17.2 → 1.18.0 in ri-verify-547f4d78 (completed, 194s): with the mitigating condition the behaviour still changed at TO (core/v1/Secret/ri-verify/ri-arm-present-tls data:tls.key): the condition does not preserve the previous behaviour",
+        "checks": [
+          {
+            "subject": "condition-present",
+            "outcome": "fail",
+            "detail": "condition-present (spec.privateKey.algorithm = \"ECDSA\" and spec.privateKey.rotationPolicy unset): predicted previous-behaviour, observed new-behaviour; exercise answered at FROM true, at TO true; differences: core/v1/Secret/ri-verify/ri-arm-present-tls data:tls.key"
+          },
+          {
+            "subject": "condition-absent",
+            "outcome": "pass",
+            "detail": "condition-absent (spec.privateKey.algorithm unset and spec.privateKey.rotationPolicy unset): predicted new-behaviour, observed new-behaviour; exercise answered at FROM true, at TO true; differences: core/v1/Secret/ri-verify/ri-arm-absent-tls data:tls.key"
+          }
+        ],
+        "arms": [
+          {
+            "name": "condition-present",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-present",
+              "core/v1/Secret/ri-verify/ri-arm-present-tls"
+            ],
+            "condition": "spec.privateKey.algorithm = \"ECDSA\" and spec.privateKey.rotationPolicy unset",
+            "predicted": "previous-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": true,
+            "signatures": [
+              "core/v1/Secret/ri-verify/ri-arm-present-tls data:tls.key"
+            ],
+            "observed": "new-behaviour"
+          },
+          {
+            "name": "condition-absent",
+            "objects": [
+              "cert-manager.io/v1/Certificate/ri-verify/ri-arm-absent",
+              "core/v1/Secret/ri-verify/ri-arm-absent-tls"
+            ],
+            "condition": "spec.privateKey.algorithm unset and spec.privateKey.rotationPolicy unset",
+            "predicted": "new-behaviour",
+            "reactedFrom": true,
+            "reactedTo": true,
+            "changed": true,
+            "signatures": [
+              "core/v1/Secret/ri-verify/ri-arm-absent-tls data:tls.key"
+            ],
+            "observed": "new-behaviour"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "ev-784482423522",
+            "kind": "structured",
+            "sourceId": "art-d9b2a1492225",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-ee6354debeea/exercises.json",
+            "locator": "derived/runtime/fx-ee6354debeea/exercises.json",
+            "excerpt": "runtime derived/runtime/fx-ee6354debeea/exercises.json",
+            "contentDigest": "sha256:62cd238f03d6e4e4128b811a282a7de8440711d50adf90f0596a4ee8daf84e7b"
+          },
+          {
+            "id": "ev-0da66a4ccb9a",
+            "kind": "structured",
+            "sourceId": "art-5cfdc937d6a9",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-ee6354debeea/observations.json",
+            "locator": "derived/runtime/fx-ee6354debeea/observations.json",
+            "excerpt": "runtime derived/runtime/fx-ee6354debeea/observations.json",
+            "contentDigest": "sha256:58d924705430756bc43b4b4307caefc39e82190de8ec9a63ab88248fcb506256"
+          },
+          {
+            "id": "ev-1f644e2e79e1",
+            "kind": "structured",
+            "sourceId": "art-0935356c0985",
+            "uri": "ri:runtime.isolated-upgrade@v1/derived/runtime/fx-ee6354debeea/run.json",
+            "locator": "derived/runtime/fx-ee6354debeea/run.json",
+            "excerpt": "runtime derived/runtime/fx-ee6354debeea/run.json",
+            "contentDigest": "sha256:c5c933d7f07c6d3ad4ef9b869d978b629ff93cb3f9658cf3222cc8c78b298c0a"
+          }
+        ]
+      }
+    ],
+    "outcome": "refuted",
+    "versionBounds": {
+      "from": "1.17.2",
+      "to": "1.18.0"
+    },
+    "conditions": {
+      "exposure": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "unset"
+          },
+          {
+            "op": "field",
+            "path": "spec.privateKey.algorithm",
+            "state": "unset"
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      },
+      "overlap": {
+        "op": "resource",
+        "of": [
+          {
+            "op": "field",
+            "path": "spec.privateKey.rotationPolicy",
+            "state": "unset"
+          },
+          {
+            "op": "field",
+            "path": "spec.privateKey.algorithm",
+            "state": "equals",
+            "values": [
+              "\"ECDSA\""
+            ]
+          }
+        ],
+        "group": "cert-manager.io",
+        "kind": "Certificate"
+      }
+    },
+    "limitations": [
+      "the rule exercise uses one synthetic subject object per arm in a fresh cluster: other consumers of the subject's outputs, other topologies, pre-existing state and other controller configurations are not covered",
+      "the controller is installed from its chart with the fixture's declared values only; environment-specific controller settings are not exercised",
+      "the citation check proves the passages exist in version-bounded upstream text and name the subject; whether they state the claimed behaviour is the human reviewer's judgement",
+      "a proof never decides whether an environment meets the rule's conditions: the deterministic validators decide that at investigation time"
+    ],
+    "level": "observed",
+    "producer": "verify.hypothesis@v1",
+    "checkedAt": "2026-10-17T13:25:06Z"
+  }
+}

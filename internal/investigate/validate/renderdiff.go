@@ -35,8 +35,14 @@ import (
 //     in RenderedChanges), or there is none — and the item manifests as
 //     rendered-config. Render silence never clears a controller-behaviour or
 //     unknown item (§2.2.1).
+//   - pass, documentation-only (controller-behaviour / unknown items): every
+//     environment pair is complete and every rendered change correlated to
+//     the item is CRD description text in a CRD that changes nothing else.
+//     The record (DocumentationOnly) accounts for those rendered changes and
+//     names no subject or path: it is never a behaviour clearance.
 //   - not-run otherwise: no or incomplete render, changes correlated only by
-//     a text mention, or a behaviour item.
+//     a text mention, or a behaviour item with nothing documentation-only to
+//     account for.
 //
 // A requested set of rendered changes restricts the check to them. The
 // reference and schema checks need the artifact store (WithStore) and use
@@ -194,9 +200,21 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 		return out.result()
 	}
 	if !item.Manifestation.RenderDecisive() {
-		out.notRun(cov, "render-diff:behaviour", property, fmt.Sprintf(
+		behaviour := fmt.Sprintf(
 			"the item manifests as %s (%s): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it",
-			item.Manifestation, item.ManifestationRule))
+			item.Manifestation, item.ManifestationRule)
+		if len(harmless) > 0 && len(weak) == 0 {
+			v.documentationOnly(out, cov, effects2rc(harmless, func(h hit) domain.RenderedChange { return h.rc }), func(id string) []domain.EvidenceID {
+				for _, h := range harmless {
+					if h.rc.ID == id {
+						return v.changeEvidence(out, h.pair, h.rc)
+					}
+				}
+				return nil
+			}, inputs(harmless), behaviour)
+			return out.result()
+		}
+		out.notRun(cov, "render-diff:behaviour", property, behaviour)
 		return out.result()
 	}
 	if len(weak) > 0 {
@@ -242,6 +260,40 @@ func (v *renderDiff) Validate(ctx context.Context, in investigate.ValidationInpu
 	}
 	out.add(d)
 	return out.result()
+}
+
+// documentationOnly records, for a behaviour item, the rendered changes
+// correlated to it when every one is a documentation-only CRD change
+// (domain EvidenceBundle.DocumentationOnlyChange: description text, and no
+// schema, default, enum, required, served or storage change in the same
+// CRD): a pass marked DocumentationOnly that accounts for them (R2.2) and
+// for nothing else — no subject, no path, never a behaviour clearance. A
+// CRD that also changes beyond description text leaves them all
+// unaccounted for (not-run, naming why).
+func (v *renderDiff) documentationOnly(out *output, cov coverage, rcs []domain.RenderedChange, evidence func(string) []domain.EvidenceID, inputs []string, behaviour string) {
+	property := "The rendered changes correlated to the item are documentation only: CRD description text that configures nothing in the environment"
+	var ids, disq []string
+	for _, c := range rcs {
+		ids = append(ids, c.ID)
+		if ok, why := out.in.Bundle.DocumentationOnlyChange(c.ID); !ok {
+			disq = append(disq, "- "+why)
+		}
+	}
+	if len(disq) > 0 {
+		sort.Strings(disq)
+		out.add(draft{rule: "render-diff:behaviour", outcome: domain.ValidationNotRun, property: property,
+			subjects: cov.subjects, paths: cov.paths, rcs: ids,
+			detail: behaviour + "; the correlated CRD description changes are not documentation-only, so they are not accounted for:\n" + strings.Join(disq, "\n")})
+		return
+	}
+	d := draft{rule: "render-diff:documentation-only", outcome: domain.ValidationPass, property: property,
+		rcs: ids, inputs: inputs, docOnly: true}
+	for _, id := range ids {
+		d.evidence = append(d.evidence, evidence(id)...)
+	}
+	d.detail = "every rendered change correlated to the item is CRD description text, in CRDs that change nothing else (no schema, default, enum, required, served or storage change): documentation, not configuration. " +
+		"This accounts for these rendered changes only; it is not a behaviour clearance — " + behaviour + ":\n" + describeChanges(rcs)
+	out.add(d)
 }
 
 // concrete is what the concrete-failure checks found for a set of rendered

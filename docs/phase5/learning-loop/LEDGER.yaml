@@ -1,0 +1,351 @@
+# Phase 5 work ledger — work queue + enqueue-time authorization + window history.
+# Adopted 2026-10-17 (product owner: "go ahead and update the ledger"); design:
+# docs/phase4/env-impact/proposals/2026-10-16-window-ledger.md. COMMANDER.md stays the live STATE doc.
+# Rules: ids monotonic, never reused; every change committed; a GLM window executes ONLY items with
+# glm-executable: true; the guard auto-starts only status: ready + glm-executable + auto-start + unowned
+# + kind: lane items. providers: [claude] items are never executed by GLM (model under test / provider data).
+version: 1
+goal: p5-learning-loop
+items:
+  - id: W-0001
+    title: Lane pins — rule applicability conditions + effective object view
+    kind: lane
+    status: done
+    owner: ri-pins
+    merged: cbb192c8
+    brief: briefs/pins.md
+    providers: [claude, glm]
+    glm-executable: true      # GLM continuation glm-pins at a Claude window, as in Phase 4
+    auto-start: false         # already running
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0002
+    title: Lane coverage — inferred-namespace edges + description-only rendered changes
+    kind: lane
+    status: done
+    owner: ri-coverage
+    merged: ef6b8d04
+    brief: briefs/coverage.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0003
+    title: Lane verdict — item dossier, agent provisional verdict, mitigation hypotheses, export
+    kind: lane
+    status: done
+    owner: ri-verdict
+    brief: briefs/verdict.md
+    providers: [claude, glm]
+    glm-executable: true      # code only; its live smoke run must use claude -p (see W-0012 note)
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0004
+    title: Lane verify — proof records, both-arm rule exercise, promotion gate, review UI
+    kind: lane
+    status: done
+    owner: ri-verify
+    brief: briefs/verify.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0005
+    title: Lane groundtruth5 — sealed held-out cases (branch never merged before W-0016)
+    kind: lane
+    status: done
+    sealed-at: 2c092bdf
+    owner: ri-groundtruth5
+    brief: briefs/groundtruth5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "sealed: nobody but this lane reads p5ll/groundtruth5 before W-0016"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0006
+    title: Lane eval5 wave 1 — knowledgeDigest, snapshots, agent-verdict scoring, A0 baseline
+    kind: lane
+    status: done
+    merged: e5b3afa7
+    owner: ri-eval5
+    brief: briefs/eval5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T07:53, because: wave 1}
+  - id: W-0007
+    title: Merge wave-1 lanes (pins, coverage, verdict, verify, eval5) as each reports LANE DONE
+    kind: review
+    status: ready
+    ready-when: the lane reported LANE DONE and is green in its worktree
+    providers: [claude, glm]
+    glm-executable: true      # pre-authorized; the Claude commander reviews every GLM merge at resume
+    auto-start: false
+    integrity: "never merge p5ll/groundtruth5 here"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: ledger adoption decision 2}
+  - id: W-0008
+    title: Fleet guard v4 — read this ledger at handoff/resume
+    kind: lane
+    status: done
+    owner: ri-guard
+    quota-actual: {provider: claude, note: "ri-guard Sonnet session, ~2 min; 23 tests green; reviewed by claude-commander 08:10"}
+    brief: docs/phase4/env-impact/proposals/2026-10-16-window-ledger.md#adoption-steps
+    providers: [claude]
+    glm-executable: false     # the guard is the safety mechanism; Claude only
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: ledger adoption step 3}
+  - id: W-0010
+    title: Code freeze F1 + PROTOCOL §6 step 1 (record SHA)
+    kind: commander-task
+    status: done
+    result: F1 = 131d6c2e
+    depends: [W-0007, W-0024, W-0025]
+    providers: [claude]
+    glm-executable: false
+    auto-start: false
+  - id: W-0011
+    title: Arm A0 + C1-ready deterministic runs on the 8 Phase 4 cases with K0 (PROTOCOL §6 step 2)
+    kind: commander-task
+    status: done
+    owner: ri-eval5
+    merged: c36e7de1
+    result: "A0-K0-20261017-6d2ae5bf (F2): 24/24 decisions identical to F1; 2 clearances, 0 unsafe"
+    depends: [W-0010]
+    providers: [claude, glm]  # deterministic, no model under test
+    glm-executable: true
+    auto-start: false
+    quota-estimate: {provider: any, tokens: ~50k}
+  - id: W-0012
+    title: Arm B0 — agent verdicts + hypotheses on the 8 cases with K0 (PROTOCOL §6 step 3)
+    kind: commander-task
+    status: done
+    owner: ri-eval5
+    merged: c36e7de1
+    result: "B0-K0-20261017-6d2ae5bf: 1.06M tokens, 1565 s; policy invariant holds; verdicts 11 correct / 12 hedged / 1 no-verdict / 0 false-safe; ZERO hypotheses recorded (payments-us rotationPolicy hedged: agent saw mesh-root-ca Never + leaves unset but did not infer that leaf rotation is harmless when trust goes through the CA chain)"
+    depends: [W-0010]
+    providers: [claude]       # MODEL UNDER TEST: never under GLM
+    glm-executable: false
+    auto-start: false
+    ready-when: W-0027 merged (F2). Product owner 09:35 — current Claude window is fine (50%); run all 8 cases on F2 in this window, no wait for the 12:30 reset
+    quota-estimate: {provider: claude, tokens: ~1.4M (dev pair used 339k ≈ 2% of the 5h window)}
+  - id: W-0013
+    title: Export B0 hypotheses + independent verification (PROTOCOL §6 step 4, §7)
+    kind: commander-task
+    status: done
+    owner: claude-commander
+    result: "F4 binary, scratch K0 copy: intake-rule → hyp-8fb090745e65 / ri-612fd8261e22 / rule 7089555d9e86; ri verify hypotheses -runtime -kubernetes 1.31 → CONFIRMED (observed) pf-23e47aa9c6a9 (citation-check pass, consumer rule-exercise pass, 226 s, cluster deleted). Agent hypotheses: none (v7, v8). Record: runs/w0013-verify/"
+    depends: [W-0012, W-0031, W-0032]
+    note: "export ran and was empty (no hypotheses); verification has no input until W-0028 is decided"
+    providers: [claude, glm]  # deterministic + observed; no model judgment
+    glm-executable: true
+    auto-start: false
+  - id: W-0014
+    title: Human promotion of confirmed hypotheses in the review UI → K1 SHA (PROTOCOL §6 step 5)
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "accepted by tdavison784 2026-10-17 (rd-e42da65009c3) -> vf-e60a2f78af06, supersedes vf-9b9cfa5c9f5f; K1 = 752e030a, digest sha256:8942781d4784c55a1ef27c5e8b19858aca1af1ebeae09342aaa7139bf3ecde8f"
+    depends: [W-0013]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0015
+    title: Arm C1 + Kbad-* negative controls on the 8 cases (PROTOCOL §6 step 6)
+    kind: commander-task
+    status: done
+    lane: eval5
+    note: "C1-K1-20261017-e9f08c5c + Kbad-a..h; S1 FAIL (isCA scope undecidable + R2.2 description change uncovered), S2/S3/S5 hold; product owner: report negative result, no amendment"
+    depends: [W-0014]
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+  - id: W-0016
+    title: Unseal groundtruth5 (merge p5ll/groundtruth5 at F1, no code edits after)
+    kind: decision
+    decision-rights: claude-commander
+    status: done
+    note: "fde41c1c; gates.yaml byte-identical (8e7a008efcde4f41)"
+    depends: [W-0005, W-0015]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0017
+    title: Held-out runs A0 / B0 / C1 (B0 part Claude only)
+    kind: commander-task
+    status: done
+    note: "A0/B0/C1-K*-20261017-b2380765; S4 0 unsafe, 0 gained; B0 1.32M tokens, 0 hypotheses, 1 false-safe verdict (reasoning)"
+    lane: eval5
+    depends: [W-0016]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0018
+    title: Phase 5 report (EVAL-REPORT.md, SUMMARY.md) + PR
+    kind: commander-task
+    status: in-progress
+    note: "SUMMARY.md + EVAL-REPORT.md written on p5-learning-loop; pushed; PR #7 open, product owner reviewing SUMMARY.md"
+    depends: [W-0017]
+    providers: [claude]
+    glm-executable: false
+  - id: W-0019
+    title: Delete superseded branch p4ei/eval (needs git branch -D)
+    kind: decision
+    decision-rights: user
+    status: ready
+    providers: [claude]
+    glm-executable: false
+  - id: W-0020
+    title: Next fleet on gascity + beads? (proposal "Recommended path" 2)
+    kind: decision
+    decision-rights: user
+    status: queued
+    ready-when: Phase 5 report done (do not re-platform mid-experiment)
+    providers: [claude]
+    glm-executable: false
+  - id: W-0020a
+    title: Evidence-prep for W-0020 — gascity/beads fit, migration cost, what our provider/quota layer must port
+    kind: evidence-prep
+    status: ready
+    providers: [claude, glm]
+    glm-executable: true      # idle-window work: options only, no decision
+    auto-start: true
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:10, because: idle GLM windows should do evidence-prep}
+  - id: W-0021
+    title: Remove Phase 4 integration worktree .claude/worktrees/p4-integration (PR #6 merged)
+    kind: commander-task
+    status: queued
+    ready-when: ri-guard no longer runs in it
+    providers: [claude]
+    glm-executable: false
+  - id: W-0022
+    title: Explain why stored Phase 4 run C-20261016T234455Z-aa06720656 re-classifies only 6/8 cases (pre-existing at 73d72aef)
+    kind: commander-task
+    status: ready
+    providers: [claude, glm]
+    glm-executable: true      # investigation + report only; no code change without the commander
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:22, because: coverage lane finding}
+  - id: W-0023
+    title: Apply coverage's proposed DESIGN.md wording (§2.5, §2.6, §3.1 R2.4) — see status/coverage.md in git history
+    kind: commander-task
+    status: ready
+    providers: [claude]
+    glm-executable: false     # contract edits are Claude-commander only
+  - id: W-0024
+    title: Fix — investigation id ignores run settings (same bundle + state dir, different -agent/-runtime ⇒ second run silently resumes the first)
+    kind: lane
+    status: done
+    owner: ri-fixes5
+    brief: briefs/fixes5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "must not change the ids/digests of stored Phase 4 runs; a test runs both orders"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:30, because: verdict lane finding}
+  - id: W-0025
+    title: Verdict inherits the closing entry's verified citations (17% of live calls were one avoidable rejection); tool/prompt v7
+    kind: lane
+    status: done
+    owner: ri-fixes5
+    brief: briefs/fixes5.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:40, because: verdict live run 1}
+  - id: W-0026
+    title: Post-experiment reproducibility debts (pre-existing) — AgentRun.WallMillis in the record digest (identical replays differ); config digest includes prompt version with the agent off; two A″ runs at 5d4da376 don't reproduce their stored digest; verdict-live-1 no longer replays at @v2 validators
+    kind: lane
+    status: queued
+    ready-when: Phase 5 report done (changing digests mid-experiment would break run comparability)
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T08:55, because: fixes5 findings}
+  - id: W-0027
+    title: Redaction wipes non-secret settings under credential-named maps (spec.privateKey.rotationPolicy) — exposed by B0 dev pair
+    kind: lane
+    status: done
+    merged: 8286e36f
+    owner: ri-redact
+    brief: briefs/redact.md
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    integrity: "secrets must never be weakened (provider data-sharing condition); F1 amendment required"
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T09:10, because: B0-K0-20261017-d262210d payments-us verdict 'redacted value that may be Never'}
+  - id: W-0028
+    title: "Protocol decision: B0 proposed no mitigation hypothesis — where does K1's input come from?"
+    kind: decision
+    decision-rights: user
+    status: done
+    decision: "prompt v8 (one revision) + one B0-v8 dev-pair run; pre-registered fallback = human-authored rule (PROTOCOL amendment 10:55)"
+    decided-by: product owner 2026-10-17T10:53
+    depends: [W-0012]
+    providers: [claude]
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:50, because: "B0-K0-20261017-6d2ae5bf export-hypotheses empty on all 8 cases"}
+  - id: W-0029
+    title: Lane prompt8 — agent prompt v8, mitigation hypotheses from named overturning conditions (F3)
+    kind: lane
+    status: done
+    owner: ri-prompt8
+    merged: 89328b6f
+    brief: briefs/prompt8.md
+    depends: [W-0028]
+    providers: [claude]       # writes the prompt of the model under test; live smoke uses claude only
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: W-0028 decision}
+  - id: W-0030
+    title: A0 + B0-v8 on the dev pair at F3, K0 (PROTOCOL amendment 10:55 step 2), then export-hypotheses
+    kind: commander-task
+    status: done
+    owner: ri-eval5
+    result: "A0-K0-20261017-edb21ed9 (= F2 on all 24 items); B0-K0-20261017-edb21ed9-v8: 0 record_hypothesis calls; eu affected (correct), us potentially-affected (hedged); ~150k tokens/case"
+    depends: [W-0029]
+    providers: [claude]       # MODEL UNDER TEST
+    glm-executable: false
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: W-0028 decision}
+  - id: W-0031
+    title: "Fallback: human-authored rotationPolicy mitigation rule → §7 verification (only if W-0030 yields none confirmed)"
+    kind: commander-task
+    status: done
+    note: "rule pre-registered: rules/rotationpolicy-ca-scoped.json (commander-drafted, label-aware); verification needs W-0032"
+    depends: [W-0030, W-0032]
+    providers: [claude, glm]
+    glm-executable: false     # authoring the rule is a knowledge judgment
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T10:55, because: pre-registered fallback}
+  - id: W-0032
+    title: Lane verify2 — consumer-observation arm for §7.1 (CA-chain verification across re-issuance) + human-authored rule intake (F4)
+    kind: lane
+    status: done
+    owner: ri-verify2
+    merged: 48a87f69
+    brief: briefs/verify2.md
+    depends: [W-0030]
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: "product owner: add consumer fixture"}
+  - id: W-0033
+    title: "Check: v8 agent saw mesh-root-ca rotationPolicy as a redacted digest — residual redaction gap in some read path?"
+    kind: commander-task
+    status: done
+    owner: ri-eval5
+    result: "agent tool search_manifest (tools_read.go:163) returns raw matching lines without CRD-enum read-back (read_artifact and the dossier apply it); the agent saw <redacted sha256:…> for rotationPolicy/algorithm in the raw files but the dossier showed explicit Never. Pin validator unaffected (envview recoverWithheld; mesh-root-ca decided explicit Never). Agent-view only, no policy effect."
+    follow-up: W-0034
+    depends: []
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: "inv-377edfda16af verdict: 'its value is redacted but is the digest of Never'"}
+  - id: W-0034
+    title: "search_manifest: apply CRD-enum read-back to matched lines (agent view only)"
+    kind: lane
+    status: queued
+    depends: [W-0018]
+    note: "deferred until after the report: fixing it before the held-out B0 would make held-out and dev-pair B0 conditions differ; disclosed as a limitation (the dossier showed the correct value)"
+    providers: [claude, glm]
+    glm-executable: true
+    auto-start: false
+    provenance: {queued-by: claude-commander, queued-at: 2026-10-17T16:30, because: W-0033}
+windows: []   # append-only: {window: {id, from, to, handback}, executed, deferred: [{id, why}], quota, merges}

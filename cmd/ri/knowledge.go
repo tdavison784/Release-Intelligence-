@@ -23,6 +23,7 @@ Subcommands:
   proxy-prompt -o DIR [flags]    write blind proxy-review requests (scripts/proxy-review.sh answers them)
   proxy-report [-ledger F]       the proxy run report: decisions, per-model outcomes, self-family split, cost
   proxy-agreement [-shadow D]    human decisions (real store) vs the proxy's shadow decisions on the same items
+  intake-rule -dir D -author A F take in a human-authored rule file as a proposal + whole-fact review item (never a fact)
 	case "candidates", "propose":
 		return c.semanticCmd(append([]string{sub}, rest...))
 	case "validate":
@@ -52,6 +53,8 @@ func (c *cli) knowledge(args []string) error {
 		return c.knowledgeProxyReport(rest)
 	case "proxy-agreement":
 		return c.knowledgeProxyAgreement(rest)
+	case "intake-rule":
+		return c.knowledgeIntakeRule(rest)
 	case "candidates", "propose":
 		return c.semanticCmd(append([]string{sub}, rest...))
 	case "validate":

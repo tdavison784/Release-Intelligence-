@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: builders
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: builders
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: builders
+  source:
+    repoURL: https://git.example.com/platform/gitops-registry-apac.git
+    targetRevision: main
+    path: apps/builders
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

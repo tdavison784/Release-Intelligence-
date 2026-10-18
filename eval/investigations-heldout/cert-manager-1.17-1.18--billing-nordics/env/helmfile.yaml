@@ -1,0 +1,26 @@
+environments:
+  prod: {}
+
+repositories:
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+
+releases:
+  - name: external-secrets
+    namespace: external-secrets
+    chart: external-secrets/external-secrets
+    version: 0.10.7
+    createNamespace: true
+    values:
+      - values/external-secrets.yaml
+
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.17.2
+    createNamespace: true
+    values:
+      - values/cert-manager.yaml
+      - values/cert-manager-{{ .Environment.Name }}.yaml

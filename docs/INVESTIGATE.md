@@ -62,6 +62,67 @@ names a credential (`password`, `token`, `apiKey`, `privateKey`, `credentials`, 
 withheld from the facts artifact and from evidence excerpts. Files that are not YAML/JSON are stored
 verbatim.
 
+### One redaction rule (redaction@v2, Phase 5 lane redact)
+
+One rule (`internal/redaction`) covers everything taken from an environment: the collected environment
+files, release-scope renders and facts artifact (`bundle.snapshot@v2`, `bundle.change@v2`, marker
+`<redacted sha256:…>`), and the render model (`internal/render`; stored env renders `renderdiff@v2`, marker
+`<sensitive sha256:…>`). Renders reach the agent, so they follow the same rule as collected files:
+
+- (a) Secret `data`/`stringData` values are withheld.
+- (b) A string holding a PEM private-key block is withheld under any key.
+- (c) A scalar whose own key names a credential is withheld unless it is a boolean or null
+  (`createSecret: true`). **Exception: object-reference keys.** A key that is exactly `name` or `namespace`,
+  or that ends in `Name`/`Namespace`, holds an object name, not secret material, so it stays readable
+  (`secretName`, `privateKeySecretRef.name`, `imagePullSecrets[].name`). `key` is a reference key only in the
+  selector shape `{name, key}` (SecretKeySelector, ConfigMapKeySelector: `tokenSecretRef.key`): its mapping
+  must also have a `name`. A lone `key` (`credentials: {key: …}`) is withheld. The graph keeps resolving
+  references.
+- (d) Below a credential-named key holding a mapping or list (`privateKey:`, `credentials:`), only
+  booleans, nulls, numbers and reference keys stay readable; every other string is withheld. v1 wiped such
+  a mapping in collected files, so `privateKey.size` and `privateKey.rotationPolicy` were invisible. The
+  render model kept every string there, including `credentials.secretAccessKey`.
+- (e) The `value` of an environment variable whose name names a credential (`- name: DB_PASSWORD`) is
+  withheld.
+- Credential names are the union of the two former expressions plus `accessKey`: `password`, `passwd`,
+  `passphrase`, `secret`, `token`, `api[-_]?key`, `private[-_]?key`, `access[-_]?key`, `credential`, `bearer`
+  (so `secretAccessKey` and `clientSecret` are covered).
+- A `CustomResourceDefinition` is a schema: its property names (`…properties.privateKey`) name fields, so
+  only (b) applies in it. Otherwise its descriptions, types and enum values would be withheld, and the
+  read-back below and schema defaults need them.
+- The render model leaves existing markers alone (a collected file parses unchanged). A re-encoded collected
+  document keeps its `---` separator; v1 dropped it, merging the document into the one before.
+
+**Read-back** (`redaction.Schemas.Recover`): a marker (either form) below a credential-named mapping or list
+is replaced by a string enum value of the bundle's CRDs only when all of these hold:
+
+- the field's own key names no credential;
+- the object is not a core Secret;
+- exactly one enum value declared for that exact group/version/kind and field path has that marker.
+
+The CRDs are the upstream CRD artifacts plus those the environment files and renders declare. So only a
+constant the schema itself lists is ever shown; free text and anything without a declared enum stay
+withheld. Stored bytes never change. The read-back runs:
+
+- in the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v2`). A pin
+  decided on a read-back value says so in its detail ("stored redacted as …: the digest of "Never", an enum
+  value its CRD declares");
+- in the item dossier (the object's `reason`);
+- in `read_artifact`. The text stays verbatim, so quotes still verify; `readBack` lists the markers in the
+  window that were read back (object, path, marker, value).
+
+A marker that is not read back is **undecidable**, never compared as a literal value. A pin scope condition
+on it is unknown (the object is never "provably out of scope"), and a schema-compat check whose value is
+withheld is `not-run` (`schema:withheld`), never a pass.
+
+**Dossier objects (`investigate.dossier@v3`).** The dossier reads the pin validator's effective object view
+(`validate.EffectiveView`): complete product renders, version-independent overlay renders (a kustomize base
+merged with its patches), and the files no render consumed. It keeps one entry per object, a render's before
+a file's. An object whose consuming render is unavailable is `unknown` whatever it states. A setting named
+by Go field names in upstream text (`Certificate.Spec.PrivateKey.RotationPolicy`) is resolved to the JSON
+field path of the view's CRD schema. Without a confirming CRD it is lowerCamel-cased and an unset field is
+`unknown`, never the inherited default.
+
 **Reproducibility.** The bundle id is derived from content only. Wall-clock fields (`generatedAt`,
 `retrievedAt`) are zeroed in the stored edge copy and `CreatedAt` is not part of the id, so two runs over
 the same upstream evidence, repository state and renders yield the same bundle id; a changed file, a
@@ -204,8 +265,8 @@ does not cover its request's subjects. Undecided records never count as clearing
 | Constructor | Name | Kind | Applies | Decides |
 |---|---|---|---|---|
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
-| `RenderDiff(opts…)` | `validate.render-diff@v1` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
-| `OverrideInspection(opts…)` | `validate.override-inspection@v1` | override-inspection | all | an explicit setting pinning the old behaviour |
+| `RenderDiff(opts…)` | `validate.render-diff@v2` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
+| `OverrideInspection(opts…)` | `validate.override-inspection@v2` | override-inspection | all | an explicit setting pinning the old behaviour |
 | `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
 | `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
 
@@ -239,8 +300,13 @@ whatever the item's breaking flag. `fail` only when such a change causes a **con
 the FROM render did not have: a reference of or to the changed object that dangles, a custom resource invalid
 against its rendered CRD schema, an apiVersion the rendered CRD no longer serves — each named in the detail.
 `pass` only for a `rendered-config` item when every pair is complete and nothing is attributable — or only CRD
-description text, which is shown harmless and cited. Never a pass for `controller-behaviour`/`unknown` items (render
-silence proves nothing); text-mention correlations decide nothing (`not-run`).
+description text, which is shown harmless and cited. For a `controller-behaviour`/`unknown` item render silence
+proves nothing: the only pass is **documentation-only coverage** (rule `render-diff:documentation-only`, record field
+`documentationOnly: true`, @v2) — every pair complete and every rendered change correlated to the item is CRD
+description text in a CRD that changes nothing else in that pair (no schema, default, enum, required, served or
+storage change, correlated to anything or not; `EvidenceBundle.DocumentationOnlyChange`). It names those rendered
+changes and nothing else (no subject, path or answered hypothesis) and never clears behaviour; a description change
+beside any other change of its CRD is `not-run`, naming why. Text-mention correlations decide nothing (`not-run`).
 
 **OverrideInspection** — establishes an explicit environment setting that pins the old behaviour and records
 it as the pass's `PinnedSetting` (kind, subject, path, value, the rendered object it lands in, environment
@@ -251,16 +317,59 @@ record (rule id in the provenance, source in the detail):
 | Rule | Source | Setting |
 |---|---|---|
 | `pin:join-pinned@v1` | the join's own pinned verdict on a computed default change (`impact:values-pinned`, `impact:crd-default-pinned`), with no other non-clear finding of the change | the values keys (every changed key) / the field on every resource; objects only the environment render shows must set it too |
-| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
-| `pin:knowledge-exposure@v1` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` | the explicit setting / one of `V` |
+| `pin:knowledge-default-changed@v1` | a **trusted** (deterministic/human), active verified fact attached to the item that states **no applicability**: `change.type: default-changed` of a crd-field, cli-flag, env-var, feature-gate or config-key subject | that subject, set to the old default — or to a value stated identically before and after the upgrade |
+| `pin:knowledge-exposure@v2` | a trusted fact whose exposure condition is a conjunction with a settable leaf in state `unset` / `not-equals V` — top level, or inside a `resource` scope (directly or under `all`/`any`) | the explicit setting / one of `V`, on the objects of the scope (below); a leaf on the subject's own setting of a default change also accepts the old default |
+
+A fact that states an applicability is decided by it: its default change alone is never a pin (the fact may say
+objects are exposed whatever the setting).
 
 The setting must hold **everywhere it matters**: in every complete environment render target (controller flags,
-env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every visible object of the kind
-(environment files and rendered objects). A setting that is absent, set only on some objects or installs, set only
+env vars, feature gates, ConfigMap keys — via `render.Inventory`) and on every object of the kind in the effective
+object view that the rule's scope does not provably exclude. A setting that is absent, set only on some objects or installs, set only
 after the upgrade to a non-old value, or changed across it is never a pass; neither is any rule from a consensus
 or proxy fact, an incomplete render, a partially collected input, or an unparsable environment file that may
 declare objects of the kind. Facts come from the bundle's `knowledge-fact` artifacts related to the item and from
 `WithFacts` (attached through the report's knowledge findings or `impact.AttachedChanges`).
+
+### Pin rule applicability and the effective object view (Phase 5)
+
+**Scope.** An exposure leaf keeps the `resource` scope it sits in (e.g. "Widgets whose `spec.role` equals
+`root` and leave `spec.rotation` unset"). Each object of the kind is decided **three-valued** against the whole
+scope, with the pin leaf taking the value the setting gives it: *false* with the setting pinning it → a pinning
+record; *false* although the setting does not pin it → **provably out of scope**, excluded from the requirement
+and listed (with evidence) in the pass's detail; *true* → a miss (the object is in scope, or in scope through
+another condition); *unknown* → undecidable, never excluded. Leaves follow the impact join's semantics
+(`internal/impact`): field states over what the object states, Kleene `all`/`any`/`not`, `text-line`, and `ref`
+resolving to exactly one object of the view (by name and the kind/group/namespace it states, else the referring
+object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
+object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
+artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
+CRD, a CRD that states no default (the controller may default the field in code), an ancestor default, or a schema
+that does not describe the path, it is undecidable. What an unset field means is decided by the rule only when it
+says so explicitly with an `unset`/`set` leaf (`any{F equals X, F unset}`, `all{F not-equals X, F set}`); and a reference
+resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
+object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
+
+**Effective object view.** The objects are what the environment actually applies: the to side of every complete
+render of the product (from side for the value before the upgrade), the render of every **version-independent
+overlay** (a `not-applicable` kustomize pair: it renders the same objects at both versions), and the environment
+files **no render consumed**. Which files a kustomize render consumed is read from the bundle's own kustomization
+files (`resources`, `bases`, `components`, `crds`, `patchesStrategicMerge`, `patches[].path`,
+`patchesJson6902[].path`, recursively) — so a base object and the overlay patch that sets the pinned field are seen
+as one merged object, never as an unpatched base plus a patch. A file consumed by a render whose objects are not
+available (render failed) is undecidable. Every hit, miss and exclusion names the view the object came from
+(`environment render <target> (to)`, `environment render <target>, version-independent overlay`,
+`environment file <path>, no render consumed it`); a pass lists the files it saw through renders.
+
+**Trust and lifecycle.** Only active facts whose weakest aspect is deterministic or human pin. A fact pins only
+when its `release` lies inside the transition (`from < release ≤ to`, same product); a fact that states no release
+never pins. When an active fact inside the transition about the same subject (any level, attached or not) states a
+different change or applicability than a pin-source fact, nothing pins for the item: `pin:contradicting-facts`.
+
+Reason codes of a `not-run` override inspection (provenance rule): `pin:no-rule` (no rule names a setting —
+includes untrusted, inactive and out-of-transition facts, each noted), `pin:not-established` (a rule's setting
+does not hold everywhere), `pin:applicability-undecidable` (a rule failed only on objects whose scope membership
+cannot be decided), `pin:contradicting-facts`.
 
 **SchemaCompat** — compatibility items: the snapshot's Kubernetes version against the target constraint
 (`upgrade.EvaluatePlatformConstraint`; anchors `<platform>` or `<platform>/<kind>`): inside → `pass`; outside a
@@ -591,15 +700,56 @@ Issuer/ClusterIssuer CA secrets, `issuerRef` to a ClusterIssuer), ingress-nginx 
 `auth-tls-secret`, `proxy-ssl-secret` annotations — `auth-secret` as `[namespace/]name`, the other two as
 `namespace/name`, as the controller parses them), prometheus-operator (ServiceMonitor, PodMonitor selectors; the
 Secrets/ConfigMaps of every endpoint — `authorization.credentials`, `bearerTokenSecret`, `basicAuth`
-username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reading its CA
-Secret stays `inferred`: the issuer does not state the cluster resource namespace. A rendered Ingress's
+username/password, `tlsConfig` ca/cert/keySecret — in the monitor's own namespace). A ClusterIssuer reads its CA
+Secret from the controller's `--cluster-resource-namespace` (`namespaceFrom`, below). A rendered Ingress's
 `…-secret` annotation values are withheld by the render (credential-looking key), so those references are
 `unknown` in a view (the graph keeps a placeholder); in environment files they resolve. A Certificate whose
 `issuerRef` omits `kind` (default Issuer) is not followed (no false dangle; not checked).
 
+**Cluster-scoped name references** (`namespaceFrom`, Phase 5 lane coverage). A cluster-scoped object that names a
+namespaced one without a namespace is resolved where its controller documents it, when the rule says so:
+
+```yaml
+- id: clusterissuer-ca-secret
+  kind: references          # format name only; declaring namespaceFrom makes `from` cluster-scoped
+  from: {group: cert-manager.io, kind: ClusterIssuer}
+  to: {kind: Secret}
+  path: spec.ca.secretName
+  namespaceFrom:
+    container: cert-manager-controller   # the controller container in the environment's workloads
+    arg: --cluster-resource-namespace    # its value may use $(VAR) from the container's env
+    default: kube-system                 # documented value when the flag is absent (omit if none)
+    configFileArg: --config              # a config file that can also set it (the flag wins)
+    references: [{url: https://…, quote: "…"}]   # required
+```
+
+The graph (and the per-side reference view) decides the namespace from the environment at that side: every
+container of that name in the environment's workloads, the flag's value (`--flag=v` or `--flag v`; `$(VAR)` expanded
+from a literal env value or `fieldRef: metadata.namespace` = the workload's namespace), else the default when no
+`configFileArg` is given. Decided ⇒ the name resolves in that namespace (`established` when the object or a declared
+producer is there, `missing` when not — never a name-only match), and the edge cites the controller render. **Fail
+closed**: no citation, no such container, an env var from `configMapKeyRef`/`secretKeyRef`/`envFrom` or undefined,
+a config file with no flag, a flag without a value or given twice differently, a non-namespace value, or containers
+that disagree ⇒ the reference stays matched by name only (`inferred`), and the edge reason says what was not decided.
+
 Limits (milestone 1): no NetworkPolicy/Gateway-API selectors, no live observation, no values-file `configures` for
 Helm values outside Argo `$values/` references; cluster scope of a kind is known only for built-in kinds, declared
-`scope: cluster` and CRDs in the snapshot.
+`scope: cluster`, a declared `namespaceFrom` (its `from` kind) and CRDs in the snapshot.
+
+### Policy v2: what a behaviour item needs besides its pin (Phase 5, lane coverage)
+
+`classify.policy@v2` changes one thing: a documentation-only render-diff pass (`documentationOnly: true`, see
+RenderDiff) accounts for the CRD description changes it names in **R2.2** ("every correlated rendered change shown
+harmless"), whatever the item's manifestation. Before, a pinned `controller-behaviour` item whose only correlated
+rendered change was the reworded description of its field stayed `potentially-affected` forever (an override
+inspection names no rendered changes; render-diff refused behaviour items). The classifier re-checks the claim against
+the bundle (`EvidenceBundle.DocumentationOnlyChange`) and the run record rejects a false one. Such a record never
+counts for R2.4 (paths/roots/"a passing validation exists"), never answers an agent concern (R2.6) and never clears
+behaviour: a pin or an observed outcome is still required. Agent output is still never an input. A run asking for
+`classify.policy@v1` is classified as v1 (its validators never emitted documentation-only records); a
+documentation-only record under v1 is refused. The other coverage change — cluster-scoped name references resolved
+through a documented controller argument (`namespaceFrom`, under Relationships) — needs no policy change: it turns
+an inferred edge into an established or missing one only when the environment decides it (R2.3).
 
 ## Investigation agent
 
@@ -810,7 +960,7 @@ The tools are unchanged and still bundle-scoped.
 - **Transcript:** one `item` line per session (item, prompt digest, budget), then its calls and envelope. Replay
   walks the segments in order and must reproduce each byte for byte.
 
-**Setting claims (prompt `investigate-agent/v5`, the default; commander decision 2026-10-16).** Live run 4
+**Setting claims (prompt `investigate-agent/v5` and later; commander decision 2026-10-16).** Live run 4
 showed the remaining gap: citations are checked, prose is not — a session closed
 `raises-concern` while its summary said the environment does not set a key that
 `values-prod.yaml` sets to `true` (fail-safe, but unverified). v5 makes environment facts
@@ -842,6 +992,150 @@ structured and checked:
 A claim supports the agent's records; it is never a validation and never a policy input —
 classification still runs only over validation records.
 
+**Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
+verdict citation inheritance, and v8, the default, revises the mitigation instructions, both below; Phase 5,
+`docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
+the v5 surface. It adds three things.
+
+*Item dossier* (`internal/investigate/agent/dossier.go`, `ri.dev/item-dossier/v1`, producer
+`investigate.dossier@v1`). Each item's session starts from a dossier. The dossier is assembled
+deterministically from the bundle and the run, with no new store and no model:
+
+- the change: title, family, manifestation, release, upstream detail and links, evidence excerpts, source
+  artifacts, join findings;
+- the **settings that decide it**, with their effective state on every exposed object;
+- the correlated rendered changes, and the relevant **unchanged** configuration (explicit settings identical in
+  the from and to renders);
+- the knowledge facts attached to the item, with status, verification level and release;
+- the validations already run (with pins, and whether they clear behaviour);
+- the relations: roots, paths, unresolved edges;
+- an explicit list of **gaps**.
+
+Settings are derived in a fixed order of trust:
+
+1. the subject of an attached active fact, and the settable leaves of its exposure condition;
+2. the join's values-key matches;
+3. the item's subjects (`Kind.path` → an object field, `a.b` → a values key, `--flag` → a token);
+4. code spans in the upstream text.
+
+Each setting has a state per object or input:
+
+| State | Meaning |
+|---|---|
+| `explicit` | set, with the value and where it comes from (render target or file, line) |
+| `inherited-default` | unset in a **complete** render (or absent from every file and complete render): the shipped default applies |
+| `unknown` | it cannot be decided, with the reason |
+
+An unset field seen only in a file as declared is `unknown`, never `inherited-default`: an overlay or patch may
+set it (fail closed). Summary states are `mixed` (objects differ) and `no-objects`.
+
+Gaps are `contradictory` (two active facts disagreeing on a subject, values set differently in several files,
+validations both passing and failing), `missing` (no upstream evidence, no deciding setting, an unknown
+setting, an unavailable source or render) or `partial` (a partial render or source, an undecided validation,
+unresolved or truncated relations, uncorrelated rendered changes). Not-applicable renders are not gaps.
+
+Same inputs ⇒ byte-identical dossier. It is bounded at 48 KiB: lists are capped, and what was cut is listed in
+`truncated`. The dossier is stored as a content-addressed run artifact (`item-dossier`,
+`derived/dossier/<item>/<hash>.json`, named in `AgendaCoverage.Dossier`) and inlined into the item task, so the
+session's prompt digest pins it. The item counts as examined, and the artifacts it quotes count as retrieved in
+that session. `get_dossier` serves any item's dossier. `ri investigate dossier <inv-id> <item>` rebuilds it
+read-only from a stored run (the deterministic pass's validations, as the agent saw them) and says whether it
+matches the stored one.
+
+*Provisional verdict* (`verdict.go`). Every closing entry except `not-examined` carries the agent's own
+assessment: one of the four classes, confidence, mechanism, environment reasoning, citations, verified facts
+(`clm-…` / `vr-…`), assumptions, mitigations (`hyp-…`), uncertainty, proposed validations and what would
+overturn it.
+
+- A malformed verdict rejects the call (unknown class or confidence, a missing mechanism / reasoning /
+  overturn).
+- Citations, verified facts and mitigations are resolved **one by one**. What does not resolve is dropped,
+  counted (`droppedCitations`, `droppedVerifiedFacts`) and explained (`dropped`).
+- A verdict other than `insufficient-evidence` needs at least one citation that resolves.
+- **v7** (Phase 5 fix W-0025): a verdict that states **no** citations (omitted or empty) takes its closing
+  entry's citations once they are checked, and is marked `citationsFromEntry`. An entry citation that does not
+  check rejects the call, as it always did, so nothing unchecked is inherited; citations the verdict does state
+  are its own and are never replaced (if none of them resolves, the verdict is still rejected). The tool schema
+  says so. In live run 1 (v6) every first `submit_findings` was rejected for an empty `verdict.citations`
+  (17% of calls). v7 changes only `meta.json` (`verdictInheritsCitations`) and that schema text; system, task
+  and item prompts are v6's byte for byte. A transcript replays only under the version it was recorded with
+  (the replay driver refuses another prompt digest): `ri investigate -agent-prompt investigate-agent/v6 …`
+  pins an earlier version, and a `ri eval -investigations` replay arm defaults to the replayed run's version.
+- **v8** (Phase 5 W-0029, PROTOCOL amendment 2026-10-17 10:55; one revision, then frozen). Run
+  `B0-K0-20261017-6d2ae5bf` (v7, 8 cases) made **zero** `record_hypothesis` calls, although many verdicts named,
+  in `wouldOverturn` / `proposedValidations`, conditions under which the change would not reach an object (the
+  field set to the old value on some objects, a feature disabled, nothing depending on the changed property).
+  The v7 trigger ("when you believe a setting or condition in the environment preserves the old behaviour") was
+  read as "only when the environment meets it for the whole item". v8 changes `system.md`, `item.md` and the
+  `environmentBasis` wording of `tools.json` (the schema is v7's); `meta.json` and `task.md` are v7's byte for
+  byte (no tool, validator, policy, budget or verdict schema change). It says:
+  - a mitigation is a **release-level rule**: record it whenever upstream text supports a condition under which
+    an exposed object is not impacted, whether the environment meets it on all, some or none of the exposed
+    objects — the validator decides per object afterwards. **`environmentBasis`** is the verified evidence of
+    this environment's state with respect to the rule's conditions, **whether met or not** (commander decision
+    2026-10-17, W-0029; documented on `domain.MitigationSpec` and in the v8 tool schema): the claims/objects that
+    meet the condition and those that do not; when none meets it the statement says so. It stays non-empty
+    (a mitigation with no environment evidence is rejected, unchanged). It is not an applicability decision:
+    only the recorder and storage read it — not export, verification, the promotion gate or policy;
+  - **change vs consequence**: distinguish the objects whose setting changes from those where a consumer can
+    observe the change, and scope the rule's applicability and consequence to the latter as a decidable
+    predicate over the subject's fields and the references it states (`field` / `ref` inside `resource`),
+    naming when it does not hold (an abstract example, no product);
+  - **consistency**: every upstream-supported, environment-checkable condition in `wouldOverturn` is a recorded
+    mitigation named in the verdict's `mitigations`, or carries a one-line reason it is not expressible in the
+    fact grammar;
+  - **consumers**: when the open question is whether anything depends on the changed property, trace what
+    references the object (or what it produces) and what it reads, record that as claims and assertions before
+    settling on `potentially-affected`; a runtime-produced object absent from the snapshot is said to be absent
+    and reasoned about from what references it.
+
+  The revision was made after seeing in-sample v7 results and is reported as such (PROTOCOL amendment).
+  Tests: v8 is the default and v1–v7 are frozen by a files digest; v8's tools.json differs from v7's only by
+  the basis wording; v8's text names no evaluation product, environment, kind or field (a word list plus every
+  token of the case directory names); a v8 session that records a mitigation whose basis covers only some (or
+  none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
+  case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
+  was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
+
+Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
+`unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
+pipeline does not pass them to classify. A test shows findings, decision and eligibility are byte-identical with
+and without verdicts, including an adversarial `not-affected` verdict on an affected item. The agent may say
+`not-affected` where the policy cannot; the two are scored separately (lane eval5).
+
+*Structured mitigation hypotheses* (`mitigation.go`). `record_hypothesis` takes an optional `mitigation`:
+
+- `proposedRule`: a complete `SemanticAssertion` (subject, change, applicability, consequence) plus `release`
+  bounds `{from, to}` (from exclusive, to inclusive);
+- `environmentBasis`: claim ids, validation ids or object references;
+- `requestedVerification`.
+
+It is checked when recorded: the grammar is complete and **decidable** (no `undecidable` leaf); the subject
+belongs to the product and its identifying words occur together in a bundle artifact; the bounds parse (tags
+like `controller-v1.12.0` too) and lie within the run's FROM→TO; every basis reference resolves in the run; at
+least one citation is upstream text. A malformed spec is not stored. The hypothesis stays as free text with
+`mitigationRejected` saying why, and the model is told. A stored spec is a proposal only: nothing wires it into
+a pin; the agent never chooses the pin rule.
+
+*Export* (`export.go`). `ri investigate export-hypotheses <inv-id> -knowledge <dir>` writes each well-formed
+mitigation into a knowledge directory as:
+
+- a `SemanticProposal`: task `full`, AI provenance with rule `hypothesis:<hyp>@<inv>`
+  (`domain.ParseHypothesisRule`), citations limited to upstream evidence and appended to the change's
+  candidate;
+- a whole-fact `fact-review` item proposing exactly the rule, pending, on the candidate of the item's upstream
+  change.
+
+It never writes a fact or a decision. Records are content-addressed and an existing review item is left
+untouched, so re-export is a no-op. A hypothesis is skipped, with the reason, when it has no well-formed
+mitigation, its item has no upstream change, the change's release is outside the rule's bounds, it has no
+upstream citation, or another mitigation of the same model call already became the proposal for that
+candidate. Lane verify attaches proof records to these items; promotion needs a confirmed proof record and a
+human.
+
+*Cost* (`AgentRun`): `sessions`, `wallMillis`, `droppedCitations` and `droppedVerifiedFacts`, beside the
+existing turns, tool calls and tokens.
+
 **Environment-scope items.** Items anchored on environment-only rendered changes
 (`EvidenceBundle.EnvironmentItems`, e.g. `scope:rendered-unexplained`) are included everywhere the agent
 iterates items: the task, the agenda, the per-item tools, coverage and the deterministic pass. These all go
@@ -857,7 +1151,10 @@ the agent's outputs.
 (`system.md`, `task.md` template, `tools.json` schemas, and for v2 `meta.json`, the features it switches on).
 `PromptDigest = sha256(system ‖ rendered task ‖ tools.json [‖ meta.json])`. v1 has no `meta.json`; v2 adds the
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
-v5 adds setting claims (`record_claim`) and the prose labels.
+v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
+(`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
+citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 
 The task lists:
@@ -900,6 +1197,173 @@ its replay check:
 environment and the input path as supplied. The groundtruth environments sit inside this repository, so
 every commit, and every checkout location, gives a new bundle id. A recorded run then replays only at its
 commit and path: a replay elsewhere is refused for a prompt-digest mismatch, never silently accepted.
+
+## Verifying mitigation hypotheses (Phase 5)
+
+An agent may propose a reusable rule — "this setting preserves the previous behaviour across this transition"
+(a `MitigationSpec` on a hypothesis, exported by `ri investigate export-hypotheses` as an AI proposal plus a
+whole-fact review item). It is never a fact until it is **independently verified and promoted by a human**
+(docs/phase5/learning-loop/PROTOCOL.md §7–§8). Package `internal/investigate/verify`, command:
+
+```
+ri verify hypotheses -knowledge <dir> [-store <state>] [-runtime] [-kubernetes 1.31] [-again] [-json]
+```
+
+For every open hypothesis-sourced fact-review item (`Provenance.Rule = hypothesis:<hyp>@<inv>` on a proposal
+of the item's rule) it writes a **`ProofRecord`** (`internal/domain/proof.go`, knowledge record kind `proof`,
+stored beside the item under `<product>/<release>/proofs/`):
+
+- **Citation check** (`verify.citations@v1`, deterministic). The rule's release bounds — `(From, To]` from the
+  run's mitigation spec — and its upstream citations (the proposal's evidence on the candidate). Each citation
+  must resolve in the evidence cache (the investigation store's CAS by content digest, or the fetch cache by
+  digest, else by URL; a GitHub blob URL also matches its raw form; a cited digest must match exactly), contain
+  its cited passage (whitespace-normalised, as the agent's tools check), and name at least one version and no
+  version outside the bounds (versions are read from the URL; a minor-only token like `1.18` names a release
+  line). Any failure ⇒ `fail`; no bounds or no citation ⇒ `not-run`; no passing passage naming the subject ⇒
+  `inconclusive` (whether the text *states* the behaviour is the reviewer's judgement, listed as a limitation).
+- **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
+  rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
+  in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
+  prerequisites, e.g. an issuer) in two arms — **condition-present** satisfies the rule's mitigating (`overlap`)
+  condition, **condition-absent** its exposure condition — and nothing else. `runtime.Validator.RunFixture`
+  runs the same phases as an environment run (install, exercises at FROM, upgrade to TO, exercises at TO,
+  observation, cleanup on every exit path) in a cluster `ri-verify-<8 hex>`; a fixture run and an environment
+  run never overlap (each refuses while a cluster of either prefix exists). Objects the controller produces
+  from each arm (the product's `produces` relationships) are observed and their data digested per key.
+
+  | condition-present arm | condition-absent arm | exercise outcome |
+  |---|---|---|
+  | unchanged at TO | changed at TO | `pass` — the behaviour change is demonstrated, and the condition preserves the previous behaviour |
+  | changed | changed | `fail` — the condition does not preserve it (refuted) |
+  | changed | unchanged | `fail` — the prediction for the condition arm is contradicted |
+  | unchanged | unchanged | `inconclusive` — the change itself was not demonstrated, so neither is the mitigation |
+
+  "Changed" is any difference the runtime's degradation rules record on the arm's objects (exercise window:
+  what the exercise did at TO that it did not do at FROM; upgrade window). Never a pass: an exercise not answered
+  on every arm at both versions (a quiet window), a run that did not complete, a sandbox problem (image pull),
+  no stored observation artifacts. `not-run`: no fixture for the subject kind, no declared exercise or one
+  without a reaction, or a rule whose conditions cannot be synthesised on the subject object (only `field`
+  leaves `unset` / `set` / `equals` / `not-equals` without list paths, inside `resource` of the subject kind;
+  `set`/`not-equals` use the change's previous value; a rule without an overlap is mitigated by setting an
+  "exposed while unset" field to its previous value) — never approximated.
+
+**Outcome** = `confirmed` only when both methods passed; any `fail` ⇒ `refuted`; otherwise `inconclusive`
+(`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
+exercise without both arms answered, and a level that does not match: `observed` exactly when the exercise
+ran). Each proof lists its limitations (one synthetic object per arm, chart-default controller, other consumers
+and topologies not covered, applicability to an environment decided by the validators, not by the proof). A
+proof whose rule differs from the run's mitigation spec is not written. Items with a confirmed or refuted proof
+are skipped unless `-again`; inconclusive ones are re-verified.
+
+**Fixtures** (`products/exercises/fixtures/<product>.yaml`, kind `ProductFixtures`; own directory so the exercise
+files' digests, recorded by every runtime run, are untouched): `controller.values` (+ upstream references),
+and per subject `target` (group/version/kind), `exercise` (an id from `products/exercises/<product>.yaml`, which
+must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
+name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
+
+### Consumer observation (lane verify2)
+
+The produced-object observation above can show that an explicit setting preserves an object's previous
+behaviour. It cannot test a rule whose claim is about **consequence** — that an object changes without any
+consumer observing it (a certificate's own key rotating is invisible to a client that verifies it through its
+issuer; the issuer's key rotating is not). A subject fixture may therefore declare `consumers`:
+
+```yaml
+consumers:
+- id: ca-trust
+  role: [{path: spec.isCA, value: true}]          # the field(s) the subject holds in this role
+  objects: [ ...consuming objects, {{name}} = the arm's subject object... ]
+  trust:   {secret: "{{name}}-tls", key: ca.crt}  # captured by the consumer before re-issuance
+  reissue: ["{{name}}", "{{name}}-leaf"]          # objects of the subject kind, re-issued in this order
+  verify:  {secret: "{{name}}-leaf-tls", key: tls.crt}
+  references: [ ...upstream documentation... ]
+```
+
+**Selection.** A rule whose applicability names a role field distinguishes subjects by that role, so its
+exercise is the consumer observation; every other rule keeps the produced-object observation, unchanged (the
+Phase 5 verify-smoke proofs still load and re-verify). A rule naming the role fields of two observations is
+`not-run` (ambiguous).
+
+**Arms, from the rule, in the role.** Exposure and overlap are expanded into alternatives (`resource` / `all` /
+`any` / `field` on the subject kind; at most 16). Every overlap alternative that holds together with the role
+fields and does not meet the exposure is a **shielded** arm (`condition-present`, `condition-present-2`, …;
+predicted: the consumer still verifies at TO); every exposure alternative that holds in the role and does not
+meet the overlap is an **exposed** arm (`condition-absent`, …; predicted: it verifies at FROM and fails at TO).
+Alternatives that contradict the role are not exercised and are listed as limitations. Each arm also gets the
+declared consuming objects (e.g. a CA issuer and a leaf it signs).
+
+**The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
+after the version's baseline observation and before its exercises (inside the exercise window at both
+versions, so the upgrade window stays clean): capture the PEM certificates of `trust`; re-issue the `reissue`
+objects one after another with the subject's declared exercise, each awaited until its reaction field changes
+(bounded by the exercise's settle time); then verify the first certificate of `verify` (the rest as
+intermediates) against the captured certificates with Go `crypto/x509`, in process. `verified`; `failed` only
+for an authority mismatch (`x509.UnknownAuthorityError`: the chain does not reach the captured trust);
+`undetermined` for anything else (an object not re-issued, a Secret or certificate missing, any other x509
+error such as validity). Only PEM `CERTIFICATE` blocks are read — a declared key holding any other block (a
+private key) is refused — and only the outcome and sha256 digests of the certificates and their public keys
+are recorded (`Run.Consumers`, `ProofArm.Consumer`); Secret data in observations stays HMAC-digested.
+
+**Outcome** (fixed by PROTOCOL amendment 2026-10-17 before the method existed): `pass` iff every shielded arm
+verifies at FROM and at TO and every exposed arm verifies at FROM and fails at TO; `fail` (refuted) if a
+shielded arm fails at either version; otherwise `inconclusive` — an exposed arm that still verifies at TO
+(quiet), an exposed arm that fails already at FROM (no baseline), any undetermined arm, or no exposed arm at
+all (the rule can then be refuted but never confirmed). Data differences on the arm's objects (e.g. the leaf's
+own key rotating) are listed on the arm as "not decisive for the consumer". The cert-manager fixture declares
+`ca-trust`: the arm's Certificate is a self-signed CA, a CA `Issuer` signs a leaf with it, the CA and then the
+leaf are re-issued, and the leaf's `tls.crt` is verified against the CA's `ca.crt` captured before.
+
+### Human-authored rules (`ri knowledge intake-rule`)
+
+```
+ri knowledge intake-rule -dir <knowledge copy> -author "<who wrote it, verbatim>" [-candidate sc-…] <rule.json>
+```
+
+The pre-registered fallback (PROTOCOL amendment 2026-10-17) when the agent proposes no mitigation: a rule file
+(`docs/phase5/learning-loop/rules/*.json`: `_provenance`, `statement`, `assertion` {subject, change,
+applicability, consequence, release {from, to, bounds: "(from, to]"}}, `citations` ["ev-… (locator)"],
+`requestedVerification`) becomes exactly what `export-hypotheses` makes of an agent hypothesis — a
+`SemanticProposal` and a whole-fact `fact-review` item proposing exactly its rule, never a fact
+(`internal/knowledge/intake.go`). The file is encoded **faithfully or refused**: unknown fields, a bounds shape
+other than `(from, to]`, an incomplete or undecidable rule, or any part of the assertion that does not survive a
+round trip through the fact grammar unchanged is an error. Provenance: rule `human-authored:<hyp-id>` (the
+hypothesis id derived from the file's sha256), provider and model version `human-authored`, prompt version
+`human-authored/v1`, `model` = the author string verbatim, prompt digest and call id = the file's sha256; method
+stays `ai` (the proposal contract admits only AI provenance, the least trusted label). The proposal carries the
+rule's bounds (`SemanticProposal.release`, set only by the intake) because there is no run record. The rule is
+anchored on the one candidate of the subject's product inside the bounds holding every cited evidence id (or
+`-candidate`); an existing item proposing exactly the same rule is reused (`itemExisted`). Routing ignores the
+proposal, `ri verify hypotheses` verifies it (bounds from the proposal) and the promotion gate applies
+unchanged; the review UI labels it **human-authored — not agent-proposed**. Output: file digest, hypothesis,
+candidate, proposal, review item, rule digest (what a proof must name) and proposed-rule digest (with bounds).
+
+### The promotion gate (`internal/knowledge/promote.go`)
+
+`Queue.Decide` refuses, before anything is written, an accept/correct of a hypothesis-sourced item unless:
+the reviewer is **human** (a proxy or the agent never promotes); the item is a whole-fact (`fact-review`) item
+and the decision verifies **all four aspects**; a **confirmed** proof of exactly the decided rule's digest exists
+for the item (a correction that changes the rule needs a new item and a new proof; a prose-only correction keeps
+the digest); **no refuted proof** of that rule exists (a refutation is never outweighed by a later confirmation);
+the proof's bounds contain the item's release; and every other active fact on the same subject is named in the
+decision's `supersedes` (the narrower rule replaces it — it becomes `superseded`) or `coexists` (kept, said
+explicitly) — a refining rule never silently coexists. Reject / need-more-evidence / defer are always allowed.
+Ordinary (non-hypothesis) items are unchanged.
+
+### In the review UI
+
+A hypothesis item's page shows the rule in plain English, the agent's reasoning labelled **AI — not
+verified**, every proof (each method with its level — deterministic / observed — outcome, detail, checks, the
+two arms with their predicted and observed behaviour, evidence links and limitations) and the gate (open /
+closed, with the reason); the decision form asks, per active same-subject fact, *supersede* or *keep beside*.
+The default view lists an agent rule only once its proof is confirmed (then as a pin source: promoting it can
+clear investigated environments); until then it is hidden as "awaiting a confirmed proof".
+
+Tests: `go test ./internal/investigate/verify ./internal/knowledge ./internal/reviewui` (synthetic product
+`acme-ctl`; every gate refusal path, the four arm combinations, citations outside the bounds, a proof digest
+mismatch after a correction; the consumer outcome rule, human-authored intake and its gate) and `go test
+./internal/investigate/runtime -run 'Fixture|Consumer'` (the fake cluster, with real x509 certificates for the
+consumer observation). Real runs on the cert-manager fixture are recorded in
+`docs/phase5/learning-loop/runs/verify-smoke.md` and `runs/verify2-smoke.md` (consumer observation).
 
 ## Running an investigation
 
@@ -950,7 +1414,14 @@ them first; see TEMPORAL.md).
 Both paths call the same `run.Pipeline`, so for the same inputs, configuration and a scripted/replay
 agent they produce the same run-record digest (`recordDigest`: the record with its audit sequence, not
 its timestamps). A stage's idempotency key is a content digest (DESIGN §5.1); a repeated key returns the
-first result without repeating side effects, in particular without calling the agent again.
+first result without repeating side effects, in particular without calling the agent again. Because a
+repeated key returns the first result's refs too, each key covers every input its stage reads and every ref
+its output carries on (change, snapshot, bundle, investigation, previous round, and the pre-record audit by
+content, not time); build-graph's covers the run record it writes, collect's the render setting. So two
+runs on one state dir that differ only in their settings (e.g. without and then with `--agent`) are two
+investigations, each run to the end with its own config (Phase 5 fix W-0024; before it, the second run
+continued the first run's investigation from build-graph on). Keys live only in the workspace memo, never
+in a run record: no stored id or digest changed. Memos written under the old keys are simply not hit.
 
 **Snapshot identity.** A repository input is identified by the content of the environment directory (tree digest of its collected files and
 their repo-relative paths): the same content in another checkout, path or commit is the same snapshot and bundle (same ids, same bytes). The
@@ -1043,12 +1514,13 @@ scores the stored run record:
   (or 0/0) is `INSUFFICIENT-DATA`: printed as such, never a pass, and a FAIL for the autonomy criteria. The
   command exits non-zero unless every gate passes.
 - **Reproducibility** — the stored records are re-classified (`classify.New()`) and must reproduce the
-  findings and decision byte for byte.
+  findings and decision byte for byte. A run whose config asks for `classify.policy@v1` (Phase 4) is
+  re-classified under v1 (same decisions, v1 stamp); see "Policy v2" below.
 
 ```
-ri -state <cache> -offline eval -investigations                    # arm A: deterministic only
-ri eval -investigations -case <id>[,<id>] -o json                   # a subset, JSON score
-ri eval -investigations -save                                       # keep results/<run-id>/ (never overwritten)
+ri -state <cache> -offline eval -investigations -knowledge <snapshot>   # arm A: deterministic only
+ri eval -investigations -knowledge <snapshot> -case <id>[,<id>] -o json # a subset, JSON score
+ri eval -investigations -knowledge <snapshot> -save                                    # keep results/<run-id>/ (never overwritten)
 ri eval -investigations -agent -agent-driver claude-cli -agent-model claude-sonnet-5-5 -save   # arm B
 ri eval -investigations -runtime -save                                  # arm C: + observed validation (one
                                                                        # throwaway kind cluster per case, deleted after)
@@ -1073,3 +1545,36 @@ classifier: a stored run reproduces byte for byte with the binary of its own com
 code shows exactly what a policy change altered.
 Scored runs are kept, never overwritten or cherry-picked; the analysis is
 `docs/phase4/env-impact/EVAL-REPORT.md`.
+
+### Phase 5: pinned knowledge, agent verdicts, comparison
+
+- **Knowledge is pinned.** `ri eval -investigations` refuses to run without an explicit `-knowledge` naming a snapshot,
+  and refuses the live `knowledge/` tree (`./knowledge`, the work tree's, the primary checkout's) unless
+  `-allow-live-knowledge`, so a later knowledge change cannot contaminate an arm. `run.json` records
+  `knowledgeDigest` (sha256 over the sorted relative paths and bytes of every file in the tree; `none` with
+  `-knowledge ""`) and `knowledgeLive`. `-append` refuses a run with a different digest. Runs stored before Phase 5
+  have no digest and still load and re-score. `-rescore`, `-pack` and `-compare` read stored runs and need no snapshot.
+- **Snapshots.** `scripts/phase5/snapshot.sh <sha> <out>` extracts `knowledge/` of a commit with `git archive` and prints
+  the same digest (K0 = `03b6ff43`; K1 = K0 plus the promoted facts, one commit). `scripts/phase5/kbad.sh <K1> <fact-id>
+  <out>` builds the PROTOCOL §5 S3 negative-control trees (proxy-only, refused promotion, release outside the
+  transition, wrong pin, superseded, retracted, undecidable condition, contradicting active fact) as copies of K1; each
+  is documented in `scripts/phase5/kbad/main.go`.
+- **Agent verdicts are scored apart from policy.** The agent's provisional class per item (`AgentVerdict`, PROTOCOL §8) is
+  matched to expected items with the same matcher as policy findings and scored `correct` / `false-safe` (agent
+  not-affected, expected anything else) / `false-alarm` (agent affected, expected not-affected) / `hedged`
+  (potentially-affected or insufficient-evidence, not equal to expected) / `overstated` (agent affected, expected
+  potentially-affected or insufficient-evidence) / `no-verdict`. Ungated; never read by gates or policy metrics; absent
+  from the score when an arm stored no verdicts.
+- **`-compare <run>[,label=<run>…]`** prints Markdown tables for stored runs side by side, first = baseline: policy class
+  per item, safety rows (false negatives, unsafe eligibility, clearances, unsafe clearances, clearances gained/lost),
+  accuracy and coverage/risk detection as separate tables, human-review and cost rows, agent-verdict outcomes. The
+  analysis is `docs/phase5/learning-loop/EVAL-REPORT.md`.
+
+### Held-out ground truth (Phase 5)
+
+`eval/investigations-heldout/` holds ten further cases (cert-manager 1.17.2 → 1.18.0, ingress-nginx
+4.11.5 → 4.12.0, kube-prometheus-stack 89.2.4 → 90.2.0) in the same format, authored blind by lane
+`groundtruth5` on a sealed branch and confirmed by observed upgrades in kind (`README.md` there: case
+index and re-run commands; no expected class is stated outside `expected.yaml`). It is the held-out
+measurement of `docs/phase5/learning-loop/PROTOCOL.md` §5 S4, scored with `ri eval -investigations -dir
+eval/investigations-heldout` once the gates file for it is in place (commander-owned, PROTOCOL §5).

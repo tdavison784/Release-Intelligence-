@@ -3,8 +3,6 @@ package render
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -12,6 +10,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
 // ObjectID is the identity of a rendered Kubernetes object,
@@ -153,7 +153,7 @@ func objectsOf(m map[string]any, source string) ([]Object, error) {
 	}
 	ns, _ := meta["namespace"].(string)
 	id := ObjectID{Group: group, Version: version, Kind: kind, Namespace: ns, Name: name}
-	body, _ := normalizeTree(m, kind, "").(map[string]any)
+	body, _ := normalizeTree(m, kind, "", false).(map[string]any)
 	if body == nil {
 		body = map[string]any{}
 	}
@@ -167,20 +167,11 @@ func splitAPIVersion(av string) (group, version string) {
 	return "", av
 }
 
-// sensitiveKey names keys whose values are credentials (the env package's
-// convention): their values are compared by digest and never shown.
-var sensitiveKey = regexp.MustCompile(`(?i)(password|passwd|passphrase|token|api[-_]?key|secret$|secret[-_]?key|private[-_]?key$|credential|bearer|client[-_]?secret)`)
+// sensitivePrefix marks a value replaced by its digest
+// (redaction.RenderMarker).
+const sensitivePrefix = redaction.RenderMarkerPrefix
 
-var privateKeyMark = regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----`)
-
-// sensitivePrefix marks a value replaced by its digest.
-const sensitivePrefix = "<sensitive "
-
-func redact(v any) string {
-	b, _ := json.Marshal(v)
-	s := sha256.Sum256(b)
-	return sensitivePrefix + "sha256:" + hex.EncodeToString(s[:])[:16] + ">"
-}
+func redact(v any) string { return redaction.RenderMarker(v) }
 
 // isSensitive reports whether a normalized scalar is a redaction marker.
 func isSensitive(v any) bool {
@@ -190,28 +181,37 @@ func isSensitive(v any) bool {
 
 // normalizeTree canonicalizes one object (RENDER-MISSION R15):
 //   - nulls, empty maps and empty lists are dropped (empty ≡ omitted);
-//   - Secret data/stringData values, values under credential-named keys,
-//     env values of credential-named variables and anything holding a
-//     private key are replaced by a digest marker: changes stay visible,
-//     values never leave the renderer;
+//   - credentials are replaced by a digest marker by the rule of package
+//     redaction (shared with the bundle collector): Secret data/stringData,
+//     private keys anywhere, scalars whose own key names a credential
+//     (object-reference keys such as secretName or …Ref.name excepted),
+//     strings below a credential-named mapping or list (booleans, nulls,
+//     numbers and reference keys kept) and credential-named env values;
+//     changes stay visible, values never leave the renderer. Inside a
+//     CustomResourceDefinition (a schema) only private keys are;
 //   - map ordering is irrelevant by construction; list ordering is handled
 //     by the diff (keyed lists, permission sets, ordered args).
-func normalizeTree(v any, kind, key string) any {
+//
+// key is the nearest mapping key above v; under reports that a key further
+// up names a credential and holds a mapping or list.
+func normalizeTree(v any, kind, key string, under bool) any {
+	crd := kind == "CustomResourceDefinition"
 	switch t := v.(type) {
 	case map[string]any:
 		out := map[string]any{}
 		envName, _ := t["name"].(string)
+		_, hasName := t["name"]
 		for k, x := range t {
 			var n any
 			switch {
 			case kind == "Secret" && (key == "" && (k == "data" || k == "stringData")):
 				n = redactAll(x)
-			case sensitiveKey.MatchString(k) && isScalar(x):
+			case !crd && k == "value" && envName != "" && redaction.CredentialEnvVar(envName) && isScalar(x):
 				n = redact(x)
-			case k == "value" && envName != "" && sensitiveKey.MatchString(envName) && isScalar(x):
-				n = redact(x)
+			case isScalar(x) || x == nil:
+				n = leaf(x, k, under, crd, hasName)
 			default:
-				n = normalizeTree(x, kind, k)
+				n = normalizeTree(x, kind, k, under || (!crd && redaction.CredentialContainer(k)))
 			}
 			if n != nil {
 				out[k] = n
@@ -224,7 +224,13 @@ func normalizeTree(v any, kind, key string) any {
 	case []any:
 		var out []any
 		for _, x := range t {
-			if n := normalizeTree(x, kind, ""); n != nil {
+			var n any
+			if isScalar(x) {
+				n = leaf(x, key, under, crd, false) // a list item
+			} else {
+				n = normalizeTree(x, kind, key, under)
+			}
+			if n != nil {
 				out = append(out, n)
 			}
 		}
@@ -232,16 +238,32 @@ func normalizeTree(v any, kind, key string) any {
 			return nil
 		}
 		return out
-	case string:
-		if privateKeyMark.MatchString(t) {
-			return redact(t)
-		}
-		return t
 	case nil:
 		return nil
 	default:
-		return t
+		return leaf(t, key, under, crd, false)
 	}
+}
+
+// leaf applies the rule to one scalar (nil is dropped); nameSibling: its
+// mapping has a "name" key.
+func leaf(x any, key string, under, crd, nameSibling bool) any {
+	if x == nil {
+		return nil
+	}
+	s, isString := x.(string)
+	switch {
+	case isString && redaction.IsMarker(s):
+		return s // already a marker (either form: a stored, collected file)
+	case crd:
+		if isString && redaction.HoldsPrivateKey(s) {
+			return redact(s)
+		}
+		return x
+	case !redaction.Keep(key, redaction.KindOf(x), s, under, nameSibling):
+		return redact(x)
+	}
+	return x
 }
 
 func redactAll(v any) any {

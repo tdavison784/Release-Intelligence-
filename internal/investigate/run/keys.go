@@ -18,28 +18,58 @@ import (
 // worker computes the same key and dedupes side effects. A new evidence
 // round changes the inputs and therefore the keys. Pure: the workflow calls
 // it too.
+//
+// A memo hit returns the first call's whole StageOutput, refs included, so a
+// key covers every input the stage reads AND every ref its output carries
+// forward (passed). Otherwise a second run that shares one stage's inputs
+// with an earlier run in the same store (another config, another change)
+// would continue on the earlier run's refs: its investigation, its change.
+// Keys are workspace-local and never stored in a run record, so changing
+// them changes no id or digest.
 func Key(in StageInput) string {
 	r, rf := in.Request, in.Refs
 	cfg := r.Config.Digest()
 	switch in.Stage {
 	case domain.StageCollectChange:
-		return investigate.ChangeKey(r.Product, r.From, r.To, in.Definition)
+		// The collector also renders the release when the config asks for it.
+		k := investigate.ChangeKey(r.Product, r.From, r.To, in.Definition)
+		if r.Config.Render {
+			k += ":render"
+		}
+		return k + passed(rf)
 	case domain.StageBuildSnapshot:
-		return investigate.SnapshotKey(r.Environment) + ":" + domain.ShortHash(r.Product) + ":" + domain.ShortHash(strings.Join(in.Extra, "\n"), itoa(in.Round))
+		return investigate.SnapshotKey(r.Environment) + ":" + domain.ShortHash(r.Product) + ":" + domain.ShortHash(strings.Join(in.Extra, "\n"), itoa(in.Round)) + passed(rf)
 	case domain.StageAssemble:
-		return "bundle:" + domain.ShortHash(rf.Change, rf.Snapshot, cfg, itoa(in.Round))
+		// Assemble writes rf.Pending into the record it creates and passes none
+		// on; on a hit that record exists already, so Pending is not an input.
+		rf.Pending = nil
+		return "bundle:" + domain.ShortHash(rf.Change, rf.Snapshot, cfg, itoa(in.Round)) + passed(rf)
 	case domain.StageBuildGraph:
-		return "graph:" + domain.ShortHash(rf.Bundle, relations.BuilderName)
+		// It writes the graph into the run record, so the record is an input.
+		return "graph:" + domain.ShortHash(rf.Bundle, relations.BuilderName, rf.Investigation, rf.Record) + passed(rf)
 	case domain.StageTraverse:
-		return "traverse:" + domain.ShortHash(rf.Investigation, in.Phase, digestOf(r.Config.Bound), rf.Record)
+		return "traverse:" + domain.ShortHash(rf.Investigation, in.Phase, digestOf(r.Config.Bound), rf.Record) + passed(rf)
 	case domain.StageValidate:
-		return "validate:" + domain.ShortHash(rf.Investigation, in.Phase, strings.Join(r.Config.Validators, ","), rf.Record)
+		return "validate:" + domain.ShortHash(rf.Investigation, in.Phase, strings.Join(r.Config.Validators, ","), rf.Record) + passed(rf)
 	case domain.StageInvestigate:
-		return "investigate:" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record)
+		return "investigate:" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record) + passed(rf)
 	case domain.StageClassify:
-		return "classify:" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record)
+		return "classify:" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record) + passed(rf)
 	}
-	return string(in.Stage) + ":" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record)
+	return string(in.Stage) + ":" + domain.ShortHash(rf.Investigation, itoa(in.Round), rf.Record) + passed(rf)
+}
+
+// passed is the key part for the refs a stage's output carries forward
+// unchanged. The pending audit events (stages before the record exists) count
+// by content — stage, event, actor, refs, detail — not by time, so a retry or
+// resubmission keeps its key.
+func passed(rf Refs) string {
+	pending := make([]domain.AuditEvent, len(rf.Pending))
+	for i, e := range rf.Pending {
+		e.At, e.Prev = zeroTime, ""
+		pending[i] = e
+	}
+	return ":" + domain.ShortHash(rf.Change, rf.Snapshot, rf.Bundle, rf.Investigation, rf.Previous, digestOf(pending))
 }
 
 // ReviewKey is the idempotency key of applying a review decision.

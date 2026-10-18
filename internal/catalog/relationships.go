@@ -3,6 +3,7 @@ package catalog
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -75,7 +76,36 @@ type Relationship struct {
 	// spec.issuerRef.kind == ClusterIssuer).
 	WhenPath   string `yaml:"whenPath,omitempty" json:"whenPath,omitempty"`
 	WhenEquals string `yaml:"whenEquals,omitempty" json:"whenEquals,omitempty"`
+	// NamespaceFrom, on a references relationship from a cluster-scoped kind
+	// whose name carries no namespace (format name), states where the
+	// product's controller resolves the name: the namespace a documented
+	// controller argument gives, else its documented default. Declaring it
+	// makes From cluster-scoped. The relationship graph decides it from the
+	// environment's effective controller configuration; whatever it cannot
+	// decide leaves the reference matched by name only (inferred).
+	NamespaceFrom *NamespaceSource `yaml:"namespaceFrom,omitempty" json:"namespaceFrom,omitempty"`
 	// References are the upstream documentation the entry rests on.
+	References []ConfigReference `yaml:"references" json:"references"`
+}
+
+// NamespaceSource is a documented controller argument that names a
+// namespace (Relationship.NamespaceFrom).
+type NamespaceSource struct {
+	// Container is the name of the controller container (in the pod
+	// templates of the environment's workloads) whose arguments decide it.
+	Container string `yaml:"container" json:"container"`
+	// Arg is the command-line flag ("--resource-namespace"); its value may
+	// use Kubernetes $(VAR) references to the container's env.
+	Arg string `yaml:"arg" json:"arg"`
+	// Default is the documented value when Arg is not given; empty when
+	// upstream documents none (an absent Arg is then undecidable).
+	Default string `yaml:"default,omitempty" json:"default,omitempty"`
+	// ConfigFileArg is the flag naming a configuration file that can also
+	// set the value (the flag takes precedence): with Arg absent and
+	// ConfigFileArg given, the effective value is not decided.
+	ConfigFileArg string `yaml:"configFileArg,omitempty" json:"configFileArg,omitempty"`
+	// References are the upstream documentation for the argument, its
+	// default and where the controller resolves the name; required.
 	References []ConfigReference `yaml:"references" json:"references"`
 }
 
@@ -206,21 +236,53 @@ func (v *validator) relationships(d *ProductDefinition) {
 		if r.Scope != "" && r.Scope != "namespaced" && r.Scope != "cluster" {
 			v.errf(p+".scope", "must be namespaced or cluster, got %q", r.Scope)
 		}
-		if len(r.References) == 0 {
-			v.errf(p+".references", "at least one upstream documentation reference is required")
+		v.relReferences(p, r.References)
+		if ns := r.NamespaceFrom; ns != nil {
+			np := p + ".namespaceFrom"
+			if r.Kind != RelReferences || (r.Format != "" && r.Format != RelFormatName) {
+				v.errf(np, "only a references relationship whose name carries no namespace (format name) resolves through a controller argument")
+			}
+			if r.Scope == "cluster" {
+				v.errf(np, "a cluster-scoped target has no namespace to resolve")
+			}
+			if strings.TrimSpace(ns.Container) == "" {
+				v.errf(np+".container", "required")
+			}
+			if !flagRe.MatchString(ns.Arg) {
+				v.errf(np+".arg", "must be a command-line flag (--name), got %q", ns.Arg)
+			}
+			if ns.ConfigFileArg != "" && !flagRe.MatchString(ns.ConfigFileArg) {
+				v.errf(np+".configFileArg", "must be a command-line flag (--name), got %q", ns.ConfigFileArg)
+			}
+			if ns.Default != "" && !namespaceRe.MatchString(ns.Default) {
+				v.errf(np+".default", "must be a namespace name, got %q", ns.Default)
+			}
+			v.relReferences(np, ns.References)
 		}
-		for j, ref := range r.References {
-			rp := fmt.Sprintf("%s.references[%d]", p, j)
-			u, err := url.Parse(ref.URL)
-			if err != nil || u.Scheme != "https" || u.Host == "" {
-				v.errf(rp+".url", "must be an https URL of upstream documentation, got %q", ref.URL)
-			}
-			if strings.Contains(ref.URL, "eval/cases") || strings.Contains(ref.URL, "eval/results") || strings.Contains(ref.URL, "eval/investigations") {
-				v.errf(rp+".url", "must not cite evaluation data")
-			}
-			if q := strings.TrimSpace(ref.Quote); q == "" || len(q) > maxConfigQuote {
-				v.errf(rp+".quote", "a short verbatim quote (1-%d characters) is required", maxConfigQuote)
-			}
+	}
+}
+
+var (
+	flagRe      = regexp.MustCompile(`^--?[a-z0-9][a-z0-9.-]*$`)
+	namespaceRe = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
+)
+
+// relReferences checks the upstream documentation references at p.
+func (v *validator) relReferences(p string, refs []ConfigReference) {
+	if len(refs) == 0 {
+		v.errf(p+".references", "at least one upstream documentation reference is required")
+	}
+	for j, ref := range refs {
+		rp := fmt.Sprintf("%s.references[%d]", p, j)
+		u, err := url.Parse(ref.URL)
+		if err != nil || u.Scheme != "https" || u.Host == "" {
+			v.errf(rp+".url", "must be an https URL of upstream documentation, got %q", ref.URL)
+		}
+		if strings.Contains(ref.URL, "eval/cases") || strings.Contains(ref.URL, "eval/results") || strings.Contains(ref.URL, "eval/investigations") {
+			v.errf(rp+".url", "must not cite evaluation data")
+		}
+		if q := strings.TrimSpace(ref.Quote); q == "" || len(q) > maxConfigQuote {
+			v.errf(rp+".quote", "a short verbatim quote (1-%d characters) is required", maxConfigQuote)
 		}
 	}
 }

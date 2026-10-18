@@ -1,0 +1,37 @@
+{
+  "_provenance": "commander-drafted (Claude Opus 5.5, claude-commander, label-aware: has seen the dev-pair labels) under the pre-registered fallback, PROTOCOL amendment 2026-10-17 'fallback rule'. Not agent-proposed. Becomes a fact only if §7 verification confirms it and the product owner accepts the whole fact at the promotion gate, superseding vf-9b9cfa5c9f5f.",
+  "statement": "Under cert-manager 1.18.0's new rotationPolicy default (Always), only a CA Certificate (spec.isCA: true) that leaves spec.privateKey.rotationPolicy unset changes observably: it gets a new private key when it is re-issued, so consumers holding its previous ca.crt no longer verify leaf certificates it signs afterwards. A non-CA Certificate that leaves the field unset also gets a new key on re-issuance, but a consumer that verifies it through the CA chain does not observe that. Assumption, stated for the reviewer: no consumer pins a leaf key (SPKI pinning or a copied leaf certificate).",
+  "assertion": {
+    "subject": {"family": "crd-field", "product": "cert-manager", "group": "cert-manager.io", "kind": "Certificate", "path": "spec.privateKey.rotationPolicy"},
+    "change": {"type": "default-changed", "before": "\"Never\"", "after": "\"Always\""},
+    "applicability": {
+      "exposure": {
+        "op": "resource", "group": "cert-manager.io", "kind": "Certificate",
+        "of": [
+          {"op": "field", "path": "spec.privateKey.rotationPolicy", "state": "unset"},
+          {"op": "field", "path": "spec.isCA", "state": "equals", "values": ["true"]}
+        ]
+      },
+      "overlap": {
+        "op": "resource", "group": "cert-manager.io", "kind": "Certificate",
+        "of": [
+          {"op": "any", "of": [
+            {"op": "field", "path": "spec.privateKey.rotationPolicy", "state": "set"},
+            {"op": "field", "path": "spec.isCA", "state": "unset"},
+            {"op": "field", "path": "spec.isCA", "state": "equals", "values": ["false"]}
+          ]}
+        ]
+      }
+    },
+    "consequence": {
+      "kind": "behavior-change",
+      "exposedClass": "review-required",
+      "severity": "medium",
+      "statement": "A CA Certificate (spec.isCA: true) that does not set spec.privateKey.rotationPolicy now defaults to Always: re-issuing it generates a new CA private key, so leaf certificates it signs afterwards no longer verify against the ca.crt that consumers obtained before (trust breaks until every consumer has the new CA certificate). Non-CA Certificates also rotate their key on re-issuance, which consumers that verify through the CA chain do not observe; this rule does not cover consumers that pin a leaf key.",
+      "remediation": "Set `rotationPolicy: Never` explicitly on CA Certificates, or turn off the feature gate in 1.18 (it is GA in 1.19), before upgrading."
+    },
+    "release": {"from": "1.17.2", "to": "1.18.0", "bounds": "(from, to]"}
+  },
+  "citations": ["ev-c92478af13c4 (release-notes-1.18.md L109-L148)", "ev-9a2f8d3ec5e9 (upgrading-1.17-1.18.md L8-L10)"],
+  "requestedVerification": "Synthetic fixture only, at FROM (1.17.2) and TO (1.18.0), CA re-issuance then leaf re-issuance. Observable: x509 chain verification of the leaf issued AFTER the CA re-issuance against the ca.crt captured BEFORE it (a consumer holding the old trust bundle). Arm 'shielded': (a) CA isCA:true with rotationPolicy: Never, leaf with rotationPolicy unset; (b) the leaf's own key may change. Arm 'exposed': CA isCA:true with rotationPolicy unset. Confirmed iff the shielded arm verifies at FROM and TO, and the exposed arm verifies at FROM and FAILS at TO. Anything else (including the exposed arm not changing) is not confirmed. A deliberately wrong rule (CA with rotationPolicy unset declared shielded) must be refuted by the same method."
+}

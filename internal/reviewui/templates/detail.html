@@ -29,6 +29,39 @@
     </section>
     {{end}}
 
+    {{with .Hypothesis}}
+    <section class="dsec hypothesis" id="hypothesis">
+      <h3>{{if .HumanAuthored}}Human-authored rule{{else}}Agent-proposed rule{{end}} <span class="badge {{if .GateOpen}}ok{{else}}danger{{end}}">promotion gate: {{if .GateOpen}}open{{else}}closed{{end}}</span></h3>
+      <p class="small">{{.GateReason}}</p>
+      <h4>The rule, in plain English</h4>
+      <ul class="rule">{{range .Rule}}<li>{{.}}</li>{{end}}</ul>
+      {{if .HumanAuthored}}<h4>The author's statement <span class="badge warn">human-authored — not agent-proposed, not verified</span></h4>
+      {{range .Agent}}<blockquote class="quote">{{.Text}}<div class="small muted">author: {{.Model}} · {{.Prompt}} · rule file <code>{{.Call}}</code></div></blockquote>{{end}}
+      <p class="small muted">Hypothesis <code>{{.Hypothesis}}</code>, taken in from a rule file. It is gated exactly like an agent-proposed rule: only a human can promote it, and only with a confirmed independent proof of exactly this rule.</p>
+      {{else}}<h4>The agent's reasoning <span class="badge warn">AI — not verified</span></h4>
+      {{range .Agent}}<blockquote class="quote ai">{{.Text}}<div class="small muted">{{.Model}} · prompt {{.Prompt}} · call <code>{{.Call}}</code></div></blockquote>{{end}}
+      <p class="small muted">Hypothesis <code>{{.Hypothesis}}</code>{{if .Investigation}} of investigation <code>{{.Investigation}}</code>{{end}}. The agent can propose a rule; only a human can promote it, and only with a confirmed independent proof of exactly this rule.</p>{{end}}
+      <h4>Independent verification</h4>
+      {{if not .Proofs}}<p class="flash flash-warn">No proof record yet — run <code>ri verify hypotheses -knowledge DIR -runtime</code>.</p>{{end}}
+      {{range .Proofs}}
+      <div class="proof outcome-{{.Outcome}}">
+        <p><b>Proof <code>{{.ID}}</code>: {{.Outcome}}</b> <span class="badge soft">{{.Level}}</span> · {{.CheckedAt}}{{if .Bounds}} · bounds {{.Bounds}}{{end}}</p>
+        {{range .Methods}}
+        <div class="method">
+          <p><b>{{.Method}}</b> <span class="badge soft" title="{{.LevelLabel}}">{{.Level}}</span> <span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> — {{.Detail}}</p>
+          {{if .Arms}}<table class="wf arms"><thead><tr><th>Arm</th><th>Built as</th><th>Predicted</th><th>Observed</th><th>Exercise answered (FROM / TO)</th><th>Differences at TO</th></tr></thead><tbody>
+          {{range .Arms}}<tr><th scope="row">{{.Name}}</th><td>{{.Condition}}</td><td>{{.Predicted}}</td><td>{{.Observed}}</td><td>{{.ReactedFrom}} / {{.ReactedTo}}</td><td>{{range .Signatures}}<code>{{.}}</code> {{else}}none{{end}}</td></tr>{{end}}
+          </tbody></table>{{end}}
+          {{if .Checks}}<ul class="small">{{range .Checks}}<li><span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> {{.Detail}}</li>{{end}}</ul>{{end}}
+          {{if .Evidence}}<p class="small">Evidence: {{range .Evidence}}{{if .Href}}<a href="{{.Href}}" target="_blank" rel="noopener noreferrer">{{.Text}}</a>{{else}}<code>{{.Text}}</code>{{end}} <span class="muted">{{.Digest}}</span>; {{end}}</p>{{end}}
+        </div>
+        {{end}}
+        <details><summary>Limitations — what this proof does not cover</summary><ul class="small">{{range .Limitations}}<li>{{.}}</li>{{end}}</ul></details>
+      </div>
+      {{end}}
+    </section>
+    {{end}}
+
     <section class="dsec upstream">
       <h3><span class="num">2</span> What changed upstream</h3>
       {{if .UpQuote}}
@@ -225,6 +258,13 @@
           <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
             <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
         </div>
+        {{with .Hypothesis}}{{if .Related}}
+        <fieldset class="relations"><legend>Other active facts on this subject — the promoted rule never silently coexists with them</legend>
+          {{range .Related}}<div class="row"><span><code>{{.ID}}</code> <span class="badge soft">{{.Level}}</span> {{.Statement}}</span>
+            <label class="check"><input type="radio" name="relation-{{.ID}}" value="supersedes" {{if eq .Choice "supersedes"}}checked{{end}}> supersede it (the rule refines it)</label>
+            <label class="check"><input type="radio" name="relation-{{.ID}}" value="coexists" {{if eq .Choice "coexists"}}checked{{end}}> keep it beside the rule</label></div>{{end}}
+        </fieldset>
+        {{end}}{{end}}
         <details class="more"><summary>Labels &amp; duplicate</summary>
           <div class="labelbox">
             {{range $.Enums.WrongLabels}}<label class="check"><input type="checkbox" name="label" value="{{.}}" {{if formHas $.Form "label" (printf "%s" .)}}checked{{end}}> {{.}}</label>{{end}}

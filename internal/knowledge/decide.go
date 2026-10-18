@@ -553,6 +553,9 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			out.Open = append(out.Open, x)
 		}
 	}
+	if len(out.Open) > 0 && len(d.Supersedes) > 0 {
+		return nil, fmt.Errorf("decision %s: supersedes needs a complete fact, but aspects %v remain open", d.ID, out.Open)
+	}
 	if len(out.Open) > 0 {
 		now := d.DecidedAt
 		for _, it := range buildItems(*cand, ps, vs, state, now) {
@@ -576,6 +579,9 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	if old, exists := facts[f.ID]; exists {
 		if old.Status != domain.FactActive {
 			return out, nil // a retracted or superseded fact is never revived
+		}
+		if len(d.Supersedes) > 0 {
+			return nil, fmt.Errorf("decision %s: fact %s already exists; supersedes applies only to a newly minted fact", d.ID, f.ID)
 		}
 		merged := old
 		for _, an := range f.Anchors {
@@ -621,6 +627,17 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	if target, ok := factReviewTarget(item, facts); ok && d.Action == domain.ActionCorrect && target != f.ID {
 		f.Supersedes = appendUnique(f.Supersedes, target)
 		old := facts[target]
+		old.Status = domain.FactSuperseded
+		out.Touched = append(out.Touched, old)
+	}
+	// a narrower rule the reviewer says replaces broader facts (verify lane;
+	// the gate checked each is an active fact on the same subject)
+	for _, id := range d.Supersedes {
+		old, ok := facts[id]
+		if !ok || old.Status != domain.FactActive || id == f.ID {
+			return nil, fmt.Errorf("decision %s: cannot supersede fact %s (missing, inactive or itself)", d.ID, id)
+		}
+		f.Supersedes = appendUnique(f.Supersedes, id)
 		old.Status = domain.FactSuperseded
 		out.Touched = append(out.Touched, old)
 	}
@@ -714,6 +731,11 @@ func validateDecisions(snap *Snapshot, ds []domain.ReviewDecision) error {
 		if d.BatchID != "" {
 			batches[d.BatchID] = append(batches[d.BatchID], d)
 		}
+	}
+	// the promotion gate: agent-proposed rules need a human and a confirmed
+	// proof (promote.go)
+	if err := gateDecisions(snap, ds); err != nil {
+		errs = append(errs, err)
 	}
 	for id, b := range batches {
 		if len(b) != b[0].BatchSize {

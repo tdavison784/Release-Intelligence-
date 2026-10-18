@@ -1,0 +1,74 @@
+# Synthetic fixtures for cert-manager (lane verify, internal/investigate/verify/fixtures.go;
+# docs/INVESTIGATE.md "Verifying mitigation hypotheses"). Release-level, cited from upstream
+# documentation, never from an evaluation case: how to install the controller for a throwaway
+# test, and a minimal valid object per subject kind that the declared exercise makes the
+# controller act on. `ri verify hypotheses -runtime` builds the two arms of a rule from these
+# (the rule's mitigating condition present / absent) and nothing else.
+apiVersion: ri.dev/v1alpha1
+kind: ProductFixtures
+product: cert-manager
+controller:
+  # the chart installs no CRDs by default; a fresh test cluster needs them
+  values:
+    crds:
+      enabled: true
+  references:
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml
+    quote: This option decides if the CRDs should be installed
+subjects:
+- id: certificate
+  target: {group: cert-manager.io, version: v1, kind: Certificate}
+  exercise: certificate-renewal
+  namespace: ri-verify
+  prerequisites:
+  - apiVersion: cert-manager.io/v1
+    kind: Issuer
+    metadata: {name: ri-verify-selfsigned}
+    spec: {selfSigned: {}}
+  template:
+    apiVersion: cert-manager.io/v1
+    kind: Certificate
+    metadata: {name: placeholder}
+    spec:
+      secretName: "{{name}}-tls"
+      commonName: "{{name}}.ri-verify.test"
+      dnsNames: ["{{name}}.ri-verify.test"]
+      issuerRef: {name: ri-verify-selfsigned, kind: Issuer}
+  references:
+  - url: https://github.com/cert-manager/website/blob/master/content/docs/configuration/selfsigned.md
+    quote: The `SelfSigned` issuer doesn't represent a certificate authority as such
+  - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+    quote: Name of the Secret resource that will be automatically created and managed by this Certificate resource.
+  # Consumer observation (lane verify2): a rule that names spec.isCA distinguishes Certificates by
+  # whether they issue others, so its exercise plays a consumer of the arm's CA. The arm's
+  # Certificate is the CA (isCA: true, self-signed above); a CA Issuer signs a leaf Certificate
+  # with it. At each version the consumer captures the CA's ca.crt, the CA and then the leaf are
+  # re-issued, and the leaf's tls.crt is verified against the captured ca.crt (x509, in process).
+  consumers:
+  - id: ca-trust
+    summary: a client that trusts the CA certificate it obtained before re-issuance verifies a leaf issued afterwards
+    role:
+    - {path: spec.isCA, value: true}
+    objects:
+    - apiVersion: cert-manager.io/v1
+      kind: Issuer
+      metadata: {name: "{{name}}-ca"}
+      spec: {ca: {secretName: "{{name}}-tls"}}
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata: {name: "{{name}}-leaf"}
+      spec:
+        secretName: "{{name}}-leaf-tls"
+        commonName: "{{name}}-leaf.ri-verify.test"
+        dnsNames: ["{{name}}-leaf.ri-verify.test"]
+        issuerRef: {name: "{{name}}-ca", kind: Issuer}
+    trust: {secret: "{{name}}-tls", key: ca.crt}
+    reissue: ["{{name}}", "{{name}}-leaf"]
+    verify: {secret: "{{name}}-leaf-tls", key: tls.crt}
+    references:
+    - url: https://github.com/cert-manager/website/blob/master/content/docs/configuration/ca.md
+      quote: The CA issuer represents a Certificate Authority whose certificate and private key are stored inside the cluster as a Kubernetes `Secret`.
+    - url: https://github.com/cert-manager/website/blob/master/content/docs/configuration/ca.md
+      quote: referencing the secret name under the `ca` stanza in the `Issuer` spec.
+    - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+      quote: If true, this will automatically add the `cert sign` usage to the list

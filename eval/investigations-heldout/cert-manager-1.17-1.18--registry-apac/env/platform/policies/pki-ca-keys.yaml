@@ -1,0 +1,27 @@
+# PKI baseline: a CA keeps its private key when its certificate is renewed.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: pki-ca-keys
+  annotations:
+    policies.kyverno.io/title: Stable CA private keys
+    policies.kyverno.io/category: PKI
+spec:
+  background: false
+  rules:
+    - name: ca-certificates-keep-their-key
+      match:
+        any:
+          - resources:
+              kinds:
+                - cert-manager.io/v1/Certificate
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.isCA || `false` }}"
+            operator: Equals
+            value: true
+      mutate:
+        patchStrategicMerge:
+          spec:
+            privateKey:
+              +(rotationPolicy): Never

@@ -1,0 +1,136 @@
+{
+ "format": "ri.dev/item-dossier/v1",
+ "producer": "investigate.dossier@v1",
+ "bundle": "bnd-82092377020c",
+ "snapshot": "snap-fef4dbaf373c",
+ "item": "ci-171205270104",
+ "product": "ingress-nginx",
+ "from": "controller-v1.11.5",
+ "to": "controller-v1.12.0",
+ "environment": "shop-prod-de",
+ "change": {
+  "title": "⚠️ Metrics: Remove `ingress_upstream_latency_seconds`. (#11795) ⚠️ This metric has already been deprecated and is now getting removed",
+  "family": "behavior",
+  "manifestation": "controller-behaviour",
+  "manifestationRule": "manifest:declared-behaviour",
+  "scope": "scope:breaking",
+  "breaking": true,
+  "actionRequired": true,
+  "category": "removal",
+  "release": "1.12.0",
+  "links": [
+   "https://github.com/kubernetes/ingress-nginx/issues/11795"
+  ],
+  "upstream": [
+   {
+    "id": "ev-17dbffb59988",
+    "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md",
+    "locator": "L161-L163 (Changelog › All changes:)",
+    "excerpt": "* ⚠️ Metrics: Remove `ingress_upstream_latency_seconds`. (#11795) ⚠️ This metric has already been deprecated and is now getting removed."
+   }
+  ],
+  "sources": [
+   {
+    "id": "art-0e59aea382fd",
+    "path": "upstream/ingress-nginx/raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md",
+    "uri": "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md"
+   }
+  ],
+  "joinFindings": [
+   {
+    "id": "imp-b53025effd4f",
+    "classification": "unknown",
+    "rule": "impact:not-joined",
+    "title": "Not evaluated for this environment: ⚠️ Metrics: Remove `ingress_upstream_latency_seconds`. (#11795) ⚠️ This metric has already been deprecated and is no…"
+   }
+  ]
+ },
+ "settings": [
+  {
+   "setting": "token ingress_upstream_latency_seconds",
+   "kind": "token",
+   "from": "upstream text",
+   "state": "inherited-default",
+   "detail": "the token occurs in no complete environment render nor environment file: the shipped default applies"
+  }
+ ],
+ "exposed": [],
+ "roots": [
+  {
+   "node": "gn-b4fe86317723",
+   "key": "networking.k8s.io/v1/Ingress/storefront/storefront",
+   "rule": "exposure:product-reconciles"
+  },
+  {
+   "node": "gn-e3822e9e260e",
+   "key": "networking.k8s.io/v1/Ingress/catalog-api/catalog-api",
+   "rule": "exposure:product-reconciles"
+  }
+ ],
+ "renderedChanges": [],
+ "unchanged": [],
+ "knowledge": [],
+ "validations": [
+  {
+   "id": "vr-1742125bdeb7",
+   "validator": "validate.static-reference@v1",
+   "kind": "static-reference",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "an unresolved relationship decides nothing: - ip-755c6cd2b26d: the path is its root alone: there is no reference on it to check - ip-e0e7048601d9: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "id": "vr-992431ec9fa8",
+   "validator": "validate.render-diff@v1",
+   "kind": "render-diff",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "id": "vr-e85dc7afe8f9",
+   "validator": "validate.override-inspection@v1",
+   "kind": "override-inspection",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  }
+ ],
+ "relations": {
+  "roots": 2,
+  "paths": 2,
+  "unresolvedPaths": 0
+ },
+ "gaps": [
+  {
+   "kind": "missing",
+   "subject": "source migration-guide",
+   "detail": "the product definition declares no upgrade guide source"
+  },
+  {
+   "kind": "missing",
+   "subject": "source source-diff",
+   "detail": "no source-diff collector in milestone 1 (DESIGN.md §0 §A1); an agent may request a linked PR as evidence"
+  },
+  {
+   "kind": "partial",
+   "subject": "source advisories",
+   "detail": "the security advisories source was consulted but cites no retrievable document"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-1742125bdeb7",
+   "detail": "validate.static-reference@v1 did not decide (not-run): an unresolved relationship decides nothing: - ip-755c6cd2b26d: the path is its root alone: there is no reference on it to check - ip-e0e7048601d9: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-992431ec9fa8",
+   "detail": "validate.render-diff@v1 did not decide (not-run): the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-e85dc7afe8f9",
+   "detail": "validate.override-inspection@v1 did not decide (not-run): no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  }
+ ]
+}

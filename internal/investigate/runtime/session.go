@@ -74,7 +74,10 @@ type Run struct {
 	UpgradeCompleted bool          `json:"upgradeCompleted"`
 	UpgradeProblems  []string      `json:"upgradeProblems,omitempty"`
 	Degradations     []Degradation `json:"degradations,omitempty"`
-	Cleanup          *CleanupLog   `json:"cleanup,omitempty"`
+	// Consumers are the fixture's consumer observations at each version
+	// (consumer.go; lane verify2, additive).
+	Consumers []ConsumerResult `json:"consumers,omitempty"`
+	Cleanup   *CleanupLog      `json:"cleanup,omitempty"`
 }
 
 // TargetUse is one render target applied to the cluster.
@@ -150,6 +153,22 @@ type session struct {
 	// never stored or returned).
 	key     []byte
 	exStart map[string]time.Time // version → when its exercises started
+	// prefix names the cluster ("" = ClusterPrefix); prepared marks a
+	// session whose manifest sets were given (RunFixture) instead of
+	// re-rendered from the bundle; allConsumed counts every object's data
+	// changes (a fixture has no consumers to name).
+	prefix      string
+	prepared    bool
+	allConsumed bool
+	// consumers are a fixture's consumer checks (consumer.go).
+	consumers []ConsumerCheck
+}
+
+func (s *session) clusterPrefix() string {
+	if s.prefix != "" {
+		return s.prefix
+	}
+	return ClusterPrefix
 }
 
 func (s *session) note(format string, args ...any) {
@@ -171,7 +190,7 @@ func (s *session) execute(parent context.Context) {
 	}()
 	ctx, cancel := context.WithTimeout(parent, s.v.timeout)
 	defer cancel()
-	if !s.prepare(ctx) {
+	if !s.prepared && !s.prepare(ctx) {
 		return
 	}
 	clusterMu.Lock()
@@ -179,7 +198,7 @@ func (s *session) execute(parent context.Context) {
 	if !s.preflight(ctx) {
 		return
 	}
-	r.Cluster = ClusterPrefix + domain.ShortHash(s.b.ID)[:8]
+	r.Cluster = s.clusterPrefix() + domain.ShortHash(s.b.ID)[:8]
 	cl, err := s.v.driver.Create(ctx, ClusterSpec{Name: r.Cluster, NodeImage: r.NodeImage, Timeout: s.v.createTimeout})
 	defer s.cleanup(parent, r.Cluster)
 	if err != nil {
@@ -225,7 +244,7 @@ func (s *session) cleanup(parent context.Context, name string) {
 	} else {
 		c.Verified = !contains(names, name)
 		for _, n := range names {
-			if strings.HasPrefix(n, ClusterPrefix) {
+			if isIsolatedCluster(n) {
 				c.Remaining = append(c.Remaining, n)
 			}
 		}
@@ -371,7 +390,7 @@ func (s *session) preflight(ctx context.Context) bool {
 		return false
 	}
 	for _, n := range names {
-		if strings.HasPrefix(n, ClusterPrefix) {
+		if isIsolatedCluster(n) {
 			s.stop(RunNotRun, "another runtime validation cluster exists (%s): one isolated cluster at a time — delete it with `kind delete cluster --name %s` if it was left behind", n, n)
 			return false
 		}
@@ -405,6 +424,11 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 	if problems := s.productProblems(PhaseFrom); len(problems) > 0 {
 		return fmt.Errorf("the FROM version (%s) did not come up in the isolated cluster, so there is no baseline: %s", s.run.From, strings.Join(problems, "; "))
 	}
+	// consumer checks run before the exercises, inside the exercise window
+	// (symmetric at both versions), so the upgrade window stays clean
+	if err := s.checkConsumers(ctx, cl, "from"); err != nil {
+		return err
+	}
 	s.selectExercises()
 	if len(s.exercises) > 0 {
 		start = s.v.clock.Now()
@@ -428,6 +452,9 @@ func (s *session) phases(ctx context.Context, cl Cluster) error {
 	}
 	s.run.UpgradeProblems = s.productProblems(PhaseTo)
 	s.run.UpgradeCompleted = len(s.run.UpgradeProblems) == 0
+	if err := s.checkConsumers(ctx, cl, "to"); err != nil {
+		return err
+	}
 	if len(s.exercises) > 0 {
 		start = s.v.clock.Now()
 		settle := s.exerciseAll(ctx, cl, "to")
@@ -1008,7 +1035,7 @@ func (s *session) exerciseAll(ctx context.Context, cl Cluster, version string) t
 	}
 	settle := time.Duration(0)
 	s.exStart[version] = s.v.clock.Now()
-	token := ClusterPrefix + version + "-" + domain.ShortHash(s.b.ID, version)[:8]
+	token := s.clusterPrefix() + version + "-" + domain.ShortHash(s.b.ID, version)[:8]
 	runs := map[string]ExerciseRun{}
 	for _, d := range s.exercises {
 		er := runExercise(ctx, cl, d, version, token, live, s.v.clock.Now())
@@ -1244,7 +1271,7 @@ func renderedDataDiffers(a, b Manifest, bOK bool) bool {
 // isConsumed: something on the graph reads the object (without a graph,
 // every object counts — conservative).
 func (s *session) isConsumed(live string) bool {
-	if s.g == nil {
+	if s.g == nil || s.allConsumed {
 		return true
 	}
 	if s.consumed[live] {

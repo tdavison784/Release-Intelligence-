@@ -616,6 +616,9 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 			inv.Assertions = out.Assertions
 			inv.AgentNotes = out.Notes   // investigation-level agent remarks (AI), never item concerns
 			inv.AgentClaims = out.Claims // the agent's deterministically verified environment claims
+			// Provisional verdicts are stored beside the findings, never passed to
+			// classify (agentOutcome omits them; PROTOCOL §8).
+			inv.AgentVerdicts = out.Verdicts
 			inv.EvidenceRequests = out.EvidenceRequests
 			inv.ValidationRequests = out.ValidationRequests
 			inv.Validations = mergeValidations(inv.Validations, out.Validations)
@@ -636,6 +639,8 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 		}}, nil
 }
 
+// agentOutcome is the agent's part of the classifier input. It deliberately
+// omits AgentVerdicts: a provisional verdict is never a policy input.
 func agentOutcome(inv *domain.Investigation) *investigate.AgentOutcome {
 	if inv.Agent == nil {
 		return nil

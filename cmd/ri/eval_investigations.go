@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -50,6 +51,11 @@ type InvRunMeta struct {
 	ConfigDigest string             `json:"configDigest"`
 	GatesDigest  string             `json:"gatesDigest"`
 	Cases        []InvRunMetaCase   `json:"cases"`
+	// KnowledgeDigest is the content digest of the knowledge tree the run
+	// used (PROTOCOL.md §3, §8); "none" when knowledge was switched off.
+	// KnowledgeLive marks a run that used the live tree on request.
+	KnowledgeDigest string `json:"knowledgeDigest,omitempty"`
+	KnowledgeLive   bool   `json:"knowledgeLive,omitempty"`
 	// Appends records every later invocation that added cases to the run
 	// (-append): the run is built case by case, never rewritten.
 	Appends []InvRunAppend `json:"appends,omitempty"`
@@ -115,18 +121,24 @@ func (c *cli) evalInvestigations(args []string) error {
 	work := fs.String("work", "", "investigation store directory (default: a temporary directory, removed afterwards)")
 	rescore := fs.String("rescore", "", "re-classify and re-score a stored run directory offline (no pipeline run)")
 	pack := fs.String("pack", "", "convert a stored run directory from the legacy cases/ layout to cases.tar.gz (contents byte-identical) and exit")
+	compare := fs.String("compare", "", "print the Phase 5 comparison tables (Markdown) for these stored run directories, comma-separated, optional label=dir; the first is the baseline, and exit")
 	knowledge := fs.String("knowledge", "knowledge", "directory of verified knowledge (as for ri investigate)")
 	agentOn := fs.Bool("agent", false, "run the investigation agent (arm B)")
 	driver := fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted")
 	model := fs.String("agent-model", "", "model for the agent driver")
 	replayDir := fs.String("agent-replay-dir", "", "replay driver: a stored run directory whose per-case transcript.jsonl (in cases.tar.gz) is replayed")
+	prompt := fs.String("agent-prompt", "", "agent prompt version (default: the newest; with -agent-replay-dir, the replayed run's)")
 	claudeBin := fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)")
+	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
 	if *pack != "" {
 		return packInvRun(*pack)
+	}
+	if *compare != "" {
+		return c.invCompare(*compare)
 	}
 	gates, err := eval.LoadInvGates(filepath.Join(*dir, eval.InvGatesFileName))
 	if err != nil {
@@ -149,8 +161,22 @@ func (c *cli) evalInvestigations(args []string) error {
 			}
 		}
 	}
+	knowledgeSet := false
+	fs.Visit(func(f *flag.Flag) { knowledgeSet = knowledgeSet || f.Name == "knowledge" })
+	if err := checkEvalKnowledge(knowledgeSet, *knowledge, *allowLive, liveKnowledgeRoots()); err != nil {
+		return err
+	}
+	kdigest, err := knowledgeTreeDigest(*knowledge)
+	if err != nil {
+		return err
+	}
 	if *agentOn && *driver == "replay" && *replayDir == "" {
 		return fmt.Errorf("%w: -agent-driver replay needs -agent-replay-dir", app.ErrUsage)
+	}
+	if *agentOn && *driver == "replay" {
+		if *prompt, err = replayPromptVersion(*replayDir, *prompt); err != nil {
+			return err
+		}
 	}
 	label, detail := "A", "deterministic only (no agent, no runtime)"
 	switch {
@@ -165,6 +191,9 @@ func (c *cli) evalInvestigations(args []string) error {
 		label = *arm
 	}
 	workDir := *work
+	if err := checkEvalWorkDir(workDir, *appendTo != ""); err != nil {
+		return err
+	}
 	if workDir == "" {
 		if workDir, err = os.MkdirTemp("", "ri-eval-inv-*"); err != nil {
 			return err
@@ -173,7 +202,8 @@ func (c *cli) evalInvestigations(args []string) error {
 	}
 	commit, dirty := buildCommit()
 	meta := InvRunMeta{Arm: label, ArmDetail: detail, Commit: commit, Dirty: dirty, GoVersion: runtime.Version(),
-		Args: append([]string{"eval", "-investigations"}, args...), StartedAt: time.Now().UTC(), GatesDigest: gates.Digest}
+		Args: append([]string{"eval", "-investigations"}, args...), StartedAt: time.Now().UTC(), GatesDigest: gates.Digest,
+		KnowledgeDigest: kdigest, KnowledgeLive: *allowLive && knowledgeSet && samePathAny(*knowledge, liveKnowledgeRoots())}
 	short := commit
 	if len(short) > 10 {
 		short = short[:10]
@@ -199,6 +229,8 @@ func (c *cli) evalInvestigations(args []string) error {
 		switch {
 		case prior.Arm != label:
 			return fmt.Errorf("-append: run %s is arm %s, this invocation is arm %s", prior.RunID, prior.Arm, label)
+		case prior.KnowledgeDigest != kdigest:
+			return fmt.Errorf("-append: run %s used knowledge %q, this invocation %q — one arm, one knowledge snapshot", prior.RunID, prior.KnowledgeDigest, kdigest)
 		case prior.Commit != commit || prior.Dirty != dirty:
 			return fmt.Errorf("-append: run %s was made by binary %s (dirty=%v), this is %s (dirty=%v): use the same binary", prior.RunID, prior.Commit, prior.Dirty, commit, dirty)
 		}
@@ -218,7 +250,7 @@ func (c *cli) evalInvestigations(args []string) error {
 		t0 := time.Now()
 		fmt.Fprintf(c.err, "· %s …\n", cs.ID)
 		s, run, err := c.invRunCase(cs, workDir, invCaseFlags{knowledge: *knowledge, agent: *agentOn, driver: *driver, model: *model,
-			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn})
+			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt})
 		m := InvRunMetaCase{ID: cs.ID, InputDigest: cs.InputDigest, EnvDigest: cs.EnvDigest, ExpectedDigest: cs.ExpectedDigest,
 			Seconds: int(time.Since(t0).Seconds())}
 		if err != nil {
@@ -286,6 +318,7 @@ type invCaseFlags struct {
 	agent                               bool
 	runtime                             bool
 	driver, model, replayDir, claudeBin string
+	prompt                              string // agent prompt version ("" = default)
 }
 
 // invRunCase runs one case through the real pipeline and loads what it stored.
@@ -316,6 +349,7 @@ func (c *cli) invRunCase(cs *eval.InvCase, workDir string, cf invCaseFlags) (*in
 		inventory: str(req0.Environment.Inventory), kubernetes: str(req0.Environment.KubernetesVersion), envName: str(req0.Environment.Name),
 		knowledge: str(cf.knowledge), minVerification: str(""), render: b(true), agent: b(cf.agent), runtime: b(cf.runtime),
 		driver: str(cf.driver), model: str(cf.model), exchange: str(""), replay: str(replay), script: str(""), claudeBin: str(cf.claudeBin),
+		prompt: str(cf.prompt),
 	}
 	req, err := f.request()
 	if err != nil {
@@ -409,7 +443,8 @@ func loadInvFromStore(ctx context.Context, st *store.Store, req investigate.Requ
 // evalRun turns the stored records into the scorer's input, re-classifying
 // them (the reproducibility metric).
 func (s *invStored) evalRun(caseID string) *eval.InvRun {
-	run := &eval.InvRun{Case: caseID, Investigation: s.Inv, Bundle: s.Bundle, Graph: s.Graph, ChangeText: s.ChangeText}
+	run := &eval.InvRun{Case: caseID, Investigation: s.Inv, Bundle: s.Bundle, Graph: s.Graph, ChangeText: s.ChangeText,
+		Verdicts: agentVerdictInputs(s)}
 	ok, detail := reclassify(s)
 	run.Reproduced, run.ReproduceDetail = &ok, detail
 	return run
@@ -447,6 +482,20 @@ func reclassify(s *invStored) (bool, string) {
 // recordDigest is the run package's content digest of the record (no audit,
 // no wall-clock stamps), so two runs of the same inputs compare equal.
 func recordDigest(inv *domain.Investigation) string { return runpkg.ContentDigest(inv) }
+
+// replayPromptVersion is the prompt version of a replay arm: the one asked
+// for, else the replayed run's. A transcript replays byte-identically only
+// under the prompt version it was recorded with.
+func replayPromptVersion(replayDir, asked string) (string, error) {
+	if asked != "" {
+		return asked, nil
+	}
+	prior, err := readInvRunMeta(replayDir)
+	if err != nil {
+		return "", err
+	}
+	return prior.Config.Agent.PromptVersion, nil
+}
 
 func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[string]*invStored, text []byte, prior map[string][]byte) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {

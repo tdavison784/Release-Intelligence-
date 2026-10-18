@@ -394,7 +394,27 @@ relationships:
   from: {group: cert-manager.io, kind: ClusterIssuer}
   to: {kind: Secret}
   path: spec.ca.secretName
-  summary: A CA ClusterIssuer signs with the Secret named by spec.ca.secretName, which cert-manager reads from its cluster resource namespace (the namespace is not stated on the issuer, so the match is by name).
+  summary: A CA ClusterIssuer signs with the Secret named by spec.ca.secretName, which cert-manager reads from its cluster resource namespace (the controller's --cluster-resource-namespace; not stated on the issuer).
+  # The docs' "by default, this namespace is cert-manager" describes the chart, which always passes
+  # --cluster-resource-namespace=$(POD_NAMESPACE); the binary's own default (no flag) is kube-system.
+  namespaceFrom:
+    container: cert-manager-controller
+    arg: --cluster-resource-namespace
+    default: kube-system
+    configFileArg: --config
+    references:
+    - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/configuration/README.md
+      quote: when referencing a secret via the `secretName` field, secrets will be looked for in the `Cluster Resource Namespace`.
+    - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/cmd/controller/app/options/options.go
+      quote: Namespace to store resources owned by cluster scoped resources such as ClusterIssuer in.
+    - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/internal/apis/config/controller/v1alpha1/defaults.go
+      quote: defaultClusterResourceNamespace = "kube-system"
+    - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/templates/deployment.yaml
+      quote: '- --cluster-resource-namespace=$(POD_NAMESPACE)'
+    - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/templates/deployment.yaml
+      quote: '- name: {{ .Chart.Name }}-controller'
+    - url: https://cert-manager.io/docs/installation/configuring-components/
+      quote: The CLI flags take precedence over the configuration file.
   references:
   - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_issuer.go
     quote: SecretName is the name of the secret used to sign Certificates issued by this Issuer.

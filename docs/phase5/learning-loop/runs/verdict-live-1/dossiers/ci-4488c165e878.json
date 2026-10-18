@@ -1,0 +1,134 @@
+{
+ "format": "ri.dev/item-dossier/v1",
+ "producer": "investigate.dossier@v1",
+ "bundle": "bnd-82092377020c",
+ "snapshot": "snap-fef4dbaf373c",
+ "item": "ci-4488c165e878",
+ "product": "ingress-nginx",
+ "from": "controller-v1.11.5",
+ "to": "controller-v1.12.0",
+ "environment": "shop-prod-de",
+ "change": {
+  "title": "⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua…",
+  "family": "behavior",
+  "manifestation": "controller-behaviour",
+  "manifestationRule": "manifest:declared-behaviour",
+  "scope": "scope:breaking",
+  "breaking": true,
+  "actionRequired": true,
+  "category": "removal",
+  "release": "1.12.0",
+  "detail": "⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua plugins in the `/etc/nginx/lua/plugins` directory.",
+  "links": [
+   "https://github.com/kubernetes/ingress-nginx/issues/11821"
+  ],
+  "upstream": [
+   {
+    "id": "ev-05b99c98065e",
+    "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md",
+    "locator": "L152-L158 (Changelog › All changes:)",
+    "excerpt": "* ⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua plugins in the `/etc/nginx/lua/plugins` directory."
+   }
+  ],
+  "sources": [
+   {
+    "id": "art-0e59aea382fd",
+    "path": "upstream/ingress-nginx/raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md",
+    "uri": "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/changelog/controller-1.12.0.md"
+   }
+  ],
+  "joinFindings": [
+   {
+    "id": "imp-6ee22376f532",
+    "classification": "unknown",
+    "rule": "impact:not-joined",
+    "title": "Not evaluated for this environment: ⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It …"
+   }
+  ]
+ },
+ "settings": [],
+ "exposed": [],
+ "roots": [
+  {
+   "node": "gn-b4fe86317723",
+   "key": "networking.k8s.io/v1/Ingress/storefront/storefront",
+   "rule": "exposure:product-reconciles"
+  },
+  {
+   "node": "gn-e3822e9e260e",
+   "key": "networking.k8s.io/v1/Ingress/catalog-api/catalog-api",
+   "rule": "exposure:product-reconciles"
+  }
+ ],
+ "renderedChanges": [],
+ "unchanged": [],
+ "knowledge": [],
+ "validations": [
+  {
+   "id": "vr-456cd591ced4",
+   "validator": "validate.static-reference@v1",
+   "kind": "static-reference",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "an unresolved relationship decides nothing: - ip-38f0cbd8bd5c: the path is its root alone: there is no reference on it to check - ip-f4b7f16e2fee: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "id": "vr-8d89a86b7208",
+   "validator": "validate.render-diff@v1",
+   "kind": "render-diff",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "id": "vr-93ddf41f45da",
+   "validator": "validate.override-inspection@v1",
+   "kind": "override-inspection",
+   "level": "deterministic",
+   "outcome": "not-run",
+   "detail": "no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  }
+ ],
+ "relations": {
+  "roots": 2,
+  "paths": 2,
+  "unresolvedPaths": 0
+ },
+ "gaps": [
+  {
+   "kind": "missing",
+   "subject": "deciding setting",
+   "detail": "neither an attached knowledge fact, the join nor the item's subjects name a setting the dossier can check; read the upstream text (get_change_item, read_artifact) for the setting that decides the item"
+  },
+  {
+   "kind": "missing",
+   "subject": "source migration-guide",
+   "detail": "the product definition declares no upgrade guide source"
+  },
+  {
+   "kind": "missing",
+   "subject": "source source-diff",
+   "detail": "no source-diff collector in milestone 1 (DESIGN.md §0 §A1); an agent may request a linked PR as evidence"
+  },
+  {
+   "kind": "partial",
+   "subject": "source advisories",
+   "detail": "the security advisories source was consulted but cites no retrievable document"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-456cd591ced4",
+   "detail": "validate.static-reference@v1 did not decide (not-run): an unresolved relationship decides nothing: - ip-38f0cbd8bd5c: the path is its root alone: there is no reference on it to check - ip-f4b7f16e2fee: the path is its root alone: there is no reference on it to check"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-8d89a86b7208",
+   "detail": "validate.render-diff@v1 did not decide (not-run): the item manifests as controller-behaviour (manifest:declared-behaviour): its effect is compiled into the shipped software or applied server-side, so render silence proves nothing — an explicit pinned setting (override inspection) or an observed run decides it"
+  },
+  {
+   "kind": "partial",
+   "subject": "validation vr-93ddf41f45da",
+   "detail": "validate.override-inspection@v1 did not decide (not-run): no declarative pin rule names a setting that pins the old behaviour of this item (consulted: the join's pinned verdicts and trusted verified facts): - no verified fact is attached to the item"
+  }
+ ]
+}

@@ -1,0 +1,306 @@
+# case cert-manager-1.17-1.18--telemetry-east; kind kind v0.24.0 go1.22.6 darwin/arm64; helm v3.16.1+g5a5449d; 2026-10-17T13:16:25Z
+$ kind create cluster --name ri-groundtruth5-tel-east --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-tel-east.kubeconfig.XXXXXX.hmpcOfrS9k
+Creating cluster "ri-groundtruth5-tel-east" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 16s 💚
+Set kubectl context to "kind-ri-groundtruth5-tel-east"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth5-tel-east --kubeconfig /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/ri-groundtruth5-tel-east.kubeconfig.XXXXXX.hmpcOfrS9k
+
+Thanks for using kind! 😊
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### FROM: cert-manager chart v1.17.2 with the HelmRelease values  [13:16:53Z]
+# values of /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--telemetry-east/env/infrastructure/cert-manager/helmrelease.yaml (spec.values):
+  crds:
+    enabled: true
+    keep: true
+  replicaCount: 1
+  prometheus:
+    enabled: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+$ helm install cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.17.2.tgz -n cert-manager --create-namespace -f /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/values.XXXXXX.Tr1mgURCIS --wait --timeout 5m
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:16:53 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.17.2 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+
+### Kustomization pki  [13:17:13Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--telemetry-east/env/infrastructure/pki | kubectl apply -f -
+certificate.cert-manager.io/telemetry-root-ca created
+clusterissuer.cert-manager.io/selfsigned-bootstrap created
+clusterissuer.cert-manager.io/telemetry-ca created
+$ kubectl -n cert-manager wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/telemetry-root-ca condition met
+
+### Kustomizations telemetry, edge  [13:17:13Z]
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--telemetry-east/env/apps/telemetry | kubectl apply -f -
+namespace/telemetry created
+configmap/ingest-nginx-7fd985d7bd created
+service/ingest created
+deployment.apps/ingest created
+certificate.cert-manager.io/ingest-tls created
+$ kubectl kustomize /Users/tommydavison/repos/Release-Intelligence-/.claude/worktrees/p5ll-groundtruth5/eval/investigations-heldout/cert-manager-1.17-1.18--telemetry-east/env/apps/edge | kubectl apply -f -
+namespace/edge created
+deployment.apps/gateway created
+deployment.apps/rollup created
+certificate.cert-manager.io/gateway-tls created
+certificate.cert-manager.io/rollup-tls created
+$ kubectl -n telemetry wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/ingest-tls condition met
+$ kubectl -n edge wait certificate --all --for=condition=Ready --timeout=180s
+certificate.cert-manager.io/gateway-tls condition met
+certificate.cert-manager.io/rollup-tls condition met
+$ kubectl -n telemetry rollout status deploy/ingest --timeout=180s
+Waiting for deployment "ingest" rollout to finish: 0 of 1 updated replicas are available...
+deployment "ingest" successfully rolled out
+$ kubectl -n edge rollout status deploy/gateway --timeout=180s
+Waiting for deployment "gateway" rollout to finish: 0 of 1 updated replicas are available...
+deployment "gateway" successfully rolled out
+$ kubectl -n edge rollout status deploy/rollup --timeout=180s
+Waiting for deployment "rollup" rollout to finish: 0 of 1 updated replicas are available...
+deployment "rollup" successfully rolled out
+$ kubectl get certificates -A -o wide
+NAMESPACE      NAME                READY   SECRET              ISSUER                 STATUS                                          AGE
+cert-manager   telemetry-root-ca   True    telemetry-root-ca   selfsigned-bootstrap   Certificate is up to date and has not expired   8s
+edge           gateway-tls         True    gateway-tls         telemetry-ca           Certificate is up to date and has not expired   7s
+edge           rollup-tls          True    rollup-tls          telemetry-ca           Certificate is up to date and has not expired   7s
+telemetry      ingest-tls          True    ingest-tls          telemetry-ca           Certificate is up to date and has not expired   7s
+
+### baseline on v1.17.2  [13:17:21Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     84cd9a86e0b8c054  84cd9a86e0b8c054  serial=57CE0EAD4DF0CCD2C1A6B146D44A860A issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  84cd9a86e0b8c054  serial=CD8EA61F05F757ABF55169231F142D41 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  84cd9a86e0b8c054  serial=D059A70BCECE414F1E5EDA4DC90A5622 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=rollup.edge.svc
+  => OK
+
+### control on v1.17.2: scheduled renewal of the root CA, then of ingest (and ingest restarts)  [13:17:22Z]
+$ renew cert-manager/telemetry-root-ca (revision 1 -> 2)
+  revision 2 Ready
+$ renew telemetry/ingest-tls (revision 1 -> 2)
+  revision 2 Ready
+$ kubectl -n telemetry rollout restart deploy/ingest
+deployment.apps/ingest restarted
+$ kubectl -n telemetry rollout status deploy/ingest --timeout=120s
+Waiting for deployment "ingest" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingest" rollout to finish: 1 old replicas are pending termination...
+deployment "ingest" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     84cd9a86e0b8c054  84cd9a86e0b8c054  serial=62E429F0177DF9797820902769396696 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  84cd9a86e0b8c054  serial=B7B3F56284CCCED42801886940676481 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  84cd9a86e0b8c054  serial=D059A70BCECE414F1E5EDA4DC90A5622 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=rollup.edge.svc
+  => OK
+
+### UPGRADE: helm upgrade to chart v1.18.0 with the same values  [13:17:26Z]
+CertificateRequests before:
+     2 telemetry-root-ca
+     2 ingest-tls
+     1 gateway-tls
+     1 rollup-tls
+$ helm upgrade cert-manager /private/tmp/claude-501/-Users-tommydavison-repos-Release-Intelligence---claude-worktrees-p5ll-groundtruth5/18dc1fb1-557a-4a59-9176-accab573e2f6/scratchpad/charts/cert-manager-v1.18.0.tgz -n cert-manager -f /var/folders/rv/dgx_bb0n6vz__kcz65kt4k_w0000gn/T/values.XXXXXX.Tr1mgURCIS --wait --timeout 5m
+Release "cert-manager" has been upgraded. Happy Helming!
+NAME: cert-manager
+LAST DEPLOYED: Sat Oct 17 08:17:26 2026
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+⚠️  WARNING: New default private key rotation policy for Certificate resources.
+The default private key rotation policy for Certificate resources was
+changed to `Always` in cert-manager >= v1.18.0.
+Learn more in the [1.18 release notes](https://cert-manager.io/docs/releases/release-notes/release-notes-1.18).
+
+cert-manager v1.18.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+$ kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
+deployment "cert-manager" successfully rolled out
+CertificateRequests after (revisionHistoryLimit default 1):
+     1 telemetry-root-ca
+     1 ingest-tls
+     1 gateway-tls
+     1 rollup-tls
+$ kubectl get certificates -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,READY:.status.conditions[0].status,REVISION:.status.revision,ROTATION:.spec.privateKey.rotationPolicy
+NS             NAME                READY   REVISION   ROTATION
+cert-manager   telemetry-root-ca   True    2          <none>
+edge           gateway-tls         True    1          Never
+edge           rollup-tls          True    1          Never
+telemetry      ingest-tls          True    2          Never
+
+### after upgrade, before any renewal  [13:18:17Z]
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     84cd9a86e0b8c054  84cd9a86e0b8c054  serial=62E429F0177DF9797820902769396696 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  84cd9a86e0b8c054  serial=B7B3F56284CCCED42801886940676481 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  84cd9a86e0b8c054  serial=D059A70BCECE414F1E5EDA4DC90A5622 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=rollup.edge.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of the root CA  [13:18:18Z]
+$ renew cert-manager/telemetry-root-ca (revision 2 -> 3)
+  revision 3 Ready
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     5b987f8f3b823f1a  5b987f8f3b823f1a  serial=7FADCA0303F5C8319EBD14DEC021CCF4 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  84cd9a86e0b8c054  serial=B7B3F56284CCCED42801886940676481 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  84cd9a86e0b8c054  serial=D059A70BCECE414F1E5EDA4DC90A5622 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=rollup.edge.svc
+  => OK
+
+### on v1.18.0: scheduled renewal of ingest (and ingest restarts); gateway and rollup not renewed yet  [13:18:19Z]
+$ renew telemetry/ingest-tls (revision 2 -> 3)
+  revision 3 Ready
+$ kubectl -n telemetry rollout restart deploy/ingest
+deployment.apps/ingest restarted
+$ kubectl -n telemetry rollout status deploy/ingest --timeout=120s
+Waiting for deployment "ingest" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "ingest" rollout to finish: 1 old replicas are pending termination...
+deployment "ingest" successfully rolled out
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     5b987f8f3b823f1a  5b987f8f3b823f1a  serial=7FADCA0303F5C8319EBD14DEC021CCF4 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  5b987f8f3b823f1a  serial=94CD923560AD4B01A5A9FF2101DA8E1F issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  84cd9a86e0b8c054  serial=D059A70BCECE414F1E5EDA4DC90A5622 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+$ kubectl -n telemetry logs deploy/ingest --tail=5
+2026/10/17 13:18:19 [notice] 1#1: start worker process 32
+2026/10/17 13:18:19 [notice] 1#1: start worker process 33
+2026/10/17 13:18:19 [notice] 1#1: start worker process 34
+10.244.0.10 - - [17/Oct/2026:13:18:23 +0000] "GET / HTTP/1.1" 400 215 "-" "curl/8.10.1" "-"
+10.244.0.11 - - [17/Oct/2026:13:18:23 +0000] "GET / HTTP/1.1" 400 215 "-" "curl/8.10.1" "-"
+
+### on v1.18.0: gateway renews; rollup not yet  [13:18:23Z]
+$ renew edge/gateway-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/gateway sees the current gateway-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     5b987f8f3b823f1a  5b987f8f3b823f1a  serial=7FADCA0303F5C8319EBD14DEC021CCF4 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  5b987f8f3b823f1a  serial=94CD923560AD4B01A5A9FF2101DA8E1F issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  5b987f8f3b823f1a  serial=7B7D0C825C1F81E03A8DF358FE09187A issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  84cd9a86e0b8c054  serial=07845A82720A477743B51A9D090D82AB issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the webpage mentioned above.
+command terminated with exit code 60
+  => FAILED
+$ (same, -k: server certificate not verified) HTTP 400
+
+### on v1.18.0: rollup renews  [13:18:50Z]
+$ renew edge/rollup-tls (revision 1 -> 2)
+  revision 2 Ready
+  (deploy/rollup sees the current rollup-tls)
+SECRET                             TLS-KEY           CA.CRT-KEY        SERIAL / ISSUER
+cert-manager/telemetry-root-ca     5b987f8f3b823f1a  5b987f8f3b823f1a  serial=7FADCA0303F5C8319EBD14DEC021CCF4 issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+telemetry/ingest-tls               799c15fa4142c8ee  5b987f8f3b823f1a  serial=94CD923560AD4B01A5A9FF2101DA8E1F issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/gateway-tls                   9e89d3b7f595c423  5b987f8f3b823f1a  serial=7B7D0C825C1F81E03A8DF358FE09187A issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+edge/rollup-tls                    99dd11010a68c7e0  5b987f8f3b823f1a  serial=F6C1AE819C96B293A42FAE200DD4401D issuer=O=Example Fleet Telemetry, CN=telemetry-root-ca 
+$ kubectl -n edge exec deploy/gateway -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=gateway.edge.svc
+  => OK
+$ kubectl -n edge exec deploy/rollup -- curl --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key https://ingest.telemetry.svc/
+ingest ok: client=CN=rollup.edge.svc
+  => OK
+
+### done  [13:20:00Z]
+
+### cleanup  [13:20:00Z]
+Deleting cluster "ri-groundtruth5-tel-east" ...
+Deleted nodes: ["ri-groundtruth5-tel-east-control-plane"]

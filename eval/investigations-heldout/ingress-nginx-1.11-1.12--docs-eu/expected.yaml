@@ -1,0 +1,146 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: ingress-nginx-1.11-1.12--docs-eu
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log, ../ingress-nginx-1.11-1.12--docs-us/observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L139-L149"
+        quote: "⚠️ Enable security features by default (#11819) ⚠️ This changes the default of the following CLI arguments: `--enable-annotation-validation` gets enabled by default. It also changes the default of the following configuration options: `allow-cross-namespace-resources` gets disabled by default. `annotations-risk-level` gets lowered to \"High\" by default. `strict-validate-path-type` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go
+        lines: "L757"
+        quote: "AnnotationsRiskLevel: \"High\","
+    match:
+      - subject: annotations-risk-level
+      - text: '(?i)risk.?level'
+    components:
+      - ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}
+        classification: not-affected
+        reason: >-
+          The only ingress-nginx annotations in the environment are ssl-redirect (and, in the observed
+          change, proxy-read-timeout), both below the High risk level; no snippet or other Critical
+          annotation is used. Here the admission webhook rejects the Ingress for its path (B3) before it
+          evaluates annotations, so this was observed on the sibling docs-us, whose Ingress has the same
+          annotations and is admitted on v1.12.0.
+        mitigation: {ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}, field: metadata.annotations, kind: feature-unused}
+        requiredEvidence:
+          - {file: env/apps/docs/base/ingress.yaml, object: Ingress/docs, field: metadata.annotations}
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log, ../ingress-nginx-1.11-1.12--docs-us/observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L139-L149"
+        quote: "⚠️ Enable security features by default (#11819) ⚠️ This changes the default of the following CLI arguments: `--enable-annotation-validation` gets enabled by default. It also changes the default of the following configuration options: `allow-cross-namespace-resources` gets disabled by default. `annotations-risk-level` gets lowered to \"High\" by default. `strict-validate-path-type` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go
+        lines: "L754"
+        quote: "AllowCrossNamespaceResources: false,"
+    match:
+      - subject: allow-cross-namespace-resources
+      - text: '(?i)cross.?namespace'
+    components:
+      - ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}
+        classification: not-affected
+        reason: The Ingress references only Services in its own namespace; no annotation refers to a Secret or ConfigMap in another namespace.
+        mitigation: {ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}, field: metadata.annotations, kind: feature-unused}
+        requiredEvidence:
+          - {file: env/apps/docs/base/ingress.yaml, object: Ingress/docs}
+  - item: B3
+    classification: affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L139-L149"
+        quote: "⚠️ Enable security features by default (#11819) ⚠️ This changes the default of the following CLI arguments: `--enable-annotation-validation` gets enabled by default. It also changes the default of the following configuration options: `allow-cross-namespace-resources` gets disabled by default. `annotations-risk-level` gets lowered to \"High\" by default. `strict-validate-path-type` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/inspector/rules.go
+        lines: "L31-L37"
+        quote: "validPathType enforces alphanumeric, -, _ and / characters. ... validPathType = regexp.MustCompile(`(?i)^/[[:alnum:]\\_\\-/]*$`)"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/inspector/inspector.go
+        lines: "L45-L64"
+        quote: "if path.PathType == nil || *path.PathType != implSpecific { if isValid := validPathType.MatchString(path.Path); !isValid { err = errors.Join(err, fmt.Errorf(\"path %s cannot be used with pathType %s\", ...))"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/controller.go
+        lines: "L313-L357"
+        quote: "// CheckIngress returns an error in case the provided ingress, when added to the current configuration, generates an invalid configuration ... if cfg.StrictValidatePathType { if err := inspector.ValidatePathType(ing); err != nil { return fmt.Errorf(\"ingress contains invalid paths: %w\", err) } }"
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/config/config.go
+        lines: "L897"
+        quote: "StrictValidatePathType:         true,"
+    match:
+      - subject: strict-validate-path-type
+      - text: '(?i)strict.?validate.?path'
+    components:
+      - ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/ingress-nginx.yaml, kind: Application, namespace: argocd, name: ingress-nginx}, relation: deploys}
+          - {ref: {renderedFrom: env/clusters/prod/ingress-nginx.yaml, kind: ValidatingWebhookConfiguration, name: ingress-nginx-admission}, relation: configures}
+          - {ref: {file: env/apps/docs/base/ingress.yaml, kind: Ingress, namespace: docs, name: docs}, field: 'spec.rules[0].http.paths[1]', relation: consumes-api}
+          - {ref: {file: env/clusters/prod/docs.yaml, kind: Application, namespace: argocd, name: docs}, relation: references}
+        reason: >-
+          The /.well-known path is declared with pathType Prefix and contains a dot, which the strict
+          path validation enabled by default in v1.12.0 rejects (only alphanumerics, -, _ and / are
+          allowed for Exact and Prefix paths). The check runs in the admission webhook, not in the
+          controller's sync loop, so the Ingress already stored keeps being served, even across a
+          controller restart (observed). But every write of it is now denied: the next Argo CD sync of
+          the docs Application (server-side apply of an unchanged repository) fails, any change to the
+          Ingress fails, and when the Ingress has to be created again (re-sync after deletion, a rebuilt
+          cluster) it cannot be, and the whole docs host answers 404 (observed). No rendered manifest
+          changes for this: the default is compiled into the controller.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/apps/docs/base/ingress.yaml, object: Ingress/docs, field: 'spec.rules[0].http.paths'}
+          - {file: env/clusters/prod/docs.yaml, object: Application/docs, field: spec.syncPolicy.syncOptions}
+          - {file: env/platform/ingress-nginx/values.yaml, field: controller.config}
+    remediation: >-
+      Before the upgrade, either set controller.config.strict-validate-path-type "false" in the
+      ingress-nginx values, or declare /.well-known with pathType ImplementationSpecific (served the
+      same by ingress-nginx), or route the exact well-known documents without dots in the path.
+  - item: B4
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log, ../ingress-nginx-1.11-1.12--docs-us/observed/run.log]
+    citations:
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/changelog/controller-1.12.0.md
+        lines: "L139-L149"
+        quote: "`--enable-annotation-validation` gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/pkg/flags/flags.go
+        lines: "L162"
+        quote: "enableAnnotationValidation = flags.Bool(\"enable-annotation-validation\", true,"
+    match:
+      - subject: controller.enableAnnotationValidations
+      - text: '(?i)annotation.?validation'
+    components:
+      - ref: {file: env/apps/docs/base/ingress.yaml, apiVersion: networking.k8s.io/v1, kind: Ingress, namespace: docs, name: docs}
+        classification: not-affected
+        reason: >-
+          The annotation values in use (ssl-redirect "false"; proxy-read-timeout in the observed change)
+          are valid for their validators. Not separately observable here (the path check of B3 rejects
+          first); observed on the sibling docs-us, same annotations, admitted on v1.12.0. The chart renders no flag for this in either version (4.11.5 adds
+          --enable-annotation-validation=true only when enabled, 4.12.0 adds =false only when disabled).
+        mitigation: {ref: {file: env/apps/docs/base/ingress.yaml, kind: Ingress, namespace: docs, name: docs}, field: metadata.annotations, kind: feature-unused}
+        requiredEvidence:
+          - {file: env/apps/docs/base/ingress.yaml, object: Ingress/docs, field: metadata.annotations}
+renderedChanges:
+  - diff: observed/render.diff#L60-L66
+    object: "ConfigMap/ingress-nginx/ingress-nginx-controller"
+    change: "key allow-snippet-annotations: 'false' no longer rendered (the controller default is false in both versions)"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L102-L109
+    object: "Deployment/ingress-nginx/ingress-nginx-controller"
+    change: "arg --enable-metrics=false no longer rendered (controller.metrics.enabled false; the controller default is now false)"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L119-L126
+      - observed/render.diff#L175-L182
+      - observed/render.diff#L217-L224
+    object: "Deployment/ingress-nginx-controller, Jobs ingress-nginx-admission-create/-patch"
+    change: "securityContext.runAsGroup added (82 for the controller, 65532 for the admission jobs)"
+    item: null
+    impact: harmless

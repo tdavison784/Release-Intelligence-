@@ -88,7 +88,7 @@ func WriteText(w io.Writer, inv *domain.Investigation, b *domain.EvidenceBundle)
 			}
 			for _, v := range cited {
 				p.validation(v)
-				if v.Outcome == domain.ValidationPass && !f.Manifestation.RenderDecisive() && !v.ClearsBehaviour() {
+				if v.Outcome == domain.ValidationPass && !v.DocumentationOnly && !f.Manifestation.RenderDecisive() && !v.ClearsBehaviour() {
 					p.f("      ↳ not decisive for this item: it manifests as %s, and only a pinned setting or an observed outcome clears it\n", f.Manifestation)
 				}
 			}
@@ -239,6 +239,9 @@ func (p *printer) validation(v domain.ValidationRecord) {
 	extra := ""
 	if v.Pin != nil {
 		extra = fmt.Sprintf(" · pinned setting %s %s=%s on %s", v.Pin.Kind, v.Pin.Path, v.Pin.Value, v.Pin.Subject)
+	}
+	if v.DocumentationOnly {
+		extra = " · documentation only: accounts for the CRD description changes it names (R2.2), clears nothing"
 	}
 	detail := firstLine(v.Detail)
 	if detail == "" {

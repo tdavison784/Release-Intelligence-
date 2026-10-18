@@ -1,0 +1,1529 @@
+# ClusterRole/-/cert-manager-cainjector (changed)
+--- from/ClusterRole/-/cert-manager-cainjector
++++ to/ClusterRole/-/cert-manager-cainjector
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-cluster-view (changed)
+--- from/ClusterRole/-/cert-manager-cluster-view
++++ to/ClusterRole/-/cert-manager-cluster-view
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+     rbac.authorization.k8s.io/aggregate-to-cluster-reader: 'true'
+   name: cert-manager-cluster-view
+ rules:
+# ClusterRole/-/cert-manager-controller-approve:cert-manager-io (changed)
+--- from/ClusterRole/-/cert-manager-controller-approve:cert-manager-io
++++ to/ClusterRole/-/cert-manager-controller-approve:cert-manager-io
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-approve:cert-manager-io
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-certificates (changed)
+--- from/ClusterRole/-/cert-manager-controller-certificates
++++ to/ClusterRole/-/cert-manager-controller-certificates
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-certificates
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-certificatesigningrequests (changed)
+--- from/ClusterRole/-/cert-manager-controller-certificatesigningrequests
++++ to/ClusterRole/-/cert-manager-controller-certificatesigningrequests
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-certificatesigningrequests
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-challenges (removed)
+--- from/ClusterRole/-/cert-manager-controller-challenges
++++ to/ClusterRole/-/cert-manager-controller-challenges
+@@ -1,106 +0,0 @@
+-apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRole
+-metadata:
+-  labels:
+-    app: cert-manager
+-    app.kubernetes.io/component: controller
+-    app.kubernetes.io/instance: cert-manager
+-    app.kubernetes.io/managed-by: Helm
+-    app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
+-  name: cert-manager-controller-challenges
+-rules:
+-- apiGroups:
+-  - acme.cert-manager.io
+-  resources:
+-  - challenges
+-  - challenges/status
+-  verbs:
+-  - update
+-  - patch
+-- apiGroups:
+-  - acme.cert-manager.io
+-  resources:
+-  - challenges
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-- apiGroups:
+-  - cert-manager.io
+-  resources:
+-  - issuers
+-  - clusterissuers
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-- apiGroups:
+-  - ''
+-  resources:
+-  - secrets
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-- apiGroups:
+-  - ''
+-  resources:
+-  - events
+-  verbs:
+-  - create
+-  - patch
+-- apiGroups:
+-  - ''
+-  resources:
+-  - pods
+-  - services
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-  - create
+-  - delete
+-- apiGroups:
+-  - networking.k8s.io
+-  resources:
+-  - ingresses
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-  - create
+-  - delete
+-  - update
+-- apiGroups:
+-  - gateway.networking.k8s.io
+-  resources:
+-  - httproutes
+-  verbs:
+-  - get
+-  - list
+-  - watch
+-  - create
+-  - delete
+-  - update
+-- apiGroups:
+-  - route.openshift.io
+-  resources:
+-  - routes/custom-host
+-  verbs:
+-  - create
+-- apiGroups:
+-  - acme.cert-manager.io
+-  resources:
+-  - challenges/finalizers
+-  verbs:
+-  - update
+-- apiGroups:
+-  - ''
+-  resources:
+-  - secrets
+-  verbs:
+-  - get
+-  - list
+-  - watch
+# ClusterRole/-/cert-manager-controller-clusterissuers (changed)
+--- from/ClusterRole/-/cert-manager-controller-clusterissuers
++++ to/ClusterRole/-/cert-manager-controller-clusterissuers
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-clusterissuers
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-ingress-shim (changed)
+--- from/ClusterRole/-/cert-manager-controller-ingress-shim
++++ to/ClusterRole/-/cert-manager-controller-ingress-shim
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-ingress-shim
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-issuers (changed)
+--- from/ClusterRole/-/cert-manager-controller-issuers
++++ to/ClusterRole/-/cert-manager-controller-issuers
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-issuers
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-controller-orders (changed)
+--- from/ClusterRole/-/cert-manager-controller-orders
++++ to/ClusterRole/-/cert-manager-controller-orders
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-orders
+ rules:
+ - apiGroups:
+# ClusterRole/-/cert-manager-dns01-controller-challenges (added)
+--- from/ClusterRole/-/cert-manager-dns01-controller-challenges
++++ to/ClusterRole/-/cert-manager-dns01-controller-challenges
+@@ -0,0 +1,67 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRole
++metadata:
++  labels:
++    app: cert-manager
++    app.kubernetes.io/component: controller
++    app.kubernetes.io/instance: cert-manager
++    app.kubernetes.io/managed-by: Helm
++    app.kubernetes.io/name: cert-manager
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
++  name: cert-manager-dns01-controller-challenges
++rules:
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges
++  - challenges/status
++  verbs:
++  - update
++  - patch
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - cert-manager.io
++  resources:
++  - issuers
++  - clusterissuers
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - ''
++  resources:
++  - secrets
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - ''
++  resources:
++  - events
++  verbs:
++  - create
++  - patch
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges/finalizers
++  verbs:
++  - update
++- apiGroups:
++  - ''
++  resources:
++  - secrets
++  verbs:
++  - get
++  - list
++  - watch
+# ClusterRole/-/cert-manager-edit (changed)
+--- from/ClusterRole/-/cert-manager-edit
++++ to/ClusterRole/-/cert-manager-edit
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+     rbac.authorization.k8s.io/aggregate-to-admin: 'true'
+     rbac.authorization.k8s.io/aggregate-to-edit: 'true'
+   name: cert-manager-edit
+# ClusterRole/-/cert-manager-http01-controller-challenges (added)
+--- from/ClusterRole/-/cert-manager-http01-controller-challenges
++++ to/ClusterRole/-/cert-manager-http01-controller-challenges
+@@ -0,0 +1,98 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRole
++metadata:
++  labels:
++    app: cert-manager
++    app.kubernetes.io/component: controller
++    app.kubernetes.io/instance: cert-manager
++    app.kubernetes.io/managed-by: Helm
++    app.kubernetes.io/name: cert-manager
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
++  name: cert-manager-http01-controller-challenges
++rules:
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges
++  - challenges/status
++  verbs:
++  - update
++  - patch
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - cert-manager.io
++  resources:
++  - issuers
++  - clusterissuers
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - ''
++  resources:
++  - secrets
++  verbs:
++  - get
++  - list
++  - watch
++- apiGroups:
++  - ''
++  resources:
++  - events
++  verbs:
++  - create
++  - patch
++- apiGroups:
++  - acme.cert-manager.io
++  resources:
++  - challenges/finalizers
++  verbs:
++  - update
++- apiGroups:
++  - ''
++  resources:
++  - pods
++  - services
++  verbs:
++  - get
++  - list
++  - watch
++  - create
++  - delete
++- apiGroups:
++  - networking.k8s.io
++  resources:
++  - ingresses
++  verbs:
++  - get
++  - list
++  - watch
++  - create
++  - delete
++  - update
++- apiGroups:
++  - gateway.networking.k8s.io
++  resources:
++  - httproutes
++  verbs:
++  - get
++  - list
++  - watch
++  - create
++  - delete
++  - update
++- apiGroups:
++  - route.openshift.io
++  resources:
++  - routes/custom-host
++  verbs:
++  - create
+# ClusterRole/-/cert-manager-view (changed)
+--- from/ClusterRole/-/cert-manager-view
++++ to/ClusterRole/-/cert-manager-view
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+     rbac.authorization.k8s.io/aggregate-to-admin: 'true'
+     rbac.authorization.k8s.io/aggregate-to-cluster-reader: 'true'
+     rbac.authorization.k8s.io/aggregate-to-edit: 'true'
+# ClusterRole/-/cert-manager-webhook:subjectaccessreviews (changed)
+--- from/ClusterRole/-/cert-manager-webhook:subjectaccessreviews
++++ to/ClusterRole/-/cert-manager-webhook:subjectaccessreviews
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook:subjectaccessreviews
+ rules:
+ - apiGroups:
+# ClusterRoleBinding/-/cert-manager-cainjector (changed)
+--- from/ClusterRoleBinding/-/cert-manager-cainjector
++++ to/ClusterRoleBinding/-/cert-manager-cainjector
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-approve:cert-manager-io (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-approve:cert-manager-io
++++ to/ClusterRoleBinding/-/cert-manager-controller-approve:cert-manager-io
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-approve:cert-manager-io
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-certificates (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-certificates
++++ to/ClusterRoleBinding/-/cert-manager-controller-certificates
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-certificates
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-certificatesigningrequests (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-certificatesigningrequests
++++ to/ClusterRoleBinding/-/cert-manager-controller-certificatesigningrequests
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-certificatesigningrequests
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-challenges (removed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-challenges
++++ to/ClusterRoleBinding/-/cert-manager-controller-challenges
+@@ -1,20 +0,0 @@
+-apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRoleBinding
+-metadata:
+-  labels:
+-    app: cert-manager
+-    app.kubernetes.io/component: controller
+-    app.kubernetes.io/instance: cert-manager
+-    app.kubernetes.io/managed-by: Helm
+-    app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
+-  name: cert-manager-controller-challenges
+-roleRef:
+-  apiGroup: rbac.authorization.k8s.io
+-  kind: ClusterRole
+-  name: cert-manager-controller-challenges
+-subjects:
+-- kind: ServiceAccount
+-  name: cert-manager
+-  namespace: cert-manager
+# ClusterRoleBinding/-/cert-manager-controller-clusterissuers (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-clusterissuers
++++ to/ClusterRoleBinding/-/cert-manager-controller-clusterissuers
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-clusterissuers
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-ingress-shim (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-ingress-shim
++++ to/ClusterRoleBinding/-/cert-manager-controller-ingress-shim
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-ingress-shim
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-issuers (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-issuers
++++ to/ClusterRoleBinding/-/cert-manager-controller-issuers
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-issuers
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-controller-orders (changed)
+--- from/ClusterRoleBinding/-/cert-manager-controller-orders
++++ to/ClusterRoleBinding/-/cert-manager-controller-orders
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-controller-orders
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/cert-manager-dns01-controller-challenges (added)
+--- from/ClusterRoleBinding/-/cert-manager-dns01-controller-challenges
++++ to/ClusterRoleBinding/-/cert-manager-dns01-controller-challenges
+@@ -0,0 +1,20 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRoleBinding
++metadata:
++  labels:
++    app: cert-manager
++    app.kubernetes.io/component: controller
++    app.kubernetes.io/instance: cert-manager
++    app.kubernetes.io/managed-by: Helm
++    app.kubernetes.io/name: cert-manager
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
++  name: cert-manager-dns01-controller-challenges
++roleRef:
++  apiGroup: rbac.authorization.k8s.io
++  kind: ClusterRole
++  name: cert-manager-dns01-controller-challenges
++subjects:
++- kind: ServiceAccount
++  name: cert-manager
++  namespace: cert-manager
+# ClusterRoleBinding/-/cert-manager-http01-controller-challenges (added)
+--- from/ClusterRoleBinding/-/cert-manager-http01-controller-challenges
++++ to/ClusterRoleBinding/-/cert-manager-http01-controller-challenges
+@@ -0,0 +1,20 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRoleBinding
++metadata:
++  labels:
++    app: cert-manager
++    app.kubernetes.io/component: controller
++    app.kubernetes.io/instance: cert-manager
++    app.kubernetes.io/managed-by: Helm
++    app.kubernetes.io/name: cert-manager
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
++  name: cert-manager-http01-controller-challenges
++roleRef:
++  apiGroup: rbac.authorization.k8s.io
++  kind: ClusterRole
++  name: cert-manager-http01-controller-challenges
++subjects:
++- kind: ServiceAccount
++  name: cert-manager
++  namespace: cert-manager
+# ClusterRoleBinding/-/cert-manager-webhook:subjectaccessreviews (changed)
+--- from/ClusterRoleBinding/-/cert-manager-webhook:subjectaccessreviews
++++ to/ClusterRoleBinding/-/cert-manager-webhook:subjectaccessreviews
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook:subjectaccessreviews
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# CustomResourceDefinition/-/certificaterequests.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/certificaterequests.cert-manager.io
++++ to/CustomResourceDefinition/-/certificaterequests.cert-manager.io
+@@ -8,8 +8,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: certificaterequests.cert-manager.io
+ spec:
+   group: cert-manager.io
+# CustomResourceDefinition/-/certificates.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/certificates.cert-manager.io
++++ to/CustomResourceDefinition/-/certificates.cert-manager.io
+@@ -8,8 +8,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: certificates.cert-manager.io
+ spec:
+   group: cert-manager.io
+@@ -84,14 +84,7 @@
+               additionalOutputFormats:
+                 description: 'Defines extra output formats of the private key and signed certificate chain
+ 
+-                  to be written to this Certificate''s target Secret.
+-
+-
+-                  This is a Beta Feature enabled by default. It can be disabled with the
+-
+-                  `--feature-gates=AdditionalCertificateOutputFormats=false` option set on both
+-
+-                  the controller and webhook components.'
++                  to be written to this Certificate''s target Secret.'
+                 items:
+                   description: 'CertificateAdditionalOutputFormat defines an additional output format of a
+ 
+@@ -335,7 +328,7 @@
+ 
+                           `Modern2023`: Secure algorithm. Use this option in case you have to always use secure algorithms
+ 
+-                          (eg. because of company policy). Please note that the security of the algorithm is not that important
++                          (e.g., because of company policy). Please note that the security of the algorithm is not that important
+ 
+                           in reality, because the unencrypted certificate and private key are also stored in the Secret.'
+                         enum:
+@@ -521,7 +514,15 @@
+ 
+                       will be generated whenever a re-issuance occurs.
+ 
+-                      Default is `Never` for backward compatibility.'
++                      Default is `Always`.
++
++                      The default was changed from `Never` to `Always` in cert-manager >=v1.18.0.
++
++                      The new default can be disabled by setting the
++
++                      `--feature-gates=DefaultPrivateKeyRotationPolicyAlways=false` option on
++
++                      the controller component.'
+                     enum:
+                     - Never
+                     - Always
+@@ -612,9 +613,7 @@
+ 
+                   If set, revisionHistoryLimit must be a value of `1` or greater.
+ 
+-                  If unset (`nil`), revisions will not be garbage collected.
+-
+-                  Default value is `nil`.'
++                  Default value is `1`.'
+                 format: int32
+                 type: integer
+               secretName:
+@@ -648,6 +647,23 @@
+                     description: Labels is a key value map to be copied to the target Kubernetes Secret.
+                     type: object
+                 type: object
++              signatureAlgorithm:
++                description: 'Signature algorithm to use.
++
++                  Allowed values for RSA keys: SHA256WithRSA, SHA384WithRSA, SHA512WithRSA.
++
++                  Allowed values for ECDSA keys: ECDSAWithSHA256, ECDSAWithSHA384, ECDSAWithSHA512.
++
++                  Allowed values for Ed25519 keys: PureEd25519.'
++                enum:
++                - SHA256WithRSA
++                - SHA384WithRSA
++                - SHA512WithRSA
++                - ECDSAWithSHA256
++                - ECDSAWithSHA384
++                - ECDSAWithSHA512
++                - PureEd25519
++                type: string
+               subject:
+                 description: 'Requested set of X509 certificate subject attributes.
+ 
+# CustomResourceDefinition/-/challenges.acme.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/challenges.acme.cert-manager.io
++++ to/CustomResourceDefinition/-/challenges.acme.cert-manager.io
+@@ -8,8 +8,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: challenges.acme.cert-manager.io
+ spec:
+   group: acme.cert-manager.io
+@@ -73,11 +73,11 @@
+                   challenge is a part of.'
+                 type: string
+               dnsName:
+-                description: 'dnsName is the identifier that this challenge is for, e.g. example.com.
++                description: 'dnsName is the identifier that this challenge is for, e.g., example.com.
+ 
+                   If the requested DNSName is a ''wildcard'', this field MUST be set to the
+ 
+-                  non-wildcard domain, e.g. for `*.example.com`, it must be `example.com`.'
++                  non-wildcard domain, e.g., for `*.example.com`, it must be `example.com`.'
+                 type: string
+               issuerRef:
+                 description: 'References a properly configured ACME-type Issuer which should
+@@ -280,15 +280,15 @@
+                               If set, ClientID, ClientSecret and TenantID must not be set.'
+                             properties:
+                               clientID:
+-                                description: client ID of the managed identity, can not be used at the same time as resourceID
++                                description: client ID of the managed identity, cannot be used at the same time as resourceID
+                                 type: string
+                               resourceID:
+-                                description: 'resource ID of the managed identity, can not be used at the same time as clientID
++                                description: 'resource ID of the managed identity, cannot be used at the same time as clientID
+ 
+                                   Cannot be used for Azure Managed Service Identity'
+                                 type: string
+                               tenantID:
+-                                description: tenant ID of the managed identity, can not be used at the same time as resourceID
++                                description: tenant ID of the managed identity, cannot be used at the same time as resourceID
+                                 type: string
+                             type: object
+                           resourceGroupName:
+@@ -637,7 +637,7 @@
+ 
+                               Secret values should not be specified in this stanza.
+ 
+-                              If secret values are needed (e.g. credentials for a DNS service), you
++                              If secret values are needed (e.g., credentials for a DNS service), you
+ 
+                               should use a SecretKeySelector to reference a Secret resource.
+ 
+@@ -659,7 +659,7 @@
+ 
+                               implementation.
+ 
+-                              This will typically be the name of the provider, e.g. ''cloudflare''.'
++                              This will typically be the name of the provider, e.g., ''cloudflare''.'
+                             type: string
+                         required:
+                         - groupName
+@@ -673,7 +673,7 @@
+ 
+                       It is not possible to obtain certificates for wildcard domain names
+ 
+-                      (e.g. `*.example.com`) using the HTTP01 challenge mechanism.'
++                      (e.g., `*.example.com`) using the HTTP01 challenge mechanism.'
+                     properties:
+                       gatewayHTTPRoute:
+                         description: 'The Gateway API is a sig-network community API that models service networking
+# CustomResourceDefinition/-/clusterissuers.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/clusterissuers.cert-manager.io
++++ to/CustomResourceDefinition/-/clusterissuers.cert-manager.io
+@@ -8,8 +8,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: clusterissuers.cert-manager.io
+ spec:
+   group: cert-manager.io
+@@ -19,6 +19,8 @@
+     kind: ClusterIssuer
+     listKind: ClusterIssuerList
+     plural: clusterissuers
++    shortNames:
++    - ciss
+     singular: clusterissuer
+   scope: Cluster
+   versions:
+@@ -190,7 +192,7 @@
+ 
+                       endpoint.
+ 
+-                      For example, for Let''s Encrypt''s DST crosssign you would use:
++                      For example, for Let''s Encrypt''s DST cross-sign you would use:
+ 
+                       "DST Root CA X3" or "ISRG Root X1" for the newer Let''s Encrypt root CA.
+ 
+@@ -227,6 +229,11 @@
+                     required:
+                     - name
+                     type: object
++                  profile:
++                    description: 'Profile allows requesting a certificate profile from the ACME server.
++
++                      Supported profiles are listed by the server''s ACME directory URL.'
++                    type: string
+                   server:
+                     description: 'Server is the URL used to access the ACME server''s ''directory'' endpoint.
+ 
+@@ -430,15 +437,15 @@
+                                     If set, ClientID, ClientSecret and TenantID must not be set.'
+                                   properties:
+                                     clientID:
+-                                      description: client ID of the managed identity, can not be used at the same time as resourceID
++                                      description: client ID of the managed identity, cannot be used at the same time as resourceID
+                                       type: string
+                                     resourceID:
+-                                      description: 'resource ID of the managed identity, can not be used at the same time as clientID
++                                      description: 'resource ID of the managed identity, cannot be used at the same time as clientID
+ 
+                                         Cannot be used for Azure Managed Service Identity'
+                                       type: string
+                                     tenantID:
+-                                      description: tenant ID of the managed identity, can not be used at the same time as resourceID
++                                      description: tenant ID of the managed identity, cannot be used at the same time as resourceID
+                                       type: string
+                                   type: object
+                                 resourceGroupName:
+@@ -787,7 +794,7 @@
+ 
+                                     Secret values should not be specified in this stanza.
+ 
+-                                    If secret values are needed (e.g. credentials for a DNS service), you
++                                    If secret values are needed (e.g., credentials for a DNS service), you
+ 
+                                     should use a SecretKeySelector to reference a Secret resource.
+ 
+@@ -809,7 +816,7 @@
+ 
+                                     implementation.
+ 
+-                                    This will typically be the name of the provider, e.g. ''cloudflare''.'
++                                    This will typically be the name of the provider, e.g., ''cloudflare''.'
+                                   type: string
+                               required:
+                               - groupName
+@@ -823,7 +830,7 @@
+ 
+                             It is not possible to obtain certificates for wildcard domain names
+ 
+-                            (e.g. `*.example.com`) using the HTTP01 challenge mechanism.'
++                            (e.g., `*.example.com`) using the HTTP01 challenge mechanism.'
+                           properties:
+                             gatewayHTTPRoute:
+                               description: 'The Gateway API is a sig-network community API that models service networking
+@@ -4203,6 +4210,11 @@
+                   server:
+                     description: 'Server is the connection address for the Vault server, e.g: "https://vault.example.com:8200".'
+                     type: string
++                  serverName:
++                    description: 'ServerName is used to verify the hostname on the returned certificates
++
++                      by the Vault server.'
++                    type: string
+                 required:
+                 - auth
+                 - path
+@@ -4239,7 +4251,7 @@
+                       url:
+                         description: 'URL is the base URL for Venafi Cloud.
+ 
+-                          Defaults to "https://api.venafi.cloud/v1".'
++                          Defaults to "https://api.venafi.cloud/".'
+                         type: string
+                     required:
+                     - apiTokenSecretRef
+# CustomResourceDefinition/-/issuers.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/issuers.cert-manager.io
++++ to/CustomResourceDefinition/-/issuers.cert-manager.io
+@@ -9,8 +9,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: issuers.cert-manager.io
+ spec:
+   group: cert-manager.io
+@@ -20,6 +20,8 @@
+     kind: Issuer
+     listKind: IssuerList
+     plural: issuers
++    shortNames:
++    - iss
+     singular: issuer
+   scope: Namespaced
+   versions:
+@@ -189,7 +191,7 @@
+ 
+                       endpoint.
+ 
+-                      For example, for Let''s Encrypt''s DST crosssign you would use:
++                      For example, for Let''s Encrypt''s DST cross-sign you would use:
+ 
+                       "DST Root CA X3" or "ISRG Root X1" for the newer Let''s Encrypt root CA.
+ 
+@@ -226,6 +228,11 @@
+                     required:
+                     - name
+                     type: object
++                  profile:
++                    description: 'Profile allows requesting a certificate profile from the ACME server.
++
++                      Supported profiles are listed by the server''s ACME directory URL.'
++                    type: string
+                   server:
+                     description: 'Server is the URL used to access the ACME server''s ''directory'' endpoint.
+ 
+@@ -429,15 +436,15 @@
+                                     If set, ClientID, ClientSecret and TenantID must not be set.'
+                                   properties:
+                                     clientID:
+-                                      description: client ID of the managed identity, can not be used at the same time as resourceID
++                                      description: client ID of the managed identity, cannot be used at the same time as resourceID
+                                       type: string
+                                     resourceID:
+-                                      description: 'resource ID of the managed identity, can not be used at the same time as clientID
++                                      description: 'resource ID of the managed identity, cannot be used at the same time as clientID
+ 
+                                         Cannot be used for Azure Managed Service Identity'
+                                       type: string
+                                     tenantID:
+-                                      description: tenant ID of the managed identity, can not be used at the same time as resourceID
++                                      description: tenant ID of the managed identity, cannot be used at the same time as resourceID
+                                       type: string
+                                   type: object
+                                 resourceGroupName:
+@@ -786,7 +793,7 @@
+ 
+                                     Secret values should not be specified in this stanza.
+ 
+-                                    If secret values are needed (e.g. credentials for a DNS service), you
++                                    If secret values are needed (e.g., credentials for a DNS service), you
+ 
+                                     should use a SecretKeySelector to reference a Secret resource.
+ 
+@@ -808,7 +815,7 @@
+ 
+                                     implementation.
+ 
+-                                    This will typically be the name of the provider, e.g. ''cloudflare''.'
++                                    This will typically be the name of the provider, e.g., ''cloudflare''.'
+                                   type: string
+                               required:
+                               - groupName
+@@ -822,7 +829,7 @@
+ 
+                             It is not possible to obtain certificates for wildcard domain names
+ 
+-                            (e.g. `*.example.com`) using the HTTP01 challenge mechanism.'
++                            (e.g., `*.example.com`) using the HTTP01 challenge mechanism.'
+                           properties:
+                             gatewayHTTPRoute:
+                               description: 'The Gateway API is a sig-network community API that models service networking
+@@ -4202,6 +4209,11 @@
+                   server:
+                     description: 'Server is the connection address for the Vault server, e.g: "https://vault.example.com:8200".'
+                     type: string
++                  serverName:
++                    description: 'ServerName is used to verify the hostname on the returned certificates
++
++                      by the Vault server.'
++                    type: string
+                 required:
+                 - auth
+                 - path
+@@ -4238,7 +4250,7 @@
+                       url:
+                         description: 'URL is the base URL for Venafi Cloud.
+ 
+-                          Defaults to "https://api.venafi.cloud/v1".'
++                          Defaults to "https://api.venafi.cloud/".'
+                         type: string
+                     required:
+                     - apiTokenSecretRef
+# CustomResourceDefinition/-/orders.acme.cert-manager.io (changed)
+--- from/CustomResourceDefinition/-/orders.acme.cert-manager.io
++++ to/CustomResourceDefinition/-/orders.acme.cert-manager.io
+@@ -9,8 +9,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: orders.acme.cert-manager.io
+ spec:
+   group: acme.cert-manager.io
+@@ -122,6 +122,11 @@
+                 required:
+                 - name
+                 type: object
++              profile:
++                description: 'Profile allows requesting a certificate profile from the ACME server.
++
++                  Supported profiles are listed by the server''s ACME directory URL.'
++                type: string
+               request:
+                 description: 'Certificate signing request bytes in DER encoding.
+ 
+@@ -170,7 +175,7 @@
+                               This is used to compute the ''key'' that must also be presented.'
+                             type: string
+                           type:
+-                            description: 'Type is the type of challenge being offered, e.g. ''http-01'', ''dns-01'',
++                            description: 'Type is the type of challenge being offered, e.g., ''http-01'', ''dns-01'',
+ 
+                               ''tls-sni-01'', etc.
+ 
+# Deployment/cert-manager/cert-manager (changed)
+--- from/Deployment/cert-manager/cert-manager
++++ to/Deployment/cert-manager/cert-manager
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager
+   namespace: cert-manager
+ spec:
+@@ -30,22 +30,22 @@
+         app.kubernetes.io/instance: cert-manager
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: cert-manager
+-        app.kubernetes.io/version: v1.17.2
+-        helm.sh/chart: cert-manager-v1.17.2
++        app.kubernetes.io/version: v1.18.0
++        helm.sh/chart: cert-manager-v1.18.0
+     spec:
+       containers:
+       - args:
+         - --v=2
+         - --cluster-resource-namespace=$(POD_NAMESPACE)
+         - --leader-election-namespace=kube-system
+-        - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.17.2
++        - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.18.0
+         - --max-concurrent-challenges=60
+         env:
+         - name: POD_NAMESPACE
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.namespace
+-        image: quay.io/jetstack/cert-manager-controller:v1.17.2
++        image: quay.io/jetstack/cert-manager-controller:v1.18.0
+         imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 8
+# Deployment/cert-manager/cert-manager-cainjector (changed)
+--- from/Deployment/cert-manager/cert-manager-cainjector
++++ to/Deployment/cert-manager/cert-manager-cainjector
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector
+   namespace: cert-manager
+ spec:
+@@ -30,8 +30,8 @@
+         app.kubernetes.io/instance: cert-manager
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: cainjector
+-        app.kubernetes.io/version: v1.17.2
+-        helm.sh/chart: cert-manager-v1.17.2
++        app.kubernetes.io/version: v1.18.0
++        helm.sh/chart: cert-manager-v1.18.0
+     spec:
+       containers:
+       - args:
+@@ -42,7 +42,7 @@
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.namespace
+-        image: quay.io/jetstack/cert-manager-cainjector:v1.17.2
++        image: quay.io/jetstack/cert-manager-cainjector:v1.18.0
+         imagePullPolicy: IfNotPresent
+         name: cert-manager-cainjector
+         ports:
+# Deployment/cert-manager/cert-manager-webhook (changed)
+--- from/Deployment/cert-manager/cert-manager-webhook
++++ to/Deployment/cert-manager/cert-manager-webhook
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook
+   namespace: cert-manager
+ spec:
+@@ -30,8 +30,8 @@
+         app.kubernetes.io/instance: cert-manager
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: webhook
+-        app.kubernetes.io/version: v1.17.2
+-        helm.sh/chart: cert-manager-v1.17.2
++        app.kubernetes.io/version: v1.18.0
++        helm.sh/chart: cert-manager-v1.18.0
+     spec:
+       containers:
+       - args:
+@@ -47,13 +47,13 @@
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.namespace
+-        image: quay.io/jetstack/cert-manager-webhook:v1.17.2
++        image: quay.io/jetstack/cert-manager-webhook:v1.18.0
+         imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 3
+           httpGet:
+             path: /livez
+-            port: 6080
++            port: healthcheck
+             scheme: HTTP
+           initialDelaySeconds: 60
+           periodSeconds: 10
+@@ -74,7 +74,7 @@
+           failureThreshold: 3
+           httpGet:
+             path: /healthz
+-            port: 6080
++            port: healthcheck
+             scheme: HTTP
+           initialDelaySeconds: 5
+           periodSeconds: 5
+# Job/cert-manager/cert-manager-startupapicheck (changed)
+--- from/Job/cert-manager/cert-manager-startupapicheck
++++ to/Job/cert-manager/cert-manager-startupapicheck
+@@ -11,8 +11,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: startupapicheck
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-startupapicheck
+   namespace: cert-manager
+ spec:
+@@ -25,8 +25,8 @@
+         app.kubernetes.io/instance: cert-manager
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: startupapicheck
+-        app.kubernetes.io/version: v1.17.2
+-        helm.sh/chart: cert-manager-v1.17.2
++        app.kubernetes.io/version: v1.18.0
++        helm.sh/chart: cert-manager-v1.18.0
+     spec:
+       containers:
+       - args:
+@@ -39,7 +39,7 @@
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.namespace
+-        image: quay.io/jetstack/cert-manager-startupapicheck:v1.17.2
++        image: quay.io/jetstack/cert-manager-startupapicheck:v1.18.0
+         imagePullPolicy: IfNotPresent
+         name: cert-manager-startupapicheck
+         securityContext:
+# MutatingWebhookConfiguration/-/cert-manager-webhook (changed)
+--- from/MutatingWebhookConfiguration/-/cert-manager-webhook
++++ to/MutatingWebhookConfiguration/-/cert-manager-webhook
+@@ -9,8 +9,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook
+ webhooks:
+ - admissionReviewVersions:
+# PodDisruptionBudget/cert-manager/cert-manager (changed)
+--- from/PodDisruptionBudget/cert-manager/cert-manager
++++ to/PodDisruptionBudget/cert-manager/cert-manager
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager
+   namespace: cert-manager
+ spec:
+# Role/cert-manager/cert-manager-startupapicheck:create-cert (changed)
+--- from/Role/cert-manager/cert-manager-startupapicheck:create-cert
++++ to/Role/cert-manager/cert-manager-startupapicheck:create-cert
+@@ -11,8 +11,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: startupapicheck
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-startupapicheck:create-cert
+   namespace: cert-manager
+ rules:
+# Role/cert-manager/cert-manager-tokenrequest (changed)
+--- from/Role/cert-manager/cert-manager-tokenrequest
++++ to/Role/cert-manager/cert-manager-tokenrequest
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-tokenrequest
+   namespace: cert-manager
+ rules:
+# Role/cert-manager/cert-manager-webhook:dynamic-serving (changed)
+--- from/Role/cert-manager/cert-manager-webhook:dynamic-serving
++++ to/Role/cert-manager/cert-manager-webhook:dynamic-serving
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook:dynamic-serving
+   namespace: cert-manager
+ rules:
+# Role/kube-system/cert-manager-cainjector:leaderelection (changed)
+--- from/Role/kube-system/cert-manager-cainjector:leaderelection
++++ to/Role/kube-system/cert-manager-cainjector:leaderelection
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector:leaderelection
+   namespace: kube-system
+ rules:
+# Role/kube-system/cert-manager:leaderelection (changed)
+--- from/Role/kube-system/cert-manager:leaderelection
++++ to/Role/kube-system/cert-manager:leaderelection
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager:leaderelection
+   namespace: kube-system
+ rules:
+# RoleBinding/cert-manager/cert-manager-cert-manager-tokenrequest (changed)
+--- from/RoleBinding/cert-manager/cert-manager-cert-manager-tokenrequest
++++ to/RoleBinding/cert-manager/cert-manager-cert-manager-tokenrequest
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cert-manager-tokenrequest
+   namespace: cert-manager
+ roleRef:
+# RoleBinding/cert-manager/cert-manager-startupapicheck:create-cert (changed)
+--- from/RoleBinding/cert-manager/cert-manager-startupapicheck:create-cert
++++ to/RoleBinding/cert-manager/cert-manager-startupapicheck:create-cert
+@@ -11,8 +11,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: startupapicheck
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-startupapicheck:create-cert
+   namespace: cert-manager
+ roleRef:
+# RoleBinding/cert-manager/cert-manager-webhook:dynamic-serving (changed)
+--- from/RoleBinding/cert-manager/cert-manager-webhook:dynamic-serving
++++ to/RoleBinding/cert-manager/cert-manager-webhook:dynamic-serving
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook:dynamic-serving
+   namespace: cert-manager
+ roleRef:
+# RoleBinding/kube-system/cert-manager-cainjector:leaderelection (changed)
+--- from/RoleBinding/kube-system/cert-manager-cainjector:leaderelection
++++ to/RoleBinding/kube-system/cert-manager-cainjector:leaderelection
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector:leaderelection
+   namespace: kube-system
+ roleRef:
+# RoleBinding/kube-system/cert-manager:leaderelection (changed)
+--- from/RoleBinding/kube-system/cert-manager:leaderelection
++++ to/RoleBinding/kube-system/cert-manager:leaderelection
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager:leaderelection
+   namespace: kube-system
+ roleRef:
+# Service/cert-manager/cert-manager (changed)
+--- from/Service/cert-manager/cert-manager
++++ to/Service/cert-manager/cert-manager
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager
+   namespace: cert-manager
+ spec:
+@@ -16,7 +16,7 @@
+   - name: tcp-prometheus-servicemonitor
+     port: 9402
+     protocol: TCP
+-    targetPort: 9402
++    targetPort: http-metrics
+   selector:
+     app.kubernetes.io/component: controller
+     app.kubernetes.io/instance: cert-manager
+# Service/cert-manager/cert-manager-cainjector (changed)
+--- from/Service/cert-manager/cert-manager-cainjector
++++ to/Service/cert-manager/cert-manager-cainjector
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector
+   namespace: cert-manager
+ spec:
+# Service/cert-manager/cert-manager-webhook (changed)
+--- from/Service/cert-manager/cert-manager-webhook
++++ to/Service/cert-manager/cert-manager-webhook
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook
+   namespace: cert-manager
+ spec:
+# ServiceAccount/cert-manager/cert-manager (changed)
+--- from/ServiceAccount/cert-manager/cert-manager
++++ to/ServiceAccount/cert-manager/cert-manager
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cert-manager
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager
+   namespace: cert-manager
+# ServiceAccount/cert-manager/cert-manager-cainjector (changed)
+--- from/ServiceAccount/cert-manager/cert-manager-cainjector
++++ to/ServiceAccount/cert-manager/cert-manager-cainjector
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: cainjector
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-cainjector
+   namespace: cert-manager
+# ServiceAccount/cert-manager/cert-manager-startupapicheck (changed)
+--- from/ServiceAccount/cert-manager/cert-manager-startupapicheck
++++ to/ServiceAccount/cert-manager/cert-manager-startupapicheck
+@@ -12,7 +12,7 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: startupapicheck
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-startupapicheck
+   namespace: cert-manager
+# ServiceAccount/cert-manager/cert-manager-webhook (changed)
+--- from/ServiceAccount/cert-manager/cert-manager-webhook
++++ to/ServiceAccount/cert-manager/cert-manager-webhook
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook
+   namespace: cert-manager
+# ValidatingWebhookConfiguration/-/cert-manager-webhook (changed)
+--- from/ValidatingWebhookConfiguration/-/cert-manager-webhook
++++ to/ValidatingWebhookConfiguration/-/cert-manager-webhook
+@@ -9,8 +9,8 @@
+     app.kubernetes.io/instance: cert-manager
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: webhook
+-    app.kubernetes.io/version: v1.17.2
+-    helm.sh/chart: cert-manager-v1.17.2
++    app.kubernetes.io/version: v1.18.0
++    helm.sh/chart: cert-manager-v1.18.0
+   name: cert-manager-webhook
+ webhooks:
+ - admissionReviewVersions:

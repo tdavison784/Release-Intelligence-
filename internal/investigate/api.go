@@ -364,6 +364,10 @@ type AgentOutcome struct {
 	// Claims are the agent's verified setting claims; the runner stores them
 	// in Investigation.AgentClaims. CONTRACT-CHANGE(agent): additive.
 	Claims []domain.SettingClaim `json:"claims,omitempty"`
+	// Verdicts are the agent's provisional verdicts (PROTOCOL §8); the runner
+	// stores them in Investigation.AgentVerdicts. They are never an input of
+	// the classifier. CONTRACT-CHANGE(verdict): additive.
+	Verdicts []domain.AgentVerdict `json:"verdicts,omitempty"`
 }
 
 // AnswerLink links agent assertions to the validation record that answers
@@ -473,6 +477,9 @@ const (
 	// environment claim (prompt versions with feature claims).
 	// CONTRACT-CHANGE(agent): additive; not in ToolNames (the base surface).
 	ToolRecordClaim = "record_claim"
+	// ToolGetDossier returns an item's dossier (prompt versions with feature
+	// dossier). CONTRACT-CHANGE(verdict): additive; not in ToolNames.
+	ToolGetDossier = "get_dossier"
 )
 
 // ToolNames lists every tool in a stable order.
@@ -595,6 +602,20 @@ type ReadResult struct {
 	TotalLines int                `json:"totalLines"`
 	Text       string             `json:"text"`
 	Truncated  bool               `json:"truncated,omitempty"`
+	// ReadBack: the withheld values in Text that are a schema enum value,
+	// read back from their redaction digest (the text stays verbatim).
+	ReadBack []ReadBack `json:"readBack,omitempty"`
+}
+
+// ReadBack is one redaction marker read back: the one string enum value the
+// bundle's CRDs declare for the field whose digest the marker is
+// (redaction.Schemas.Recover). CONTRACT-CHANGE(redact): additive.
+type ReadBack struct {
+	Object string `json:"object"`
+	Path   string `json:"path"`
+	Marker string `json:"marker"`
+	Value  string `json:"value"`
+	Note   string `json:"note"`
 }
 
 // ExpandRequest returns the neighbourhood of a node.
@@ -633,6 +654,36 @@ type HypothesisInput struct {
 	Statement  string     `json:"statement"`
 	Subjects   []string   `json:"subjects,omitempty"`
 	Citations  []Citation `json:"citations"`
+	// Mitigation is the structured mitigation the hypothesis proposes
+	// (prompt versions with feature mitigation); stored only when
+	// well-formed. CONTRACT-CHANGE(verdict): additive.
+	Mitigation *MitigationInput `json:"mitigation,omitempty"`
+}
+
+// MitigationInput is a proposed rule in the fact grammar, the environment
+// basis and the verification requested (domain.MitigationSpec without the
+// item, which is the hypothesis's). CONTRACT-CHANGE(verdict): additive.
+type MitigationInput struct {
+	ProposedRule          domain.ProposedRule `json:"proposedRule"`
+	EnvironmentBasis      []string            `json:"environmentBasis"`
+	RequestedVerification string              `json:"requestedVerification"`
+}
+
+// VerdictInput is the agent's provisional verdict on an item (prompt
+// versions with feature verdict). Citations and verified facts that do not
+// resolve are dropped and counted, not rejected. CONTRACT-CHANGE(verdict): additive.
+type VerdictInput struct {
+	Class                domain.FindingClass `json:"class"`
+	Confidence           domain.Confidence   `json:"confidence"`
+	Mechanism            string              `json:"mechanism"`
+	EnvironmentReasoning string              `json:"environmentReasoning"`
+	Citations            []Citation          `json:"citations,omitempty"`
+	VerifiedFacts        []string            `json:"verifiedFacts,omitempty"`
+	Assumptions          []string            `json:"assumptions,omitempty"`
+	Mitigations          []string            `json:"mitigations,omitempty"`
+	Uncertainty          string              `json:"uncertainty,omitempty"`
+	ProposedValidations  []string            `json:"proposedValidations,omitempty"`
+	WouldOverturn        string              `json:"wouldOverturn"`
 }
 
 // AssertionInput records an assertion. ProposedEdge, when set, adds an
@@ -707,6 +758,9 @@ type ItemSummary struct {
 	// Claims names verified setting claims the summary rests on.
 	// CONTRACT-CHANGE(agent): additive.
 	Claims []string `json:"claims,omitempty"`
+	// Verdict is the agent's provisional verdict on the item (prompt versions
+	// with feature verdict). CONTRACT-CHANGE(verdict): additive.
+	Verdict *VerdictInput `json:"verdict,omitempty"`
 }
 
 // ClaimInput states a fact about the environment in structured form; the

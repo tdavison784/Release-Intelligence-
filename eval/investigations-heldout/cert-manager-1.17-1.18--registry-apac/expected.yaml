@@ -1,0 +1,152 @@
+# GROUND TRUTH (blind). Pipeline, agent and policy lanes must not read this file (FLEET.md).
+case: cert-manager-1.17-1.18--registry-apac
+authoredAt: "2026-10-17"
+authoredBy: groundtruth5 lane (blind; upstream sources + observed upgrade in kind only)
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L109-L148"
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. ... Users who want to preserve the old default have two options: 1. Explicitly set `rotationPolicy: Never` on your Certificate resources."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+        lines: "L330-L345"
+        quote: "If set to `Never`, a private key will only be generated if one does not already exist in the target `spec.secretName`. ... If set to `Always`, a private key matching the specified requirements will be generated whenever a re-issuance occurs. Default is `Always`."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/internal/apis/certmanager/v1/defaults.go
+        lines: "L52-L63"
+        quote: "if in.Spec.PrivateKey.RotationPolicy == \"\" { ... defaultRotationPolicy := cmapi.RotationPolicyNever ... if utilfeature.DefaultFeatureGate.Enabled(feature.DefaultPrivateKeyRotationPolicyAlways) { ... defaultRotationPolicy = cmapi.RotationPolicyAlways"
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/controller/certificaterequests/ca/ca.go
+        lines: "L82-L132"
+        quote: "caCerts, caKey, err := kube.SecretTLSKeyPairAndCA(...) ... Certificate: bundle.ChainPEM, CA: bundle.CAPEM,"
+      - url: https://github.com/kyverno/website/blob/f48a36366d98cf093fec7849aad37565a03bac90/content/en/docs/writing-policies/mutate.md
+        lines: "L281"
+        quote: "One of the most common scenarios when mutating resources is to add/change a field to a specified value only if it is not already present. This is done by using the **add** anchor (short for \"add if not present\" anchor) with the notation `+(...)` for the tag."
+    match:
+      - subject: spec.privateKey.rotationPolicy
+      - text: '(?i)rotation ?policy'
+    components:
+      - ref: {file: env/platform/pki/build-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: build-root-ca}
+        classification: not-affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}, relation: deploys}
+          - {ref: {file: env/platform/policies/pki-ca-keys.yaml, kind: ClusterPolicy, name: pki-ca-keys}, field: 'spec.rules[0].mutate', relation: overrides}
+          - {ref: {file: env/platform/pki/build-root-ca.yaml, kind: Certificate, namespace: cert-manager, name: build-root-ca}, field: spec.privateKey.rotationPolicy, relation: consumes-api}
+        reason: >-
+          The root CA manifest sets no rotationPolicy, but the cluster stores it with rotationPolicy
+          Never: the Kyverno ClusterPolicy pki-ca-keys (sync wave 0, before the PKI in wave 1) mutates
+          every Certificate with spec.isCA true at admission and adds rotationPolicy Never when it is
+          absent (observed: repository manifest without the field, stored object with
+          {"rotationPolicy":"Never"}). The setting is persisted in the object, so the changed default
+          never applies to the CA: its renewals on v1.18.0 keep the CA key (observed twice), and the
+          workloads' ca.crt never goes stale. Visible only partly in the environment snapshot: the
+          rendered Certificate does not carry the setting; the policy that adds it does.
+        mitigation: {ref: {file: env/platform/policies/pki-ca-keys.yaml, apiVersion: kyverno.io/v1, kind: ClusterPolicy, name: pki-ca-keys}, field: 'spec.rules[0].mutate.patchStrategicMerge.spec.privateKey', value: "+(rotationPolicy): Never", kind: override}
+        requiredEvidence:
+          - {file: env/platform/policies/pki-ca-keys.yaml, object: ClusterPolicy/pki-ca-keys, field: spec.rules}
+          - {file: env/platform/pki/build-root-ca.yaml, object: Certificate/build-root-ca, field: spec.isCA}
+          - {file: env/clusters/prod/policies.yaml, object: Application/policies, field: metadata.annotations}
+          - {file: env/platform/pki/build-ca-issuer.yaml, object: ClusterIssuer/build-ca, field: spec.ca.secretName}
+      - ref: {file: env/apps/registry/certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: registry, name: artifacts-tls}
+        classification: not-affected
+        reason: No rotationPolicy and not a CA (the policy does not apply), so from v1.18.0 each renewal generates a new key (observed); builders verify it through the CA, nothing pins the key.
+        mitigation: {ref: {file: env/apps/registry/certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: registry, name: artifacts-tls}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/registry/certificate.yaml, object: Certificate/artifacts-tls, field: spec.privateKey}
+      - ref: {file: env/apps/builders/certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: builders, name: builder-tls}
+        classification: not-affected
+        reason: Same as artifacts-tls (new key per renewal from v1.18.0, observed; verified through the CA).
+        mitigation: {ref: {file: env/apps/builders/certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: builders, name: builder-tls}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/builders/certificate.yaml, object: Certificate/builder-tls, field: spec.privateKey}
+  - item: B2
+    classification: not-affected
+    verification: observed
+    observed: [observed/run.log]
+    citations:
+      - url: https://github.com/cert-manager/website/blob/2e32a5efc7a4ef284e271f54ac1b15e800e66fcc/content/docs/releases/release-notes/release-notes-1.18.md
+        lines: "L151-L160"
+        quote: "When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources."
+    match:
+      - subject: spec.revisionHistoryLimit
+      - text: '(?i)revision ?history'
+    components:
+      - ref: {file: env/platform/pki/build-root-ca.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: cert-manager, name: build-root-ca}
+        classification: not-affected
+        reason: No revisionHistoryLimit; old CertificateRequests are garbage collected to one after the upgrade (observed 2 -> 1). Nothing reads them.
+        mitigation: {ref: {kind: CertificateRequest, namespace: cert-manager}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/platform/pki/build-root-ca.yaml, object: Certificate/build-root-ca}
+      - ref: {file: env/apps/registry/certificate.yaml, apiVersion: cert-manager.io/v1, kind: Certificate, namespace: registry, name: artifacts-tls}
+        classification: not-affected
+        reason: Same (observed 2 -> 1); nothing reads CertificateRequests.
+        mitigation: {ref: {kind: CertificateRequest, namespace: registry}, kind: relationship-absent}
+        requiredEvidence:
+          - {file: env/apps/registry/certificate.yaml, object: Certificate/artifacts-tls}
+renderedChanges:
+  - diff:
+      - observed/render.diff#L74-L180
+      - observed/render.diff#L240-L307
+      - observed/render.diff#L325-L423
+      - observed/render.diff#L511-L531
+      - observed/render.diff#L591-L611
+      - observed/render.diff#L615-L635
+    object: "ClusterRole+ClusterRoleBinding cert-manager-controller-challenges"
+    change: "split into cert-manager-http01-controller-challenges and cert-manager-dns01-controller-challenges (same rules; ACME challenge RBAC)"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L678-L693
+      - observed/render.diff#L694-L702
+      - observed/render.diff#L769-L782
+      - observed/render.diff#L783-L801
+      - observed/render.diff#L802-L810
+      - observed/render.diff#L811-L819
+      - observed/render.diff#L820-L828
+      - observed/render.diff#L843-L851
+      - observed/render.diff#L852-L860
+      - observed/render.diff#L861-L872
+      - observed/render.diff#L873-L891
+      - observed/render.diff#L892-L900
+      - observed/render.diff#L901-L909
+      - observed/render.diff#L910-L918
+      - observed/render.diff#L919-L930
+      - observed/render.diff#L931-L939
+      - observed/render.diff#L954-L962
+      - observed/render.diff#L963-L971
+      - observed/render.diff#L972-L983
+      - observed/render.diff#L984-L1002
+      - observed/render.diff#L1003-L1011
+      - observed/render.diff#L1012-L1020
+      - observed/render.diff#L1021-L1029
+      - observed/render.diff#L1030-L1041
+      - observed/render.diff#L1042-L1050
+      - observed/render.diff#L1065-L1076
+      - observed/render.diff#L1077-L1085
+    object: "CustomResourceDefinitions certificates, certificaterequests, challenges, clusterissuers, issuers, orders"
+    change: "description edits and new optional fields (ACME profile, Vault serverName, ...); no field removed"
+    item: null
+    impact: harmless
+  - diff: observed/render.diff#L703-L719
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.privateKey.rotationPolicy description: default documented as Always (was Never); schema unchanged"
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L720-L730
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "spec.revisionHistoryLimit description: default documented as 1 (was unset); schema unchanged"
+    item: B2
+    impact: harmless
+  - diff: observed/render.diff#L731-L754
+    object: "CustomResourceDefinition/certificates.cert-manager.io"
+    change: "new optional field spec.signatureAlgorithm"
+    item: null
+    impact: harmless
+  - diff:
+      - observed/render.diff#L1186-L1201
+      - observed/render.diff#L1202-L1210
+    object: "Deployment/cert-manager/cert-manager-webhook"
+    change: "liveness/readiness probe port 6080 -> named port healthcheck (same port)"
+    item: null
+    impact: harmless
