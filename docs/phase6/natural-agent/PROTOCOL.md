@@ -185,3 +185,31 @@ RI is changed in Phase 0.
 - n = 3 per condition on 3 cases: no reliability claims.
 
 ## Amendments
+
+### A1 — 2026-10-18, before any scored run: redacted values, the C-item texts, and one supplementary condition
+
+**Prompted by** ws6's evidence tables (X-0001, decision D1). No Phase 0 case had been run.
+
+1. **Redacted values (§3).** RI's bundle stores some environment values redacted (`<redacted sha256:…>`), and its
+   renders mask the same fields (`<sensitive sha256:…>`). In P-US this covers `rotationPolicy: Never` on
+   `mesh-root-ca`, the setting that separates P-US from P-EU. RI's agent was not blind to it, though: its read
+   tools return a `readBack` for each marker that is a string enum value its CRD declares
+   (`internal/investigate/agent/withheld.go`). The commander checked the arm-B P-US transcript, which uses that read-back
+   ("the value is redacted but is the digest of \"Never\""). A workspace with RI's bare bytes would therefore give the
+   natural agent less than RI had. **Decision:** the workspace keeps RI's bytes and adds, on every marker line RI
+   reads back, an inline comment carrying RI's own read-back note, with values computed by RI's code (`readback`
+   mode, the default). Markers RI does not read back stay masked. The remaining form difference (a structured field
+   in RI, an inline comment here) is recorded in EVIDENCE.md §6.
+2. **Supplementary condition C-raw.** P-US only, C-whole prompt, 3 repeats, with the environment files and renders
+   as authored (`raw` mode: no markers). It measures whether the redaction markers themselves change the result.
+   **It is reported separately and does not enter any §10 reading rule.** Total runs: 21 natural runs plus the
+   canary.
+3. **C-item texts (§4, §6),** fixed now, verbatim from the workspace's upstream files:
+   - `citem/cert-manager-rotationpolicy.txt`, release-notes-1.18.md L109–L148, sha256 `db602df755f78111…`. Byte
+     identical in P-US and P-EU.
+   - `citem/ingress-nginx-11819.txt`, controller-1.12.0.md L139–L149, sha256 `96d13e4e32a9daae…`.
+4. **Disclosure.** D-EU's `environment.description` (in ORIENTATION.md, per §3) mentions "the service answering the
+   /.well-known/ documents". RI's agent request carried no description. This points attention at the Ingress path
+   behind B3 and is a known difference in arm C's favour on D-EU, to be weighed when D-EU B3 is read. The upstream
+   text in the D-EU workspace does not state the accepted path character set; RUBRIC's "appropriately uncertain"
+   clause for B3 covers that case.
