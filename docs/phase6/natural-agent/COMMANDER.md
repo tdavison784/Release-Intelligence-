@@ -47,3 +47,15 @@ handoffs in Phase 0.
   - The harness stays unchanged for the rest of the autonomous runs (C, C-raw), so conditions are constant. Any
     further H1 runs get the same recovery.
   - Before arm D, `lib.sh` gets absolute-path allow rules for the live `scratch/`, and the canary is re-run.
+
+- X-0003 done: 18 registered runs + 3 C-raw, all extracted. X-0004: commander scores in SCORES.md. Reading rules:
+  - distinguishes: holds (2/3);
+  - avoids the D-EU false-safe: holds narrowly (2/3), and hinges on D-EU C-whole r2 being hedged;
+  - meaningful advantage: holds, conditional on that judgement;
+  - session scope matters: does not hold, since C-item is equal or better.
+  - Transcript attribution: B never read the payments consumers (retrieval / effort allocation). D-EU B3: no arm
+    has the accepted character set in its evidence.
+- H1 fixed after the autonomous runs (absolute rules). canary-h1 PASS 13/13, including write-after-cd. Arm D ready.
+- **Before any push:** runs/canary/{assessment.md,scratch/assessment.md,transcript.jsonl} (merged from ws6,
+  c3af67a9) contain the account email quoted from Claude Code's userEmail reminder. canary-h1 is redacted. Removing
+  it from history needs a rewrite of unpushed commits: ask the product owner.
