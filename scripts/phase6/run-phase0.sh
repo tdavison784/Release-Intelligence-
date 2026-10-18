@@ -25,7 +25,7 @@ for c in "$@"; do
       else
         scripts/phase6/run-natural.sh "$(wsdir $c)" C-whole "$out"; rc=$?
       fi
-      st=$(python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m.get("status"),(m.get("tokens") or {}).get("total", m.get("tokens")) if isinstance(m.get("tokens"),dict) else m.get("tokens"),m.get("costUSD"),m.get("wallSeconds"),"s")' "$out/meta.json" 2>/dev/null)
+      st=$(python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m.get("status"),(m.get("tokens") or {}).get("processed") if isinstance(m.get("tokens"),dict) else m.get("tokens"),m.get("costUSD"),m.get("wallSeconds"),"s")' "$out/meta.json" 2>/dev/null)
       echo "RUN $c $arm r$r rc=$rc $st"
       if [ -s "$out/assessment.md" ]; then scripts/phase6/extract.sh "$out" >/dev/null 2>&1; echo "EXTRACT $c $arm r$r rc=$?"; else echo "EXTRACT $c $arm r$r skipped (no assessment)"; fi
     done
