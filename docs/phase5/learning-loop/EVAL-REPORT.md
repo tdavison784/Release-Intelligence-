@@ -322,3 +322,61 @@ copy is identical to K0. `ri verify` not run.
 Observation, not a conclusion: on this pair the redaction fix made the field values visible and the agent used them (it saw
 mesh-root-ca's explicit setting in us), but the mitigation it identified — an explicit `rotationPolicy: Never` — it
 treated as a remedy ("would overturn"), not as an existing environment property to record as a hypothesis.
+
+## §C1 and Kbad — K1 applied (PROTOCOL §6 step 6)
+
+Binary `bin/ri` built from e9f08c5c (merge of p5-learning-loop 752e030a = code F4 48a87f69 + K1 knowledge; `go build/vet/test
+./...` green; clean). K1 = `scripts/phase5/snapshot.sh 752e030a`, digest `sha256:8942781d…ecde8f` (matches the commander's).
+Promoted fact `vf-e60a2f78af06` supersedes `vf-9b9cfa5c9f5f`. Runs (same 8 cases, same flags as A0-F3, no agent):
+`C1-K1-20261017-e9f08c5c`; Kbad-a…h as `Kbad-<x>-K1-20261017-e9f08c5c` on the mutants built by `kbad.sh` from K1.
+(`kbad.sh` needed one fix in my script: mutation a re-derived a review item id that already exists in K1; the reissue now
+keeps that item. No product code, knowledge or rule was changed.)
+
+**C1 vs A0-F3:** no change on any of the 24 items — class, basis, rule, eligibility, clearances (2, both correct), unsafe
+clearances 0. S5 holds (safety rows identical to A0-F3).
+
+### S1 — FAILS
+payments-us `rotationPolicy` item (ci-86548e9a2300) and the other in-scope item stay `potentially-affected`
+(`classify:plausible-impact`, basis none). The pin rule from `vf-e60a2f78af06` is consulted and **does not hold**:
+rule scope = "Certificate where spec.privateKey.rotationPolicy unset and spec.isCA equals true", every in-scope Certificate
+must set `Never`. In payments-us:
+- `mesh-root-ca` (the CA) sets `Never` explicitly (read back from its CRD enum): satisfies the rule.
+- `checkout-tls` and `ledger-tls` leave rotationPolicy unset, and **whether they are in scope is undecidable**: their
+  `spec.isCA` is unset, no CRD (v1.17.2, v1.18.0, or the rendered CRD) states a schema default for `spec.isCA`, "a controller may
+  default it in code, so only a rule that states what an unset spec.isCA means (a spec.isCA unset/set leaf) decides it".
+  An undecidable object is never excluded, so no pin holds.
+
+Blocking R2 condition: the applicability condition `spec.isCA equals true` is undecidable on the two leaf Certificates
+(unset field without a declared default). Downstream consequences all follow from it: override-inspection returns no pin,
+so the item keeps 14 validation gaps (CRD description change not shown harmless; 12 impact paths uncovered; no clearing
+validation of a controller-behaviour item) and R3 plausible-impact. Nothing else was needed to be examined: the
+failing condition is the first one. Not changed, per instruction.
+
+### S2 — PASSES
+payments-eu: both items remain `potentially-affected` under C1. The record names the failed conditions: in the pin rule's
+scope, `mesh-root-ca` (isCA true) leaves rotationPolicy unset ("not pinned"), and `checkout-tls`/`ledger-tls` are
+undecidable on `spec.isCA` as above. (Expected-affected item is not cleared, as required.)
+
+### S3 — holds, but not discriminating
+No mutant clears anything beyond C1 or any expected-affected item: every Kbad run has exactly the 2 clearances of A0/C1 and
+identical classes to C1. But C1 itself clears nothing new, so the controls cannot show a mutant being *prevented from clearing
+something*. They do show each mutant being refused for its own reason (override-inspection detail, same on eu and us):
+
+| mutant | refusal |
+|---|---|
+| a proxy | "fact vf-e60a2f78af06 is verified only at level proxy: a consensus or proxy fact is never a pin rule" |
+| b refuted | "no verified fact is attached to the item" |
+| c release (1.20.0) | "no verified fact is attached to the item" |
+| d wrong pin | rule evaluated (scope `spec.isCA equals "kbad-wrong-value"`), no pin holds |
+| e superseded | "no verified fact is attached to the item" |
+| f retracted | "no verified fact is attached to the item" |
+| g undecidable | rule evaluated; same isCA undecidability as C1 (so g does not add a distinguishing refusal) |
+| h contradicting fact | "active facts contradict each other … so none of them is a pin rule" |
+
+### Summary
+| criterion | result |
+|---|---|
+| S1 us cleared by the promoted pin | FAIL: `spec.isCA equals true` undecidable on checkout-tls/ledger-tls |
+| S2 eu not cleared, condition named | PASS |
+| S3 negative controls | PASS (vacuous: C1 clears nothing new; mutants refused for their own reasons a–f, h) |
+| S5 safety rows | PASS (identical to A0-F3) |
