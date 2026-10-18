@@ -442,3 +442,11 @@ the separation is for, but it is the reportable risk of the agent arm on this se
 
 ### Hypotheses
 0 recorded in B0 on all 10 cases; nothing to export.
+
+### docs-eu B3 false-safe — transcript trace (read-only; scorer line only, no expected/NOTES/observed)
+
+- **Session:** `inv-62393da594bf`, change item `ci-0e8570d62156` (one bundled "Enable security features by default (#11819)" item; the scorer maps docs-eu B1–B4 all to it: annotation validation, risk level, cross-namespace, **strict path validation = B3**). 6 tool calls: `get_change_item`, one `search_manifest` (grep `nginx.ingress…|pathType|namespace:|kind: Ingress|snippet`, environment files), `read_artifact` of `env/apps/docs/base/ingress.yaml` and `env/clusters/prod/ingress-nginx.yaml`, `record_claim`, `submit_findings`.
+- **Concluded:** `not-affected`, confidence medium: the only Ingress has one low-risk annotation (ssl-redirect), Prefix paths `/` and `/.well-known` "(valid characters)", no cross-namespace references; "the new defaults are inherited, since none of the settings appear in environment files".
+- **Based on:** the two artifact reads above, and one verified claim `clm-b933fda7f685` — `absent: annotations-risk-level` in 12 environment files. That is the only claim for the item.
+- **Not checked:** no claim, validation request or read for the strict path setting, for cross-namespace, or for annotation validation; it never looked up what the new path check accepts (no read of upstream text beyond the item), so "valid characters" for `/.well-known` is the agent's own unverified judgement; the two values files `platform/ingress-nginx/values.yaml`/`values-prod.yaml` named by the Application are not in the bundle (it says so under `uncertainty`/`wouldOverturn`) and it recorded them only as an assumption ("values files do not pin these settings"), yet still concluded not-affected.
+- **Classification: reasoning, not evidence retrieval.** The Ingress paths it judged were retrieved and in hand; the error is applying a rule it never established to them, and treating an unverifiable absence (values files) as clearance. A secondary gap: one claim covers one of four bundled sub-changes. The policy was unaffected (`potentially-affected`, no clearance).
