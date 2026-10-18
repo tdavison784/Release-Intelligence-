@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e42da65009c3",
+    "reviewItemId": "ri-612fd8261e22",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.privateKey.rotationPolicy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Never\"",
+        "after": "\"Always\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "unset"
+            },
+            {
+              "op": "field",
+              "path": "spec.isCA",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.rotationPolicy",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.isCA",
+                  "state": "unset"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.isCA",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A CA Certificate (spec.isCA: true) that does not set spec.privateKey.rotationPolicy now defaults to Always: re-issuing it generates a new CA private key, so leaf certificates it signs afterwards no longer verify against the ca.crt that consumers obtained before (trust breaks until every consumer has the new CA certificate). Non-CA Certificates also rotate their key on re-issuance, which consumers that verify through the CA chain do not observe; this rule does not cover consumers that pin a leaf key.",
+        "remediation": "Set `rotationPolicy: Never` explicitly on CA Certificates, or turn off the feature gate in 1.18 (it is GA in 1.19), before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "Under cert-manager 1.18.0's new rotationPolicy default (Always), only a CA Certificate (spec.isCA: true) that leaves spec.privateKey.rotationPolicy unset changes observably: it gets a new private key when it is re-issued, so consumers holding its previous ca.crt no longer verify leaf certificates it signs afterwards. A non-CA Certificate that leaves the field unset also gets a new key on re-issuance, but a consumer that verifies it through the CA chain does not observe that. Assumption, stated for the reviewer: no consumer pins a leaf key (SPKI pinning or a copied leaf certificate)."
+    },
+    "reviewer": "tdavison784",
+    "reviewerKind": "human",
+    "reason": "I agree with the suggested answer, I think this is good to keep in this state where this setting should always require an engineer signoff there is a good amount of implication that the team should talk about first to ensure this should stay enabled/disabled. So calling it out for an engineer to review is great.",
+    "startedAt": "2026-10-18T01:00:36.910551Z",
+    "decidedAt": "2026-10-18T01:01:19.939101Z",
+    "resultingFact": "vf-e60a2f78af06",
+    "aspects": [
+      "subject",
+      "change",
+      "applicability",
+      "consequence"
+    ],
+    "supersedes": [
+      "vf-9b9cfa5c9f5f"
+    ]
+  }
+}
