@@ -15,9 +15,13 @@
 # Sources come from $P6_EVIDENCE/<case-id> (materialise.sh). Only input.yaml
 # and env/ of the case dir are read.
 #
-# P6_ENV=ri (default): env files carry RI's bytes, i.e. with RI's redactions,
-#   because PROTOCOL §3 leaves out anything RI's agent could not reach.
-# P6_ENV=raw: env files as authored in the case (a later condition, not Phase 0).
+# P6_ENV=readback (default): env files and renders carry RI's bytes, with RI's
+#   redaction markers verbatim; each line holding a marker that RI's read tools
+#   read back (an enum value its CRD declares) gets a YAML comment with RI's
+#   note, computed by RI's own code (readback/main.go). RI's agent got the same
+#   value as a separate readBack field (decision D1, X-0002).
+# P6_ENV=ri: RI's bytes only, no comments (less than RI's agent had).
+# P6_ENV=raw: env files as authored in the case; renders as in ri.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/lib.sh"
@@ -25,7 +29,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 [ $# -eq 2 ] || { echo "usage: $0 <case-dir> <out>" >&2; exit 2; }
 case_dir=$(cd "$1" && pwd)
 out=$2
-mode=${P6_ENV:-ri}
+mode=${P6_ENV:-readback}
+case "$mode" in readback|ri|raw) ;; *) echo "P6_ENV=$mode: readback, ri or raw" >&2; exit 2 ;; esac
 input=$case_dir/input.yaml
 id=$(p6_input "$input" id)
 product=$(p6_input "$input" product)
@@ -39,10 +44,23 @@ case "$(cd "$(dirname "$out")" && pwd)/" in "$repo"/*) echo "workspace must live
 mkdir -p "$out"/{env,upstream,rendered,scratch}
 out=$(cd "$out" && pwd)
 
+# files/: RI's stored bytes, or (readback) RI's bytes with read-back comments.
+files=$ev/files
+if [ "$mode" = readback ]; then
+  tmp=$(mktemp -d "${TMPDIR:-/tmp}/p6-readback.XXXXXX")
+  trap 'rm -rf "${tmp:?}"' EXIT
+  (cd "$repo" && go build -o "$tmp/readback" ./scripts/phase6/readback)
+  { awk -F'\t' 'NR>1 && $4=="environment" {print $1}' "$ev/artifacts.tsv"
+    cut -f3,4 "$ev/renders.tsv" | tr '\t' '\n' | sed '/^$/d'; } | sort -u >"$tmp/paths"
+  set --; while read -r p; do set -- "$@" "$p"; done <"$tmp/paths"
+  "$tmp/readback" -evidence "$ev" -out "$tmp/files" -tsv "$tmp/markers.tsv" "$@"
+  files=$tmp/files
+fi
+
 # env/: every file of the case's environment root, either as RI stored it or
 # decided in env-nonartifact.tsv.
 (cd "$case_dir/${root%/}" && find . -type f | sed 's|^\./||' | sort) | while read -r rel; do
-  stored=$ev/files/env/$rel
+  stored=$files/env/$rel
   if [ -f "$stored" ]; then
     src=$stored; [ "$mode" = raw ] && src=$case_dir/${root%/}/$rel
   else
@@ -79,7 +97,7 @@ while IFS=$'\t' read -r target status from to; do
   if [ -n "$to" ]; then note=""; else to=$from; note=" (rendered once: identical in from.yaml and to.yaml)"; fi
   for side in from to; do
     f=$from; [ $side = to ] && f=$to
-    { echo "# ===== $(describe "$target")$note ====="; cat "$ev/files/$f"; echo; } >>"$out/rendered/$side.yaml"
+    { echo "# ===== $(describe "$target")$note ====="; cat "$files/$f"; echo; } >>"$out/rendered/$side.yaml"
   done
 done <"$ev/renders.tsv"
 (cd "$out" && diff -u --label rendered/from.yaml --label rendered/to.yaml rendered/from.yaml rendered/to.yaml >rendered/manifest.diff || [ $? -eq 1 ])

@@ -49,8 +49,19 @@ line, or the run fails.
 - `MANIFEST.sha256`.
 
 `ORIENTATION.md` is built from `input.yaml` only: product, chart, from/to versions, Kubernetes version and
-`environment.description` verbatim, with no case id and no scope. `env/` files carry RI's stored bytes, which
-include RI's redactions; `P6_ENV=raw` uses the files as authored. A file under the case's `env/` that RI never
+`environment.description` verbatim, with no case id and no scope.
+
+`env/` files and renders carry RI's stored bytes, including RI's redaction markers. The env mode `P6_ENV` sets the
+rest (decision D1, X-0002):
+- `readback` (default): RI's read tools return a `readBack` field for each marker that stands for an enum value
+  its CRD declares. Each line holding such a marker gets RI's note as a YAML comment, for example
+  `rotationPolicy: "<redacted sha256:6300ef800bb8>"  # stored redacted as <redacted sha256:6300ef800bb8>: the
+  digest of "Never", an enum value its CRD declares for spec.privateKey.rotationPolicy (not a credential)`.
+  `scripts/phase6/readback` computes it with RI's own code: the CRDs `bundleSchemas` indexes,
+  `redaction.Schemas.Recover`, and the text of `readBackNote`. Markers RI does not read back stay masked, with no
+  comment. `manifest.diff` is the diff of the annotated renders;
+- `ri`: RI's bytes only, with no comments, which is less than RI's agent had;
+- `raw`: env files as authored; renders as in `ri`. A file under the case's `env/` that RI never
 ingested must be decided in `env-nonartifact.tsv`, or the build fails. Builds are reproducible: the same inputs give
 the same `MANIFEST.sha256`.
 

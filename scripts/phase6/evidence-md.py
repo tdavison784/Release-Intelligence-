@@ -8,7 +8,7 @@ cases.tar.gz (manifest and evidence records only: no findings, claims or
 transcripts), the case's input.yaml and env/, the materialised evidence
 ($P6_EVIDENCE/<case-id>/artifacts.tsv) and the built workspace.
 """
-import hashlib, io, json, os, re, sys, tarfile
+import hashlib, io, json, os, re, subprocess, sys, tarfile, tempfile
 import yaml
 
 case_dir, run_dir, ws = (os.path.abspath(a) for a in sys.argv[1:4])
@@ -35,7 +35,16 @@ for line in open(os.path.join(here, "env-nonartifact.tsv")):
     c, p, d, why = line.rstrip("\n").split("\t")
     if c == cid: nonart[p] = (d, why)
 renders = [l.split("\t") for l in open(os.path.join(evdir, "renders.tsv")).read().splitlines()]
-mode = os.environ.get("P6_ENV", "ri")
+mode = os.environ.get("P6_ENV", "readback")
+
+# Every marker line of the env files and renders RI stored, with what RI's
+# read tools read back (scripts/phase6/readback: RI's own code).
+paths = sorted({p for p in mat if p.startswith("env/")} | {f for r in renders for f in r[2:] if f})
+with tempfile.TemporaryDirectory() as tmp:
+    subprocess.run(["go", "run", "./scripts/phase6/readback", "-evidence", evdir, "-out", os.path.join(tmp, "out"),
+                    "-tsv", os.path.join(tmp, "m.tsv"), "-authored", env_root] + paths,
+                   cwd=os.path.dirname(os.path.dirname(here)), check=True)
+    markers = [l.split("\t") for l in open(os.path.join(tmp, "m.tsv")).read().splitlines()[1:]]
 
 out = []
 w = out.append
@@ -54,7 +63,6 @@ w("RI's agent reached raw sources through `read_artifact`, `search_manifest` and
 w("## 1. Raw sources RI's agent could read as artifacts\n")
 w("| source (RI bundle path) | kind | in workspace | workspace path | sha256 |")
 w("|---|---|---|---|---|")
-redactions = []
 for a in sorted(arts, key=lambda a: a["path"]):
     if a["origin"] == "derived" and not (a["kind"] == "rendered-manifests" and a["path"].startswith("derived/render/env/")):
         continue
@@ -63,14 +71,10 @@ for a in sorted(arts, key=lambda a: a["path"]):
     if a["origin"] == "environment":
         rel = p[len("env/"):]
         wp = "env/" + rel
-        same = os.path.exists(os.path.join(ws, wp)) and sha(os.path.join(ws, wp)) == h
-        authored = sha(os.path.join(env_root, rel))
-        if authored != h:
-            orig = open(os.path.join(env_root, rel)).read().splitlines()
-            stored = open(os.path.join(evdir, "files", p)).read().splitlines()
-            for i, (x, y) in enumerate(zip(orig, stored), 1):
-                if x != y: redactions.append((wp, i, x.strip(), y.strip()))
-        state = ("yes, RI's bytes" if same else "yes, as authored (P6_ENV=raw)") + (" — RI redacted values, §3" if authored != h else "")
+        got = sha(os.path.join(ws, wp))
+        redacted = sha(os.path.join(env_root, rel)) != h
+        state = ("yes, RI's bytes" if got == h else "yes, RI's bytes + read-back comments" if mode == "readback"
+                 else "yes, as authored (P6_ENV=raw)") + (" — RI redacted values, §6" if redacted else "")
         w(f"| `{p}` | {a['kind']} | {state} | `{wp}` | `{short(h)}` |")
     elif a["origin"] == "upstream":
         wp = "upstream/" + p[len(f"upstream/{product}/"):]
@@ -84,7 +88,7 @@ w("")
 # 2. Composite workspace files
 w("## 2. Workspace files built from those sources\n")
 w("| workspace path | built from | sha256 |\n|---|---|---|")
-for f, how in [("rendered/from.yaml", "the FROM side of every environment render target above, in RI's order, each under a `# =====` header naming the target; a target RI found version-independent (not-applicable, FROM only) appears identically in both files"),
+for f, how in [("rendered/from.yaml", "the FROM side of every environment render target above, in RI's order, each under a `# =====` header naming the target; a target RI found version-independent (not-applicable, FROM only) appears identically in both files" + ("; read-back comments as in §6" if mode == "readback" else "")),
                ("rendered/to.yaml", "the TO side, likewise"),
                ("rendered/manifest.diff", "`diff -u` of the two (replaces RI's semantic render diff, which is derived)"),
                ("ORIENTATION.md", "input.yaml: product, chart, from/to version and chart version, Kubernetes version, `environment.description` verbatim; no case id, no scope")]:
@@ -141,23 +145,56 @@ w("\nAlso outside the bundle manifest and not in the workspace: change items, fi
 # 6. Known differences
 w("## 6. Known differences between the two arms' evidence\n")
 n = 1
-if redactions:
-    w(f"{n}. **RI redacted values in environment files and renders.** RI's bundle stores these env files with some "
-      "values replaced, so RI's agent never saw the original values; its renders mask the same fields as "
-      "`<sensitive sha256:…>`. By default the workspace carries RI's bytes (PROTOCOL §3: nothing RI's agent could "
-      "not reach); `P6_ENV=raw` builds the workspace with the files as authored instead. **Commander decision "
-      "(X-0002):** keep RI's bytes for Phase 0, or run as authored. The redacted lines:\n")
-    w("   | file | line | as authored | as RI stored it |\n   |---|---|---|---|")
-    for f, i, x, y in redactions: w(f"   | `{f}` | {i} | `{x}` | `{y}` |")
-    w("")
+# Workspace line of each stored line: env files keep their lines; renders sit
+# under the k-th "# =====" header of rendered/<side>.yaml, in renders.tsv order.
+rows = []
+for p, line, path, marker, value, note, authored in markers:
+    i = int(line)
+    stored = open(os.path.join(evdir, "files", p)).read().splitlines()[i - 1].strip()
+    rb = f'`"{value}"`' if value else "not read back"
+    if p.startswith("env/"):
+        src = open(os.path.join(env_root, p[4:])).read().splitlines()[i - 1].strip()
+        rows.append((p, i, path, f"`{src}`", f"`{stored}`", rb))
+        continue
+    for side in ("from", "to"):
+        k, hl = -1, 0
+        for j, l in enumerate(open(os.path.join(ws, f"rendered/{side}.yaml")).read().splitlines(), 1):
+            if l.startswith("# ===== "):
+                k += 1
+                r = renders[k]
+                if (r[3] if side == "to" and r[3] else r[2]) == p: hl = j
+        if hl:
+            src = f'`"{authored}"` (value in env/)' if authored else "no env/ value has this digest (chart template output)"
+            rows.append((f"rendered/{side}.yaml", hl + i, path, src, f"`{stored}`", rb))
+if rows:
+    back = sum(1 for r in rows if r[5] != "not read back")
+    w(f"{n}. **RI's redaction markers and its read-back (decision D1, X-0002).** RI stores some env values as "
+      "`<redacted sha256:…>` and its renders mask fields as `<sensitive sha256:…>`; RI's agent read those bytes "
+      "verbatim. Its read tools (`read_artifact`, `get_rendered_object`, …) also return a `readBack` list: a "
+      "withheld value that is a string enum value its CRD declares is read back from its digest "
+      "(`redaction.Schemas.Recover`, `internal/investigate/agent/withheld.go`), with the note `stored redacted as "
+      "<marker>: the digest of \"<value>\", an enum value its CRD declares for <path> (not a credential)`. "
+      f"The workspace (env mode `{mode}`) " + {
+        "readback": "keeps RI's bytes, markers verbatim, and appends RI's note, computed by RI's own code "
+                    "(`scripts/phase6/readback`), as a YAML comment to each line whose marker RI reads back; a marker "
+                    "RI does not read back stays masked with no comment.",
+        "ri": "keeps RI's bytes only, without the read-back: less than RI's agent had.",
+        "raw": "has the env files as authored (no markers there) and RI's renders as stored."}[mode] +
+      f" {len(rows)} marker lines, {back} read back:\n")
+    w("   | workspace file | line | field | as authored | as RI stored it | RI read-back |\n   |---|---|---|---|---|---|")
+    for f, i, path, src, stored, rb in sorted(rows, key=lambda r: (not r[0].startswith("env/"), r[0], r[1])):
+        w(f"   | `{f}` | {i} | `{path}` | {src} | {stored} | {rb} |")
+    w("\n   **Remaining difference.** RI gives a read-back value as a separate structured field of the tool result "
+      "(`readBack`: object, path, marker, value, note), next to the verbatim text and only when the window read "
+      "holds the marker; the workspace gives it as an inline YAML comment on the marker's line, wherever the file "
+      "is read (`kubectl kustomize` output drops comments, as it would any). The note's wording is RI's, "
+      "including the marker.\n")
     n += 1
-masked = []
-for f in ("rendered/from.yaml", "rendered/to.yaml"):
-    c = open(os.path.join(ws, f)).read().count("<sensitive sha256:")
-    if c: masked.append(f"`{f}`: {c}")
-if masked:
-    w(f"{n}. **Masked render fields.** RI's renders (and so the workspace's) replace some values with "
-      f"`<sensitive sha256:…>` markers: {', '.join(masked)}. They are RI's bytes in both arms.\n"); n += 1
+else:
+    w(f"{n}. **RI's redaction markers and its read-back (decision D1, X-0002).** None: no env file or render RI "
+      f"stored holds a `<redacted sha256:…>` or `<sensitive sha256:…>` marker, so env mode `{mode}` gives RI's bytes "
+      "unchanged and nothing is read back.\n")
+    n += 1
 desc = bool(request.get("environment", {}).get("description"))
 w(f"{n}. **Environment description.** `ORIENTATION.md` carries `environment.description` verbatim, as PROTOCOL §3 "
   f"prescribes. RI's agent request {'had' if desc else 'had **no**'} description (the arm-B `request.json` holds product, versions, "

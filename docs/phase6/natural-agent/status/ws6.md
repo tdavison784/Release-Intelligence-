@@ -25,20 +25,9 @@ Branch `p6na/ws6`, worktree `.claude/worktrees/p6na-ws6`, ledger X-0001, brief `
 
 ## For the commander (X-0002): decisions and findings
 
-- **D1, decide before any run: RI redacted env values.** RI's bundle stores some env files with values replaced
-  (`<redacted sha256:…>`), and its renders mask the same fields (`<sensitive sha256:…>`):
-  - P-US: `spec.privateKey.algorithm` in three files, and **`rotationPolicy: Never` in
-    `platform/pki/overlays/prod/mesh-root-ca-prod.yaml`**;
-  - P-EU: `algorithm` in three files;
-  - D-EU: none;
-  - shop-de: `server-tokens`.
-
-  RI's agent could not read these values. RI's environment-facts artifact has no `privateKey` entry either.
-  Whether an arm-B dossier conveyed the setting's state is for the commander to check; ws6 did not read arm-B
-  records. Following PROTOCOL §3 ("nothing more than RI had"), workspaces carry RI's bytes by default. `P6_ENV=raw`
-  builds them with the files as authored. The smoke agent noticed the redaction ("redacted in the supplied files, so
-  I could not validate it"). This may matter to the Phase 0 question itself, an evidence cause rather than a
-  session-scope one.
+- **D1: settled at X-0002; implemented in the follow-up below.** RI's bundle stores some env values redacted
+  (`<redacted sha256:…>`), and its renders mask fields (`<sensitive sha256:…>`). RI's agent nevertheless got the
+  enum values back through its read tools' `readBack` field. Workspaces now default to env mode `readback`.
 - **D2.** `env/README.md` is excluded in every case, because RI never ingested it. Generator inputs (`ledger.conf`,
   `content/*`) are included, because RI's renders carry their text and kustomize needs them
   (`scripts/phase6/env-nonartifact.tsv`).
@@ -56,6 +45,47 @@ Branch `p6na/ws6`, worktree `.claude/worktrees/p6na-ws6`, ledger X-0001, brief `
 - **Canary leak check.** The canary's own report quotes the account `userEmail` reminder, which Claude Code attaches
   automatically. No flag removes it, and it carries no instructions. It is committed in `runs/canary/assessment.md`.
 
+## Follow-up X-0002 (D1): read-back
+
+The commander found that RI's read tools read back withheld CRD enum values (`readBack`, from
+`redaction.Schemas.Recover`), so a workspace with RI's bytes alone gave less than RI's agent had.
+
+- **`scripts/phase6/readback/main.go`**, a Go helper under `scripts/`; no RI code changed. It indexes the same CRDs
+  as `bundleSchemas` (CRD artifacts, env files, env renders), parses each document with `render.ParseObjects`,
+  calls `Recover`, and finds each recovered marker's line by field path. It then appends RI's `readBackNote` text,
+  verbatim and including the marker, as a YAML comment. It fails if a recovered marker has no matching line.
+- **`build-workspace.sh`**:
+  - `P6_ENV=readback` is the default: RI's bytes, plus a comment on each line whose marker RI reads back, in
+    `env/` and in `rendered/{from,to}.yaml`. `manifest.diff` is the diff of the annotated renders.
+  - `ri` (bare RI bytes) and `raw` (env as authored, RI's renders) remain available.
+- **Read back:**
+  - P-US: `algorithm` (ECDSA) and `rotationPolicy` (Never), 12 lines;
+  - P-EU: `algorithm`, 9 lines;
+  - shop-de: `server-tokens`, a ConfigMap value with no CRD, so not read back;
+  - D-EU: no markers.
+
+  `cert-manager.io/inject-ca-from-secret` (`<sensitive …>`, chart output) is not read back and stays masked.
+- **EVIDENCE.md §6** has been regenerated for P-US, P-EU and D-EU. It lists every marker with file, line, field,
+  value as authored, value as RI stored it, and RI's read-back value or "not read back". The remaining difference:
+  RI gives the value as a separate structured field, only for the read window, while the workspace gives it as an
+  inline comment.
+- **Workspaces rebuilt** (`MANIFEST.sha256` digest):
+
+  | Workspace | Path | Mode | Digest |
+  |---|---|---|---|
+  | P-US | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us` | readback | `7cb31daa22c2c0ed3a786c30a3acd0ff3e1fc93431ad9e12025fb4bd4718ceb2` |
+  | P-EU | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-eu` | readback | `0e1e4db0274499dfdb2945bce8ce486246f3bf7a6e3d2fbc9ba2449042afa32f` |
+  | D-EU | `~/ri-p6/ws/ingress-nginx-1.11-1.12--docs-eu` | readback | `5aacc2ff7dd206faf6d0c528b878f96e85064f7e98a94c926622a12e6c849da9` (unchanged: no markers) |
+  | P-US raw | `~/ri-p6/ws/cert-manager-1.17-1.18--payments-us.raw` | raw | `e78642e35e2c293fe2a8ece4defdcce51b6b2d73e76c8e43d6de92a7b83c2dc8` |
+
+  - A second P-US build gave the same digest.
+  - shop-de (smoke) rebuilds with an identical digest (`db53ec9f…`), since it has nothing to read back.
+  - The source directory names stay outside the agent's view: `run-natural.sh` copies each workspace to
+    `$P6_LIVE/r-<random>/ws`, so the cwd names no case, arm or mode. No workspace file names the mode.
+  - The comments themselves show that a value was read back, which is the intent.
+- The canary was not re-run, because the isolation flags and `run-natural.sh` are unchanged. No Phase 0 case was
+  run.
+
 ## Decisions (local)
 
 - Workspace, live and evidence dirs live under `~/ri-p6`, outside the repo. Live run copies use random `r-<hex>`
@@ -70,13 +100,14 @@ None. Scripts are under `scripts/phase6/`; records, HARNESS.md and this file are
 
 ## Tests
 
-No Go code changed. `go build ./... && go vet ./... && go test ./...` pass on this branch (2026-10-18).
+No RI code changed; the only Go is `scripts/phase6/readback`. `go build ./... && go vet ./... && go test ./...`
+pass on this branch (2026-10-18, after the follow-up).
 
 ## Cleanup
 
 `bin/` and the scratch state, bundles and test dirs were removed. Kept under `~/ri-p6`, for the commander's runs:
 - `evidence/` (four cases, ~10 MB);
-- `ws/` (four workspaces);
+- `ws/` (five workspaces: three Phase 0 cases in readback mode, P-US raw, and shop-de);
 - `live/r-*` for the canary and the smoke.
 
 No kind cluster or server was started.
