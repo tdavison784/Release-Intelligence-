@@ -70,7 +70,7 @@ None. Scripts are under `scripts/phase6/`; records, HARNESS.md and this file are
 
 ## Tests
 
-No Go code changed. `go build ./... && go vet ./... && go test ./...`: see the final message.
+No Go code changed. `go build ./... && go vet ./... && go test ./...` pass on this branch (2026-10-18).
 
 ## Cleanup
 
