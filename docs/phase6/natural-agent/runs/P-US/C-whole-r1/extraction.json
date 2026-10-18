@@ -1,0 +1,352 @@
+{
+  "mechanisms": [
+    {
+      "name": "Default privateKey.rotationPolicy changes from Never to Always (documented breaking change)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "`ledger-tls` and `checkout-tls` (affected)",
+      "resourcesConsumers": [
+        "Certificate ledger-tls (affected)",
+        "Certificate checkout-tls (affected)",
+        "Certificate mesh-root-ca (NOT affected, by an explicit setting)",
+        "ClusterIssuer mesh-ca",
+        "ledger (nginx mTLS, 2 replicas in prod)",
+        "checkout (curl loop)"
+      ],
+      "mechanism": "Neither leaf Certificate sets rotationPolicy, so both move to Always: every future reissuance, including the routine renewal at 480h of age, generates a new key where today the key is reused. The flip is a change in controller behaviour that does not rewrite Certificate objects or force reissuance when 1.18 starts, so the first key change should appear at each cert's next renewal, not at upgrade (not verified from the repo; to be confirmed in staging). If the root were to rotate, the CA key would change while keeping its subject, and ledger/checkout, which hold ca.crt from the time each leaf was issued, would reject peers signed under the other root key until both sides reissued.",
+      "mitigationOrNoExposure": "mesh-root-ca is protected by an explicit rotationPolicy: Never in the prod overlay ('That one line is what keeps the upgrade safe'), but the protection exists only in the prod overlay; base has no rotationPolicy, so removing or restructuring the patch or pointing Argo at base silently gives Always on the root. For leaf consumers it says they are 'probably fine': checkout re-reads files on every curl call; ledger's nginx loads tls.crt/tls.key only at start or reload and the kubelet swaps the Secret volume atomically, so a restart always sees a matching pair. Leaf public-key pinning is not visible in the repo but cannot be ruled out. Pre-existing problem not caused by the upgrade: nothing reloads ledger's nginx when the Secret changes, so the in-memory cert expires after 30d unless the pod restarts; called the biggest practical risk when exercising renewal.",
+      "citedEvidence": [
+        "the upgrade guide",
+        "the 1.18 release notes",
+        "CRD text in rendered/manifest.diff (\"Default is `Always`… gate `DefaultPrivateKeyRotationPolicyAlways`\")",
+        "env/apps/payments/base/*-certificate.yaml (no rotationPolicy)",
+        "env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml (sets privateKey.rotationPolicy to Never)",
+        "rendered/to.yaml:14032-14035 (field present in final object; same in from.yaml)",
+        "platform/pki/base/mesh-root-ca.yaml (no rotationPolicy)",
+        "ledger nginx config: ssl_verify_client on, ssl_client_certificate /tls/ca.crt"
+      ],
+      "assumptions": [
+        "The flip does not force reissuance at upgrade; first key change at next renewal (could not verify from the repo)",
+        "Repo enum values are redacted digests; the comment saying the digest is of \"Never\" was taken at face value (hash not recomputed because shell access was denied); the render agrees",
+        "Repo is declared as the full source of truth",
+        "Runtime behaviour (reissue timing, nginx reload, pinning) is inferred"
+      ],
+      "missingEvidence": [
+        "Live state of mesh-root-ca: rotationPolicy: Never on the live object, current notAfter, renewBefore and renewal time",
+        "Recomputation of the redacted enum digest",
+        "Confirmation that leaf certs do not reissue merely from the upgrade",
+        "Whether consumers outside the repo (service mesh, WAF, partner allow-lists, HSM or audit systems) pin leaf public keys or fingerprints"
+      ],
+      "recommendedValidation": [
+        "kubectl get certificate mesh-root-ca -o yaml to confirm live object; do not combine a soon-due root renewal with the upgrade",
+        "Staging rehearsal: install 1.18.0 over a 1.17.2 copy with same PKI and payments overlays, run cmctl renew on ledger-tls and checkout-tls; verify a new key is generated, ca.crt in both Secrets unchanged, checkout still reaches ledger, ledger nginx behaviour after Secret change with and without pod restart, and that leaf certs do not reissue merely from the upgrade (check Certificate revision and notBefore before and after)",
+        "Root rotation negative test in staging only: remove the prod patch and confirm what happens on root renewal",
+        "Optionally add a CI check that fails if the prod render of mesh-root-ca lacks rotationPolicy: Never",
+        "Decide gate stance: set rotationPolicy: Never explicitly on the two leaf Certificates or accept Always; config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false is only a short-term workaround as the gate becomes GA in 1.19; make it explicit in manifests before 1.19"
+      ]
+    },
+    {
+      "name": "Default revisionHistoryLimit changes from unset to 1 (documented, \"potentially breaking\")",
+      "claimedClass": "potentially-affected",
+      "claimedClassQuote": "On a payments platform that is plausible.",
+      "resourcesConsumers": [
+        "CertificateRequests for all three Certificates",
+        "audit or compliance tooling outside the repo (export jobs, SIEM)"
+      ],
+      "mechanism": "On upgrade, old CertificateRequest objects for all three Certificates will be garbage-collected, keeping only the latest per Certificate; a one-time deletion.",
+      "mitigationOrNoExposure": "Nothing in the repo reads CertificateRequests, so there is no functional dependency in the repo. Outside tooling that treats CertificateRequests as the record of issuance is plausible on a payments platform. Export history before the upgrade or set revisionHistoryLimit explicitly on the Certificates.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether audit or compliance tooling outside the repo depends on old CertificateRequests"
+      ],
+      "recommendedValidation": [
+        "Ask whether anything depends on old CertificateRequests and export them first if so, or set revisionHistoryLimit explicitly on the Certificates"
+      ]
+    },
+    {
+      "name": "Operational items from the rendered diff (low risk): webhook probes on named port, single replicas, RBAC restructuring, CRD changes, values file",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "cert-manager webhook, controller, cainjector (1 replica each)",
+        "Argo CD sync of pki and payments apps",
+        "ClusterRole cert-manager-controller-challenges and its ClusterRoleBindings",
+        "cert-manager-http01-controller-challenges / cert-manager-dns01-controller-challenges",
+        "cert-manager CRDs",
+        "env/platform/cert-manager/values.yaml"
+      ],
+      "mechanism": "Webhook probes now use named port healthcheck instead of 6080. With single replicas, Certificate and Issuer admission is unavailable while the webhook rolls, so an overlapping Argo sync could see transient admission errors. The old challenges ClusterRole is replaced by http01/dns01 roles, and Argo with prune: true will delete the old pair; any other repo or policy referencing the old ClusterRole name would break. CRD changes (signatureAlgorithm, profile, serverName, short names iss/ciss, doc text) are added.",
+      "mitigationOrNoExposure": "Probes: the container declares containerPort 6080 named healthcheck, so the manifest is internally consistent. Single replicas: sync wave 0 for cert-manager and waves 1 and 2 for pki and payments help, but only in an app-of-apps ordering; no rollout strategy seen in the render, so surge/unavailable settings were not verified. RBAC: both roles serve ACME only, which is not used; no references to the old name found here. CRDs are additive, existing objects are unaffected, and they ship through the chart (crds.enabled: true) with ServerSideApply, so no manual CRD step. Values: every key in use still exists in the v1.18.0 chart values, but only top-level keys were confirmed.",
+      "citedEvidence": [
+        "rendered/to.yaml:12344-12362 (webhook probes)",
+        "values.yaml (replica counts; keys crds.enabled, crds.keep, replicaCount, prometheus.enabled, resources, webhook.replicaCount, cainjector.replicaCount)",
+        "env/clusters/prod/cert-manager.yaml:16 (targetRevision: v1.17.2), sync options ServerSideApply=true, prune: true, selfHeal: true"
+      ],
+      "assumptions": [
+        "Sync wave ordering helps only in an app-of-apps ordering",
+        "Only top-level values keys confirmed"
+      ],
+      "missingEvidence": [
+        "Rollout strategy (surge/unavailable) for the webhook not seen in render",
+        "References to the old ClusterRole name in other repos or policies"
+      ],
+      "recommendedValidation": [
+        "Verify how Argo handles the webhook rollout (single webhook replica) when pki and payments apps sync; run the upgrade in a window with no pending Certificate changes"
+      ]
+    },
+    {
+      "name": "ACME HTTP01 Ingress pathType: Exact (ingress-nginx, OpenShift)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No ACME issuer, no Ingress or Gateway in `env/`.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No ACME issuer, no Ingress or Gateway in env/. The nginx here is the ledger app, not ingress-nginx.",
+      "citedEvidence": [
+        "env/"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "ACME profiles, Cloudflare/Route53 fixes, ACME client fork",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No ACME.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No ACME.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Vault serverName, Venafi URL doc",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No Vault or Venafi issuer.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No Vault or Venafi issuer.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "AdditionalCertificateOutputFormats GA, UseDomainQualifiedFinalizer GA, ValidateCAA removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No feature gates set in values.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No feature gates set in values.",
+      "citedEvidence": [
+        "values"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "OperatorHub discontinued",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Installed via Helm, not OLM.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Installed via Helm, not OLM.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "--extra-certificate-annotations, new metrics, managed-by label on ACME account keys",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Opt-in or ACME only.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Opt-in or ACME only.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "IP address in commonName handling",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "None of the three certs has an IP in commonName.",
+      "resourcesConsumers": [
+        "mesh-root-ca",
+        "ledger-tls",
+        "checkout-tls"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "None of the three certs has an IP in commonName.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "--namespace scoping fix",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not used (no extra args).",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Not used (no extra args).",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "signatureAlgorithm new field",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not set, so the default is unchanged and existing issued certs are not re-evaluated.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Not set, so the default is unchanged and existing issued certs are not re-evaluated. This is the repo-level view; it is not proven at runtime.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "Repo-level view; not proven at runtime"
+      ],
+      "missingEvidence": [
+        "Runtime confirmation"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Security advisory GHSA-8rvj-mm4h-c258 (High): namespace user can create Challenge resources and use a ClusterIssuer's DNS01 credentials",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "not exploitable in this environment as declared",
+      "resourcesConsumers": [
+        "ClusterIssuers (no ACME DNS01 solver present)"
+      ],
+      "mechanism": "A namespace user can create Challenge resources directly and use a ClusterIssuer's DNS01 credentials. Listed as affecting 1.18.0 through 1.20.2; patched in 1.19.6 and 1.20.3; there is no 1.18.x fix, so v1.18.0 and later 1.18 patches remain exposed.",
+      "mitigationOrNoExposure": "Requires an ACME ClusterIssuer with a DNS01 solver and there is none. For planning, v1.18.0 is a stepping stone and the version to stay on is 1.19.6 or later (1.19 makes the rotationPolicy gate GA). If staying on the 1.18 line, v1.18.6 or later is a better target (1.18.6 fixes a Go CVE, 1.18.5 a moderate DoS GHSA-gx3x-vq4p-mhhv).",
+      "citedEvidence": [
+        "GHSA-8rvj-mm4h-c258 advisory page (saved HTML; affected-versions table and description read, not full proof-of-concept)",
+        "release notes for 1.18.1-1.18.6"
+      ],
+      "assumptions": [
+        "Environment as declared in the repo"
+      ],
+      "missingEvidence": [
+        "Whether 1.17.2 is also vulnerable (advisory tested-versions list starts at 1.18.6)",
+        "Full proof-of-concept of the advisory not read"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "1.18.3 fix: Certificate whose issuerRef kind or group was omitted could be re-issued after an upgrade",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "this does not apply",
+      "resourcesConsumers": [
+        "Certificates"
+      ],
+      "mechanism": "A Certificate whose issuerRef kind or group was omitted could be re-issued after an upgrade (the fix mentions upgrading to 1.19.x).",
+      "mitigationOrNoExposure": "Our Certificates set both fields explicitly.",
+      "citedEvidence": [
+        "release notes (1.18.3)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Proceed with conditions. There is no change that must be fixed before upgrading, but it is not safe to just merge. First complete the listed checks and tests: the live mesh-root-ca state, a staging rehearsal of renewal, key pinning, CertificateRequest history, Argo ordering, alerting, the gate stance and a rollback backup. Treat v1.18.0 as a stepping stone toward 1.19.6 or later. If staying on the 1.18 line, prefer v1.18.6 or later.",
+    "quote": "No change that must be fixed before upgrading, but not \"safe to just merge\"."
+  }
+}

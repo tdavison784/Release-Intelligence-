@@ -1,0 +1,15 @@
+We are considering upgrading `ingress-nginx` from `controller-v1.11.5` (Helm chart 4.11.5) to `controller-v1.12.0` (Helm chart 4.12.0). This repository contains the Kubernetes environment that consumes it (`env/`; orientation in `ORIENTATION.md`; upstream documents in `upstream/`; before-and-after renders in `rendered/`). Review the upstream release notes, migration documentation, relevant configuration files, and before-and-after rendered differences. Determine whether the following upstream change, part of this upgrade, breaks this specific environment:
+
+* ⚠️ Enable security features by default (#11819) ⚠️
+
+  This changes the default of the following CLI arguments:
+
+  * `--enable-annotation-validation` gets enabled by default.
+
+  It also changes the default of the following configuration options:
+
+  * `allow-cross-namespace-resources` gets disabled by default.
+  * `annotations-risk-level` gets lowered to "High" by default.
+  * `strict-validate-path-type` gets enabled by default.
+
+ Investigate relevant consumers and configuration relationships. Do not assume that a documented breaking change necessarily affects this environment, or that an unchanged manifest proves runtime compatibility. Explain what is affected, what is not affected, why, and what evidence supports your conclusions. Identify missing information or tests needed before an engineer could confidently proceed. You may inspect relevant files and use the available read-only tools. Do not modify the environment. Write your final assessment to `scratch/assessment.md`.

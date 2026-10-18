@@ -1,0 +1,20 @@
+tool	input	outside-workspace
+Bash	cd /Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws; cat ORIENTATION.md; find . -type f -not -path './.git/*' | head -200	
+Bash	cd /Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env; for f in platform/ingress-nginx/*.yaml clusters/prod/*.yaml apps/docs/overlays/prod/*.yaml apps/docs/base/*.yaml apps/docs/base/content/*; do echo "=== $f"; cat $f; done; cd ../rendered; echo ==== DIFF; cat manifest.diff	../rendered;
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/platform/ingress-nginx/values.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/platform/ingress-nginx/values-prod.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/base/ingress.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/base/wellknown.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/rendered/manifest.diff	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/clusters/prod/ingress-nginx.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/base/kustomization.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/base/docs-site.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/overlays/prod/kustomization.yaml	
+Grep	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/upstream	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/apps/docs/base/content/security.txt	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/env/clusters/prod/docs.yaml	
+Bash	cd /Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/upstream/raw.githubusercontent.com/kubernetes/ingress-nginx; sed -n 85,105p helm-chart-4.12.0/charts/ingress-nginx/values.yaml; sed -n 40,70p main/changelog/controller-1.12.0.md; sed -n 130,160p main/changelog/controller-1.12.0.md; grep -n -i "enab	
+Bash	cd /Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws; sed -n 14,30p upstream/raw.githubusercontent.com/kubernetes/ingress-nginx/helm-chart-4.12.0/charts/ingress-nginx/values.yaml; grep -n -B2 -A14 "args:" rendered/to.yaml | head -50; grep -n -i "failurePolicy\|path\|rules\|ingresses" rendered/to.yaml	
+Bash	cd /Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws; grep -n "^# Object\|^kind:" rendered/to.yaml | tail -30; sed -n 15,50p rendered/to.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/rendered/to.yaml	
+Write	/Users/tommydavison/ri-p6/live/r-dc8711f87acf/ws/scratch/assessment.md	

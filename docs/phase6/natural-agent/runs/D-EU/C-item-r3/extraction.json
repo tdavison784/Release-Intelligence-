@@ -1,0 +1,209 @@
+{
+  "mechanisms": [
+    {
+      "name": "`--enable-annotation-validation` on by default (#11819)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "**No**",
+      "resourcesConsumers": [
+        "`env/apps/docs/base/ingress.yaml` (`docs` Ingress, class `nginx`)",
+        "annotation `nginx.ingress.kubernetes.io/ssl-redirect: \"false\"`",
+        "admission webhook (`admissionWebhooks.enabled: true`)"
+      ],
+      "mechanism": "Annotation validation is now enabled by default, so invalid or disallowed annotations on Ingresses would be rejected.",
+      "mitigationOrNoExposure": "The only annotation is `ssl-redirect: \"false\"`, a valid boolean. It is a low-risk annotation, so it is not rejected by validation or by the risk level. Nothing in the repo overrides `--enable-annotation-validation`, so the new default applies.",
+      "citedEvidence": [
+        "`env/apps/docs/base/ingress.yaml`: annotation `nginx.ingress.kubernetes.io/ssl-redirect: \"false\"`",
+        "`platform/ingress-nginx/values.yaml` and `values-prod.yaml`: no `extraArgs` and no `--enable-annotation-validation`",
+        "`rendered/manifest.diff`: admission webhook stays enabled"
+      ],
+      "assumptions": [
+        "The repo's `docs` Ingress is the only Ingress (the overlay and cluster Applications add no others)",
+        "ORIENTATION says nothing is applied by hand"
+      ],
+      "missingEvidence": [
+        "Other Ingresses or annotations created outside this repo (other teams, controllers, or other clusters' repos reusing the shared `values.yaml`)"
+      ],
+      "recommendedValidation": [
+        "Server-side dry-run (`kubectl apply --dry-run=server` of `apps/docs`) against a staging cluster with the 1.12.0 webhook, confirming the `ssl-redirect` annotation is admitted",
+        "Inventory other Ingresses in the live cluster (`kubectl get ingress -A -o yaml`)"
+      ]
+    },
+    {
+      "name": "`annotations-risk-level` lowered to High (#11819)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "**No**",
+      "resourcesConsumers": [
+        "`docs` Ingress",
+        "annotation `ssl-redirect`"
+      ],
+      "mechanism": "The new default blocks \"Critical\" annotations, such as `configuration-snippet`, `server-snippet` and `auth-snippet`.",
+      "mitigationOrNoExposure": "None of the Critical annotations are used; `ssl-redirect` is low risk. There is no snippet or auth annotation on the Ingress. No `annotations-risk-level` override exists, so the new default applies.",
+      "citedEvidence": [
+        "`env/apps/docs/base/ingress.yaml`: only `ssl-redirect` annotation; no snippet or auth annotation",
+        "`values.yaml`: no `annotations-risk-level`"
+      ],
+      "assumptions": [
+        "No Ingresses beyond the repo's `docs` Ingress (hidden consumers out of scope)"
+      ],
+      "missingEvidence": [
+        "Live-cluster Ingresses not declared in this repo that may use snippet annotations"
+      ],
+      "recommendedValidation": [
+        "Inventory other Ingresses in the live cluster (`kubectl get ingress -A -o yaml`) for snippet annotations"
+      ]
+    },
+    {
+      "name": "`allow-cross-namespace-resources` disabled (#11819)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "**No**",
+      "resourcesConsumers": [
+        "`docs` Ingress",
+        "backends `docs-site` and `wellknown` (namespace `docs`)"
+      ],
+      "mechanism": "This option governs references to Secrets in other namespaces (`auth-secret`, `auth-tls-secret`, `proxy-ssl-secret` and similar); with it disabled, such cross-namespace references would be disallowed.",
+      "mitigationOrNoExposure": "The Ingress has no such annotations, no TLS section and no secret reference. Its backends `docs-site` and `wellknown` are in the same namespace (kustomize sets `docs`).",
+      "citedEvidence": [
+        "`env/apps/docs/base/ingress.yaml`: no TLS section, no secret reference",
+        "kustomize sets namespace `docs`",
+        "`values.yaml`: no `allow-cross-namespace-resources`"
+      ],
+      "assumptions": [
+        "No Ingresses beyond the repo's `docs` Ingress"
+      ],
+      "missingEvidence": [
+        "Live-cluster Ingresses with cross-namespace secret annotations not declared in this repo"
+      ],
+      "recommendedValidation": [
+        "Inventory other Ingresses in the live cluster (`kubectl get ingress -A -o yaml`) for cross-namespace secret annotations"
+      ]
+    },
+    {
+      "name": "`strict-validate-path-type` enabled (#11819)",
+      "claimedClass": "potentially-affected",
+      "claimedClassQuote": "The one residual risk is the `strict-validate-path-type` check",
+      "resourcesConsumers": [
+        "`docs` Ingress paths `/` (Prefix) to `docs-site` and `/.well-known` (Prefix) to `wellknown`",
+        "`wellknown.yaml` / `wellknown-content` ConfigMap (`security.txt`)",
+        "admission webhook",
+        "Argo CD sync of the Ingress",
+        "controller runtime sync"
+      ],
+      "mechanism": "Strict path validation may reject the `/.well-known` path (a segment starting with a dot). If rejected, the failure would show at admission when Argo CD syncs the Ingress; if the controller's runtime sync also applies the check, the Ingress could be skipped and the route would drop.",
+      "mitigationOrNoExposure": "Both paths use `Prefix`, neither is a regex or `ImplementationSpecific`. From memory, strict validation rejects characters outside an alphanumeric, `-`, `_`, `.` and `/` class and regex-like or `//` paths; if so, `/.well-known` passes because `.` is allowed. This was not checked: the supplied upstream files contain only the changelog line. Existing Ingresses are not re-admitted on a controller upgrade. Rollback mitigation: set `controller.config.strict-validate-path-type: \"false\"` or pin chart 4.11.5.",
+      "citedEvidence": [
+        "`env/apps/docs/base/ingress.yaml`: paths `/` and `/.well-known`, both Prefix",
+        "`wellknown.yaml` mounts `wellknown-content` ConfigMap at `/usr/share/nginx/html/.well-known`, holding `security.txt`",
+        "Upstream changelog line (implementation not supplied)",
+        "`rendered/manifest.diff`: admission webhook stays enabled"
+      ],
+      "assumptions": [
+        "The strict validation character class (from memory) allows `.`",
+        "The controller does not rewrite the path"
+      ],
+      "missingEvidence": [
+        "1.12.0 controller source or docs showing the exact path regex",
+        "Whether the controller's runtime sync also applies the check (cannot be settled from the supplied material)"
+      ],
+      "recommendedValidation": [
+        "Server-side dry-run (`kubectl apply --dry-run=server` of `apps/docs`) in staging on 1.12.0, confirming the `/.well-known` Prefix path is admitted",
+        "Inspect the 1.12.0 source or docs for the exact path regex",
+        "Post-upgrade smoke test: fetch `https://docs.example.com/` and `/.well-known/security.txt`; check controller logs for \"invalid\" or \"skipping ingress\"; check the generated nginx.conf contains the `/.well-known` location",
+        "Rollback plan: pin chart 4.11.5 in `clusters/prod/ingress-nginx.yaml`; or set `controller.config.strict-validate-path-type: \"false\"`"
+      ]
+    },
+    {
+      "name": "`--enable-metrics=false` arg disappears (metrics now off by default, #12153)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "there is no impact",
+      "resourcesConsumers": [
+        "metrics / ServiceMonitor / PodMonitor (none configured)"
+      ],
+      "mechanism": "The `--enable-metrics=false` arg is removed from the render because metrics are now off by default.",
+      "mitigationOrNoExposure": "No metrics, ServiceMonitor or PodMonitor are configured here. Anything that scraped the controller would already have been failing.",
+      "citedEvidence": [
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "`allow-snippet-annotations: \"false\"` no longer written to the ConfigMap",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Snippets are not used, and the effective setting is still \"no snippets\" because of the new risk level.",
+      "resourcesConsumers": [
+        "controller ConfigMap"
+      ],
+      "mechanism": "The `allow-snippet-annotations: \"false\"` entry is no longer written to the ConfigMap.",
+      "mitigationOrNoExposure": "Snippets are not used, and the effective setting is still \"no snippets\" because of the new risk level.",
+      "citedEvidence": [
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Admission jobs use `kube-webhook-certgen` v1.5.0 (older than v1.5.2 in the 1.11.5 render)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "admission jobs"
+      ],
+      "mechanism": "The 1.12.0 render's admission jobs use an older certgen image (v1.5.0) than the 1.11.5 render (v1.5.2).",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether the downgrade is intended"
+      ],
+      "recommendedValidation": [
+        "Check that the v1.5.0 versus v1.5.2 discrepancy is intended"
+      ]
+    },
+    {
+      "name": "`runAsGroup` newly set (82 on controller, 65532 on jobs)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "controller",
+        "admission jobs",
+        "any Pod Security or admission policy in the cluster"
+      ],
+      "mechanism": "New `runAsGroup` values on controller and job pods could conflict with cluster Pod Security or admission policy.",
+      "mitigationOrNoExposure": "Described as low risk.",
+      "citedEvidence": [
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Cluster Pod Security or admission policy"
+      ],
+      "recommendedValidation": [
+        "Confirm the new `runAsGroup` values against any Pod Security or admission policy in the cluster"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Proceed with conditions. The engineer judges the upgrade probably safe, but the `/.well-known` path under `strict-validate-path-type` is unverified and needs an admission test (server-side dry-run in staging) before rollout. They also list a source/docs check, a post-upgrade smoke test, an inventory of other Ingresses, checks of the certgen version and `runAsGroup` values, and a rollback plan.",
+    "quote": "Probably not, but one item is unverified. ... It needs a quick admission test before rollout"
+  }
+}

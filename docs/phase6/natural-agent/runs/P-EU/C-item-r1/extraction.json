@@ -1,0 +1,130 @@
+{
+  "mechanisms": [
+    {
+      "name": "Leaf certificates (ledger-tls, checkout-tls): default rotationPolicy flips Never -> Always, so every renewal rotates the key",
+      "claimedClass": "potentially-affected",
+      "claimedClassQuote": "Low to moderate risk.",
+      "resourcesConsumers": [
+        "env/apps/payments/base/ledger-certificate.yaml (ledger-tls)",
+        "env/apps/payments/base/checkout-certificate.yaml (checkout-tls)",
+        "ledger (nginx), which loads /tls/tls.crt and tls.key from a Secret volume",
+        "checkout (curl loop), which rereads its files on every call"
+      ],
+      "mechanism": "Neither leaf Certificate sets spec.privateKey.rotationPolicy, so both inherit the new default Always. After the upgrade, each renewal (about 20 days after each issuance) produces a new private key where it previously reused the old one. ledger (nginx) reads the cert and key only at start or reload, and no reloader is declared, so it keeps serving its old pair until restarted. That was already true with Never, because the certificate changes on renewal either way. A new key only changes the effect if an old key were revoked or distrusted.",
+      "mitigationOrNoExposure": "Nothing changes at upgrade time; the policy only applies when an issuance occurs. Kubelet updates the Secret volume atomically, so a cert/key mismatch within one pod is unlikely. Rotating keys is the intended hardening. ECDSA P-256 key generation is cheap, so there is no performance concern. Recommended: set privateKey.rotationPolicy: Never explicitly before upgrading. Leaf certificates can move to Always later, once ledger and checkout reload their certificates reliably.",
+      "citedEvidence": [
+        "env/apps/payments/base/ledger-certificate.yaml and env/apps/payments/base/checkout-certificate.yaml set only algorithm (ECDSA) and size, with no spec.privateKey.rotationPolicy",
+        "env/platform/cert-manager/values.yaml has no config.featureGates, so DefaultPrivateKeyRotationPolicyAlways stays at its default (enabled in 1.18)",
+        "A grep for rotationPolicy and featureGates outside upstream/ and rendered/ finds nothing",
+        "rendered/manifest.diff: CRD description changes to \"Default is `Always`\"; only controller changes are image tags and the acmesolver image arg; no feature-gate arg is rendered",
+        "The CRD schema has no server-side default; the default is applied in controller logic, so existing Certificate objects are not mutated and no manifest diff appears for them",
+        "Leaf specs: duration 720h, renewBefore 240h (renewal about 20 days after each issuance)",
+        "ledger-deployment.yaml declares no reloader"
+      ],
+      "assumptions": [
+        "Kubelet's atomic Secret volume update makes a cert/key mismatch within one pod unlikely (stated as 'unlikely', not verified)",
+        "A new key only matters if an old key were revoked or distrusted"
+      ],
+      "missingEvidence": [
+        "Live state in prod: Certificate status.revision, notBefore, renewalTime and Secret contents, including when ledger and checkout renew",
+        "Whether ledger gets reloaded when its Secret changes (reloader sidecar, operator); none is declared in ledger-deployment.yaml",
+        "Whether anything else consumes the leaf Secrets (external clients, pinned keys, trust stores, SPKI pinning)",
+        "The upstream default's exact behaviour on existing Secrets, e.g. when the existing key doesn't match the requested algorithm or size"
+      ],
+      "recommendedValidation": [
+        "In a non-prod cluster mirroring this setup, run cmctl renew on a leaf and confirm ledger and checkout behave across the Secret update, including whether nginx needs a reload",
+        "Confirm that applying the Never change through Argo CD produces no re-issuance"
+      ]
+    },
+    {
+      "name": "Root CA (cert-manager/mesh-root-ca): default rotationPolicy flips Never -> Always, so the next renewal creates a new CA key and identity",
+      "claimedClass": "affected",
+      "claimedClassQuote": "This change newly introduces the failure mode.",
+      "resourcesConsumers": [
+        "cert-manager/mesh-root-ca Certificate (env/platform/pki/base/mesh-root-ca.yaml, patched by overlays/prod/mesh-root-ca-prod.yaml)",
+        "mesh-ca ClusterIssuer",
+        "ledger (trusts only ca.crt in its own Secret via ledger.conf)",
+        "checkout (trusts only ca.crt in its own Secret)",
+        "payments mTLS between ledger and checkout"
+      ],
+      "mechanism": "At its next renewal (about 11 months after its last issuance) the root CA gets a new key, which means a new CA identity. Previously it kept the same key and subject with a new validity period, so verifiers that trusted the old certificate still validated chains. Both services trust only the ca.crt in their own Secret. A leaf issued after the rotation carries the new CA in ca.crt and is signed by the new key, while a peer still holding a pre-rotation leaf trusts only the old key. ledger and checkout renew independently with no coordination, so between the two renewals one side presents a certificate the other does not trust. The result is mTLS failures: either checkout fails to verify ledger, or ledger rejects checkout, and checkout would log \"ledger call failed\". The window can last up to about 20 days if the leaf renewals are offset. cert-manager does not re-issue leaves when the issuer CA changes. With a single-CA bundle and no overlap or trust-bundle mechanism, there is no graceful rotation path. Because the root CA renewal is far away, it could surprise someone months after the upgrade.",
+      "mitigationOrNoExposure": "Nothing breaks at upgrade time; the risk is deferred to the next re-issuance. Mitigation: before upgrading, add privateKey.rotationPolicy: Never explicitly to all three Certificates (at minimum the root CA). This keeps today's behaviour exactly and is the documented option 1. Optionally also set config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false as belt-and-braces, but that gate disappears in 1.19 (goes GA), so per-resource Never is the durable choice. Later, design a root CA rotation procedure, e.g. trusting both old and new CA during an overlap, trust-manager, or a coordinated re-issue of ledger and checkout right after the CA rotates.",
+      "citedEvidence": [
+        "env/platform/pki/base/mesh-root-ca.yaml (patched by overlays/prod/mesh-root-ca-prod.yaml, which sets only duration, renewBefore and subject) does not set spec.privateKey.rotationPolicy",
+        "Root CA prod duration 8760h, renewBefore 720h (renewal about 11 months after issuance)",
+        "checkout comment stating it trusts only ca.crt in its own Secret",
+        "ledger.conf: ssl_client_certificate /tls/ca.crt, ssl_verify_client on",
+        "env/platform/cert-manager/values.yaml has no config.featureGates",
+        "rendered/manifest.diff: CRD description \"Default is `Always`\"; no feature-gate arg rendered",
+        "The CRD schema has no server-side default; the default is applied in controller logic, so an unchanged manifest hides a runtime behaviour change"
+      ],
+      "assumptions": [
+        "cert-manager does not trigger leaf re-issuance on issuer CA change (stated by the assessment, not shown as tested)",
+        "The repo is the complete declaration of what runs",
+        "The assessment says it is unclear whether this failure already existed, but reasons that with Never the root CA key stayed the same, so this change newly introduces the failure mode"
+      ],
+      "missingEvidence": [
+        "Live prod state: Certificate status.revision, notBefore, renewalTime and Secret contents. Is the CA near renewal, and when do ledger and checkout renew?",
+        "Whether anything else consumes the mesh-root-ca Secret (external clients, pinned keys, trust stores, SPKI pinning). Nothing in the repo does, but this needs confirming",
+        "The upstream default's exact behaviour on existing Secrets, e.g. when the existing key doesn't match the requested algorithm or size"
+      ],
+      "recommendedValidation": [
+        "In non-prod, install 1.18.0 without the explicit Never, run cmctl renew on mesh-root-ca, confirm the key changes and observe the mTLS failure between ledger and checkout",
+        "Repeat with rotationPolicy: Never set; confirm the key is unchanged and mTLS keeps working",
+        "Confirm that applying the Never change through Argo CD produces no re-issuance (the spec change should not trigger one)"
+      ]
+    },
+    {
+      "name": "Not affected: ClusterIssuers, cert-manager install, algorithm/size settings, other Certificates",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected",
+      "resourcesConsumers": [
+        "ClusterIssuers mesh-ca and selfsigned-bootstrap",
+        "cert-manager install (CRDs crds.keep: true, single replicas, no prometheus)",
+        "algorithm and size settings",
+        "any other Certificate resources under env/"
+      ],
+      "mechanism": "The rotationPolicy default change could in principle apply to other resources or settings in the environment.",
+      "mitigationOrNoExposure": "The ClusterIssuers are not Certificates and have no rotationPolicy. The cert-manager install itself is unaffected by this change. Always regenerates keys with the same specified requirements, so algorithm and size are unaffected. No other Certificate resources exist in the repository, and the repo is stated to be the complete declaration of what runs, so there are no hand-applied certificates.",
+      "citedEvidence": [
+        "Listing of all manifest files under env/",
+        "cert-manager install settings: crds.keep: true, single replicas, no prometheus"
+      ],
+      "assumptions": [
+        "The repo is the complete declaration of what runs, so there are no hand-applied certificates"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Other 1.18 changes seen in the rendered diff: revisionHistoryLimit default now 1, new signatureAlgorithm field, ciss shortName",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated (described as out of scope for this assessment)",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "rendered diff (rendered/manifest.diff)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Not reviewed; these are out of scope here"
+      ],
+      "recommendedValidation": [
+        "These should be reviewed separately"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Proceed with conditions. Before upgrading, add privateKey.rotationPolicy: Never explicitly to all three Certificates (at minimum the root CA), optionally also setting config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false (removed in 1.19). Then, as a separate change, plan deliberate rotation: leaves move to Always once reloads are reliable, and the root CA gets a rotation procedure first. Missing live-state information and the non-prod tests are listed as needed before proceeding.",
+    "quote": "Before upgrading, add `privateKey.rotationPolicy: Never` explicitly to all three Certificates (at minimum the root CA)."
+  }
+}

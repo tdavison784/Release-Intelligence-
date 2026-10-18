@@ -1,0 +1,169 @@
+{
+  "mechanisms": [
+    {
+      "name": "Leaf certs `ledger-tls` and `checkout-tls`: `rotationPolicy` default moving from `Never` to `Always`, so a new private key is generated on each renewal",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "Certificate `ledger-tls`",
+        "Certificate `checkout-tls`",
+        "`ledger` (nginx, `/tls/tls.crt`, `tls.key`, `ca.crt`)",
+        "`checkout` (curl, `/tls/*`)"
+      ],
+      "mechanism": "Duration is 720h and renewBefore is 240h, so these certs renew about every 20 days. Under the new default each renewal generates a new ECDSA P-256 key. Before, the key was reused. The assessment puts this under \"What is affected\", but it does not say this change causes harm.",
+      "mitigationOrNoExposure": "Consumers read the key and certificate from the same Secret volume. The Secret is updated in one write and the kubelet swaps the mount atomically, so a key/cert mismatch is unlikely. nginx loads certificates only at start or reload. A renewal already changes the certificate today, so this is not new, and the new key doesn't add a failure mode. Nothing pins the public key or key hash, and no such pins were found in `env/`.",
+      "citedEvidence": [
+        "No Certificate in `env/` sets `privateKey.rotationPolicy`",
+        "`env/platform/cert-manager/values.yaml` has no `config.featureGates`, so the `DefaultPrivateKeyRotationPolicyAlways` gate stays at its default (on) in 1.18.0",
+        "duration 720h, renewBefore 240h",
+        "No public-key or key-hash pins found in `env/`"
+      ],
+      "assumptions": [
+        "A key/cert mismatch is unlikely because the Secret is updated in one write and the kubelet swaps the mount atomically",
+        "The repo is stated to be complete"
+      ],
+      "missingEvidence": [
+        "Issuance dates of the two leaf certs (`status.notBefore`, `renewalTime`)",
+        "Whether anything outside this repo pins keys, such as a monitoring probe or a trust store",
+        "Whether nginx and curl pick up a changed Secret without a restart (nginx needs a reload and no reloader exists in this repo)"
+      ],
+      "recommendedValidation": [
+        "Staging: confirm that `cmctl renew` on a leaf certificate changes its key",
+        "Confirm in staging whether nginx/curl pick up a changed Secret without a restart",
+        "Check `kubectl get certificate -o wide`, `status.notBefore`, `renewalTime`"
+      ]
+    },
+    {
+      "name": "Root CA `mesh-root-ca`: new key pair and new root certificate on its first renewal under 1.18",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Do not upgrade as-is without a mitigation",
+      "resourcesConsumers": [
+        "Certificate `mesh-root-ca` (isCA, duration 8760h in prod, renewBefore 720h, self-signed by `selfsigned-bootstrap`)",
+        "ClusterIssuer `mesh-ca`",
+        "`ledger` (nginx, `ssl_client_certificate /tls/ca.crt`, `ssl_verify_client on`)",
+        "`checkout` (`curl --cacert /tls/ca.crt`)",
+        "`ledger-tls`",
+        "`checkout-tls`"
+      ],
+      "mechanism": "On its first renewal under 1.18, `mesh-root-ca` gets a new key pair and a new root certificate. Under 1.17 it kept the same key. `mesh-ca` starts signing with the new key and the CA Secret's `ca.crt` changes. Each service trusts only the `ca.crt` in its own leaf Secret, which is a copy of the CA from that service's last issuance. Nothing reissues leaf certs when the CA changes, and the leaves renew on independent schedules. After the root rotates, a service that has renewed holds a cert signed by the new CA and trusts only the new root. A service that hasn't renewed holds a cert signed by the old CA and trusts only the old root. The handshake fails in both directions, so ledger and checkout can't talk until both have renewed. A window of up to roughly 20 days is possible. Any CA key rotation does this, so the risk is not new in kind. What changes is that rotation previously never happened automatically, and now it is a scheduled event with no overlap or bundle handling in this design. The first root renewal falls at about 8040h (~335 days) after the current root was issued. This is a delayed outage risk, not a break at upgrade time.",
+      "mitigationOrNoExposure": "No current mitigation in place. The proposed mitigations are to set `privateKey.rotationPolicy: Never` on `mesh-root-ca` (or on all three Certificates), optionally with the feature-gate stopgap, until a CA-rotation plan exists (trust bundle with old and new roots, then staged leaf reissuance).",
+      "citedEvidence": [
+        "`mesh-root-ca` (base and prod overlay) does not set `privateKey.rotationPolicy`",
+        "`ledger.conf` sets `ssl_client_certificate /tls/ca.crt` and `ssl_verify_client on`",
+        "`checkout` runs `curl --cacert /tls/ca.crt`",
+        "`env/platform/cert-manager/values.yaml` has no `config.featureGates`",
+        "`rendered/manifest.diff` shows only the CRD description change (`Default is Always ... can be disabled via --feature-gates=DefaultPrivateKeyRotationPolicyAlways=false`) and no Deployment argument change; an unchanged manifest does not mean unchanged runtime behavior",
+        "Argo CD app `clusters/prod/cert-manager.yaml` pins `targetRevision: v1.17.2`, with automated sync and selfHeal"
+      ],
+      "assumptions": [
+        "The repo is stated to be complete",
+        "The ~20-day failure window and the ~335-day timing are estimates; the current root's issuance date is not in the repo"
+      ],
+      "missingEvidence": [
+        "Issuance date of the live `mesh-root-ca` (`status.notBefore`, `renewalTime`)",
+        "Whether any other consumer of `ca.crt` or the CA exists outside this repo",
+        "Whether the Argo CD cert-manager Application controls controller args, so the feature-gate change takes effect as a Helm value"
+      ],
+      "recommendedValidation": [
+        "Staging: install 1.18.0, run `cmctl renew` on `mesh-root-ca`, and check that ledger and checkout fail mTLS until both leaf certs are reissued",
+        "`kubectl get certificate -o wide`, `status.notBefore`, `renewalTime` for `mesh-root-ca`",
+        "Confirm the Argo CD cert-manager Application controls controller args"
+      ]
+    },
+    {
+      "name": "The upgrade itself / Argo syncing the new chart",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The upgrade itself.",
+      "resourcesConsumers": [
+        "Argo CD app `clusters/prod/cert-manager.yaml`",
+        "Certificates `ledger-tls`, `checkout-tls`, `mesh-root-ca`"
+      ],
+      "mechanism": "Whether the upgrade or the Argo sync would rotate keys or trigger reissuance.",
+      "mitigationOrNoExposure": "No key is rotated by the upgrade or by Argo syncing the new chart. The Certificate specs are unchanged, so nothing triggers reissuance by itself, and the new default only applies when an issuance occurs.",
+      "citedEvidence": [
+        "Certificate specs unchanged",
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "ClusterIssuers `mesh-ca` and `selfsigned-bootstrap`",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "unaffected directly",
+      "resourcesConsumers": [
+        "ClusterIssuer `mesh-ca`",
+        "ClusterIssuer `selfsigned-bootstrap`"
+      ],
+      "mechanism": "Whether the rotation-policy default change applies to the ClusterIssuers directly.",
+      "mitigationOrNoExposure": "The ClusterIssuers have no key-rotation setting.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Key algorithm/size and other issuance parameters",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "the key type does not change",
+      "resourcesConsumers": [
+        "Certificates `ledger-tls`, `checkout-tls`, `mesh-root-ca`"
+      ],
+      "mechanism": "Whether key type, SANs, usages, or durations change.",
+      "mitigationOrNoExposure": "Key algorithm and size are explicitly set (ECDSA/256). Issuance, SANs, usages, and durations are unchanged.",
+      "citedEvidence": [
+        "Key algorithm and size explicitly set (ECDSA/256)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "CRD change: `revisionHistoryLimit` now defaults to 1 (other 1.18.0 diffs)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "Noted as a separate change in `rendered/manifest.diff`; declared out of scope and not evaluated.",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "`rendered/manifest.diff`"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Do not upgrade as-is. Proceed only with one of two mitigations: (1) set `privateKey.rotationPolicy: Never` explicitly on all three Certificates, optionally with `config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false` in `values.yaml` as a stopgap (the gate disappears in 1.19); or (2) keep `Always` on the leaf certificates and set `Never` on `mesh-root-ca` until a CA-rotation plan exists. The assessment suggests option 2.",
+    "quote": "Do not upgrade as-is without a mitigation (see Recommendation)."
+  }
+}

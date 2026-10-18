@@ -1,0 +1,396 @@
+{
+  "mechanisms": [
+    {
+      "name": "1.12.0 is older than 1.11.5 in security terms (security fixes in 1.11.5 backport missing from 1.12.0)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Going to 1.12.0 would drop those fixes.",
+      "resourcesConsumers": [
+        "admission webhook (enabled in values.yaml)",
+        "public-facing cluster docs-prod-eu"
+      ],
+      "mechanism": "1.11.5 lists \"Controller: Several security fixes. (#13070)\". The 1.12.0 changelog was cut earlier (newest entries Dec 2024) and has no such entry. 1.11.5 was released after 1.12.0 as a backport, so going to 1.12.0 would drop those fixes. The README support matrix shows 1.12.x as no longer supported.",
+      "mitigationOrNoExposure": "No mitigation. The cluster has the admission webhook enabled and is public-facing. Recommendation: target at least 1.12.1 (chart 4.12.1), preferably a supported line, 1.13.x or later, and re-run the review against that target.",
+      "citedEvidence": [
+        "changelog/controller-1.11.5.md:13 \"Controller: Several security fixes. (#13070)\"",
+        "1.12.0 changelog (newest entries Dec 2024, no such entry)",
+        "upstream/.../main/README.md:70-78 (1.12.x without 🔄 marker)",
+        "README.md lines 52-69 (1.13.x+ supported, list Kubernetes 1.31)",
+        "values.yaml (admission webhook enabled)"
+      ],
+      "assumptions": [
+        "From the author's own knowledge, not from the supplied files: the fixes cover the March 2025 ingress-nginx CVEs, including CVE-2025-1974, and landed in 1.11.5 and 1.12.1. Could not be confirmed from the repo."
+      ],
+      "missingEvidence": [
+        "Upstream advisory confirming the CVE coverage",
+        "Changelog for 1.13+ (not supplied); 1.13+ has its own breaking changes that were not reviewed"
+      ],
+      "recommendedValidation": [
+        "Verify the CVE claim against the upstream advisory",
+        "Decide the real target version (at least 1.12.1, or preferably 1.13+) and redo the render and diff for it"
+      ]
+    },
+    {
+      "name": "Controller image v1.11.5 -> v1.12.0",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "ingress-nginx controller Deployment"
+      ],
+      "mechanism": "The intended upgrade (image change in the rendered diff).",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Runtime compatibility not proven; checks are static only"
+      ],
+      "recommendedValidation": [
+        "Staging or canary run before production"
+      ]
+    },
+    {
+      "name": "--enable-metrics=false arg removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No change in behavior.",
+      "resourcesConsumers": [
+        "controller args",
+        "controller.metrics.enabled"
+      ],
+      "mechanism": "The arg is removed from the rendered controller args.",
+      "mitigationOrNoExposure": "1.12.0 defaults --enable-metrics to off (#12153). controller.metrics.enabled is false in both chart versions, and nothing in env/ enables it.",
+      "citedEvidence": [
+        "rendered/manifest.diff",
+        "#12153",
+        "chart values (controller.metrics.enabled false in both versions)",
+        "env/"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "allow-snippet-annotations: \"false\" removed from the ConfigMap (open item)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Likely no change in behavior.",
+      "resourcesConsumers": [
+        "ingress-nginx ConfigMap",
+        "anyone able to create Ingresses"
+      ],
+      "mechanism": "The key disappears from the rendered ConfigMap even though the chart's allowSnippetAnnotations: false is the same in both values files. Either the 1.12.0 chart omits the key when it is false, or the controller default changed. If the controller default is not false, snippets would become allowed. That would be a security-posture change, because anyone able to create Ingresses could use snippets.",
+      "mitigationOrNoExposure": "Nothing in the repo uses snippets, so there is no functional break today.",
+      "citedEvidence": [
+        "rendered/manifest.diff",
+        "chart values files (allowSnippetAnnotations: false in both)"
+      ],
+      "assumptions": [
+        "The controller's snippet default is from knowledge or inference, not from the supplied files"
+      ],
+      "missingEvidence": [
+        "The supplied files don't say whether the chart omits the key or the controller default changed"
+      ],
+      "recommendedValidation": [
+        "Confirm with the chart template or kubectl get cm on staging"
+      ]
+    },
+    {
+      "name": "runAsGroup: 82 added (controller), 65532 (certgen jobs)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "controller pod",
+        "certgen jobs"
+      ],
+      "mechanism": "runAsGroup added to the security context.",
+      "mitigationOrNoExposure": "The controller image's www-data is already gid 82, per the 4.12.0 values comment. Rated \"Low risk.\"",
+      "citedEvidence": [
+        "4.12.0 values comment",
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "Verify the pod starts"
+      ]
+    },
+    {
+      "name": "kube-webhook-certgen v1.5.2 -> v1.5.0 (downgrade; open item)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "admission webhook cert create and patch jobs",
+        "Argo CD hooks",
+        "Ingress admission"
+      ],
+      "mechanism": "The chart pins an older certgen version, so this is a downgrade. It affects the admission webhook cert jobs only. The webhook is enabled, so a failed job would block or break Ingress admission.",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether v1.5.2 fixed anything that matters"
+      ],
+      "recommendedValidation": [
+        "Check whether v1.5.2 fixed anything that matters",
+        "Confirm the create and patch jobs still complete under Argo CD hooks"
+      ]
+    },
+    {
+      "name": "strict-validate-path-type now on by default",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not expected to be rejected.",
+      "resourcesConsumers": [
+        "apps/docs/base/ingress.yaml (Prefix paths / and /.well-known)"
+      ],
+      "mechanism": "Strict path-type validation could reject Ingress paths. This is the most relevant item because the .well-known path contains a dot.",
+      "mitigationOrNoExposure": "Both paths use only characters that strict validation allows (letters, ., -, /).",
+      "citedEvidence": [
+        "apps/docs/base/ingress.yaml"
+      ],
+      "assumptions": [
+        "The contents of the strict path-type regex are from knowledge or inference, not from the supplied files"
+      ],
+      "missingEvidence": [
+        "Could not test; the validation regex is not in the supplied upstream files"
+      ],
+      "recommendedValidation": [
+        "Staging run: admission webhook accepts the docs Ingress and rejects a bad one; controller log has no admission or validation errors"
+      ]
+    },
+    {
+      "name": "--enable-annotation-validation on by default, and annotations-risk-level lowered to High",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "docs Ingress annotation nginx.ingress.kubernetes.io/ssl-redirect"
+      ],
+      "mechanism": "Annotation validation and the risk level could reject annotations.",
+      "mitigationOrNoExposure": "The only annotation is nginx.ingress.kubernetes.io/ssl-redirect: \"false\". It is a valid boolean and low risk.",
+      "citedEvidence": [
+        "apps/docs/base/ingress.yaml"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "Check that the ssl-redirect: \"false\" behavior is unchanged: HTTP is not redirected"
+      ]
+    },
+    {
+      "name": "allow-cross-namespace-resources disabled by default",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "docs-site backend",
+        "wellknown backend",
+        "docs namespace"
+      ],
+      "mechanism": "Cross-namespace resource references would no longer be allowed.",
+      "mitigationOrNoExposure": "Both backends are in the Ingress's own docs namespace. No cross-namespace secrets or auth references exist.",
+      "citedEvidence": [
+        "apps/docs/base/ingress.yaml"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Global rate-limit removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "env/"
+      ],
+      "mechanism": "Global rate-limit removed.",
+      "mitigationOrNoExposure": "No global-rate-limit* config keys or annotations anywhere in env/.",
+      "citedEvidence": [
+        "env/"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "plugins / 3rd-party Lua removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "Plugins and 3rd-party Lua removed.",
+      "mitigationOrNoExposure": "No plugins key and no custom Lua.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "ingress_upstream_latency_seconds metric removed, and metrics disabled by default",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected in this repo.",
+      "resourcesConsumers": [
+        "ServiceMonitor / PrometheusRule (none in env/)",
+        "external dashboards or alerts (unknown)"
+      ],
+      "mechanism": "A metric is removed and metrics are off by default.",
+      "mitigationOrNoExposure": "Metrics are already off, and there is no ServiceMonitor or PrometheusRule in env/.",
+      "citedEvidence": [
+        "env/"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Any dashboards or alerts outside this repo are unknown"
+      ],
+      "recommendedValidation": [
+        "Identify external consumers: monitoring, dashboards or alerts based on removed metrics, and any log parsing that depends on the controller's log format"
+      ]
+    },
+    {
+      "name": "OpenTelemetry init container and image removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "OpenTelemetry init container and image removed.",
+      "mitigationOrNoExposure": "No OpenTelemetry settings are present.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "s390x dropped",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Unlikely.",
+      "resourcesConsumers": [
+        "node pools"
+      ],
+      "mechanism": "Only an s390x node pool would be affected.",
+      "mitigationOrNoExposure": "Assessed as unlikely.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "The platform's node architectures aren't stated"
+      ],
+      "missingEvidence": [
+        "The platform's node architectures"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "PSP removed from the chart (#11971)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected.",
+      "resourcesConsumers": [
+        "PSP resources"
+      ],
+      "mechanism": "The chart no longer renders PSP resources.",
+      "mitigationOrNoExposure": "Kubernetes 1.31 has no PSP, and no PSP resources were rendered before or after, so the removal has no effect on the diff.",
+      "citedEvidence": [
+        "rendered/manifest.diff",
+        "#11971"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Shared and prod values keys removed or renamed between 4.11.5 and 4.12.0",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "None of these keys was removed or renamed between 4.11.5 and 4.12.0, as far as the supplied files show",
+      "resourcesConsumers": [
+        "values.yaml",
+        "values-prod.yaml",
+        "ingressClassResource",
+        "use-forwarded-headers",
+        "proxy-body-size",
+        "hsts-max-age",
+        "admission webhook",
+        "replicas",
+        "Service (LoadBalancer, externalTrafficPolicy: Local)",
+        "resources"
+      ],
+      "mechanism": "Values keys used by the environment could have been removed or renamed in the chart.",
+      "mitigationOrNoExposure": "None of the keys used was removed or renamed, as far as the supplied files show.",
+      "citedEvidence": [
+        "values.yaml",
+        "values-prod.yaml",
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "The author checked the rendered diff and the values files, not an exhaustive values diff"
+      ],
+      "missingEvidence": [
+        "Exhaustive values diff"
+      ],
+      "recommendedValidation": [
+        "Staging: X-Forwarded-* headers behave the same, with use-forwarded-headers and the externalTrafficPolicy: Local client IP",
+        "A request with a body over 8m returns 413",
+        "HSTS header is present",
+        "GET / and GET /.well-known/security.txt return 200 with the expected content"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Do not proceed with the 1.12.0 target. No documented breaking change appears to break the environment, but 1.12.0 is a security regression from 1.11.5. Target at least 1.12.1 (chart 4.12.1), preferably 1.13.x or later. Re-run the review, render and diff against that target. Before production: a staging run, live cluster drift checks, rollout and PDB checks, external consumer checks, and a rollback plan (pin back to 4.11.5 in Git). Argo CD auto-sync means merging rolls the change out to prod immediately, with no manual gate.",
+    "quote": "I do not recommend this specific target. 1.12.0 is a security regression from 1.11.5, and a better target exists"
+  }
+}
