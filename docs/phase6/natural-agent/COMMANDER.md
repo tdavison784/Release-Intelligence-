@@ -8,7 +8,7 @@ handoffs in Phase 0.
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| ws6 | ri-ws6 | Opus | p6na/ws6 | .claude/worktrees/p6na-ws6 | (set at start) | started |
+| ws6 | ri-ws6 | Opus | p6na/ws6 | .claude/worktrees/p6na-ws6 | w1:t21 | started 2026-10-18 |
 
 ## Merge log
 
