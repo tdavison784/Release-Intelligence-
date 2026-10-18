@@ -1,0 +1,396 @@
+{
+  "mechanisms": [
+    {
+      "name": "Storefront `configuration-snippet` vs. the new security defaults (\"Enable security features by default (#11819)\": `--enable-annotation-validation` on by default, `annotations-risk-level` lowered to \"High\")",
+      "claimedClass": "affected",
+      "claimedClassQuote": "One breaking change very likely affects this environment",
+      "resourcesConsumers": [
+        "storefront Ingress (env/apps/storefront/overlays/prod/ingress-headers.yaml)",
+        "shop.example.com host",
+        "admission webhook (failurePolicy: Fail on Ingress CREATE and UPDATE)",
+        "Argo CD sync / self-heal",
+        "PCI-required HSTS and X-Frame-Options: DENY headers",
+        "other shop clusters sharing values.yaml"
+      ],
+      "mechanism": "v1.12.0 changes the default `annotations-risk-level` to `High`, and snippet annotations are classified Critical, so the High level excludes them regardless of `allow-snippet-annotations: true` (which only gates whether snippets are permitted at all). The assessment expects the controller to reject or ignore the annotation. The change is a binary default, not a manifest change, so the unchanged rendered manifest does not show unchanged behavior. Likely consequences: the webhook could reject a sync of the storefront Ingress, including an Argo self-heal. When new pods start they re-evaluate the existing Ingress, so the storefront host may lose its configuration or only the security headers. That would be a PCI regression and possibly an outage. Argo CD sync would show errors or drift, though the controller rollout itself can still succeed.",
+      "mitigationOrNoExposure": "No current mitigation: `allowSnippetAnnotations: true` does not prevent it. Fix options for the owner to decide (the first is a security-owner decision because of PCI): set `controller.config.annotations-risk-level: Critical`, which keeps the snippet working and keeps snippets enabled; or replace the snippet with `add-headers` / `custom-headers` (ConfigMap-based) or `more_set_headers` in a controller-level `server-snippet` / `location-snippet`, which needs its own review.",
+      "citedEvidence": [
+        "env/apps/storefront/overlays/prod/ingress-headers.yaml sets nginx.ingress.kubernetes.io/configuration-snippet (HSTS, X-Frame-Options: DENY); its file comment says the PCI review requires these headers",
+        "env/platform/ingress-nginx/values.yaml:7 allowSnippetAnnotations: true",
+        "rendered ConfigMap carries allow-snippet-annotations: \"true\" in both versions",
+        "changelog/controller-1.12.0.md, \"Enable security features by default (#11819)\"",
+        "rendered/manifest.diff shows no ConfigMap change and no --enable-annotation-validation arg in either version",
+        "chart value enableAnnotationValidations false (4.11.5, line 20) to true (4.12.0, line 24), with no visible arg in the render"
+      ],
+      "assumptions": [
+        "The conclusion is inferred from upstream behavior the author knows of. It is not proven by the files supplied.",
+        "Snippet annotations are classified Critical (to be confirmed).",
+        "The existing Ingress is re-evaluated when the new controller pods start."
+      ],
+      "missingEvidence": [
+        "Upstream annotation docs and annotations-risk-level ConfigMap docs are not in upstream/",
+        "Controller source is not in the provided files",
+        "No staging run: Bash was denied, so the author could not run anything",
+        "Only prod is covered by the renders"
+      ],
+      "recommendedValidation": [
+        "Staging test of the storefront Ingress on 1.12.0 with production values: check that the webhook admits it, inspect the generated nginx config for shop.example.com, confirm curl -I returns HSTS and X-Frame-Options; repeat after a controller pod restart",
+        "Confirm the exact risk classification of configuration-snippet and the behavior of existing Ingresses in 1.12.0",
+        "Check staging 1.12.0 controller logs for \"risky annotation\" or validation messages",
+        "Decide the header strategy with the security/PCI owner",
+        "Check the other shop clusters that share values.yaml",
+        "Change the chart version and the risk-level setting together in one PR and keep a rollback path (revert targetRevision to 4.11.5)",
+        "Watch the first Argo sync closely (selfHeal/prune on, webhook failurePolicy: Fail)"
+      ]
+    },
+    {
+      "name": "`--enable-metrics` now defaults to false (#12153)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Behavior is the same.",
+      "resourcesConsumers": [
+        "controller metrics",
+        "out-of-repo scrape configs and alerts"
+      ],
+      "mechanism": "The rendered diff removes `--enable-metrics=false`, and the binary default becomes false.",
+      "mitigationOrNoExposure": "`values.yaml` already has `metrics.enabled: false`, and nothing in `env/` has a ServiceMonitor or Prometheus config.",
+      "citedEvidence": [
+        "rendered diff removes --enable-metrics=false",
+        "values.yaml metrics.enabled: false",
+        "no ServiceMonitor or Prometheus config in env/"
+      ],
+      "assumptions": [
+        "The cluster is described as fully declared in this repo, but monitoring may be in another one"
+      ],
+      "missingEvidence": [
+        "Out-of-repo scrape configs, alerts and dashboards not checked"
+      ],
+      "recommendedValidation": [
+        "Check for anything outside this repo that relies on controller metrics: ServiceMonitors, Prometheus scrape jobs, alerts, dashboards"
+      ]
+    },
+    {
+      "name": "`allow-cross-namespace-resources` off",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Neither Ingress references resources in another namespace.",
+      "resourcesConsumers": [
+        "storefront Ingress",
+        "catalog-api Ingress"
+      ],
+      "mechanism": "Cross-namespace resource references are disabled by default.",
+      "mitigationOrNoExposure": "The Ingresses use no auth, TLS or secret annotations, and each backend Service is in the Ingress's own namespace (kustomize sets the namespace).",
+      "citedEvidence": [
+        "the two app Ingresses in env/apps"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "Check that no other Ingress outside the two apps uses the ingress class"
+      ]
+    },
+    {
+      "name": "`strict-validate-path-type` on",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Paths are `/` and `/v1`, both `Prefix`, and valid.",
+      "resourcesConsumers": [
+        "storefront Ingress",
+        "catalog-api Ingress"
+      ],
+      "mechanism": "Strict path-type validation is enabled by default.",
+      "mitigationOrNoExposure": "Paths are `/` and `/v1`, both `Prefix`, and valid.",
+      "citedEvidence": [
+        "Ingress paths / and /v1 (Prefix)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Removed global-rate-limit options and annotations",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not used anywhere in `env/`.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "The global-rate-limit options and annotations are removed.",
+      "mitigationOrNoExposure": "Not used anywhere in `env/`.",
+      "citedEvidence": [
+        "env/"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Removed `plugins` (3rd-party Lua)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not configured.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "Third-party Lua plugins support is removed.",
+      "mitigationOrNoExposure": "Not configured.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "`ingress_upstream_latency_seconds` metric removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Metrics are disabled.",
+      "resourcesConsumers": [
+        "external dashboards"
+      ],
+      "mechanism": "The metric is removed.",
+      "mitigationOrNoExposure": "Metrics are disabled.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "External dashboards not checked"
+      ],
+      "recommendedValidation": [
+        "Check external dashboards"
+      ]
+    },
+    {
+      "name": "OpenTelemetry init container removed",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "OTel is not configured here.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "The chart no longer uses an OpenTelemetry init container.",
+      "mitigationOrNoExposure": "The module is built into the image, and OTel is not configured here.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Pod Security Policy removed from the chart",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Kubernetes 1.31 has no PSP, and no PSP resources appear in the render.",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "PSP templates are removed from the chart.",
+      "mitigationOrNoExposure": "Kubernetes 1.31 has no PSP, and no PSP resources appear in the render.",
+      "citedEvidence": [
+        "rendered manifests (no PSP resources)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "`s390x` dropped",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not affected, with reasons",
+      "resourcesConsumers": [
+        "cluster nodes"
+      ],
+      "mechanism": "The s390x architecture is no longer supported.",
+      "mitigationOrNoExposure": "Node architecture is likely amd64 or arm64 (not confirmed).",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "Architecture of the nodes is not stated. Likely amd64 or arm64."
+      ],
+      "missingEvidence": [
+        "Node architecture"
+      ],
+      "recommendedValidation": [
+        "Confirm the node architecture"
+      ]
+    },
+    {
+      "name": "CORS \"allow any protocol\" (#11153)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "This is a relaxation of validation, not a restriction.",
+      "resourcesConsumers": [
+        "catalog-api Ingress",
+        "api.shop.example.com/v1"
+      ],
+      "mechanism": "CORS origin validation is relaxed to allow any protocol.",
+      "mitigationOrNoExposure": "The catalog-api sets `enable-cors: \"true\"` with no `cors-allow-origin`, so the origin list is not customised, and the change is a relaxation of validation. A behavioral check is still advisable.",
+      "citedEvidence": [
+        "catalog-api enable-cors: \"true\" with no cors-allow-origin"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Behavioral check not done"
+      ],
+      "recommendedValidation": [
+        "Test CORS preflight on api.shop.example.com/v1 before and after"
+      ]
+    },
+    {
+      "name": "Rendered label and version changes",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Cosmetic.",
+      "resourcesConsumers": [
+        "all rendered objects"
+      ],
+      "mechanism": "`app.kubernetes.io/version` and `helm.sh/chart` change on every object.",
+      "mitigationOrNoExposure": "The changes are cosmetic.",
+      "citedEvidence": [
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Controller `securityContext` gains `runAsGroup: 82`; jobs gain `runAsGroup: 65532`",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "controller pods",
+        "certgen jobs"
+      ],
+      "mechanism": "New runAsGroup settings appear in the render (listed under \"low risk, verify\").",
+      "mitigationOrNoExposure": "The image already runs as uid 101 / gid 82 (upstream comment, values.yaml:39), and no fsGroup, PSA label or admission policy in env/ conflicts with this.",
+      "citedEvidence": [
+        "values.yaml:39 upstream comment",
+        "rendered manifests"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Cluster-level policy (Kyverno, Gatekeeper, PSA namespace labels) is not visible in the repo"
+      ],
+      "recommendedValidation": [
+        "Confirm any cluster admission policy on runAsGroup"
+      ]
+    },
+    {
+      "name": "`kube-webhook-certgen` v1.5.2 → v1.5.0 (downgrade)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "certgen Helm hook Jobs (pre-install,pre-upgrade)",
+        "Argo CD hook phases",
+        "cert Secret",
+        "webhook caBundle"
+      ],
+      "mechanism": "The version goes down even though the changelog says \"Bump Kube Webhook CertGen\". The Jobs are Helm hooks, which Argo CD maps to its own hook phases (listed under \"low risk, verify\").",
+      "mitigationOrNoExposure": "It is the chart's pinned version and works with Kubernetes 1.31.",
+      "citedEvidence": [
+        "changelog \"Bump Kube Webhook CertGen\"",
+        "rendered manifests"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Known issues for v1.5.0 not checked"
+      ],
+      "recommendedValidation": [
+        "Look for known issues",
+        "Confirm the Job completes and that the cert Secret and webhook caBundle are consistent",
+        "Confirm digest-pinned images are mirrored if using a private registry"
+      ]
+    },
+    {
+      "name": "`maxUnavailable` / PDB / rollout",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "controller pods (replicaCount: 2)"
+      ],
+      "mechanism": "Under the default rolling update, old (1.11.5) and new (1.12.0) pods serve at the same time during the rollout. Pods have terminationGracePeriodSeconds: 300.",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "replicaCount: 2",
+        "terminationGracePeriodSeconds: 300"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "`server-tokens` value",
+      "claimedClass": "insufficient-evidence",
+      "claimedClassQuote": "redacted in the supplied files, so I could not validate it",
+      "resourcesConsumers": [
+        "values.yaml"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "not stated",
+      "citedEvidence": [
+        "values.yaml (server-tokens redacted)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "The server-tokens value (redacted)"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Do not proceed as-is. Before upgrading: resolve the storefront snippet issue (risk-level change or another header mechanism, decided with the security/PCI owner), run the staging test, then change the chart version and the risk-level setting together in one PR with a rollback path, and watch the first Argo sync closely.",
+    "quote": "Do not upgrade as-is."
+  }
+}
