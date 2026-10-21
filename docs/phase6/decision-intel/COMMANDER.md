@@ -8,9 +8,15 @@ handoffs (every item is `providers: [claude]`).
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
-| consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | started 2026-10-20 (D-0001) |
+| consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
 
 ## Merge log
+
+- 2026-10-21 `3634f501` Merge lane consumer (D-0001). Build, vet and test green (46 packages).
+  - Commander review: the code is generic. The path matcher is absolute paths in ConfigMap data under the same
+    container's mounts; product words appear only in test fixtures and in a test asserting the v9 prompt has none.
+  - One change requested and made (dfa574ea): v8 stays the default until the M1 gate.
+  - Lane cleanup: agent exited, tab closed, worktree removed, `branch -d`.
 
 ## Decisions
 
@@ -22,10 +28,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `consumer` running (D-0001). On LANE DONE:
-   - review for generic logic;
-   - merge;
-   - run GATE-M1 §2 (D-0002), score it, write M1-RESULT.md (D-0003).
+1. D-0002 running: `scripts/phase6/run-m1-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m1`, run ids
+   `C1-K0-20261021-3634f501-v9-r{1,2,3}`. K0 digest matches B0.
+2. Then: score per GATE-M1, compare with B0, write M1-RESULT.md (D-0003).
 
 ## Notes
 
