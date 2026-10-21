@@ -36,9 +36,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. M1 attempt 3 is running: scratch `$CLAUDE_JOB_DIR/tmp/m1c`, run ids `C1-K0-20261021-e59f89c8-v9-r{1,2,3}`, consumer
-   rules v3. Then score it per GATE-M1, append to M1-RESULT.md, and check classification against B0.
-2. The product owner audits the scores and decides on the gate (D-0003).
+1. **The product owner audits M1 attempt 3** (M1-RESULT.md) and decides the gate (D-0003). Open question: verdict
+   calibration (should the agent state a scoped conclusion?).
+2. **On a met gate:**
+   - write PLAN-M2 (lane-safe) and GATE-M2 (D-0004): strict-path semantics and global advisories, absorbing X-0009;
+   - decide whether v9 becomes the default prompt (it is pinned at v8 until the M1 gate).
+3. **Scratch:** the attempt scratch dirs are deleted; the runs are saved under `eval/investigations/results/C1-K0-20261021-*`.
 
 ## Notes
 
