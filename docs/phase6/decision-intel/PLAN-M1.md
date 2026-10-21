@@ -10,7 +10,7 @@ ConfigMap, although both were in its bundle. Its reads were greps for acme, http
 Four causes, all in the code:
 
 1. **The trace is not representable.** The relationship graph records Certificate → Secret (`produces`) and
-   Secret → workload (`references`, via volumes and env: `relations/edges.go:373-412`). It does not record **where**
+   Secret → workload (`references`, via volumes and env: `internal/investigate/relations/edges.go:373-412`). It does not record **where**
    a Secret is mounted (`volumeMounts[].mountPath`, projected keys), and nothing links a config file to the mounted
    key it reads. `ledger.conf` is not even its own artifact: it exists only inside the rendered ConfigMap
    `ledger-nginx` (`art-1df346a0c673`). The decisive hop, `ssl_client_certificate /tls/ca.crt` → Secret
@@ -50,8 +50,8 @@ All changes are additive; v1–v8 prompts stay byte-frozen (`prompt_v8_test.go:4
 
 | # | Change | Where | Grounding |
 |---|---|---|---|
-| 1 | **Mount detail on edges.** Record container, `mountPath`, `subPath`, `items[].key→path` and projected sources in each Secret/ConfigMap → workload `references` edge's `Detail` | `relations/edges.go` `podRefs` | rendered workload spec |
-| 2 | **File-path references.** For a ConfigMap mounted into a workload, find absolute paths in its data values that fall under another volume's `mountPath` in the same pod. Record an edge ConfigMap → Secret/ConfigMap key (`reads-file`, with key, line and excerpt). Generic path matching, no product knowledge. Paths that match no mount become unresolved edges | `relations/edges.go`, new edge kind in `domain/investigation.go:1143` | rendered ConfigMap + pod spec |
+| 1 | **Mount detail on edges.** Record container, `mountPath`, `subPath`, `items[].key→path` and projected sources in each Secret/ConfigMap → workload `references` edge's `Detail` | `internal/investigate/relations/edges.go` `podRefs` | rendered workload spec |
+| 2 | **File-path references.** For a ConfigMap mounted into a workload, find absolute paths in its data values that fall under another volume's `mountPath` in the same pod. Record an edge ConfigMap → Secret/ConfigMap key (`reads-file`, with key, line and excerpt). Generic path matching, no product knowledge. Paths that match no mount become unresolved edges | `internal/investigate/relations/edges.go`, new edge kind in `domain/investigation.go:1143` | rendered ConfigMap + pod spec |
 | 3 | **`trace_consumers` tool.** Given an object (side from/to), return the chain: produced Secrets → workloads mounting them (container, path, keys) → config that reads those paths, with an artifact id and line for every hop, plus an explicit `gaps` list (unresolved refs, objects outside the bundle) | new tool next to `expandGraph` (`tools_read.go:479`), `api.go:476`, `session.go:621` | edges 1 and 2 |
 | 4 | **Dossier consumers.** List each exposed object's consumers and their chains deterministically, not just counts | `dossier.go:1307` `relations()` | edges 1 and 2 |
 | 5 | **Prompt v9.** Per-item mode kept (mission B1). Feature `mitigation:false`. The B2 eight-question checklist. Consumers via `trace_consumers` first. The verified / inferred / unknown discipline: model memory is never evidence (mission A1). Mitigation and consistency instructions removed | `prompts/investigate-agent/v9/` | — |
