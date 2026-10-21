@@ -8,6 +8,7 @@ handoffs (every item is `providers: [claude]`).
 
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
+| consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | started 2026-10-20 (D-0001) |
 
 ## Merge log
 
@@ -21,8 +22,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Start lane `consumer` (D-0001): worktree `.claude/worktrees/p6di-consumer`, branch `p6di/consumer`, Opus.
-2. On LANE DONE:
+1. Lane `consumer` running (D-0001). On LANE DONE:
    - review for generic logic;
    - merge;
    - run GATE-M1 §2 (D-0002), score it, write M1-RESULT.md (D-0003).
+
+## Notes
+
+- 2026-10-20: the first `herdr agent start` lost its first keystroke to oh-my-zsh's update prompt (`laude: command not
+  found`). The retry worked. If a new pane shows that prompt, wait for the shell before starting the agent.
