@@ -34,6 +34,7 @@ type consumerFixture struct {
 	config   domain.ArtifactRef // env file holding the ConfigMap
 	deploy   domain.ArtifactRef // env file holding the Deployment
 	toRender domain.ArtifactRef
+	overlay  domain.ArtifactRef // configGeneratedRendered: the overlay's render
 }
 
 const (
@@ -96,7 +97,75 @@ spec:
   secretName: billing-tls
 `
 
+// fixtureConfig is how the fixture declares billing's configuration.
+type fixtureConfig int
+
+const (
+	// configObject: a ConfigMap manifest (config.yaml).
+	configObject fixtureConfig = iota
+	// configGenerated: a kustomize configMapGenerator whose source file
+	// (app.ini) the snapshot lacks, as it lacks every non-YAML file.
+	configGenerated
+	// configGeneratedRendered: configGenerated, and the overlay's render (a
+	// version-independent overlay: one render, both sides) holds the
+	// generated object under its hash-suffixed name.
+	configGeneratedRendered
+)
+
+const consumerKustomization = `apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: shop
+resources:
+  - credential.yaml
+  - deployment.yaml
+configMapGenerator:
+  - name: billing-config
+    files:
+      - app.ini
+`
+
+// consumerOverlayRender is kustomize's output for apps/billing.
+const consumerOverlayRender = `apiVersion: v1
+data:
+  app.ini: |
+    [tls]
+    key_file = /etc/billing/tls/tls.key
+    log = /var/log/billing/app.log
+kind: ConfigMap
+metadata:
+  name: billing-config-5g7k9b2mdh
+  namespace: shop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing
+  namespace: shop
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        volumeMounts:
+        - mountPath: /etc/billing/tls
+          name: tls
+        - mountPath: /etc/billing/conf
+          name: conf
+      volumes:
+      - name: tls
+        secret:
+          secretName: billing-tls
+      - configMap:
+          name: billing-config-5g7k9b2mdh
+        name: conf
+`
+
 func newConsumerFixture(t *testing.T) *consumerFixture {
+	t.Helper()
+	return newConsumerFixtureWith(t, configObject)
+}
+
+func newConsumerFixtureWith(t *testing.T, mode fixtureConfig) *consumerFixture {
 	t.Helper()
 	ctx := context.Background()
 	st, err := store.New(t.TempDir())
@@ -141,7 +210,11 @@ func newConsumerFixture(t *testing.T) *consumerFixture {
 	}
 	cred := envFile("apps/billing/credential.yaml", consumerCredential)
 	f.deploy = envFile("apps/billing/deployment.yaml", consumerDeploy)
-	f.config = envFile("apps/billing/config.yaml", consumerConfig)
+	if mode == configObject {
+		f.config = envFile("apps/billing/config.yaml", consumerConfig)
+	} else {
+		f.config = envFile("apps/billing/kustomization.yaml", consumerKustomization)
+	}
 	envArts := []domain.ArtifactRef{cred, f.deploy, f.config}
 	factsArt := put(investigate.ArtifactSpec{Kind: domain.ArtifactEnvironmentFacts, Path: "derived/env/facts.json", Origin: domain.OriginDerived,
 		MediaType: "application/json", URI: "ri:env@v1", Producer: "test.snapshot@v1"}, []byte(`{"name":"shop"}`))
@@ -182,6 +255,13 @@ func newConsumerFixture(t *testing.T) *consumerFixture {
 	pair := domain.ManifestPair{Scope: domain.RenderEnvironment, Target: target, From: fromRef.ID, To: f.toRender.ID, Diff: diffRef.ID,
 		Status: domain.CollectionOK, Changes: []domain.RenderedChange{rc}}
 	renders := &investigate.RenderResult{Pairs: []domain.ManifestPair{pair}, Artifacts: []domain.ArtifactRef{fromRef, f.toRender, diffRef}}
+	if mode == configGeneratedRendered {
+		f.overlay = put(investigate.ArtifactSpec{Kind: domain.ArtifactRenderedManifests, Path: "derived/render/env/kustomize-apps-billing/from.yaml", Origin: domain.OriginDerived,
+			MediaType: "application/yaml", URI: "ri:renderdiff@v1", Producer: "test.render@v1"}, []byte(consumerOverlayRender))
+		renders.Pairs = append(renders.Pairs, domain.ManifestPair{Scope: domain.RenderEnvironment, Target: "kustomize:apps/billing", From: f.overlay.ID,
+			Status: domain.CollectionNotApplicable, Reason: "version-independent: the overlay does not deploy keystore, so the upgrade does not change what it renders"})
+		renders.Artifacts = append(renders.Artifacts, f.overlay)
+	}
 	b, err := bundle.NewAssembler(st).Assemble(ctx, change, snapRes, renders)
 	must(t, err)
 	must(t, st.PutBundle(ctx, b))
