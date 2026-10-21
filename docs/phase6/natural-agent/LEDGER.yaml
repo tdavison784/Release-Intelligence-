@@ -64,3 +64,21 @@ items:
     depends: [X-0007]
     providers: [claude]
     glm-executable: false
+  - id: X-0009
+    title: "RI fix: a security regression in the candidate version must produce a concrete safer target (D-EU: 1.12.1, not 1.12.0)"
+    kind: product-fix
+    decision-rights: user
+    status: ready
+    providers: [claude]
+    glm-executable: false
+    note: >-
+      Product owner, 2026-10-20: the D-EU write-up was good, but RI had to request the upgrade to 1.12.1 instead; engineers
+      expect that. Root cause: internal/github/advisories.go reads only GET /repos/{o}/{r}/security-advisories, which is 0
+      for kubernetes/ingress-nginx. The global DB (GET /advisories?affects=k8s.io/ingress-nginx) holds GHSA-mgvx-rpfc-9mpv
+      (CVE-2025-1974, critical) plus 4 more, each `< 1.11.5 || >= 1.12.0-beta.0, < 1.12.1`, so 1.11.5 is clean and
+      1.12.0 is affected. internal/upgrade/advisories.go rule advisory:affects-target would have fired, but it only says
+      "Consider upgrading to a patched release instead". Fix: (1) ingest global advisories too (by package/ecosystem or
+      source_code_location); (2) name the lowest release on the target's line at or above the target that is outside every
+      range affecting it but not From (here 1.12.1 / chart 4.12.1), as the recommended change; (3) report separately what is
+      already exposed in From and stays unfixed on that line (CVE-2026-1580/24512/24514: < 1.13.7, so all of 1.12.x;
+      fully patched needs >= 1.13.7). Not to be applied to the Phase 0 arms (frozen); D-EU then becomes a regression case.

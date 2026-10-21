@@ -79,3 +79,18 @@ P-US, C-whole prompt, environment files and renders as authored (no redaction ma
 
 Reading: no visible effect of the markers at n = 3, consistent with RI's read-back having given the values all
 along. Redaction is not a Phase 0 cause.
+
+## Product-owner finding: the candidate version is a security regression (outside the rubric)
+
+D-EU's candidate, 1.12.0, predates 1.11.5. Five GitHub advisories, among them GHSA-mgvx-rpfc-9mpv (CVE-2025-1974,
+critical, admission webhook RCE), affect `< 1.11.5 || >= 1.12.0-beta.0, < 1.12.1`. The upgrade as framed would
+re-expose a webhook that this environment enables. The answer engineers expect: change the target to 1.12.1 (chart
+4.12.1). The product owner rated this the main miss, ahead of the B3 scoring.
+
+- RUBRIC lists only the four parts of #11819, so no arm is scored on this.
+- C-whole r1 and r2 called the upgrade a security regression. r2 led with weak evidence: an entry missing from a
+  changelog. Its target was "a later 1.12.x or 1.13/1.14", not a named version.
+- No C-item run and not the RI agent (arm B) raised it.
+- RI root cause and fix: LEDGER X-0009. RI already has rule `advisory:affects-target`, but it ingests only
+  repository-level advisories. There are none for kubernetes/ingress-nginx; the advisories sit in GitHub's global
+  database.
