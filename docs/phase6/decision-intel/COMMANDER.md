@@ -10,7 +10,7 @@ handoffs (every item is `providers: [claude]`).
 |---|---|---|---|---|---|---|
 | consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
 | consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | done, merged, closed 2026-10-21 |
-| consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | started 2026-10-21 (D-0006) |
+| consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | done, merged, closed 2026-10-21 |
 
 ## Merge log
 
@@ -23,6 +23,9 @@ handoffs (every item is `providers: [claude]`).
 - 2026-10-21 `6f5de003` Merge lane consumer2 (D-0005): consumer rules v2. A generated ConfigMap takes its data
   from the render; there are no silent drops. Build, vet and test green (46). The non-test code is generic. Lane closed.
 
+- 2026-10-21 `e59f89c8` Merge lane consumer3 (D-0006): consumer rules v3, pod-spec paths. Build, vet and test green (46).
+  The non-test code is generic. v1 and v2 graphs are pinned by golden files. Lane closed.
+
 ## Decisions
 
 - 2026-10-20 (product owner): Phase 6 continues under the decision-intel mission. "We continue using the fleet
@@ -33,12 +36,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `consumer3` is running (D-0006): pod-spec paths. On LANE DONE:
-   - review for generic logic;
-   - merge, then build, vet and test;
-   - close the lane;
-   - run attempt 3 (`run-m1-gate.sh <new scratch> 3`);
-   - score it, append to M1-RESULT.md, and check classification against B0.
+1. M1 attempt 3 is running: scratch `$CLAUDE_JOB_DIR/tmp/m1c`, run ids `C1-K0-20261021-e59f89c8-v9-r{1,2,3}`, consumer
+   rules v3. Then score it per GATE-M1, append to M1-RESULT.md, and check classification against B0.
 2. The product owner audits the scores and decides on the gate (D-0003).
 
 ## Notes
