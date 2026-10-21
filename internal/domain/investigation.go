@@ -1153,12 +1153,18 @@ const (
 	EdgeConsumesAPI EdgeKind = "consumes-api" // api type → object of that type
 	EdgeProduces    EdgeKind = "produces"     // custom resource → object its controller creates (declared relationship rule)
 	EdgeDependsOn   EdgeKind = "depends-on"   // dependency → dependent (generic, last resort)
+	// EdgeReadsFile: a Secret/ConfigMap mounted into a pod → the ConfigMap
+	// holding configuration that names a file path under its mountPath in the
+	// same container (File says which key, line and mount). Built only by the
+	// consumer mode of the graph builder (relations.WithConsumers).
+	// CONTRACT-CHANGE(consumer): additive.
+	EdgeReadsFile EdgeKind = "reads-file"
 )
 
 // EdgeKinds lists every kind.
 var EdgeKinds = []EdgeKind{
 	EdgeDeploys, EdgeRendersTo, EdgeConfigures, EdgeOverrides, EdgeReferences, EdgeSelects,
-	EdgeServesAPI, EdgeConsumesAPI, EdgeProduces, EdgeDependsOn,
+	EdgeServesAPI, EdgeConsumesAPI, EdgeProduces, EdgeDependsOn, EdgeReadsFile,
 }
 
 // EdgeStatus is how well a relationship is known.
@@ -1203,6 +1209,63 @@ type GraphEdge struct {
 	Artifacts []string     `json:"artifacts,omitempty"`
 	// Assertion is the agent assertion that proposed the edge (inferred only).
 	Assertion string `json:"assertion,omitempty"`
+	// Mount, File and Line are set by the consumer mode of the graph builder
+	// only (relations.WithConsumers), so graphs built without it are
+	// unchanged. Mount: how a references edge's volume is mounted; File: what
+	// a reads-file edge matched; Line: where in an artifact the relationship
+	// is stated. None is part of the edge id. CONTRACT-CHANGE(consumer): additive.
+	Mount *EdgeMount `json:"mount,omitempty"`
+	File  *EdgeFile  `json:"file,omitempty"`
+	Line  *EdgeLine  `json:"line,omitempty"`
+}
+
+// EdgeMount is how the volume of a Secret/ConfigMap → workload references
+// edge reaches the containers: the volume, the projected source (projected
+// volumes), the items mapping keys to paths (none: every key, as a file named
+// after it) and every container mount of the volume.
+type EdgeMount struct {
+	Volume string `json:"volume"`
+	// Source is the index of the projected source (-1 for a plain volume).
+	Source int           `json:"source"`
+	Items  []KeyToPath   `json:"items,omitempty"`
+	Mounts []VolumeMount `json:"mounts,omitempty"`
+}
+
+// KeyToPath maps a Secret/ConfigMap key to a relative file path.
+type KeyToPath struct {
+	Key  string `json:"key"`
+	Path string `json:"path"`
+}
+
+// VolumeMount is one container's mount of a volume.
+type VolumeMount struct {
+	Container string `json:"container"`
+	MountPath string `json:"mountPath"`
+	SubPath   string `json:"subPath,omitempty"`
+}
+
+// EdgeFile is what a reads-file edge matched: the configuration key (of the
+// To ConfigMap) whose value names Path; the workload and container that read
+// both; the mount Path falls under and the key of the From object it maps to
+// ("" when no volume matched: the edge is then unresolved).
+type EdgeFile struct {
+	ConfigKey string `json:"configKey"`
+	Path      string `json:"path"`
+	Workload  string `json:"workload"`
+	Container string `json:"container"`
+	// Via is how the container reads the configuration: "volume" or "env".
+	Via       string `json:"via"`
+	Volume    string `json:"volume,omitempty"`
+	MountPath string `json:"mountPath,omitempty"`
+	Key       string `json:"key,omitempty"`
+}
+
+// EdgeLine locates an edge's relationship in an artifact: the 1-based line
+// and its text (verbatim, clipped), so it can be read and quoted.
+type EdgeLine struct {
+	Artifact string `json:"artifact"`
+	Line     int    `json:"line"`
+	Text     string `json:"text,omitempty"`
 }
 
 // EdgeID derives an edge id.
@@ -1241,6 +1304,15 @@ func (e GraphEdge) validate() []error {
 	}
 	if e.Assertion != "" && e.Status != EdgeInferred {
 		bad("an agent-proposed edge is always inferred")
+	}
+	if e.Kind == EdgeReadsFile && e.File == nil {
+		bad("a reads-file edge states the file it matched")
+	}
+	if e.Mount != nil && e.Kind != EdgeReferences {
+		bad("only references edges carry a mount")
+	}
+	if e.Line != nil && (e.Line.Artifact == "" || e.Line.Line < 1) {
+		bad("a line names an artifact and a line number")
 	}
 	return errs
 }
@@ -2717,7 +2789,11 @@ type Investigation struct {
 	// AgentVerdicts: the agent's provisional verdicts, one per investigated
 	// item; never read by the classification policy (PROTOCOL §8).
 	// CONTRACT-CHANGE(verdict): additive.
-	AgentVerdicts      []AgentVerdict         `json:"agentVerdicts,omitempty"`
+	AgentVerdicts []AgentVerdict `json:"agentVerdicts,omitempty"`
+	// AgentAssessments: the agent's natural technical assessments, one per
+	// investigated item (prompt v9 onwards); never read by the classification
+	// policy. CONTRACT-CHANGE(consumer): additive.
+	AgentAssessments   []AgentAssessment      `json:"agentAssessments,omitempty"`
 	EvidenceRequests   []EvidenceRequest      `json:"evidenceRequests,omitempty"`
 	ValidationRequests []ValidationRequest    `json:"validationRequests,omitempty"`
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
@@ -2847,6 +2923,25 @@ func (inv *Investigation) Validate() error {
 		for _, f := range v.VerifiedFacts {
 			if strings.HasPrefix(f, SettingClaimIDPrefix) && !claims[f] {
 				bad("agent verdict %s names unknown setting claim %s", v.ID, f)
+			}
+		}
+	}
+	assessmentItems := map[string]bool{}
+	for _, a := range inv.AgentAssessments {
+		if err := a.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if assessmentItems[a.ChangeItem] {
+			bad("two agent assessments for change item %s", a.ChangeItem)
+		}
+		assessmentItems[a.ChangeItem] = true
+		if a.Verdict != "" {
+			found := false
+			for _, v := range inv.AgentVerdicts {
+				found = found || v.ID == a.Verdict
+			}
+			if !found {
+				bad("agent assessment %s names unknown verdict %s", a.ID, a.Verdict)
 			}
 		}
 	}
@@ -3296,6 +3391,12 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		evid("agent verdict "+v.ID, v.Citations)
 		if v.Dossier != "" {
 			art("agent verdict "+v.ID, v.Dossier)
+		}
+	}
+	for _, a := range inv.AgentAssessments {
+		item("agent assessment "+a.ID, a.ChangeItem)
+		for _, f := range a.Verified {
+			evid("agent assessment "+a.ID, f.Citations)
 		}
 	}
 	for _, c := range inv.AgentClaims {
