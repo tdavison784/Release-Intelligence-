@@ -88,8 +88,9 @@ re-expose a webhook that this environment enables. The answer engineers expect: 
 4.12.1). The product owner rated this the main miss, ahead of the B3 scoring.
 
 - RUBRIC lists only the four parts of #11819, so no arm is scored on this.
-- C-whole r1 and r2 called the upgrade a security regression. r2 led with weak evidence: an entry missing from a
-  changelog. Its target was "a later 1.12.x or 1.13/1.14", not a named version.
+- C-whole r1 called the upgrade a security regression and recommended "target at least 1.12.1 (chart 4.12.1)", the
+  expected answer. C-whole r2 flagged it too, but led with weak evidence (an entry missing from a changelog) and named
+  no version ("a later 1.12.x or 1.13/1.14").
 - No C-item run and not the RI agent (arm B) raised it.
 - RI root cause and fix: LEDGER X-0009. RI already has rule `advisory:affects-target`, but it ingests only
   repository-level advisories. There are none for kubernetes/ingress-nginx; the advisories sit in GitHub's global
