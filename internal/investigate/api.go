@@ -368,6 +368,10 @@ type AgentOutcome struct {
 	// stores them in Investigation.AgentVerdicts. They are never an input of
 	// the classifier. CONTRACT-CHANGE(verdict): additive.
 	Verdicts []domain.AgentVerdict `json:"verdicts,omitempty"`
+	// Assessments are the agent's natural technical assessments; the runner
+	// stores them in Investigation.AgentAssessments. Never an input of the
+	// classifier. CONTRACT-CHANGE(consumer): additive.
+	Assessments []domain.AgentAssessment `json:"assessments,omitempty"`
 }
 
 // AnswerLink links agent assertions to the validation record that answers
@@ -480,6 +484,10 @@ const (
 	// ToolGetDossier returns an item's dossier (prompt versions with feature
 	// dossier). CONTRACT-CHANGE(verdict): additive; not in ToolNames.
 	ToolGetDossier = "get_dossier"
+	// ToolTraceConsumers traces the consumers of an object or of a change
+	// item's exposed objects (prompt versions with feature traceConsumers).
+	// CONTRACT-CHANGE(consumer): additive; not in ToolNames.
+	ToolTraceConsumers = "trace_consumers"
 )
 
 // ToolNames lists every tool in a stable order.
@@ -708,6 +716,17 @@ type AssertionInput struct {
 	NoValidationReason string `json:"noValidationReason,omitempty"`
 }
 
+// TraceRequest asks for the consumer chains of one object (Node: a node id
+// or key of the relationship graph) or of every exposure root of a change
+// item (ChangeItem); exactly one is given. Side is the side of the upgrade
+// whose environment is traced: "to" (default) or "from".
+// CONTRACT-CHANGE(consumer): additive.
+type TraceRequest struct {
+	Node       string `json:"node,omitempty"`
+	ChangeItem string `json:"changeItem,omitempty"`
+	Side       string `json:"side,omitempty"`
+}
+
 // ProposedEdge is a relationship the agent believes exists.
 type ProposedEdge struct {
 	Kind   domain.EdgeKind `json:"kind"`
@@ -761,6 +780,30 @@ type ItemSummary struct {
 	// Verdict is the agent's provisional verdict on the item (prompt versions
 	// with feature verdict). CONTRACT-CHANGE(verdict): additive.
 	Verdict *VerdictInput `json:"verdict,omitempty"`
+	// Assessment is the agent's natural technical assessment of the item
+	// (prompt versions with feature assessment). CONTRACT-CHANGE(consumer): additive.
+	Assessment *AssessmentInput `json:"assessment,omitempty"`
+}
+
+// AssessmentInput is a natural technical assessment (mission B5): only the
+// verified entries are checked — each needs citations that resolve, or the
+// call is rejected. CONTRACT-CHANGE(consumer): additive.
+type AssessmentInput struct {
+	WhatChanged            string                     `json:"whatChanged"`
+	Mechanism              string                     `json:"mechanism"`
+	Consumers              []string                   `json:"consumers,omitempty"`
+	EffectiveConfiguration []domain.AssessmentSetting `json:"effectiveConfiguration,omitempty"`
+	Verified               []VerifiedInput            `json:"verified,omitempty"`
+	Inferred               []string                   `json:"inferred,omitempty"`
+	Unknown                []string                   `json:"unknown,omitempty"`
+	LikelyImpact           string                     `json:"likelyImpact"`
+	RecommendedTests       []string                   `json:"recommendedTests,omitempty"`
+}
+
+// VerifiedInput is one verified statement and the citations that establish it.
+type VerifiedInput struct {
+	Statement string     `json:"statement"`
+	Citations []Citation `json:"citations"`
 }
 
 // ClaimInput states a fact about the environment in structured form; the

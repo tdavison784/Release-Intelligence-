@@ -726,6 +726,8 @@ type submitView struct {
 	Note       string        `json:"note"`
 	Agenda     *agendaView   `json:"agenda,omitempty"`   // prompt feature agenda
 	Verdicts   []verdictView `json:"verdicts,omitempty"` // prompt feature verdict
+	// Assessments: prompt feature assessment.
+	Assessments []assessmentView `json:"assessments,omitempty"`
 }
 
 // verdictView is what the model receives for a recorded verdict: what
@@ -770,6 +772,15 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 	}
 	var notes []domain.AgentNote
 	var verdicts []domain.AgentVerdict
+	// pendingAssessment is an entry's assessment, built after every other
+	// check of the call passed (the completion check rejects only once).
+	type pendingAssessment struct {
+		at      string
+		it      domain.ChangeItem
+		in      investigate.AssessmentInput
+		verdict *domain.AgentVerdict
+	}
+	var pendingAssessments []pendingAssessment
 	seen := map[string]bool{}
 	var made []domain.AgentAssertion
 	var evs []domain.Evidence
@@ -842,6 +853,18 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			}
 		} else if sum.Verdict != nil {
 			return nil, rejectf("items[%d]: this prompt version (%s) takes no verdict", i, s.cfg.Prompt.Version)
+		}
+		switch {
+		case !s.cfg.Prompt.Features.Assessment && sum.Assessment != nil:
+			return nil, rejectf("items[%d]: this prompt version (%s) takes no assessment", i, s.cfg.Prompt.Version)
+		case s.cfg.Prompt.Features.Assessment && sum.Assessment == nil && disp != domain.CoverNotExamined:
+			return nil, rejectf("items[%d]: assessment is required: whatChanged, mechanism, consumers, effectiveConfiguration, verified (each with citations), inferred, unknown, likelyImpact, recommendedTests", i)
+		case sum.Assessment != nil:
+			pa := pendingAssessment{at: fmt.Sprintf("items[%d].assessment", i), it: it, in: *sum.Assessment}
+			if len(verdicts) > 0 && verdicts[len(verdicts)-1].ChangeItem == it.ID {
+				pa.verdict = &verdicts[len(verdicts)-1]
+			}
+			pendingAssessments = append(pendingAssessments, pa)
 		}
 		if !closes {
 			if len(sum.Citations) > 0 { // optional; checked when given
@@ -931,7 +954,36 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 	if err := s.depthConcerns(made); err != nil {
 		return nil, err
 	}
+	// Completion check (feature assessment): the consumers of the item's
+	// exposed objects no tool of this session returned. A not-affected
+	// verdict is rejected once while there are any; every assessment records
+	// them as investigation gaps.
+	var assessments []domain.AgentAssessment
+	for _, pa := range pendingAssessments {
+		untraced, err := s.untracedConsumers(ctx, pa.it.ID)
+		if err != nil {
+			return nil, err
+		}
+		if pa.verdict != nil && pa.verdict.Class == domain.FindingNotAffected && len(untraced) > 0 && !s.rejectedNA[pa.it.ID] {
+			s.rejectedNA[pa.it.ID] = true // recorded although the call is rejected: the check rejects once
+			return nil, rejectf("%s: a not-affected verdict needs the consumers of the item's exposed objects examined; %d were never retrieved in this session: %s. Trace them (trace_consumers changeItem=%s) or read them (get_rendered_object, read_artifact), then submit again. A second submission is accepted, with each untraced consumer recorded as an investigation gap.",
+				pa.at, len(untraced), listKeys(untraced, 20), pa.it.ID)
+		}
+		verdict := ""
+		if pa.verdict != nil {
+			verdict = pa.verdict.ID
+		}
+		a, aevs, err := s.assessmentOf(ctx, pa.it, pa.in, verdict, untraced, pa.at)
+		if err != nil {
+			return nil, err
+		}
+		assessments = append(assessments, a)
+		evs = append(evs, aevs...)
+	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
+	for _, a := range assessments {
+		view.Assessments = append(view.Assessments, assessmentView{ID: a.ID, ChangeItem: a.ChangeItem, Verified: len(a.Verified), UntracedConsumers: a.UntracedConsumers})
+	}
 	for _, v := range verdicts {
 		view.Verdicts = append(view.Verdicts, verdictView{ID: v.ID, ChangeItem: v.ChangeItem, Class: v.Class, Citations: len(v.Citations),
 			DroppedCitations: v.DroppedCitations, DroppedVerifiedFacts: v.DroppedVerifiedFacts, Dropped: v.Dropped})
@@ -970,6 +1022,7 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			s.addNote(n, nil)
 		}
 		s.verdicts = append(s.verdicts, verdicts...)
+		s.assessments = append(s.assessments, assessments...)
 		s.submitted = true
 	}}, nil
 }

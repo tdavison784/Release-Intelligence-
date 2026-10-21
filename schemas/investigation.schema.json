@@ -71,6 +71,28 @@
       },
       "additionalProperties": false
     },
+    "AgentAssessment": {
+      "type": "object",
+      "required": ["id", "changeItem", "whatChanged", "mechanism", "likelyImpact", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "verdict": {"type": "string"},
+        "whatChanged": {"type": "string"},
+        "mechanism": {"type": "string"},
+        "consumers": {"type": "array", "items": {"type": "string"}},
+        "effectiveConfiguration": {"type": "array", "items": {"$ref": "#/$defs/AssessmentSetting"}},
+        "verified": {"type": "array", "items": {"$ref": "#/$defs/AssessmentFinding"}},
+        "inferred": {"type": "array", "items": {"type": "string"}},
+        "unknown": {"type": "array", "items": {"type": "string"}},
+        "likelyImpact": {"type": "string"},
+        "recommendedTests": {"type": "array", "items": {"type": "string"}},
+        "untracedConsumers": {"type": "array", "items": {"type": "string"}},
+        "statementKind": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
     "AgentBudget": {
       "type": "object",
       "required": ["maxTurns", "maxToolCalls", "maxTokens", "maxReadBytes", "maxSeconds"],
@@ -223,6 +245,25 @@
       "additionalProperties": false
     },
     "AssertionStance": {"type": "string", "enum": ["raises-concern", "explains", "claims-mitigation"]},
+    "AssessmentFinding": {
+      "type": "object",
+      "required": ["statement", "citations"],
+      "properties": {
+        "statement": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "AssessmentSetting": {
+      "type": "object",
+      "required": ["setting", "state"],
+      "properties": {
+        "setting": {"type": "string"},
+        "state": {"type": "string"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "AuditEvent": {
       "type": "object",
       "required": ["seq", "at", "stage", "event", "actor"],
@@ -360,6 +401,21 @@
         ]
       }
     },
+    "EdgeFile": {
+      "type": "object",
+      "required": ["configKey", "path", "workload", "container", "via"],
+      "properties": {
+        "configKey": {"type": "string"},
+        "path": {"type": "string"},
+        "workload": {"type": "string"},
+        "container": {"type": "string"},
+        "via": {"type": "string"},
+        "volume": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "key": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "EdgeKind": {
       "type": "string",
       "enum": [
@@ -372,8 +428,30 @@
         "serves-api",
         "consumes-api",
         "produces",
-        "depends-on"
+        "depends-on",
+        "reads-file"
       ]
+    },
+    "EdgeLine": {
+      "type": "object",
+      "required": ["artifact", "line"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "line": {"type": "integer"},
+        "text": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "EdgeMount": {
+      "type": "object",
+      "required": ["volume", "source"],
+      "properties": {
+        "volume": {"type": "string"},
+        "source": {"type": "integer"},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/KeyToPath"}},
+        "mounts": {"type": "array", "items": {"$ref": "#/$defs/VolumeMount"}}
+      },
+      "additionalProperties": false
     },
     "EdgeStatus": {"type": "string", "enum": ["established", "inferred", "missing"]},
     "Evidence": {
@@ -521,7 +599,10 @@
         "mitigates": {"type": "array", "items": {"type": "string"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
         "artifacts": {"type": "array", "items": {"type": "string"}},
-        "assertion": {"type": "string"}
+        "assertion": {"type": "string"},
+        "mount": {"$ref": "#/$defs/EdgeMount"},
+        "file": {"$ref": "#/$defs/EdgeFile"},
+        "line": {"$ref": "#/$defs/EdgeLine"}
       },
       "additionalProperties": false
     },
@@ -623,6 +704,7 @@
         "agentNotes": {"type": "array", "items": {"$ref": "#/$defs/AgentNote"}},
         "agentClaims": {"type": "array", "items": {"$ref": "#/$defs/SettingClaim"}},
         "agentVerdicts": {"type": "array", "items": {"$ref": "#/$defs/AgentVerdict"}},
+        "agentAssessments": {"type": "array", "items": {"$ref": "#/$defs/AgentAssessment"}},
         "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
         "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
@@ -684,6 +766,15 @@
     "InvestigationStatus": {
       "type": "string",
       "enum": ["running", "awaiting-review", "completed", "failed", "cancelled"]
+    },
+    "KeyToPath": {
+      "type": "object",
+      "required": ["key", "path"],
+      "properties": {
+        "key": {"type": "string"},
+        "path": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
@@ -1045,6 +1136,16 @@
         "resolution": {"type": "string"},
         "result": {"type": "string"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "VolumeMount": {
+      "type": "object",
+      "required": ["container", "mountPath"],
+      "properties": {
+        "container": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "subPath": {"type": "string"}
       },
       "additionalProperties": false
     }

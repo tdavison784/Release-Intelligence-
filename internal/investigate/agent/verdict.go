@@ -7,6 +7,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 )
 
 // Provisional verdicts (prompt feature verdict; PROTOCOL §8). Every closing
@@ -56,8 +57,16 @@ func (s *Session) getDossier(ctx context.Context, item string) (*outcome, error)
 		return nil, err
 	}
 	vals := append(append([]domain.ValidationRecord(nil), s.cfg.Validations...), s.vals...)
+	var consumers *domain.RelationshipGraph
+	if s.cfg.Prompt.Features.TraceConsumers {
+		cg, err := s.consumerGraph(ctx, relations.SideTo)
+		if err != nil {
+			return nil, err
+		}
+		consumers = cg.g
+	}
 	d, err := BuildDossier(ctx, DossierInput{Bundle: s.cfg.Bundle, Graph: s.cfg.Graph, Traversal: s.cfg.Traversal, Report: s.cfg.Report,
-		Validations: vals, Read: s.bytesOf}, it.ID)
+		Validations: vals, Read: s.bytesOf, Consumers: consumers}, it.ID)
 	if err != nil {
 		return nil, err
 	}

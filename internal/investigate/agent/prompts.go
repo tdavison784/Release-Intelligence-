@@ -83,6 +83,21 @@ type Features struct {
 	// Mitigation: record_hypothesis takes a structured mitigation, stored
 	// only when well-formed (mitigation.go).
 	Mitigation bool `json:"mitigation"`
+	// TraceConsumers: the session builds the consumer-mode relationship
+	// graph (relations.WithConsumers) beside the stored one, serves
+	// trace_consumers over it, and the dossier lists each exposed object's
+	// consumer chains (consumers.go). Needs PerItem.
+	TraceConsumers bool `json:"traceConsumers"`
+	// Assessment: every closing entry except not-examined carries a natural
+	// assessment (assessment.go), and the completion check applies: a
+	// not-affected verdict is rejected once while the item's exposed objects
+	// have consumers the session never retrieved; otherwise they are
+	// recorded as investigation gaps. Needs TraceConsumers and Verdict.
+	Assessment bool `json:"assessment"`
+	// ItemCalls / ItemTurns replace the per-item default budget's tool calls
+	// and turns (0: the item@v1 defaults).
+	ItemCalls int `json:"itemCalls"`
+	ItemTurns int `json:"itemTurns"`
 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
@@ -165,6 +180,21 @@ func LoadPrompt(version string) (*Prompt, error) {
 	}
 	if (p.Features.Dossier || p.Features.Verdict || p.Features.Mitigation) && !p.Features.PerItem {
 		return nil, fmt.Errorf("agent: prompt %s: features dossier, verdict and mitigation need per-item sessions", version)
+	}
+	if p.Features.TraceConsumers {
+		if !have[investigate.ToolTraceConsumers] {
+			return nil, fmt.Errorf("agent: prompt %s: feature traceConsumers needs tool %s", version, investigate.ToolTraceConsumers)
+		}
+		if !p.Features.PerItem {
+			return nil, fmt.Errorf("agent: prompt %s: feature traceConsumers needs per-item sessions", version)
+		}
+		want++
+	}
+	if p.Features.Assessment && (!p.Features.TraceConsumers || !p.Features.Verdict) {
+		return nil, fmt.Errorf("agent: prompt %s: feature assessment needs features traceConsumers and verdict", version)
+	}
+	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
+		return nil, fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", version)
 	}
 	if len(p.Tools) != want {
 		return nil, fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", version, len(p.Tools), want)
