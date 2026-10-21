@@ -87,3 +87,53 @@ The fix stays inside M1 (mission §13: no M2 work before the gate). Lane `consum
 - **Tests:** a `configMapGenerator` fixture whose source file is absent from the snapshot.
 
 Then repeat the gate (attempt 2) with new run ids.
+
+## Attempt 2, 2026-10-21: (a), (c), (d), (e) met; (b) partial; one generic limit remains
+
+**Runs:** `C1-K0-20261021-6f5de003-v9-r{1,2,3}`, consumer rules v2 (merge 6f5de003), otherwise as attempt 1.
+
+| Criterion | US r1 | US r2 | US r3 | EU r1 | EU r2 | EU r3 |
+|---|---|---|---|---|---|---|
+| (a) reads consuming workloads | yes | yes | yes | yes | yes | yes |
+| (a) reads the config that reads the mounted files | yes | yes | yes | yes | yes | yes |
+| (b) CA trust relationship | partial | partial | partial | partial | partial | **yes** |
+| (c) explicit vs inherited | yes | yes | yes | yes | yes | yes |
+| (d) explains why the outcomes differ | yes | yes | yes | yes | yes | yes |
+| (e) natural assessment, no rule required | yes | yes | yes | yes | yes | yes |
+
+**(a)** Every ROT assessment now carries the full hop: "Certificate payments/ledger-tls → Secret ledger-tls →
+Deployment ledger and ConfigMap ledger-nginx, which names /tls/tls.crt, /tls/tls.key and /tls/ca.crt" (EU r1).
+
+**(d)** The two cases differ in substance in every run:
+- US: "The root CA is unaffected because it is pinned to Never" (r3); "mesh-root-ca pins Never, so the CA key is
+  stable" (r2).
+- EU: "Rotation of the mesh-root-ca key at renewal would invalidate leaf certificates issued by the old CA key, and
+  clients that trust the old root would be affected" (r1).
+
+**(b) is partial.** `ca.crt` is reached, but its role as the trust anchor is spelled out only once: EU r3, "mesh-root-ca
+rotation would change CA key and require re-issuance of leaf certs and trust redistribution (ledger ca.crt)". Two
+causes:
+1. **The checkout half of the mTLS is never read.** `checkout`'s container command holds
+   `curl … --cacert /tls/ca.crt --cert /tls/tls.crt --key /tls/tls.key` (`env/apps/payments/base/checkout-deployment.yaml`
+   L28). Paths in container command, args and env values are not matched: this is a documented M1 limit. Every run
+   says, correctly: "checkout mounts /tls but nothing in the snapshot names which files it reads".
+2. **The model rarely interprets the directive.** It names the file but seldom says that nginx verifies clients
+   against it.
+
+So the "nothing pins a leaf key" conclusion (Phase 0's E) is never drawn. US stays H, because "whether any peer pins
+the key" stays unknown.
+
+**Verdicts (agent; not authoritative):**
+- ROT: `potentially-affected` in all 12 item-runs.
+- RHL: `not-affected` 8, `potentially-affected` 4.
+- False-safe: none.
+
+**Policy:** authoritative classification identical to B0 (checked for attempt 1; attempt 2 changes only the consumer
+graph, which the classifier never reads; rechecked below).
+
+**Cost:** $0.79–1.21 per case, 52–59 calls, 215–254 s.
+
+**Decision:** fix the documented limit inside M1, since it is exactly criterion (b) and mission B3 ("ConfigMap →
+environment variable or volume → application"). Lane `consumer3` (D-0006) matches absolute paths in container
+`command`, `args` and literal `env` values against the same container's mounts. Then comes attempt 3. The product owner
+decides the gate on the best attempt (D-0003).
