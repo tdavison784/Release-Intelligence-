@@ -1,0 +1,343 @@
+{
+  "mechanisms": [
+    {
+      "name": "`rotationPolicy` default: Never -> Always (HIGH, delayed)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "all three silently change behaviour",
+      "resourcesConsumers": [
+        "Certificate mesh-root-ca (root of the mTLS trust chain; ECDSA, prod duration 8760h, renewBefore 720h)",
+        "Certificate ledger-tls / ledger-certificate.yaml",
+        "Certificate checkout-tls / checkout-certificate.yaml",
+        "ClusterIssuer selfsigned-bootstrap",
+        "ClusterIssuer mesh-ca",
+        "checkout service (verifies ledger with --cacert /tls/ca.crt; curl loop re-reads files on every call)",
+        "ledger service (nginx, ssl_client_certificate /tls/ca.crt, ssl_verify_client on)",
+        "ledger Deployment (no reloader or checksum annotation)",
+        "each service's Secret ca.crt",
+        "platform/cert-manager/values.yaml (no feature gates set)",
+        "platform/pki"
+      ],
+      "mechanism": "None of the Certificates set rotationPolicy, so the default flips from Never to Always for all three; the default is applied server-side at reissue time, so it is invisible in every diff (the \"unchanged manifest\" trap). Nothing breaks on upgrade day. At mesh-root-ca's first renewal after the upgrade a new root key is generated (under 1.17.2 it was reused), giving a different root. Old leaves do not verify against the new root and new leaves do not verify against the old root. Each service's ca.crt copy is written only when its own leaf is issued, so whichever leaf renews first gets a new-root cert and ca.crt while its peer keeps the old chain, and mutual verification fails in both directions until both sides have renewed. A second, compounding gap: ledger's nginx reads ssl_client_certificate at start or reload and does not re-read it when the mounted Secret changes, so after a root rotation ledger would keep trusting the old root until its pods restart. That nginx behaviour existed before but was harmless while the root key never changed. The default flip is what turns it into an outage. Leaves renew about 20 days after issuance (duration 720h, renewBefore 240h); the root renews 30 days before its 1-year expiry; the next root renewal date is unknown from the repo and 'could be days away'. Leaf keys will also rotate on renewal. The assessment calls this intended upstream and fine for a cert and key delivered together in one Secret, with a caveat: ledger's nginx will not load a renewed cert/key until restarted. That is unchanged by 1.18, but with 10 days between renewal and expiry it is a latent risk.",
+      "mitigationOrNoExposure": "Easy to neutralise before the upgrade. In order of preference (both accepted by 1.17.2, so they can ship before the upgrade as a separate commit): 1) set spec.privateKey.rotationPolicy: Never explicitly on mesh-root-ca in platform/pki, and keep it until a deliberate root rotation procedure exists; 2) optionally also set it on the leaf Certificates for zero behaviour change (leaving them at Always is arguably better security); 3) values-level fallback config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false, temporary only because upstream says the gate is removed in 1.19; 4) independently, fix the ledger reload gap (a reloader, or a checksum or rollout trigger) so that any future CA rotation is survivable.",
+      "citedEvidence": [
+        "upstream/.../upgrading-1.17-1.18.md",
+        "release-notes-1.18.md",
+        "ledger-certificate.yaml, checkout-certificate.yaml and mesh-root-ca.yaml (including the prod patch) set no rotationPolicy",
+        "rendered/to.yaml has no rotationPolicy on any rendered Certificate (it appears only in the CRD schema, line 832)",
+        "CRD diff shows the default text changing to Always",
+        "DefaultPrivateKeyRotationPolicyAlways feature gate is on by default",
+        "platform/cert-manager/values.yaml sets no feature gates",
+        "rendered/manifest.diff shows no change to any consumer manifest",
+        "checkout uses --cacert /tls/ca.crt; ledger uses ssl_client_certificate /tls/ca.crt and ssl_verify_client on",
+        "ledger Deployment has no reloader or checksum annotation"
+      ],
+      "assumptions": [
+        "The default applies only when a reissue happens (\"I believe the new default applies only when a reissue happens, but the notes do not state that explicitly\")",
+        "The repo is the full truth (the orientation says it is, but this is not verified against the cluster)",
+        "The algorithm value is ECDSA per a comment, because the field is stored redacted in the repo files"
+      ],
+      "missingEvidence": [
+        "Live cluster state, Secret contents and Argo CD state were not available",
+        "Live state of mesh-root-ca: notBefore, renewal time and current Secret",
+        "status.renewalTime on mesh-root-ca, ledger-tls and checkout-tls",
+        "Whether there are other consumers of mesh-root-ca or ca.crt (other namespaces, sidecars)",
+        "Whether ledger needs a restart to pick up renewed certificates (restart policy, reloader)",
+        "Whether anything monitors 'ledger call failed' in checkout logs",
+        "Real value of the redacted algorithm field"
+      ],
+      "recommendedValidation": [
+        "Read status.renewalTime on mesh-root-ca, ledger-tls and checkout-tls; if the root renews within the next few weeks, apply the rotationPolicy: Never change first and let it settle",
+        "Staging rehearsal: on a copy of this PKI and the two services, force a root reissue (cmctl renew mesh-root-ca) with and without the explicit Never setting, confirm whether the key changes, and watch checkout -> ledger calls; do the same for the leaves and confirm whether ledger needs a restart",
+        "In staging, upgrade and verify that no Certificate becomes Issuing and no Secret changes (no reissue storm)",
+        "Confirm how ledger picks up renewed certificates and whether anything monitors 'ledger call failed' in checkout logs",
+        "Commit explicit rotationPolicy: Never on mesh-root-ca, sync it and confirm no reissue",
+        "Plan a deliberate, documented root rotation procedure (overlap trust bundles and restarts) before ever setting Always on the root"
+      ]
+    },
+    {
+      "name": "`revisionHistoryLimit` default: nil -> 1 (LOW, one-time)",
+      "claimedClass": "potentially-affected",
+      "claimedClassQuote": "which may matter for a payments environment",
+      "resourcesConsumers": [
+        "Certificates (none set revisionHistoryLimit)",
+        "CertificateRequests"
+      ],
+      "mechanism": "No Certificate sets it, so on upgrade the controller garbage-collects old CertificateRequests down to one per Certificate. The only loss is issuance audit history.",
+      "mitigationOrNoExposure": "Nothing in the repo reads CertificateRequests, so there is no functional effect. If the audit history matters, export it first.",
+      "citedEvidence": [
+        "No Certificate sets revisionHistoryLimit",
+        "Nothing in the repo reads CertificateRequests"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether the issuance audit history has audit value for the payments environment"
+      ],
+      "recommendedValidation": [
+        "Export CertificateRequest history before the garbage collection if it has audit value"
+      ]
+    },
+    {
+      "name": "Security advisory GHSA-8rvj-mm4h-c258 (informational for this repo, but relevant to version choice)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Not exploitable here",
+      "resourcesConsumers": [
+        "ACME Challenge resources",
+        "DNS01 solver policy",
+        "Issuers declared in the repo (a CA issuer and a self-signed issuer only)",
+        "ClusterIssuers in the live cluster not declared in the repo"
+      ],
+      "mechanism": "Direct ACME Challenge creation can bypass DNS01 solver policy. Affected versions are >= 1.18.0 and <= 1.20.2, with fixes only in 1.19.6 and 1.20.3. There is no 1.18.x fix, so 1.18.0 enters an affected range that 1.17.2 is outside, which makes 1.18.x a dead end for this advisory.",
+      "mitigationOrNoExposure": "The repo declares only a CA issuer and a self-signed issuer, with no ACME or DNS01 solver. The assessment calls this a repo-level conclusion and says to check the live cluster for ClusterIssuers not declared here. For a long-term target, plan for 1.19.6+ and do not stop at 1.18.",
+      "citedEvidence": [
+        "Advisory GHSA-8rvj-mm4h-c258 (affected >= 1.18.0 and <= 1.20.2; fixed in 1.19.6 and 1.20.3)",
+        "Repo declares only a CA issuer and a self-signed issuer"
+      ],
+      "assumptions": [
+        "The repo is the full truth about issuers (repo-level conclusion only)"
+      ],
+      "missingEvidence": [
+        "Whether the live cluster has ClusterIssuers (especially ACME/DNS01) not declared in the repo"
+      ],
+      "recommendedValidation": [
+        "Check the live cluster for ClusterIssuers not declared here, especially ACME/DNS01",
+        "Decide whether 1.18.0 is really the target: prefer the latest 1.18.x patch (up to 1.18.6, per the release notes) at minimum, or go to 1.19.6+"
+      ]
+    },
+    {
+      "name": "ACME HTTP01 `PathType: Exact` breaking change (ingress-nginx and OpenShift)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No ACME issuer is declared",
+      "resourcesConsumers": [
+        "Issuers (only ca and selfSigned exist)",
+        "Ingress for challenges (none created)"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No ACME issuer is declared, and no Ingress is created for challenges. Only ca and selfSigned issuers exist.",
+      "citedEvidence": [
+        "Only ca and selfSigned issuers exist in the repo"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Chart values compatibility",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "All are present in the 1.18.0 chart values.",
+      "resourcesConsumers": [
+        "platform/cert-manager/values.yaml"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "values.yaml uses only crds.enabled, crds.keep, replicaCount, prometheus.enabled, resources, webhook.replicaCount and cainjector.replicaCount. All are present in the 1.18.0 chart values.",
+      "citedEvidence": [
+        "values.yaml keys: crds.enabled, crds.keep, replicaCount, prometheus.enabled, resources, webhook.replicaCount, cainjector.replicaCount"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Webhook probe port change (`6080` -> named `healthcheck`)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "so the named port resolves",
+      "resourcesConsumers": [
+        "cert-manager webhook"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "to.yaml defines containerPort: 6080 with name: healthcheck, so the named port resolves.",
+      "citedEvidence": [
+        "rendered/to.yaml containerPort: 6080 with name: healthcheck (line 12355)"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Metrics service/ServiceMonitor port-name change",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "so the resources are not rendered",
+      "resourcesConsumers": [
+        "metrics Service",
+        "ServiceMonitor"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "prometheus.enabled: false, so the resources are not rendered.",
+      "citedEvidence": [
+        "prometheus.enabled: false in values.yaml"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "RBAC split (`controller-challenges` -> `http01-` and `dns01-controller-challenges`)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "This only matters for ACME challenges.",
+      "resourcesConsumers": [
+        "ClusterRoles and bindings for controller-challenges / http01- / dns01-controller-challenges",
+        "cert-manager ServiceAccount",
+        "Argo CD cert-manager app (prune: true)"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "This only matters for ACME challenges. The renamed ClusterRoles and bindings are all in the rendered diff, the cert-manager ServiceAccount is bound to the new ones, and Argo's prune: true removes the old ones.",
+      "citedEvidence": [
+        "Renamed ClusterRoles and bindings are in the rendered diff",
+        "cert-manager ServiceAccount is bound to the new ClusterRoles",
+        "Argo prune: true"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "New CRD fields (`signatureAlgorithm`, ACME `profile`, Vault `serverName`, `iss`/`ciss` short names)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "Additive and optional.",
+      "resourcesConsumers": [
+        "cert-manager CRDs",
+        "other CRDs in the cluster that might use iss or ciss short names"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Additive and optional. No existing fields were removed or changed. Short names collide with nothing in this repo.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Whether other CRDs in the cluster use iss or ciss"
+      ],
+      "recommendedValidation": [
+        "Check the cluster for other CRDs using iss or ciss"
+      ]
+    },
+    {
+      "name": "Issuer behaviour for CA and SelfSigned types",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "No change is listed in the release notes.",
+      "resourcesConsumers": [
+        "CA issuer",
+        "SelfSigned issuer"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "No change is listed in the release notes.",
+      "citedEvidence": [
+        "release-notes-1.18.md"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "`AdditionalCertificateOutputFormats` GA and `UseDomainQualifiedFinalizer` GA",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "We use neither `additionalOutputFormats` nor an override of the gate.",
+      "resourcesConsumers": [
+        "Certificates",
+        "feature gates"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "We use neither additionalOutputFormats nor an override of the gate.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Certificate specs (ECDSA/256, usages, SANs, `commonName`)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The IP-in-`commonName` fix does not apply",
+      "resourcesConsumers": [
+        "Certificates mesh-root-ca, ledger-tls, checkout-tls"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The IP-in-commonName fix does not apply, because all names are DNS. The size: 256 ECDSA key is valid.",
+      "citedEvidence": [
+        "all names are DNS",
+        "size: 256 ECDSA key"
+      ],
+      "assumptions": [
+        "The algorithm is ECDSA per the comment in the repo files (the field is stored redacted)"
+      ],
+      "missingEvidence": [
+        "The algorithm field is stored redacted in the repo files; the real value could not be verified from the files"
+      ],
+      "recommendedValidation": [
+        "Confirm the algorithm value against the live Certificates"
+      ]
+    },
+    {
+      "name": "Kubernetes 1.31",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The chart `kubeVersion` is `>= 1.22.0-0`.",
+      "resourcesConsumers": [
+        "Kubernetes 1.31 cluster"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The chart kubeVersion is >= 1.22.0-0.",
+      "citedEvidence": [
+        "chart kubeVersion >= 1.22.0-0"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Do not proceed as-is. Before upgrading, commit an explicit rotationPolicy: Never on mesh-root-ca (and decide on the leaves), sync it and confirm no reissue. Add a reload mechanism for ledger. Rehearse the upgrade and a forced root rotation in staging. Then upgrade in a quiet window, sequenced so cert-manager is healthy before pki and payments sync. Plan a documented root rotation procedure before ever setting Always on the root. The assessment also says to reconsider the version target: the latest 1.18.x patch at minimum, or 1.19.6+.",
+    "quote": "Do not proceed as-is. One documented breaking change creates a delayed outage risk for this environment. It is easy to neutralise before the upgrade."
+  }
+}

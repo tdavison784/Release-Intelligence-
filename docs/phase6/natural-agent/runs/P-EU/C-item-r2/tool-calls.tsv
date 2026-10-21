@@ -1,0 +1,20 @@
+tool	input	outside-workspace
+Bash	cd /Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws; cat ORIENTATION.md; find . -type f | grep -v '^./upstream' | head -200; ls upstream rendered	
+Bash	cd /Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env; for f in platform/cert-manager/values.yaml platform/pki/*/*.yaml platform/pki/overlays/prod/*.yaml apps/payments/base/* apps/payments/overlays/prod/* clusters/prod/*; do echo "=== $f"; cat $f; done; cat ../rendered/manifest.diff | head -80	../rendered/manifest.diff
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/cert-manager/values.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/apps/payments/base/ledger-certificate.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/apps/payments/base/checkout-certificate.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/apps/payments/base/ledger-deployment.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/apps/payments/base/checkout-deployment.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/apps/payments/base/ledger.conf	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/pki/base/mesh-root-ca.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/pki/overlays/prod/mesh-root-ca-prod.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/pki/base/mesh-ca-issuer.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/pki/overlays/prod/kustomization.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/platform/pki/base/selfsigned-bootstrap.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/rendered/manifest.diff	
+Grep	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/upstream	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/clusters/prod/cert-manager.yaml	
+Read	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/env/clusters/prod/pki.yaml	
+Bash	mkdir -p /Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/scratch && cat > /Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/scratch/assessment.md <<'EOF' # cert-manager v1.17.2 -> v1.18.0: `privateKey.rotationPolicy` default flips to `Always` ## Verdict **Yes, this change affects this environment, a	/tls/ca.crt` /tls/ca.crt`
+Write	/Users/tommydavison/ri-p6/live/r-4b31679b8bbc/ws/scratch/assessment.md	

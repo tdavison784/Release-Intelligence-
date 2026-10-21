@@ -1,0 +1,85 @@
+# Phase 6 work ledger (commander-owned; lanes read only). Same schema as docs/phase5/learning-loop/LEDGER.yaml.
+items:
+  - id: X-0001
+    title: Lane ws6 — evidence equivalence, isolated workspaces, runner, canary, extraction, guided helper, smoke
+    kind: lane
+    lane: ws6
+    status: done
+    note: "merged c3af67a9 + 494b5831 (read-back mode, raw renders); lane closed, worktree removed"
+    providers: [claude]
+    glm-executable: false
+  - id: X-0002
+    title: Commander review of the EVIDENCE.md tables and the canary (gate before any Phase 0 run)
+    kind: commander-task
+    status: done
+    note: "canary PASS accepted; D1 -> PROTOCOL A1 (943c75b3); readback digests verified (P-US 7cb31daa, P-EU 0e1e4db0, D-EU 5aacc2ff; P-US raw 9b74ba87)"
+    depends: [X-0001]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0003
+    title: Phase 0 runs — C-whole and C-item, 3 repeats x 3 cases, plus C-raw P-US x3 (PROTOCOL §4, §9, A1), then extraction
+    kind: commander-task
+    status: done
+    note: "18 registered + 3 C-raw runs done, all extracted (147d264a, ad99bc05). H1 in P-US C-item r3 (recovered). One harness abort kept under runs/aborted."
+    depends: [X-0002]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0004
+    title: Score A, B, C against RUBRIC.md (commander) — product owner audits
+    kind: commander-task
+    status: done
+    note: "commander scores done (SCORES.md); product owner audit 2026-10-20 confirmed both boundary judgements as H (verdict wording, not evidence, was the gap)"
+    depends: [X-0003]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0005
+    title: Arm D — product owner continues C-whole r1 per case; classifies own interventions
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "2026-10-20: all three sessions resumed, no turns sent, so no interventions; product-owner review recorded in runs/<case>/C-whole-r1/product-owner-review.md"
+    depends: [X-0004]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0006
+    title: GATE.md — Phase 0 decision-gate report
+    kind: commander-task
+    status: done
+    note: "GATE.md: proceed to architecture plan (advantage holds narrowly); keep per-item depth, add consumer tracing, upgrade-level synthesis, evidence (X-0009), verdict wording"
+    depends: [X-0005]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0007
+    title: Lane fleetpilot — beads mirror of this ledger + gascity toy-fleet pilot; report and port estimate
+    kind: lane
+    lane: fleetpilot
+    status: done
+    providers: [claude]
+    glm-executable: false
+    note: "merged; REPORT.md recommends not yet (~9-13 days, window plugin riskiest). Brief deviations: answered 2 trust dialogs (3 entries in ~/.claude.json), bd wrote ~/.beads/~/.dolt (moved), possibly ~3 bd telemetry events before DO_NOT_TRACK, toy transcripts briefly in ~/.claude/projects"
+  - id: X-0008
+    title: Decide whether the next fleet runs on gascity + beads (from fleetpilot REPORT.md)
+    kind: decision
+    decision-rights: user
+    status: ready
+    depends: [X-0007]
+    providers: [claude]
+    glm-executable: false
+  - id: X-0009
+    title: "RI fix: a security regression in the candidate version must produce a concrete safer target (D-EU: 1.12.1, not 1.12.0)"
+    kind: product-fix
+    decision-rights: user
+    status: ready
+    providers: [claude]
+    glm-executable: false
+    note: >-
+      Product owner, 2026-10-20: the D-EU write-up was good, but RI had to request the upgrade to 1.12.1 instead; engineers
+      expect that. Root cause: internal/github/advisories.go reads only GET /repos/{o}/{r}/security-advisories, which is 0
+      for kubernetes/ingress-nginx. The global DB (GET /advisories?affects=k8s.io/ingress-nginx) holds GHSA-mgvx-rpfc-9mpv
+      (CVE-2025-1974, critical) plus 4 more, each `< 1.11.5 || >= 1.12.0-beta.0, < 1.12.1`, so 1.11.5 is clean and
+      1.12.0 is affected. internal/upgrade/advisories.go rule advisory:affects-target would have fired, but it only says
+      "Consider upgrading to a patched release instead". Fix: (1) ingest global advisories too (by package/ecosystem or
+      source_code_location); (2) name the lowest release on the target's line at or above the target that is outside every
+      range affecting it but not From (here 1.12.1 / chart 4.12.1), as the recommended change; (3) report separately what is
+      already exposed in From and stays unfixed on that line (CVE-2026-1580/24512/24514: < 1.13.7, so all of 1.12.x;
+      fully patched needs >= 1.13.7). Not to be applied to the Phase 0 arms (frozen); D-EU then becomes a regression case.

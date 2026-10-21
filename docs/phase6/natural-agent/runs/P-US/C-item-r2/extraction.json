@@ -1,0 +1,176 @@
+{
+  "mechanisms": [
+    {
+      "name": "rotationPolicy default flips from Never to Always: root CA Certificate cert-manager/mesh-root-ca (explicit rotationPolicy)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "**Unaffected.** The behaviour is the same before and after.",
+      "resourcesConsumers": [
+        "Certificate cert-manager/mesh-root-ca (prod)",
+        "Secret mesh-root-ca",
+        "ClusterIssuer/mesh-ca",
+        "leaf Secrets' ca.crt (copy of root cert)",
+        "ledger nginx (ledger.conf trusts ca.crt)",
+        "mTLS between checkout and ledger"
+      ],
+      "mechanism": "If the root had defaulted to Always, its next renewal (at about 8040h of its 8760h life) would have issued a new root key. Any leaf not yet reissued would then chain to the old root key, and the mTLS between checkout and ledger would break.",
+      "mitigationOrNoExposure": "The prod overlay patch platform/pki/overlays/prod/mesh-root-ca-prod.yaml pins rotationPolicy: Never; the rendered output for both versions shows the merged object with rotationPolicy: Never, so the value is identical before and after. Any other environment that builds from pki/base without that overlay would not have this protection.",
+      "citedEvidence": [
+        "platform/pki/overlays/prod/mesh-root-ca-prod.yaml (patch setting rotationPolicy: Never)",
+        "platform/pki/base/mesh-root-ca.yaml sets no policy",
+        "rendered/from.yaml:13906 and rendered/to.yaml:14034 show rotationPolicy: Never in the final merged object",
+        "ledger.conf (ledger nginx trusts ca.crt)"
+      ],
+      "assumptions": [
+        "Repo state reflects the live cluster; the assessor only saw the repo, not the cluster",
+        "ORIENTATION.md says the repo is complete, but this could not be verified"
+      ],
+      "missingEvidence": [
+        "Confirmation that the live Certificate/mesh-root-ca in cert-manager really has rotationPolicy: Never and that Argo CD is synced and not out of sync on that field",
+        "Whether staging or dev builds the PKI from pki/base without the prod overlay"
+      ],
+      "recommendedValidation": [
+        "Confirm live Certificate/mesh-root-ca has rotationPolicy: Never and Argo CD is synced on that field",
+        "Check whether staging/dev builds PKI from pki/base without the prod overlay; if so its root CA would rotate on the new default (a place to see the failure mode, but also something to fix)",
+        "Keep the root CA's Never; consider moving it into the base so other overlays inherit it"
+      ]
+    },
+    {
+      "name": "rotationPolicy default flips from Never to Always: leaf Certificates ledger-tls and checkout-tls (rely on the default)",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Certificates that rely on the default (affected)",
+      "resourcesConsumers": [
+        "Certificate ledger-tls (apps/payments/base/ledger-certificate.yaml)",
+        "Certificate checkout-tls (checkout-certificate.yaml)",
+        "ledger nginx (ledger-deployment.yaml, ledger.conf) mounting Secret ledger-tls",
+        "checkout curl loop (checkout-deployment.yaml)"
+      ],
+      "mechanism": "Before, the key was reused on every renewal; after, a new ECDSA P-256 key is generated on every reissue. Nothing is reissued by the upgrade itself; the first key rotation happens at each certificate's next renewal after the controller upgrade (duration 720h, renewBefore 240h, roughly every 20 days) or at any manual reissue (spec edit, Secret deletion, cmctl renew). For checkout, curl re-reads files on every call and could in theory read tls.crt and tls.key on opposite sides of the swap, costing at most one failed call (\"ledger call failed\") per rotation, self-healing within 30s; this could not happen before 1.18. ledger nginx keeps serving the old pair until restarted (pre-existing, not caused by the new default).",
+      "mitigationOrNoExposure": "No consumer depends on the keys staying stable: ledger checks client certs against ca.crt only and pins no key or cert; checkout verifies ledger against its own ca.crt and pins nothing; no key hashes, allow-lists, SPKI pins or external copies found (checked by grep and by reading every file under env/). Kubelet updates the Secret volume atomically. Because the signing CA is unchanged, new leaves chain to the same root and are accepted. Rated low risk.",
+      "citedEvidence": [
+        "apps/payments/base/ledger-certificate.yaml and checkout-certificate.yaml: privateKey block with algorithm and size only, no rotationPolicy; duration: 720h, renewBefore: 240h",
+        "env/platform/cert-manager/values.yaml has no config.featureGates and no controller extraArgs",
+        "rendered/to.yaml controller args only --v=2, --cluster-resource-namespace, --leader-election-namespace, --acme-http01-solver-image, --max-concurrent-challenges, so DefaultPrivateKeyRotationPolicyAlways is on by default",
+        "clusters/prod/cert-manager.yaml pins targetRevision: v1.17.2 (only place the version is set)",
+        "ledger-deployment.yaml, ledger.conf (nginx reads /tls/tls.crt and /tls/tls.key, checks client certs against ca.crt)",
+        "checkout-deployment.yaml (curl loop every 30s)",
+        "grep and reading every file under env/ found no other consumers"
+      ],
+      "assumptions": [
+        "No consumers outside this repo; ORIENTATION.md says the repo is complete but this could not be verified",
+        "Repo reflects live cluster state (only the repo was seen)",
+        "The checkout mismatch window is theoretical (\"could in theory\")"
+      ],
+      "missingEvidence": [
+        "Whether the current ledger-tls and checkout-tls Secrets exist and are Ready",
+        "status.notAfter and status.renewalTime for ledger-tls and checkout-tls",
+        "Whether anything outside the repo reads those Secrets or pins their keys (other namespaces, service mesh, certificate-scraping monitoring, HSM or allow-lists)",
+        "Whether other Certificate resources are created outside the repo (e.g. ingress-shim annotations or other tooling)",
+        "How ledger picks up renewed certificates (no reloader present; pre-existing risk independent of this change)"
+      ],
+      "recommendedValidation": [
+        "Explicitly set rotationPolicy in git before or with the upgrade: Never to keep today's behaviour, or Always only once the unknowns are checked",
+        "Get status.notAfter and status.renewalTime for ledger-tls and checkout-tls",
+        "Check for out-of-repo consumers and Certificates",
+        "In staging with the same manifests: upgrade to 1.18.0, run cmctl renew ledger-tls checkout-tls, confirm the key hash changes and the issuer chain still validates, watch checkout logs for \"ledger call failed\", confirm what ledger serves after renewal without and with a pod restart",
+        "Decide how ledger picks up renewed certificates (restart, reloader, or nginx reload)"
+      ]
+    },
+    {
+      "name": "Issuers: mesh-ca ClusterIssuer and selfsigned-bootstrap",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "What is not affected",
+      "resourcesConsumers": [
+        "ClusterIssuer mesh-ca",
+        "selfsigned-bootstrap"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "mesh-ca is a CA issuer reading the root Secret and does not use rotationPolicy; selfsigned-bootstrap is an issuer, and issuers have no rotationPolicy.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "selfsigned-bootstrap was not reviewed in depth"
+      ],
+      "missingEvidence": [
+        "In-depth review of selfsigned-bootstrap"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Argo CD applications, Helm values and CRD schema compatibility (CRD default description change)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The CRD diff is additive and cosmetic for this field.",
+      "resourcesConsumers": [
+        "Argo CD applications",
+        "Helm values",
+        "cert-manager Certificate CRD"
+      ],
+      "mechanism": "The only CRD change to this field is a description edit (default text goes from Never to Always).",
+      "mitigationOrNoExposure": "The enum and schema are unchanged; the default is applied in the controller, not by the API server, so existing Certificate objects are not mutated.",
+      "citedEvidence": [
+        "rendered/manifest.diff"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Other 1.18 changes: RBAC split for challenges, webhook probe port name, new signatureAlgorithm, profile and serverName fields",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "None of them looks relevant to this environment",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Nothing else in the rendered diff touches rotation; none looks relevant, but they were outside the question asked.",
+      "citedEvidence": [
+        "rendered diff"
+      ],
+      "assumptions": [
+        "Not assessed beyond what was seen in the diff; outside the question asked"
+      ],
+      "missingEvidence": [
+        "Assessment of the other 1.18 changes beyond the diff"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Feature gate (DefaultPrivateKeyRotationPolicyAlways) removed in 1.19",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "ledger-tls",
+        "checkout-tls",
+        "cert-manager chart feature-gate config"
+      ],
+      "mechanism": "Longer term, the feature gate goes away in 1.19, so the chart feature-gate opt-out disappears and the choice has to be made explicitly before then.",
+      "mitigationOrNoExposure": "Setting rotationPolicy explicitly on ledger-tls and checkout-tls survives the removal of the feature gate in 1.19.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "Do not use the chart feature-gate opt-out as the long-term answer; set rotationPolicy explicitly"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Proceed with conditions: the upgrade is rated low risk, but the leaf rotation behaviour should be decided explicitly in git before or with the upgrade (rotationPolicy: Never to keep current behaviour, or Always only after the unknowns are checked). Keep the root CA's Never, do not rely on the feature-gate opt-out, and complete the live-state, renewal-timing, out-of-repo consumer, staging and reload checks before proceeding.",
+    "quote": "Explicitly decide the leaf behaviour in git before or with the upgrade, rather than relying on the default"
+  }
+}

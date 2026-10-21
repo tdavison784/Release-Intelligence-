@@ -1,0 +1,166 @@
+{
+  "mechanisms": [
+    {
+      "name": "privateKey.rotationPolicy default flips to Always: mesh-root-ca (cert-manager namespace) root CA key rotation on renewal",
+      "claimedClass": "affected",
+      "claimedClassQuote": "Yes, this change affects this environment, and the upgrade is not safe as-is.",
+      "resourcesConsumers": [
+        "mesh-root-ca Certificate (cert-manager namespace), self-signed root signed by selfsigned-bootstrap",
+        "mesh-ca ClusterIssuer (signs every leaf with mesh-root-ca)",
+        "ledger (ledger.conf: ssl_client_certificate /tls/ca.crt with ssl_verify_client on)",
+        "checkout (curl --cacert /tls/ca.crt against ledger)",
+        "ledger-tls Secret",
+        "checkout-tls Secret"
+      ],
+      "mechanism": "No Certificate sets rotationPolicy, so mesh-root-ca inherits the new default Always. On 1.17 renewal reused the key, so existing leaf chains and every ca.crt copy stayed valid. On 1.18 the renewal (about 11 months after issue in prod: duration 8760h, renewBefore 720h) creates a new key pair, which is a different trust anchor. mesh-ca then signs with the new key, but cert-manager does not re-issue leaves when the issuer's CA changes. ledger-tls and checkout-tls renew on their own schedules (renewBefore 240h on a 720h duration, about every 20 days at different offsets), and each service takes its trust anchor from its own Secret's ca.crt. Until both have renewed, the two sides can disagree on the root: ledger rejects checkout's old-CA client cert, or checkout's curl fails to verify ledger's old-CA server cert. The window can last up to about 20 days. Symptom: checkout logs \"ledger call failed\" and payments mTLS fails. Nothing breaks at upgrade time; it only takes effect at the next re-issue.",
+      "mitigationOrNoExposure": "Preferred: before bumping the pin, set privateKey.rotationPolicy: Never explicitly on mesh-root-ca (in the base manifests) to keep same-key renewal. Adding an explicit rotationPolicy: Never does not change the key and should not cause a re-issue. Stopgap: set config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false in platform/cert-manager/values.yaml, which only defers the problem because 1.19 removes the gate. If the root key should be rotated at some point, plan it as a deliberate migration with a trust overlap (distribute both old and new CA to the consumers before switching)",
+      "citedEvidence": [
+        "apps/payments/base/ledger-certificate.yaml, apps/payments/base/checkout-certificate.yaml, platform/pki/base/mesh-root-ca.yaml, platform/pki/overlays/prod/mesh-root-ca-prod.yaml: none sets rotationPolicy (all checked)",
+        "platform/cert-manager/values.yaml has no config.featureGates",
+        "rendered/to.yaml: the 1.18.0 controller args have no --feature-gates",
+        "rendered/manifest.diff: CRD text changes from \"Default is `Never` for backward compatibility\" to \"Default is `Always`\"",
+        "upstream upgrade doc upgrading-1.17-1.18.md says the same",
+        "clusters/prod/cert-manager.yaml pins targetRevision: v1.17.2; Argo CD automated sync with selfHeal and prune, so bumping the pin applies the change with no manual gate",
+        "prod mesh-root-ca: duration 8760h, renewBefore 720h",
+        "ledger.conf: ssl_client_certificate /tls/ca.crt, ssl_verify_client on",
+        "checkout: curl --cacert /tls/ca.crt",
+        "leaf certificates: renewBefore 240h on a 720h duration"
+      ],
+      "assumptions": [
+        "The repo is stated to be complete, i.e. no consumers of mesh-root-ca or its ca.crt exist outside it (not confirmed)",
+        "Feature gate is on by default because it is not set in values or the rendered args"
+      ],
+      "missingEvidence": [
+        "Live cluster state: the root's age, notAfter and renewalTime (how soon the exposure arrives)",
+        "Whether anything outside the repo (other namespaces, teams or tools) trusts mesh-root-ca or its ca.crt"
+      ],
+      "recommendedValidation": [
+        "kubectl get certificate -n cert-manager mesh-root-ca -o yaml and check notAfter and renewalTime",
+        "Confirm that no consumer outside the repo trusts mesh-root-ca or its ca.crt",
+        "Staging test on 1.18.0: cmctl renew mesh-root-ca with the default and check that the root key changes, that checkout-to-ledger mTLS fails until both leaves re-issue, and that the same test with rotationPolicy: Never passes",
+        "After the fix is merged, verify that the live Certificates show spec.privateKey.rotationPolicy: Never where intended and that Argo CD shows no drift"
+      ]
+    },
+    {
+      "name": "privateKey.rotationPolicy default flips to Always: ledger-tls and checkout-tls leaf key rotation",
+      "claimedClass": "potentially-affected",
+      "claimedClassQuote": "low to medium risk",
+      "resourcesConsumers": [
+        "ledger-tls",
+        "checkout-tls",
+        "checkout (re-reads its cert and key on every curl)",
+        "ledger (nginx loads tls.crt and tls.key at startup)"
+      ],
+      "mechanism": "Each renewal now produces a new ECDSA P-256 key. That is the intended security behaviour and works with mTLS as long as the CA stays the same. checkout follows a renewal immediately. ledger's nginx does not reload tls.crt/tls.key when the files change, so it keeps serving the old, still-valid pair until it restarts or reloads. This is already true today, but with key rotation the files now contain a new key, so a restart or reload is what picks up the new pair. The repo has no reloader or checksum annotation that would trigger one.",
+      "mitigationOrNoExposure": "Rotation works with mTLS as long as the CA stays the same. No key pinning or other consumer of the leaf public keys was found in the repo. For the leaves, either set Never too or accept Always, which is the secure default.",
+      "citedEvidence": [
+        "nginx (ledger) loads tls.crt and tls.key at startup and does not reload them on file change",
+        "checkout re-reads its cert and key files on every curl",
+        "No reloader or checksum annotation in the repo",
+        "No key pinning or other consumer of the leaf public keys found in the repo"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "What nginx actually serves before and after a restart following a leaf renewal"
+      ],
+      "recommendedValidation": [
+        "Leaf test: renew ledger-tls alone and confirm what nginx serves before and after a restart"
+      ]
+    },
+    {
+      "name": "Re-issue at upgrade time",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The upgrade itself does not re-issue anything.",
+      "resourcesConsumers": [
+        "existing certificate Secrets"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "Existing Secrets stay as they are until a renewal, a manual cmctl renew, or another re-issue trigger. Nothing breaks at upgrade time.",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Effect of the default on the mesh-ca and selfsigned-bootstrap ClusterIssuers",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The `mesh-ca` and `selfsigned-bootstrap` ClusterIssuers are not changed by this default.",
+      "resourcesConsumers": [
+        "mesh-ca ClusterIssuer",
+        "selfsigned-bootstrap ClusterIssuer"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The default only applies to Certificates",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "Other diff items (ACME, Vault and Venafi CRD text; ciss/iss short names; new signatureAlgorithm field; challenge RBAC split; webhook probe port name)",
+      "claimedClass": "not-affected",
+      "claimedClassQuote": "The other diff items do not touch this environment",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "The signatureAlgorithm field is unused. No ACME issuers exist, so the challenge RBAC split does not apply.",
+      "citedEvidence": [
+        "rendered diff items"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "not stated"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    },
+    {
+      "name": "revisionHistoryLimit default change (unset to 1)",
+      "claimedClass": "not-stated",
+      "claimedClassQuote": "not stated",
+      "resourcesConsumers": [
+        "not stated"
+      ],
+      "mechanism": "not stated",
+      "mitigationOrNoExposure": "not stated (a separate upstream item, not assessed)",
+      "citedEvidence": [
+        "not stated"
+      ],
+      "assumptions": [
+        "not stated"
+      ],
+      "missingEvidence": [
+        "Assessment of this change was not performed"
+      ],
+      "recommendedValidation": [
+        "not stated"
+      ]
+    }
+  ],
+  "overall": {
+    "recommendation": "Do not proceed as-is. Before bumping the pin, either set privateKey.rotationPolicy: Never explicitly on mesh-root-ca (preferred), or set config.featureGates.DefaultPrivateKeyRotationPolicyAlways: false as a stopgap until 1.19, which removes the gate.",
+    "quote": "the upgrade is not safe as-is"
+  }
+}

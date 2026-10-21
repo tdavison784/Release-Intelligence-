@@ -1,0 +1,61 @@
+# Phase 6 commander log
+
+Commander: Claude Opus 5.5 (`ri-commander`). Mission `MISSION.md`, protocol `PROTOCOL.md`, rubric `RUBRIC.md`
+(label-bearing), queue `LEDGER.yaml`. The fleet guard still watches the Phase 5 ledger; Phase 6 uses no GLM
+handoffs in Phase 0.
+
+## Lanes
+
+| Lane | Agent | Model | Branch | Worktree | Tab | State |
+|---|---|---|---|---|---|---|
+| ws6 | ri-ws6 | Opus | p6na/ws6 | .claude/worktrees/p6na-ws6 | w1:t21 | started 2026-10-18 |
+
+## Merge log
+
+## Decisions
+
+- 2026-10-18 (product owner): pursue the natural Claude Code benchmark first, starting with the mandatory Phase 0.
+  Add a single-item variant (C-item); the investigator is Sonnet 5.5; the product owner plays arm D.
+- 2026-10-18 PROTOCOL + RUBRIC committed before any run. The commander knows the labels: the rubric is written from
+  expected.yaml/NOTES.md as checkable elements, and the investigator and lanes never see it.
+
+## 2026-10-18 — X-0002 review, amendment A1, lane fleetpilot
+
+- ws6 first pass done (9ef57a4f). Canary PASS 12/12 accepted. Its only residual is Claude Code's automatic
+  account-email reminder, which no flag removes and which carries no instructions.
+- D1: ws6 found RI's bundle redacts `privateKey.*` string values, including P-US's `rotationPolicy: Never` on
+  mesh-root-ca. The commander checked RI's code and the arm-B P-US transcript. RI's agent gets an enum read-back
+  (agent/withheld.go) and used it ("the digest of \"Never\""). So bare RI bytes would short the natural agent.
+  - Product owner: "perform the proper steps" (approving the commander's recommendation).
+  - PROTOCOL A1 (943c75b3): read-back mode is the default; C-raw P-US x3 is supplementary; C-item texts fixed;
+    D-EU description disclosure.
+  - ws6 was sent the follow-up to build read-back mode.
+- Lane fleetpilot started (tab w1:t22, pane w1:p3Q, Opus): beads mirror + gascity toy pilot, isolated under
+  ~/fleetpilot and a separate Herdr session. Ledger X-0007, decision X-0008 (user).
+
+- ws6 follow-ups merged (c3af67a9, 494b5831). Readback values match RI's read-back. Workspace digests verified
+  against ws6's record. Lane ws6 closed (tab, worktree and branch -d).
+- X-0003 started: `scripts/phase6/run-phase0.sh`. **Harness abort, disclosed:** the first driver ran as a child of
+  a 30-minute Monitor, which would have killed any run still going when it expired. The commander stopped it about
+  10 s into P-US C-whole r1. That session had produced tool calls and no assessment. It is kept unscored under
+  `runs/aborted/` and was not read. The driver was restarted under `nohup`, and r1 re-ran from scratch.
+- **Harness defect H1 (P-US C-item r3).** The session's last allowed Bash call, `cd <ws>/rendered; sed …`, left the
+  session's cwd there. So the relative allow rule `Write(./scratch/**)` stopped matching, and the final Write of
+  `scratch/assessment.md` was denied after the investigation was complete.
+  - The run is kept, not retried. The assessment was restored from the session's own denied Write, verbatim, by
+    `scripts/phase6/recover-denied-write.py` (recorded in meta.json `assessmentRecovered`), then extracted.
+  - The harness stays unchanged for the rest of the autonomous runs (C, C-raw), so conditions are constant. Any
+    further H1 runs get the same recovery.
+  - Before arm D, `lib.sh` gets absolute-path allow rules for the live `scratch/`, and the canary is re-run.
+
+- X-0003 done: 18 registered runs + 3 C-raw, all extracted. X-0004: commander scores in SCORES.md. Reading rules:
+  - distinguishes: holds (2/3);
+  - avoids the D-EU false-safe: holds narrowly (2/3), and hinges on D-EU C-whole r2 being hedged;
+  - meaningful advantage: holds, conditional on that judgement;
+  - session scope matters: does not hold, since C-item is equal or better.
+  - Transcript attribution: B never read the payments consumers (retrieval / effort allocation). D-EU B3: no arm
+    has the accepted character set in its evidence.
+- H1 fixed after the autonomous runs (absolute rules). canary-h1 PASS 13/13, including write-after-cd. Arm D ready.
+- **Before any push:** runs/canary/{assessment.md,scratch/assessment.md,transcript.jsonl} (merged from ws6,
+  c3af67a9) contain the account email quoted from Claude Code's userEmail reminder. canary-h1 is redacted. Removing
+  it from history needs a rewrite of unpushed commits: ask the product owner.
