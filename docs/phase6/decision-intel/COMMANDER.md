@@ -9,6 +9,7 @@ handoffs (every item is `providers: [claude]`).
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
 | consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
+| consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | started 2026-10-21 (D-0005) |
 
 ## Merge log
 
@@ -28,9 +29,13 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. D-0002 running: `scripts/phase6/run-m1-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m1`, run ids
-   `C1-K0-20261021-3634f501-v9-r{1,2,3}`. K0 digest matches B0.
-2. Then: score per GATE-M1, compare with B0, write M1-RESULT.md (D-0003).
+1. Lane `consumer2` is running (D-0005): the generated-ConfigMap fix. On LANE DONE:
+   - review for generic logic;
+   - merge, then build, vet and test;
+   - close the lane.
+2. M1 attempt 2: `scripts/phase6/run-m1-gate.sh <new scratch> 3` from the integration worktree. It gets new run ids
+   from the new HEAD sha. Score it per GATE-M1 and append to M1-RESULT.md.
+3. The product owner audits the scores and decides on the gate (D-0003).
 
 ## Notes
 
