@@ -25,8 +25,9 @@ import (
 // container. No rule knows a product, an application, a file or a key.
 
 const (
-	ruleReadsFile = "graph.reads-file@v1:"
-	maxLineText   = 300
+	ruleReadsFile   = "graph.reads-file@v1:"
+	ruleReadsFileV2 = "graph.reads-file@v2:" // derivations new in consumer rules v2
+	maxLineText     = 300
 )
 
 // saTokenDir is where the kubelet mounts the pod's service account token
@@ -71,10 +72,33 @@ func podContainers(spec map[string]any) []container {
 
 // dataEntry is one key of a ConfigMap's data with where its text lives: an
 // artifact and the line its text starts at (line 0: locate the key in the
-// artifact's YAML instead).
+// artifact's YAML instead, in object obj when it is not the node's own: a
+// rendered generated object). from says where data that is not the
+// snapshot's came from (EdgeFile.DataFrom).
 type dataEntry struct {
 	key, text, artifact string
 	line                int
+	obj                 *render.ObjectID
+	from                string
+}
+
+// genData is what the bundle says about the data of one kustomize-generated
+// ConfigMap or Secret (a Secret only under rules v2, for its keys).
+type genData struct {
+	entries []dataEntry // a ConfigMap's keys with their text
+	// v2: keys are the keys known to exist; unknown the data the bundle does
+	// not hold (key "": which keys exist is not known); from the rendered
+	// object the data was completed from.
+	keys    map[string]bool
+	unknown []unknownData
+	from    string
+}
+
+// unknownData is configuration data the bundle does not hold, with why and
+// where the generator names its source.
+type unknownData struct {
+	key, reason, artifact string
+	line                  *domain.EdgeLine
 }
 
 // consumerEdges runs the consumer pass after every other edge exists.
@@ -96,7 +120,9 @@ func (g *gb) consumerEdges() error {
 
 // generatorData reads the data of every kustomize configMapGenerator the
 // snapshot defines (files, literals, envs) for ConfigMaps that are not
-// objects of the snapshot themselves.
+// objects of the snapshot themselves. Under rules v2 it also reads the keys
+// of every secretGenerator, records each source the snapshot lacks, and
+// completes the data from the generated object of a render of the same side.
 func (g *gb) generatorData() error {
 	files := map[string]string{} // logical path → artifact id (every environment file)
 	for _, a := range g.bundle.Manifest.Artifacts {
@@ -104,73 +130,105 @@ func (g *gb) generatorData() error {
 			files[a.Path] = a.ID
 		}
 	}
+	v2 := g.rules >= ConsumerRulesV2
 	for _, k := range sortedKusts(g.env) {
-		for _, gen := range asSeq(k.body["configMapGenerator"]) {
-			name := str(gen, "name")
-			if name == "" {
-				continue
-			}
-			ns := g.env.dirNS[k.dir]
-			if ns == "" {
-				ns = str(gen, "namespace")
-			}
-			key := render.ObjectID{Version: "v1", Kind: "ConfigMap", Namespace: ns, Name: name}.String()
-			if n := g.byKey[key]; n == nil || n.obj != nil {
-				continue
-			}
-			var entries []dataEntry
-			for _, f := range asSeq(asMap(gen)["files"]) {
-				spec, _ := f.(string)
-				dataKey, rel := path.Base(spec), spec
-				if i := strings.Index(spec, "="); i > 0 {
-					dataKey, rel = spec[:i], spec[i+1:]
-				}
-				id, ok := files[path.Join(k.dir, rel)]
-				if !ok {
+		for _, kind := range []string{"configMapGenerator", "secretGenerator"} {
+			objKind := "ConfigMap"
+			if kind == "secretGenerator" {
+				if !v2 {
 					continue
 				}
-				b, err := g.read(id)
-				if err != nil {
-					return err
-				}
-				entries = append(entries, dataEntry{key: dataKey, text: string(b), artifact: id, line: 1})
+				objKind = "Secret"
 			}
-			for _, l := range asSeq(asMap(gen)["literals"]) {
-				lit, _ := l.(string)
-				if i := strings.Index(lit, "="); i > 0 {
-					entries = append(entries, dataEntry{key: lit[:i], text: lit[i+1:], artifact: k.artifact, line: g.lineOf(k.artifact, lit)})
+			for _, gen := range asSeq(k.body[kind]) {
+				name := str(gen, "name")
+				if name == "" {
+					continue // kustomize rejects a generator without a name
 				}
-			}
-			envs := asSeq(asMap(gen)["envs"])
-			if e, ok := asMap(gen)["env"].(string); ok {
-				envs = append(envs, e)
-			}
-			for _, e := range envs {
-				rel, _ := e.(string)
-				id, ok := files[path.Join(k.dir, rel)]
-				if !ok {
-					continue
+				ns := g.env.dirNS[k.dir]
+				if ns == "" {
+					ns = str(gen, "namespace")
 				}
-				b, err := g.read(id)
-				if err != nil {
-					return err
+				key := render.ObjectID{Version: "v1", Kind: objKind, Namespace: ns, Name: name}.String()
+				if n := g.byKey[key]; n == nil || n.obj != nil {
+					continue // an object of the snapshot states its own data
 				}
-				for i, line := range strings.Split(string(b), "\n") {
-					if j := strings.Index(line, "="); j > 0 && !strings.HasPrefix(strings.TrimSpace(line), "#") {
-						entries = append(entries, dataEntry{key: strings.TrimSpace(line[:j]), text: line[j+1:], artifact: id, line: i + 1})
+				gd := &genData{keys: map[string]bool{}}
+				lacks := func(dataKey, spec, what string) {
+					gd.unknown = append(gd.unknown, unknownData{key: dataKey, artifact: k.artifact,
+						reason: fmt.Sprintf("%s %s is generated by %s of %s from %s, which is not in the environment snapshot", objKind, name, kind, k.file, what),
+						line:   g.lineAt(k.artifact, spec)})
+				}
+				for _, f := range asSeq(asMap(gen)["files"]) {
+					spec, _ := f.(string)
+					dataKey, rel := path.Base(spec), spec
+					if i := strings.Index(spec, "="); i > 0 {
+						dataKey, rel = spec[:i], spec[i+1:]
+					}
+					gd.keys[dataKey] = true
+					id, ok := files[path.Join(k.dir, rel)]
+					if !ok {
+						lacks(dataKey, spec, "file "+path.Join(k.dir, rel))
+						continue
+					}
+					if objKind == "Secret" {
+						continue // its content is withheld; the key is what a consumer needs
+					}
+					b, err := g.read(id)
+					if err != nil {
+						return err
+					}
+					gd.entries = append(gd.entries, dataEntry{key: dataKey, text: string(b), artifact: id, line: 1})
+				}
+				for _, l := range asSeq(asMap(gen)["literals"]) {
+					lit, _ := l.(string)
+					if i := strings.Index(lit, "="); i > 0 {
+						gd.keys[lit[:i]] = true
+						if objKind == "ConfigMap" {
+							gd.entries = append(gd.entries, dataEntry{key: lit[:i], text: lit[i+1:], artifact: k.artifact, line: g.lineOf(k.artifact, lit)})
+						}
 					}
 				}
+				envs := asSeq(asMap(gen)["envs"])
+				if e, ok := asMap(gen)["env"].(string); ok {
+					envs = append(envs, e)
+				}
+				for _, e := range envs {
+					rel, _ := e.(string)
+					id, ok := files[path.Join(k.dir, rel)]
+					if !ok {
+						lacks("", rel, "env file "+path.Join(k.dir, rel))
+						continue
+					}
+					b, err := g.read(id)
+					if err != nil {
+						return err
+					}
+					for i, line := range strings.Split(string(b), "\n") {
+						if j := strings.Index(line, "="); j > 0 && !strings.HasPrefix(strings.TrimSpace(line), "#") {
+							gd.keys[strings.TrimSpace(line[:j])] = true
+							if objKind == "ConfigMap" {
+								gd.entries = append(gd.entries, dataEntry{key: strings.TrimSpace(line[:j]), text: line[j+1:], artifact: id, line: i + 1})
+							}
+						}
+					}
+				}
+				if v2 && len(gd.unknown) > 0 {
+					if err := g.renderedData(k, gen, objKind, name, ns, gd); err != nil {
+						return err
+					}
+				}
+				g.gen[key] = gd
 			}
-			g.gen[key] = entries
 		}
 	}
 	return nil
 }
 
 // configData is a ConfigMap node's data: its object's data (located in its
-// artifact), else its generator's. ok is false when the snapshot does not
-// hold the data (a placeholder).
-func (g *gb) configData(n *gnode) ([]dataEntry, bool) {
+// artifact), else its generator's (gd). ok is false when the snapshot does
+// not hold the data (a placeholder).
+func (g *gb) configData(n *gnode) (entries []dataEntry, gd *genData, ok bool) {
 	if n.obj != nil {
 		var out []dataEntry
 		data := asMap(n.obj.body["data"])
@@ -184,24 +242,39 @@ func (g *gb) configData(n *gnode) ([]dataEntry, bool) {
 				out = append(out, dataEntry{key: k, text: s, artifact: n.obj.artifact})
 			}
 		}
-		return out, true
+		return out, nil, true
 	}
-	e, ok := g.gen[n.n.Key]
-	return e, ok
+	if gd, ok := g.gen[n.n.Key]; ok {
+		return gd.entries, gd, true
+	}
+	return nil, nil, false
 }
 
 // keysOf is the set of keys a provider object is known to hold (ok false:
-// not known — a placeholder, a generated Secret, a redacted body).
+// not known — a placeholder, a generated object whose sources the bundle
+// lacks, a generated Secret under rules v1).
 func (g *gb) keysOf(n *gnode) (map[string]bool, bool) {
 	if n.obj == nil {
-		if es, ok := g.gen[n.n.Key]; ok {
-			out := map[string]bool{}
-			for _, e := range es {
+		gd, ok := g.gen[n.n.Key]
+		if !ok {
+			return nil, false
+		}
+		out := map[string]bool{}
+		if g.rules < ConsumerRulesV2 {
+			for _, e := range gd.entries {
 				out[e.key] = true
 			}
 			return out, true
 		}
-		return nil, false
+		for _, u := range gd.unknown {
+			if u.key == "" {
+				return nil, false
+			}
+		}
+		for k := range gd.keys {
+			out[k] = true
+		}
+		return out, true
 	}
 	out := map[string]bool{}
 	for _, f := range []string{"data", "stringData", "binaryData"} {
@@ -210,6 +283,221 @@ func (g *gb) keysOf(n *gnode) (map[string]bool, bool) {
 		}
 	}
 	return out, true
+}
+
+// --- generated objects in the renders (rules v2) ----------------------------------------------
+
+// hashSuffix is the name suffix kustomize gives a generated object: ten
+// characters of its content hash, hex digits 0, 1, 3, a and e mapped to g, h,
+// k, m and t.
+var hashSuffix = regexp.MustCompile(`^[2456789bcdfghkmt]{10}$`)
+
+// renderedObj is a generated object found in a render.
+type renderedObj struct {
+	id               render.ObjectID
+	body             map[string]any
+	artifact, target string
+	overlay          bool
+}
+
+// renderedData completes the data of generator gen of kustomization k (kind,
+// name, ns: the object it generates) from the generated object a render of
+// the graph's side holds: the render of an overlay whose kustomization tree
+// includes k, an object of the kind named as kustomize names it (the name
+// prefixes and suffixes of the tree, then the hash suffix unless disabled),
+// in the namespace. With no such object, or several with different data, the
+// unknown data stays unknown and its reason says so.
+func (g *gb) renderedData(k *kustomization, gen any, kind, name, ns string, gd *genData) error {
+	found, err := g.renderedGenerated(k, gen, kind, name, ns)
+	if err != nil {
+		return err
+	}
+	why := ""
+	switch {
+	case len(found) == 0:
+		why = fmt.Sprintf("; no render of the %s side holds the generated object", g.side)
+	default:
+		for _, o := range found[1:] {
+			if !sameData(kind, o.body, found[0].body) {
+				why = fmt.Sprintf("; %d rendered objects match it with different data (%s in %s, %s in %s), so which one it is is not decided", len(found), found[0].id, found[0].target, o.id, o.target)
+				break
+			}
+		}
+	}
+	if why != "" {
+		for i := range gd.unknown {
+			gd.unknown[i].reason += why
+		}
+		return nil
+	}
+	o := found[0]
+	note := ""
+	if o.overlay {
+		note = ", a version-independent overlay: the same objects at both sides"
+	}
+	gd.from = fmt.Sprintf("rendered object %s of render %s (artifact %s%s); %s", o.id, o.target, o.artifact, note, gd.unknown[0].reason)
+	known := map[string]bool{}
+	for _, e := range gd.entries {
+		known[e.key] = true
+	}
+	for _, field := range []string{"data", "binaryData", "stringData"} {
+		data := asMap(o.body[field])
+		keys := make([]string, 0, len(data))
+		for key := range data {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			gd.keys[key] = true
+			if kind != "ConfigMap" || field != "data" || known[key] {
+				continue
+			}
+			if s, ok := data[key].(string); ok {
+				id := o.id
+				gd.entries = append(gd.entries, dataEntry{key: key, text: s, artifact: o.artifact, obj: &id, from: gd.from})
+			}
+		}
+	}
+	gd.unknown = nil
+	if n := g.byKey[render.ObjectID{Version: "v1", Kind: kind, Namespace: ns, Name: name}.String()]; n != nil {
+		n.arts[o.artifact] = true
+	}
+	return nil
+}
+
+// renderedGenerated finds the objects generator gen of kustomization k
+// generates in the renders of the graph's side: complete environment pairs
+// (the side's render) and version-independent overlays (not-applicable
+// pairs whose one render states the objects at both sides).
+func (g *gb) renderedGenerated(k *kustomization, gen any, kind, name, ns string) ([]renderedObj, error) {
+	hashed := true
+	if b, ok := get(k.body, "generatorOptions", "disableNameSuffixHash").(bool); ok {
+		hashed = !b
+	}
+	if b, ok := get(gen, "options", "disableNameSuffixHash").(bool); ok {
+		hashed = !b
+	}
+	var out []renderedObj
+	for _, p := range g.bundle.Renders {
+		if p.Scope != domain.RenderEnvironment {
+			continue
+		}
+		art, overlay := "", false
+		switch {
+		case p.Status == domain.CollectionOK && g.side == SideFrom:
+			art = p.From
+		case p.Status == domain.CollectionOK:
+			art = p.To
+		case p.Status == domain.CollectionNotApplicable && p.From != "":
+			art, overlay = p.From, true
+		}
+		if art == "" {
+			continue
+		}
+		prefix, suffix, ok := g.renderedBy(p.Target, k.dir)
+		if !ok {
+			continue
+		}
+		objs, err := g.renderObjects(art)
+		if err != nil {
+			return nil, err
+		}
+		want := prefix + name + suffix
+		for _, o := range objs {
+			if o.ID.Group != "" || o.ID.Kind != kind || (ns != "" && o.ID.Namespace != "" && o.ID.Namespace != ns) {
+				continue
+			}
+			if hashed && !(strings.HasPrefix(o.ID.Name, want+"-") && hashSuffix.MatchString(o.ID.Name[len(want)+1:])) || !hashed && o.ID.Name != want {
+				continue
+			}
+			out = append(out, renderedObj{id: o.ID, body: o.Body, artifact: art, target: p.Target, overlay: overlay})
+		}
+	}
+	return out, nil
+}
+
+// renderedBy reports whether render target t builds kustomization directory
+// dir (a kustomize target, or a GitOps application whose source path is a
+// kustomization including it), with the name prefix and suffix the
+// kustomizations from t's root down to dir give dir's objects.
+func (g *gb) renderedBy(t, dir string) (prefix, suffix string, ok bool) {
+	i := strings.Index(t, ":")
+	if i < 0 {
+		return "", "", false
+	}
+	var roots []string
+	if t[:i] == "kustomize" {
+		roots = []string{"env/" + strings.TrimPrefix(path.Clean(t[i+1:]), "./")}
+	} else {
+		for _, a := range g.env.appsOfTarget(t) {
+			roots = append(roots, appSourceDirs(a)...)
+		}
+	}
+	for _, r := range roots {
+		if prefix, suffix, ok := g.kustChain(r, dir, map[string]bool{}); ok {
+			return prefix, suffix, true
+		}
+	}
+	return "", "", false
+}
+
+// kustChain follows resources/bases/components from kustomization from to
+// kustomization to, accumulating namePrefix (outer first) and nameSuffix
+// (outer last).
+func (g *gb) kustChain(from, to string, seen map[string]bool) (prefix, suffix string, ok bool) {
+	k := g.env.kustomizations[from]
+	if k == nil || seen[from] {
+		return "", "", false
+	}
+	seen[from] = true
+	p, s := str(k.body, "namePrefix"), str(k.body, "nameSuffix")
+	if from == to {
+		return p, s, true
+	}
+	for _, key := range []string{"resources", "bases", "components"} {
+		for _, r := range asSeq(k.body[key]) {
+			if rs, _ := r.(string); rs != "" {
+				if ip, is, ok := g.kustChain(path.Join(from, rs), to, seen); ok {
+					return p + ip, is + s, true
+				}
+			}
+		}
+	}
+	return "", "", false
+}
+
+func (g *gb) renderObjects(art string) ([]render.Object, error) {
+	if objs, ok := g.renders[art]; ok {
+		return objs, nil
+	}
+	b, err := g.read(art)
+	if err != nil {
+		return nil, err
+	}
+	objs, err := render.ParseObjects(b)
+	if err != nil {
+		objs = nil // an unparsable render holds no object (as in load)
+	}
+	g.renders[art] = objs
+	return objs, nil
+}
+
+// sameData compares the data of two generated objects: a ConfigMap's keys
+// and text, a Secret's keys (its values are withheld).
+func sameData(kind string, a, b map[string]any) bool {
+	for _, field := range []string{"data", "binaryData", "stringData"} {
+		x, y := asMap(a[field]), asMap(b[field])
+		if len(x) != len(y) {
+			return false
+		}
+		for k, v := range x {
+			w, ok := y[k]
+			if !ok || kind == "ConfigMap" && fmt.Sprint(v) != fmt.Sprint(w) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // --- reads-file edges --------------------------------------------------------------------
@@ -305,9 +593,21 @@ func (g *gb) readsFile(w *gnode) error {
 			if rn == nil {
 				continue
 			}
-			data, ok := g.configData(rn)
+			data, gd, ok := g.configData(rn)
 			if !ok {
-				continue // its data is not in the snapshot: the references edge says so
+				// Its data is not in the snapshot: the references edge says so;
+				// under rules v2 a reads-file edge says what is unknown.
+				if g.rules >= ConsumerRulesV2 {
+					g.unknownData(w, c.name, mounts, r, rn, unknownData{reason: fmt.Sprintf("%s is not an object of the snapshot (%s), so its data is not known", rn.n.Key, rn.phReason)})
+				}
+				continue
+			}
+			if gd != nil && g.rules >= ConsumerRulesV2 {
+				for _, u := range gd.unknown {
+					if u.key == "" || r.keys == nil || r.keys[u.key] {
+						g.unknownData(w, c.name, mounts, r, rn, u)
+					}
+				}
 			}
 			for _, d := range data {
 				if r.keys != nil && !r.keys[d.key] {
@@ -385,14 +685,18 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 	if best != nil && r.via == "volume" && best.volume == r.volume {
 		return // the configuration names a file of its own volume: resolved within itself
 	}
-	file := &domain.EdgeFile{ConfigKey: d.key, Path: p, Workload: w.n.Key, Container: c, Via: r.via}
+	file := &domain.EdgeFile{ConfigKey: d.key, Path: p, Workload: w.n.Key, Container: c, Via: r.via, DataFrom: d.from}
 	detail := fmt.Sprintf("%s %s data[%s] names %s (container %s of %s)", r.via, rn.n.Key, d.key, p, c, w.n.Key)
 	line := g.dataLine(rn, d, p)
 	arts := []string{d.artifact, w.obj.artifact}
+	rule := ruleReadsFile + r.via
+	if d.from != "" {
+		rule = ruleReadsFileV2 + "rendered-data:" + r.via
+	}
 	unresolved := func(status domain.EdgeStatus, reason string) {
 		ext := g.node(domain.NodeExternal, render.ObjectID{Kind: "File", Name: p}, "file:"+w.n.Key+"#"+c+":"+p, "")
 		ext.n.Placeholder = true
-		g.fileEdgeTo(ext, rn, status, detail, reason, file, line, arts)
+		g.fileEdgeTo(ext, rn, status, rule, detail, reason, file, line, arts)
 	}
 	if best == nil {
 		if _, ok := under(p, saTokenDir); ok && automount {
@@ -435,10 +739,21 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 		if len(cands) > 1 {
 			status, reason = domain.EdgeInferred, fmt.Sprintf("%s is under mountPath %s of projected volume %s, whose sources without items (%d) may each hold key %q; which one does is not decided from the snapshot", p, best.mountPath, best.volume, len(cands), cd.key)
 		}
-		if keys, ok := g.keysOf(pn); ok && cd.key != "" && !keys[cd.key] {
+		rule := rule
+		keys, known := g.keysOf(pn)
+		switch {
+		case known && cd.key != "" && !keys[cd.key]:
 			status, reason = domain.EdgeMissing, fmt.Sprintf("%s maps to key %q of %s, which holds no such key", p, cd.key, pn.n.Key)
+		case !known && cd.key != "" && !pn.n.Placeholder && g.rules >= ConsumerRulesV2:
+			// A generated object whose keys the bundle does not state (a
+			// placeholder's absence is its references edge's gap).
+			why := fmt.Sprintf("%s maps to key %q of %s, whose keys are not in the snapshot: that it holds the key is not established", p, cd.key, pn.n.Key)
+			if reason != "" {
+				why = reason + "; " + why
+			}
+			status, reason, rule = domain.EdgeInferred, why, ruleReadsFileV2+"unknown-keys:"+r.via
 		}
-		g.fileEdgeTo(pn, rn, status, detail, reason, &f, line, arts)
+		g.fileEdgeTo(pn, rn, status, rule, detail, reason, &f, line, arts)
 	}
 }
 
@@ -511,8 +826,30 @@ func (g *gb) projectedCandidates(sources []any, vrel, ns string) ([]candidate, s
 	return without, ""
 }
 
-func (g *gb) fileEdgeTo(from, to *gnode, status domain.EdgeStatus, detail, reason string, f *domain.EdgeFile, line *domain.EdgeLine, arts []string) {
-	g.edge(domain.EdgeReadsFile, from, to, status, ruleReadsFile+f.Via, detail, reason, arts...)
+// unknownData adds the unresolved reads-file edge of configuration data u of
+// ConfigMap rn that container c of workload w reads but the bundle does not
+// hold (rules v2): from a placeholder standing for the files it may name.
+func (g *gb) unknownData(w *gnode, c string, mounts []mountRef, r reader, rn *gnode, u unknownData) {
+	shown := u.key
+	if shown == "" {
+		shown = "*"
+	}
+	ext := g.node(domain.NodeExternal, render.ObjectID{Kind: "ConfigData", Name: rn.n.Key + "[" + shown + "]"}, "data:"+w.n.Key+"#"+c+":"+rn.n.Key+"["+shown+"]", "")
+	ext.n.Placeholder = true
+	file := &domain.EdgeFile{ConfigKey: u.key, Workload: w.n.Key, Container: c, Via: r.via}
+	for _, m := range mounts {
+		if r.via == "volume" && m.volume == r.volume {
+			file.Volume, file.MountPath = m.volume, m.mountPath
+			break
+		}
+	}
+	detail := fmt.Sprintf("%s %s data[%s] is not known (container %s of %s)", r.via, rn.n.Key, shown, c, w.n.Key)
+	reason := u.reason + ": the files it names are not known"
+	g.fileEdgeTo(ext, rn, domain.EdgeMissing, ruleReadsFileV2+"unknown-data:"+r.via, detail, reason, file, u.line, []string{u.artifact, w.obj.artifact})
+}
+
+func (g *gb) fileEdgeTo(from, to *gnode, status domain.EdgeStatus, rule, detail, reason string, f *domain.EdgeFile, line *domain.EdgeLine, arts []string) {
+	g.edge(domain.EdgeReadsFile, from, to, status, rule, detail, reason, arts...)
 	id := domain.EdgeID(domain.EdgeReadsFile, from.n.ID, to.n.ID, detail)
 	if e, ok := g.edges[id]; ok {
 		e.File, e.Line = f, line
@@ -536,7 +873,11 @@ func (g *gb) dataLine(n *gnode, d dataEntry, p string) *domain.EdgeLine {
 		}
 		return pa.at(d.artifact, d.line)
 	}
-	start, end := pa.span(n.id, []seg{{key: "data"}, {key: d.key}})
+	id := n.id
+	if d.obj != nil {
+		id = *d.obj
+	}
+	start, end := pa.span(id, []seg{{key: "data"}, {key: d.key}})
 	if start == 0 {
 		return nil
 	}
@@ -585,6 +926,14 @@ func (g *gb) lines() error {
 			e.Line = pa.at(holder.obj.artifact, l)
 			g.edges[id] = e
 		}
+	}
+	return nil
+}
+
+// lineAt is the first line of an artifact containing s, located (nil: none).
+func (g *gb) lineAt(artifact, s string) *domain.EdgeLine {
+	if l := g.lineOf(artifact, s); l > 0 {
+		return g.parsed(artifact).at(artifact, l)
 	}
 	return nil
 }

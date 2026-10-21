@@ -1428,6 +1428,8 @@ func (db *dossierBuilder) consumers() {
 func hopLine(h TraceHop) string {
 	rel := string(h.Kind)
 	switch {
+	case h.File != nil && h.File.Path == "":
+		rel = fmt.Sprintf("%s: %s data[%s] is not known (container %s)", h.Kind, h.To, dataKey(h.File), h.File.Container)
 	case h.File != nil && h.File.Key != "":
 		rel = fmt.Sprintf("%s: %s data[%s] names %s (key %s via mount %s of container %s)", h.Kind, h.To, h.File.ConfigKey, h.File.Path, h.File.Key, h.File.MountPath, h.File.Container)
 	case h.File != nil:
@@ -1447,6 +1449,9 @@ func hopLine(h TraceHop) string {
 		}
 	case h.Detail != "":
 		rel = string(h.Kind) + ": " + h.Detail
+	}
+	if h.File != nil && h.File.DataFrom != "" {
+		rel += "; the data is the rendered generated object's"
 	}
 	at := h.Artifact
 	if h.Line > 0 {

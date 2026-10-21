@@ -96,8 +96,10 @@ type SessionConfig struct {
 	// are rejected (an inspection session with no model call behind it).
 	ReadOnly bool
 	// ConsumerGraphs builds the consumer-mode graph at a side (prompt
-	// feature traceConsumers; consumers.go).
+	// feature traceConsumers; consumers.go) under ConsumerRules
+	// (relations.ConsumerRulesV1, …), which the transcript header records.
 	ConsumerGraphs ConsumerGraphs
+	ConsumerRules  int
 	Now            func() time.Time
 }
 
@@ -277,6 +279,9 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	}
 	if cfg.Prompt.Features.PerItem {
 		header["itemCap"] = cfg.ItemCap
+	}
+	if cfg.Prompt.Features.TraceConsumers && cfg.ConsumerRules > relations.ConsumerRulesV1 {
+		header["consumerRules"] = cfg.ConsumerRules // absent: v1, the rules of transcripts recorded before it
 	}
 	s.writeLine(header)
 	return s, nil

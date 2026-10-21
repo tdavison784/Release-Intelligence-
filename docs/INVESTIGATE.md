@@ -627,7 +627,7 @@ consumer):
 | `renders-to` / `deploys` / `configures` | Application, kustomization, render source → objects; values file → Application | Argo `source.path`, `$values/…` value files, kustomize `resources`, generators, render targets |
 
 **Consumer mode** (`relations.WithConsumers()` / `relations.BuildConsumerGraph(ctx, store, bundle, side, opts…)`,
-producer `relations.builder@v1+consumers@v1`; Phase 6 Milestone 1, `docs/phase6/decision-intel/M1-IMPLEMENTATION.md`).
+producer `relations.builder@v1+consumers@v<rules>`; Phase 6 Milestone 1, `docs/phase6/decision-intel/M1-IMPLEMENTATION.md`).
 The same graph plus: on every Secret/ConfigMap volume `references` edge, `mount` (volume, projected source, items
 key → path, every container mount with `mountPath`/`subPath`); on `references` and `produces` edges, `line` (the
 artifact line that states the field); and **`reads-file`** edges, mounted Secret/ConfigMap → the ConfigMap whose
@@ -635,9 +635,19 @@ configuration (mounted, or read through `configMapKeyRef`/`envFrom`) names an ab
 same container (`file`: config key, path, workload, container, mount, the key it maps to; `line` + text). Generic
 path matching only; a path under no mount, under a volume that is not a Secret/ConfigMap, or to a key the object
 does not hold is an unresolved `reads-file` edge (an `external` placeholder `file:<workload>#<container>:<path>`),
-never dropped. Generated ConfigMaps are read from their `configMapGenerator` `files`/`literals`/`envs`. The
-pipeline never builds this mode: its graph, traversal and every policy input are unchanged. Prompt v9's agent
-session builds it (below).
+never dropped. Generated ConfigMaps are read from their `configMapGenerator` `files`/`literals`/`envs`.
+**Consumer rules** (`relations.WithConsumerRules`): v2 (the default) also takes a generated ConfigMap's data from the
+generated object of a render of the same side when the snapshot lacks a generator source (the snapshot collects
+YAML files only): the render of an overlay whose kustomization tree includes the generator, the object named as
+kustomize names it (tree `namePrefix`/`nameSuffix`, then the content-hash suffix unless disabled), in the namespace;
+the edge's `file.dataFrom` names that object and its `line` cites the render. Data no source holds (no render, or
+renders that disagree) and a ConfigMap the snapshot does not define become unresolved `reads-file` edges with an
+empty `file.path` (`external` placeholder `data:<workload>#<container>:<configmap>[<key>]`) that `trace_consumers`
+and the dossier report as gaps. `secretGenerator` keys are known from the generator; a key of a generated Secret
+whose keys are unknown is `inferred`. v1 is the Milestone 1 graph, kept so transcripts recorded under it replay: a
+v9 session writes `consumerRules` into its transcript header, and a replay uses the rules its transcript names
+(none: v1). The pipeline never builds this mode: its graph, traversal and every policy input are unchanged. Prompt
+v9's agent session builds it (below).
 
 Kustomize `namespace:` (outermost wins) and an Application's `destination.namespace` are applied so references
 resolve; kustomize patch files are not objects; `configMapGenerator`/`secretGenerator` outputs are nodes. The same

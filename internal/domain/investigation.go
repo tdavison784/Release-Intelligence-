@@ -1247,7 +1247,9 @@ type VolumeMount struct {
 // EdgeFile is what a reads-file edge matched: the configuration key (of the
 // To ConfigMap) whose value names Path; the workload and container that read
 // both; the mount Path falls under and the key of the From object it maps to
-// ("" when no volume matched: the edge is then unresolved).
+// ("" when no volume matched: the edge is then unresolved). An empty Path
+// marks an unresolved edge whose configuration data is not known (ConfigKey
+// names the key, "" for every key): which files it names cannot be read.
 type EdgeFile struct {
 	ConfigKey string `json:"configKey"`
 	Path      string `json:"path"`
@@ -1258,6 +1260,10 @@ type EdgeFile struct {
 	Volume    string `json:"volume,omitempty"`
 	MountPath string `json:"mountPath,omitempty"`
 	Key       string `json:"key,omitempty"`
+	// DataFrom says where the configuration data came from when it is not
+	// the environment snapshot: the rendered object of a kustomize-generated
+	// ConfigMap (consumer rules v2). CONTRACT-CHANGE(consumer2): additive.
+	DataFrom string `json:"dataFrom,omitempty"`
 }
 
 // EdgeLine locates an edge's relationship in an artifact: the 1-based line
