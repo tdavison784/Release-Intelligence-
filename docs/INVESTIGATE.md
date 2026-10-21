@@ -626,6 +626,19 @@ consumer):
 | `produces` | custom resource → object it creates | declarative `ProducesRule`, else the `spec.secretName` convention |
 | `renders-to` / `deploys` / `configures` | Application, kustomization, render source → objects; values file → Application | Argo `source.path`, `$values/…` value files, kustomize `resources`, generators, render targets |
 
+**Consumer mode** (`relations.WithConsumers()` / `relations.BuildConsumerGraph(ctx, store, bundle, side, opts…)`,
+producer `relations.builder@v1+consumers@v1`; Phase 6 Milestone 1, `docs/phase6/decision-intel/M1-IMPLEMENTATION.md`).
+The same graph plus: on every Secret/ConfigMap volume `references` edge, `mount` (volume, projected source, items
+key → path, every container mount with `mountPath`/`subPath`); on `references` and `produces` edges, `line` (the
+artifact line that states the field); and **`reads-file`** edges, mounted Secret/ConfigMap → the ConfigMap whose
+configuration (mounted, or read through `configMapKeyRef`/`envFrom`) names an absolute path under that mount in the
+same container (`file`: config key, path, workload, container, mount, the key it maps to; `line` + text). Generic
+path matching only; a path under no mount, under a volume that is not a Secret/ConfigMap, or to a key the object
+does not hold is an unresolved `reads-file` edge (an `external` placeholder `file:<workload>#<container>:<path>`),
+never dropped. Generated ConfigMaps are read from their `configMapGenerator` `files`/`literals`/`envs`. The
+pipeline never builds this mode: its graph, traversal and every policy input are unchanged. Prompt v9's agent
+session builds it (below).
+
 Kustomize `namespace:` (outermost wins) and an Application's `destination.namespace` are applied so references
 resolve; kustomize patch files are not objects; `configMapGenerator`/`secretGenerator` outputs are nodes. The same
 extraction and resolution, per side and without the graph, is `relations.NewViewer(…).View` (see "Reference and
@@ -993,7 +1006,9 @@ A claim supports the agent's records; it is never a validation and never a polic
 classification still runs only over validation records.
 
 **Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
-verdict citation inheritance, and v8, the default, revises the mitigation instructions, both below; Phase 5,
+verdict citation inheritance, and v8, the default, revises the mitigation instructions, both below; v9 (selected with
+`-agent-prompt investigate-agent/v9` until the M1 gate is met) is the
+consumer-aware investigation further down; Phase 5,
 `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
 the v5 surface. It adds three things.
 
@@ -1096,6 +1111,30 @@ overturn it.
   none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
   case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
   was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
+- **v9** (Phase 6 Milestone 1, `docs/phase6/decision-intel/PLAN-M1.md`, `M1-IMPLEMENTATION.md`; not the default: v8 stays the default until the M1 gate is met, mission §13).
+  Per-item sessions kept; `meta.json` turns `mitigation` off (`record_hypothesis` has no `mitigation`) and adds
+  `traceConsumers`, `assessment`, `itemCalls: 24`, `itemTurns: 18` (rule `item@v2`; v1–v8 keep `item@v1`).
+  - **Consumer graph.** The session builds the consumer-mode graph of the bundle (TO side; FROM on demand) with
+    the pipeline's relationship rules (`agent.WithRelations`) and stores it as a run artifact
+    (`derived/agent/consumers/<side>/<graph>.json`). Every other tool and the validators keep the stored graph.
+  - **`trace_consumers`** `{changeItem | node, side}`: from every exposure root of the item (or one node), the
+    `produces` / `references` / `reads-file` hops, each with its artifact, line and text, mount and file detail;
+    the consumers reached; and `gaps` — unresolved edges, objects created at runtime, unresolvable paths a reached
+    configuration names, mounts no configuration names, the bound (200 hops, depth 6).
+  - **Dossier** (producer `investigate.dossier@v4`, only with a consumer graph): `relations.consumers`, the
+    chains of each exposed object; their gaps are dossier gaps.
+  - **`assessment`** on every closing entry except `not-examined` (`internal/investigate/agent/assessment.go`):
+    `whatChanged`, `mechanism`, `consumers`, `effectiveConfiguration` (`explicit` / `inherited-default` /
+    `unknown`), `verified` (each statement with citations that must resolve, or the call is rejected),
+    `inferred`, `unknown`, `likelyImpact`, `recommendedTests`. Stored as `Investigation.AgentAssessments`
+    (`aas-…`, AI provenance, prose labelled), linked to the entry's verdict; never a classifier input.
+  - **Completion check.** Consumers of the item's exposed objects that no tool of the session returned
+    (`trace_consumers`, `get_rendered_object` of the object, `read_artifact` of the environment file defining it)
+    reject a `not-affected` verdict once, listing them; a resubmission is accepted. Every assessment records them
+    in `untracedConsumers` and as investigation gaps in `unknown`.
+  - The prompt asks the mission's eight questions, consumers first, verified / inferred / unknown kept apart
+    (model memory is never evidence), and provisional versus supported conclusions with their proof
+    obligations; the mitigation and consistency instructions are gone. Generic wording (tested like v8).
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1153,7 +1192,8 @@ the agent's outputs.
 agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds per-item sessions (`item.md`);
 v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
-citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers;
+v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 

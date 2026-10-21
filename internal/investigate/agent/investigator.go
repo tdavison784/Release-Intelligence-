@@ -10,6 +10,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 )
 
 // Investigator is the agent stage (investigate.Investigator): it serves a
@@ -20,6 +21,9 @@ type Investigator struct {
 	drivers    map[string]investigate.AgentDriver
 	validators []investigate.Validator
 	now        func() time.Time
+	// rels are the graph builder's options for the session's consumer graph
+	// (prompt feature traceConsumers).
+	rels []relations.Option
 }
 
 // Option configures an Investigator.
@@ -35,6 +39,14 @@ func WithDriver(name string, d investigate.AgentDriver) Option {
 // WithValidators makes validators available to request_validation.
 func WithValidators(vs ...investigate.Validator) Option {
 	return func(i *Investigator) { i.validators = append(i.validators, vs...) }
+}
+
+// WithRelations sets the relationship rules (relations.WithCatalog, …) of
+// the consumer graph a session with feature traceConsumers builds: the same
+// options the pipeline's graph builder takes, so the consumer graph is the
+// stored graph plus consumer detail.
+func WithRelations(opts ...relations.Option) Option {
+	return func(i *Investigator) { i.rels = append(i.rels, opts...) }
 }
 
 // WithClock sets the clock that stamps generatedAt on agent records.
@@ -75,6 +87,12 @@ func Budget(b domain.AgentBudget) domain.AgentBudget {
 // rendered task, its digest and the tool surface. Investigate uses it; it is
 // exported for `ri investigate mcp` and tests.
 func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time) (*Session, investigate.AgentSession, error) {
+	return PrepareWith(st, in, validators, now, nil)
+}
+
+// PrepareWith is Prepare with the relationship rules of the consumer graph
+// (WithRelations).
+func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time, rels []relations.Option) (*Session, investigate.AgentSession, error) {
 	if in.Bundle == nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, errors.New("agent: no bundle"))
 	}
@@ -97,7 +115,7 @@ func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, vali
 		if itemCap = in.Config.MaxItems; itemCap <= 0 {
 			itemCap = DefaultItemCap
 		}
-		budget, budgetRule = ItemBudget(in.Config.ItemBudget, itemCap, len(agenda))
+		budget, budgetRule = ItemBudgetFor(p.Features, in.Config.ItemBudget, itemCap, len(agenda))
 	case p.Features.Agenda:
 		agenda = Agenda(in.Bundle, in.Validations)
 		budget, budgetRule = AgendaBudget(in.Config.Budget, len(agenda))
@@ -108,10 +126,17 @@ func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, vali
 		}
 		digest = p.Digest(task)
 	}
+	var graphs ConsumerGraphs
+	if p.Features.TraceConsumers {
+		b := in.Bundle
+		graphs = func(ctx context.Context, side relations.Side) (*domain.RelationshipGraph, error) {
+			return relations.BuildConsumerGraph(ctx, st, b, side, rels...)
+		}
+	}
 	s, err := NewSession(SessionConfig{Bundle: in.Bundle, Store: st, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
 		Validations: in.Validations, ValidationArtifacts: in.ValidationArtifacts, ValidationEvidence: in.ValidationEvidence,
 		Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now,
-		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap})
+		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap, ConsumerGraphs: graphs})
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
@@ -138,7 +163,7 @@ func (i *Investigator) Investigate(ctx context.Context, in investigate.Investiga
 		sort.Strings(names)
 		return nil, investigate.PermanentError(domain.StageInvestigate, fmt.Errorf("agent: unknown driver %q (registered: %s)", cfg.Driver, strings.Join(names, ", ")))
 	}
-	s, as, err := Prepare(i.st, in, i.validators, i.now)
+	s, as, err := PrepareWith(i.st, in, i.validators, i.now, i.rels)
 	if err != nil {
 		return nil, err
 	}
@@ -268,6 +293,10 @@ func (s *Session) outcome(ctx context.Context, st investigate.ArtifactStore, dri
 		out.Verdicts = append(out.Verdicts, v)
 		droppedCites += v.DroppedCitations
 		droppedFacts += v.DroppedVerifiedFacts
+	}
+	for _, a := range s.assessments {
+		fill(&a.Provenance)
+		out.Assessments = append(out.Assessments, a)
 	}
 	out.ProposedNodes = append(out.ProposedNodes, s.propNodes...)
 	out.AnswerLinks = append(out.AnswerLinks, s.links...)
@@ -470,6 +499,10 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 	var digests []string
 	agg := investigate.DriverResult{Provider: ""}
 	started := time.Now() // wall time is a cost metric, never part of a record's identity
+	consumers, err := s.LoadConsumers(ctx)
+	if err != nil {
+		return nil, investigate.TransientError(domain.StageInvestigate, err)
+	}
 	for k := 0; k < n; k++ {
 		e := agenda[k]
 		var dossier *Dossier
@@ -477,7 +510,7 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 		var dossierRef domain.ArtifactRef
 		if p.Features.Dossier {
 			var err error
-			if dossier, dossierBytes, dossierRef, err = itemDossier(ctx, i.st, in, e.ChangeItem); err != nil {
+			if dossier, dossierBytes, dossierRef, err = itemDossier(ctx, i.st, in, consumers, e.ChangeItem); err != nil {
 				return nil, err
 			}
 		}
@@ -531,9 +564,9 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 
 // itemDossier builds and stores one item's dossier from the deterministic
 // pass's view of the run (the same input every replay sees).
-func itemDossier(ctx context.Context, st investigate.ArtifactStore, in investigate.InvestigateInput, item string) (*Dossier, []byte, domain.ArtifactRef, error) {
+func itemDossier(ctx context.Context, st investigate.ArtifactStore, in investigate.InvestigateInput, consumers *domain.RelationshipGraph, item string) (*Dossier, []byte, domain.ArtifactRef, error) {
 	d, err := BuildDossier(ctx, DossierInput{Bundle: in.Bundle, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
-		Validations: in.Validations, Read: StoreReader(st)}, item)
+		Validations: in.Validations, Read: StoreReader(st), Consumers: consumers}, item)
 	if err != nil {
 		return nil, nil, domain.ArtifactRef{}, investigate.TransientError(domain.StageInvestigate, fmt.Errorf("agent: dossier of %s: %w", item, err))
 	}

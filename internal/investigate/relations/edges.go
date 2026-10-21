@@ -308,19 +308,20 @@ func (g *gb) link(referrer *gnode, group, kind, name, ns, rule, detail string) {
 // linkRef is link for a reference that may be optional (its absence is
 // tolerated: a key selector or volume source with optional: true, an image
 // pull secret). The graph treats both alike; a reference view records it.
-func (g *gb) linkRef(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool) {
-	g.linkVia(referrer, group, kind, name, ns, rule, detail, optional, nsResolution{})
+func (g *gb) linkRef(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool) string {
+	return g.linkVia(referrer, group, kind, name, ns, rule, detail, optional, nsResolution{})
 }
 
 // linkVia is linkRef for a reference whose namespace a declared
 // namespaceFrom resolution decided (or failed to decide): a non-established
 // edge says how the namespace was decided, or why it could not be, and the
-// edge cites the controller configuration it was read from.
-func (g *gb) linkVia(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool, via nsResolution) {
+// edge cites the controller configuration it was read from. It returns the
+// id of the edge ("" when the reference names nothing).
+func (g *gb) linkVia(referrer *gnode, group, kind, name, ns, rule, detail string, optional bool, via nsResolution) string {
 	groupStated := group != anyGroup
 	target, status, reason := g.resolve(group, groupStated, kind, name, ns)
 	if target == nil {
-		return
+		return ""
 	}
 	if via.note != "" && status != domain.EdgeEstablished {
 		reason += "; " + via.note
@@ -333,6 +334,7 @@ func (g *gb) linkVia(referrer *gnode, group, kind, name, ns, rule, detail string
 		g.view.record(g, referrer, group, groupStated, kind, name, ns, rule, detail, optional, target, status, reason)
 	}
 	g.edge(domain.EdgeReferences, target, referrer, status, rule, detail, reason, append([]string{art}, via.arts...)...)
+	return domain.EdgeID(domain.EdgeReferences, target.n.ID, referrer.n.ID, detail)
 }
 
 // podTemplate returns the pod spec, labels and the path prefix of a
@@ -379,22 +381,32 @@ func (g *gb) podRefs(n *gnode) {
 	ns := n.effNS
 	// ref links the name at keys of v; sel is the selector holding the name
 	// (its optional: true makes the reference optional).
-	ref := func(kind string, v any, keys []string, rule, detail string) {
+	ref := func(kind string, v any, keys []string, rule, detail string) string {
 		name := str(v, keys...)
 		if name == "" {
-			return
+			return ""
 		}
 		opt, _ := get(v, append(keys[:len(keys)-1:len(keys)-1], "optional")...).(bool)
-		g.linkRef(n, "", kind, name, ns, ruleRefs+rule, prefix+"."+detail, opt)
+		return g.linkRef(n, "", kind, name, ns, ruleRefs+rule, prefix+"."+detail, opt)
+	}
+	// mounted records, in consumer mode, how a volume's edge is mounted.
+	mounted := func(id string, v any, src int, items []any) {
+		if !g.consumers || id == "" {
+			return
+		}
+		if e, ok := g.edges[id]; ok && e.Mount == nil {
+			e.Mount = volumeMount(spec, str(v, "name"), src, items)
+			g.edges[id] = e
+		}
 	}
 	for i, v := range asSeq(spec["volumes"]) {
 		vn := str(v, "name")
 		at := func(s string) string { return fmt.Sprintf("volumes[%d:%s].%s", i, vn, s) }
-		ref("Secret", v, []string{"secret", "secretName"}, "volumes.secret", at("secret.secretName"))
-		ref("ConfigMap", v, []string{"configMap", "name"}, "volumes.configMap", at("configMap.name"))
+		mounted(ref("Secret", v, []string{"secret", "secretName"}, "volumes.secret", at("secret.secretName")), v, -1, asSeq(get(v, "secret", "items")))
+		mounted(ref("ConfigMap", v, []string{"configMap", "name"}, "volumes.configMap", at("configMap.name")), v, -1, asSeq(get(v, "configMap", "items")))
 		for j, src := range asSeq(get(v, "projected", "sources")) {
-			ref("Secret", src, []string{"secret", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].secret.name", j)))
-			ref("ConfigMap", src, []string{"configMap", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].configMap.name", j)))
+			mounted(ref("Secret", src, []string{"secret", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].secret.name", j))), v, j, asSeq(get(src, "secret", "items")))
+			mounted(ref("ConfigMap", src, []string{"configMap", "name"}, "volumes.projected", at(fmt.Sprintf("projected.sources[%d].configMap.name", j))), v, j, asSeq(get(src, "configMap", "items")))
 		}
 	}
 	for _, field := range []string{"initContainers", "containers", "ephemeralContainers"} {
@@ -1102,6 +1114,9 @@ func (g *gb) addProducer(kind, ns, name string, p producer) {
 
 func (g *gb) finish() *domain.RelationshipGraph {
 	out := &domain.RelationshipGraph{Bundle: g.bundle.ID, Builder: BuilderName, Nodes: []domain.GraphNode{}, Edges: []domain.GraphEdge{}}
+	if g.consumers {
+		out.Builder = ConsumerBuilderName
+	}
 	for _, n := range g.sortedNodes() {
 		n.n.Artifacts = sortedKeys(n.arts)
 		out.Nodes = append(out.Nodes, n.n)

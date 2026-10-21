@@ -149,7 +149,11 @@ func (s *Session) getRenderedObject(ctx context.Context, r investigate.ObjectReq
 	if err != nil {
 		return nil, err
 	}
-	return &outcome{value: res, commit: s.retrieve(nil, res.Artifact.ID)}, nil
+	return &outcome{value: res, commit: s.retrieve(func() {
+		if res.Found && r.Path == "" {
+			s.tracedObject(r.Object)
+		}
+	}, res.Artifact.ID)}, nil
 }
 
 // --- search_manifest -------------------------------------------------------------------
@@ -360,7 +364,7 @@ func (s *Session) readArtifact(ctx context.Context, r investigate.ReadRequest) (
 	}
 	res.ToLine, res.Text = end, b.String()
 	res.ReadBack = s.readBack(ctx, a, text, res.Text)
-	return &outcome{value: res, commit: s.retrieve(nil, a.ID)}, nil
+	return &outcome{value: res, commit: s.retrieve(func() { s.tracedArtifact(a) }, a.ID)}, nil
 }
 
 // yamlSpan resolves a YAML path to the line span of its node in the

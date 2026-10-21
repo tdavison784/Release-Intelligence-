@@ -96,3 +96,48 @@ func TestVerdictsNeverReachThePolicy(t *testing.T) {
 		t.Fatal("the run record lost the verdicts")
 	}
 }
+
+// A natural assessment is never a policy input either (PLAN-M1 §4): under v9,
+// an adversarial not-affected verdict with an assessment whose verified
+// entries all resolve changes neither the findings, the decision nor approval
+// eligibility, and the run record keeps the assessment beside the verdict.
+func TestAssessmentsNeverReachThePolicy(t *testing.T) {
+	f := newConsumerFixture(t)
+	ctx := context.Background()
+	confident := f.assessment()
+	confident["likelyImpact"] = "none: nothing here depends on the key"
+	_, out := v9Run(t, f, Step{Call: "call-9", Tool: investigate.ToolTraceConsumers, Args: map[string]any{"changeItem": f.item}},
+		f.v9Submit("not-affected", confident))
+	if len(out.Assessments) != 1 || len(out.Verdicts) != 1 || out.Verdicts[0].Class != domain.FindingNotAffected {
+		t.Fatalf("assessments %+v verdicts %+v", out.Assessments, out.Verdicts)
+	}
+	cfg := investigate.Config{Policy: "classify.policy@v1", Bound: domain.DefaultTraversalBound, Agent: v9Config()}
+	run := func(agent *investigate.AgentOutcome) []byte {
+		cls, err := classify.New().Classify(ctx, investigate.ClassifyInput{Bundle: f.b, Traversal: f.trav, Agent: agent, Validations: out.Validations, Config: cfg})
+		must(t, err)
+		b, err := json.Marshal(cls)
+		must(t, err)
+		return b
+	}
+	without := *out
+	without.Assessments, without.Verdicts = nil, nil
+	if a, b := run(&without), run(out); !bytes.Equal(a, b) {
+		t.Fatalf("assessments changed the classification:\nwithout: %s\nwith:    %s", a, b)
+	}
+	var cls investigate.Classification
+	must(t, json.Unmarshal(run(out), &cls))
+	for _, fd := range cls.Findings {
+		if fd.Class == domain.FindingNotAffected || fd.Approval.Eligible {
+			t.Errorf("an agent assessment cleared %s: %+v", fd.ChangeItem, fd)
+		}
+	}
+	if cls.Decision.Outcome == domain.PolicyAutoApproveEligible {
+		t.Fatal("an agent assessment made the investigation approval-eligible")
+	}
+	inv := widgetLikeRecord(t, f, out)
+	inv.Findings, inv.Decision = cls.Findings, &cls.Decision
+	must(t, inv.Validate())
+	if len(inv.AgentAssessments) != 1 || inv.AgentAssessments[0].Verdict != inv.AgentVerdicts[0].ID {
+		t.Fatal("the run record lost the assessment or its verdict link")
+	}
+}

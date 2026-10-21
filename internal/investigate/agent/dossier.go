@@ -33,6 +33,9 @@ import (
 const (
 	DossierFormat   = "ri.dev/item-dossier/v1"
 	DossierProducer = "investigate.dossier@v3" // v3: the pin validator's effective object view; JSON field paths
+	// DossierConsumersProducer: v3 plus the consumer chains of each exposed
+	// object (DossierInput.Consumers; prompt feature traceConsumers).
+	DossierConsumersProducer = "investigate.dossier@v4"
 	// MaxDossierBytes bounds the dossier's JSON: it is inlined into the task.
 	MaxDossierBytes = 48 << 10
 )
@@ -68,6 +71,9 @@ const (
 	dossierSettings      = 12
 	dossierGaps          = 30
 	dossierSourcesListed = 12
+	dossierConsumerRoots = 10
+	dossierChainHops     = 12
+	dossierConsumerGaps  = 10
 )
 
 // Dossier is one item's dossier.
@@ -228,6 +234,18 @@ type DossierRelations struct {
 	Unresolved int      `json:"unresolvedPaths"`
 	Truncated  bool     `json:"truncated,omitempty"`
 	Edges      []string `json:"unresolvedEdges,omitempty"`
+	// Consumers are the consumer chains of each exposed object (consumer
+	// graph; DossierConsumersProducer only). CONTRACT-CHANGE(consumer): additive.
+	Consumers []DossierConsumer `json:"consumers,omitempty"`
+}
+
+// DossierConsumer is the consumer trace of one exposed object: the
+// consumers reached and each hop, with where it is stated.
+type DossierConsumer struct {
+	Root      string   `json:"root"`
+	Consumers []string `json:"consumers"`
+	Hops      []string `json:"hops"`
+	Gaps      int      `json:"gaps,omitempty"`
 }
 
 // DossierGap is evidence that is missing, partial or contradictory.
@@ -246,6 +264,9 @@ type DossierInput struct {
 	Validations []domain.ValidationRecord
 	// Read returns an artifact's bytes (digest-verified by the store).
 	Read func(ctx context.Context, a domain.ArtifactRef) ([]byte, error)
+	// Consumers is the consumer-mode graph (prompt feature traceConsumers):
+	// when set, the dossier lists each exposed object's consumer chains.
+	Consumers *domain.RelationshipGraph
 }
 
 // StoreReader reads artifacts from an artifact store.
@@ -282,6 +303,9 @@ func BuildDossier(ctx context.Context, in DossierInput, itemID string) (*Dossier
 		Product: string(b.Change.Product.ID), From: b.Change.From.Tag, To: b.Change.To.Tag, Environment: b.Snapshot.Environment,
 		Settings: []DossierSetting{}, Exposed: []DossierObject{}, RenderedChanges: []DossierRenderedChange{}, Unchanged: []DossierUnchanged{},
 		Knowledge: []DossierFact{}, Validations: []DossierValidation{}, Gaps: []DossierGap{}}
+	if in.Consumers != nil {
+		d.Producer = DossierConsumersProducer
+	}
 	db.d = d
 	if err := db.change(ctx); err != nil {
 		return nil, err
@@ -296,6 +320,7 @@ func BuildDossier(ctx context.Context, in DossierInput, itemID string) (*Dossier
 	db.settings(ctx)
 	db.validations()
 	db.relations()
+	db.consumers()
 	db.gaps()
 	db.bound()
 	return d, nil
@@ -1357,6 +1382,79 @@ func (db *dossierBuilder) relations() {
 	}
 }
 
+// consumers lists the consumer chains of each exposed object (roots), from
+// the consumer graph: the deterministic trace trace_consumers serves.
+func (db *dossierBuilder) consumers() {
+	if db.in.Consumers == nil || db.in.Traversal == nil {
+		return
+	}
+	cg := indexGraph(db.in.Consumers, domain.ArtifactRef{})
+	gaps := 0
+	for _, root := range db.d.Roots {
+		if len(db.d.Relations.Consumers) == dossierConsumerRoots {
+			db.d.Truncated = append(db.d.Truncated, fmt.Sprintf("consumer chains: %d roots listed (trace_consumers changeItem=%s for all)", dossierConsumerRoots, db.it.ID))
+			break
+		}
+		if _, ok := cg.nodes[root.Node]; !ok {
+			continue
+		}
+		t := trace(cg, []string{root.Node})
+		dc := DossierConsumer{Root: root.Key, Consumers: []string{}, Hops: []string{}, Gaps: len(t.Gaps)}
+		for _, c := range t.Consumers {
+			dc.Consumers = append(dc.Consumers, c.Key)
+		}
+		for i, h := range t.Hops {
+			if i == dossierChainHops {
+				dc.Hops = append(dc.Hops, fmt.Sprintf("… %d more hops (trace_consumers node=%s)", len(t.Hops)-i, root.Node))
+				break
+			}
+			dc.Hops = append(dc.Hops, hopLine(h))
+		}
+		db.d.Relations.Consumers = append(db.d.Relations.Consumers, dc)
+		for _, g := range t.Gaps {
+			if gaps < dossierConsumerGaps {
+				db.gap(GapMissing, "consumers of "+root.Key, clip(g.Subject+": "+g.Detail, dossierExcerpt))
+			}
+			gaps++
+		}
+	}
+	if gaps > dossierConsumerGaps {
+		db.d.Truncated = append(db.d.Truncated, fmt.Sprintf("consumer gaps: %d more (trace_consumers)", gaps-dossierConsumerGaps))
+	}
+}
+
+// hopLine is one hop of a consumer chain in a line: from, relationship,
+// to, status, and where it is stated.
+func hopLine(h TraceHop) string {
+	rel := string(h.Kind)
+	switch {
+	case h.File != nil && h.File.Key != "":
+		rel = fmt.Sprintf("%s: %s data[%s] names %s (key %s via mount %s of container %s)", h.Kind, h.To, h.File.ConfigKey, h.File.Path, h.File.Key, h.File.MountPath, h.File.Container)
+	case h.File != nil:
+		rel = fmt.Sprintf("%s: %s data[%s] names %s (container %s)", h.Kind, h.To, h.File.ConfigKey, h.File.Path, h.File.Container)
+	case h.Mount != nil:
+		var ms []string
+		for _, m := range h.Mount.Mounts {
+			x := m.Container + " at " + m.MountPath
+			if m.SubPath != "" {
+				x += " (subPath " + m.SubPath + ")"
+			}
+			ms = append(ms, x)
+		}
+		rel = fmt.Sprintf("%s: volume %s mounted by %s", h.Kind, h.Mount.Volume, strings.Join(ms, ", "))
+		if len(ms) == 0 {
+			rel = fmt.Sprintf("%s: volume %s, mounted by no container", h.Kind, h.Mount.Volume)
+		}
+	case h.Detail != "":
+		rel = string(h.Kind) + ": " + h.Detail
+	}
+	at := h.Artifact
+	if h.Line > 0 {
+		at = fmt.Sprintf("%s L%d", h.Artifact, h.Line)
+	}
+	return clip(fmt.Sprintf("%s → %s [%s; %s] (%s)", h.From, h.To, rel, h.Status, at), dossierExcerpt)
+}
+
 func (db *dossierBuilder) gaps() {
 	if len(db.b.Renders) == 0 {
 		db.gap(GapMissing, "environment render", "no environment render: the deployed configuration before and after is not known")
@@ -1428,6 +1526,7 @@ func (db *dossierBuilder) bound() {
 			{"roots", len(d.Roots), func(k int) { d.Roots = d.Roots[:k] }},
 			{"knowledge facts", len(d.Knowledge), func(k int) { d.Knowledge = d.Knowledge[:k] }},
 			{"upstream evidence", len(d.Change.Upstream), func(k int) { d.Change.Upstream = d.Change.Upstream[:k] }},
+			{"consumer chains", len(d.Relations.Consumers), func(k int) { d.Relations.Consumers = d.Relations.Consumers[:k] }},
 		}
 		best := 0
 		for j := range lists {

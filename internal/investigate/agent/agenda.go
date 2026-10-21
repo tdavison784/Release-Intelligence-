@@ -196,9 +196,42 @@ const ItemBudgetRule = "item@v1"
 // ItemDefaultBudget is the default per-item session budget.
 var ItemDefaultBudget = domain.AgentBudget{MaxTurns: 14, MaxToolCalls: 16, MaxTokens: 150_000, MaxReadBytes: 1 << 20, MaxSeconds: 360}
 
+// ItemBudgetV2Rule names the per-item budget of prompt versions that set
+// their own item defaults (meta.json itemCalls / itemTurns; v9: 24 calls,
+// 18 turns), the rest as item@v1.
+const ItemBudgetV2Rule = "item@v2"
+
 // ItemBudget returns the budget of one per-item session and states the rule.
 func ItemBudget(configured *domain.AgentBudget, cap, agenda int) (domain.AgentBudget, string) {
-	b := ItemDefaultBudget
+	return itemBudget(ItemDefaultBudget, configured, cap, agenda)
+}
+
+// ItemBudgetFor is ItemBudget with the item defaults a prompt version sets
+// (Features.ItemCalls / ItemTurns); without them it is ItemBudget, rule text
+// included.
+func ItemBudgetFor(f Features, configured *domain.AgentBudget, cap, agenda int) (domain.AgentBudget, string) {
+	if f.ItemCalls == 0 && f.ItemTurns == 0 {
+		return ItemBudget(configured, cap, agenda)
+	}
+	d := ItemDefaultBudget
+	if f.ItemCalls > 0 {
+		d.MaxToolCalls = f.ItemCalls
+	}
+	if f.ItemTurns > 0 {
+		d.MaxTurns = f.ItemTurns
+	}
+	b, _ := itemBudget(d, configured, cap, agenda)
+	sessions := agenda
+	if sessions > cap {
+		sessions = cap
+	}
+	rule := fmt.Sprintf("%s: per item %d calls, %d turns, %d tokens, %d bytes, %d s (prompt item defaults %d/%d/150000/1MiB/360 s unless AgentConfig.ItemBudget sets them); cap %d items: %d of %d agenda items get a session",
+		ItemBudgetV2Rule, b.MaxToolCalls, b.MaxTurns, b.MaxTokens, b.MaxReadBytes, b.MaxSeconds, d.MaxToolCalls, d.MaxTurns, cap, sessions, agenda)
+	return b, rule
+}
+
+func itemBudget(defaults domain.AgentBudget, configured *domain.AgentBudget, cap, agenda int) (domain.AgentBudget, string) {
+	b := defaults
 	if c := configured; c != nil {
 		if c.MaxTurns > 0 {
 			b.MaxTurns = c.MaxTurns

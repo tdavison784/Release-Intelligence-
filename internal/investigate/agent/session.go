@@ -15,6 +15,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
@@ -94,7 +95,10 @@ type SessionConfig struct {
 	// ReadOnly serves the query tools only: record, request and submit tools
 	// are rejected (an inspection session with no model call behind it).
 	ReadOnly bool
-	Now      func() time.Time
+	// ConsumerGraphs builds the consumer-mode graph at a side (prompt
+	// feature traceConsumers; consumers.go).
+	ConsumerGraphs ConsumerGraphs
+	Now            func() time.Time
 }
 
 // Session is the agent's tool surface for one investigation (investigate.Tools).
@@ -167,6 +171,15 @@ type Session struct {
 	// Dossiers, verdicts (prompt features dossier, verdict).
 	dossiers map[string]string // item -> dossier artifact its session started from
 	verdicts []domain.AgentVerdict
+
+	// Consumer tracing and assessments (prompt features traceConsumers,
+	// assessment): the consumer graphs by side, the consumer-graph nodes a
+	// tool returned in the focus item's session, the items whose not-affected
+	// verdict the completion check rejected once, the assessments.
+	cgraphs     map[relations.Side]*cgraph
+	traced      map[string]bool
+	rejectedNA  map[string]bool
+	assessments []domain.AgentAssessment
 }
 
 // itemStat is what one per-item session cost and how it ended.
@@ -197,7 +210,7 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
 		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
-		dossiers: map[string]string{}}
+		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -630,6 +643,15 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		if decode(&in) {
 			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.getDossier(ctx, in.ChangeItem) })
 		}
+	case investigate.ToolTraceConsumers:
+		if !s.cfg.Prompt.Features.TraceConsumers {
+			_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
+			break
+		}
+		var in investigate.TraceRequest
+		if decode(&in) {
+			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.traceConsumers(ctx, in) })
+		}
 	case investigate.ToolSubmitFindings:
 		var in investigate.SubmitInput
 		if decode(&in) {
@@ -948,6 +970,7 @@ func (s *Session) BeginItem(item string, budget domain.AgentBudget, promptDigest
 	s.focus, s.cfg.Budget, s.cfg.PromptDigest = item, budget, promptDigest
 	s.exhausted, s.submitted, s.itemCalls, s.itemRead = "", false, 0, 0
 	s.retrieved = map[string]bool{}
+	s.traced = map[string]bool{}
 	s.sessions = append(s.sessions, item)
 	s.writeLine(map[string]any{"type": "item", "item": item, "promptDigest": promptDigest, "budget": budget})
 }

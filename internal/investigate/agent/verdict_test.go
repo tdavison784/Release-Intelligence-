@@ -99,7 +99,7 @@ func TestPromptV6(t *testing.T) {
 		}
 	}
 	f := newWidgetFixture(t, widgetOpts{})
-	_, data, ref, err := itemDossier(context.Background(), f.st, f.input(v6Config()), f.item)
+	_, data, ref, err := itemDossier(context.Background(), f.st, f.input(v6Config()), nil, f.item)
 	must(t, err)
 	agenda := ItemAgenda(f.b, nil)
 	task, err := p.renderItemTask(f.input(v6Config()), agenda[0], 1, 2, 10, ItemDefaultBudget, data, ref.ID)

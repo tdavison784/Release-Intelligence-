@@ -619,6 +619,9 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 			// Provisional verdicts are stored beside the findings, never passed to
 			// classify (agentOutcome omits them; PROTOCOL §8).
 			inv.AgentVerdicts = out.Verdicts
+			// Natural assessments likewise: stored beside the verdicts, never
+			// passed to classify (agentOutcome omits them).
+			inv.AgentAssessments = out.Assessments
 			inv.EvidenceRequests = out.EvidenceRequests
 			inv.ValidationRequests = out.ValidationRequests
 			inv.Validations = mergeValidations(inv.Validations, out.Validations)
@@ -640,7 +643,8 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 }
 
 // agentOutcome is the agent's part of the classifier input. It deliberately
-// omits AgentVerdicts: a provisional verdict is never a policy input.
+// omits AgentVerdicts and AgentAssessments: a provisional verdict or a
+// natural assessment is never a policy input.
 func agentOutcome(inv *domain.Investigation) *investigate.AgentOutcome {
 	if inv.Agent == nil {
 		return nil
