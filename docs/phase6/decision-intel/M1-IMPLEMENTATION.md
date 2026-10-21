@@ -76,7 +76,28 @@ bin/ri -state "$SCRATCH/state" -offline eval -investigations -case <case> -knowl
 
 ## Smoke (unscored)
 
-SMOKE-PLACEHOLDER
+Run `eval/investigations/results/M1s-v9-shop-de-20261020-f6c23796` (commit f6c23796, clean tree; case
+`ingress-nginx-1.11-1.12--shop-de`; cloned state, `-offline`, knowledge K0 = `03b6ff43` (digest
+`sha256:672a7ce0…`, as B0); `-agent -agent-model claude-sonnet-5-5 -agent-prompt investigate-agent/v9`). The lane
+did not read its score, report or gates (they are label-bearing); the commander scores it.
+
+- Agent run `submitted`. 10 item sessions (budget rule `item@v2`, 24 calls / 18 turns per item), 65 tool calls,
+  166k tokens.
+- **`trace_consumers` was used in every session**: 10 calls, one per item, each `{"changeItem": <the item>}`,
+  all accepted. Transcript line, item 1: `"tool":"trace_consumers","arguments":{"changeItem":"ci-0e8570d62156"},
+  "ok":true`. This environment mounts no Secret or ConfigMap into its workloads (its consumer graph has no
+  mount or reads-file edge), so the traces return the Ingress references and gaps, not mount chains.
+- One consumer graph (TO side) is stored as a run artifact, `derived/agent/consumers/to/grf-292ee38063bf.json`.
+- **10 assessments stored** (`Investigation.AgentAssessments`), one per item, each linked to its verdict. Each has
+  1–3 verified entries with resolving citations. `untracedConsumers` is empty in all 10: the consumers were
+  traced. The assessments use the B5 sections and the explicit / inherited-default split (e.g.
+  `annotations-risk-level`: inherited-default, citing a `record_claim`).
+- Tool-layer rejections the model then fixed: one `request_validation` with an unresolvable subject, and one
+  `submit_findings` whose verdict cited nothing that resolved. No completion-check rejection (no not-affected
+  verdict with untraced consumers).
+- **Replay.** `ri eval -investigations … -agent-driver replay -agent-replay-dir <the run>` re-issues all 65 calls
+  with identical arguments, outcomes and result digests (no mismatch, status `submitted`). Assessments and
+  verdicts are identical except their wall-clock `provenance.generatedAt`, which is never identity.
 
 ## Known limits
 

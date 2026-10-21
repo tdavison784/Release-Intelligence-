@@ -21,10 +21,17 @@ Branch `p6di/consumer`. Brief: `briefs/consumer.md`; plan: `PLAN-M1.md` §3 (cha
   `TestAssessmentsNeverReachThePolicy`, `run/assessment_test.go`); replay (`TestV9Replay`).
 - Schemas regenerated. `go build ./... && go vet ./... && go test ./...` green at ad27e133.
 
+- Smoke (unscored): `eval/investigations/results/M1s-v9-shop-de-20261020-f6c23796` (commit f6c23796, K0,
+  cloned state, `-offline`, sonnet). 10 sessions, `trace_consumers` called in all 10, 10 assessments stored,
+  consumer graph stored. Replay of the stored run: 65/65 calls identical (args, outcome, result digest); records
+  differ only in `generatedAt`. The lane never opened its `report.txt`, `score.json.gz` or `gates.json` (stdout
+  went to /dev/null); `eval` exited 1 from the gate check, not a pipeline failure.
+- Docs: `M1-IMPLEMENTATION.md`, `docs/INVESTIGATE.md` (consumer mode, v9), README default-prompt note.
+- Cleanup: `bin/` and the scratch state clone, work dirs and extracts removed; no kind cluster or server started.
+
 ## In progress (exact next step)
 
-- Smoke run (unscored) of v9 on `ingress-nginx-1.11-1.12--shop-de`, then `M1-IMPLEMENTATION.md`, docs.
-  Scratch: K0 = `scripts/phase5/snapshot.sh 03b6ff43` (digest matches B0's), state = APFS clone of `.ri`.
+- Nothing: lane done (D-0001). Next is the commander's D-0002 (v9 x3 on the cert-manager pair).
 
 ## Decisions (with why)
 
@@ -62,6 +69,8 @@ Branch `p6di/consumer`. Brief: `briefs/consumer.md`; plan: `PLAN-M1.md` §3 (cha
   `VerifiedInput`, `ItemSummary.Assessment`, `AgentOutcome.Assessments`).
 - `cmd/ri/investigate.go` (one option: `agent.WithRelations(relations.WithCatalog(a.Catalog))`).
 - `internal/investigate/run/assessment_test.go` (new test).
+- `cmd/ri/investigate_verdict.go`: `ri investigate dossier` passes the run's stored consumer graph (v9 dossiers match).
+- `README.md`: default-prompt note (v9).
 - `internal/investigate/agent/prompt_v8_test.go`: v8 digest frozen; the default assertion moved to the v9 test;
   the generic-word check made a helper (same words for v8).
 
