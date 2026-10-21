@@ -177,7 +177,9 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 		}
 		return vs
 	}
-	opts := []agent.Option{agent.WithValidators(validators(nil)...)}
+	// The consumer graph of prompts with feature traceConsumers uses the
+	// pipeline graph's relationship rules (relations.WithConsumers adds the rest).
+	opts := []agent.Option{agent.WithValidators(validators(nil)...), agent.WithRelations(relations.WithCatalog(a.Catalog))}
 	if *f.exchange != "" {
 		opts = append(opts, agent.WithDriver(agent.DriverExchange, &agent.Exchange{Dir: *f.exchange}))
 	}

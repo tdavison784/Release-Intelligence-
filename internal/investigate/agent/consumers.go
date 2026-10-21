@@ -45,10 +45,11 @@ type cgraph struct {
 	nodes map[string]domain.GraphNode
 	byKey map[string]string
 	out   map[string][]domain.GraphEdge // by From, sorted by edge id
+	files map[string][]domain.GraphEdge // reads-file edges by To (the configuration), sorted by edge id
 }
 
 func indexGraph(g *domain.RelationshipGraph, art domain.ArtifactRef) *cgraph {
-	cg := &cgraph{g: g, art: art, nodes: map[string]domain.GraphNode{}, byKey: map[string]string{}, out: map[string][]domain.GraphEdge{}}
+	cg := &cgraph{g: g, art: art, nodes: map[string]domain.GraphNode{}, byKey: map[string]string{}, out: map[string][]domain.GraphEdge{}, files: map[string][]domain.GraphEdge{}}
 	for _, n := range g.Nodes { // sorted by id: the first id of a key wins
 		cg.nodes[n.ID] = n
 		if _, ok := cg.byKey[n.Key]; !ok {
@@ -58,6 +59,9 @@ func indexGraph(g *domain.RelationshipGraph, art domain.ArtifactRef) *cgraph {
 	for _, e := range g.Edges { // sorted by id
 		if consumerKinds[e.Kind] {
 			cg.out[e.From] = append(cg.out[e.From], e)
+		}
+		if e.Kind == domain.EdgeReadsFile {
+			cg.files[e.To] = append(cg.files[e.To], e)
 		}
 	}
 	return cg
@@ -237,14 +241,31 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 	if t.Truncated {
 		gap("trace", "the trace hit its bound (%d hops, depth %d, %d gaps): consumers beyond it are not listed", maxTraceHops, maxTraceDepth, maxTraceGaps)
 	}
+	// A configuration reached names files the snapshot cannot resolve.
+	reached := make([]string, 0, len(seen))
+	for id := range seen {
+		reached = append(reached, id)
+	}
+	sort.Strings(reached)
+	for _, id := range reached {
+		for _, e := range cg.files[id] {
+			if e.Status != domain.EdgeEstablished && e.File != nil {
+				gap(cg.nodes[id].Key, "data[%s] names %s, read by container %s of %s: %s (%s)", e.File.ConfigKey, e.File.Path, e.File.Container, e.File.Workload, e.Reason, e.Status)
+			}
+		}
+	}
 	// A mounted object no configuration names a file of: what the container
-	// reads from it is not established.
+	// reads from it is not established. A mounted configuration that names
+	// files is the container's configuration itself.
 	for _, e := range mountHops {
 		from, to := cg.nodes[e.From], cg.nodes[e.To]
 		for _, m := range e.Mount.Mounts {
 			read := false
 			for _, r := range cg.out[e.From] {
 				read = read || (r.Kind == domain.EdgeReadsFile && r.File != nil && r.File.Workload == to.Key && r.File.Container == m.Container)
+			}
+			for _, r := range cg.files[e.From] {
+				read = read || (r.File != nil && r.File.Workload == to.Key && r.File.Container == m.Container)
 			}
 			if !read {
 				gap(to.Key, "container %s mounts %s at %s; no configuration in the snapshot names a path under it: what the container reads from it is not established", m.Container, from.Key, m.MountPath)

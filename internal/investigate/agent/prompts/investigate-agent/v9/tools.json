@@ -1,0 +1,937 @@
+[
+  {
+    "name": "get_change_item",
+    "description": "One change item with everything upstream says about it: the upstream change (title, detail text, subjects, references) or compatibility change, the upstream evidence records (URI, locator, verbatim excerpt), the upstream source artifacts (read them with read_artifact), migration notes, the release- and environment-scope rendered changes correlated to it, and the deterministic join's findings for it. Start every item here: for a controller-behaviour item the upstream text is where the setting that restores the old behaviour is named. Required before you explain an item or close it as explains / examined-no-concern.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "change item id (ci-...)"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_dossier",
+    "description": "The dossier of a change item: the change and its upstream text, the settings that decide it with their effective state on every exposed object (explicit / inherited-default / unknown, and where), correlated rendered changes, relevant unchanged configuration, attached knowledge facts, validations already run, relations with the consumer chains of each exposed object, and the evidence gaps (missing / partial / contradictory). Your session already starts from its own item's dossier; use this for another item.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "changeItem"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "trace_consumers",
+    "description": "Trace the consumers of an object, or of every exposed object of a change item: what it produces, the workloads that mount or reference it (container, mountPath, subPath, keys), and the configuration that names a file under those mounts (the key, the line, the excerpt). Every hop cites the artifact and line that state it (read it with read_artifact, quote its text); `gaps` lists what the snapshot does not establish (unresolved relationships, objects created at runtime, mounts no configuration names, the trace's bound). Edges point from provider to consumer. A gap is not evidence either way.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string",
+          "description": "trace every exposure root of this item"
+        },
+        "node": {
+          "type": "string",
+          "description": "or one object: node id (gn-...) or node key (<group>/<version>/<kind>/<namespace>/<name>)"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "to",
+            "from"
+          ],
+          "description": "the side of the upgrade whose environment is traced (default to)"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_renders",
+    "description": "Every render pair of the investigation: scope (environment = rendered with this environment's own configuration; release = chart defaults), target, status (only ok is a complete render; partial/unavailable are evidence gaps, never 'no change'), reason, number of rendered changes by class, and how many are uncorrelated (no change item explains them).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "query_diff",
+    "description": "Filter the rendered changes (the semantic before/after diff of the renders). Every set field must match; list fields match any element. Results come in a fixed order, at most `limit` per page; pass the returned `next` as `after` to continue. Unknown targets, change items, classes or cursors are rejected rather than answered with an empty page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "environment",
+            "release"
+          ],
+          "description": "default environment"
+        },
+        "target": {
+          "type": "string",
+          "description": "render target as list_renders names it"
+        },
+        "changeItem": {
+          "type": "string",
+          "description": "only changes correlated to this change item"
+        },
+        "uncorrelated": {
+          "type": "boolean",
+          "description": "only changes no change item explains"
+        },
+        "classes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "render change classes, e.g. field-changed, container-arg-added, image-changed, rbac-permission-removed"
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "object kinds, e.g. Deployment, ConfigMap"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "object namespaces; \"-\" = cluster-scoped"
+        },
+        "pathPrefix": {
+          "type": "string",
+          "description": "field path prefix inside the object"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "description": "default 50"
+        },
+        "after": {
+          "type": "string",
+          "description": "continuation cursor: the `next` of the previous page"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_rendered_object",
+    "description": "One rendered object, or one field of it, from the from or the to render of a render pair, as YAML (secret values redacted). found=false means the object or field is absent on that side (a fact, not an error). The result names the render artifact: cite it with {artifact, locator: <object and path>, quote: <text from the YAML>}.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "from",
+            "to"
+          ]
+        },
+        "object": {
+          "type": "string",
+          "description": "<group>/<version>/<kind>/<namespace>/<name> as rendered changes name it"
+        },
+        "path": {
+          "type": "string",
+          "description": "field path inside the object, e.g. spec.template.spec.containers[name=controller].args; empty = the whole object"
+        }
+      },
+      "required": [
+        "target",
+        "side",
+        "object"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "search_manifest",
+    "description": "Search the investigation's artifact manifest (upstream documents, environment files, renders, diffs, environment facts). `terms` must each match a tag, the path or the kind of an artifact; `grep`, an RE2 pattern, returns matching lines (bounded). Artifacts with secrets are searched in redacted form.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "upgrade-edge",
+              "upstream-document",
+              "source-diff",
+              "chart-archive",
+              "chart-values",
+              "crd",
+              "rendered-manifests",
+              "render-diff",
+              "environment-file",
+              "environment-facts",
+              "inventory",
+              "live-observation",
+              "impact-report",
+              "knowledge-fact",
+              "graph",
+              "validation-output",
+              "agent-transcript"
+            ]
+          }
+        },
+        "changeItem": {
+          "type": "string",
+          "description": "only artifacts related to this change item"
+        },
+        "grep": {
+          "type": "string",
+          "description": "RE2 pattern matched line by line"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "default 20"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_artifact",
+    "description": "Read a window of an artifact's text: lines fromLine..toLine (1-based, inclusive; at most 400 lines / 64 KiB per call), or the node at yamlPath (dot path with [n] indices; a leading [n] selects the n-th YAML document, 0-based). Every byte returned counts against your read budget: read windows, not whole files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifact": {
+          "type": "string",
+          "description": "artifact id (art-...)"
+        },
+        "fromLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "toLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "yamlPath": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "expand_graph",
+    "description": "The neighbourhood of a node of the relationship graph (secondary context: consumers a render cannot show). Edges point in the direction impact propagates: from the provider to the consumer. Status established = from evidence; inferred/missing = unresolved. This is the stored graph: mount detail, lines and reads-file edges are in trace_consumers.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "type": "string",
+          "description": "node id (gn-...) or node key (<group>/<version>/<kind>/<namespace>/<name>)"
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "default 1"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "out",
+            "in",
+            "both"
+          ],
+          "description": "out = consumers (default), in = providers"
+        },
+        "edgeKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "deploys",
+              "renders-to",
+              "configures",
+              "overrides",
+              "references",
+              "selects",
+              "serves-api",
+              "consumes-api",
+              "produces",
+              "depends-on",
+              "reads-file"
+            ]
+          }
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_paths",
+    "description": "Impact paths of the bounded traversal from each change item's exposure roots (the objects of its correlated environment rendered changes, then the join's matches).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        },
+        "unresolved": {
+          "type": "boolean",
+          "description": "only paths with an inferred or missing edge"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "request_evidence",
+    "description": "Ask for evidence the investigation does not have: an upstream artifact (a linked PR, a file at a tag), a change source whose status is not ok, an environment input that was not supplied. The request is recorded for the next collection round; nothing is fetched during this session. Live-cluster reads are disabled.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "artifact",
+            "source",
+            "environment-input",
+            "live-observation"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "URL, change source kind, environment path or GVK"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "reason"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "request_validation",
+    "description": "Ask a deterministic validator to test a change item against environment subjects now. Kinds: override-inspection (does an explicit environment setting pin the old behaviour?), render-diff (does the item's effect reach these rendered objects?), schema-compat, static-reference, runtime. The validator, not you, produces the result (pass / fail / error / not-run); a validator that cannot decide never passes. Name subjects the way the evidence names them (a values key, a flag, an object); the resolution is returned with the result. To have a concern or mitigation claim answered, record the assertion first, then name it in `answers` (assertions recorded with this request's `hypothesis` are linked too).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "override-inspection",
+            "render-diff",
+            "schema-compat",
+            "static-reference",
+            "runtime"
+          ]
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "what to check, each one of: graph node id (gn-…) or key (<group>/<version>/<kind>/<namespace>/<name>), a rendered change id (rc-…), an environment file (art-… or its path), an object reference Kind/name or Kind/namespace/name, a Helm values key (controller.replicaCount or values:controller.replicaCount), or a setting as it appears in a complete environment render (a container flag, annotation key, environment variable or config key). Each is resolved deterministically to graph nodes; the result says how."
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "impact path ids of this change item"
+        },
+        "renderedChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "rendered change ids (rc-...)"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "artifact ids you suggest the validator reads"
+        },
+        "hypothesis": {
+          "type": "string",
+          "description": "the hypothesis id (hyp-...) this tests"
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ids (asr-…) of your raises-concern / claims-mitigation assertions about this change item that this validation is meant to answer. A link is made only when the validation covers everything the assertion names (its subjects, impact paths and rendered changes; an assertion naming none needs an item-wide request, with no subjects, paths or rendered changes). The result says which links were made."
+        }
+      },
+      "required": [
+        "changeItem",
+        "kind"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "record_hypothesis",
+    "description": "Record a testable statement about a change item, with at least one citation. Every citation is checked: the artifact must exist and the quote must occur verbatim in its bytes (whitespace-insensitive).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "what to check, each one of: graph node id (gn-…) or key (<group>/<version>/<kind>/<namespace>/<name>), a rendered change id (rc-…), an environment file (art-… or its path), an object reference Kind/name or Kind/namespace/name, a Helm values key (controller.replicaCount or values:controller.replicaCount), or a setting as it appears in a complete environment render (a container flag, annotation key, environment variable or config key). Each is resolved deterministically to graph nodes; the result says how."
+        },
+        "citations": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "changeItem",
+        "statement",
+        "citations"
+      ],
+      "additionalProperties": false,
+      "$defs": {
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "locator": {
+                "type": "string"
+              },
+              "quote": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "artifact",
+              "quote"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "record_assertion",
+    "description": "Record a claim about a change item with at least one checked citation. raises-concern = a plausible impact (blocks a not-affected conclusion until a passing validation answers it); explains = reasoning attached to the finding; claims-mitigation = you believe something mitigates the change (it stays an unvalidated assumption until a validation establishes it). A proposedEdge adds an inferred relationship (never established). An explains assertion is accepted only after get_change_item on its item and with at least one citation no other item's records share. A raises-concern counts as an item concern only for this session's item and only when it cites an artifact you retrieved in this session (read_artifact, get_rendered_object, grep lines of search_manifest, the item's sources via get_change_item, the renders behind query_diff results); otherwise it is recorded as an investigation-level note.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string"
+        },
+        "stance": {
+          "type": "string",
+          "enum": [
+            "raises-concern",
+            "explains",
+            "claims-mitigation"
+          ]
+        },
+        "statement": {
+          "type": "string"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "what to check, each one of: graph node id (gn-…) or key (<group>/<version>/<kind>/<namespace>/<name>), a rendered change id (rc-…), an environment file (art-… or its path), an object reference Kind/name or Kind/namespace/name, a Helm values key (controller.replicaCount or values:controller.replicaCount), or a setting as it appears in a complete environment render (a container flag, annotation key, environment variable or config key). Each is resolved deterministically to graph nodes; the result says how."
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "renderedChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "locator": {
+                "type": "string"
+              },
+              "quote": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "artifact",
+              "quote"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hypothesis": {
+          "type": "string"
+        },
+        "proposedEdge": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "deploys",
+                "renders-to",
+                "configures",
+                "overrides",
+                "references",
+                "selects",
+                "serves-api",
+                "consumes-api",
+                "produces",
+                "depends-on"
+              ]
+            },
+            "from": {
+              "type": "string",
+              "description": "provider: node id, node key, or <node kind>:<key> for a node not in the graph"
+            },
+            "to": {
+              "type": "string",
+              "description": "consumer, same forms"
+            },
+            "detail": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "noValidationReason": {
+          "type": "string",
+          "description": "for a raises-concern: why you are not requesting a validation (required for a concern on a controller-behaviour/unknown item unless you made a request_validation for the item in this session)"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ids (clm-…) of verified setting claims (record_claim) this rests on"
+        }
+      },
+      "required": [
+        "changeItem",
+        "stance",
+        "statement",
+        "citations"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "submit_findings",
+    "description": "End this session by closing THIS session's item with exactly one entry and a disposition: raises-concern, claims-mitigation, explains, examined-no-concern (cite what you inspected; not a mitigation, never lowers a class) or not-examined (the summary states why). Every disposition except not-examined needs at least one checked citation. Depth rules (checked here): explains / examined-no-concern need get_change_item on the item in this investigation and at least one citation not shared with another item; a raises-concern on a controller-behaviour/unknown item needs a request_validation for the item or a noValidationReason; a raises-concern must cite at least one artifact you retrieved for the item in this session, otherwise it is recorded as an investigation-level note, not an item concern. Accepted once even after the session budget is spent. After submitting, stop. State facts about what the environment sets with record_claim first and name them in `claims`; the summary itself is recorded as unverified AI prose. Every entry except not-examined carries `verdict`: your own provisional assessment of whether the change breaks THIS environment. It is recorded beside the policy's classification and measured against known outcomes; it never sets or lowers a class, and you may conclude not-affected where the policy cannot. Its citations and verified facts are checked one by one; whatever does not resolve is dropped and counted. A verdict that states no citations takes the entry's own citations, once they are checked. Every entry except not-examined also carries `assessment`, your technical write-up of the item: whatChanged, mechanism, consumers (with the chain to each), effectiveConfiguration (each setting explicit / inherited-default / unknown), verified (each statement with citations that resolve; one that does not resolve rejects the call — move it to inferred), inferred, unknown (including the proof obligations of a provisional conclusion), likelyImpact, recommendedTests. Completion check: while the item's exposed objects have consumers no tool of this session returned (trace_consumers, get_rendered_object, read_artifact), a not-affected verdict is rejected once with their list; resubmitting is accepted and records each as an investigation gap in `unknown`, as every other verdict does.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "changeItem": {
+                "type": "string"
+              },
+              "disposition": {
+                "type": "string",
+                "enum": [
+                  "raises-concern",
+                  "claims-mitigation",
+                  "explains",
+                  "examined-no-concern",
+                  "not-examined"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "description": "closing summary; for not-examined, the reason"
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "artifact": {
+                      "type": "string"
+                    },
+                    "locator": {
+                      "type": "string"
+                    },
+                    "quote": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "artifact",
+                    "quote"
+                  ],
+                  "additionalProperties": false
+                },
+                "description": "at least one for every disposition except not-examined"
+              },
+              "noValidationReason": {
+                "type": "string",
+                "description": "for a raises-concern: why you are not requesting a validation (required for a concern on a controller-behaviour/unknown item unless you made a request_validation for the item in this session)"
+              },
+              "claims": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "ids (clm-…) of verified setting claims (record_claim) this rests on"
+              },
+              "verdict": {
+                "type": "object",
+                "properties": {
+                  "class": {
+                    "type": "string",
+                    "enum": [
+                      "affected",
+                      "not-affected",
+                      "potentially-affected",
+                      "insufficient-evidence"
+                    ]
+                  },
+                  "confidence": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high"
+                    ]
+                  },
+                  "mechanism": {
+                    "type": "string",
+                    "description": "the breaking mechanism: what changed and what it would break"
+                  },
+                  "environmentReasoning": {
+                    "type": "string",
+                    "description": "how this environment consumes the behaviour, whether it exercises it, whether its effective configuration preserves the old behaviour, what the renders establish, which consumers could be affected"
+                  },
+                  "citations": {
+                    "type": "array",
+                    "description": "optional: when empty or omitted, the verdict takes this entry's checked citations (never unchecked ones); give your own to cite something else",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "artifact": {
+                          "type": "string"
+                        },
+                        "locator": {
+                          "type": "string"
+                        },
+                        "quote": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "artifact",
+                        "quote"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "verifiedFacts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "ids of verified claims (clm-…) and validation records (vr-…) the verdict rests on"
+                  },
+                  "assumptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "what you inferred without verification"
+                  },
+                  "mitigations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "hypothesis ids (hyp-…) of hypotheses the verdict rests on"
+                  },
+                  "uncertainty": {
+                    "type": "string"
+                  },
+                  "proposedValidations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "wouldOverturn": {
+                    "type": "string",
+                    "description": "the evidence that would overturn this verdict"
+                  }
+                },
+                "required": [
+                  "class",
+                  "confidence",
+                  "mechanism",
+                  "environmentReasoning",
+                  "wouldOverturn"
+                ],
+                "additionalProperties": false
+              },
+              "assessment": {
+                "type": "object",
+                "description": "the natural technical assessment of the item (required except for not-examined)",
+                "properties": {
+                  "whatChanged": {
+                    "type": "string",
+                    "description": "the upstream change, from its source text"
+                  },
+                  "mechanism": {
+                    "type": "string",
+                    "description": "how the change could break something"
+                  },
+                  "consumers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "each relevant consumer and the chain to it: changed object → … → the consumer behaviour that depends on it"
+                  },
+                  "effectiveConfiguration": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "setting": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "explicit",
+                            "inherited-default",
+                            "unknown"
+                          ]
+                        },
+                        "detail": {
+                          "type": "string",
+                          "description": "explicit: where and what value; inherited-default: which default applies; unknown: why"
+                        }
+                      },
+                      "required": [
+                        "setting",
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "description": "every setting the change touches and its effective state in this environment"
+                  },
+                  "verified": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "statement": {
+                          "type": "string"
+                        },
+                        "citations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "artifact": {
+                                "type": "string"
+                              },
+                              "locator": {
+                                "type": "string"
+                              },
+                              "quote": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "artifact",
+                              "quote"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        }
+                      },
+                      "required": [
+                        "statement",
+                        "citations"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "description": "what the evidence establishes; every citation is checked"
+                  },
+                  "inferred": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "your reasoning beyond the verified statements"
+                  },
+                  "unknown": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "what remains open, with the proof obligations of a provisional conclusion"
+                  },
+                  "likelyImpact": {
+                    "type": "string",
+                    "description": "what this means for this environment, and why"
+                  },
+                  "recommendedTests": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "further investigation or tests that would settle it"
+                  }
+                },
+                "required": [
+                  "whatChanged",
+                  "mechanism",
+                  "likelyImpact"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "changeItem",
+              "disposition",
+              "summary"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "record_claim",
+    "description": "State a fact about the environment in structured form, so it is checked instead of left as prose: setting S is absent / present / has value V in input X. The tool layer verifies it deterministically against the bundle's artifacts before recording it: a dotted key path (a.b.c) is looked up as a YAML path, and its last key is searched anywhere; a token (a flag such as --x, an annotation key, an environment variable) is searched as a whole word. `absent` is verified only when the setting occurs nowhere in the input in any of these forms. A claim that does not hold is rejected with the contradicting line. Use it for every statement about what the environment sets or does not set; cite the claim id in assertions and closing summaries (`claims`).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "changeItem": {
+          "type": "string",
+          "description": "the change item the claim is about (optional)"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "absent",
+            "present",
+            "value"
+          ]
+        },
+        "setting": {
+          "type": "string",
+          "description": "dotted key path (controller.metrics.enabled) or a token (--enable-x, an annotation key, an env var name)"
+        },
+        "input": {
+          "type": "string",
+          "description": "an environment file or environment render (artifact id or path), or \"environment-files\" for every environment file"
+        },
+        "value": {
+          "type": "string",
+          "description": "kind value: the expected value, as a JSON or YAML scalar"
+        }
+      },
+      "required": [
+        "kind",
+        "setting",
+        "input"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

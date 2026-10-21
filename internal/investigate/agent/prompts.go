@@ -15,8 +15,8 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Earlier versions (v1–v7) stay embedded so their transcripts replay.
-const DefaultPromptVersion = "investigate-agent/v8"
+// none. Earlier versions (v1–v8) stay embedded so their transcripts replay.
+const DefaultPromptVersion = "investigate-agent/v9"
 
 //go:embed prompts
 var promptFS embed.FS
@@ -153,56 +153,65 @@ func LoadPrompt(version string) (*Prompt, error) {
 	if err := json.Unmarshal(tools, &p.Tools); err != nil {
 		return nil, fmt.Errorf("agent: prompt %s: tools.json: %w", version, err)
 	}
+	if err := p.checkSurface(); err != nil {
+		return nil, err
+	}
+	if p.task, err = template.New("task").Option("missingkey=error").Parse(string(task)); err != nil {
+		return nil, fmt.Errorf("agent: prompt %s: task.md: %w", version, err)
+	}
+	return p, nil
+}
+
+// checkSurface checks the tool schemas against the features: every base
+// tool, each feature's own tool, and nothing else.
+func (p *Prompt) checkSurface() error {
 	have := map[string]bool{}
 	for _, t := range p.Tools {
 		have[t.Name] = true
 	}
 	for _, n := range investigate.ToolNames {
 		if !have[n] {
-			return nil, fmt.Errorf("agent: prompt %s: tools.json lacks tool %s", version, n)
+			return fmt.Errorf("agent: prompt %s: tools.json lacks tool %s", p.Version, n)
 		}
 	}
 	want := len(investigate.ToolNames)
 	if p.Features.Claims {
 		if !have[investigate.ToolRecordClaim] {
-			return nil, fmt.Errorf("agent: prompt %s: feature claims needs tool %s", version, investigate.ToolRecordClaim)
+			return fmt.Errorf("agent: prompt %s: feature claims needs tool %s", p.Version, investigate.ToolRecordClaim)
 		}
 		want++
 	}
 	if p.Features.Dossier {
 		if !have[investigate.ToolGetDossier] {
-			return nil, fmt.Errorf("agent: prompt %s: feature dossier needs tool %s", version, investigate.ToolGetDossier)
+			return fmt.Errorf("agent: prompt %s: feature dossier needs tool %s", p.Version, investigate.ToolGetDossier)
 		}
 		want++
 	}
 	if p.Features.VerdictInheritsCitations && !p.Features.Verdict {
-		return nil, fmt.Errorf("agent: prompt %s: feature verdictInheritsCitations needs feature verdict", version)
+		return fmt.Errorf("agent: prompt %s: feature verdictInheritsCitations needs feature verdict", p.Version)
 	}
 	if (p.Features.Dossier || p.Features.Verdict || p.Features.Mitigation) && !p.Features.PerItem {
-		return nil, fmt.Errorf("agent: prompt %s: features dossier, verdict and mitigation need per-item sessions", version)
+		return fmt.Errorf("agent: prompt %s: features dossier, verdict and mitigation need per-item sessions", p.Version)
 	}
 	if p.Features.TraceConsumers {
 		if !have[investigate.ToolTraceConsumers] {
-			return nil, fmt.Errorf("agent: prompt %s: feature traceConsumers needs tool %s", version, investigate.ToolTraceConsumers)
+			return fmt.Errorf("agent: prompt %s: feature traceConsumers needs tool %s", p.Version, investigate.ToolTraceConsumers)
 		}
 		if !p.Features.PerItem {
-			return nil, fmt.Errorf("agent: prompt %s: feature traceConsumers needs per-item sessions", version)
+			return fmt.Errorf("agent: prompt %s: feature traceConsumers needs per-item sessions", p.Version)
 		}
 		want++
 	}
 	if p.Features.Assessment && (!p.Features.TraceConsumers || !p.Features.Verdict) {
-		return nil, fmt.Errorf("agent: prompt %s: feature assessment needs features traceConsumers and verdict", version)
+		return fmt.Errorf("agent: prompt %s: feature assessment needs features traceConsumers and verdict", p.Version)
 	}
 	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
-		return nil, fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", version)
+		return fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", p.Version)
 	}
 	if len(p.Tools) != want {
-		return nil, fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", version, len(p.Tools), want)
+		return fmt.Errorf("agent: prompt %s: tools.json lists %d tools, the surface has %d", p.Version, len(p.Tools), want)
 	}
-	if p.task, err = template.New("task").Option("missingkey=error").Parse(string(task)); err != nil {
-		return nil, fmt.Errorf("agent: prompt %s: task.md: %w", version, err)
-	}
-	return p, nil
+	return nil
 }
 
 // Digest is sha256(system ‖ rendered task ‖ tool schemas JSON [‖ meta.json])

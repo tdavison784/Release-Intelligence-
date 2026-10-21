@@ -51,6 +51,7 @@ func TestEarlierPromptVersionsAreFrozen(t *testing.T) {
 		"investigate-agent/v5": "85331d84ddadaa6588aeaf43f8810f1e38cabac9c4d2b37f7689f18ee829272c",
 		"investigate-agent/v6": "15cff2638ce18cccafc245b0557e47d953b15088aad0005744865045393772f8",
 		"investigate-agent/v7": "18e8cdba89cc7ff73dfd824b42361f8d296ce9644f1a3c889f140d8629e0db43",
+		"investigate-agent/v8": "c9fdfd7584ae70a8db9c23b5c4a842e9ee124e883e3ad6855331f5f99a29a7ff",
 	}
 	for v, d := range want {
 		if _, err := LoadPrompt(v); err != nil {
@@ -127,23 +128,23 @@ func TestPromptV8(t *testing.T) {
 	if v7.Digest("t") == v8.Digest("t") {
 		t.Error("v7 and v8 share a prompt digest")
 	}
-	if DefaultPromptVersion != promptV8 {
-		t.Fatalf("default %s, want %s", DefaultPromptVersion, promptV8)
-	}
-	if p, err := LoadPrompt(""); err != nil || p.Version != promptV8 {
-		t.Fatalf("LoadPrompt(\"\"): %v %v", p, err)
-	}
 }
 
 // The v8 text names no product, environment, case, kind or field of the
 // evaluation: the listed words (case-sensitive, so the English "never" is
 // not the enum value "Never"), and every token of the evaluation case
 // directory names in any case (names only, never their contents).
-func TestPromptV8IsGeneric(t *testing.T) {
+func TestPromptV8IsGeneric(t *testing.T) { assertGenericPrompt(t, promptV8) }
+
+// assertGenericPrompt fails when a prompt version names a listed word or a
+// token of an evaluation case directory name (plus extra words, any case).
+func assertGenericPrompt(t *testing.T, version string, extra ...string) {
+	t.Helper()
 	words := []string{"cert-manager", "ingress-nginx", "kube-prometheus-stack", "payments", "shop", "obs",
 		"Certificate", "rotationPolicy", "privateKey", "Issuer", "ClusterIssuer", "Ingress", "IngressClass",
 		"Prometheus", "Alertmanager", "ServiceMonitor", "PodMonitor", "PrometheusRule", "Never", "Always"}
 	anyCase := len(words)
+	words = append(words, extra...)
 	entries, err := os.ReadDir("../../../eval/investigations")
 	must(t, err)
 	cases := 0
@@ -163,7 +164,7 @@ func TestPromptV8IsGeneric(t *testing.T) {
 	}
 	files := map[string]string{}
 	for _, name := range []string{"system.md", "item.md", "task.md", "tools.json", "meta.json"} {
-		b, err := promptFS.ReadFile("prompts/" + promptV8 + "/" + name)
+		b, err := promptFS.ReadFile("prompts/" + version + "/" + name)
 		must(t, err)
 		files[name] = string(b)
 	}
@@ -175,7 +176,7 @@ func TestPromptV8IsGeneric(t *testing.T) {
 		re := regexp.MustCompile(flags + `(^|[^A-Za-z0-9])` + regexp.QuoteMeta(w) + `($|[^A-Za-z0-9])`)
 		for name, text := range files {
 			if loc := re.FindStringIndex(text); loc != nil {
-				t.Errorf("v8 %s names %q (%q): prompts are generic", name, w, text[loc[0]:loc[1]])
+				t.Errorf("%s %s names %q (%q): prompts are generic", version, name, w, text[loc[0]:loc[1]])
 			}
 		}
 	}
