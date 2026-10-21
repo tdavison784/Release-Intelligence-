@@ -14,7 +14,7 @@ conventions, running things, reporting, cleanup), with these substitutions:
 **Evaluation integrity** (in addition to Phase 5's rules):
 
 - **Never open:**
-  - `docs/phase6/decision-intel/GATE-M*.md` (the commander's label-bearing gates);
+  - `docs/phase6/decision-intel/GATE-M*.md` and `M*-RESULT.md` (the commander's label-bearing gates and results);
   - any case's `expected.yaml`, `NOTES.md` or `observed/`;
   - `docs/phase6/natural-agent/RUBRIC.md`, `SCORES.md`, `GATE.md`, or anything under `docs/phase6/natural-agent/runs/`;
   - `report.txt` or `score.json.gz` of any `eval/investigations/results/*` run (they print expected classes);
