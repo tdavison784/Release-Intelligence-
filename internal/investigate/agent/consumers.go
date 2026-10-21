@@ -46,10 +46,14 @@ type cgraph struct {
 	byKey map[string]string
 	out   map[string][]domain.GraphEdge // by From, sorted by edge id
 	files map[string][]domain.GraphEdge // reads-file edges by To (the configuration), sorted by edge id
+	// unknown: reads-file edges whose configuration data is not known
+	// (File.Path ""), by the reading workload's key, sorted by edge id.
+	unknown map[string][]domain.GraphEdge
 }
 
 func indexGraph(g *domain.RelationshipGraph, art domain.ArtifactRef) *cgraph {
-	cg := &cgraph{g: g, art: art, nodes: map[string]domain.GraphNode{}, byKey: map[string]string{}, out: map[string][]domain.GraphEdge{}, files: map[string][]domain.GraphEdge{}}
+	cg := &cgraph{g: g, art: art, nodes: map[string]domain.GraphNode{}, byKey: map[string]string{}, out: map[string][]domain.GraphEdge{},
+		files: map[string][]domain.GraphEdge{}, unknown: map[string][]domain.GraphEdge{}}
 	for _, n := range g.Nodes { // sorted by id: the first id of a key wins
 		cg.nodes[n.ID] = n
 		if _, ok := cg.byKey[n.Key]; !ok {
@@ -62,6 +66,9 @@ func indexGraph(g *domain.RelationshipGraph, art domain.ArtifactRef) *cgraph {
 		}
 		if e.Kind == domain.EdgeReadsFile {
 			cg.files[e.To] = append(cg.files[e.To], e)
+			if e.File != nil && e.File.Path == "" {
+				cg.unknown[e.File.Workload] = append(cg.unknown[e.File.Workload], e)
+			}
 		}
 	}
 	return cg
@@ -249,7 +256,11 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 	sort.Strings(reached)
 	for _, id := range reached {
 		for _, e := range cg.files[id] {
-			if e.Status != domain.EdgeEstablished && e.File != nil {
+			switch {
+			case e.Status == domain.EdgeEstablished || e.File == nil:
+			case e.File.Path == "":
+				gap(cg.nodes[id].Key, "data[%s], read by container %s of %s, is not known: %s (%s)", dataKey(e.File), e.File.Container, e.File.Workload, e.Reason, e.Status)
+			default:
 				gap(cg.nodes[id].Key, "data[%s] names %s, read by container %s of %s: %s (%s)", e.File.ConfigKey, e.File.Path, e.File.Container, e.File.Workload, e.Reason, e.Status)
 			}
 		}
@@ -269,6 +280,13 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 			}
 			if !read {
 				gap(to.Key, "container %s mounts %s at %s; no configuration in the snapshot names a path under it: what the container reads from it is not established", m.Container, from.Key, m.MountPath)
+				// Configuration the container reads whose data is not known
+				// may name such a path: that is the gap to close.
+				for _, u := range cg.unknown[to.Key] {
+					if u.File.Container == m.Container {
+						gap(to.Key, "container %s reads %s data[%s], which is not known (%s): whether it names a path under %s is not established", m.Container, cg.nodes[u.To].Key, dataKey(u.File), u.Reason, m.MountPath)
+					}
+				}
 			}
 		}
 	}
@@ -281,6 +299,14 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 		t.Consumers = append(t.Consumers, tn(id))
 	}
 	return t
+}
+
+// dataKey shows the configuration key of a reads-file edge ("*": every key).
+func dataKey(f *domain.EdgeFile) string {
+	if f.ConfigKey == "" {
+		return "*"
+	}
+	return f.ConfigKey
 }
 
 // itemStarts are the item's exposure roots present in the consumer graph.

@@ -17,9 +17,28 @@ import (
 const BuilderName = "relations.builder@v1"
 
 // ConsumerBuilderName is the producer string of graphs built in consumer
-// mode (WithConsumers): the same graph plus mount detail, lines and
-// reads-file edges.
-const ConsumerBuilderName = BuilderName + "+consumers@v1"
+// mode (WithConsumers) under the default consumer rules: the same graph plus
+// mount detail, lines and reads-file edges. A graph built under other rules
+// names them ("+consumers@v<rules>").
+const ConsumerBuilderName = BuilderName + "+consumers@v2"
+
+// Consumer rules (WithConsumerRules). v1 is the Milestone 1 consumer graph
+// (ledger D-0001). v2 (D-0005) also reads the data of a kustomize-generated
+// ConfigMap whose generator sources the snapshot lacks from its rendered
+// object, knows the keys of generated Secrets, and records configuration
+// data and keys it cannot know as unresolved edges instead of skipping them.
+// A transcript recorded under v1 replays only against a v1 graph, so the
+// rules a session used are part of its transcript header.
+const (
+	ConsumerRulesV1 = 1
+	ConsumerRulesV2 = 2
+	// ConsumerRules is the default.
+	ConsumerRules = ConsumerRulesV2
+)
+
+func consumerBuilderName(rules int) string {
+	return fmt.Sprintf("%s+consumers@v%d", BuilderName, rules)
+}
 
 // ProducesRule is a declarative relationship: a custom resource of
 // Group/Kind names, at NamePath (dotted, e.g. "spec.secretName"), an object
@@ -91,8 +110,10 @@ func WithCatalog(c *catalog.Catalog) Option {
 type builder struct {
 	st   investigate.ArtifactStore
 	rels []rel
-	// consumers: consumer mode (WithConsumers).
-	consumers bool
+	// consumers: consumer mode (WithConsumers), under consumerRules (0: the
+	// default).
+	consumers     bool
+	consumerRules int
 }
 
 // WithConsumers switches on consumer mode (docs/phase6/decision-intel/PLAN-M1.md
@@ -103,6 +124,12 @@ type builder struct {
 // Graphs built without it are unchanged, so the pipeline's graph (a policy
 // input) never depends on it.
 func WithConsumers() Option { return func(b *builder) { b.consumers = true } }
+
+// WithConsumerRules selects the consumer rules of a consumer-mode build
+// (ConsumerRulesV1, ConsumerRulesV2; 0 or unknown: the default).
+func WithConsumerRules(rules int) Option {
+	return func(b *builder) { b.consumerRules = rules }
+}
 
 // BuildConsumerGraph builds the consumer-mode graph of a bundle at one side
 // of the upgrade (the graph a TO-side build gives, plus mounts, lines and
@@ -246,13 +273,17 @@ type gb struct {
 	view *refView
 	// nsCache holds each namespaceFrom resolution by rule id (one per build).
 	nsCache map[string]nsResolution
-	// Consumer mode (WithConsumers): read reads an artifact by id; gen holds
-	// the data of kustomize-generated ConfigMaps by node key; docs caches
-	// parsed artifacts for line lookups.
+	// Consumer mode (WithConsumers): rules are the consumer rules; side the
+	// side built; read reads an artifact by id; gen holds what the snapshot
+	// says about kustomize-generated objects by node key; docs caches parsed
+	// artifacts for line lookups; renders caches parsed render artifacts.
 	consumers bool
+	rules     int
+	side      Side
 	read      func(id string) ([]byte, error)
-	gen       map[string][]dataEntry
+	gen       map[string]*genData
 	docs      map[string]*parsedArtifact
+	renders   map[string][]render.Object
 }
 
 func (g *gb) node(kind domain.NodeKind, id render.ObjectID, key string, artifact string) *gnode {
@@ -336,7 +367,11 @@ func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Sid
 	}
 	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels, view: v, nsCache: map[string]nsResolution{}}
 	if bd.consumers && v == nil {
-		g.consumers, g.gen, g.docs = true, map[string][]dataEntry{}, map[string]*parsedArtifact{}
+		g.consumers, g.gen, g.docs, g.renders = true, map[string]*genData{}, map[string]*parsedArtifact{}, map[string][]render.Object{}
+		g.rules, g.side = bd.consumerRules, side
+		if g.rules != ConsumerRulesV1 && g.rules != ConsumerRulesV2 {
+			g.rules = ConsumerRules
+		}
 		g.read = func(id string) ([]byte, error) {
 			ref, ok := b.Manifest.Lookup(id)
 			if !ok {

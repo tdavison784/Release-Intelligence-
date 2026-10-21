@@ -22,8 +22,10 @@ type Investigator struct {
 	validators []investigate.Validator
 	now        func() time.Time
 	// rels are the graph builder's options for the session's consumer graph
-	// (prompt feature traceConsumers).
-	rels []relations.Option
+	// (prompt feature traceConsumers); consumerRules its consumer rules (0:
+	// a replayed transcript's, else relations.ConsumerRules).
+	rels          []relations.Option
+	consumerRules int
 }
 
 // Option configures an Investigator.
@@ -47,6 +49,13 @@ func WithValidators(vs ...investigate.Validator) Option {
 // stored graph plus consumer detail.
 func WithRelations(opts ...relations.Option) Option {
 	return func(i *Investigator) { i.rels = append(i.rels, opts...) }
+}
+
+// WithConsumerRules pins the consumer rules (relations.ConsumerRulesV1, …)
+// of the consumer graph. Without it a session uses relations.ConsumerRules,
+// and a replay the rules its transcript was recorded under.
+func WithConsumerRules(rules int) Option {
+	return func(i *Investigator) { i.consumerRules = rules }
 }
 
 // WithClock sets the clock that stamps generatedAt on agent records.
@@ -87,12 +96,12 @@ func Budget(b domain.AgentBudget) domain.AgentBudget {
 // rendered task, its digest and the tool surface. Investigate uses it; it is
 // exported for `ri investigate mcp` and tests.
 func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time) (*Session, investigate.AgentSession, error) {
-	return PrepareWith(st, in, validators, now, nil)
+	return PrepareWith(st, in, validators, now, nil, 0)
 }
 
 // PrepareWith is Prepare with the relationship rules of the consumer graph
-// (WithRelations).
-func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time, rels []relations.Option) (*Session, investigate.AgentSession, error) {
+// (WithRelations) and its consumer rules (0: relations.ConsumerRules).
+func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time, rels []relations.Option, consumerRules int) (*Session, investigate.AgentSession, error) {
 	if in.Bundle == nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, errors.New("agent: no bundle"))
 	}
@@ -127,16 +136,20 @@ func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, 
 		digest = p.Digest(task)
 	}
 	var graphs ConsumerGraphs
+	if consumerRules == 0 {
+		consumerRules = relations.ConsumerRules
+	}
 	if p.Features.TraceConsumers {
 		b := in.Bundle
+		opts := append(append([]relations.Option(nil), rels...), relations.WithConsumerRules(consumerRules))
 		graphs = func(ctx context.Context, side relations.Side) (*domain.RelationshipGraph, error) {
-			return relations.BuildConsumerGraph(ctx, st, b, side, rels...)
+			return relations.BuildConsumerGraph(ctx, st, b, side, opts...)
 		}
 	}
 	s, err := NewSession(SessionConfig{Bundle: in.Bundle, Store: st, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
 		Validations: in.Validations, ValidationArtifacts: in.ValidationArtifacts, ValidationEvidence: in.ValidationEvidence,
 		Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now,
-		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap, ConsumerGraphs: graphs})
+		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap, ConsumerGraphs: graphs, ConsumerRules: consumerRules})
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
@@ -163,7 +176,13 @@ func (i *Investigator) Investigate(ctx context.Context, in investigate.Investiga
 		sort.Strings(names)
 		return nil, investigate.PermanentError(domain.StageInvestigate, fmt.Errorf("agent: unknown driver %q (registered: %s)", cfg.Driver, strings.Join(names, ", ")))
 	}
-	s, as, err := PrepareWith(i.st, in, i.validators, i.now, i.rels)
+	rules := i.consumerRules
+	if r, ok := driver.(*Replay); ok && rules == 0 {
+		if t, err := ParseTranscript(r.Transcript); err == nil {
+			rules = t.ConsumerRules() // a replay serves the graph the recording saw
+		}
+	}
+	s, as, err := PrepareWith(i.st, in, i.validators, i.now, i.rels, rules)
 	if err != nil {
 		return nil, err
 	}

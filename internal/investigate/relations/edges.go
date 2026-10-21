@@ -1115,7 +1115,7 @@ func (g *gb) addProducer(kind, ns, name string, p producer) {
 func (g *gb) finish() *domain.RelationshipGraph {
 	out := &domain.RelationshipGraph{Bundle: g.bundle.ID, Builder: BuilderName, Nodes: []domain.GraphNode{}, Edges: []domain.GraphEdge{}}
 	if g.consumers {
-		out.Builder = ConsumerBuilderName
+		out.Builder = consumerBuilderName(g.rules)
 	}
 	for _, n := range g.sortedNodes() {
 		n.n.Artifacts = sortedKeys(n.arts)
