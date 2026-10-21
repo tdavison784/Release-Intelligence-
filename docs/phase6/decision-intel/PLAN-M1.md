@@ -1,48 +1,43 @@
 # Milestone 1: consumer-aware investigation (Workstream B), plan
 
-Mission §10 M1. Development cases: cert-manager 1.17 → 1.18, payments-us (not affected) and payments-eu (affected).
-Code references are to this branch (`p6-decision-intel`, based on Phase 0 at 1e72d145).
+Mission §10 M1. Development cases: two cert-manager 1.17 → 1.18 environments that differ in their configuration.
+The commander runs and scores them; their expected outcomes are kept in `GATE-M1.md`, which lanes never read. Code
+references are to this branch (`p6-decision-intel`, based on Phase 0 at 1e72d145).
 
 ## 1. Problem (from the Phase 0 transcripts and a code read)
 
-The Phase 5 agent (prompt `investigate-agent/v8`) never opened a payments Deployment or the `ledger-nginx`
-ConfigMap, although both were in its bundle. Its reads were greps for acme, http01, featureGates and rotationPolicy.
-Four causes, all in the code:
+The Phase 5 agent (prompt `investigate-agent/v8`) never opened the workloads that consume the affected objects, or
+the application configuration that reads the mounted files, although all of it was in its bundle. Its reads were keyword
+greps and objects of the product itself. Four causes, all in the code:
 
 1. **The trace is not representable.** The relationship graph records Certificate → Secret (`produces`) and
-   Secret → workload (`references`, via volumes and env: `internal/investigate/relations/edges.go:373-412`). It does not record **where**
-   a Secret is mounted (`volumeMounts[].mountPath`, projected keys), and nothing links a config file to the mounted
-   key it reads. `ledger.conf` is not even its own artifact: it exists only inside the rendered ConfigMap
-   `ledger-nginx` (`art-1df346a0c673`). The decisive hop, `ssl_client_certificate /tls/ca.crt` → Secret
-   `ledger-tls` key `ca.crt`, has no edge.
+   Secret → workload (`references`, via volumes and env: `internal/investigate/relations/edges.go:373-412`). It
+   does not record **where** a Secret is mounted (`volumeMounts[].mountPath`, projected keys). Nothing links an
+   application config file to the mounted key it reads. Such a config file is often not its own artifact: it can
+   exist only inside a rendered ConfigMap (kustomize `configMapGenerator`). The decisive hop, a config file that
+   names a path under another volume's `mountPath`, has no edge.
 2. **The dossier hides consumers.** Its Relations section is counts and unresolved edges only
    (`dossier.go:225-231,1307-1358`).
 3. **The prompt asks for consumers, but rewards formal rules.** v8 mentions consumers as guidance
    (`system.md:41-43,156-164`), while its strongest instructions require a structured `mitigation` whenever upstream
-   supports a condition (`system.md:117-154`, `item.md:60-69`). 12 of 45 calls per case went to `submit_findings`
-   and 9–10 to `record_claim`.
+   supports a condition (`system.md:117-154`, `item.md:60-69`). About a quarter of the calls went to
+   `submit_findings`, and as many again to `record_claim`.
 4. **Nothing checks the trace.** `submit_findings` accepts a not-affected verdict without any consumer being read,
-   and the per-item budget (16 calls) leaves no room for a 4-hop trace after the formal work.
+   and the per-item budget (16 calls) leaves no room for a multi-hop trace after the formal work.
 
-## 2. Expected behaviour (the M1 gate)
+## 2. Expected behaviour (generic)
 
-On both cases, for the rotationPolicy item (and the revisionHistoryLimit item as a control), the RI investigator:
+For a change to an object that other objects consume, the investigator:
+- **reads the consumers:** the workloads that mount or reference the affected object, and the configuration that
+  reads the mounted files;
+- **states the relationship chain** with citations, from the changed object to the consumer behaviour that depends
+  on it;
+- **separates explicit configuration from inherited defaults**, for every setting the change touches;
+- **explains** how the effective configuration and the consumers determine the impact in this environment;
+- **delivers a natural technical assessment** (mission B5 sections) without a `SemanticAssertion` or `MitigationSpec`
+  being required.
 
-- **(a)** reads the consuming workloads (`ledger`, `checkout`) and the `ledger-nginx` config;
-- **(b)** states the CA trust relationship: Certificate → Secret → mounted `ca.crt` → nginx/curl trust;
-- **(c)** distinguishes explicit configuration from inherited defaults: the P-US prod overlay pins
-  `rotationPolicy: Never` on `mesh-root-ca`, while P-EU inherits the new default;
-- **(d)** explains why the two environments have different outcomes;
-- **(e)** delivers this as a natural technical assessment (mission B5 sections) without any `SemanticAssertion` or
-  `MitigationSpec` being required.
-
-**Gate:** (a)–(e) hold in ≥ 2 of 3 repeats per case, with:
-- no new false-safe on any item;
-- `classify` output byte-identical in policy terms (verdicts and assessments stay out of the classifier, as
-  `verdict_policy_test.go` already proves for verdicts).
-
-The comparison is against the stored Phase 5 run `B0-K0-20261017-edb21ed9-v8`, on the same knowledge snapshot K0, in
-offline mode, with the same model (`claude-sonnet-5-5`).
+The commander's scored gate is in `GATE-M1.md`.
 
 ## 3. Minimal implementation
 
@@ -77,35 +72,17 @@ verification (M4), the change report (M5).
 - **Policy:** `verdict_policy_test.go` extended to assessments, so they never change classification.
 - **Replay:** the M1 eval run replays deterministically (`-agent-driver replay`).
 
-## 5. Regression comparison
+## 5. Guardrails
 
-```sh
-go build -o bin/ri ./cmd/ri
-scripts/phase5/snapshot.sh 03b6ff43 <scratch>/K0          # expect sha256:672a7ce0…
-bin/ri -state <clone of shared .ri> -offline eval -investigations -arm C1 -run-id <id> \
-  -case cert-manager-1.17-1.18--payments-eu,cert-manager-1.17-1.18--payments-us \
-  -knowledge <scratch>/K0 -work <empty> -agent -agent-model claude-sonnet-5-5 \
-  -agent-prompt investigate-agent/v9 -save           # × 3 repeats
-bin/ri eval -investigations -compare base=eval/investigations/results/B0-K0-20261017-edb21ed9-v8,new=<dir>
-```
-
-- **Scoring:** the commander scores (a)–(e) per run, quoting the stored assessment, like Phase 0's `score.md`. The
-  product owner audits the scores.
-- **Also reported:** tool calls, tokens, cost and time against B0 ($0.80 per case, about 160 s, 45 calls).
-- **Expected spend:** about $5–8 for 3 × 2 cases, more if the budget increase is used.
-- **The shared `.ri`:** cloned, never written.
-
-## 6. Guardrails
-
-- **Blinding:** the implementation lane never reads `eval/investigations/*/{expected.yaml,NOTES.md,observed/}`, the
+- **Blinding:** the implementation lane never reads `GATE-M1.md`, `eval/investigations/*/{expected.yaml,NOTES.md,observed/}`, the
   B0 run's `report.txt` / `score.json.gz` (they print expected classes), `docs/phase6/natural-agent/RUBRIC.md`, or
   the Phase 0 assessments.
-  - Edge 2 must be generic path matching. Any rule naming nginx, cert-manager or `ca.crt` fails review.
+  - Edge 2 must be generic path matching. Any rule naming a product, an application or a specific file or key fails review.
 - **Development case only:** cert-manager is development data (mission §11, ground-truth integrity). It is not proof
   of generalisation; M6 blind cases are.
 - **No policy change:** classification and auto-approval are untouched.
 
-## 7. Decision after M1
+## 6. Decision after M1
 
 The commander writes `M1-RESULT.md`:
 - gate met or not;
