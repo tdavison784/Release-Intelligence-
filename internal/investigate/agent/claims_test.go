@@ -166,8 +166,15 @@ func TestV5PerItemWithClaimsReplays(t *testing.T) {
 	}
 }
 
-// The default prompt is the newest embedded version, so a runner that
-// passes agent.DefaultPromptVersion (or none) gets it.
+// pinnedDefaultPrompt, when set, is the default prompt held below the newest
+// embedded version: v8 stays the default until the Phase 6 M1 gate
+// (docs/phase6/decision-intel/PLAN-M1.md §6, GATE-M1) is met and the commander
+// moves the default to v9 (mission §13: no default change before the gate).
+// Set it to "" when the default moves to the newest again.
+const pinnedDefaultPrompt = "investigate-agent/v8"
+
+// The default prompt is the newest embedded version, or the pinned one, so a
+// runner that passes agent.DefaultPromptVersion (or none) gets it.
 func TestDefaultPromptIsTheNewest(t *testing.T) {
 	entries, err := promptFS.ReadDir("prompts/investigate-agent")
 	must(t, err)
@@ -178,8 +185,15 @@ func TestDefaultPromptIsTheNewest(t *testing.T) {
 			newest = n
 		}
 	}
-	if want := fmt.Sprintf("investigate-agent/v%d", newest); DefaultPromptVersion != want {
-		t.Fatalf("DefaultPromptVersion = %s, newest embedded = %s", DefaultPromptVersion, want)
+	want := fmt.Sprintf("investigate-agent/v%d", newest)
+	if pinnedDefaultPrompt != "" {
+		want = pinnedDefaultPrompt
+		if _, err := LoadPrompt(fmt.Sprintf("investigate-agent/v%d", newest)); err != nil {
+			t.Fatalf("the newest embedded version must load while the default is pinned: %v", err)
+		}
+	}
+	if DefaultPromptVersion != want {
+		t.Fatalf("DefaultPromptVersion = %s, want %s (newest embedded v%d, pinned %q)", DefaultPromptVersion, want, newest, pinnedDefaultPrompt)
 	}
 	p, err := LoadPrompt("")
 	must(t, err)

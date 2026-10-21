@@ -127,7 +127,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	driver := fs.String("agent-driver", "claude-cli", "agent driver: claude-cli|exchange|replay|scripted")
 	model := fs.String("agent-model", "", "model for the agent driver")
 	replayDir := fs.String("agent-replay-dir", "", "replay driver: a stored run directory whose per-case transcript.jsonl (in cases.tar.gz) is replayed")
-	prompt := fs.String("agent-prompt", "", "agent prompt version (default: the newest; with -agent-replay-dir, the replayed run's)")
+	prompt := fs.String("agent-prompt", "", "agent prompt version (default: agent.DefaultPromptVersion, v8 until the M1 gate; with -agent-replay-dir, the replayed run's)")
 	claudeBin := fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)")
 	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")

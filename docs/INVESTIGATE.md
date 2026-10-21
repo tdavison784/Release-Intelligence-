@@ -1006,7 +1006,8 @@ A claim supports the agent's records; it is never a validation and never a polic
 classification still runs only over validation records.
 
 **Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
-verdict citation inheritance, and v8 revises the mitigation instructions, both below; v9, the default, is the
+verdict citation inheritance, and v8, the default, revises the mitigation instructions, both below; v9 (selected with
+`-agent-prompt investigate-agent/v9` until the M1 gate is met) is the
 consumer-aware investigation further down; Phase 5,
 `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
 the v5 surface. It adds three things.
@@ -1110,7 +1111,7 @@ overturn it.
   none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
   case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
   was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
-- **v9** (Phase 6 Milestone 1, `docs/phase6/decision-intel/PLAN-M1.md`, `M1-IMPLEMENTATION.md`; the default).
+- **v9** (Phase 6 Milestone 1, `docs/phase6/decision-intel/PLAN-M1.md`, `M1-IMPLEMENTATION.md`; not the default: v8 stays the default until the M1 gate is met, mission §13).
   Per-item sessions kept; `meta.json` turns `mitigation` off (`record_hypothesis` has no `mitigation`) and adds
   `traceConsumers`, `assessment`, `itemCalls: 24`, `itemTurns: 18` (rule `item@v2`; v1–v8 keep `item@v1`).
   - **Consumer graph.** The session builds the consumer-mode graph of the bundle (TO side; FROM on demand) with
