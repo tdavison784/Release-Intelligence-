@@ -9,7 +9,7 @@ handoffs (every item is `providers: [claude]`).
 | Lane | Agent | Model | Branch | Worktree | Tab | State |
 |---|---|---|---|---|---|---|
 | consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
-| consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | started 2026-10-21 (D-0005) |
+| consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | done, merged, closed 2026-10-21 |
 
 ## Merge log
 
@@ -18,6 +18,9 @@ handoffs (every item is `providers: [claude]`).
     container's mounts; product words appear only in test fixtures and in a test asserting the v9 prompt has none.
   - One change requested and made (dfa574ea): v8 stays the default until the M1 gate.
   - Lane cleanup: agent exited, tab closed, worktree removed, `branch -d`.
+
+- 2026-10-21 `6f5de003` Merge lane consumer2 (D-0005): consumer rules v2. A generated ConfigMap takes its data
+  from the render; there are no silent drops. Build, vet and test green (46). The non-test code is generic. Lane closed.
 
 ## Decisions
 
@@ -29,13 +32,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `consumer2` is running (D-0005): the generated-ConfigMap fix. On LANE DONE:
-   - review for generic logic;
-   - merge, then build, vet and test;
-   - close the lane.
-2. M1 attempt 2: `scripts/phase6/run-m1-gate.sh <new scratch> 3` from the integration worktree. It gets new run ids
-   from the new HEAD sha. Score it per GATE-M1 and append to M1-RESULT.md.
-3. The product owner audits the scores and decides on the gate (D-0003).
+1. M1 attempt 2 is running: `run-m1-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m1b`, run ids
+   `C1-K0-20261021-6f5de003-v9-r{1,2,3}`, consumer rules v2. Then score it per GATE-M1 and append to M1-RESULT.md.
+2. The product owner audits the scores and decides on the gate (D-0003).
 
 ## Notes
 
