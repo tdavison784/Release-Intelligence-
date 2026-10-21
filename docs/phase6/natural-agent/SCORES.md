@@ -3,8 +3,8 @@
 Per-run detail, with verbatim quotes checked by `scripts/phase6/scores.py`, is in `runs/<case>/<arm>-r<n>/score.md`
 (arms A and B: `runs/<case>/{A,B}/score.md`). Abbreviations: E = evidence-backed correct, CU = correct but
 unsupported, AU = appropriately uncertain, H = hedged, FS = false-safe, n/a = outside the C-item scope.
-**Two judgements are marked for audit**, because each sits on a category boundary. One of them decides a reading
-rule.
+**Two judgements were marked for audit**, because each sits on a category boundary. One of them decides a reading
+rule. **Audit, 2026-10-20: the product owner confirmed both as H** (see "Product-owner audit" below).
 
 ## Outcomes per item
 
@@ -94,3 +94,13 @@ re-expose a webhook that this environment enables. The answer engineers expect: 
 - RI root cause and fix: LEDGER X-0009. RI already has rule `advisory:affects-target`, but it ingests only
   repository-level advisories. There are none for kubernetes/ingress-nginx; the advisories sit in GitHub's global
   database.
+
+## Product-owner audit (2026-10-20)
+
+- ¹ P-US C-whole r2: **H confirmed.**
+- ² D-EU C-whole r2: **H confirmed.** "Avoids the D-EU false-safe" therefore stands at 2/3 (holds narrowly), and
+  "meaningful advantage" holds.
+- The product owner's reading of both: the same failure, "just not enough proper wording around them". In each run the
+  verdict line did not match its own evidence and caveats. P-US r2 headlined "breaking change that applies" over an
+  analysis that clears the environment. D-EU r2 led with "Probably not" over an unverified belief and a required
+  dry-run. Gap to carry forward: a verdict must state its own confidence and precondition in the headline.
