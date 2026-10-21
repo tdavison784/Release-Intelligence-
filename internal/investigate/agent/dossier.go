@@ -1430,6 +1430,10 @@ func hopLine(h TraceHop) string {
 	switch {
 	case h.File != nil && h.File.Path == "":
 		rel = fmt.Sprintf("%s: %s data[%s] is not known (container %s)", h.Kind, h.To, dataKey(h.File), h.File.Container)
+	case h.File != nil && h.File.Field != "" && h.File.Key != "":
+		rel = fmt.Sprintf("%s: pod spec %s names %s (key %s via mount %s of container %s)", h.Kind, h.File.Field, h.File.Path, h.File.Key, h.File.MountPath, h.File.Container)
+	case h.File != nil && h.File.Field != "":
+		rel = fmt.Sprintf("%s: pod spec %s names %s (container %s)", h.Kind, h.File.Field, h.File.Path, h.File.Container)
 	case h.File != nil && h.File.Key != "":
 		rel = fmt.Sprintf("%s: %s data[%s] names %s (key %s via mount %s of container %s)", h.Kind, h.To, h.File.ConfigKey, h.File.Path, h.File.Key, h.File.MountPath, h.File.Container)
 	case h.File != nil:

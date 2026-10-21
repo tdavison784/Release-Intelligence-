@@ -27,6 +27,17 @@ func v9RunWith(t *testing.T, f *consumerFixture, opts []Option, steps ...Step) (
 	return d, out
 }
 
+// replayRun replays a v9 transcript of the fixture's item.
+func replayRun(t *testing.T, f *consumerFixture, transcript []byte, opts ...Option) (*Replay, *investigate.AgentOutcome) {
+	t.Helper()
+	rep := &Replay{Transcript: transcript}
+	cfg := v9Config()
+	cfg.Driver = DriverReplay
+	out, err := New(f.st, append([]Option{WithDriver(DriverReplay, rep), WithClock(fixedNow)}, opts...)...).Investigate(context.Background(), f.input(cfg))
+	must(t, err)
+	return rep, out
+}
+
 // runArtifact reads the outcome's artifact of id, or its first of kind.
 func runArtifact(t *testing.T, f *consumerFixture, out *investigate.AgentOutcome, id string, kind domain.ArtifactKind) []byte {
 	t.Helper()
@@ -132,12 +143,7 @@ func TestReplayPinsConsumerRules(t *testing.T) {
 		f.v9Submit("potentially-affected", f.assessment()),
 	}
 	replay := func(transcript []byte, opts ...Option) (*Replay, *investigate.AgentOutcome) {
-		rep := &Replay{Transcript: transcript}
-		cfg := v9Config()
-		cfg.Driver = DriverReplay
-		out, err := New(f.st, append([]Option{WithDriver(DriverReplay, rep), WithClock(fixedNow)}, opts...)...).Investigate(context.Background(), f.input(cfg))
-		must(t, err)
-		return rep, out
+		return replayRun(t, f, transcript, opts...)
 	}
 
 	_, v1 := v9RunWith(t, f, []Option{WithConsumerRules(relations.ConsumerRulesV1)}, steps...)
@@ -157,7 +163,7 @@ func TestReplayPinsConsumerRules(t *testing.T) {
 		t.Fatalf("v1 transcript against v2: %s %s", out.Run.Status, out.Run.Reason)
 	}
 
-	_, v2 := v9RunWith(t, f, nil, steps...)
+	_, v2 := v9RunWith(t, f, []Option{WithConsumerRules(relations.ConsumerRulesV2)}, steps...)
 	tr = runArtifact(t, f, v2, v2.Run.Transcript, "")
 	if !bytes.Contains(tr, []byte(`"consumerRules":2`)) {
 		t.Fatal("a v2 transcript does not name its consumer rules")

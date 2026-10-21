@@ -1,0 +1,182 @@
+{
+  "id": "grf-fb534308c418",
+  "bundle": "bnd-test",
+  "builder": "relations.builder@v1+consumers@v2",
+  "nodes": [
+    {
+      "id": "gn-00091bba636f",
+      "kind": "config-object",
+      "key": "core/v1/Secret/pay/ledger-tls",
+      "placeholder": true
+    },
+    {
+      "id": "gn-26ea95185378",
+      "kind": "config-object",
+      "key": "core/v1/ConfigMap/pay/ledger-scripts",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ]
+    },
+    {
+      "id": "gn-6b76de9f1e8e",
+      "kind": "custom-resource",
+      "key": "example.dev/v1/Credential/pay/ledger-tls",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ]
+    },
+    {
+      "id": "gn-92c59993068a",
+      "kind": "workload",
+      "key": "apps/v1/Deployment/pay/ledger",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ]
+    },
+    {
+      "id": "gn-b594b684dd2e",
+      "kind": "api-type",
+      "key": "example.dev/v1/Credential",
+      "placeholder": true
+    },
+    {
+      "id": "gn-eae4bbdf5dea",
+      "kind": "config-object",
+      "key": "core/v1/Secret/pay/side-keys",
+      "placeholder": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "ge-14a001d30334",
+      "kind": "references",
+      "from": "gn-eae4bbdf5dea",
+      "to": "gn-92c59993068a",
+      "status": "missing",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[1:side].secret.secretName",
+      "reason": "Secret pay/side-keys is not defined in the snapshot",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ],
+      "mount": {
+        "volume": "side",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "sidecar",
+            "mountPath": "/etc/side/keys"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-21bcd2cc8159",
+        "line": 16,
+        "text": "secret: {secretName: side-keys}"
+      }
+    },
+    {
+      "id": "ge-16ba35f0371a",
+      "kind": "produces",
+      "from": "gn-6b76de9f1e8e",
+      "to": "gn-00091bba636f",
+      "status": "inferred",
+      "rule": "graph.produces@v1:spec.secretName",
+      "detail": "spec.secretName",
+      "reason": "Secret \"ledger-tls\" is not defined in the snapshot; Credential/ledger-tls names it by convention (graph.produces@v1:spec.secretName), so its controller is presumed to create it",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ],
+      "line": {
+        "artifact": "art-21bcd2cc8159",
+        "line": 4,
+        "text": "spec: {secretName: ledger-tls}"
+      }
+    },
+    {
+      "id": "ge-1eb1ea4ec778",
+      "kind": "references",
+      "from": "gn-00091bba636f",
+      "to": "gn-92c59993068a",
+      "status": "inferred",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[0:tls].secret.secretName",
+      "reason": "Secret \"ledger-tls\" is not defined in the snapshot; Credential/ledger-tls names it by convention (graph.produces@v1:spec.secretName), so its controller is presumed to create it",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ],
+      "mount": {
+        "volume": "tls",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "app",
+            "mountPath": "/etc/ledger/tls"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-21bcd2cc8159",
+        "line": 14,
+        "text": "secret: {secretName: ledger-tls}"
+      }
+    },
+    {
+      "id": "ge-707b4b5441ff",
+      "kind": "references",
+      "from": "gn-00091bba636f",
+      "to": "gn-92c59993068a",
+      "status": "inferred",
+      "rule": "graph.k8s-refs@v1:env.secretKeyRef",
+      "detail": "spec.template.spec.containers[0:app].env[2:TLS_KEY].valueFrom.secretKeyRef.name",
+      "reason": "Secret \"ledger-tls\" is not defined in the snapshot; Credential/ledger-tls names it by convention (graph.produces@v1:spec.secretName), so its controller is presumed to create it",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ],
+      "line": {
+        "artifact": "art-21bcd2cc8159",
+        "line": 41,
+        "text": "valueFrom: {secretKeyRef: {name: ledger-tls, key: tls.key}}"
+      }
+    },
+    {
+      "id": "ge-7382f1be561c",
+      "kind": "consumes-api",
+      "from": "gn-b594b684dd2e",
+      "to": "gn-6b76de9f1e8e",
+      "status": "established",
+      "rule": "graph.crd@v1:consumes",
+      "detail": "apiVersion/kind",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ]
+    },
+    {
+      "id": "ge-73eb29ae4e2f",
+      "kind": "references",
+      "from": "gn-26ea95185378",
+      "to": "gn-92c59993068a",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1:volumes.configMap",
+      "detail": "spec.template.spec.volumes[2:scripts].configMap.name",
+      "artifacts": [
+        "art-21bcd2cc8159"
+      ],
+      "mount": {
+        "volume": "scripts",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "init",
+            "mountPath": "/scripts"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-21bcd2cc8159",
+        "line": 18,
+        "text": "configMap: {name: ledger-scripts}"
+      }
+    }
+  ]
+}

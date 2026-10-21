@@ -636,7 +636,13 @@ same container (`file`: config key, path, workload, container, mount, the key it
 path matching only; a path under no mount, under a volume that is not a Secret/ConfigMap, or to a key the object
 does not hold is an unresolved `reads-file` edge (an `external` placeholder `file:<workload>#<container>:<path>`),
 never dropped. Generated ConfigMaps are read from their `configMapGenerator` `files`/`literals`/`envs`.
-**Consumer rules** (`relations.WithConsumerRules`): v2 (the default) also takes a generated ConfigMap's data from the
+**Consumer rules** (`relations.WithConsumerRules`): v3 (the default) also matches the absolute paths a container's
+own spec names (each `command` and `args` string, shell scripts passed to `sh -c` included, and literal `env[].value`
+strings; Kubernetes `$(VAR)` references are masked like `${VAR}`) against the same container's mounts: `reads-file`
+edges provider (or unresolved placeholder) → the **workload**, with `file.via` `pod-spec`, `file.field` (e.g.
+`spec.template.spec.containers[0:app].command[2]`) and the `line` that names the path; rule
+`graph.reads-file@v3:pod-spec:{command,args,env}`. `valueFrom` entries stay `references` edges; `command[0]` under no
+mount (the program, from the image) is not taken for a file. v2 also takes a generated ConfigMap's data from the
 generated object of a render of the same side when the snapshot lacks a generator source (the snapshot collects
 YAML files only): the render of an overlay whose kustomization tree includes the generator, the object named as
 kustomize names it (tree `namePrefix`/`nameSuffix`, then the content-hash suffix unless disabled), in the namespace;
@@ -644,7 +650,8 @@ the edge's `file.dataFrom` names that object and its `line` cites the render. Da
 renders that disagree) and a ConfigMap the snapshot does not define become unresolved `reads-file` edges with an
 empty `file.path` (`external` placeholder `data:<workload>#<container>:<configmap>[<key>]`) that `trace_consumers`
 and the dossier report as gaps. `secretGenerator` keys are known from the generator; a key of a generated Secret
-whose keys are unknown is `inferred`. v1 is the Milestone 1 graph, kept so transcripts recorded under it replay: a
+whose keys are unknown is `inferred`. v1 is the Milestone 1 graph; v1 and v2 are kept, byte for byte (golden graphs
+in `internal/investigate/relations/testdata/consumer-rules/`), so transcripts recorded under them replay: a
 v9 session writes `consumerRules` into its transcript header, and a replay uses the rules its transcript names
 (none: v1). The pipeline never builds this mode: its graph, traversal and every policy input are unchanged. Prompt
 v9's agent session builds it (below).

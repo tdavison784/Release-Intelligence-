@@ -112,6 +112,76 @@ version-independent. The v2 consumer graph took the data from that render: the n
 `derived/render/env/kustomize-platform-otel-collector-…/from.yaml`. That config names no absolute path, so no
 `reads-file` edge follows, which is correct. The development cases were not run (brief: commander only).
 
+## Fix: file paths in container command, args and env (lane consumer3, ledger D-0006)
+
+**Limit.** `reads-file` edges came only from paths in ConfigMap data. A workload often names the mounted files it
+reads in its own pod spec: a TLS flag in `args`, an `sh -c` script in `command`, an env var holding a path. Those
+relationships were invisible, so `trace_consumers` reported "mounted; what it reads is not established" although the
+pod spec said which files it reads.
+
+**Fix: consumer rules v3** (default v3; producer `relations.builder@v1+consumers@v3`). As with v2, only the
+session-built consumer graph changes. The stored graph and every policy input stay as they were.
+
+- **Pod-spec paths.** For each container, the absolute paths in each `command` and `args` string (scripts passed to
+  `sh -c` included) and in each literal `env[].value` are found with the same `filePaths` matcher.
+  - They are matched against the **same container's** mounts with the same resolution as configuration paths:
+    longest `mountPath`, `subPath`, `items`, projected sources, key checks, and the service account token directory.
+  - The edge points from the provider (a Secret or ConfigMap, with its key when it resolves) to the **workload**.
+  - `file.via` is `pod-spec`, `file.field` is the field (e.g. `spec.template.spec.containers[0:app].command[2]`),
+    and `line` holds the workload artifact, line and text that name the path. For a multi-line script, that is the
+    script line.
+  - The rule is `graph.reads-file@v3:pod-spec:{command,args,env}`.
+  - A path under no mount, or under another container's mount, is an unresolved edge from the `file:` placeholder,
+    as before.
+- **Not paths:**
+  - URLs, `${VAR}/x` and `$VAR/x` (the matcher, unchanged);
+  - Kubernetes `$(VAR)/x`, which is masked before matching because the kubelet expands it;
+  - `command[0]` under no mount: the program the container runs comes from its image. Under a mount it is matched,
+    e.g. a script mounted from a ConfigMap.
+  - `valueFrom` entries are left alone: they are `references` edges already.
+- **Trace and dossier.**
+  - A pod-spec hop shows its field, path, key and mount.
+  - An unresolved pod-spec path is a gap of the workload: "pod spec <field> names <path>, read by container …".
+  - A mount that a pod-spec path reads is no longer reported as unread.
+  - The wording changes only for v3 graphs. On v1/v2 graphs the trace and dossier text is unchanged, so their
+    results replay.
+- **Replay.**
+  - v3 sessions write `consumerRules: 3` into the transcript header; a replay uses its transcript's rules.
+  - v1 and v2 rebuild their graphs byte for byte. `TestConsumerRulesGolden` compares six graphs per rules version
+    (plain, generated data, pod-spec paths; both sides) with golden files written by the code before v3
+    (`relations/testdata/consumer-rules/`, commit edd511a9).
+  - `TestReplayPinsConsumerRulesV3`: a v3 recording replays under v3; a v2 recording replays under v2, and not
+    against a v3 graph.
+
+Tests:
+- `relations/consumers_rules_test.go`:
+  - a multi-line `sh -c` script naming two files under a Secret mount gives two edges with keys, fields and lines;
+  - an args path under another container's mount gives no edge from that container's Secret, only an unresolved one;
+  - an env value under no mount gives an unresolved edge with its field and line;
+  - an init container runs a script from its mounted ConfigMap;
+  - no path is taken from a URL, `${VAR}/x`, `$(VAR)/x`, `$VAR/x` or `command[0]`;
+  - `valueFrom` stays a reference;
+  - v2 gives no pod-spec edge;
+  - the golden graphs.
+- `agent/consumers_podspec_test.go`:
+  - `trace_consumers` returns the pod-spec hop with its artifact, line 20 and text, and the env path as a gap;
+  - the dossier shows the hop;
+  - v2 still reports the mount as unread;
+  - replay pinning.
+
+Smoke (deterministic, no model, non-development case `ingress-nginx-1.11-1.12--shop-nl`). Setup: cloned state,
+`-offline`, K0, the pipeline without the agent, `-work` in scratch, stdout discarded; the v2 and v3 consumer graphs
+were then built from its bundle.
+
+- v2: 0 `reads-file` edges on either side.
+- v3: 4 per side.
+  - The ingress-nginx controller's rendered `args` `--validating-webhook-certificate=/usr/local/certificates/cert`
+    and `--validating-webhook-key=…/key` resolve to keys `cert` and `key` of Secret `ingress-nginx-admission`.
+    They are established, citing render lines 87/88.
+  - The `otel-collector` `--config=/conf/config.yaml` resolves to key `config.yaml` of its ConfigMap.
+  - The controller's `LD_PRELOAD` value `/usr/local/lib/libmimalloc.so`, an image file, is an unresolved edge.
+- No development case was run or replayed.
+
 ## How to run v9
 
 v8 stays the default prompt until the M1 gate is met (mission §13); select v9 explicitly:
@@ -182,9 +252,16 @@ did not read its score, report or gates (they are label-bearing); the commander 
 
 ## Known limits
 
-- Paths are matched only in ConfigMap data. The following are not matched: container `args`/`command`, literal
-  `env` values, Secret data (redacted), relative paths, and one-segment paths not under a mount (taken for
-  routes).
+- Paths are matched in ConfigMap data and, under rules v3, in container `command`/`args` and literal `env` values.
+  The following are not matched: Secret data (redacted), relative paths (including paths relative to a container's
+  `workingDir`), and one-segment paths not under a mount (taken for routes).
+- Pod-spec paths (v3):
+  - Kubernetes `$(VAR)` references are masked, not expanded, so `--ca=$(CA_DIR)/ca.crt` gives no path even when
+    `CA_DIR` is a literal env value of the container.
+  - A path built in a shell script from a variable (`"$DIR"/x` excepted) is not seen.
+  - Paths of programs and libraries the image provides (a script's `exec /app/bin`, `LD_PRELOAD`) are unresolved
+    edges and trace gaps, like any path under no mount. Only `command[0]` under no mount is skipped.
+  - The image's own `ENTRYPOINT`/`CMD` are not in the snapshot.
 - A projected volume whose sources carry no items and might each hold the key gives `inferred` edges to each
   source, unless the snapshot's data decides.
 - Objects created at runtime have unknown keys, so a key's existence is not checked for them (the trace reports

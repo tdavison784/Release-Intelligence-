@@ -21,12 +21,14 @@ import (
 // changes 1 and 2). Everything here is generic Kubernetes semantics: how a
 // pod mounts a Secret or ConfigMap (volumes, projected sources, items,
 // subPath), and plain path matching of the absolute file paths a mounted or
-// env-consumed ConfigMap's data names against the other mounts of the same
+// env-consumed ConfigMap's data names (rules v3: or the container's own
+// command, args and literal env values) against the other mounts of the same
 // container. No rule knows a product, an application, a file or a key.
 
 const (
 	ruleReadsFile   = "graph.reads-file@v1:"
 	ruleReadsFileV2 = "graph.reads-file@v2:" // derivations new in consumer rules v2
+	ruleReadsFileV3 = "graph.reads-file@v3:" // derivations new in consumer rules v3
 	maxLineText     = 300
 )
 
@@ -53,17 +55,19 @@ func volumeMount(spec map[string]any, volume string, src int, items []any) *doma
 	return m
 }
 
+// container is one container of a pod spec, at index idx of field.
 type container struct {
-	name string
-	body map[string]any
+	name, field string
+	idx         int
+	body        map[string]any
 }
 
 func podContainers(spec map[string]any) []container {
 	var out []container
 	for _, field := range []string{"initContainers", "containers", "ephemeralContainers"} {
-		for _, c := range asSeq(spec[field]) {
+		for i, c := range asSeq(spec[field]) {
 			if m := asMap(c); m != nil && str(m, "name") != "" {
-				out = append(out, container{name: str(m, "name"), body: m})
+				out = append(out, container{name: str(m, "name"), field: field, idx: i, body: m})
 			}
 		}
 	}
@@ -565,9 +569,10 @@ func volumeType(v map[string]any) string {
 // readsFile adds the reads-file edges of one workload: for each container,
 // each ConfigMap it reads (mounted or through env), each absolute path in the
 // visible data, the provider the path resolves to through the container's
-// other mounts — or an unresolved edge saying why none.
+// other mounts — or an unresolved edge saying why none. Under rules v3 the
+// paths the container's own spec names follow (podSpecFiles).
 func (g *gb) readsFile(w *gnode) error {
-	spec, _, _ := podTemplate(w.obj)
+	spec, _, prefix := podTemplate(w.obj)
 	if spec == nil {
 		return nil
 	}
@@ -617,6 +622,9 @@ func (g *gb) readsFile(w *gnode) error {
 					g.fileEdge(w, c.name, mounts, r, rn, d, p, automount)
 				}
 			}
+		}
+		if g.rules >= ConsumerRulesV3 {
+			g.podSpecFiles(w, prefix, c, mounts, automount)
 		}
 	}
 	return nil
@@ -668,9 +676,23 @@ type candidate struct {
 	kind, name, key string
 }
 
-// fileEdge resolves one path p named in data entry d of reader rn, read by
-// container c of workload w, and adds its reads-file edge(s).
-func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode, d dataEntry, p string, automount bool) {
+// fileSite is where a matched path is named: the node its edges point to
+// (the configuration that names it, or under rules v3 the workload whose pod
+// spec does), what is known of the match before it resolves, and the
+// edges' detail, line, artifacts and rules (keysRule: rules v2, a key the
+// bundle does not know).
+type fileSite struct {
+	to             *gnode
+	file           *domain.EdgeFile
+	detail         string
+	line           *domain.EdgeLine
+	arts           []string
+	rule, keysRule string
+}
+
+// longestMount is the mount of mounts p is under, the longest mountPath
+// winning, and p relative to it (nil: under none).
+func longestMount(mounts []mountRef, p string) (*mountRef, string) {
 	var best *mountRef
 	var rel string
 	for i := range mounts {
@@ -678,6 +700,13 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 			best, rel = &mounts[i], x
 		}
 	}
+	return best, rel
+}
+
+// fileEdge resolves one path p named in data entry d of reader rn, read by
+// container c of workload w, and adds its reads-file edge(s).
+func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode, d dataEntry, p string, automount bool) {
+	best, rel := longestMount(mounts, p)
 	segments := strings.Count(p, "/")
 	if best == nil && segments < 2 {
 		return // a one-segment path under no mount (a URL route, a command) is not taken for a file
@@ -685,18 +714,31 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 	if best != nil && r.via == "volume" && best.volume == r.volume {
 		return // the configuration names a file of its own volume: resolved within itself
 	}
-	file := &domain.EdgeFile{ConfigKey: d.key, Path: p, Workload: w.n.Key, Container: c, Via: r.via, DataFrom: d.from}
-	detail := fmt.Sprintf("%s %s data[%s] names %s (container %s of %s)", r.via, rn.n.Key, d.key, p, c, w.n.Key)
-	line := g.dataLine(rn, d, p)
-	arts := []string{d.artifact, w.obj.artifact}
 	rule := ruleReadsFile + r.via
 	if d.from != "" {
 		rule = ruleReadsFileV2 + "rendered-data:" + r.via
 	}
+	g.resolveFile(w, c, best, rel, p, automount, fileSite{
+		to:       rn,
+		file:     &domain.EdgeFile{ConfigKey: d.key, Path: p, Workload: w.n.Key, Container: c, Via: r.via, DataFrom: d.from},
+		detail:   fmt.Sprintf("%s %s data[%s] names %s (container %s of %s)", r.via, rn.n.Key, d.key, p, c, w.n.Key),
+		line:     g.dataLine(rn, d, p),
+		arts:     []string{d.artifact, w.obj.artifact},
+		rule:     rule,
+		keysRule: ruleReadsFileV2 + "unknown-keys:" + r.via,
+	})
+}
+
+// resolveFile adds the reads-file edge(s) of path p, named at site s and
+// under mount best (rel: p relative to it; nil: under none) of container c
+// of workload w: from the provider the path resolves to, or from a
+// placeholder with the reason none does.
+func (g *gb) resolveFile(w *gnode, c string, best *mountRef, rel, p string, automount bool, s fileSite) {
+	file := s.file
 	unresolved := func(status domain.EdgeStatus, reason string) {
 		ext := g.node(domain.NodeExternal, render.ObjectID{Kind: "File", Name: p}, "file:"+w.n.Key+"#"+c+":"+p, "")
 		ext.n.Placeholder = true
-		g.fileEdgeTo(ext, rn, status, rule, detail, reason, file, line, arts)
+		g.fileEdgeTo(ext, s.to, status, s.rule, s.detail, reason, file, s.line, s.arts)
 	}
 	if best == nil {
 		if _, ok := under(p, saTokenDir); ok && automount {
@@ -739,7 +781,7 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 		if len(cands) > 1 {
 			status, reason = domain.EdgeInferred, fmt.Sprintf("%s is under mountPath %s of projected volume %s, whose sources without items (%d) may each hold key %q; which one does is not decided from the snapshot", p, best.mountPath, best.volume, len(cands), cd.key)
 		}
-		rule := rule
+		rule := s.rule
 		keys, known := g.keysOf(pn)
 		switch {
 		case known && cd.key != "" && !keys[cd.key]:
@@ -751,10 +793,75 @@ func (g *gb) fileEdge(w *gnode, c string, mounts []mountRef, r reader, rn *gnode
 			if reason != "" {
 				why = reason + "; " + why
 			}
-			status, reason, rule = domain.EdgeInferred, why, ruleReadsFileV2+"unknown-keys:"+r.via
+			status, reason, rule = domain.EdgeInferred, why, s.keysRule
 		}
-		g.fileEdgeTo(pn, rn, status, rule, detail, reason, &f, line, arts)
+		g.fileEdgeTo(pn, s.to, status, rule, s.detail, reason, &f, s.line, s.arts)
 	}
+}
+
+// --- pod-spec paths (rules v3) -------------------------------------------------------------
+
+// kubeVar is a Kubernetes variable reference, $(NAME), which the kubelet
+// expands in command, args and env values: the path it starts is not known
+// from the spec, so it is masked like a shell ${VAR} before matching.
+var kubeVar = regexp.MustCompile(`\$\([A-Za-z_][A-Za-z0-9_.\-]*\)`)
+
+// podSpecFiles adds the reads-file edges of the absolute paths container c's
+// own spec names (rules v3): its command and args (shell scripts passed to
+// `sh -c` included) and its literal env values. valueFrom env entries are
+// references edges already. Each path resolves through the same container's
+// mounts, as configuration's paths do, and its edge points to the workload
+// w, citing the field and the line that state it. The program a container
+// runs (command[0]) under no mount comes from its image, so it is not taken
+// for a file it reads.
+func (g *gb) podSpecFiles(w *gnode, prefix string, c container, mounts []mountRef, automount bool) {
+	at := fmt.Sprintf("%s.%s[%d:%s]", prefix, c.field, c.idx, c.name)
+	type stated struct{ field, kind, text string }
+	var fields []stated
+	for _, kind := range []string{"command", "args"} {
+		for i, v := range asSeq(c.body[kind]) {
+			if t, ok := v.(string); ok {
+				fields = append(fields, stated{fmt.Sprintf("%s.%s[%d]", at, kind, i), kind, t})
+			}
+		}
+	}
+	for j, e := range asSeq(c.body["env"]) {
+		if t, ok := asMap(e)["value"].(string); ok && asMap(e)["valueFrom"] == nil {
+			fields = append(fields, stated{fmt.Sprintf("%s.env[%d:%s].value", at, j, str(e, "name")), "env", t})
+		}
+	}
+	for i, f := range fields {
+		for _, p := range filePaths(kubeVar.ReplaceAllString(f.text, "${}")) {
+			best, rel := longestMount(mounts, p)
+			if best == nil && (strings.Count(p, "/") < 2 || i == 0 && f.kind == "command") {
+				continue // a route, or the program the container runs, from its image
+			}
+			g.resolveFile(w, c.name, best, rel, p, automount, fileSite{
+				to:       w,
+				file:     &domain.EdgeFile{Path: p, Workload: w.n.Key, Container: c.name, Via: "pod-spec", Field: f.field},
+				detail:   fmt.Sprintf("pod spec %s names %s (container %s of %s)", f.field, p, c.name, w.n.Key),
+				line:     g.fieldLine(w, f.field, p),
+				arts:     []string{w.obj.artifact},
+				rule:     ruleReadsFileV3 + "pod-spec:" + f.kind,
+				keysRule: ruleReadsFileV3 + "unknown-keys:pod-spec",
+			})
+		}
+	}
+}
+
+// fieldLine locates path p in the pod-spec field of workload w (the field's
+// first line when p is not found on one line of it).
+func (g *gb) fieldLine(w *gnode, field, p string) *domain.EdgeLine {
+	pa := g.parsed(w.obj.artifact)
+	segs, ok := parseFieldPath(field)
+	if pa == nil || !ok {
+		return nil
+	}
+	start, end := pa.span(w.obj.id, segs)
+	if start == 0 {
+		return nil
+	}
+	return pa.find(w.obj.artifact, start, end, p)
 }
 
 // sourceCandidate maps a volume-relative path to the key of one Secret or
@@ -881,12 +988,17 @@ func (g *gb) dataLine(n *gnode, d dataEntry, p string) *domain.EdgeLine {
 	if start == 0 {
 		return nil
 	}
+	return pa.find(d.artifact, start, end, p)
+}
+
+// find is the first line from start to end containing s, else start.
+func (pa *parsedArtifact) find(artifact string, start, end int, s string) *domain.EdgeLine {
 	for i := start; i <= end && i <= len(pa.lines); i++ {
-		if strings.Contains(pa.lines[i-1], p) {
-			return pa.at(d.artifact, i)
+		if strings.Contains(pa.lines[i-1], s) {
+			return pa.at(artifact, i)
 		}
 	}
-	return pa.at(d.artifact, start)
+	return pa.at(artifact, start)
 }
 
 // lines gives references edges of pod specs and custom resource fields, and

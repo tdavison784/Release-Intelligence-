@@ -49,11 +49,13 @@ type cgraph struct {
 	// unknown: reads-file edges whose configuration data is not known
 	// (File.Path ""), by the reading workload's key, sorted by edge id.
 	unknown map[string][]domain.GraphEdge
+	// podSpec: the graph's rules match pod-spec paths (consumer rules v3).
+	podSpec bool
 }
 
 func indexGraph(g *domain.RelationshipGraph, art domain.ArtifactRef) *cgraph {
 	cg := &cgraph{g: g, art: art, nodes: map[string]domain.GraphNode{}, byKey: map[string]string{}, out: map[string][]domain.GraphEdge{},
-		files: map[string][]domain.GraphEdge{}, unknown: map[string][]domain.GraphEdge{}}
+		files: map[string][]domain.GraphEdge{}, unknown: map[string][]domain.GraphEdge{}, podSpec: relations.RulesOf(g.Builder) >= relations.ConsumerRulesV3}
 	for _, n := range g.Nodes { // sorted by id: the first id of a key wins
 		cg.nodes[n.ID] = n
 		if _, ok := cg.byKey[n.Key]; !ok {
@@ -260,6 +262,8 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 			case e.Status == domain.EdgeEstablished || e.File == nil:
 			case e.File.Path == "":
 				gap(cg.nodes[id].Key, "data[%s], read by container %s of %s, is not known: %s (%s)", dataKey(e.File), e.File.Container, e.File.Workload, e.Reason, e.Status)
+			case e.File.Field != "":
+				gap(cg.nodes[id].Key, "pod spec %s names %s, read by container %s: %s (%s)", e.File.Field, e.File.Path, e.File.Container, e.Reason, e.Status)
 			default:
 				gap(cg.nodes[id].Key, "data[%s] names %s, read by container %s of %s: %s (%s)", e.File.ConfigKey, e.File.Path, e.File.Container, e.File.Workload, e.Reason, e.Status)
 			}
@@ -279,7 +283,11 @@ func trace(cg *cgraph, starts []string) *ConsumerTrace {
 				read = read || (r.File != nil && r.File.Workload == to.Key && r.File.Container == m.Container)
 			}
 			if !read {
-				gap(to.Key, "container %s mounts %s at %s; no configuration in the snapshot names a path under it: what the container reads from it is not established", m.Container, from.Key, m.MountPath)
+				what := "no configuration in the snapshot names a path under it"
+				if cg.podSpec {
+					what = "no configuration in the snapshot, nor the container's command, args or env values, names a path under it"
+				}
+				gap(to.Key, "container %s mounts %s at %s; %s: what the container reads from it is not established", m.Container, from.Key, m.MountPath, what)
 				// Configuration the container reads whose data is not known
 				// may name such a path: that is the gap to close.
 				for _, u := range cg.unknown[to.Key] {
