@@ -1155,8 +1155,10 @@ const (
 	EdgeDependsOn   EdgeKind = "depends-on"   // dependency → dependent (generic, last resort)
 	// EdgeReadsFile: a Secret/ConfigMap mounted into a pod → the ConfigMap
 	// holding configuration that names a file path under its mountPath in the
-	// same container (File says which key, line and mount). Built only by the
-	// consumer mode of the graph builder (relations.WithConsumers).
+	// same container (File says which key, line and mount); under consumer
+	// rules v3 also → the workload whose pod spec (command, args, a literal
+	// env value) names such a path (File.Field). Built only by the consumer
+	// mode of the graph builder (relations.WithConsumers).
 	// CONTRACT-CHANGE(consumer): additive.
 	EdgeReadsFile EdgeKind = "reads-file"
 )
@@ -1249,13 +1251,16 @@ type VolumeMount struct {
 // both; the mount Path falls under and the key of the From object it maps to
 // ("" when no volume matched: the edge is then unresolved). An empty Path
 // marks an unresolved edge whose configuration data is not known (ConfigKey
-// names the key, "" for every key): which files it names cannot be read.
+// names the key, "" for every key): which files it names cannot be read. A
+// non-empty Field marks a path the pod spec states (Via "pod-spec"; the edge
+// points to the workload, ConfigKey is "").
 type EdgeFile struct {
 	ConfigKey string `json:"configKey"`
 	Path      string `json:"path"`
 	Workload  string `json:"workload"`
 	Container string `json:"container"`
-	// Via is how the container reads the configuration: "volume" or "env".
+	// Via is how the container reads the configuration: "volume" or "env";
+	// "pod-spec" when its own spec names the path (Field).
 	Via       string `json:"via"`
 	Volume    string `json:"volume,omitempty"`
 	MountPath string `json:"mountPath,omitempty"`
@@ -1264,6 +1269,10 @@ type EdgeFile struct {
 	// the environment snapshot: the rendered object of a kustomize-generated
 	// ConfigMap (consumer rules v2). CONTRACT-CHANGE(consumer2): additive.
 	DataFrom string `json:"dataFrom,omitempty"`
+	// Field is the pod-spec field that names Path, e.g.
+	// "spec.template.spec.containers[0:app].command[2]" (consumer rules v3).
+	// CONTRACT-CHANGE(consumer3): additive.
+	Field string `json:"field,omitempty"`
 }
 
 // EdgeLine locates an edge's relationship in an artifact: the 1-based line

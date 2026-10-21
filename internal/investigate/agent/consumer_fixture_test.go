@@ -110,7 +110,40 @@ const (
 	// version-independent overlay: one render, both sides) holds the
 	// generated object under its hash-suffixed name.
 	configGeneratedRendered
+	// configPodSpec: billing mounts no configuration; its container's
+	// command (an sh -c script) names the mounted key file, an env value a
+	// log path under no mount (consumer rules v3).
+	configPodSpec
 )
+
+const consumerDeployPodSpec = `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing
+  namespace: shop
+spec:
+  template:
+    spec:
+      volumes:
+        - name: tls
+          secret:
+            secretName: billing-tls
+      containers:
+        - name: app
+          command:
+            - /bin/sh
+            - -c
+            - |
+              exec /app/billing \
+                --tls-key=/etc/billing/tls/tls.key \
+                --upstream=https://ledger.example.dev/v1/charge
+          env:
+            - name: LOG_FILE
+              value: /var/log/billing/app.log
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/billing/tls
+`
 
 const consumerKustomization = `apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -209,8 +242,12 @@ func newConsumerFixtureWith(t *testing.T, mode fixtureConfig) *consumerFixture {
 			MediaType: "application/yaml", URI: p, Producer: "test.snapshot@v1", Tags: []string{"manifests"}}, []byte(content))
 	}
 	cred := envFile("apps/billing/credential.yaml", consumerCredential)
-	f.deploy = envFile("apps/billing/deployment.yaml", consumerDeploy)
-	if mode == configObject {
+	deploy := consumerDeploy
+	if mode == configPodSpec {
+		deploy = consumerDeployPodSpec
+	}
+	f.deploy = envFile("apps/billing/deployment.yaml", deploy)
+	if mode == configObject || mode == configPodSpec {
 		f.config = envFile("apps/billing/config.yaml", consumerConfig)
 	} else {
 		f.config = envFile("apps/billing/kustomization.yaml", consumerKustomization)

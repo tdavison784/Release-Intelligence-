@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
 var updateRules = flag.Bool("update", false, "rewrite the consumer-rules golden graphs in testdata/consumer-rules")
@@ -119,5 +122,116 @@ func TestConsumerRulesGolden(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+const (
+	pLedger  = "apps/v1/Deployment/pay/ledger"
+	pTLS     = "core/v1/Secret/pay/ledger-tls"
+	pSide    = "core/v1/Secret/pay/side-keys"
+	pScripts = "core/v1/ConfigMap/pay/ledger-scripts"
+)
+
+// Rules v3: the paths a container's own spec names resolve through that
+// container's mounts, from the provider to the workload, cited by field and
+// line.
+func TestConsumerPodSpecPaths(t *testing.T) {
+	f := rulesFixtures(t)["pod-spec"]
+	g := consumerGraph(t, f)
+	v := view{t, g}
+	art := f.b.Manifest.Artifacts[0].ID
+
+	// The sh -c script names two keys of the mounted Secret: two edges, with
+	// keys, each citing the script line that names it.
+	script := "spec.template.spec.containers[0:app].command[2]"
+	for _, c := range []struct {
+		path, key string
+		line      int
+		text      string
+	}{
+		{"/etc/ledger/tls/ca.crt", "ca.crt", 32, `--tls-ca=/etc/ledger/tls/ca.crt \`},
+		{"/etc/ledger/tls/tls.crt", "tls.crt", 33, `--tls-cert /etc/ledger/tls/tls.crt \`},
+	} {
+		es := readsFile(t, g, c.path)
+		if len(es) != 1 {
+			t.Fatalf("%s: %+v", c.path, es)
+		}
+		e := es[0]
+		if e.From != v.mustNode(pTLS).ID || e.To != v.mustNode(pLedger).ID || e.Status != domain.EdgeEstablished || e.Rule != ruleReadsFileV3+"pod-spec:command" {
+			t.Fatalf("%s: %+v", c.path, e)
+		}
+		want := domain.EdgeFile{Path: c.path, Workload: pLedger, Container: "app", Via: "pod-spec", Volume: "tls", MountPath: "/etc/ledger/tls", Key: c.key, Field: script}
+		if *e.File != want {
+			t.Fatalf("%s file: %+v", c.path, e.File)
+		}
+		if e.Line == nil || *e.Line != (domain.EdgeLine{Artifact: art, Line: c.line, Text: c.text}) || len(e.Artifacts) != 1 || e.Artifacts[0] != art {
+			t.Fatalf("%s line: %+v %v", c.path, e.Line, e.Artifacts)
+		}
+	}
+	// An args path under the sidecar's mount, not app's: no edge from the
+	// sidecar's Secret; app's path is unresolved.
+	if _, ok := v.edge(domain.EdgeReadsFile, pSide, pLedger); ok {
+		t.Fatal("app's args path resolved to the sidecar's mount")
+	}
+	if x := readsFile(t, g, "/etc/side/keys/sign.key"); len(x) != 1 || x[0].Status != domain.EdgeMissing || x[0].File.Field != "spec.template.spec.containers[0:app].args[0]" || x[0].File.Container != "app" {
+		t.Fatalf("args path under another container's mount: %+v", x)
+	}
+	// An env value under no mount: unresolved, with its field and line.
+	log := readsFile(t, g, "/var/log/ledger/app.log")
+	if len(log) != 1 || log[0].Status != domain.EdgeMissing || !strings.Contains(log[0].Reason, "under no volume mount of container app") ||
+		log[0].File.Field != "spec.template.spec.containers[0:app].env[0:LOG_FILE].value" || log[0].Line == nil || log[0].Line.Line != 38 {
+		t.Fatalf("env value under no mount: %+v", log)
+	}
+	// The init container runs a script of its mounted ConfigMap.
+	init := v.wantEdge(domain.EdgeReadsFile, pScripts, pLedger, domain.EdgeEstablished)
+	if init.File.Key != "init.sh" || init.File.Field != "spec.template.spec.initContainers[0:init].command[0]" || init.Line == nil || init.Line.Line != 21 {
+		t.Fatalf("init script: %+v %+v", init.File, init.Line)
+	}
+	// Not paths: a URL, ${VAR}/x and $(VAR)/x; the program the container runs
+	// (command[0]) from its image. valueFrom stays a references edge.
+	for _, e := range g.Edges {
+		if e.Kind != domain.EdgeReadsFile {
+			continue
+		}
+		for _, bad := range []string{"/v1/ledger", "/ledger", "/certs/ca", "/bin/sh", "tls.key"} {
+			if strings.HasSuffix(e.File.Path, bad) && e.File.Path != "/usr/local/bin/ledger" {
+				t.Errorf("%q taken for a file: %+v", bad, e.File)
+			}
+		}
+	}
+	v.wantEdge(domain.EdgeReferences, pTLS, pLedger, domain.EdgeInferred)
+	if n := len(readsFile(t, g, "/usr/local/bin/ledger")); n != 1 {
+		t.Errorf("a program a script runs is a path under no mount like any other: %d edges", n)
+	}
+}
+
+// filePaths after masking Kubernetes $(VAR) references: no path is taken
+// from a URL or a variable-relative path.
+func TestPodSpecNotPaths(t *testing.T) {
+	for _, s := range []string{"https://api.example.dev/v1/x/y", "${DIR}/certs/ca.crt", "$(DIR)/certs/ca.crt", "$DIR/certs/ca.crt", "file://"} {
+		if p := filePaths(kubeVar.ReplaceAllString(s, "${}")); len(p) != 0 {
+			t.Errorf("%q: %v", s, p)
+		}
+	}
+	if p := filePaths(kubeVar.ReplaceAllString("--ca=/etc/x/ca.crt --dir=$(D)/y/z", "${}")); len(p) != 1 || p[0] != "/etc/x/ca.crt" {
+		t.Errorf("paths %v", p)
+	}
+}
+
+// Rules v2 on the same environment: no pod-spec edge (the golden graphs pin
+// the rest).
+func TestConsumerPodSpecPathsNotInV2(t *testing.T) {
+	f := rulesFixtures(t)["pod-spec"]
+	g, err := BuildConsumerGraph(context.Background(), f.st, f.b, SideTo, WithConsumerRules(ConsumerRulesV2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range g.Edges {
+		if e.Kind == domain.EdgeReadsFile {
+			t.Fatalf("a v3 edge under v2: %+v", e)
+		}
+	}
+	if RulesOf(g.Builder) != ConsumerRulesV2 || RulesOf(ConsumerBuilderName) != ConsumerRulesV3 || RulesOf(BuilderName) != 0 {
+		t.Fatalf("RulesOf: %q", g.Builder)
 	}
 }

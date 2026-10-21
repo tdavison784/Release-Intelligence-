@@ -20,24 +20,38 @@ const BuilderName = "relations.builder@v1"
 // mode (WithConsumers) under the default consumer rules: the same graph plus
 // mount detail, lines and reads-file edges. A graph built under other rules
 // names them ("+consumers@v<rules>").
-const ConsumerBuilderName = BuilderName + "+consumers@v2"
+const ConsumerBuilderName = BuilderName + "+consumers@v3"
 
 // Consumer rules (WithConsumerRules). v1 is the Milestone 1 consumer graph
 // (ledger D-0001). v2 (D-0005) also reads the data of a kustomize-generated
 // ConfigMap whose generator sources the snapshot lacks from its rendered
 // object, knows the keys of generated Secrets, and records configuration
 // data and keys it cannot know as unresolved edges instead of skipping them.
-// A transcript recorded under v1 replays only against a v1 graph, so the
-// rules a session used are part of its transcript header.
+// v3 (D-0006) also matches the paths a container's own spec names (command,
+// args, literal env values) against that container's mounts: reads-file
+// edges from the provider to the workload. A transcript recorded under v1
+// replays only against a v1 graph, so the rules a session used are part of
+// its transcript header.
 const (
 	ConsumerRulesV1 = 1
 	ConsumerRulesV2 = 2
+	ConsumerRulesV3 = 3
 	// ConsumerRules is the default.
-	ConsumerRules = ConsumerRulesV2
+	ConsumerRules = ConsumerRulesV3
 )
 
 func consumerBuilderName(rules int) string {
 	return fmt.Sprintf("%s+consumers@v%d", BuilderName, rules)
+}
+
+// RulesOf is the consumer rules a graph's builder name states (0: not a
+// consumer-mode graph).
+func RulesOf(builder string) int {
+	var n int
+	if _, err := fmt.Sscanf(strings.TrimPrefix(builder, BuilderName), "+consumers@v%d", &n); err != nil || !strings.HasPrefix(builder, BuilderName+"+consumers@v") {
+		return 0
+	}
+	return n
 }
 
 // ProducesRule is a declarative relationship: a custom resource of
@@ -126,7 +140,7 @@ type builder struct {
 func WithConsumers() Option { return func(b *builder) { b.consumers = true } }
 
 // WithConsumerRules selects the consumer rules of a consumer-mode build
-// (ConsumerRulesV1, ConsumerRulesV2; 0 or unknown: the default).
+// (ConsumerRulesV1 … ConsumerRulesV3; 0 or unknown: the default).
 func WithConsumerRules(rules int) Option {
 	return func(b *builder) { b.consumerRules = rules }
 }
@@ -369,7 +383,7 @@ func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Sid
 	if bd.consumers && v == nil {
 		g.consumers, g.gen, g.docs, g.renders = true, map[string]*genData{}, map[string]*parsedArtifact{}, map[string][]render.Object{}
 		g.rules, g.side = bd.consumerRules, side
-		if g.rules != ConsumerRulesV1 && g.rules != ConsumerRulesV2 {
+		if g.rules < ConsumerRulesV1 || g.rules > ConsumerRulesV3 {
 			g.rules = ConsumerRules
 		}
 		g.read = func(id string) ([]byte, error) {
