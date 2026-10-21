@@ -10,6 +10,7 @@ handoffs (every item is `providers: [claude]`).
 |---|---|---|---|---|---|---|
 | consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
 | consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | done, merged, closed 2026-10-21 |
+| consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | started 2026-10-21 (D-0006) |
 
 ## Merge log
 
@@ -32,8 +33,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. M1 attempt 2 is running: `run-m1-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m1b`, run ids
-   `C1-K0-20261021-6f5de003-v9-r{1,2,3}`, consumer rules v2. Then score it per GATE-M1 and append to M1-RESULT.md.
+1. Lane `consumer3` is running (D-0006): pod-spec paths. On LANE DONE:
+   - review for generic logic;
+   - merge, then build, vet and test;
+   - close the lane;
+   - run attempt 3 (`run-m1-gate.sh <new scratch> 3`);
+   - score it, append to M1-RESULT.md, and check classification against B0.
 2. The product owner audits the scores and decides on the gate (D-0003).
 
 ## Notes
