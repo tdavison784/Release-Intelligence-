@@ -137,3 +137,67 @@ graph, which the classifier never reads; rechecked below).
 environment variable or volume → application"). Lane `consumer3` (D-0006) matches absolute paths in container
 `command`, `args` and literal `env` values against the same container's mounts. Then comes attempt 3. The product owner
 decides the gate on the best attempt (D-0003).
+
+## Attempt 3, 2026-10-21: gate MET (commander scoring; for the product owner's audit)
+
+**Runs:** `C1-K0-20261021-e59f89c8-v9-r{1,2,3}`, consumer rules v3 (merge e59f89c8), otherwise as attempt 1.
+
+| Criterion | US r1 | US r2 | US r3 | EU r1 | EU r2 | EU r3 |
+|---|---|---|---|---|---|---|
+| (a) reads consuming workloads | yes | yes | yes | yes | yes | yes |
+| (a) reads what each workload reads (config and command) | yes | yes | yes | yes | yes | yes |
+| (b) CA trust relationship | yes | partial | yes | yes ¹ | yes | yes |
+| (c) explicit vs inherited | yes | yes | yes | yes | yes | yes |
+| (d) explains why the outcomes differ | yes | yes | yes | yes | yes | yes |
+| (e) natural assessment, no rule required | yes | yes | yes | yes | yes | yes |
+
+The gate requires (a)–(e) in ≥ 2 of 3 per case. **US: 2 of 3 (r1, r3). EU: 3 of 3.** There is no new false-safe,
+and the classification is identical to B0 in 6 of 6 case-runs. **Met.**
+
+### Quotes
+
+- **(a) Both halves of the mTLS are traced.**
+  - checkout: "Deployment checkout, mounted at /tls and read as --cacert, --cert and --key via command[2]" (US r3).
+  - ledger: "ConfigMap ledger-nginx (ssl_certificate, ssl_certificate_key, ssl_client_certificate)" (US r1).
+- **(b) US.**
+  - "The root CA key does not rotate, so trust anchors stay valid" (r1).
+  - "The mesh-root-ca CA key stays stable because it is explicitly pinned. If it were rotated, the whole mesh trust
+    chain would change" (r3).
+  - r2 only says "mesh-root-ca is unaffected because it sets Never". It does not state the trust role, so it is
+    partial.
+- **(b) EU.**
+  - "A rotated root CA could break trust between checkout and ledger until both are reissued and reloaded" (r2).
+  - "Root CA re-keying on renewal would affect trust of leaf certs issued by mesh-ca" (r3).
+  - ¹ r1: "rotating the root CA key could disrupt trust", plus "may keep using the old key or the old CA until they
+    restart". This is a borderline yes.
+- **(c)** In every US run, mesh-root-ca is explicit `Never` ("Pinned to Never, so its key is stable", r3), and the
+  leaf Certificates inherit `Always`. In every EU run, all three inherit `Always`.
+- **(d)**
+  - US: the leaf keys rotate and the root does not. The residual risk is reload or pinning ("Likely benign key
+    rotation", r2).
+  - EU: the root rotates, which breaks the trust chain between the services.
+
+### What the gate does not show (for the audit)
+
+1. **The verdicts do not separate the environments.** All 12 ROT item-runs are `potentially-affected`, in US and EU
+   alike. The difference lives in the reasoning, not in the class. The reason is v9's provisional-unless-supported
+   rule: every run keeps "whether the workloads reload certificates" and "whether any peer pins the key" as
+   unknowns, and static config cannot settle either.
+   - Phase 0's natural Claude Code drew "nothing in the repo pins leaf keys" as a repository-scoped conclusion and
+     scored E on both cases.
+   - This is calibration, not safety. Agent verdicts never reach the classifier, and clearance belongs to M4
+     verification.
+   - It remains an open question for the product owner: should the agent state a scoped conclusion ("not affected
+     within the repository's declared consumers, provisional on reload")?
+2. **Development cases only.** cert-manager was used to find and fix the three defects in attempts 1–3 (generated
+   ConfigMap data, silent drops, pod-spec paths). It is not evidence of generalisation; M6 blind cases are.
+3. **Costs.**
+   - Attempt 3: $0.85–1.31 per case, 53–62 calls, 234–258 s. B0: $0.80, 45 calls, about 160 s.
+   - All three attempts: about $17.
+
+### Defects found by the gate and fixed inside M1
+
+| Attempt | Defect | Fix |
+|---|---|---|
+| 1 | Generated ConfigMap data missing from the snapshot was silently treated as empty | consumer rules v2 (D-0005): data from the render; unresolved edges instead of drops |
+| 2 | Paths in container command, args and env were not matched | consumer rules v3 (D-0006) |
