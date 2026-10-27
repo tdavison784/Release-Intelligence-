@@ -15,6 +15,7 @@ handoffs (every item is `providers: [claude]`).
 | advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | done, merged, closed 2026-10-27 |
 | advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | done, merged, closed 2026-10-27 |
 | advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | done, merged, closed 2026-10-27 |
+| upstream | ri-upstream | Opus 5.5 | p6di/upstream | .claude/worktrees/p6di-upstream | w1:t2C (pane w1:p41) | done, merged, closed 2026-10-27 |
 
 ## Merge log
 
@@ -56,11 +57,11 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. GATE-M2 §1 is MET (M2-RESULT §1 re-run). The advisories work is complete.
-2. Lane `upstream` is running (D-0009). On LANE DONE:
+1. GATE-M2 §1 is met. §2: live met, ablation failed (M2-RESULT §2).
+2. Lane `upstream2` (D-0013, prompt v12). On LANE DONE:
    - merge it;
-   - record the upstream fetches online into the M2 state;
-   - run GATE-M2 §2 (v11 × 3 on D-EU, then the ablation × 3).
+   - re-run §2 with `run-m2-upstream.sh` using prompt v12 (edit its `-agent-prompt`, or add a P6_PROMPT override);
+   - score it and append to M2-RESULT.
 
 ## Notes
 
