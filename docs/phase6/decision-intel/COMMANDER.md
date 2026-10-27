@@ -63,12 +63,11 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. The §2 re-run with v13 (fetch first) is running: scratch `$CLAUDE_JOB_DIR/tmp/m2up3`. Score live (retrieval) and
-   ablation (still 0 FS), and append to M2-RESULT.
-2. If live retrieval is still unreliable under v13, propose an `api` agent driver with a harness-controlled evidence
-   phase, where RI performs the declared fetches (product owner's SDK question, 2026-10-27). That needs an API key
-   decision from the product owner.
-3. PD-1 binds the M3 and M5 gates.
+1. **The product owner decides the M2 gate** (M2-RESULT "M2 summary"). Propose making v13 the default.
+2. **On a pass:** write PLAN-M3 and GATE-M3 (synthesis) with PD-1, PD-0a/b/d and the scoped headline. Also record the
+   misread-evidence finding for M4 (runtime admission check E5; semantic check of a claim against its citation).
+3. **No API driver is needed for retrieval** (v13 gives 3/3). Revisit if M3 synthesis needs harness-controlled
+   phases.
 
 ## Notes
 
