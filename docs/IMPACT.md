@@ -90,6 +90,23 @@ scope uses (below and INVESTIGATE.md):
   with a quoted excerpt (never environment evidence). A fact whose default
   does not resolve does not validate.
 
+- an **observed default** (PD-5, lane verify3): a default the verifier's
+  default probes observed on the real controller, recorded on a confirmed proof
+  and carried into the fact on human promotion (`observedDefaults` on the fact:
+  field, value, controller versions, fixture values, the proof id and the
+  limitation "observed on the fixture's controller configuration"). It is used
+  only through a **confirmed proof of exactly the fact's rule digest** that
+  records the same default: `VerifiedFact.UsableObservedDefaults` checks the
+  reference and the digest, and the knowledge load (`impact.VerifyFacts`)
+  checks the proof records; a default that is merely proposed, names an
+  inconclusive or refuted proof, another rule, or a default the proof does not
+  record is **ignored** (reported among the load's rejections; the fact stays,
+  the field stays unknown). The decided leaf names the proof and the
+  limitation. An observed default that contradicts the schema default or the
+  rule's cited default — or another observed default of the same field — blocks
+  both: the leaf is unknown with the contradiction, never silently resolved.
+  The pin scope (INVESTIGATE.md) applies the same rule.
+
 Otherwise the leaf is **unknown** (`semantic-ambiguity`, with what would settle
 it) — never false. A schema default and a condition default that disagree are
 unknown. List elements that leave the field unset (`spec.ports[].protocol` on

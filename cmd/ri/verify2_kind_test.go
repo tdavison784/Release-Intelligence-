@@ -12,7 +12,7 @@ package main
 //	  go test ./cmd/ri -run RefinementKind -v -timeout 60m
 //
 // RI_VERIFY2_CASES selects runs (comma list of confirmed, refuted,
-// inconclusive; default all). It skips with a message when kind, kubectl,
+// inconclusive, observed-default; default all). It skips with a message when kind, kubectl,
 // docker or the docker daemon is missing. Every cluster is deleted.
 
 import (
@@ -79,13 +79,17 @@ func TestRefinementKind(t *testing.T) {
 		"IsCA bool `json:\"isCA,omitempty\"`", "sha256:test", time.Time{})
 	def := &domain.FieldDefault{Value: "false", Source: domain.DefaultController, Citations: []domain.EvidenceID{isCAEvidence.ID}}
 	// rule narrows a rotation-policy default change to the CA role; shield
-	// is the value the base rule claims preserves the previous behaviour
-	rule := func(shield string) domain.SemanticAssertion {
+	// is the value the base rule claims preserves the previous behaviour.
+	// ruleWithout states no default for the role field: its default probes
+	// run (PD-5, lane verify3).
+	ruleWith := func(shield string, withDefault bool) domain.SemanticAssertion {
 		before, after := `"Never"`, `"Always"`
 		role := func(v string) domain.Condition {
 			c := leaf("spec.isCA", domain.StateEquals, v)
-			d := *def
-			c.Default = &d
+			if withDefault {
+				d := *def
+				c.Default = &d
+			}
 			return c
 		}
 		return domain.SemanticAssertion{
@@ -100,6 +104,7 @@ func TestRefinementKind(t *testing.T) {
 			Consequence: &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired},
 		}
 	}
+	rule := func(shield string) domain.SemanticAssertion { return ruleWith(shield, true) }
 	ref := &domain.ScopeRefinement{Refines: "hyp-000000000000", BaseRule: "kind-test", Consumer: "ca-trust", TrustKey: "ca.crt",
 		Role: []domain.RoleField{{Path: "spec.isCA", Value: "true"}}, Outside: []domain.RoleField{{Path: "spec.isCA", Value: "false"}},
 		Trace: []domain.TraceRead{{Graph: "art-test", Edge: "ge-test", Producer: "cert-manager.io/v1/Certificate/ns/c", Secret: "core/v1/Secret/ns/c-tls", Key: "ca.crt", Workload: "apps/v1/Deployment/ns/w"}}}
@@ -117,6 +122,10 @@ func TestRefinementKind(t *testing.T) {
 		"refuted": {rule(`"Always"`), "1.17.2", "1.18.0", domain.MethodFail},
 		// no default change between the versions: the change is not shown
 		"inconclusive": {rule(`"Never"`), "1.17.1", "1.17.2", domain.MethodInconclusive},
+		// no stated default for spec.isCA: the default probes observe what
+		// an unset field behaves as (lane verify3); the refinement itself is
+		// confirmed as before, the probes never decide it
+		"observed-default": {ruleWith(`"Never"`, false), "1.17.2", "1.18.0", domain.MethodPass},
 	}
 	only := map[string]bool{}
 	for _, c := range strings.Split(os.Getenv("RI_VERIFY2_CASES"), ",") {
@@ -124,7 +133,7 @@ func TestRefinementKind(t *testing.T) {
 			only[c] = true
 		}
 	}
-	for _, name := range []string{"confirmed", "refuted", "inconclusive"} {
+	for _, name := range []string{"confirmed", "refuted", "inconclusive", "observed-default"} {
 		tc := cases[name]
 		if len(only) > 0 && !only[name] {
 			continue
@@ -143,6 +152,24 @@ func TestRefinementKind(t *testing.T) {
 			}
 			if m.Outcome != tc.want {
 				t.Errorf("outcome %s, want %s", m.Outcome, tc.want)
+			}
+			if name == "observed-default" {
+				probes := 0
+				for _, arm := range m.Arms {
+					if arm.Probe != nil {
+						probes++
+					}
+				}
+				ods, notes := verify.ObservedDefaults(tc.rule, m, verify.ObservationFixture{Bounds: &domain.ProofBounds{From: tc.from, To: tc.to}, Fixtures: fixtures["cert-manager"]})
+				for _, d := range ods {
+					t.Logf("  observed default: %s = %s (%s)", d.Path, d.Value, d.Observation)
+				}
+				for _, n := range notes {
+					t.Logf("  observed-default note: %s", n)
+				}
+				if probes == 0 {
+					t.Errorf("no default probe ran")
+				}
 			}
 		})
 	}

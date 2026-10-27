@@ -160,3 +160,59 @@ still validate; nothing is re-judged retroactively.
 - One role-absent arm without harm suffices; further role-absent arms that were not observed are recorded, not required.
 - The candidate is proposed per catalog role of the subject kind, not per assessment claim: the model does not judge whether the harm is role-specific; the observation does.
 - Fixture clusters keep the runtime's `ri-verify-` prefix (the isolated-cluster guard recognises it), not `ri-verify2-`.
+
+## Lane `verify3` (D-0026): role tokens, log noise, observed defaults (PD-5)
+
+Branch `p6di/verify3`. Three problems the commander found on a development run (brief `briefs/verify3.md`, generic
+description). Everything is additive: stored proofs, facts, formalization records and prompts are unchanged and still
+validate (241/241 checked-in facts verify, the stored proofs validate, `m4rescore` 1004/1004 identical); proofs with a
+decisive outcome are not re-judged (`-again` re-verifies).
+
+| # | Change | Where |
+|---|---|---|
+| A | **Role tokens excluded from `semantic-check`.** The refinement clause formalization appends to the base statement is now built in one place (`domain.ScopeRefinement.Clause`, byte-identical; formalize/v2 replays unchanged). `CheckSemantics(rule, evidence, citations, refinement)` takes that clause out of the statement: each of its tokens that is a role or outside-role value is recorded as a `not-run` check ("excluded: … belongs to condition f = v (in the role) (the catalog's consumer role R), established by consumer exercise (role R)"); any other token, and everything outside the clause, is checked exactly as before. A statement without the clause verbatim excludes nothing. | `internal/investigate/verify/semantic/claims.go` (`CheckAssertionExcluding`, `Sourced`, `Exclusion`), `verify/semantics.go`, `domain/investigation.go` |
+| B | **Signatures are object state.** `runtime.Degradation.Diagnostic` (log lines, warning events). The rule exercise records them as `ProofArm.diagnostics` and never decides an arm on them, in the produced-object and the consumer observation; the environment runtime keeps its rules. Producers `verify.exercise@v3`, `verify.exercise-consumer@v3`. | `runtime/observe.go`, `verify/exercise.go`, `verify/consumer.go`, `domain/proof.go` |
+| C1 | **Default probes and observed defaults.** For a refinement role field without an evidenced default, up to two base arms (exposed in the role, role-absent) get an unset probe and an other-value probe in the base arm's own observation (`ProofArm.probe`; never decisive). On a confirmed proof, `ProofRecord.observedDefaults` records F = V when the unset probe matched the arm with F = V and the other value behaved differently (evidence, controller versions, fixture values and digest, limitation "observed on the fixture's controller configuration"); part of the proof id only when present. | `verify/probe.go`, `verify/verify.go`, `domain/proof.go` |
+| C2 | **Used only through a confirmed proof of the same digest.** Human promotion carries the gate's confirmed proof's observed defaults into the fact (`VerifiedFact.observedDefaults` + proof id). The impact join and the pin scope use `UsableObservedDefaults`; `impact.VerifyFacts` checks each against the proof records (confirmed, same digest, records it) and ignores any other (the field stays unknown, the fact stays). | `knowledge/decide.go`, `domain/proof.go`, `impact/knowledge.go`, `impact/condition.go`, `validate/pins.go` |
+| C3 | **Contradiction blocks both.** `applicability.WithObserved`: an observed default against a schema or cited default (or another observed default) ⇒ unknown "contradiction: …". | `internal/applicability` |
+| C4 | **Shown to the reviewer.** The review UI lists a proof's observed defaults with their limitation (and arm diagnostics); `ri knowledge decide` prints them on the minted fact. The gate itself is unchanged. | `reviewui`, `cmd/ri/knowledge.go` |
+
+### Decision: the observation must distinguish the values
+
+PD-5 says the omitted-field arm "shows an unset field behaving as a given value". This lane records F = V only when the
+same observation also shows F = V and the other value behaving **differently**. If both explicit values give the same
+consumer outcome, matching one of them shows nothing about the default, and recording it would let the evaluator decide
+objects that are, in truth, undecided (fail-open). Such probes are recorded and a limitation names the reason. An
+observed default is therefore narrower than "the omitted arm matched": it is "the omitted arm matched one value in an
+observation where the values differ".
+
+### Tests
+
+- A: `TestSemanticCheckExcludesRoleTokens` (the development-run shape refuted without the refinement; excluded with it,
+  each exclusion naming its condition and method; a non-role token still fails; a role value asserted in the base
+  statement still fails; an edited statement excludes nothing).
+- B: `TestEvaluateArmsLogsNeverDecide` (logs only on the condition arm ⇒ pass; logs only on the contrast arm ⇒
+  inconclusive; a real data change still fails; the consumer observation records them as diagnostics).
+- C: `TestDefaultProbesBuilt`, `TestObservedDefaultRecordedOnlyFromAConfirmedDistinguishingObservation` (distinguishing ⇒
+  recorded; values alike ⇒ none; observations contradict ⇒ none; one probe unobserved ⇒ the other observation only),
+  `TestObservedDefaultThroughPromotion` (inconclusive and refuted proofs record none; a confirmed one does and validates;
+  an edited default breaks the proof id; human promotion carries it with the proof id; `VerifyFacts` keeps it and
+  ignores it when it names the inconclusive proof, no proof, another rule, or a value the proof does not record),
+  `impact.TestObservedDefaults` (decides an unset field naming proof and limitation; a stated value wins; unproven or
+  other-rule defaults ignored; a cited default contradicting it ⇒ unknown; agreeing ⇒ decided; two observed defaults
+  disagreeing ⇒ unknown; a schema default contradicting it ⇒ unknown), `domain.TestProofObservedDefaults`.
+- Kind (opt-in, skips without kind/docker): case `observed-default` added to `TestRefinementKind`
+  (`RI_VERIFY2_KIND=1 RI_VERIFY2_CASES=observed-default RI_VERIFY2_STATE=<scratch state> go test ./cmd/ri -run RefinementKind -v`):
+  the synthetic refinement with no stated role default, so the probes run on the real controller. Result: see the
+  lane status file.
+
+### Known limits
+
+- Probes run only for **scope-refinement role fields** (where an undecidable omitted field was already a limitation). An
+  ordinary rule comparing a field it states no default for still fails its boundary fixtures (E2), as before.
+- The probes compare **consumer outcomes** (verified / failed at FROM and TO). A field whose value matters only through
+  something else (another signature) cannot be observed this way.
+- An observed default holds for the fixture's controller configuration and the observed versions; it carries no version
+  range of its own beyond the proof's bounds, like a cited controller default.
+- The semantic-check exclusion needs the refinement clause verbatim; a human who rewrites the statement gets every token
+  checked.
