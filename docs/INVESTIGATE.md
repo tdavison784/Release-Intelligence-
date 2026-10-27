@@ -1555,7 +1555,7 @@ Outside-role arms (and omitted-role-field arms that leave the role) then use it 
 objects. It is what establishes a scope refinement (below).
 
 **Scope refinements** (formalization `formalize/v2`, see "Evidence formalization"). A refinement candidate is a
-behaviour rule narrowed to a catalog role (`exposure ∧ role`, `overlap ∨ outside`), carried by
+behaviour rule narrowed to a catalog role (the role fields join the exposure's object scope; the overlap becomes `any(overlap, outside)` in the same scope), carried by
 `proposedVerification.refinement`. Its exercise must be the consumer observation the refinement names, with a
 declared role-absent observation (else `not-run`). On top of the outcome rule below, a pass needs **a role-absent arm
 observed without consumer harm** (verified at FROM and at TO): an unobserved or never-established role-absent arm is
@@ -1845,7 +1845,10 @@ separate stage after the investigation: the investigator explains naturally, the
   (`roleDefaults`, upstream evidence only, checked like any default). The **stage** then proposes, deterministically,
   one candidate per rule hypothesis and role of its subject kind when the run's consumer graph has **established
   `reads-file` edges reading the role's trust key from a Secret an object of the subject kind produces**: the same
-  rule with `exposure ∧ role` and `overlap ∨ outside` (role leaves carry the evidenced default, if any), citing the
+  rule with the role fields added to the exposure's own object scope and `any(overlap, outside)` in the overlap's
+  (a `resource` condition holds when *some* object meets it, so separate scopes would pair different objects; a rule
+  whose conditions are not one scope of the subject kind gets no candidate; role leaves carry the evidenced default,
+  if any), citing the
   base rule's evidence, with `proposedVerification.method` = `consumer exercise (role <id>)` and
   `proposedVerification.refinement` (base hypothesis and rule digest, role and outside fields, trust key, the trace
   edges). Without such edges, no candidate (the record's `refinementNotes` say why). A candidate is never a confirmed

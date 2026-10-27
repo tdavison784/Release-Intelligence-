@@ -56,14 +56,16 @@ func refinedRule(def *domain.FieldDefault) domain.SemanticAssertion {
 			d := *def
 			c.Default = &d
 		}
-		return badges(c)
+		return c
 	}
 	return domain.SemanticAssertion{
 		Subject: &domain.Subject{Family: domain.SubjectCRDField, Product: "acme-ctl", Group: "acme.example", Kind: "Badge", Path: "spec.keyPolicy"},
 		Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: str(`"Keep"`), After: str(`"Renew"`)},
 		Applicability: &domain.Applicability{
-			Exposure: domain.Condition{Op: domain.OpAll, Of: []domain.Condition{badges(field("spec.keyPolicy", domain.StateUnset)), signer("true")}},
-			Overlap:  &domain.Condition{Op: domain.OpAny, Of: []domain.Condition{badges(field("spec.keyPolicy", domain.StateEquals, `"Keep"`)), signer("false")}}},
+			Exposure: badges(field("spec.keyPolicy", domain.StateUnset), signer("true")),
+			Overlap: &domain.Condition{Op: domain.OpResource, Group: "acme.example", Kind: "Badge", Of: []domain.Condition{{Op: domain.OpAny, Of: []domain.Condition{
+				{Op: domain.OpAll, Of: []domain.Condition{field("spec.keyPolicy", domain.StateEquals, `"Keep"`)}},
+				{Op: domain.OpAll, Of: []domain.Condition{signer("false")}}}}}}},
 		Consequence: &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired},
 		Statement:   "Badges that leave keyPolicy unset get a new key; only signer Badges' consumers notice.",
 	}

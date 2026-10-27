@@ -86,15 +86,17 @@ func TestRefinementKind(t *testing.T) {
 			c := leaf("spec.isCA", domain.StateEquals, v)
 			d := *def
 			c.Default = &d
-			return certs(c)
+			return c
 		}
 		return domain.SemanticAssertion{
 			Subject: &domain.Subject{Family: domain.SubjectCRDField, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy"},
 			Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: &before, After: &after},
 			Applicability: &domain.Applicability{
-				Exposure: domain.Condition{Op: domain.OpAll, Of: []domain.Condition{certs(leaf("spec.privateKey.rotationPolicy", domain.StateUnset)), role("true")}},
-				Overlap: &domain.Condition{Op: domain.OpAny, Of: []domain.Condition{
-					certs(leaf("spec.privateKey.rotationPolicy", domain.StateEquals, shield)), role("false")}}},
+				// the shape formalize.RefineRule writes: one object scope each
+				Exposure: certs(leaf("spec.privateKey.rotationPolicy", domain.StateUnset), role("true")),
+				Overlap: &domain.Condition{Op: domain.OpResource, Group: "cert-manager.io", Kind: "Certificate", Of: []domain.Condition{{Op: domain.OpAny, Of: []domain.Condition{
+					{Op: domain.OpAll, Of: []domain.Condition{leaf("spec.privateKey.rotationPolicy", domain.StateEquals, shield)}},
+					{Op: domain.OpAll, Of: []domain.Condition{role("false")}}}}}}},
 			Consequence: &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired},
 		}
 	}

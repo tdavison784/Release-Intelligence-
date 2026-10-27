@@ -105,8 +105,9 @@ func TestRefinementProposedOnlyWithTraceEvidence(t *testing.T) {
 	rule := h.Mitigation.ProposedRule.Assertion
 	baseRule := b.Mitigation.ProposedRule.Assertion
 	ap := rule.Applicability
-	if ap.Exposure.Op != domain.OpAll || len(ap.Exposure.Of) != 2 || ap.Exposure.Of[1].Of[0].Path != "spec.signs" || ap.Exposure.Of[1].Of[0].Values[0] != "true" ||
-		ap.Overlap.Op != domain.OpAny || ap.Overlap.Of[1].Of[0].Values[0] != "false" {
+	// one resource scope each, so the role speaks of the same object
+	if ap.Exposure.Op != domain.OpResource || len(ap.Exposure.Of) != 2 || ap.Exposure.Of[1].Path != "spec.signs" || ap.Exposure.Of[1].Values[0] != "true" ||
+		ap.Overlap.Op != domain.OpResource || ap.Overlap.Of[0].Op != domain.OpAny || ap.Overlap.Of[0].Of[1].Of[0].Values[0] != "false" {
 		t.Fatalf("refined applicability %+v", ap)
 	}
 	if rule.AspectDigest(domain.AspectChange) != baseRule.AspectDigest(domain.AspectChange) || rule.Subject.Key() != baseRule.Subject.Key() ||
@@ -115,10 +116,10 @@ func TestRefinementProposedOnlyWithTraceEvidence(t *testing.T) {
 	}
 	// no evidenced role default: objects that leave spec.signs unset stay
 	// undecidable, and the uncertainty says so
-	if ap.Exposure.Of[1].Of[0].Default != nil || !strings.Contains(strings.Join(h.ProposedVerification.Uncertainties, "|"), "unset spec.signs") {
-		t.Errorf("role default / uncertainty: %+v %v", ap.Exposure.Of[1].Of[0], h.ProposedVerification.Uncertainties)
+	if ap.Exposure.Of[1].Default != nil || !strings.Contains(strings.Join(h.ProposedVerification.Uncertainties, "|"), "unset spec.signs") {
+		t.Errorf("role default / uncertainty: %+v %v", ap.Exposure.Of[1], h.ProposedVerification.Uncertainties)
 	}
-	unknown := applicability.Unset(ap.Exposure.Of[1].Of[0], applicability.Resolve(applicability.Default{Why: "no schema"}, applicability.RuleDefault(ap.Exposure.Of[1].Of[0], nil)),
+	unknown := applicability.Unset(ap.Exposure.Of[1], applicability.Resolve(applicability.Default{Why: "no schema"}, applicability.RuleDefault(ap.Exposure.Of[1], nil)),
 		func(string) bool { return false })
 	if unknown.Known {
 		t.Error("an unset role field without an evidenced default must stay undecidable")
@@ -180,8 +181,8 @@ func TestRoleDefaults(t *testing.T) {
 		t.Fatalf("refined %+v notes %v", r.Hypotheses, r.RefinementNotes)
 	}
 	ap := refined[0].Mitigation.ProposedRule.Assertion.Applicability
-	leaf := ap.Exposure.Of[1].Of[0]
-	if leaf.Default == nil || leaf.Default.Value != "false" || ap.Overlap.Of[1].Of[0].Default == nil {
+	leaf := ap.Exposure.Of[1]
+	if leaf.Default == nil || leaf.Default.Value != "false" || ap.Overlap.Of[0].Of[1].Of[0].Default == nil {
 		t.Fatalf("role leaves %+v", ap)
 	}
 	cited := false

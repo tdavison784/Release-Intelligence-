@@ -163,10 +163,13 @@ func names(c domain.Condition, paths map[string]bool) bool {
 	return false
 }
 
-// RefineRule narrows a behaviour rule to the subjects in a consumer role:
-// exposure ∧ (the role's fields), overlap ∨ (the fields outside the role).
-// defaults are evidenced role-field defaults (by path). why is set when the
-// rule cannot be refined.
+// RefineRule narrows a behaviour rule to the subjects in a consumer role.
+// Both conditions must be one resource condition of the subject kind (a
+// resource condition holds when some object of the kind meets its operands,
+// so the role fields must join the same scope to speak of the same object):
+// exposure resource(K, E…, role fields), overlap resource(K, any(all(O…),
+// all(fields outside the role))). defaults are evidenced role-field defaults
+// (by path). why is set when the rule cannot be refined.
 func RefineRule(rule domain.SemanticAssertion, r ConsumerRole, defaults map[string]domain.FieldDefault) (domain.SemanticAssertion, string) {
 	ap := rule.Applicability
 	switch {
@@ -179,38 +182,47 @@ func RefineRule(rule domain.SemanticAssertion, r ConsumerRole, defaults map[stri
 	case names(ap.Exposure, r.paths()) || (ap.Overlap != nil && names(*ap.Overlap, r.paths())):
 		return rule, "the rule already names a field of the role"
 	}
-	leaf := func(f domain.RoleField) domain.Condition {
-		c := domain.Condition{Op: domain.OpField, Path: f.Path, State: domain.StateEquals, Values: []string{f.Value}}
-		if d, ok := defaults[f.Path]; ok {
-			d.Citations = append([]domain.EvidenceID(nil), d.Citations...)
-			c.Default = &d
-		}
-		return c
+	scoped := func(c domain.Condition) bool {
+		return c.Op == domain.OpResource && c.Group == r.Group && c.Kind == r.Kind && c.Name == "" && len(c.Of) > 0
 	}
-	scope := func(fs []domain.RoleField) domain.Condition {
-		c := domain.Condition{Op: domain.OpResource, Group: r.Group, Kind: r.Kind}
-		for _, f := range fs {
-			c.Of = append(c.Of, leaf(f))
-		}
-		return c
+	e := ap.Exposure
+	if !scoped(e) {
+		return rule, "its exposure is not one condition on an object of the subject kind, so the role cannot be added to the same object"
 	}
-	overlap := ap.Overlap
-	if overlap == nil {
+	var o domain.Condition
+	switch {
+	case ap.Overlap != nil && scoped(*ap.Overlap):
+		o = *ap.Overlap
+	case ap.Overlap != nil:
+		return rule, "its mitigating (overlap) condition is not one condition on an object of the subject kind"
+	case len(e.Of) == 1 && e.Of[0].Op == domain.OpField && e.Of[0].State == domain.StateUnset:
 		// "exposed while unset": the shielded state is the field set (the
 		// rule exercise reads such a rule the same way)
-		e := ap.Exposure
-		if e.Op != domain.OpResource || len(e.Of) != 1 || e.Of[0].Op != domain.OpField || e.Of[0].State != domain.StateUnset {
-			return rule, "the rule states no mitigating (overlap) condition and its exposure is not a single unset field"
-		}
-		o := domain.Condition{Op: domain.OpResource, Group: e.Group, Kind: e.Kind, Version: e.Version,
+		o = domain.Condition{Op: domain.OpResource, Group: e.Group, Kind: e.Kind, Version: e.Version,
 			Of: []domain.Condition{{Op: domain.OpField, Path: e.Of[0].Path, State: domain.StateSet}}}
-		overlap = &o
+	default:
+		return rule, "the rule states no mitigating (overlap) condition and its exposure is not a single unset field"
 	}
+	leaves := func(fs []domain.RoleField) []domain.Condition {
+		var out []domain.Condition
+		for _, f := range fs {
+			c := domain.Condition{Op: domain.OpField, Path: f.Path, State: domain.StateEquals, Values: []string{f.Value}}
+			if d, ok := defaults[f.Path]; ok {
+				d.Citations = append([]domain.EvidenceID(nil), d.Citations...)
+				c.Default = &d
+			}
+			out = append(out, c)
+		}
+		return out
+	}
+	exposure := e
+	exposure.Of = append(append([]domain.Condition(nil), e.Of...), leaves(r.Role)...)
+	overlap := o
+	overlap.Of = []domain.Condition{{Op: domain.OpAny, Of: []domain.Condition{
+		{Op: domain.OpAll, Of: append([]domain.Condition(nil), o.Of...)},
+		{Op: domain.OpAll, Of: leaves(r.Outside)}}}}
 	out := rule
-	out.Applicability = &domain.Applicability{
-		Exposure: domain.Condition{Op: domain.OpAll, Of: []domain.Condition{ap.Exposure, scope(r.Role)}},
-		Overlap:  &domain.Condition{Op: domain.OpAny, Of: []domain.Condition{*overlap, scope(r.Outside)}},
-	}
+	out.Applicability = &domain.Applicability{Exposure: exposure, Overlap: &overlap}
 	out.Statement = strings.TrimSpace(rule.Statement + fmt.Sprintf(" Scope refinement (candidate): the harmful consequence occurs only for subjects in consumer role %s (%s); subjects outside it (%s) are shielded.",
 		r.ID, fieldsText(r.Role), fieldsText(r.Outside)))
 	return out, ""
