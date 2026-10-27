@@ -22,10 +22,18 @@ Design, tests and known limits: `M4-IMPLEMENTATION.md`, lane `verify3`.
 6. **Docs**: `M4-IMPLEMENTATION.md` (lane section), `docs/INVESTIGATE.md` (semantic check role tokens, signatures are
    object state, observed defaults), `docs/IMPACT.md` (observed defaults in the evaluator).
 
+7. **Real kind run** (2026-10-27, `TestRefinementKind` case `observed-default`, scratch clone of the warm state, real
+   cert-manager controller 1.17.2 → 1.18.0, catalog fixture, synthetic refinement with no stated `spec.isCA` default;
+   no case read; 551 s, cluster `ri-verify-7b9ead0f` deleted). The refinement is **confirmed** as before (probes never
+   decided). **No observed default was recorded**, correctly:
+   - role-absent observation: `isCA` unset, `false` and `true` all verified at FROM and TO, so the observation does
+     not distinguish the values and shows nothing about the default;
+   - in-role observation: with `isCA` unset or `false`, the probe's leaf was never re-issued (the would-be CA cannot
+     sign), so both probes are `undetermined` and their observation is left out.
+
 ## In progress (exact next step)
 
-- Opt-in kind run of `TestRefinementKind` case `observed-default` (scratch clone of the warm state in the session
-  scratchpad). Then record the result here, clean up (scratch state, `kind get clusters` empty) and report.
+- Nothing: lane done; awaiting the commander's merge.
 
 ## Decisions
 
@@ -66,7 +74,14 @@ Design, tests and known limits: `M4-IMPLEMENTATION.md`, lane `verify3`.
 
 ## Open questions
 
-- None blocking. For the demo: the stored refuted refinement proof is decisive, so `ri verify hypotheses -runtime
+- **For the commander / product owner (blocks C on the development run, not the lane):** with the current catalog
+  fixture, PD-5 cannot establish the `isCA`-style role default. The role-absent observation does not depend on the role
+  field, and in the role's observation an object without the role cannot form the consumer relationship at all
+  (`undetermined`). That "no relationship forms" result is the same for unset and for the outside value, and different
+  from the role value, so it may be evidence. It is not counted, because `undetermined` also covers timeouts and missing
+  objects. Two options: (1) count a declared "relationship cannot form" outcome (for example the leaf is never issued
+  while the role arm's leaf is) as an observable outcome for probes only; (2) a catalog observation in which the role
+  field changes the consumer outcome. The lane did neither: either one changes what counts as evidence. For the demo: the stored refuted refinement proof is decisive, so `ri verify hypotheses -runtime
   -again` is needed to re-verify it with A, B and C.
 
 ## Test status

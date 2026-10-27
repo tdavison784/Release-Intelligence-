@@ -203,8 +203,10 @@ observation where the values differ".
   disagreeing ⇒ unknown; a schema default contradicting it ⇒ unknown), `domain.TestProofObservedDefaults`.
 - Kind (opt-in, skips without kind/docker): case `observed-default` added to `TestRefinementKind`
   (`RI_VERIFY2_KIND=1 RI_VERIFY2_CASES=observed-default RI_VERIFY2_STATE=<scratch state> go test ./cmd/ri -run RefinementKind -v`):
-  the synthetic refinement with no stated role default, so the probes run on the real controller. Result: see the
-  lane status file.
+  the synthetic refinement with no stated role default, so the probes run on the real controller. Run 2026-10-27
+  (cert-manager 1.17.2 → 1.18.0, 551 s): the refinement is confirmed. No observed default was recorded: in the
+  role-absent observation, unset, `false` and `true` all verified at FROM and TO (the values are not distinguished),
+  and in the role's observation the unset and `false` probes were undetermined (the leaf is never issued).
 
 ### Known limits
 
