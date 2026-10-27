@@ -264,13 +264,13 @@
           <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
             <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
         </div>
-        {{with .Hypothesis}}{{if .Related}}
-        <fieldset class="relations"><legend>Other active facts on this subject — the promoted rule never silently coexists with them</legend>
-          {{range .Related}}<div class="row"><span><code>{{.ID}}</code> <span class="badge soft">{{.Level}}</span> {{.Statement}}</span>
+        {{if .Relations}}
+        <fieldset class="relations"><legend>Other active facts on this subject — {{if .Hypothesis}}the promoted rule{{else}}the fact this decision records{{end}} never silently coexists with them (keeping one needs the same change, exposure and consequence)</legend>
+          {{range .Relations}}<div class="row"><span><code>{{.ID}}</code> <span class="badge soft">{{.Level}}</span> {{.Statement}}</span>
             <label class="check"><input type="radio" name="relation-{{.ID}}" value="supersedes" {{if eq .Choice "supersedes"}}checked{{end}}> supersede it (the rule refines it)</label>
             <label class="check"><input type="radio" name="relation-{{.ID}}" value="coexists" {{if eq .Choice "coexists"}}checked{{end}}> keep it beside the rule</label></div>{{end}}
         </fieldset>
-        {{end}}{{end}}
+        {{end}}
         <details class="more"><summary>Labels &amp; duplicate</summary>
           <div class="labelbox">
             {{range $.Enums.WrongLabels}}<label class="check"><input type="checkbox" name="label" value="{{.}}" {{if formHas $.Form "label" (printf "%s" .)}}checked{{end}}> {{.}}</label>{{end}}

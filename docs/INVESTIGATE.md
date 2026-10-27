@@ -1707,7 +1707,15 @@ the digest); **no refuted proof** of that rule exists (a refutation is never out
 the proof's bounds contain the item's release; and every other active fact on the same subject is named in the
 decision's `supersedes` (the narrower rule replaces it — it becomes `superseded`) or `coexists` (kept, said
 explicitly) — a refining rule never silently coexists. Reject / need-more-evidence / defer are always allowed.
-Ordinary (non-hypothesis) items are unchanged.
+Ordinary (non-hypothesis) items need no proof.
+
+**Every route names the other facts** (lane backdoor, D-0029). Any accept, correct or duplicate, on an ordinary or a
+hypothesis-sourced item, that mints or changes a fact must name every other active fact of that fact's product,
+release and subject in `supersedes` or `coexists` (a duplicate only in `coexists`; the fact a correction of its own
+review item replaces is named by the route). Otherwise `FactFromDecision` refuses it with the list, so the queue
+writes nothing. `coexists` is allowed only for compatible facts: the same change, exposure condition and consequence
+kind (`domain.FactIncompatibility`; docs/IMPACT.md "Contradicting facts"). The review UI offers the choice on
+ordinary items too, and `ri knowledge decide` takes `-supersedes` / `-coexists`.
 
 ### In the review UI
 

@@ -514,3 +514,69 @@ func TestConsensusActionAuditLabel(t *testing.T) {
 		t.Fatalf("audited: %s audited=%v %q", f.Classification, f.Knowledge.Audited, f.Title)
 	}
 }
+
+// Lane backdoor (D-0029): two active facts of one subject that contradict
+// each other never clear a change; each gets a knowledge-contradiction gap
+// naming both. A compatible pair (another severity) is evaluated as before.
+func TestKnowledgeContradictionNeverClears(t *testing.T) {
+	eb, guide, _, _, _ := rotationEdge()
+	an := domain.NewChangeAnchor(guide, lookupOf(eb.edge))
+	f := fact(t, rotationAssertion(), domain.VerifiedHuman, an)
+	ga := rotationAssertion()
+	ga.Consequence = &domain.Consequence{Kind: domain.ConsequenceWorkloadFailure, ExposedClass: domain.ImpactActionRequired, Severity: domain.SeverityHigh,
+		Statement: "Every consumer of a rotated key fails."}
+	g := fact(t, ga, domain.VerifiedHuman, an)
+	ca := rotationAssertion()
+	ca.Consequence.Severity = domain.SeverityLow
+	compatible := fact(t, ca, domain.VerifiedHuman, an)
+	if why := domain.FactIncompatibility(f, g); why == "" {
+		t.Fatal("f and g must contradict")
+	}
+	if why := domain.FactIncompatibility(f, compatible); why != "" {
+		t.Fatalf("f and compatible must agree: %s", why)
+	}
+	dir := t.TempDir()
+	envs := map[string]*env.Environment{
+		"pinned":  loadEnv(t, env.Inputs{Manifests: []string{writeFile(t, dir, "m/c.yaml", "apiVersion: cert-manager.io/v1\nkind: Certificate\nmetadata: {name: p}\nspec:\n  privateKey: {rotationPolicy: Always}\n")}}),
+		"none":    loadEnv(t, env.Inputs{Manifests: []string{writeFile(t, dir, "n/cm.yaml", "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: x}\ndata: {a: b}\n")}}),
+		"exposed": loadEnv(t, env.Inputs{Manifests: []string{writeFile(t, dir, "e/c.yaml", "apiVersion: cert-manager.io/v1\nkind: Certificate\nmetadata: {name: e}\nspec: {secretName: e}\n")}}),
+	}
+	for name, en := range envs {
+		r := buildWith(t, eb.edge, en, []domain.VerifiedFact{f, g}, "")
+		gaps := map[string]bool{}
+		affected := false
+		for _, x := range findingsOf(r, guide.ID) {
+			switch {
+			case x.Rule == RuleKnowledgeClear || x.Rule == RuleKnowledgeOverlap || x.Classification == domain.ImpactNotAffected:
+				t.Errorf("%s: a contradicted fact cleared the change: %+v", name, x)
+			case x.Rule == RuleKnowledgeContradiction:
+				if x.Classification != domain.ImpactUnknown || x.UnknownReason != domain.UnknownReleaseKnowledgeGap {
+					t.Errorf("%s: gap = %+v", name, x)
+				}
+				other := g.ID
+				if x.Knowledge.Fact == g.ID {
+					other = f.ID
+				}
+				if !strings.Contains(x.Detail, other) || !strings.Contains(strings.Join(x.NeededToDetermine, " "), other) {
+					t.Errorf("%s: the gap of %s does not name %s: %+v", name, x.Knowledge.Fact, other, x)
+				}
+				gaps[x.Knowledge.Fact] = true
+			case x.Classification.Affected():
+				affected = true
+			}
+		}
+		if !gaps[f.ID] || !gaps[g.ID] {
+			t.Errorf("%s: want a contradiction gap per fact, got %v", name, gaps)
+		}
+		if name == "exposed" && !affected {
+			t.Errorf("exposed: the stricter affected finding must stand")
+		}
+	}
+	// compatible coexistence: the clear stands, no gap
+	r := buildWith(t, eb.edge, envs["none"], []domain.VerifiedFact{f, compatible}, "")
+	for _, x := range findingsOf(r, guide.ID) {
+		if x.Rule != RuleKnowledgeClear {
+			t.Errorf("compatible pair: %+v", x)
+		}
+	}
+}

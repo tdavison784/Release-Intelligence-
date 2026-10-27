@@ -390,6 +390,9 @@ func impactClassRules() []any {
 				o("required", []string{"knowledge"}, "properties", o("knowledge", o("properties", o("verification",
 					o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)}))))))),
 			"else", ruleIs(o("not", o("const", domain.RuleKnowledgeRefined)))),
+		// a knowledge contradiction is an unknown gap (lane backdoor)
+		o("if", ruleIs(o("const", domain.RuleKnowledgeContradiction)),
+			"then", classIs(domain.ImpactUnknown)),
 		// knowledge is carried exactly by impact:knowledge-* rules
 		o("if", o("required", []string{"knowledge"}),
 			"then", ruleIs(o("pattern", "^"+domain.KnowledgeRulePrefix)),

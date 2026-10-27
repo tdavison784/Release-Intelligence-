@@ -205,3 +205,66 @@ func TestRoleMembershipDefaultShownToTheReviewer(t *testing.T) {
 	contains(t, page, "Role-membership defaults", "spec.archiver</code> unset on Widget ⇒ outside role <b>archive-trust</b>",
 		"Limitation: observed on the fixture", "They are not defaults of the field", "the relationship could not form")
 }
+
+// Lane backdoor (D-0029): an ordinary item offers the same choice. A second
+// candidate restating the broad fact's change (another severity) must name
+// the broad fact; compatible facts may be kept.
+func TestOrdinaryItemOffersTheRelationChoice(t *testing.T) {
+	s, broad, _ := hStore(t)
+	ev := domain.NewEvidence(domain.EvidenceDocument, "guide", "https://example.test/acme/v2.0.0/upgrade.md", "L9", "retention.mode now defaults to Purge", "sha256:g", hT0)
+	an := domain.ChangeAnchor{Release: "2.0.0", EvidenceKeys: []string{domain.EvidenceKey(ev)}, StatementKeys: []string{domain.StatementKey(ev)}, ChangeIDs: []string{"chg-ret-guide"}}
+	members := []domain.CandidateMember{{ChangeID: "chg-ret-guide", Anchor: &an}}
+	c := domain.SemanticCandidate{ID: domain.CandidateID("acme-ctl", "2.0.0", members), Product: "acme-ctl", Release: "2.0.0", Members: members, Grouping: "single",
+		Category: domain.CategoryConfiguration, Title: "retention default (guide)", Evidence: []domain.Evidence{ev}, Producer: "semantic.candidates@v1", CreatedAt: hT0}
+	hPut(t, s, c)
+	rule := hRule(false)
+	rule.Consequence.Severity = domain.SeverityMedium
+	v := domain.ValidationResult{CandidateID: c.ID, Validator: "semvalidate.crd@v1", Assertion: rule, Evidence: []domain.Evidence{ev}, CheckedAt: hT0.Add(time.Minute)}
+	for _, x := range []domain.Aspect{domain.AspectSubject, domain.AspectChange, domain.AspectApplicability} {
+		v.Checks = append(v.Checks, domain.AspectCheck{Aspect: x, Outcome: domain.OutcomeConfirmed, Rule: "test"})
+	}
+	v.ID = domain.ValidationID(v.CandidateID, v.Validator, v.Assertion)
+	hPut(t, s, v)
+	at := hT0.Add(2 * time.Minute)
+	sem := domain.SemanticProposal{CandidateID: c.ID, Task: domain.TaskFull, Provider: "anthropic", Assertion: rule, Citations: []domain.EvidenceID{ev.ID},
+		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: domain.ConfidenceMedium, Model: "claude-opus-5-5",
+			ModelVersion: "claude-opus-5-5", PromptVersion: "semantic/v1", PromptDigest: "sha256:p", InputEvidence: []domain.EvidenceID{ev.ID}, GeneratedAt: &at, CallID: "call-guide", Provider: "anthropic"}}
+	sem.ID = domain.ProposalID(sem.CandidateID, sem.Task, sem.Provider, sem.Provenance)
+	hPut(t, s, sem)
+	res := knowledge.Route(c, []domain.SemanticProposal{sem}, []domain.ValidationResult{v})
+	if len(res.ReviewItems) != 1 {
+		t.Fatalf("route: %+v", res)
+	}
+	it := res.ReviewItems[0]
+	hPut(t, s, it)
+
+	clock := func() time.Time { return hT0.Add(time.Hour) }
+	srv := httptest.NewServer(NewServer(knowledge.NewQueue(s, clock), Options{Now: clock, Logf: t.Logf, Scope: BlockingScope{Products: []domain.ProductID{"acme-ctl"}},
+		Snapshot: func(ctx context.Context) (*knowledge.Snapshot, error) { return s.Load(ctx, knowledge.Query{}) }}))
+	defer srv.Close()
+	r := &rig{t: t, srv: srv, c: newRig(t).c}
+	_, page := r.get("/items/" + it.ID)
+	contains(t, page, `name="relation-`+broad.ID+`"`, "the fact this decision records")
+	accept := func(extra ...string) (int, string) {
+		st, b, _ := r.post("/items/"+it.ID+"/decision", form(append([]string{"action", "accept", "reviewer", "product-owner",
+			"started", hT0.Add(50 * time.Minute).Format(time.RFC3339Nano), "return", "/"}, extra...)...))
+		return st, b
+	}
+	if st, b := accept(); st != http.StatusUnprocessableEntity {
+		t.Fatalf("accept leaving the broad fact unnamed: %d", st)
+	} else {
+		contains(t, b, "no fact silently coexists", broad.ID)
+	}
+	if st, b := accept("relation-"+broad.ID, "coexists"); st != http.StatusSeeOther {
+		t.Fatalf("accept keeping a compatible fact: %d %s", st, b)
+	}
+	active := 0
+	for _, f := range load(t, s).Facts {
+		if f.Status == domain.FactActive {
+			active++
+		}
+	}
+	if active != 2 {
+		t.Fatalf("want the broad fact and the restatement both active, got %d", active)
+	}
+}

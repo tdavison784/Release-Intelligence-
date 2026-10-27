@@ -133,7 +133,7 @@ ri semantic candidates cert-manager v1.17.0 v1.18.0  # learning loop: determinis
 ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5 -llm-exchange /tmp/x -out /tmp/out
 ri evidence link cert-manager v1.17.0 v1.18.0  # learning loop: attach the referenced PR/commit text to stored candidates (docs/LINKED_EVIDENCE.md)
 ri knowledge route                              # learning loop: route candidates into review items / auto-verified facts (docs/KNOWLEDGE.md)
-ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
+ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance; -supersedes/-coexists name other same-subject facts)
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
 ri knowledge export -o feedback.jsonl           # the human-feedback dataset
 ri knowledge intake-rule -dir <copy> -author A rule.json  # a human-authored rule file → proposal + whole-fact review item, gated and verified like an agent hypothesis

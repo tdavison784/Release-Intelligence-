@@ -2167,6 +2167,10 @@ type ReviewDecision struct {
 	// the reviewer explicitly keeps beside it. A promotion of a
 	// hypothesis-sourced rule must name every active fact on its subject in
 	// one of the two — it never silently coexists (internal/knowledge).
+	// Every other accept, correct and duplicate must name every other active
+	// fact of the same product, release and subject (lane backdoor); a
+	// duplicate may only coexist, and coexistence needs compatible facts
+	// (FactIncompatibility).
 	// CONTRACT-CHANGE(verify): additive fields.
 	Supersedes []string `json:"supersedes,omitempty"`
 	Coexists   []string `json:"coexists,omitempty"`
@@ -2401,8 +2405,14 @@ func (d ReviewDecision) Validate() error {
 	if d.Action == ActionCorrect && d.BatchID != "" {
 		bad("corrections are individual-only; a correct decision is never part of a batch")
 	}
-	if len(d.Supersedes)+len(d.Coexists) > 0 && d.Action != ActionAccept && d.Action != ActionCorrect {
-		bad("supersedes/coexists belong to an accept or correct decision")
+	promotes := d.Action == ActionAccept || d.Action == ActionCorrect
+	if len(d.Supersedes) > 0 && !promotes {
+		bad("supersedes belongs to an accept or correct decision")
+	}
+	// a duplicate adds anchors to an existing fact: it may keep the other
+	// active facts of that fact's subject beside it (lane backdoor)
+	if len(d.Coexists) > 0 && !promotes && (d.Action != ActionReject || d.DuplicateOf == "") {
+		bad("coexists belongs to an accept, correct or duplicate decision")
 	}
 	named := map[string]bool{}
 	for _, id := range append(append([]string(nil), d.Supersedes...), d.Coexists...) {
