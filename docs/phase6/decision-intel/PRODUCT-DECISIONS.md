@@ -54,6 +54,17 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-7. M4 passes with known limitations; M6 runs before M5 (2026-10-28)
+
+> "fix the backdoor, then decide the gate and lets get to the blind cases so we can really see how it works" … "pass"
+
+- **M4 passes** with these known limitations: semantic-check structured claimed values; loader proof-bounds and
+  record-consistency checks; auto-approval naming.
+- **M6 (blind comparative evaluation) comes next.** M5 (approve, deny and override recording, the change report)
+  follows it.
+- **Standing order:** stop sprawl early (memory `stop-sprawl-early`). M6 is kept tight; it judges the design, and it
+  is not a reason to keep tuning.
+
 ## PD-6. "The role cannot form" is an observed outcome (2026-10-28): M4
 
 > "go with option 1"

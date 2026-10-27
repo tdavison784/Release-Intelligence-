@@ -249,3 +249,8 @@ the D-EU `docs` Ingress (`env/apps/docs/base/ingress.yaml`, namespace `docs`, th
     write time;
   - semantic-check structured claimed values (§3b);
   - loader proof-bounds and record-consistency checks (K2, K3).
+
+## Product-owner decision, 2026-10-28
+
+**M4 passes:** "pass". The known limitations are carried, as stated above. The next milestone is **M6 (blind
+evaluation) before M5**.

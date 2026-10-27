@@ -74,6 +74,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-28 (product owner): **M4 passes** (PD-7). M6 comes before M5.
+
 - 2026-10-28 (product owner): fix only the back door (K1) and contradiction reporting, then decide the M4 gate, then
   go to the blind cases. Carried as known limitations: the semantic-check structured claimed values (§3b), loader
   bounds and consistency (K2, K3). A standing order is in memory: stop sprawl early.
@@ -111,13 +113,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Lane `join5`** (D-0028: evaluate rendered objects, not base files; membership defaults in the pin scope). On LANE
-   DONE:
-   - merge it;
-   - re-run part B (`$CLAUDE_JOB_DIR/tmp/m4/part-b1.sh`, with new run ids). K1 already holds the promoted fact
-     `vf-4d9b756f1343`.
-2. **Then the rest of part B:** negative controls, semcheck of the M2 misread, the admission dry-run on D-EU, and
-   M4-RESULT.
+1. D-0031: write PLAN-M6, then pre-register GATE-M6 after the blind cases are authored and before any blind run. Keep
+   it tight (stop-sprawl-early).
 
 ## Notes
 
