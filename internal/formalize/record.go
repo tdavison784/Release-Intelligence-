@@ -48,9 +48,9 @@ type Record struct {
 	// RefinementNotes say why a rule hypothesis got no scope-refinement
 	// candidate for a consumer role of its subject kind (refine.go;
 	// formalize/v2 on). CONTRACT-CHANGE(verify2): additive.
-	RefinementNotes []string `json:"refinementNotes,omitempty"`
-	StatementKind      string              `json:"statementKind"` // domain.StatementUnverifiedProse
-	Provenance         domain.Provenance   `json:"provenance"`    // method ai
+	RefinementNotes []string          `json:"refinementNotes,omitempty"`
+	StatementKind   string            `json:"statementKind"` // domain.StatementUnverifiedProse
+	Provenance      domain.Provenance `json:"provenance"`    // method ai
 }
 
 // Failure records a formalization no answer of which passed the floor.
