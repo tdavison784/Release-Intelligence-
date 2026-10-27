@@ -104,7 +104,7 @@ The CRDs are the upstream CRD artifacts plus those the environment files and ren
 constant the schema itself lists is ever shown; free text and anything without a declared enum stay
 withheld. Stored bytes never change. The read-back runs:
 
-- in the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v2`). A pin
+- in the validators' effective view (`validate.override-inspection@v3`, `validate.schema-compat@v3`). A pin
   decided on a read-back value says so in its detail ("stored redacted as …: the digest of "Never", an enum
   value its CRD declares");
 - in the item dossier (the object's `reason`);
@@ -267,7 +267,7 @@ does not cover its request's subjects. Undecided records never count as clearing
 | `JoinVerdicts(report, opts…)` | `validate.join@v1` | per verdict | all | wraps the five-class join's decisive verdicts |
 | `RenderDiff(opts…)` | `validate.render-diff@v2` | render-diff | all | the environment render pairs: exposure (inconclusive) vs a concrete failure |
 | `OverrideInspection(opts…)` | `validate.override-inspection@v2` | override-inspection | all | an explicit setting pinning the old behaviour |
-| `SchemaCompat(opts…)` | `validate.schema-compat@v1` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
+| `SchemaCompat(opts…)` | `validate.schema-compat@v3` | schema-compat | api-schema, compatibility | cluster version range; objects vs the CRD change |
 | `StaticReference(opts…)` | `validate.static-reference@v1` | static-reference | all | references in the TO render vs FROM, and along the impact paths |
 
 Options: `WithStore(st)` (read artifact bytes — renders, environment files, the upgrade edge, knowledge facts;
@@ -352,6 +352,12 @@ is undecidable. A rule may also say what an unset field means with an explicit `
 (`any{F equals X, F unset}`, `all{F not-equals X, F set}`). One deliberate difference keeps exclusion fail-closed: a
 reference resolving to nothing (or to several objects) is undecidable.
 
+**Where a pinned value comes from (Phase 6 M4, lane join5).** A pin on a rendered object of a kustomize render
+names the file and line that produced the value (`…, set at env/apps/w/overlays/prod/rotation.yaml:L7`): among
+the files the render consumed, the one of the latest layer (an overlay patch before its base; the bundle's own
+kustomizations decide the layers) whose declaration of the object states the path with that value. A value no
+consumed file states (a transformer, a chart template) is cited from the render only.
+
 **Exact coverage (Phase 6 M4, R2.2).** A field pin's pass names the CRD serving the pinned kind
 (`PinnedSetting.crd`) and lists the item's environment rendered changes on **its own field**: a change of an
 object of the pinned kind at the pinned path, and the `crd-description-changed` text of that field in that CRD (a
@@ -386,7 +392,10 @@ cannot be decided), `pin:contradicting-facts`.
 (`upgrade.EvaluatePlatformConstraint`; anchors `<platform>` or `<platform>/<kind>`): inside → `pass`; outside a
 supported/minimum/chart-kubeVersion range → `fail`; outside a *tested* range, other platforms, no cluster version →
 `not-run`. API-schema items anchored on a computed CRD change (`impact.CRDIdentity` scopes the kind exactly as
-the join): every visible object of the kind (environment files + environment to-renders) against the change —
+the join): every visible object of the kind **as deployed** (the effective object view: environment to-renders,
+version-independent overlay renders, and environment files no render consumed; lane join5 — a kustomize base or
+patch is never judged on its own, and an object whose render is unavailable is not judged: `not-run`
+`schema:unrendered`) against the change —
 removed CRD/version still used, removed field set, removed enum value used, newly required field omitted (parent
 present), value of the old type → `fail`; all compatible with complete inputs → `pass` for those objects. Default,
 storage and additive changes → `not-run`; no visible object → `not-run` (absence in a repository is not proof).
