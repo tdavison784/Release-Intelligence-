@@ -786,10 +786,11 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 	// pendingAssessment is an entry's assessment, built after every other
 	// check of the call passed (the completion check rejects only once).
 	type pendingAssessment struct {
-		at      string
-		it      domain.ChangeItem
-		in      investigate.AssessmentInput
-		verdict *domain.AgentVerdict
+		at        string
+		it        domain.ChangeItem
+		in        investigate.AssessmentInput
+		verdict   *domain.AgentVerdict
+		behaviour behaviourDeps
 	}
 	var pendingAssessments []pendingAssessment
 	seen := map[string]bool{}
@@ -878,6 +879,12 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 				pa.verdict = &verdicts[len(verdicts)-1]
 			}
 			if err := s.scopedChecks(pa.at, pa.in, pa.verdict); err != nil {
+				return nil, err
+			}
+			if pa.behaviour, err = s.behaviourOf(ctx, pa.at, it, pa.in.Behaviour); err != nil {
+				return nil, err
+			}
+			if err := behaviourVerdictCheck(pa.at, pa.verdict, pa.behaviour.list); err != nil {
 				return nil, err
 			}
 			pendingAssessments = append(pendingAssessments, pa)
@@ -989,11 +996,14 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			return nil, rejectf("%s: a not-affected verdict needs the consumers of the item's exposed objects examined; %d were never retrieved in this session: %s. Trace them (trace_consumers changeItem=%s) or read them (get_rendered_object, read_artifact), then submit again. A second submission is accepted, with each untraced consumer recorded as an investigation gap.",
 				pa.at, len(untraced), listKeys(untraced, 20), pa.it.ID)
 		}
+		if err := s.behaviourCompletion(pa.at, pa.it, pa.verdict, pa.behaviour.list); err != nil {
+			return nil, err
+		}
 		verdict := ""
 		if pa.verdict != nil {
 			verdict = pa.verdict.ID
 		}
-		a, aevs, err := s.assessmentOf(ctx, pa.it, pa.in, verdict, untraced, pa.at)
+		a, aevs, err := s.assessmentOf(ctx, pa.it, pa.in, verdict, untraced, pa.behaviour, pa.at)
 		if err != nil {
 			return nil, err
 		}

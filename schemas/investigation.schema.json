@@ -92,6 +92,7 @@
         "recommendedTests": {"type": "array", "items": {"type": "string"}},
         "untracedConsumers": {"type": "array", "items": {"type": "string"}},
         "unavailableEvidence": {"type": "array", "items": {"type": "string"}},
+        "behaviour": {"type": "array", "items": {"$ref": "#/$defs/AssessmentBehaviour"}},
         "statementKind": {"type": "string"},
         "provenance": {"$ref": "#/$defs/Provenance"}
       },
@@ -249,6 +250,18 @@
       "additionalProperties": false
     },
     "AssertionStance": {"type": "string", "enum": ["raises-concern", "explains", "claims-mitigation"]},
+    "AssessmentBehaviour": {
+      "type": "object",
+      "required": ["behaviour", "source"],
+      "properties": {
+        "behaviour": {"type": "string"},
+        "source": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "quote": {"type": "string"},
+        "request": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "AssessmentFinding": {
       "type": "object",
       "required": ["statement", "citations"],

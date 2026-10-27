@@ -112,6 +112,12 @@ type Features struct {
 	// (upstream.go); an unfulfilled one becomes a gap in the assessment's
 	// unknown. On when Fetches > 0. Needs Assessment.
 	Upstream UpstreamBounds `json:"upstream"`
+	// Behaviour: the assessment declares the upstream behaviours its verdict
+	// relies on, each with its source (behaviour.go). A not-affected verdict
+	// is rejected while one is unavailable or not-checked, and once when a
+	// behavioural item declares none; each gap is stated in Unknown. Needs
+	// Upstream.
+	Behaviour bool `json:"behaviour"`
 }
 
 // UpstreamBounds bound upstream evidence fetching per item session.
@@ -250,6 +256,9 @@ func (p *Prompt) checkSurface() error {
 		if u.Fetches <= 0 || u.Bytes <= 0 || u.SearchFiles <= 0 || u.SearchMatches <= 0 || u.SearchContext < 0 || u.SearchStore <= 0 || u.HeadLines < 0 {
 			return fmt.Errorf("agent: prompt %s: upstream bounds must all be set (fetches, bytes, searchFiles, searchMatches, searchStore positive; searchContext, headLines non-negative)", p.Version)
 		}
+	}
+	if p.Features.Behaviour && !p.Features.Upstream.On() {
+		return fmt.Errorf("agent: prompt %s: feature behaviour needs feature upstream", p.Version)
 	}
 	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
 		return fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", p.Version)

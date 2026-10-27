@@ -813,6 +813,23 @@ type AssessmentInput struct {
 	Unknown                []string                   `json:"unknown,omitempty"`
 	LikelyImpact           string                     `json:"likelyImpact"`
 	RecommendedTests       []string                   `json:"recommendedTests,omitempty"`
+	// Behaviour: the upstream behaviours the verdict relies on, each with its
+	// source (prompt versions with feature behaviour).
+	// CONTRACT-CHANGE(upstream2): additive.
+	Behaviour []BehaviourInput `json:"behaviour,omitempty"`
+}
+
+// BehaviourInput is one upstream behaviour a verdict relies on and its
+// source (domain.BehaviourSources): upstream takes Citations of upstream
+// evidence beyond the item's change text, change-text a verbatim Quote of
+// that text, unavailable the id of an upstream request recorded unavailable
+// (Request), not-checked nothing.
+type BehaviourInput struct {
+	Behaviour string     `json:"behaviour"`
+	Source    string     `json:"source"`
+	Citations []Citation `json:"citations,omitempty"`
+	Quote     string     `json:"quote,omitempty"`
+	Request   string     `json:"request,omitempty"`
 }
 
 // VerifiedInput is one verified statement and the citations that establish it.

@@ -61,8 +61,14 @@ type AgentAssessment struct {
 	// could not be fulfilled (prompt feature upstream), added by the tool
 	// layer; each is also stated in Unknown as "behaviour at <tag>
 	// unavailable: <reason>". CONTRACT-CHANGE(upstream): additive.
-	UnavailableEvidence []string   `json:"unavailableEvidence,omitempty"`
-	StatementKind       string     `json:"statementKind,omitempty"` // StatementUnverifiedProse
+	UnavailableEvidence []string `json:"unavailableEvidence,omitempty"`
+	// Behaviour are the upstream behaviours the verdict relies on, each with
+	// its source (prompt feature behaviour, docs/phase6/decision-intel/
+	// briefs/upstream2.md). The tool layer checks each source; an entry
+	// sourced unavailable or not-checked is also stated in Unknown as
+	// "behaviour <b> at <tag>: <source>". CONTRACT-CHANGE(upstream2): additive.
+	Behaviour     []AssessmentBehaviour `json:"behaviour,omitempty"`
+	StatementKind string                `json:"statementKind,omitempty"` // StatementUnverifiedProse
 	Provenance          Provenance `json:"provenance"`              // method ai
 }
 
@@ -73,6 +79,42 @@ type AssessmentSetting struct {
 	Setting string `json:"setting"`
 	State   string `json:"state"`
 	Detail  string `json:"detail,omitempty"`
+}
+
+// Sources of a behaviour dependency.
+const (
+	// BehaviourUpstream: upstream evidence beyond the item's change text (a
+	// fetched run artifact or an upstream source artifact of the bundle),
+	// cited verbatim.
+	BehaviourUpstream = "upstream"
+	// BehaviourChangeText: a verbatim quote of the item's own change text,
+	// which states the behaviour itself.
+	BehaviourChangeText = "change-text"
+	// BehaviourUnavailable: an upstream request_evidence request of the item
+	// that was recorded unavailable.
+	BehaviourUnavailable = "unavailable"
+	// BehaviourNotChecked: honestly unestablished.
+	BehaviourNotChecked = "not-checked"
+)
+
+// BehaviourSources lists every behaviour source.
+var BehaviourSources = []string{BehaviourUpstream, BehaviourChangeText, BehaviourUnavailable, BehaviourNotChecked}
+
+// AssessmentBehaviour is one upstream behaviour (validation, defaulting,
+// parsing, a feature gate, API semantics) an assessment's verdict relies on,
+// and where it is established: Citations (upstream), Quote (change-text),
+// Request (unavailable), or nowhere (not-checked).
+type AssessmentBehaviour struct {
+	Behaviour string       `json:"behaviour"`
+	Source    string       `json:"source"`
+	Citations []EvidenceID `json:"citations,omitempty"`
+	Quote     string       `json:"quote,omitempty"`
+	Request   string       `json:"request,omitempty"`
+}
+
+// Gap reports whether the behaviour is left unestablished.
+func (b AssessmentBehaviour) Gap() bool {
+	return b.Source == BehaviourUnavailable || b.Source == BehaviourNotChecked
 }
 
 // AssessmentFinding is one verified statement with the evidence its
@@ -123,6 +165,28 @@ func (a AgentAssessment) Validate() error {
 	for i, f := range a.Verified {
 		if strings.TrimSpace(f.Statement) == "" || len(f.Citations) == 0 {
 			bad("verified[%d]: a verified statement cites evidence", i)
+		}
+	}
+	for i, b := range a.Behaviour {
+		if strings.TrimSpace(b.Behaviour) == "" {
+			bad("behaviour[%d]: behaviour is required", i)
+		}
+		ok := false
+		switch b.Source {
+		case BehaviourUpstream:
+			ok = len(b.Citations) > 0 && b.Quote == "" && b.Request == ""
+		case BehaviourChangeText:
+			ok = len(b.Citations) == 0 && strings.TrimSpace(b.Quote) != "" && b.Request == ""
+		case BehaviourUnavailable:
+			ok = len(b.Citations) == 0 && b.Quote == "" && strings.HasPrefix(b.Request, EvidenceRequestIDPrefix)
+		case BehaviourNotChecked:
+			ok = len(b.Citations) == 0 && b.Quote == "" && b.Request == ""
+		default:
+			bad("behaviour[%d]: unknown source %q", i, b.Source)
+			continue
+		}
+		if !ok {
+			bad("behaviour[%d]: source %s takes citations (upstream), a quote (change-text), a request id (unavailable) or nothing (not-checked)", i, b.Source)
 		}
 	}
 	return errors.Join(errs...)

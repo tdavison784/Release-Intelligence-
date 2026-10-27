@@ -2983,6 +2983,18 @@ func (inv *Investigation) Validate() error {
 				bad("agent assessment %s names unknown verdict %s", a.ID, a.Verdict)
 			}
 		}
+		for _, b := range a.Behaviour {
+			if b.Source != BehaviourUnavailable {
+				continue
+			}
+			found := false
+			for _, r := range inv.EvidenceRequests {
+				found = found || (r.ID == b.Request && r.ChangeItem == a.ChangeItem && r.Status == RequestUnavailable)
+			}
+			if !found {
+				bad("agent assessment %s: behaviour source unavailable names %s, not an unavailable evidence request of its item", a.ID, b.Request)
+			}
+		}
 	}
 	notes := map[string]bool{}
 	for _, n := range inv.AgentNotes {
@@ -3436,6 +3448,9 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 		item("agent assessment "+a.ID, a.ChangeItem)
 		for _, f := range a.Verified {
 			evid("agent assessment "+a.ID, f.Citations)
+		}
+		for _, b := range a.Behaviour {
+			evid("agent assessment "+a.ID, b.Citations)
 		}
 	}
 	for _, c := range inv.AgentClaims {
