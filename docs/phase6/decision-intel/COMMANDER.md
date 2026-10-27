@@ -24,6 +24,7 @@ handoffs (every item is `providers: [claude]`).
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
+| groundtruth6 | ri-groundtruth6 | Opus 5.5 | p6di/groundtruth6 (SEALED) | .claude/worktrees/p6di-groundtruth6 | w1:t2R (pane w1:p4H) | started 2026-10-28 (D-0032) |
 | verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | done, merged, closed 2026-10-28 |
 | join5 | ri-join5 | Opus 5.5 | p6di/join5 | .claude/worktrees/p6di-join5 | w1:t2P (pane w1:p4E) | done, merged, closed 2026-10-28 |
 
@@ -113,8 +114,15 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. D-0031: write PLAN-M6, then pre-register GATE-M6 after the blind cases are authored and before any blind run. Keep
-   it tight (stop-sprawl-early).
+1. **Sealed lane `groundtruth6` is running** (D-0032). **Do not read its branch's labels** before the freeze and GATE-M6.
+   On LANE DONE, accept only the class counts.
+2. **Then:**
+   - write GATE-M6 with generic thresholds and commit it;
+   - tag `m6-freeze`;
+   - merge `groundtruth6`;
+   - record upstream data online;
+   - run arms A–E;
+   - score, then M6-RESULT.
 
 ## Notes
 
