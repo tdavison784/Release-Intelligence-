@@ -28,8 +28,8 @@ For each upgrade × environment, after classification, RI produces an **UpgradeJ
    required before production."
 3. **Target version:**
    - the minimum safe release, from the edge's candidates (cited);
-   - the recommended release. Proposed rule (product owner to confirm, see §6): the **latest patch on the chosen line**
-     when it removes every regression and adds no assessed advisory (PD-0b), otherwise the minimum.
+   - the recommended release: the **latest patch on the chosen line** when it removes every regression and adds no
+     assessed advisory (PD-0b, PD-3), otherwise the minimum.
    - When the target is changed, the judgement **says the new current → target transition has not been investigated**
      and requires that investigation (mission C2), unless it was.
 4. **Changes**, ordered and isolated (PD-0b): `pin-behaviour`, `version-bump`, `validate`, `adopt-new-default`,
@@ -105,7 +105,7 @@ repaired. **The judgement never alters findings, the decision, the review or kno
   pre-computed input is insufficient.
 - **No policy change:** the judgement is advisory until M5's human decision (PD-1, mission F1).
 
-## 6. Decision for the product owner before the lane starts
+## 6. Decided: the target rule (PD-3, 2026-10-27)
 
 **The target rule.** M2 computes the *lowest* safe release (for example 1.12.1). PD-0b asked for the *latest patch*.
 The proposal:
@@ -114,3 +114,5 @@ The proposal:
 - **always show the lowest safe release as the minimum.**
 
 The alternative is to recommend the lowest safe release.
+
+The product owner accepted the proposal: latest safe patch recommended, lowest safe shown as the minimum (PD-3).

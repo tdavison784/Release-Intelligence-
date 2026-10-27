@@ -54,6 +54,14 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-3. Target rule: latest safe patch, lowest safe shown as the minimum (2026-10-27): M3
+
+> "I am fine with your proposal, begin."
+
+The judgement **recommends the latest patch on the chosen line** when it removes every regression and adds no
+assessed advisory. It **always also shows the lowest safe release as the minimum**. Otherwise it recommends the
+minimum.
+
 ## PD-2. M2 passes; v13 is the default (2026-10-27): M3
 
 > "Lets do v13 as the default for M3. I also consider M2 being met, lets continue."
