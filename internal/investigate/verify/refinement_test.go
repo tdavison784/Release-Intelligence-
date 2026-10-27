@@ -272,3 +272,38 @@ func TestRefinementPromotionGateRequiresAHuman(t *testing.T) {
 		t.Fatalf("a human promotion with a confirmed proof was refused: %v", err)
 	}
 }
+
+// Stored proofs are not re-judged: the Phase 5 consumer-observation proofs
+// (real kind runs, producer verify.exercise-consumer@v1) still decode,
+// validate and re-derive their ids, with no arm classified after the fact.
+func TestStoredConsumerProofsStillVerify(t *testing.T) {
+	paths, err := filepath.Glob("../../../docs/phase5/learning-loop/runs/verify2-smoke/proofs/*.json")
+	if err != nil || len(paths) == 0 {
+		t.Fatalf("no stored proofs: %v", err)
+	}
+	for _, p := range paths {
+		b, err := os.ReadFile(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var rec domain.KnowledgeRecord
+		if err := json.Unmarshal(b, &rec); err != nil || rec.Proof == nil {
+			t.Fatalf("%s: %v", p, err)
+		}
+		if err := rec.Proof.Validate(); err != nil || rec.Proof.ID != domain.ProofRecordID(*rec.Proof) {
+			t.Fatalf("%s: proof %s no longer verifies: %v", p, rec.Proof.ID, err)
+		}
+		consumer := false
+		for _, m := range rec.Proof.Methods {
+			for _, a := range m.Arms {
+				consumer = consumer || a.Consumer != nil
+				if a.NonDiscriminating != "" {
+					t.Fatalf("%s: a stored arm decodes as non-discriminating", p)
+				}
+			}
+		}
+		if !consumer {
+			t.Fatalf("%s: not a consumer-observation proof", p)
+		}
+	}
+}
