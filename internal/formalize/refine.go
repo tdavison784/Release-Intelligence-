@@ -57,6 +57,10 @@ func (r ConsumerRole) paths() map[string]bool {
 	return out
 }
 
+// RefinementCallID is the call id of a refinement candidate derived from a
+// formalization call for a consumer role.
+func RefinementCallID(call, role string) string { return call + "+refine:" + role }
+
 // refinesPrompt reports whether a prompt version proposes refinements (and
 // shows the model the consumer roles): every version after formalize/v1,
 // which is frozen as it was run.
@@ -286,7 +290,11 @@ func refinements(ctx context.Context, p *Precomputed, base []domain.Hypothesis, 
 				ids = append(ids, e.ID)
 			}
 			ids = uniqEvidence(append(ids, h.Citations...))
+			// derived from the base rule's call by this stage: its own call
+			// id, so it is exported as its own proposal (one per call and
+			// candidate)
 			prov := h.Provenance
+			prov.CallID = RefinementCallID(h.Provenance.CallID, r.ID)
 			prov.InputEvidence = uniqEvidence(append(append([]domain.EvidenceID(nil), ids...), p.item.Evidence...))
 			x := domain.Hypothesis{ID: domain.AgentRecordID(domain.HypothesisIDPrefix, p.item.ID, claim, prov.CallID), ChangeItem: p.item.ID,
 				Statement: claim, Citations: ids, StatementKind: domain.StatementUnverifiedProse, Mitigation: spec, Provenance: prov,

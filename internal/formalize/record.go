@@ -136,7 +136,11 @@ func (r Record) Validate() error {
 		if h.Mitigation == nil && h.MitigationRejected == "" {
 			bad("hypothesis %s carries neither a mitigation nor the limitation that kept it out of the grammar", h.ID)
 		}
-		if h.Provenance.Producer != producer || h.Provenance.CallID != r.Provenance.CallID {
+		call := r.Provenance.CallID
+		if v := h.ProposedVerification; v != nil && v.Refinement != nil {
+			call = RefinementCallID(call, v.Refinement.Consumer)
+		}
+		if h.Provenance.Producer != producer || h.Provenance.CallID != call {
 			bad("hypothesis %s is not of this formalization's call", h.ID)
 		}
 	}
