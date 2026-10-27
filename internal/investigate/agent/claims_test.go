@@ -167,11 +167,10 @@ func TestV5PerItemWithClaimsReplays(t *testing.T) {
 }
 
 // pinnedDefaultPrompt, when set, is the default prompt held below the newest
-// embedded version: v8 stays the default until the Phase 6 M1 gate
-// (docs/phase6/decision-intel/PLAN-M1.md §6, GATE-M1) is met and the commander
-// moves the default to v9 (mission §13: no default change before the gate).
-// Set it to "" when the default moves to the newest again.
-const pinnedDefaultPrompt = "investigate-agent/v8"
+// embedded version, e.g. while a new version waits for its milestone gate
+// (docs/phase6/decision-intel/MISSION.md §13). Empty: the newest is the
+// default (v9 since the M1 gate, 2026-10-26).
+const pinnedDefaultPrompt = ""
 
 // The default prompt is the newest embedded version, or the pinned one, so a
 // runner that passes agent.DefaultPromptVersion (or none) gets it.

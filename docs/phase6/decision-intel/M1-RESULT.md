@@ -201,3 +201,12 @@ and the classification is identical to B0 in 6 of 6 case-runs. **Met.**
 |---|---|---|
 | 1 | Generated ConfigMap data missing from the snapshot was silently treated as empty | consumer rules v2 (D-0005): data from the render; unresolved edges instead of drops |
 | 2 | Paths in container command, args and env were not matched | consumer rules v3 (D-0006) |
+
+## Product-owner decision, 2026-10-26
+
+- **M1 passes.** "Yes M1 does pass in my eyes."
+- **Scoped verdicts: yes.** The agent should commit to a verdict scoped to the evidence (for example, "not affected
+  within the consumers this repository declares, provided the workloads reload certificates"), with the scope and the
+  precondition in the headline. Agent verdicts stay out of the classifier; proven clearance stays with M4.
+- Follow-up: prompt v9 became the default (commander, the same day). The scoped verdict ships as prompt v10 at the
+  start of M2 (D-0007), checked on the same cert-manager pair.

@@ -28,6 +28,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-26 (product owner): **M1 passes.** Scoped verdicts approved: the agent commits to a verdict scoped to the
+  evidence, with scope and precondition in the headline (D-0007, prompt v10). The commander made v9 the default
+  prompt.
+
 - 2026-10-20 (product owner): Phase 6 continues under the decision-intel mission. "We continue using the fleet
   methodology as we have done, nothing changes in that regard." The milestone order follows mission §10, so X-0009
   (global advisories) is part of M2, not ahead of M1.
@@ -36,12 +40,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **The product owner audits M1 attempt 3** (M1-RESULT.md) and decides the gate (D-0003). Open question: verdict
-   calibration (should the agent state a scoped conclusion?).
-2. **On a met gate:**
-   - write PLAN-M2 (lane-safe) and GATE-M2 (D-0004): strict-path semantics and global advisories, absorbing X-0009;
-   - decide whether v9 becomes the default prompt (it is pinned at v8 until the M1 gate).
-3. **Scratch:** the attempt scratch dirs are deleted; the runs are saved under `eval/investigations/results/C1-K0-20261021-*`.
+1. **D-0004:** write PLAN-M2 (lane-safe) and GATE-M2 (commander-only). Show the product owner the plan before any code
+   changes.
+2. **D-0007:** prompt v10, the scoped verdict. It runs as M2's first lane, or in parallel with M2's evidence lanes
+   (prompt files only).
 
 ## Notes
 

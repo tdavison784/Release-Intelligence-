@@ -18,7 +18,7 @@ const promptV9 = "investigate-agent/v9"
 // mitigation off, consumer tracing and the natural assessment on, a larger
 // item budget; trace_consumers is the one tool v8 does not have and
 // record_hypothesis no longer takes a mitigation. It is selected explicitly:
-// v8 stays the default until the M1 gate (TestDefaultPromptIsTheNewest).
+// v9 is the default since the M1 gate (TestDefaultPromptIsTheNewest).
 func TestPromptV9(t *testing.T) {
 	v8, err := LoadPrompt(promptV8)
 	must(t, err)
@@ -79,10 +79,10 @@ func TestPromptV9(t *testing.T) {
 			t.Errorf("v9 system prompt still has %q", s)
 		}
 	}
-	if DefaultPromptVersion != promptV8 {
-		t.Fatalf("default %s, want %s until the M1 gate", DefaultPromptVersion, promptV8)
+	if DefaultPromptVersion != promptV9 {
+		t.Fatalf("default %s, want %s since the M1 gate", DefaultPromptVersion, promptV9)
 	}
-	if p, err := LoadPrompt(""); err != nil || p.Version != promptV8 {
+	if p, err := LoadPrompt(""); err != nil || p.Version != promptV9 {
 		t.Fatalf("LoadPrompt(\"\"): %v %v", p, err)
 	}
 	if v8.Digest("t") == v9.Digest("t") {

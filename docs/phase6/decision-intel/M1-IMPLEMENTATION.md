@@ -12,7 +12,7 @@ byte-frozen (digest-tested) and replay unchanged.
 | 2 | **`reads-file` edges.** For each container, each ConfigMap it reads (mounted, or through `configMapKeyRef`/`envFrom`), each absolute path in its visible data, the longest other mount of the same container decides the provider and key. That is a Secret or ConfigMap, a projected source, or nothing: unresolved, with the reason. Generated ConfigMaps are read from their kustomize `files`/`literals`/`envs`. Generic path matching only. | `relations/consumers.go` (`readsFile`, `fileEdge`, `generatorData`); `domain.EdgeReadsFile`, `GraphEdge.Mount/File/Line` |
 | 3 | **`trace_consumers`** `{changeItem \| node, side}`. Breadth-first over `produces`/`references`/`reads-file` from the item's exposure roots (or one node). Every hop has its artifact, line and text, plus mount/file detail. The result lists the consumers and the `gaps`. | `internal/investigate/agent/consumers.go`; `investigate.ToolTraceConsumers`, `TraceRequest` |
 | 4 | **Dossier consumers.** `relations.consumers`: the chains of each exposed object; their gaps become dossier gaps (producer `investigate.dossier@v4`, only with a consumer graph). | `agent/dossier.go` `consumers()` |
-| 5 | **Prompt v9** (selected with `-agent-prompt`; v8 stays the default until the M1 gate). Per-item; `mitigation:false`; the eight questions; consumers first via `trace_consumers`; verified / inferred / unknown kept apart, model memory never evidence; provisional versus supported conclusions with proof obligations; the mission B5 assessment sections. No mitigation or consistency instructions. | `agent/prompts/investigate-agent/v9/` |
+| 5 | **Prompt v9** (the default since the M1 gate, 2026-10-26; v8 was the default before). Per-item; `mitigation:false`; the eight questions; consumers first via `trace_consumers`; verified / inferred / unknown kept apart, model memory never evidence; provisional versus supported conclusions with proof obligations; the mission B5 assessment sections. No mitigation or consistency instructions. | `agent/prompts/investigate-agent/v9/` |
 | 6 | **Natural assessment** on `submit_findings`: whatChanged, mechanism, consumers, effectiveConfiguration (explicit / inherited-default / unknown), verified (citations must resolve), inferred, unknown, likelyImpact, recommendedTests. Stored as `Investigation.AgentAssessments`, linked to the verdict, kept out of the classifier input. | `agent/assessment.go`; `domain/assessment.go`; `run/pipeline.go` |
 | 7 | **Completion check.** Consumers of the item's exposed objects that no tool of the session returned reject a not-affected verdict once, with their list. A resubmission, or any other verdict, is accepted, and they are recorded as `untracedConsumers` and as investigation gaps in `unknown`. | `agent/tools_record.go` `submitFindings`; `agent/consumers.go` `untracedConsumers` |
 | 8 | **Budget.** v9 per-item: 24 calls, 18 turns (`meta.json` `itemCalls`/`itemTurns`, rule `item@v2`); tokens, bytes and time unchanged; v1–v8 keep `item@v1`. | `agent/agenda.go` `ItemBudgetFor` |
@@ -184,7 +184,7 @@ were then built from its bundle.
 
 ## How to run v9
 
-v8 stays the default prompt until the M1 gate is met (mission §13); select v9 explicitly:
+v9 is the default prompt since the M1 gate (2026-10-26). To pin it explicitly:
 
 ```sh
 go build -o bin/ri ./cmd/ri
