@@ -2481,6 +2481,12 @@ type VerifiedFact struct {
 	// retracts the fact instead.
 	AuditedBy string    `json:"auditedBy,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
+	// ObservedDefaults are defaults of unset fields established by
+	// observation (PD-5), carried on human promotion from the confirmed
+	// proof of exactly this rule. The applicability evaluator uses one only
+	// through that proof (ObservedDefaultEstablished); any other is ignored
+	// and its field stays unknown. CONTRACT-CHANGE(verify3): additive.
+	ObservedDefaults []ObservedDefault `json:"observedDefaults,omitempty"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing

@@ -641,8 +641,37 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		old.Status = domain.FactSuperseded
 		out.Touched = append(out.Touched, old)
 	}
+	carryObservedDefaults(snap, item, d, f)
 	out.Fact = f
 	return out, nil
+}
+
+// carryObservedDefaults carries the defaults a confirmed proof observed
+// (PD-5, lane verify3) into the fact a human promotes through the gate: the
+// proof that opened it, of exactly the promoted rule. Nothing else carries
+// one, so a default that is only proposed never reaches a fact.
+func carryObservedDefaults(snap *Snapshot, item domain.ReviewItem, d domain.ReviewDecision, f *domain.VerifiedFact) {
+	fin := d.Final()
+	if fin == nil || d.ReviewerKind != domain.ReviewerHuman || (d.Action != domain.ActionAccept && d.Action != domain.ActionCorrect) {
+		return
+	}
+	if _, _, hyp := HypothesisSource(snap, item); !hyp {
+		return
+	}
+	g := PromotionGate(snap, item, *fin)
+	if !g.Open || g.Proof == nil || g.Proof.ProposedRuleDigest != f.Assertion.Digest() {
+		return
+	}
+	for _, od := range g.Proof.ObservedDefaults {
+		od.Proof = g.Proof.ID
+		dup := false
+		for _, x := range f.ObservedDefaults {
+			dup = dup || (x.Proof == od.Proof && x.Same(od))
+		}
+		if !dup {
+			f.ObservedDefaults = append(f.ObservedDefaults, od)
+		}
+	}
 }
 
 // seedFromFact turns a fact's verification back into per-aspect state.

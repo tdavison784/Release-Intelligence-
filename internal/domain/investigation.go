@@ -2241,6 +2241,25 @@ type RoleField struct {
 	Value string `json:"value"`
 }
 
+// Clause is the sentence formalization appends to the base rule's statement
+// for this refinement (formalize.RefineRule). It names the catalog role's
+// condition values, which the role's consumer exercise establishes, not the
+// base rule's upstream citation: the semantic check does not compare them
+// with the cited passages (lane verify3, D-0026).
+func (r ScopeRefinement) Clause() string {
+	return fmt.Sprintf(" Scope refinement (candidate): the harmful consequence occurs only for subjects in consumer role %s (%s); subjects outside it (%s) are shielded.",
+		r.Consumer, RoleFieldsText(r.Role), RoleFieldsText(r.Outside))
+}
+
+// RoleFieldsText writes role fields as "path = value, …".
+func RoleFieldsText(fs []RoleField) string {
+	var parts []string
+	for _, f := range fs {
+		parts = append(parts, f.Path+" = "+f.Value)
+	}
+	return strings.Join(parts, ", ")
+}
+
 // TraceRead is one reads-file edge of a consumer graph, with the object that
 // produces the Secret it reads.
 type TraceRead struct {

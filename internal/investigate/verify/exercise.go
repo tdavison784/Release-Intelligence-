@@ -16,8 +16,10 @@ import (
 )
 
 // ExerciseProducer names the rule exercise (component@vN; v2: non-discriminating
-// arms are recorded and never decide, lane verify2, D-0025).
-const ExerciseProducer = "verify.exercise@v2"
+// arms are recorded and never decide, lane verify2, D-0025; v3: behaviour
+// signatures are object state only, log lines and warning events are
+// diagnostics, lane verify3, D-0026).
+const ExerciseProducer = "verify.exercise@v3"
 
 // ControllerRenderer renders the product's controller at one version with
 // the fixture's values (the wiring uses the render engine and its cache).
@@ -133,9 +135,19 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return m, limitations
 	}
 	limitations = append(limitations, lims...)
+	var probes []consumerArm
+	if in.Refinement != nil {
+		// default probes of the role fields the rule cannot predict when
+		// omitted (PD-5, probe.go), built from the arms before the
+		// omitted-field ones and run after them
+		var lims []string
+		probes, lims = DefaultProbes(in.Rule, fx, arms, cf, rulePool(in.Evidence))
+		limitations = append(limitations, lims...)
+	}
 	for _, b := range extra {
 		arms = append(arms, b.consumerArm)
 	}
+	arms = append(arms, probes...)
 	arms = classify(in.Rule, fx.Target, arms)
 	if in.Renderer == nil || in.Runner == nil {
 		return notRun("no controller renderer or cluster runner configured")
@@ -264,10 +276,16 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 				infra = true
 				continue
 			}
+			if d.Diagnostic() {
+				// a log line or warning event: recorded, never decisive
+				a.Diagnostics = append(a.Diagnostics, d.Object+" "+d.Signature)
+				continue
+			}
 			a.Changed = true
 			a.Signatures = append(a.Signatures, d.Object+" "+d.Signature)
 		}
 		sort.Strings(a.Signatures)
+		sort.Strings(a.Diagnostics)
 		switch {
 		case !a.ReactedFrom || !a.ReactedTo:
 			a.Observed = domain.BehaviourUndetermined
@@ -366,6 +384,9 @@ func armDetail(a domain.ProofArm) string {
 		a.Name, a.Condition, a.Predicted, a.Observed, a.ReactedFrom, a.ReactedTo)
 	if len(a.Signatures) > 0 {
 		d += "; differences: " + strings.Join(a.Signatures, "; ")
+	}
+	if len(a.Diagnostics) > 0 {
+		d += "; diagnostics, not decisive: " + strings.Join(a.Diagnostics, "; ")
 	}
 	if a.NonDiscriminating != "" {
 		d += "; non-discriminating, not decisive: " + a.NonDiscriminating

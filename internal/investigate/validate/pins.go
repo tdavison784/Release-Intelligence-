@@ -657,6 +657,8 @@ type scopeEval struct {
 	// schemas[i]); rule is the fact's evidence (condition defaults cite it).
 	crds []applicability.CRD
 	rule map[domain.EvidenceID]domain.Evidence
+	// observed are the fact's usable observed defaults (PD-5).
+	observed []domain.ObservedDefault
 }
 
 func newScopeEval(objs, schemas []effObj, fact *domain.VerifiedFact) *scopeEval {
@@ -677,6 +679,7 @@ func newScopeEval(objs, schemas []effObj, fact *domain.VerifiedFact) *scopeEval 
 		for _, e := range fact.Evidence {
 			sc.rule[e.ID] = e
 		}
+		sc.observed, _ = fact.UsableObservedDefaults()
 	}
 	return sc
 }
@@ -871,7 +874,8 @@ func (sc *scopeEval) fieldDefault(c domain.Condition, e effObj) (applicability.D
 			schema = applicability.ParentAbsent(schema, c.Path)
 		}
 	}
-	d := applicability.Resolve(schema, applicability.RuleDefault(c, sc.rule))
+	obs, conflict := applicability.ObservedFor(sc.observed, o.ID.Group, o.ID.Kind, c.Path)
+	d := applicability.WithObserved(applicability.Resolve(schema, applicability.RuleDefault(c, sc.rule)), obs, conflict)
 	var evs []domain.Evidence
 	if d.State == applicability.Known {
 		for _, i := range d.CRDs {

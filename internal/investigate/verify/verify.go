@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
@@ -276,7 +277,7 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		res = Resolvers{}
 	}
 	cit := CheckCitations(ctx, res, rule, bounds, evs)
-	sem := CheckSemantics(rule, evs, cit)
+	sem := CheckSemantics(rule, evs, cit, refinement)
 	if sem.Outcome == domain.MethodInconclusive {
 		limitations = append(limitations, "the semantic check could not decide every token the rule asserts: the human reviewer judges whether the cited passages state it")
 	}
@@ -301,6 +302,19 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		ProposedRuleDigest: rule.Digest(), Methods: methods, VersionBounds: bounds, Conditions: rule.Applicability,
 		Limitations: append(append([]string(nil), baseLimitations...), limitations...), Producer: Producer, CheckedAt: o.Now().UTC().Truncate(time.Second)}
 	p.Outcome = domain.ProofOutcomeOf(methods)
+	// PD-5: defaults observed by the default probes, on a confirmed proof only
+	if ods, notes := ObservedDefaults(rule, ex, ObservationFixture{Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)]}); len(ods) > 0 || len(notes) > 0 {
+		p.Limitations = append(p.Limitations, notes...)
+		for _, d := range ods {
+			if p.Outcome != domain.ProofConfirmed {
+				p.Limitations = append(p.Limitations, fmt.Sprintf("the default probes observed an unset %s behaving as %s, but the proof is %s, so no observed default is recorded", d.Path, d.Value, p.Outcome))
+				continue
+			}
+			p.ObservedDefaults = append(p.ObservedDefaults, d)
+			p.Limitations = append(p.Limitations, fmt.Sprintf("objects that leave %s unset are decided by the default %s = %s observed by this proof (%s, controller %s); the rule itself states no default for it",
+				d.Path, d.Path, d.Value, d.Limitation, strings.Join(d.Versions, " and ")))
+		}
+	}
 	p.Level = domain.LevelDeterministic
 	if ex.Outcome != domain.MethodNotRun {
 		p.Level = domain.LevelObserved

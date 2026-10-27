@@ -383,6 +383,8 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 		}
 		// a condition default must cite the fact's own evidence
 		opts := ConditionOptions{Render: render, Evidence: f.Evidence}
+		// an observed default only through a confirmed proof of this rule
+		opts.Observed, _ = f.UsableObservedDefaults()
 		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
 		for _, c := range attached {
 			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
@@ -649,6 +651,10 @@ func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected [
 	for _, p := range s.Proposals {
 		rec.Proposals[p.ID] = p
 	}
+	proofs := map[string]domain.ProofRecord{}
+	for _, p := range s.Proofs {
+		proofs[p.ID] = p
+	}
 	for _, f := range s.Facts {
 		if err := f.Validate(); err != nil {
 			rejected = append(rejected, fmt.Sprintf("%s: %v", f.ID, err))
@@ -657,6 +663,20 @@ func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected [
 		if err := domain.ValidateFactRecords(f, rec); err != nil {
 			rejected = append(rejected, fmt.Sprintf("%s: verification not proven by its records: %v", f.ID, err))
 			continue
+		}
+		// PD-5: an observed default is used only through a confirmed proof
+		// of exactly the fact's rule that records it; any other is ignored
+		// (its field stays unknown), never the fact
+		if len(f.ObservedDefaults) > 0 {
+			var kept []domain.ObservedDefault
+			for _, d := range f.ObservedDefaults {
+				if why := domain.ObservedDefaultEstablished(f, d, proofs); why != "" {
+					rejected = append(rejected, fmt.Sprintf("%s: observed default %s = %s ignored: %s", f.ID, d.Key(), d.Value, why))
+					continue
+				}
+				kept = append(kept, d)
+			}
+			f.ObservedDefaults = kept
 		}
 		facts = append(facts, f)
 	}

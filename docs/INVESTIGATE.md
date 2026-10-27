@@ -1416,8 +1416,15 @@ stored beside the item under `<product>/<release>/proofs/`):
   *accepted* is unsupported; claiming it is *rejected* is supported. Extraction is lexical and generic: quoted spans count
   as values only in value positions (after *is*, *to*, *of*, *accepts*, …, or continuing such a list); dotted, lowerCamel,
   flag-like names and versions are never values. Applicability-condition values are not compared: they scope the
-  environment and are tested by the exercise arms and the applicability checks. The method is **optional**: it never
-  replaces the citation check or the rule exercise.
+  environment and are tested by the exercise arms and the applicability checks. **Role tokens** (Phase 6 M4 fix, lane
+  verify3): a scope refinement's statement carries a clause naming the catalog role's condition values
+  (`domain.ScopeRefinement.Clause`, e.g. "… consumer role R (f = true); subjects outside it (f = false) …"). Those values
+  come from the catalog role and are established by the role's consumer exercise, not by the base rule's upstream
+  citation, so the tokens of that clause that are a role or outside-role value are **excluded**: each is recorded as a
+  `not-run` check naming the condition, its source and the method that establishes it (`consumer exercise (role R)`).
+  Every other token — of the base statement, of the change, and any other token of the clause — is checked as before,
+  including a role value the base statement asserts itself; a statement that does not carry the clause verbatim excludes
+  nothing. The method is **optional**: it never replaces the citation check or the rule exercise.
 - **Rule exercise** (`verify.exercise@v2`, observed, opt-in `-runtime`; v1 before non-discriminating arms). A **synthetic** fixture built from the
   rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
   in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
@@ -1485,6 +1492,17 @@ the rule cannot predict an arm or an omitted-field object (a rule that only work
 whose condition default is not evidenced), or when its exposure contradicts how an arm was built. At runtime an
 omitted-field arm predicted to keep the previous behaviour that changes refutes the rule; one that does not confirm
 its prediction keeps the exercise from passing.
+
+### Behaviour signatures are object state (Phase 6 M4 fix, lane verify3)
+
+An arm's **signatures** — the differences that make it `changed` — are object state only: existence, the apply
+outcome, reconciliation (`observedGeneration`), status conditions, readiness, restarts and data digests of the arm's
+objects and their outputs. Controller **log lines** (`log:…`) and **warning events** (`warning:…`) naming an arm's
+object differ between runs for reasons unrelated to the rule (a controller retrying a lookup, an event emitted once):
+they are recorded on the arm as `diagnostics` (shown in the review UI as "diagnostics, never decisive") and never
+decide an arm, in either observation (`runtime.Degradation.Diagnostic`; producers `verify.exercise@v3`,
+`verify.exercise-consumer@v3`). Environment runs (`ri investigate --runtime`) keep counting them as before. Stored
+proofs are not re-judged.
 
 ### Non-discriminating arms (Phase 6 M4 fix, lane verify2)
 
@@ -1561,10 +1579,30 @@ declared role-absent observation (else `not-run`). On top of the outcome rule be
 observed without consumer harm** (verified at FROM and at TO): an unobserved or never-established role-absent arm is
 `inconclusive`; a role-absent consumer that breaks at TO refutes. A role field with no evidenced default stays
 **undecidable** for objects that omit it: its omitted-field arms are not built and the proof records the limitation
-(the evaluators keep such objects unknown), instead of failing the boundary fixtures as an ordinary rule does. Every
-refinement proof states that it covers only consumers that use the key material as the role's consumer exercise
-does. The resulting rule is promoted through the unchanged gate (a human, a confirmed proof of the same digest,
-version bounds).
+(the evaluators keep such objects unknown), instead of failing the boundary fixtures as an ordinary rule does —
+unless the exercise **observes** the default (below). Every refinement proof states that it covers only consumers
+that use the key material as the role's consumer exercise does. The resulting rule is promoted through the unchanged
+gate (a human, a confirmed proof of the same digest, version bounds).
+
+**Observed defaults** (PD-5, Phase 6 M4 fix, lane verify3; `verify/probe.go`). For a role field F the refinement
+compares but states no evidenced default for, the exercise adds **default probes**: for up to two base arms that set F
+(the exposed arm in the role first, and a role-absent arm), the base arm's object without F
+(`default-probe-N-unset`) and with F set to the role's other value (`default-probe-N-other`), each with the base
+arm's own consuming objects and observation (`ProofArm.probe`). Probes are run and recorded and **never decide** the
+method (their checks are `inconclusive`, "a default probe, never decisive"). On a **confirmed** proof only,
+`ProofRecord.observedDefaults` records `F = V` (level `observed`) when, in an observation, the unset probe's consumer
+outcome at FROM and TO equals the arm with F = V **and** the arm with the other value observed a different one. When
+the two explicit values behave alike the observation shows nothing about the default (recorded as a limitation, no
+default); two observations that disagree record nothing either (a contradiction); an unobserved probe leaves its
+observation out. Each observed default carries the arms, what they observed, the controller versions (FROM, TO), the
+fixture's controller values and digest, the run's artifacts, the rule digest and the limitation "observed on the
+fixture's controller configuration"; the proof adds a limitation saying objects that omit F are decided by it. A
+proof that is inconclusive or refuted records none (its limitations say what the probes saw). On **human promotion**
+through the gate, the observed defaults of the confirmed proof that opened it are carried into the fact
+(`VerifiedFact.observedDefaults`, with the proof id); the review UI shows them with their limitation before the
+decision, and `ri knowledge decide` prints them on the minted fact. The evaluators use one only through that proof
+(IMPACT.md). The distinguishing condition is this lane's reading of PD-5: an observation in which the explicit values
+behave alike cannot show how an unset field behaves.
 
 **The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
 after the version's baseline observation and before its exercises (inside the exercise window at both
@@ -1583,7 +1621,8 @@ verifies at FROM and at TO and every exposed arm verifies at FROM and fails at T
 shielded arm fails at either version; otherwise `inconclusive` — an exposed arm that still verifies at TO
 (quiet), an exposed arm that fails already at FROM (no baseline), any undetermined arm, or no exposed arm at
 all (the rule can then be refuted but never confirmed). Data differences on the arm's objects (e.g. the leaf's
-own key rotating) are listed on the arm as "not decisive for the consumer". The cert-manager fixture declares
+own key rotating) are listed on the arm as "not decisive for the consumer"; log lines and warning events as
+diagnostics. The cert-manager fixture declares
 `ca-trust`: the arm's Certificate is a self-signed CA, a CA `Issuer` signs a leaf with it, the CA and then the
 leaf are re-issued, and the leaf's `tls.crt` is verified against the CA's `ca.crt` captured before.
 

@@ -113,6 +113,9 @@ type Result struct {
 	Verdict Verdict      `json:"verdict"`
 	Detail  string       `json:"detail"`
 	Tokens  []TokenCheck `json:"tokens,omitempty"`
+	// Excluded are tokens not compared with the passages: they belong to
+	// conditions another method establishes (CheckAssertionExcluding).
+	Excluded []Exclusion `json:"excluded,omitempty"`
 }
 
 // Check checks a free-text claim against its cited passages.

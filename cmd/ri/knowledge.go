@@ -228,6 +228,10 @@ func (c *cli) knowledgeDecide(args []string) error {
 	fmt.Fprintf(c.out, "decision %s (%s, %s)\n", o.Decision.ID, o.Decision.Action, o.Decision.ReviewerKind)
 	if o.Fact != nil {
 		fmt.Fprintf(c.out, "fact %s at level %s\n", o.Fact.ID, o.Fact.Level())
+		for _, od := range o.Fact.ObservedDefaults {
+			fmt.Fprintf(c.out, "  observed default (PD-5): an unset %s on %s behaves as %s, by confirmed proof %s at controller %s — limitation: %s\n",
+				od.Path, od.Kind, od.Value, od.Proof, strings.Join(od.Versions, ", "), od.Limitation)
+		}
 	}
 	if o.Conflict != "" {
 		fmt.Fprintf(c.out, "conflict (decision recorded, no fact): %s\n", o.Conflict)

@@ -50,7 +50,9 @@ import (
 // observation decides it (component@vN; the produced-object observation
 // stays ExerciseProducer). v2 (lane verify2, D-0025): non-discriminating
 // exposed arms never decide; the role-absent observation; scope refinements.
-const ConsumerExerciseProducer = "verify.exercise-consumer@v2"
+// v3 (lane verify3, D-0026): log lines and warning events are diagnostics;
+// default probes (PD-5) are recorded and never decide.
+const ConsumerExerciseProducer = "verify.exercise-consumer@v3"
 
 // ConsumerFixture is one declared consumer observation of a subject kind.
 type ConsumerFixture struct {
@@ -336,6 +338,9 @@ func holdsAny(alts [][]domain.Condition, obj map[string]any) (ok, known bool) {
 type consumerArm struct {
 	Arm
 	consumers []map[string]any
+	// outside: a default probe of an outside-role arm, observed by the
+	// role-absent observation like its base arm (probe.go).
+	outside bool
 }
 
 // BuildConsumerArms builds the arms of a rule's consumer observation (see
@@ -492,7 +497,7 @@ func consumerCheckOf(a consumerArm, cf *ConsumerFixture, fx *SubjectFixture, exe
 		g = "core"
 	}
 	trust, verify, reissue := cf.Trust, cf.Verify, cf.Reissue
-	if o := cf.Outside; o != nil && isOutsideRole(a.Name) {
+	if o := cf.Outside; o != nil && (isOutsideRole(a.Name) || a.outside) {
 		trust, verify, reissue = o.Trust, o.Verify, o.Reissue
 	}
 	c := runtime.ConsumerCheck{ID: a.Name, Exercise: exercise, Trust: secret(trust), Verify: secret(verify)}
@@ -555,10 +560,32 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan, refinemen
 				infra = true
 				continue
 			}
+			if d.Diagnostic() {
+				a.Diagnostics = append(a.Diagnostics, d.Object+" "+d.Signature)
+				continue
+			}
 			a.Signatures = append(a.Signatures, "data, not decisive for the consumer: "+d.Object+" "+d.Signature)
 		}
 		sort.Strings(a.Signatures)
+		sort.Strings(a.Diagnostics)
 		fo, too := outcomeOf(from), outcomeOf(to)
+		if p.Probe != nil {
+			// a default probe (probe.go): recorded, never decisive
+			a.Probe = p.Probe
+			switch {
+			case fo == runtime.ConsumerVerified && too == runtime.ConsumerVerified:
+				a.Observed = domain.BehaviourPrevious
+			case fo == runtime.ConsumerVerified && too == runtime.ConsumerFailed:
+				a.Observed, a.Changed = domain.BehaviourNew, true
+			default:
+				a.Observed = domain.BehaviourUndetermined
+			}
+			a.Signatures = append([]string{fmt.Sprintf("consumer: FROM %s, TO %s", fo, too)}, a.Signatures...)
+			m.Arms = append(m.Arms, a)
+			m.Checks = append(m.Checks, domain.ProofCheck{Subject: a.Name, Outcome: domain.MethodInconclusive,
+				Detail: consumerArmDetail(a, from, to) + "; a default probe, never decisive"})
+			continue
+		}
 		if isOutsideRole(p.Name) {
 			switch {
 			case fo == runtime.ConsumerVerified && too == runtime.ConsumerFailed:

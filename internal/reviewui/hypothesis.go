@@ -39,6 +39,9 @@ type proofView struct {
 	ID, Outcome, Level, CheckedAt, Bounds string
 	Methods                               []methodView
 	Limitations                           []string
+	// ObservedDefaults are the defaults the proof observed (PD-5): shown
+	// with their limitation before the reviewer decides.
+	ObservedDefaults []domain.ObservedDefault
 }
 
 type methodView struct {
@@ -101,7 +104,7 @@ func newHypothesisView(rc *knowledge.ReviewContext, form url.Values) *hypothesis
 
 func newProofView(p domain.ProofRecord) proofView {
 	pv := proofView{ID: p.ID, Outcome: string(p.Outcome), Level: string(p.Level), CheckedAt: p.CheckedAt.Format("2006-01-02 15:04 MST"),
-		Limitations: p.Limitations}
+		Limitations: p.Limitations, ObservedDefaults: p.ObservedDefaults}
 	if b := p.VersionBounds; b != nil {
 		pv.Bounds = fmt.Sprintf("(%s, %s]", b.From, b.To)
 	}
