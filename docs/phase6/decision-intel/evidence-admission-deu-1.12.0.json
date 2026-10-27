@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/runtime-admission/v1alpha1",
+  "validator": "runtime.admission-dry-run@v1",
+  "exercise": "ingress-nginx/ingress-admission",
+  "product": "ingress-nginx",
+  "version": "1.12.0",
+  "object": "networking.k8s.io/v1/Ingress//docs",
+  "namespace": "docs",
+  "level": "observed",
+  "outcome": "rejected",
+  "detail": "validating webhook validate.nginx.ingress.kubernetes.io denied the dry run of networking.k8s.io/v1/Ingress//docs",
+  "message": "Warning: path /.well-known cannot be used with pathType Prefix\nError from server (BadRequest): admission webhook \"validate.nginx.ingress.kubernetes.io\" denied the request: ingress contains invalid paths: path /.well-known cannot be used with pathType Prefix",
+  "rejectedBy": "webhook validate.nginx.ingress.kubernetes.io",
+  "webhooks": [
+    {
+      "configuration": "ingress-nginx-admission",
+      "name": "validate.nginx.ingress.kubernetes.io",
+      "service": "ingress-nginx/ingress-nginx-controller-admission",
+      "failurePolicy": "Fail",
+      "sideEffects": "None",
+      "covers": true,
+      "ready": true
+    }
+  ],
+  "attempts": 1,
+  "run": {
+    "schemaVersion": "ri.dev/runtime-run/v1alpha1",
+    "validator": "runtime.admission-dry-run@v1",
+    "bundle": "adm-1bb0a94014ff",
+    "product": "ingress-nginx",
+    "from": "1.12.0",
+    "to": "1.12.0",
+    "status": "completed",
+    "cluster": "ri-admission-03f0ed9f",
+    "nodeImage": "kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865",
+    "kubernetesVersion": "1.31",
+    "tools": {
+      "docker": "29.0.1",
+      "kind": "kind v0.24.0 go1.22.6 darwin/arm64",
+      "kubectl": "v1.34.1"
+    },
+    "freeDiskBytes": 44658765824,
+    "startedAt": "2026-10-27T20:32:13.006063Z",
+    "finishedAt": "2026-10-27T20:33:22.754069Z",
+    "durationSeconds": 69.748006,
+    "budgetSeconds": 900,
+    "targets": [
+      {
+        "target": "controller@1.12.0",
+        "status": "ok",
+        "product": true,
+        "from": "",
+        "to": "1.12.0",
+        "namespace": "ingress-nginx",
+        "objects": 0,
+        "objectsTo": 18,
+        "verified": true
+      },
+      {
+        "target": "setup",
+        "status": "not-applicable",
+        "product": false,
+        "from": "",
+        "namespace": "docs",
+        "objects": 0,
+        "verified": true
+      }
+    ],
+    "phases": [
+      {
+        "phase": "to",
+        "started": "2026-10-27T20:32:42.439289Z",
+        "finished": "2026-10-27T20:33:21.676957Z",
+        "applied": 20
+      }
+    ],
+    "upgradeCompleted": false,
+    "cleanup": {
+      "cluster": "ri-admission-03f0ed9f",
+      "deleted": true,
+      "verified": true
+    }
+  }
+}

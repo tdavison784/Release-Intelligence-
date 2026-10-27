@@ -120,3 +120,69 @@ knowledge is K1 (`sha256:a028f48a…`).
 **Next:** lane `join5` (D-0028). Knowledge and pin evaluation run over the **rendered** objects of the environment's
 entrypoints, with source-file evidence mapped through the render; and membership defaults are applied in the pin scope
 through the fact's confirmed proof. Then re-run part B.
+
+## Attempt 4, 2026-10-28: GATE-M4 §1 MET, the first legitimate new clearance from the loop
+
+**Runs:** `A0-K0-20261028-6a87ded1-m4` vs `A0-K1-20261028-6a87ded1-m4`. Arm A0 (deterministic), offline, on the
+cert-manager pair. K1 = K0 plus the product owner's promotion of `vf-4d9b756f1343`.
+
+| Item | K0 | K1 | Expected |
+|---|---|---|---|
+| P-US B1, rotationPolicy | potentially-affected | **not-affected [deterministic]** | not-affected |
+| P-US B2 | potentially-affected | potentially-affected | not-affected |
+| P-EU B1, rotationPolicy | potentially-affected | potentially-affected (**not cleared**) | affected |
+| P-EU B2 | potentially-affected | potentially-affected | not-affected |
+
+- **P-US, both rotationPolicy items** (`ci-86548e9a2300`, `ci-93299c596271`): potentially-affected (15 and 10 gaps) →
+  **not-affected**, `classify:validated-clear`. The passing deterministic validation is `validate.override-inspection@v3`,
+  pinned through `vf-4d9b756f1343`.
+  - "R2.2 1 correlated environment rendered change(s) shown harmless": the CRD description change is covered by
+    field-scoped coverage (E3).
+  - "R2.4 12 impact path(s) covered."
+- **Unchanged:** the other 17 P-US items, and all 19 P-EU items.
+- **Decisions:** both cases stay `human-review-required`. On P-US, 16 of 19 items are not approval-eligible, against
+  18 before.
+- **Safety:** falseNegativeRate 0; unsafe clearances 0; clearances gained: P-US·B1 only; clearances lost: none.
+- **What each M4 step contributed:**
+  - formalize/v2 proposed the base rule plus the CA-trust refinement (from the M1 trace's `reads-file` edges);
+  - the verifier confirmed both by observation: non-discriminating arms, the role confined, and role-cannot-form
+    giving the observed membership default for unset isCA (PD-6);
+  - the product owner promoted the CA-scoped rule, superseding the broad fact;
+  - the deterministic pin over the **rendered** objects (join5) cleared P-US and correctly not P-EU, whose root CA
+    inherits Always.
+
+**Defects found and fixed on the way:**
+
+| Attempt | Defect | Lane |
+|---|---|---|
+| 1 | Exercise arms that cannot discriminate; a clearing scope needs consumer-trust evidence | verify2 |
+| 2 | semantic-check vs role tokens; log lines as behaviour signatures; unset role field | verify3 (PD-5) |
+| 2b | Default probes cannot distinguish values; "role cannot form" | verify4 (PD-6) |
+| 3 | Knowledge join read base files, not rendered overlays (fail-open risk elsewhere); the knowledge loader never loaded proofs | join5 |
+
+**Remaining for M4:** §2 negative controls (4), and §3: semantic-check on the M2 misread, plus the admission dry-run.
+
+## §3 M2 misread and admission, 2026-10-28
+
+**Admission dry-run: settled (observed).** `ri investigate admission -product ingress-nginx -version 1.12.0` was run on
+the D-EU `docs` Ingress (`env/apps/docs/base/ingress.yaml`, namespace `docs`, the environment's
+`platform/ingress-nginx/values.yaml`, Kubernetes 1.31, kind), producing `runtime.admission-dry-run@v1`.
+- **The outcome is `rejected`:** "admission webhook "validate.nginx.ingress.kubernetes.io" denied the request:
+  ingress contains invalid paths: path /.well-known cannot be used with pathType Prefix".
+- **The run was sound:** the webhook covered the object, was ready, used `failurePolicy: Fail`, and took 70 s; the
+  cluster was deleted.
+- **The record** is saved as `evidence-admission-deu-1.12.0.json`.
+- This is the observed ground truth for D-EU B3: **affected**. It confirms that the M2 v13 live r3 not-affected was a
+  false-safe built on a misread of correct evidence.
+
+**semantic-check on the M2 misread: NOT MET.** Run on `C1-K0-20261027-35027090-v13-deu-r3`, the check returns
+`undetermined`, not `unsupported`.
+- **Why:** the behaviour entry's text is the topic only ("Strict path validation character set"), which asserts no
+  value token.
+- **Where the wrong value lives:** in the verdict's `environmentReasoning` ("satisfy the strict path pattern
+  (alphanumeric, '-', '_', '/'... '.')"), which the report-only check does not read.
+- **The gap:** behaviour entries carry no structured *claimed value*, so a model can cite the right passage and assert
+  a different value elsewhere.
+- **Candidate fix (M4 follow-up):** the behaviour entry states the claimed value it relies on, structured (for
+  example accepted characters, or a default value). semantic-check compares that against the cited passage, and the
+  verdict's reasoning is checked for value tokens attributed to the same behaviour.
