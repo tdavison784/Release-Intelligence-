@@ -12,12 +12,24 @@ Branch `p6di/formalize` (from `p6-decision-intel` @ 971636bc). Brief: `briefs/fo
   `agent.BoundsWithinRun`; the session calls them with its own lookups (v8 behaviour unchanged; existing v6/v8
   mitigation tests pass).
 - `domain.Hypothesis.ProposedVerification` (+ type `domain.ProposedVerification`), schemas regenerated.
-- Tests: `internal/formalize/formalize_test.go`, `internal/investigate/agent/mitigation_test.go`.
+- Tests: `internal/formalize/{formalize,handoff}_test.go`, `internal/investigate/agent/mitigation_test.go`
+  (non-invention, unrepresentable kept, scripted-exchange replay, bounded retry/failure, policy isolation, hand-off
+  through `ExportHypotheses`, v8 path, generic prompt).
+- CLI: `ri investigate formalize <inv-id> [-assessment] [-knowledge] [-formalize-model] [-formalize-exchange]
+  [-claude-bin]`; `-formalize` (+ model/exchange) on `ri eval -investigations` (records in the work store and the
+  stored case as `formalizations.json`); `ri verify hypotheses` reads formalization records first (run source
+  `formalizedRuns` in `cmd/ri/formalize.go`).
+- Docs: `M4-IMPLEMENTATION.md` (started; formalize section), `docs/INVESTIGATE.md` "Evidence formalization", README
+  command list.
+- Smoke (unscored, non-development): pre-computation over stored v9 run `M1s-v9-shop-de-20261020-f6c23796`; no model
+  call.
 
 ## In progress (exact next step)
 
-- CLI: `ri investigate formalize <inv>` (records + optional `-knowledge` export through `ExportHypotheses`), a
-  `verify` run source that finds formalized hypotheses, `-formalize` on `ri eval -investigations`; then docs.
+- Nothing: lane done pending the commander's merge order. When told: `git merge p6-decision-intel` (after
+  `applicability` and `semverify`), then integrate the evidenced `Condition` default: let a cited default discharge
+  the `default` uncertainty of its setting and lift the any(unset, value) check for it (M4-IMPLEMENTATION.md
+  "Known limits").
 
 ## Decisions (with why)
 
@@ -37,13 +49,20 @@ Branch `p6di/formalize` (from `p6-decision-intel` @ 971636bc). Brief: `briefs/fo
 4. **Defaults:** a rule with `any(unset, <value> on the same field)` (or `not(set)`) is rejected: it treats an unset
    field as a value. Until the `applicability` lane's evidenced default is merged, the prompt asks for an undecidable
    leaf.
-5. **Environment basis** in formalization = the run's verified setting claims about the item and its validation
+5. **Hand-off without changing `ExportHypotheses`:** a view of the run whose `Hypotheses` are the formalized ones;
+   verification finds them through a run source reading the formalization records first.
+6. **`claude -p` client reused** from `internal/synthesize` (`synthesize.ClaudePrint`) rather than copied.
+7. **Environment basis** in formalization = the run's verified setting claims about the item and its validation
    records (no graph-subject resolution offline).
 
 ## Files touched outside ownership
 
 - `internal/domain/investigation.go`: the `ProposedVerification` field/type and its validation hunk (owned field).
 - `schemas/investigation.schema.json` (regenerated).
+- `cmd/ri/verify.go`: the run source wraps `verify.StateRuns` with `formalizedRuns` (+ usage line).
+- `cmd/ri/eval_investigations.go`: `-formalize` flags, `invStored.Formalizations`, `invFormalize`, the
+  `formalizations.json` part of a stored case (additive hunks).
+- `README.md`, `docs/INVESTIGATE.md`: one command line and one section.
 
 ## Contract changes (additive; `CONTRACT-CHANGE(formalize)`)
 
@@ -55,4 +74,6 @@ Branch `p6di/formalize` (from `p6-decision-intel` @ 971636bc). Brief: `briefs/fo
 
 ## Test status
 
-- `go test ./internal/formalize/ ./internal/investigate/agent/ ./internal/domain/...`: green.
+- `go build ./... && go vet ./... && go test ./...`: green.
+- Cleanup: no kind cluster or server was started; the smoke extraction and the scratch binary were in the session
+  scratchpad and are removed; nothing large in the worktree.

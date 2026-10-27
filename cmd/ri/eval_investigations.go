@@ -26,6 +26,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/eval"
+	"github.com/tdavison784/release-intelligence/internal/formalize"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
 	"github.com/tdavison784/release-intelligence/internal/investigate/classify"
 	runpkg "github.com/tdavison784/release-intelligence/internal/investigate/run"
@@ -94,6 +95,8 @@ type invStored struct {
 	Report     *domain.ImpactReport
 	ChangeText map[string]string
 	Transcript []byte
+	// Formalizations are the run's formalization records (-formalize).
+	Formalizations []formalize.Record
 }
 
 func hasFlag(args []string, name string) ([]string, bool) {
@@ -132,6 +135,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")
 	synth := addSynthFlags(fs)
+	form := addFormalizeFlags(fs, true)
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
@@ -251,7 +255,7 @@ func (c *cli) evalInvestigations(args []string) error {
 		t0 := time.Now()
 		fmt.Fprintf(c.err, "· %s …\n", cs.ID)
 		s, run, err := c.invRunCase(cs, workDir, invCaseFlags{knowledge: *knowledge, agent: *agentOn, driver: *driver, model: *model,
-			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt, synth: synth})
+			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt, synth: synth, formalize: form})
 		m := InvRunMetaCase{ID: cs.ID, InputDigest: cs.InputDigest, EnvDigest: cs.EnvDigest, ExpectedDigest: cs.ExpectedDigest,
 			Seconds: int(time.Since(t0).Seconds())}
 		if err != nil {
@@ -321,6 +325,7 @@ type invCaseFlags struct {
 	driver, model, replayDir, claudeBin string
 	prompt                              string // agent prompt version ("" = default)
 	synth                               synthFlags
+	formalize                           formalizeFlags
 }
 
 // invRunCase runs one case through the real pipeline and loads what it stored.
@@ -381,8 +386,37 @@ func (c *cli) invRunCase(cs *eval.InvCase, workDir string, cf invCaseFlags) (*in
 	if err != nil {
 		return nil, nil, err
 	}
+	if cf.formalize.enabled() {
+		if err := c.invFormalize(s, st, workDir, cf); err != nil {
+			return nil, nil, err
+		}
+	}
 	run := s.evalRun(cs.ID)
 	return s, run, nil
+}
+
+// invFormalize formalizes a case's agent assessments (-formalize): the
+// records go to the work store and the stored case; a pending exchange or
+// an unreachable model is reported and the case goes on. Formalization never
+// changes the run record, so the case's score is the same without it.
+func (c *cli) invFormalize(s *invStored, st *store.Store, workDir string, cf invCaseFlags) error {
+	a, err := c.newApp()
+	if err != nil {
+		return err
+	}
+	outcomes, recs, err := formalizeRun(c.ctx, c.formalizer(a, cf.formalize, cf.claudeBin), formalize.Store{Dir: formalize.StateDir(workDir)}, st, s.Inv, s.Bundle, "")
+	if err != nil {
+		return err
+	}
+	s.Formalizations = recs
+	for _, o := range outcomes {
+		line := fmt.Sprintf("formalize: %s (%s): %s, %d hypotheses", o.Assessment, o.ChangeItem, o.Status, len(o.Hypotheses))
+		if o.Status != formalize.StatusComplete && o.Detail != "" {
+			line += ": " + o.Detail
+		}
+		fmt.Fprintf(c.err, "  · %s\n", line)
+	}
+	return nil
 }
 
 // loadInvFromStore reads the run record, its bundle and artifacts back.
@@ -541,6 +575,9 @@ func saveInvRun(dir string, meta InvRunMeta, score *eval.InvScore, stored map[st
 		}
 		if len(s.Transcript) > 0 {
 			parts["transcript.jsonl"] = s.Transcript
+		}
+		if len(s.Formalizations) > 0 {
+			parts["formalizations.json"] = s.Formalizations
 		}
 		for name, v := range parts {
 			raw, err := invFileBytes(v)
