@@ -54,6 +54,17 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-6. "The role cannot form" is an observed outcome (2026-10-28): M4
+
+> "go with option 1"
+
+When a default probe shows that, with a role field at some value (unset included), the consumer relationship the
+role describes **cannot form**, that is an observed probe outcome meaning *outside the role* for that value. For
+example: a subject that cannot act as the issuer the consumer trusts, so no dependent output is ever issued.
+- It establishes role membership only (an observed **role-membership default**), not a general field default.
+- It is recorded with its evidence and its limitation, used only through a confirmed proof, and shown at human
+  promotion.
+
 ## PD-5. Observed defaults count as evidence (2026-10-28): M4
 
 > "go with option 1"

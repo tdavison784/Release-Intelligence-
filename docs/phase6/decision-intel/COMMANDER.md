@@ -63,6 +63,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-28 (product owner): **PD-6, "the role cannot form" is an observed outcome** (option 1): an observed
+  role-membership default, through a confirmed proof only.
+
 - 2026-10-28 (product owner): **PD-5, observed defaults count as evidence** (option 1), only through a confirmed proof,
   with promotion still human.
 
