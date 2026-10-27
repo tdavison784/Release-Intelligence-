@@ -276,6 +276,10 @@ proof validates, `m4rescore` 1004/1004 identical); membership defaults enter the
   proven membership default; not for another condition on the field; a schema default in the role contradicts it.
 - Kind (opt-in): case `role-cannot-form` in `TestRefinementKind`
   (`RI_VERIFY2_KIND=1 RI_VERIFY2_CASES=role-cannot-form RI_VERIFY2_STATE=<scratch state> go test ./cmd/ri -run RefinementKind -v -timeout 60m`).
+  Run 2026-10-27 (cert-manager 1.17.2 → 1.18.0, 555 s): the refinement is confirmed; the in-role probes (unset,
+  `false`) are `role-cannot-form` at FROM and TO (the CA Issuer reports `Ready=False (ErrInvalidKeyPair): certificate
+  is not a CA` in every observation; the leaf stays `Ready=False (DoesNotExist)`, `Issuing=True`; its Secret never
+  exists); `spec.isCA unset ⇒ outside role ca-trust (observed)` is derived; no field default.
 
 ### Known limits
 

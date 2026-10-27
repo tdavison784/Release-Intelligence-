@@ -28,14 +28,19 @@ lane `verify4`.
    Issuer reports `Ready=False (ErrInvalidKeyPair): … certificate is not a CA`; the leaf stays
    `Ready=False (DoesNotExist)`, `Issuing=True`; its Secret never exists), giving
    `spec.isCA unset ⇒ outside role ca-trust (observed)` and no field default.
+6b. **Live kind case `role-cannot-form`** with the new code (2026-10-27, same fixture `fx-063edd092de5`, 555 s,
+   cluster `ri-verify-7b9ead0f` deleted): method `pass` (the refinement confirmed; probes never decide); in-role probes
+   unset and `false` observed `role-cannot-form` at FROM and TO, evidence = the CA Issuer's
+   `Ready=False (ErrInvalidKeyPair): certificate is not a CA` in all four observations, plus the leaf state and the
+   missing leaf Secret; `RoleMembershipDefaults` → `spec.isCA unset ⇒ outside role ca-trust (observed)`; no field
+   default.
 7. **History**: 241/241 checked-in facts verify, the stored proof validates, `m4rescore` 1004/1004 identical.
 8. **Docs**: `M4-IMPLEMENTATION.md` (lane section), `docs/INVESTIGATE.md` (outcome, membership default, real run),
    `docs/IMPACT.md` (membership leaves in the evaluator). Schemas regenerated (`knowledge-record.schema.json`).
 
 ## In progress (exact next step)
 
-- The opt-in kind case `role-cannot-form` with the new code is running (log in the scratchpad); then record its
-  result here and in INVESTIGATE.md, commit, clean up (scratch state clone, clusters), report.
+- Nothing: lane done; awaiting the commander's merge.
 
 ## Decisions
 
