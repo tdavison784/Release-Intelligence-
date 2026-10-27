@@ -605,6 +605,43 @@ diffing). Real runs on groundtruth inputs (one kind cluster at a time, minutes p
 `RI_RUNTIME_STATE=<warm .ri> RI_RUNTIME_CASES=<case>[,<case>] [RI_RUNTIME_TIMEOUT=20m] go test
 ./internal/investigate/runtime -run Groundtruth -v -timeout 60m`.
 
+### Admission dry run (`runtime.admission-dry-run@v1`, Phase 6 Milestone 4)
+
+Does the **target version's validating admission webhook** accept one environment object? Static evidence can leave
+this open (a parser's actual character class, a validation the documentation does not state); the API server's answer
+settles it. **Opt-in**: its own command, never part of an investigation run.
+
+```
+ri investigate admission -product ingress-nginx -version 1.12.1 -object ingress.yaml \
+    [-setup refs.yaml] [-values controller-values.yaml] [-namespace ns] [-exercise ID] [-kubernetes 1.31] [-timeout 15m] [-json]
+```
+
+1. The product's controller is rendered at the target version (chart defaults; the product's verification fixture's
+   `controller.values` when declared; `-values` instead) and installed with the isolated upgrade's apply and readiness
+   rules into a throwaway cluster `ri-admission-<8 hex>` (same preflight: tools, free disk, the pinned node image, one
+   isolated cluster at a time; same budget; deleted on every exit path, deletion verified). `-setup` objects (what the
+   submitted object refers to) are applied for real; the object's namespace is created.
+2. The validating webhooks whose rules cover a `CREATE` of the object's resource (from discovery) are listed with their
+   selectors evaluated (`namespaceSelector`, `objectSelector`: matchLabels and In/NotIn/Exists/DoesNotExist;
+   `matchConditions` are not evaluated, so such a webhook is not counted) and waited for until their service has a
+   ready endpoint.
+3. The object is submitted once as `kubectl apply --server-side --dry-run=server` (nothing is stored), retried while
+   the webhook cannot be called (connection refused, certificate not yet injected, …).
+
+The record (`AdmissionRun`, level **observed**, stored as `derived/runtime-admission/<id>/admission.json`):
+
+| outcome | when |
+|---|---|
+| `accepted` | the API server admitted the dry run with at least one **effective** covering webhook in its path: its service had a ready endpoint, or its failure policy is `Fail` (a failed call rejects, it never silently admits) |
+| `rejected` | `admission webhook "<name>" denied the request: …` (`rejectedBy: webhook <name>`), or the API server's own validation (`is invalid`, `Invalid value`; `rejectedBy: api-server`, before any validating webhook), with the full message |
+| `undetermined` | no effective covering webhook (acceptance would show only the API server's own validation), a covering webhook whose `sideEffects` refuse dry runs, an answer that is neither a decision nor a validation failure after the retries, or a run that did not complete |
+
+Exercises of action `admission-dry-run` are declared in `products/exercises/<product>.yaml` (target kind, families,
+upstream references; no reaction — the outcome is the API server's answer); the isolated upgrade never runs them.
+ingress-nginx declares `ingress-admission` (Ingress). Tests: fake driver paths in `admission_test.go`; real kind
+fixtures (a stdlib webhook compiled into a `FROM scratch` image, clusters `ri-semverify-*`, accepted and rejected):
+`RI_ADMISSION_KIND=1 go test ./internal/investigate/runtime -run AdmissionKind -v -timeout 20m`.
+
 ## Relationships
 
 Secondary supporting context (the rendered diff is the centerpiece). Package `internal/investigate/relations`
@@ -1355,6 +1392,21 @@ stored beside the item under `<product>/<release>/proofs/`):
   version outside the bounds (versions are read from the URL; a minor-only token like `1.18` names a release
   line). Any failure ⇒ `fail`; no bounds or no citation ⇒ `not-run`; no passing passage naming the subject ⇒
   `inconclusive` (whether the text *states* the behaviour is the reviewer's judgement, listed as a limitation).
+- **Semantic check** (`verify.semantic-check@v1`, deterministic, Phase 6 M4; package
+  `internal/investigate/verify/semantic`). The citation check proves a passage exists, not that it says what the rule
+  says (the M2 finding: correct upstream text, misread). Over the passages that **passed** the citation check, the value
+  tokens the rule asserts — its change's before/after values and the values its statement asserts (defaults, allowed or
+  enumerated values, character classes and single characters, booleans) — must each occur with the **same polarity**
+  ("accepts" vs "rejects", "true" vs "false", "enabled" vs "disabled", "valid" vs "invalid", negators flip). A token the
+  passages lack, or one they state only reversed ⇒ `fail` (the rule is unsupported, the proof refuted). A claim with no
+  comparable token, or whose token's polarity cannot be read in the passage ⇒ `inconclusive`: it is routed to the human
+  reviewer (never to a model) and recorded as a limitation. No established passage ⇒ `not-run`. A regular-expression
+  character class, or a list in a clause with "only", is an exhaustive allowed set: claiming a character outside it is
+  *accepted* is unsupported; claiming it is *rejected* is supported. Extraction is lexical and generic: quoted spans count
+  as values only in value positions (after *is*, *to*, *of*, *accepts*, …, or continuing such a list); dotted, lowerCamel,
+  flag-like names and versions are never values. Applicability-condition values are not compared: they scope the
+  environment and are tested by the exercise arms and the applicability checks. The method is **optional**: it never
+  replaces the citation check or the rule exercise.
 - **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
   rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
   in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
@@ -1381,8 +1433,9 @@ stored beside the item under `<product>/<release>/proofs/`):
   `set`/`not-equals` use the change's previous value; a rule without an overlap is mitigated by setting an
   "exposed while unset" field to its previous value) — never approximated.
 
-**Outcome** = `confirmed` only when both methods passed; any `fail` ⇒ `refuted`; otherwise `inconclusive`
-(`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
+**Outcome** = `confirmed` only when both required methods (citation check, rule exercise) passed; any `fail` of any
+method (the semantic check included) ⇒ `refuted`; otherwise `inconclusive` — an inconclusive or not-run semantic check
+does not hold back an otherwise confirmed proof, since a human must accept the item anyway (`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
 exercise without both arms answered, and a level that does not match: `observed` exactly when the exercise
 ran). Each proof lists its limitations (one synthetic object per arm, chart-default controller, other consumers
 and topologies not covered, applicability to an environment decided by the validators, not by the proof). A
@@ -1394,6 +1447,19 @@ files' digests, recorded by every runtime run, are untouched): `controller.value
 and per subject `target` (group/version/kind), `exercise` (an id from `products/exercises/<product>.yaml`, which
 must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
 name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
+
+### Semantic check of agent behaviour (report-only, Phase 6 M4)
+
+The same check runs over every agent assessment `behaviour` entry sourced `upstream`: its statement against the
+passages its citations quote (the cited evidence records' excerpts in the run's pool). Each entry is `supported`,
+`unsupported` or `undetermined`. It is **report-only**: never a classification input, never a policy input.
+
+- **Synthesis input and reports.** The upgrade-level pre-computation adds one disagreement
+  `behaviour-unsupported-by-citation` (not hard) per unsupported entry, with the reason (the missing token, or the
+  reversed polarity) and the cited evidence; the judgement copies it verbatim, so the change-ticket section and the report
+  UI show it beside the other disagreements.
+- **Stored runs.** `ri investigate semcheck [-store DIR] [-json] <key>…` re-checks stored runs (an investigation store,
+  or stored evaluation runs with keys `<run-id>/<case>`) and prints every upstream entry with its verdict and reason.
 
 ### Consumer observation (lane verify2)
 
@@ -1638,7 +1704,8 @@ the decision, the review or knowledge.
 - **Deterministic pre-computation** (a pure function of the run record, bundle, impact report, edge and the product's
   release list): the hard findings and disagreements, each with a content-derived id (security regressions, confirmed
   breakage, failed validations, target options still affected, agent-versus-classification disagreements, untraced
-  consumers, unestablished upstream behaviour, advisory inconsistencies, an incomplete advisory picture); the target
+  consumers, unestablished upstream behaviour, upstream behaviour its own citations do not support (the report-only
+semantic check, Milestone 4), advisory inconsistencies, an incomplete advisory picture); the target
   options of the PD-3 rule (minimum safe release from the edge's candidates; the latest patch on the chosen line when it
   removes every regression and adds no assessed advisory; nothing is safe while a security source is unread); the change
   locations established by deterministic facts (a passing pin, verified setting claims, the GitOps line stating the

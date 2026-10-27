@@ -79,11 +79,16 @@ const (
 	JFBehaviourUnestablished JudgementFindingKind = "behaviour-unestablished" // upstream behaviour unavailable or not checked
 	JFAdvisoryInconsistency  JudgementFindingKind = "advisory-inconsistency"  // an advisory contradicts itself
 	JFSecurityIncomplete     JudgementFindingKind = "security-incomplete"     // the advisory picture is incomplete or unavailable
+	// JFBehaviourUnsupported: an upstream behaviour the assessment relies on
+	// asserts a value its cited passage lacks, or states with the opposite
+	// polarity (the report-only semantic check, lane semverify).
+	// CONTRACT-CHANGE(semverify): additive.
+	JFBehaviourUnsupported JudgementFindingKind = "behaviour-unsupported-by-citation"
 )
 
 // JudgementFindingKinds lists every kind.
 var JudgementFindingKinds = []JudgementFindingKind{JFSecurityRegression, JFConfirmedBreakage, JFFailedValidation, JFCandidateAffected,
-	JFAgentDisagreement, JFUntracedConsumer, JFBehaviourUnestablished, JFAdvisoryInconsistency, JFSecurityIncomplete}
+	JFAgentDisagreement, JFUntracedConsumer, JFBehaviourUnestablished, JFAdvisoryInconsistency, JFSecurityIncomplete, JFBehaviourUnsupported}
 
 // Hard reports whether the kind is a hard deterministic finding (PD-1).
 func (k JudgementFindingKind) Hard() bool {

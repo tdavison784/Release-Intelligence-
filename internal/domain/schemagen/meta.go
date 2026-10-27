@@ -125,7 +125,7 @@ var enums = []enumSet{
 	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact, domain.RecordProof),
 	// --- phase 5 proof records (internal/domain/proof.go) ---
 	enumOf(domain.ProofConfirmed, domain.ProofRefuted, domain.ProofInconclusive),
-	enumOf(domain.ProofMethodKinds...),
+	enumOf(domain.AllProofMethodKinds...),
 	enumOf(domain.MethodPass, domain.MethodFail, domain.MethodInconclusive, domain.MethodNotRun),
 	// --- phase 4 investigation (internal/domain/investigation.go) ---
 	enumOf(domain.CollectionStatuses...),

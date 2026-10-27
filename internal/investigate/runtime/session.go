@@ -162,6 +162,9 @@ type session struct {
 	allConsumed bool
 	// consumers are a fixture's consumer checks (consumer.go).
 	consumers []ConsumerCheck
+	// body replaces the upgrade phases inside the cluster (an admission dry
+	// run, admission.go); nil runs them.
+	body func(ctx context.Context, cl Cluster) error
 }
 
 func (s *session) clusterPrefix() string {
@@ -205,7 +208,11 @@ func (s *session) execute(parent context.Context) {
 		s.stopFor(ctx, parent, "create cluster", fmt.Errorf("cluster %s could not be created: %w", r.Cluster, err))
 		return
 	}
-	if err := s.phases(ctx, cl); err != nil {
+	body := s.phases
+	if s.body != nil {
+		body = s.body
+	}
+	if err := body(ctx, cl); err != nil {
 		s.stopFor(ctx, parent, "run", err)
 		return
 	}
@@ -989,6 +996,9 @@ func (s *session) productProblems(phase string) []string {
 func (s *session) selectExercises() {
 	o := s.obs[PhaseFrom]
 	for _, d := range s.v.exercises {
+		if d.admission() {
+			continue
+		}
 		for id, st := range o.Objects {
 			r, _ := ParseRef(id)
 			if st.Exists && d.targets(r) {

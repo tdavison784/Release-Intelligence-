@@ -15,7 +15,7 @@ import (
 const FixtureClusterPrefix = "ri-verify-"
 
 func isIsolatedCluster(name string) bool {
-	return strings.HasPrefix(name, ClusterPrefix) || strings.HasPrefix(name, FixtureClusterPrefix)
+	return strings.HasPrefix(name, ClusterPrefix) || strings.HasPrefix(name, FixtureClusterPrefix) || strings.HasPrefix(name, AdmissionClusterPrefix)
 }
 
 // FixtureSpec is an isolated upgrade of a synthetic fixture instead of a

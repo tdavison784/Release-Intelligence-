@@ -55,6 +55,17 @@ type Cluster interface {
 	Logs(ctx context.Context, namespace, pod string, since time.Time) (string, error)
 }
 
+// AdmissionCluster is a cluster that can submit server-side dry runs (the
+// admission dry run, admission.go). The kind cluster implements it.
+type AdmissionCluster interface {
+	// DryRunApply server-side applies one object with dryRun=All: the API
+	// server runs defaulting, validation and every admission webhook, and
+	// stores nothing. The error text is the API server's.
+	DryRunApply(ctx context.Context, m Manifest, namespace string) (map[string]any, error)
+	// Raw GETs an API server path (discovery: /api/v1, /apis/<group>/<version>).
+	Raw(ctx context.Context, path string) ([]byte, error)
+}
+
 // ErrUnservedKind reports a type the cluster does not serve (no built-in API
 // and no CRD defines it).
 var ErrUnservedKind = errors.New("runtime: the cluster serves no such type")
