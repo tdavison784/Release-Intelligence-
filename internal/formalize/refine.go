@@ -223,18 +223,11 @@ func RefineRule(rule domain.SemanticAssertion, r ConsumerRole, defaults map[stri
 		{Op: domain.OpAll, Of: leaves(r.Outside)}}}}
 	out := rule
 	out.Applicability = &domain.Applicability{Exposure: exposure, Overlap: &overlap}
-	out.Statement = strings.TrimSpace(rule.Statement + fmt.Sprintf(" Scope refinement (candidate): the harmful consequence occurs only for subjects in consumer role %s (%s); subjects outside it (%s) are shielded.",
-		r.ID, fieldsText(r.Role), fieldsText(r.Outside)))
+	out.Statement = strings.TrimSpace(rule.Statement + domain.ScopeRefinement{Consumer: r.ID, Role: r.Role, Outside: r.Outside}.Clause())
 	return out, ""
 }
 
-func fieldsText(fs []domain.RoleField) string {
-	var parts []string
-	for _, f := range fs {
-		parts = append(parts, f.Path+" = "+f.Value)
-	}
-	return strings.Join(parts, ", ")
-}
+func fieldsText(fs []domain.RoleField) string { return domain.RoleFieldsText(fs) }
 
 // refinements proposes the scope-refinement candidates of the accepted
 // rule hypotheses (see the comment above). notes say, per rule and role,

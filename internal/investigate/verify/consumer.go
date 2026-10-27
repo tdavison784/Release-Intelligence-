@@ -555,9 +555,14 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan, refinemen
 				infra = true
 				continue
 			}
+			if d.Diagnostic() {
+				a.Diagnostics = append(a.Diagnostics, d.Object+" "+d.Signature)
+				continue
+			}
 			a.Signatures = append(a.Signatures, "data, not decisive for the consumer: "+d.Object+" "+d.Signature)
 		}
 		sort.Strings(a.Signatures)
+		sort.Strings(a.Diagnostics)
 		fo, too := outcomeOf(from), outcomeOf(to)
 		if isOutsideRole(p.Name) {
 			switch {

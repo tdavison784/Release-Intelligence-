@@ -276,7 +276,7 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		res = Resolvers{}
 	}
 	cit := CheckCitations(ctx, res, rule, bounds, evs)
-	sem := CheckSemantics(rule, evs, cit)
+	sem := CheckSemantics(rule, evs, cit, refinement)
 	if sem.Outcome == domain.MethodInconclusive {
 		limitations = append(limitations, "the semantic check could not decide every token the rule asserts: the human reviewer judges whether the cited passages state it")
 	}

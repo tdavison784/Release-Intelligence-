@@ -141,6 +141,12 @@ type ProofArm struct {
 	// under the same exercise (Signatures lists the differences).
 	Changed    bool     `json:"changed"`
 	Signatures []string `json:"signatures,omitempty"`
+	// Diagnostics are differences that never decide the arm: controller
+	// log lines and warning events naming its objects, which are
+	// nondeterministic between runs. Signatures (and Changed) are object
+	// state only: the data, spec and status of the arm's objects and their
+	// outputs (lane verify3, D-0026). CONTRACT-CHANGE(verify3): additive.
+	Diagnostics []string `json:"diagnostics,omitempty"`
 	// Observed is "previous-behaviour", "new-behaviour" or "undetermined".
 	Observed string `json:"observed"`
 	// Consumer is the arm's consumer observation when the exercise made one

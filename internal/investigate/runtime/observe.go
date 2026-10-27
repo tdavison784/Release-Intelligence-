@@ -115,6 +115,16 @@ type Degradation struct {
 	Inconclusive bool `json:"inconclusive,omitempty"`
 }
 
+// Diagnostic reports whether the degradation is a controller log line or a
+// warning event rather than a change of object state (existence, apply
+// outcome, spec reconciliation, status conditions, readiness, restarts,
+// data). Log lines and events are nondeterministic between runs: a rule
+// exercise records them as diagnostics and never decides an arm on them
+// (lane verify3, D-0026). Environment runs keep counting them.
+func (d Degradation) Diagnostic() bool {
+	return strings.HasPrefix(d.Signature, "log:") || strings.HasPrefix(d.Signature, "warning:")
+}
+
 // compareOptions say what may be compared between two observations.
 type compareOptions struct {
 	// samePods: the pods are the same in both (an exercise window), so
