@@ -35,7 +35,7 @@ func enumOf[T ~string](values ...T) enumSet {
 
 var enums = []enumSet{
 	enumOf(domain.SecurityComplete, domain.SecurityIncomplete, domain.SecurityUnavailable),
-	enumOf(domain.CandidateTargetLine, domain.CandidateAnyLine, domain.CandidateClean),
+	enumOf(domain.CandidateTargetLine, domain.CandidateAnyLine, domain.CandidateClean, domain.CandidateCurrentLine),
 	enumOf(domain.MethodDeclared, domain.MethodComputed, domain.MethodHeuristic, domain.MethodAI),
 	enumOf(domain.ConfidenceHigh, domain.ConfidenceMedium, domain.ConfidenceLow),
 	enumOf(
@@ -430,7 +430,7 @@ var descriptions = map[string]string{
 	"EdgeSecurity.gaps":        "Every reason the assessment is not complete; never empty unless status is complete.",
 	"EdgeSecurity.regressions": "Advisories whose machine-readable range covers the target but not the current version.",
 	"EdgeSecurity.unassessed":  "Advisories without a machine-readable range (free text, a list that is not one interval, a Go pseudo-version bound): not matched against any version; check manually.",
-	"VersionCandidate.kind":    "target-line: lowest release on the target's line above the current version that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release above the current version affected by no assessed advisory.",
+	"VersionCandidate.kind":    "Upgrade targets, chosen at or above the target: target-line: lowest release on the target's line that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release affected by no assessed advisory. current-line is information, not a target: the lowest later patch of the current version's line, below the target, that removes every advisory persisting into the target and introduces none (for a defer or stay decision).",
 	"VersionCandidate.version": "The candidate release; absent when none exists (statement says so).",
 	"VersionCandidate.removes": "Advisories affecting the target that do not affect the candidate, with the evidence of their ranges.",
 	"VersionCandidate.leaves":  "Advisories that affect the candidate, with the evidence of their ranges.",

@@ -59,12 +59,9 @@ func SecurityLines(s *domain.EdgeSecurity, from, to domain.Version, cite func([]
 	list(fmt.Sprintf("Fixed: affect %s, not %s", from, to), s.Fixed, false)
 	list("Unassessed: no machine-readable range, check manually", s.Unassessed, false)
 	if len(s.Candidates) > 0 {
-		add("  Candidate versions (%d known releases above %s considered):", s.VersionsConsidered, from)
+		add("  Candidate versions (%d known releases at or above %s considered):", s.VersionsConsidered, to)
 		for _, c := range s.Candidates {
-			name := string(c.Kind)
-			if c.Line != "" {
-				name += " " + c.Line
-			}
+			name := c.Label()
 			if c.Version == nil {
 				add("    • %s: none. %s", name, c.Statement)
 				continue

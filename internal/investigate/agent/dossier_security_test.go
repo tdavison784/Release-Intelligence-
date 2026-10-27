@@ -12,6 +12,7 @@ func TestSecuritySummary(t *testing.T) {
 		t.Fatal("an edge without a security section adds nothing to the dossier")
 	}
 	v := domain.MustVersion("v1.1.1", "1.1.1")
+	cur := domain.MustVersion("v1.0.1", "1.0.1")
 	s := &domain.EdgeSecurity{
 		SchemaVersion: domain.EdgeSecuritySchemaVersion, Status: domain.SecurityIncomplete,
 		Regressions: []domain.SecurityAdvisory{{ID: "GHSA-reg", Severity: "critical", Summary: "injection", Vulnerable: ">= 1.1.0, < 1.1.1",
@@ -19,7 +20,8 @@ func TestSecuritySummary(t *testing.T) {
 		Candidates: []domain.VersionCandidate{
 			{Kind: domain.CandidateTargetLine, Line: "1.1", Version: &v, Removes: []domain.AdvisoryRef{{ID: "GHSA-reg"}},
 				Charts: []domain.CandidateChart{{Name: "example", Version: "4.1.1"}}, Evidence: []domain.EvidenceID{"ev-a", "ev-c"}},
-			{Kind: domain.CandidateClean, Statement: "No known release above v1.0.0 (up to v1.1.1) is free of every assessed advisory."},
+			{Kind: domain.CandidateClean, Statement: "No known release at or above v1.1.0 (up to v1.1.1) is free of every assessed advisory."},
+			{Kind: domain.CandidateCurrentLine, Line: "1.0", Version: &cur, Removes: []domain.AdvisoryRef{{ID: "GHSA-reg"}}, Evidence: []domain.EvidenceID{"ev-a"}},
 		},
 		Gaps: []string{"security source not read (repo: unavailable — offline)"},
 	}
@@ -40,6 +42,10 @@ func TestSecuritySummary(t *testing.T) {
 	}
 	if !strings.HasPrefix(d.Candidates[1], "clean: none.") {
 		t.Errorf("no-candidate line %q", d.Candidates[1])
+	}
+	// the current-line entry is labelled as information, not a target
+	if !strings.HasPrefix(d.Candidates[2], "current-line 1.0 (information for a defer or stay decision, not a target): v1.0.1.") {
+		t.Errorf("current-line line %q", d.Candidates[2])
 	}
 	if len(d.Fixed) != dossierSecurityLines+1 || !strings.Contains(d.Fixed[dossierSecurityLines], "2 more") {
 		t.Errorf("fixed list must be bounded: %d %v", len(d.Fixed), d.Fixed[len(d.Fixed)-1])

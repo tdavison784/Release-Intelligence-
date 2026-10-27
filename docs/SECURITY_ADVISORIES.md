@@ -94,21 +94,26 @@ impact report (`ImpactReport.Security`) and summarised in the agent dossier.
   versions, sources, timestamps, evidence and the `changeId` of its edge change (that is how it joins the
   report's findings).
 - **`unassessed`**: advisories without a machine-readable range, each also a gap.
-- **`candidates`**: computed from every known stable release above From (the version listing), when the target
-  is affected by an assessed advisory and at least one source was read:
+- **`candidates`**: computed when the target is affected by an assessed advisory and at least one source was read.
+  The upgrade-target candidates are chosen from every known stable release **at or above To** (the version listing;
+  `versionsConsidered` counts them). A later patch of the line the upgrade leaves is not an upgrade target, even when
+  it is lower and clean, so it is never chosen as one:
 
   | kind | what it is |
   |---|---|
-  | `target-line` | the lowest release on To's line that removes every regression, or the statement that none does |
-  | `any-line` | the same on any line |
-  | `clean` | the lowest release affected by no assessed advisory, or the statement that none is |
+  | `target-line` | the lowest release on To's line, at or above To, that removes every regression, or the statement that none does |
+  | `any-line` | the lowest release on any line, at or above To, that removes every regression, or the statement that none does |
+  | `clean` | the lowest release at or above To affected by no assessed advisory, or the statement that none is |
+  | `current-line` | **information, not a target** (only when advisories persist into To): the lowest later patch of From's line, below To, that removes every persisting advisory and introduces none, or the statement that none does. It informs a defer or stay decision; reports label it so |
+
+  `target-line` and `any-line` are only computed when To has a regression. Statements say "at or above <To>".
 
   "Removes every regression" means the candidate is affected by no assessed advisory that From is free of. So it
   removes To's regressions and introduces none of its own. It may still carry advisories that already affect
   From (listed in `leaves`).
 
   Each candidate also has:
-  - `removes`: advisories affecting To that do not affect the candidate;
+  - `removes`: advisories affecting To that do not affect the candidate (for every kind, `current-line` included);
   - `leaves`: advisories affecting the candidate;
   - `unassessed`: advisories it cannot be cleared of;
   - `charts`: the chart versions that ship it, where the product ships as a chart.
