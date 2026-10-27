@@ -143,7 +143,7 @@ func Precompute(in Input) (*Precomputed, error) {
 		return nil, fmt.Errorf("formalize: assessment %s is about %s, which is not an item of bundle %s", a.ID, a.ChangeItem, b.ID)
 	}
 	p := &Precomputed{Investigation: inv.ID, in: in, item: it, pool: b.EvidenceByID(), allowed: map[domain.EvidenceID]bool{},
-		arts: map[string]domain.ArtifactRef{},
+		arts:       map[string]domain.ArtifactRef{},
 		Transition: Transition{Product: b.Change.Product.ID, From: b.Change.From.Tag, To: b.Change.To.Tag},
 		Item:       Item{ID: it.ID, Title: it.Title, Family: it.Family, Manifestation: it.Manifestation, Subjects: it.Subjects},
 		Assessment: Assessment{ID: a.ID, Headline: a.Headline, Scope: a.Scope, Preconditions: a.Preconditions, WhatChanged: a.WhatChanged,

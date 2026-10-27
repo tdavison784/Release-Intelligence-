@@ -15,14 +15,16 @@ import (
 func TestCheckMitigationReadsOnlyItsEnv(t *testing.T) {
 	str := func(s string) *string { return &s }
 	rule := domain.ProposedRule{Release: domain.ReleaseBounds{From: "1.0.0", To: "1.1.0"}, Assertion: domain.SemanticAssertion{
-		Subject: &domain.Subject{Family: domain.SubjectHelmValue, Product: "acme", Path: "controller.mode"},
-		Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: str(`"a"`), After: str(`"b"`)},
+		Subject:       &domain.Subject{Family: domain.SubjectHelmValue, Product: "acme", Path: "controller.mode"},
+		Change:        &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: str(`"a"`), After: str(`"b"`)},
 		Applicability: &domain.Applicability{Exposure: domain.Condition{Op: domain.OpValuesKey, Path: "controller.mode", State: domain.StateUnset}},
 		Consequence:   &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired},
 		Statement:     "x"}}
 	up := domain.ArtifactRef{ID: "art-up", Origin: domain.OriginUpstream}
 	env := MitigationEnv{Product: "acme", From: "v1.0.0", To: "v1.1.0", Artifacts: []domain.ArtifactRef{up},
-		Read:     func(context.Context, domain.ArtifactRef) ([]byte, error) { return []byte("controller:\n  mode: a\n"), nil },
+		Read: func(context.Context, domain.ArtifactRef) ([]byte, error) {
+			return []byte("controller:\n  mode: a\n"), nil
+		},
 		Artifact: func(id string) (domain.ArtifactRef, bool) { return up, id == up.ID },
 		Basis: func(_ context.Context, item, ref string) string {
 			if ref == "clm-1" && item == "ci-1" {
