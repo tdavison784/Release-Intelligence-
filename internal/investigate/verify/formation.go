@@ -2,6 +2,7 @@ package verify
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -30,9 +31,13 @@ import (
 //     x509 error on an output that was read is not this);
 //   - the refusal stated in object state: every consuming object exists and
 //     was applied, and in every observation of the version at least one of
-//     them is reported not ready or failed by its controller, with the
-//     condition or reason. A consuming object the controller never reported
-//     on is a timeout, not a refusal.
+//     them carries a failure its controller reports (a failure condition
+//     that holds, or a condition that does not hold for a reason naming a
+//     failure, such as an invalid key pair). "Not ready" while the
+//     controller is still working on it (a Ready=False whose reason names
+//     no failure) is what a late output looks like too, so it is recorded
+//     as context and never suffices; nor does a consuming object the
+//     controller never reported on.
 //
 // The evidence is the observed states, conditions and warning events of the
 // arm's objects; log lines are never read for it. The outcome is recorded
@@ -80,11 +85,7 @@ func RoleCannotForm(res *runtime.FixtureResult, p armPlan, version string, c *ru
 			return nil, "the sandbox could not run " + d.Object
 		}
 	}
-	notProduced := c.Detail
-	if len(c.Unanswered) > 0 {
-		notProduced = c.Unanswered[0] + " was not re-issued"
-	}
-	evidence = append(evidence, fmt.Sprintf("%s: %s (consumer check: %s)", version, notProduced, c.Detail))
+	evidence = append(evidence, fmt.Sprintf("%s: the dependent output was not produced: %s", version, c.Detail))
 	seen := 0
 	for _, phase := range versionPhases(version) {
 		o := res.Observations[phase]
@@ -111,13 +112,16 @@ func RoleCannotForm(res *runtime.FixtureResult, p armPlan, version string, c *ru
 			case st.ApplyError != "":
 				return nil, fmt.Sprintf("%s: the consuming object %s was not applied: %s", phase, id, st.ApplyError)
 			}
-			if reason := refusal(st); reason != "" {
+			switch failure := refusal(st); {
+			case failure != "":
 				refusing++
-				evidence = append(evidence, fmt.Sprintf("%s: %s %s%s%s", phase, id, reason, conditionsText(st.Conditions), eventsText(st.Warnings)))
+				evidence = append(evidence, fmt.Sprintf("%s: %s reports a failure, %s%s%s", phase, id, failure, conditionsText(st.Conditions), eventsText(st.Warnings)))
+			case st.Ready != nil && !*st.Ready:
+				evidence = append(evidence, fmt.Sprintf("%s: %s not ready: %s%s", phase, id, st.NotReady, conditionsText(st.Conditions)))
 			}
 		}
 		if refusing == 0 {
-			return nil, fmt.Sprintf("%s: no consuming object is reported not ready or failed: the output may only be late", phase)
+			return nil, fmt.Sprintf("%s: no consuming object reports a failure: the output may only be late", phase)
 		}
 		if v, ok := o.Objects[p.consumer.Verify.Secret]; ok {
 			if _, has := v.Data[p.consumer.Verify.Key]; !v.Exists || !has {
@@ -131,16 +135,10 @@ func RoleCannotForm(res *runtime.FixtureResult, p armPlan, version string, c *ru
 	return evidence, ""
 }
 
-// refusal is how a controller reports that an object did not reach its
-// purpose ("" when it does not): not ready with the reason, or a failure
-// condition.
+// refusal is how a controller reports that an object failed to reach its
+// purpose ("" when it does not): a failure condition that holds, or a
+// condition that does not hold for a reason naming a failure.
 func refusal(st runtime.ObjectState) string {
-	if st.Ready != nil && !*st.Ready {
-		if st.NotReady != "" {
-			return "not ready: " + st.NotReady
-		}
-		return "not ready"
-	}
 	for _, c := range st.Conditions {
 		if failureCondition(c) {
 			return fmt.Sprintf("condition %s=%s (%s)", c.Type, c.Status, c.Reason)
@@ -149,16 +147,19 @@ func refusal(st runtime.ObjectState) string {
 	return ""
 }
 
+// failureReason matches condition reasons that name a failure (the
+// runtime's degradation rules use the same words).
+var failureReason = regexp.MustCompile(`(?i)fail|error|^err|invalid|denied|reject|forbidden`)
+
 // failureCondition reports a condition that announces a failure: a
-// negative condition type that holds, or a reason that names one.
+// negative condition type that holds, or a condition that does not hold
+// for a reason that names one.
 func failureCondition(c runtime.Condition) bool {
 	switch strings.ToLower(c.Type) {
 	case "degraded", "failed", "failure", "stalled", "error", "errored", "invalid":
 		return c.Status == "True"
 	}
-	r := strings.ToLower(c.Reason)
-	return c.Status != "True" && (strings.Contains(r, "fail") || strings.Contains(r, "error") || strings.Contains(r, "invalid") ||
-		strings.Contains(r, "denied") || strings.Contains(r, "reject"))
+	return c.Status != "True" && failureReason.MatchString(c.Reason)
 }
 
 func conditionsText(cs []runtime.Condition) string {

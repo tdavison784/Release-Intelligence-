@@ -12,7 +12,7 @@ package main
 //	  go test ./cmd/ri -run RefinementKind -v -timeout 60m
 //
 // RI_VERIFY2_CASES selects runs (comma list of confirmed, refuted,
-// inconclusive, observed-default; default all). It skips with a message when kind, kubectl,
+// inconclusive, observed-default, role-cannot-form; default all). It skips with a message when kind, kubectl,
 // docker or the docker daemon is missing. Every cluster is deleted.
 
 import (
@@ -126,6 +126,11 @@ func TestRefinementKind(t *testing.T) {
 		// an unset field behaves as (lane verify3); the refinement itself is
 		// confirmed as before, the probes never decide it
 		"observed-default": {ruleWith(`"Never"`, false), "1.17.2", "1.18.0", domain.MethodPass},
+		// the same run read for PD-6 (lane verify4): with spec.isCA unset (or
+		// false) the would-be CA cannot back the consumer's issuer, so the
+		// in-role probes are role-cannot-form at FROM and TO, and the
+		// observation establishes "spec.isCA unset ⇒ outside role ca-trust"
+		"role-cannot-form": {ruleWith(`"Never"`, false), "1.17.2", "1.18.0", domain.MethodPass},
 	}
 	only := map[string]bool{}
 	for _, c := range strings.Split(os.Getenv("RI_VERIFY2_CASES"), ",") {
@@ -133,7 +138,7 @@ func TestRefinementKind(t *testing.T) {
 			only[c] = true
 		}
 	}
-	for _, name := range []string{"confirmed", "refuted", "inconclusive", "observed-default"} {
+	for _, name := range []string{"confirmed", "refuted", "inconclusive", "observed-default", "role-cannot-form"} {
 		tc := cases[name]
 		if len(only) > 0 && !only[name] {
 			continue
@@ -169,6 +174,41 @@ func TestRefinementKind(t *testing.T) {
 				}
 				if probes == 0 {
 					t.Errorf("no default probe ran")
+				}
+			}
+			if name == "role-cannot-form" {
+				fx := verify.ObservationFixture{Bounds: &domain.ProofBounds{From: tc.from, To: tc.to}, Fixtures: fixtures["cert-manager"]}
+				inRole := 0
+				for _, arm := range m.Arms {
+					if arm.Probe == nil || strings.Contains(arm.Probe.Base, "outside-role") {
+						continue
+					}
+					inRole++
+					t.Logf("  in-role probe %s: observed %s", arm.Name, arm.Observed)
+					for _, r := range []*domain.ProofConsumerResult{arm.Consumer.From, arm.Consumer.To} {
+						for _, e := range r.Formation {
+							t.Logf("    formation: %s", e)
+						}
+					}
+					if arm.Probe.Omitted && arm.Observed != domain.BehaviourRoleCannotForm {
+						t.Errorf("the unset in-role probe %s is %s, not %s", arm.Name, arm.Observed, domain.BehaviourRoleCannotForm)
+					}
+				}
+				if inRole == 0 {
+					t.Errorf("no in-role default probe ran")
+				}
+				mds, notes := verify.RoleMembershipDefaults(tc.rule, m, fx, ref)
+				for _, d := range mds {
+					t.Logf("  role-membership default: %s (%s)", d.Statement(), d.Limitation)
+				}
+				for _, n := range notes {
+					t.Logf("  role-membership note: %s", n)
+				}
+				if len(mds) != 1 || mds[0].Path != "spec.isCA" || mds[0].Role != "ca-trust" {
+					t.Errorf("role-membership defaults %+v", mds)
+				}
+				if ods, _ := verify.ObservedDefaults(tc.rule, m, fx); len(ods) != 0 {
+					t.Errorf("a field default from role-cannot-form: %+v", ods)
 				}
 			}
 		})

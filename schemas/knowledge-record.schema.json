@@ -466,6 +466,7 @@
       "properties": {
         "outcome": {"type": "string"},
         "detail": {"type": "string"},
+        "formation": {"type": "array", "items": {"type": "string"}},
         "trustCertificates": {"type": "array", "items": {"type": "string"}},
         "trustKeys": {"type": "array", "items": {"type": "string"}},
         "certificate": {"type": "string"},
@@ -523,7 +524,8 @@
         "level": {"$ref": "#/$defs/ValidationLevel"},
         "producer": {"type": "string"},
         "checkedAt": {"type": "string", "format": "date-time"},
-        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}}
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}},
+        "roleMembershipDefaults": {"type": "array", "items": {"$ref": "#/$defs/RoleMembershipDefault"}}
       },
       "additionalProperties": false
     },
@@ -729,6 +731,44 @@
       "enum": ["pending", "needs-evidence", "deferred", "decided", "superseded"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "RoleMembershipDefault": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "role",
+        "roleValue",
+        "outsideValue",
+        "level",
+        "arms",
+        "observation",
+        "versions",
+        "controllerValues",
+        "fixture",
+        "evidence",
+        "limitation",
+        "ruleDigest"
+      ],
+      "properties": {
+        "group": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "role": {"type": "string"},
+        "roleValue": {"type": "string"},
+        "outsideValue": {"type": "string"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "arms": {"type": "array", "items": {"type": "string"}},
+        "observation": {"type": "string"},
+        "versions": {"type": "array", "items": {"type": "string"}},
+        "controllerValues": {"type": "string"},
+        "fixture": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "limitation": {"type": "string"},
+        "ruleDigest": {"type": "string"},
+        "proof": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "Route": {"type": "string", "enum": ["auto-verify", "review", "missing-evidence"]},
     "Routing": {
       "type": "object",
@@ -910,7 +950,8 @@
         "consensusAction": {"type": "boolean"},
         "auditedBy": {"type": "string"},
         "createdAt": {"type": "string", "format": "date-time"},
-        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}}
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}},
+        "roleMembershipDefaults": {"type": "array", "items": {"$ref": "#/$defs/RoleMembershipDefault"}}
       },
       "additionalProperties": false
     }
