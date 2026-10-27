@@ -106,6 +106,23 @@ scope uses (below and INVESTIGATE.md):
   rule's cited default — or another observed default of the same field — blocks
   both: the leaf is unknown with the contradiction, never silently resolved.
   The pin scope (INVESTIGATE.md) applies the same rule.
+- a **role-membership default** (PD-6, lane verify4): "F unset ⇒ outside role
+  R (observed)", recorded on a confirmed scope-refinement proof when the role's
+  relationship could not form for an object that leaves F unset
+  (INVESTIGATE.md), carried into the fact on human promotion
+  (`roleMembershipDefaults`). It is **not a default of F**: it decides only a
+  **membership leaf** of role R — a field leaf on F with state `equals` and a
+  single value that is R's value (then false) or the outside value (then true)
+  — on an object that leaves F unset. Any other condition on F (another value,
+  `not-equals`, `matches`, several values) stays unknown. The same guards as an
+  observed default: only through a confirmed proof of exactly the fact's rule
+  digest that records it (`UsableRoleMembershipDefaults`, `VerifyFacts`), else
+  ignored; an established default (schema, cited, or observed) that puts an
+  unset F in the role (R's value) contradicts it and blocks both; one outside
+  the role agrees and decides the leaf by its value; a contradiction already
+  found stays; two membership defaults that disagree block. The decided leaf
+  says "F is unset, so the object is outside role R (…proof, limitation)". The
+  pin scope applies the same rule.
 
 Otherwise the leaf is **unknown** (`semantic-ambiguity`, with what would settle
 it) — never false. A schema default and a condition default that disagree are
