@@ -194,10 +194,10 @@ const ObservedDefaultLimitation = "observed on the fixture's controller configur
 type ObservedDefault struct {
 	// Group and Kind are the subject kind; Path the field; Value the
 	// JSON-encoded value an unset Path behaves as.
-	Group string `json:"group,omitempty"`
-	Kind  string `json:"kind"`
-	Path  string `json:"path"`
-	Value string `json:"value"`
+	Group string          `json:"group,omitempty"`
+	Kind  string          `json:"kind"`
+	Path  string          `json:"path"`
+	Value string          `json:"value"`
 	Level ValidationLevel `json:"level"`
 	// Arms are the arms that establish it (base, omitted probe, other-value
 	// probe, per observation); Observation says what each observed.

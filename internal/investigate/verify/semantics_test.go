@@ -53,7 +53,9 @@ func TestCheckSemantics(t *testing.T) {
 }
 
 func TestProofOutcomeWithSemanticCheck(t *testing.T) {
-	pass := func(k domain.ProofMethodKind) domain.ProofMethod { return domain.ProofMethod{Method: k, Outcome: domain.MethodPass} }
+	pass := func(k domain.ProofMethodKind) domain.ProofMethod {
+		return domain.ProofMethod{Method: k, Outcome: domain.MethodPass}
+	}
 	with := func(o domain.MethodOutcome) []domain.ProofMethod {
 		return []domain.ProofMethod{pass(domain.ProofCitationCheck), {Method: domain.ProofSemanticCheck, Outcome: o}, pass(domain.ProofRuleExercise)}
 	}
