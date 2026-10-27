@@ -22,7 +22,7 @@ echo "=== investigate $(date -u +%H:%M:%SZ)"
 GITHUB_TOKEN=$(gh auth token) bin/ri -state "$S/state" investigate cert-manager v1.17.2 v1.18.0 \
   -repo "$CASE/env" -env-name payments-prod-us -kubernetes 1.31 -knowledge "$S/K0" \
   -agent -agent-model claude-sonnet-5-5 -o json > "$S/inv-us.json" 2> "$S/inv-us.stderr" || echo "investigate exit $?"
-inv=$(python3 -c "import json,sys;d=json.load(open('$S/inv-us.json'));print(d.get('id') or d.get('investigation',{}).get('id'))")
+inv=$(python3 -c "import json;d=json.load(open('$S/inv-us.json'));v=d.get('investigation');print(v if isinstance(v,str) else v.get('id'))")
 echo "inv=$inv"
 echo "=== formalize $(date -u +%H:%M:%SZ)"
 bin/ri -state "$S/state" investigate formalize "$inv" -knowledge "$S/K1" > "$S/formalize.out" 2> "$S/formalize.stderr" || echo "formalize exit $?"
