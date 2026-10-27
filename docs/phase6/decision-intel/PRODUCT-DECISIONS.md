@@ -54,6 +54,17 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-5. Observed defaults count as evidence (2026-10-28): M4
+
+> "go with option 1"
+
+A default for an unset field may be established by **observation**: the verifier's omitted-field arm on the real
+controller (an isolated kind cluster at the target version) shows how an unset field behaves.
+- It is recorded as an evidenced default at level `observed`, with its limitation ("observed on the fixture's
+  controller configuration").
+- It is usable only through a **confirmed proof** of the same rule, and the rule still needs **human promotion**.
+- Upstream-cited defaults remain valid as before.
+
 ## PD-4. M3 passes; pin-before-bump also applies where the change looks benign (2026-10-28): M4, M5
 
 > "I accept M3"
