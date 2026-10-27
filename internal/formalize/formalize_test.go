@@ -24,7 +24,7 @@ func TestPrecompute(t *testing.T) {
 		}
 	}
 	// verified + upstream behaviour + the item's claim; never another item's evidence
-	if got := strings.Join(cited, ","); got != "ev-crd,ev-env,ev-note" {
+	if got := strings.Join(cited, ","); got != "ev-crd,ev-default,ev-env,ev-note" {
 		t.Errorf("citable evidence = %s", got)
 	}
 	kinds := map[string]int{}

@@ -24,12 +24,15 @@ Branch `p6di/formalize` (from `p6-decision-intel` @ 971636bc). Brief: `briefs/fo
 - Smoke (unscored, non-development): pre-computation over stored v9 run `M1s-v9-shop-de-20261020-f6c23796`; no model
   call.
 
+- Merged `p6-decision-intel` (applicability + semverify; no conflicts) and integrated evidenced defaults: the model
+  states `Condition.Default` citing upstream evidence of the assessment and `discharges` the matching default
+  uncertainty; the floor rejects a default citing evidence outside the assessment, non-upstream evidence, or
+  unestablished per `FieldDefault.Unevidenced`; default citations join the hypothesis' citations (export carries them).
+  Test `TestEvidencedDefault`. Prompt `formalize/v1` edited in place (never run or recorded).
+
 ## In progress (exact next step)
 
-- Nothing: lane done pending the commander's merge order. When told: `git merge p6-decision-intel` (after
-  `applicability` and `semverify`), then integrate the evidenced `Condition` default: let a cited default discharge
-  the `default` uncertainty of its setting and lift the any(unset, value) check for it (M4-IMPLEMENTATION.md
-  "Known limits").
+- Nothing: lane done; awaiting the commander's merge.
 
 ## Decisions (with why)
 
@@ -47,8 +50,10 @@ Branch `p6di/formalize` (from `p6-decision-intel` @ 971636bc). Brief: `briefs/fo
    check), so a claim that depends on an uncertainty is a record. Every uncertainty also travels with every rule
    (`ProposedVerification.Uncertainties`, and appended to the requested verification so the human reviewer sees it).
 4. **Defaults:** a rule with `any(unset, <value> on the same field)` (or `not(set)`) is rejected: it treats an unset
-   field as a value. Until the `applicability` lane's evidenced default is merged, the prompt asks for an undecidable
-   leaf.
+   field as a value. After the `applicability` merge, a default is stated as `Condition.Default` with upstream
+   citations from the assessment's evidence (and discharges its `default` uncertainty); without such evidence, an
+   undecidable leaf. Default citations are unioned into the hypothesis' citations (a composition of checked ids, not a
+   repair) so the exported proposal carries the evidence the fact needs.
 5. **Hand-off without changing `ExportHypotheses`:** a view of the run whose `Hypotheses` are the formalized ones;
    verification finds them through a run source reading the formalization records first.
 6. **`claude -p` client reused** from `internal/synthesize` (`synthesize.ClaudePrint`) rather than copied.

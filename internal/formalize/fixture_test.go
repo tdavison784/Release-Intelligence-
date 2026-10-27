@@ -62,6 +62,7 @@ func newFixture() fixture {
 		Evidence: []domain.Evidence{
 			ev("ev-note", "art-notes", "upstream/notes.md#L2", "The default of spec.mode is now strict."),
 			ev("ev-crd", "art-crd", "upstream/crd.yaml#L8", "mode:"),
+			ev("ev-default", "art-crd", "upstream/crd.yaml#L12", "other: default off"),
 			ev("ev-env", "art-env", "env/widget.yaml#L4", "mode: legacy"),
 			ev("ev-foreign", "art-notes", "upstream/notes.md#L9", "another change"),
 		},
@@ -87,7 +88,7 @@ func newFixture() fixture {
 			Inferred: []string{"An explicit legacy keeps today's behaviour."},
 			Unknown:  []string{"whether Deployment/ns/app depends on strict mode"},
 			Behaviour: []domain.AssessmentBehaviour{
-				{Behaviour: "the default changes to strict", Source: domain.BehaviourUpstream, Citations: []domain.EvidenceID{"ev-note", "ev-crd"}},
+				{Behaviour: "the default changes to strict", Source: domain.BehaviourUpstream, Citations: []domain.EvidenceID{"ev-note", "ev-crd", "ev-default"}},
 				{Behaviour: "an explicit value is honoured", Source: domain.BehaviourNotChecked},
 			},
 			LikelyImpact:     "none for this environment",

@@ -231,7 +231,9 @@ func hypotheses(p *Precomputed, r *Record, cs []checked) []domain.Hypothesis {
 	for _, c := range cs {
 		claim := strings.TrimSpace(c.h.Claim)
 		var cites []domain.EvidenceID
-		for _, e := range c.cites {
+		// a stated default's evidence travels with the hypothesis, so the
+		// exported proposal (and a promoted fact) carries what establishes it
+		for _, e := range append(append([]domain.Evidence(nil), c.cites...), c.defaultCites...) {
 			cites = append(cites, e.ID)
 		}
 		cites = uniqEvidence(cites)
@@ -242,11 +244,15 @@ func hypotheses(p *Precomputed, r *Record, cs []checked) []domain.Hypothesis {
 		pv := &domain.ProposedVerification{Assessment: p.Assessment.ID, Conditions: trimAll(c.h.Conditions)}
 		if c.h.Kind == KindRule {
 			spec := *c.spec
-			if len(all) > 0 {
-				spec.RequestedVerification += " Unresolved in the investigation (kept by formalization): " + strings.Join(all, "; ") + "."
+			open := unresolved(p, c.discharged)
+			if len(open) > 0 {
+				spec.RequestedVerification += " Unresolved in the investigation (kept by formalization): " + strings.Join(open, "; ") + "."
+			}
+			if len(c.discharged) > 0 {
+				spec.RequestedVerification += " The rule states evidenced defaults; verify them with the field unset."
 			}
 			h.Mitigation = &spec
-			pv.Method, pv.Uncertainties = spec.RequestedVerification, all
+			pv.Method, pv.Uncertainties = spec.RequestedVerification, open
 		} else {
 			h.MitigationRejected = "not representable as a mitigation rule: " + strings.TrimSpace(c.h.Limitation)
 			pv.Method, pv.Rule = strings.TrimSpace(c.h.ProposedVerification), c.rule
@@ -259,6 +265,21 @@ func hypotheses(p *Precomputed, r *Record, cs []checked) []domain.Hypothesis {
 		out = append(out, h)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
+}
+
+// unresolved are the uncertainties' texts, less the defaults a rule settles.
+func unresolved(p *Precomputed, discharged []string) []string {
+	settled := map[string]bool{}
+	for _, id := range discharged {
+		settled[id] = true
+	}
+	var out []string
+	for _, u := range p.Uncertainties {
+		if !settled[u.ID] {
+			out = append(out, u.Text)
+		}
+	}
 	return out
 }
 

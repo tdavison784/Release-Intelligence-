@@ -37,6 +37,9 @@ type AnswerHypothesis struct {
 	Limitation            string               `json:"limitation"`
 	ProposedVerification  string               `json:"proposedVerification"`
 	Keeps                 []string             `json:"keeps"`
+	// Discharges are the ids of the `default` uncertainties this
+	// hypothesis' rule settles with an evidenced Condition.Default.
+	Discharges []string `json:"discharges"`
 }
 
 // decode reads an answer strictly: an unknown field anywhere (also inside
@@ -63,15 +66,22 @@ type checked struct {
 	cites []domain.Evidence
 	spec  *domain.MitigationSpec
 	kept  []string // uncertainty ids kept by this hypothesis
+	// discharged are the default uncertainties its rule settles with an
+	// evidenced default; defaultCites the evidence of its defaults.
+	discharged   []string
+	defaultCites []domain.Evidence
 }
 
 // Floor checks an answer against the input (mission D4) and returns the
 // violations; nothing is repaired. Every citation must be evidence the
 // assessment established; every uncertainty must be kept (an undecidable
-// leaf or an unrepresentable record); a rule must pass the spec checks
+// leaf or an unrepresentable record), except a default uncertainty a rule
+// settles with an evidenced default; a rule must pass the spec checks
 // (agent.CheckMitigation: complete, decidable, a subject of the run's
 // product found in the bundle, bounds within the run, a resolving basis, an
-// upstream citation); no rule may treat an unset field as a value.
+// upstream citation); a stated default cites upstream evidence the
+// assessment established; no rule treats an unset field as a value without
+// stating its default.
 func Floor(ctx context.Context, p *Precomputed, a *Answer) []string {
 	_, v := floor(ctx, p, a)
 	return v
@@ -89,7 +99,7 @@ func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string)
 	if strings.TrimSpace(a.NoHypothesisReason) != "" {
 		bad("noHypothesisReason is only for an answer without hypotheses")
 	}
-	kept := map[string]bool{}
+	kept, discharged := map[string]bool{}, map[string]bool{}
 	claims := map[string]int{}
 	var out []checked
 	for i, h := range a.Hypotheses {
@@ -119,6 +129,22 @@ func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string)
 			c.rule = &r
 			for _, why := range unevidencedDefaults(r.Assertion) {
 				at("%s", why)
+			}
+			var why []string
+			c.defaultCites, why = p.defaults(r.Assertion)
+			for _, w := range why {
+				at("%s", w)
+			}
+		}
+		for _, id := range h.Discharges {
+			u, ok := p.uncertainty(id)
+			switch {
+			case !ok || u.Kind != UncertaintyDefault:
+				at("discharges %q, which is not a default uncertainty id", id)
+			case c.rule == nil || len(ruleDefaults(c.rule.Assertion)) == 0:
+				at("discharges %s but its rule states no default (a value leaf with `default` citing the evidence that establishes it)", id)
+			default:
+				c.discharged = append(c.discharged, id)
 			}
 		}
 		switch h.Kind {
@@ -163,11 +189,15 @@ func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string)
 				kept[id] = true
 			}
 		}
+		for _, id := range c.discharged {
+			discharged[id] = true
+		}
 		out = append(out, c)
 	}
 	for _, u := range p.Uncertainties {
-		if !kept[u.ID] {
-			bad("uncertainty %s (%s: %q) is dropped: keep it as an undecidable leaf (needed = its id) in an unrepresentable record's rule, or in an unrepresentable record's keeps", u.ID, u.Kind, clip(u.Text, 200))
+		if !kept[u.ID] && !discharged[u.ID] {
+			bad("uncertainty %s (%s: %q) is dropped: keep it as an undecidable leaf (needed = its id) in an unrepresentable record's rule, or in an unrepresentable record's keeps%s",
+				u.ID, u.Kind, clip(u.Text, 200), map[bool]string{true: ", or settle it with an evidenced default in a rule (discharges)"}[u.Kind == UncertaintyDefault])
 		}
 	}
 	return out, violations
@@ -261,7 +291,7 @@ func unevidencedDefaults(a domain.SemanticAssertion) []string {
 			}
 			sort.Strings(fields)
 			for _, f := range fields {
-				out = append(out, fmt.Sprintf("the rule treats an unset field as a value (any of unset and a value of %s): that is a default, which needs evidence the grammar cannot carry; write an undecidable leaf for it", f))
+				out = append(out, fmt.Sprintf("the rule treats an unset field as a value (any of unset and a value of %s): that is a default; state it on the value leaf (`default` citing upstream evidence that establishes it) or write an undecidable leaf", f))
 			}
 		}
 		for _, x := range c.Of {
@@ -283,6 +313,48 @@ func nonEmpty(xs []string) []string {
 		}
 	}
 	return out
+}
+
+// ruleDefaults are the field defaults a rule states (exposure and overlap).
+func ruleDefaults(a domain.SemanticAssertion) []domain.FieldDefault {
+	if a.Applicability == nil {
+		return nil
+	}
+	ds := a.Applicability.Exposure.Defaults()
+	if a.Applicability.Overlap != nil {
+		ds = append(ds, a.Applicability.Overlap.Defaults()...)
+	}
+	return ds
+}
+
+// defaults checks every default a rule states (mission D4): each citation is
+// evidence the assessment established, upstream text, and establishes the
+// default as the evaluators read it (domain.FieldDefault.Unevidenced over the
+// citable evidence). It returns the cited evidence and the violations.
+func (p *Precomputed) defaults(a domain.SemanticAssertion) ([]domain.Evidence, []string) {
+	citable := map[domain.EvidenceID]domain.Evidence{}
+	for id := range p.allowed {
+		citable[id] = p.pool[id]
+	}
+	var cites []domain.Evidence
+	var out []string
+	for _, d := range ruleDefaults(a) {
+		for _, id := range d.Citations {
+			e, ok := citable[id]
+			switch {
+			case !ok:
+				out = append(out, fmt.Sprintf("the default %s cites %q, which is not evidence the assessment established: a default cites only upstream ids from `evidence`", d.Value, id))
+			case !p.upstream(e):
+				out = append(out, fmt.Sprintf("the default %s cites %s, which is not upstream text: a default is established by the upstream schema or code, never by the environment", d.Value, id))
+			default:
+				cites = append(cites, e)
+			}
+		}
+		if why := d.Unevidenced(citable); why != "" && len(d.Citations) > 0 {
+			out = append(out, fmt.Sprintf("the default %s is not established: %s", d.Value, why))
+		}
+	}
+	return cites, uniqStrings(out)
 }
 
 // env is what the spec checks read about the stored run.

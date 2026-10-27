@@ -31,16 +31,23 @@ not a correct rule; never make a rule look stronger than its sources.
      environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap,
      semantic-ambiguity>, "needed": <the uncertainty's id>}`) in the rule of an `unrepresentable` record; or
    - in the `keeps` list of an `unrepresentable` record.
-   Never remove an uncertainty to make a rule valid. An uncertainty the claim depends on belongs in that claim's
-   record.
+   A `default` uncertainty may instead be settled by a rule that states that default with upstream evidence (rule
+   3, `discharges`). Never remove an uncertainty to make a rule valid. An uncertainty the claim depends on belongs in
+   that claim's record.
 3. **Never broaden applicability.**
    - Release bounds lie within the transition: `from` is at or after the transition's `from`, `to` at or before its
      `to`.
    - Keep every condition the assessment states. A condition the grammar can decide goes into the rule; one it
      cannot (a runtime or operational fact, a precondition) is an undecidable leaf or stays in a record.
    - **Defaults.** A rule must not treat an unset field as if it had a value (for example `any` of `unset` and
-     `equals` on the same field): what an unset field means is a default, and this grammar version cannot cite a
-     default. Where the claim depends on what an unset field means, write an undecidable leaf for it.
+     `equals` on the same field): what an unset field means is a default, and a default needs evidence. Where the
+     claim depends on what an unset field means:
+     - if `evidence` holds upstream text that establishes the default (`upstream: true`: the field's `default` in the
+       upstream schema, or the upstream code or documentation that sets it), state it on the value leaf:
+       `"default": {"value": <JSON-encoded value>, "source": "crd-schema" | "controller", "citations": [<those ids>]}`,
+       and list the matching `default` uncertainty in the hypothesis' `discharges`;
+     - otherwise write an undecidable leaf for it. Never cite the environment, an inferred statement or remembered
+       behaviour for a default.
    - The rule's subject belongs to the transition's product.
 4. **Two kinds of hypothesis.**
    - `rule`: the claim as a complete, decidable mitigation rule: subject, change, applicability (`exposure`, the

@@ -21,7 +21,8 @@
           "requestedVerification",
           "limitation",
           "proposedVerification",
-          "keeps"
+          "keeps",
+          "discharges"
         ],
         "properties": {
           "kind": {
@@ -166,11 +167,11 @@
                         "properties": {
                           "exposure": {
                             "type": "object",
-                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it)."
+                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?, default?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it). A `field`, `cli-flag` or `env-var` leaf with a value state (equals, not-equals, matches, has-token, has-token-key) may state `default`: {value (JSON-encoded), source crd-schema|controller, citations: upstream evidence ids that establish what an unset field holds}."
                           },
                           "overlap": {
                             "type": "object",
-                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it)."
+                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?, default?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it). A `field`, `cli-flag` or `env-var` leaf with a value state (equals, not-equals, matches, has-token, has-token-key) may state `default`: {value (JSON-encoded), source crd-schema|controller, citations: upstream evidence ids that establish what an unset field holds}."
                           }
                         }
                       },
@@ -279,6 +280,13 @@
               "type": "string"
             },
             "description": "kind unrepresentable: ids of the uncertainties this record keeps; otherwise empty"
+          },
+          "discharges": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ids of the `default` uncertainties the rule settles with an evidenced default (a value leaf's `default`); otherwise empty"
           }
         }
       }

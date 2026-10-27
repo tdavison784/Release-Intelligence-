@@ -18,6 +18,27 @@ Branch `p6di/formalize`. Plan changes 1–4 with the brief's tests.
 | 3 | **Unrepresentable claims** (D3): a `Hypothesis` with `MitigationRejected` = "not representable as a mitigation rule: <limitation>", the original claim, its citations, and the additive `Hypothesis.ProposedVerification` (`domain.ProposedVerification`: the assessment id, the method, the intended conditions, the uncertainties kept verbatim, and the partial rule). A rule hypothesis gets `ProposedVerification` too: every uncertainty of the assessment, also appended to the spec's requested verification so the human reviewer sees it in the review item. Schemas regenerated. | `internal/domain/investigation.go` |
 | 4 | **Entry points.** `ri investigate formalize <inv-id> [-assessment aas-…] [-knowledge DIR] [-formalize-model M] [-formalize-exchange DIR] [-claude-bin B]` and `-formalize` on `ri eval -investigations` (records in the work store and in the stored case as `formalizations.json`). Records are stored beside the run at `<state>/investigations/formalizations/<inv-id>/<fmz-id>.json` (`formalize.Store`). `-knowledge` feeds the run's formalized hypotheses to `agent.ExportHypotheses` **unchanged**, through a view of the run whose hypotheses are the formalized ones; `ri verify hypotheses` finds them through a run source that reads the formalization records first, then the run record. No Temporal activity. | `cmd/ri/formalize.go`, `verify.go`, `eval_investigations.go` |
 
+### Evidenced defaults (after the `applicability` merge)
+
+The `applicability` lane added `Condition.Default` (`domain.FieldDefault`: a JSON value, source `crd-schema` or
+`controller`, citations), which the shared evaluator (`internal/applicability`) and fact validation honour only when
+every citation resolves to quoted upstream evidence. Formalization now emits it instead of keeping a default-dependent
+claim unrepresentable:
+
+- **Prompt** (`formalize/v1`, edited in place: it had never been run or recorded): where the claim depends on what an
+  unset field means and the citable evidence holds upstream text establishing the default, the model states it on the
+  value leaf (`default: {value, source, citations}`) and lists the matching `default` uncertainty in the hypothesis'
+  new `discharges`; otherwise an undecidable leaf, as before.
+- **Floor**: every default citation must be citable evidence (the assessment's own), upstream text, and pass
+  `FieldDefault.Unevidenced` over the citable evidence (a quoted excerpt, never environment evidence); a `discharges`
+  id must be a `default` uncertainty and the hypothesis' rule must state a default; a `default` uncertainty is kept
+  (record) or discharged (rule), never dropped. The `any(unset, value)` form stays rejected: it states a default
+  without evidence; its message now points to `default`.
+- **Output**: a default's citations are added to the hypothesis' citations, so `ExportHypotheses` carries them into the
+  proposal and the candidate's evidence (a promoted fact then validates its default). The discharged uncertainty is no
+  longer listed as open on the rule; the requested verification asks for the default to be verified with the field
+  unset (the `applicability` lane's boundary fixtures).
+
 ### The record
 
 `formalize.Record` (`ri.dev/formalization/v1alpha1`): id `fmz-` (investigation, assessment, input digest, call id), the
@@ -68,6 +89,10 @@ bin/ri -state "$STATE" eval -investigations -case <case> -knowledge <K0> -agent 
   store, the rule becomes exactly one proposal (provenance rule `hypothesis:<hyp>@<inv>`, producer `formalize@v1`) and a
   whole-fact review item proposing exactly its assertion; the unrepresentable record is skipped with its limitation; no
   fact, no decision.
+- **Evidenced defaults** (`TestEvidencedDefault`): a default citing upstream evidence the assessment established settles
+  its uncertainty and is accepted by `applicability.RuleDefault` over the hypothesis' citations; rejected: a default
+  citing evidence the assessment never established, invented evidence, or the environment; a discharge without a
+  default; a discharge of a non-default uncertainty; a default neither stated nor kept.
 - **The v8 path** (`internal/investigate/agent/mitigation_test.go` `TestCheckMitigationReadsOnlyItsEnv`, and the
   existing `TestV6MitigationRules`, `TestExportHypotheses`): the lifted function reads only its env; the session's
   results are unchanged.
@@ -83,11 +108,10 @@ model run on any case (brief: the commander runs the demo and the gate).
 
 ### Known limits
 
-- **Defaults stay undecidable until the `applicability` lane's evidenced `Condition` default is merged.** Until then an
-  inherited-default setting is an uncertainty, and a claim that depends on what an unset field means can only be an
-  unrepresentable record with an undecidable leaf. Integration after the commander's merge: let an evidenced default
-  (with a citable citation) discharge the `default` uncertainty of its setting and lift the any(unset, value) check for
-  it.
+- **Defaults need upstream evidence the assessment already holds.** A default the investigation never cited (for
+  example a controller default no behaviour entry quotes) cannot be stated; the claim stays an unrepresentable record
+  with an undecidable leaf. The floor cannot check that a discharged uncertainty is about the same field as the leaf
+  carrying the default (the model's mapping); the default itself is verified independently.
 - **The floor checks provenance and structure, not meaning.** It cannot tell that a rule states the claim correctly, that
   a limitation is the real one, or that the conditions are complete; `semverify`'s `semantic-check`, the rule exercise
   and the human reviewer do that.
