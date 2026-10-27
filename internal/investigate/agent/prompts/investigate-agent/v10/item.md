@@ -58,9 +58,12 @@ exposed object (trace_consumers gives every hop). Gaps: what is missing, partial
    the item (`request_validation`, naming the subjects and, in `answers`, the concern it should answer).
 4. Work through the eight questions of the system prompt. Keep verified (cited), inferred and unknown apart;
    what you remember is not evidence.
-5. End with `submit_findings` holding exactly one entry: this item, its disposition, your `verdict` (say
-   whether it is supported or provisional, and its proof obligations) and your `assessment` (what changed,
-   mechanism, consumers, effective configuration, verified with citations, inferred, unknown, likely impact,
-   recommended tests).
+5. Sort what remains open: in-scope unknowns the mechanism depends on (they keep the verdict open) and
+   preconditions outside the scope that the repository cannot state (they do not). Commit to `affected` or
+   `not-affected` within the scope when every traced consumer and effective setting in it is accounted for.
+6. End with `submit_findings` holding exactly one entry: this item, its disposition, your `verdict` (say
+   whether it is supported within its scope or provisional, and its proof obligations) and your `assessment`
+   (headline, scope, preconditions, what changed, mechanism, consumers, effective configuration, verified with
+   citations, inferred, unknown, likely impact, recommended tests).
 
 Budget for this session: {{.Budget}}.

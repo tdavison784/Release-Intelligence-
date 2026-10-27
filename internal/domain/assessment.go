@@ -34,7 +34,16 @@ type AgentAssessment struct {
 	ID         string `json:"id"` // AgentAssessmentID(item, whatChanged, mechanism, callId)
 	ChangeItem string `json:"changeItem"`
 	// Verdict is the id of the provisional verdict of the same closing entry.
-	Verdict                string              `json:"verdict,omitempty"`
+	Verdict string `json:"verdict,omitempty"`
+	// Headline, Scope and Preconditions are the scoped verdict (prompt
+	// feature scopedVerdict, docs/phase6/decision-intel/briefs/scoped.md):
+	// one sentence with the class, the scope and the preconditions; what the
+	// session examined; and the runtime or operational facts outside that
+	// scope the verdict depends on. AI prose like the rest.
+	// CONTRACT-CHANGE(scoped): additive.
+	Headline               string              `json:"headline,omitempty"`
+	Scope                  string              `json:"scope,omitempty"`
+	Preconditions          []string            `json:"preconditions,omitempty"`
 	WhatChanged            string              `json:"whatChanged"`
 	Mechanism              string              `json:"mechanism"`
 	Consumers              []string            `json:"consumers,omitempty"`
@@ -99,6 +108,11 @@ func (a AgentAssessment) Validate() error {
 		case AssessmentExplicit, AssessmentInheritedDefault, AssessmentUnknown:
 		default:
 			bad("effectiveConfiguration[%d]: unknown state %q", i, s.State)
+		}
+	}
+	for i, p := range a.Preconditions {
+		if strings.TrimSpace(p) == "" {
+			bad("preconditions[%d] is empty", i)
 		}
 	}
 	for i, f := range a.Verified {

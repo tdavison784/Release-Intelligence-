@@ -601,7 +601,7 @@
   },
   {
     "name": "submit_findings",
-    "description": "End this session by closing THIS session's item with exactly one entry and a disposition: raises-concern, claims-mitigation, explains, examined-no-concern (cite what you inspected; not a mitigation, never lowers a class) or not-examined (the summary states why). Every disposition except not-examined needs at least one checked citation. Depth rules (checked here): explains / examined-no-concern need get_change_item on the item in this investigation and at least one citation not shared with another item; a raises-concern on a controller-behaviour/unknown item needs a request_validation for the item or a noValidationReason; a raises-concern must cite at least one artifact you retrieved for the item in this session, otherwise it is recorded as an investigation-level note, not an item concern. Accepted once even after the session budget is spent. After submitting, stop. State facts about what the environment sets with record_claim first and name them in `claims`; the summary itself is recorded as unverified AI prose. Every entry except not-examined carries `verdict`: your own provisional assessment of whether the change breaks THIS environment. It is recorded beside the policy's classification and measured against known outcomes; it never sets or lowers a class, and you may conclude not-affected where the policy cannot. Its citations and verified facts are checked one by one; whatever does not resolve is dropped and counted. A verdict that states no citations takes the entry's own citations, once they are checked. Every entry except not-examined also carries `assessment`, your technical write-up of the item: whatChanged, mechanism, consumers (with the chain to each), effectiveConfiguration (each setting explicit / inherited-default / unknown), verified (each statement with citations that resolve; one that does not resolve rejects the call — move it to inferred), inferred, unknown (including the proof obligations of a provisional conclusion), likelyImpact, recommendedTests. Completion check: while the item's exposed objects have consumers no tool of this session returned (trace_consumers, get_rendered_object, read_artifact), a not-affected verdict is rejected once with their list; resubmitting is accepted and records each as an investigation gap in `unknown`, as every other verdict does.",
+    "description": "End this session by closing THIS session's item with exactly one entry and a disposition: raises-concern, claims-mitigation, explains, examined-no-concern (cite what you inspected; not a mitigation, never lowers a class) or not-examined (the summary states why). Every disposition except not-examined needs at least one checked citation. Depth rules (checked here): explains / examined-no-concern need get_change_item on the item in this investigation and at least one citation not shared with another item; a raises-concern on a controller-behaviour/unknown item needs a request_validation for the item or a noValidationReason; a raises-concern must cite at least one artifact you retrieved for the item in this session, otherwise it is recorded as an investigation-level note, not an item concern. Accepted once even after the session budget is spent. After submitting, stop. State facts about what the environment sets with record_claim first and name them in `claims`; the summary itself is recorded as unverified AI prose. Every entry except not-examined carries `verdict`: your own provisional assessment of whether the change breaks THIS environment. It is recorded beside the policy's classification and measured against known outcomes; it never sets or lowers a class, and you may conclude not-affected where the policy cannot. Its citations and verified facts are checked one by one; whatever does not resolve is dropped and counted. A verdict that states no citations takes the entry's own citations, once they are checked. Every entry except not-examined also carries `assessment`, your technical write-up of the item: whatChanged, mechanism, consumers (with the chain to each), effectiveConfiguration (each setting explicit / inherited-default / unknown), verified (each statement with citations that resolve; one that does not resolve rejects the call — move it to inferred), inferred, unknown (the in-scope unknowns, each with its proof obligation), likelyImpact, recommendedTests, and the scoped verdict: headline (one sentence with the class, the scope and the preconditions), scope (what you examined) and preconditions (runtime or operational facts outside the scope that the repository cannot state). Scoped verdict checks: affected or not-affected without a scope is rejected. A not-affected verdict is rejected once while in-scope unknowns remain: the entries of `unknown`, and the consumers of the item's exposed objects no tool of this session returned (trace_consumers, get_rendered_object, read_artifact); the rejection lists them. Resubmitting is accepted and records each untraced consumer as an investigation gap in `unknown`, as every other verdict does.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -760,6 +760,21 @@
                 "type": "object",
                 "description": "the natural technical assessment of the item (required except for not-examined)",
                 "properties": {
+                  "headline": {
+                    "type": "string",
+                    "description": "one sentence an engineer reads first: the class, the scope and the preconditions"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "description": "what this session examined: e.g. the consumers the environment declares, the rendered objects, the cited upstream evidence (required for affected and not-affected)"
+                  },
+                  "preconditions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "runtime or operational facts outside the scope that the repository cannot state and the verdict depends on, each as the condition under which it holds; never an in-scope unknown"
+                  },
                   "whatChanged": {
                     "type": "string",
                     "description": "the upstream change, from its source text"
@@ -856,7 +871,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "description": "what remains open, with the proof obligations of a provisional conclusion"
+                    "description": "the in-scope unknowns the breaking mechanism depends on, each with its proof obligation (a not-affected verdict with any is rejected once)"
                   },
                   "likelyImpact": {
                     "type": "string",
@@ -871,6 +886,7 @@
                   }
                 },
                 "required": [
+                  "headline",
                   "whatChanged",
                   "mechanism",
                   "likelyImpact"

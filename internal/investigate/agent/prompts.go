@@ -96,6 +96,13 @@ type Features struct {
 	// have consumers the session never retrieved; otherwise they are
 	// recorded as investigation gaps. Needs TraceConsumers and Verdict.
 	Assessment bool `json:"assessment"`
+	// ScopedVerdict: the assessment carries a headline, the scope the
+	// session examined and the preconditions outside it (docs/phase6/
+	// decision-intel/briefs/scoped.md); affected or not-affected needs a
+	// scope, and a not-affected verdict is rejected once while in-scope
+	// unknowns remain (its Unknown entries and the untraced consumers).
+	// Needs Assessment.
+	ScopedVerdict bool `json:"scopedVerdict"`
 	// ItemCalls / ItemTurns replace the per-item default budget's tool calls
 	// and turns (0: the item@v1 defaults).
 	ItemCalls int `json:"itemCalls"`
@@ -206,6 +213,9 @@ func (p *Prompt) checkSurface() error {
 	}
 	if p.Features.Assessment && (!p.Features.TraceConsumers || !p.Features.Verdict) {
 		return fmt.Errorf("agent: prompt %s: feature assessment needs features traceConsumers and verdict", p.Version)
+	}
+	if p.Features.ScopedVerdict && !p.Features.Assessment {
+		return fmt.Errorf("agent: prompt %s: feature scopedVerdict needs feature assessment", p.Version)
 	}
 	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
 		return fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", p.Version)

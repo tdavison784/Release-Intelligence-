@@ -857,12 +857,17 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		switch {
 		case !s.cfg.Prompt.Features.Assessment && sum.Assessment != nil:
 			return nil, rejectf("items[%d]: this prompt version (%s) takes no assessment", i, s.cfg.Prompt.Version)
+		case s.cfg.Prompt.Features.ScopedVerdict && sum.Assessment == nil && disp != domain.CoverNotExamined:
+			return nil, rejectf("items[%d]: assessment is required: headline, scope, preconditions, whatChanged, mechanism, consumers, effectiveConfiguration, verified (each with citations), inferred, unknown, likelyImpact, recommendedTests", i)
 		case s.cfg.Prompt.Features.Assessment && sum.Assessment == nil && disp != domain.CoverNotExamined:
 			return nil, rejectf("items[%d]: assessment is required: whatChanged, mechanism, consumers, effectiveConfiguration, verified (each with citations), inferred, unknown, likelyImpact, recommendedTests", i)
 		case sum.Assessment != nil:
 			pa := pendingAssessment{at: fmt.Sprintf("items[%d].assessment", i), it: it, in: *sum.Assessment}
 			if len(verdicts) > 0 && verdicts[len(verdicts)-1].ChangeItem == it.ID {
 				pa.verdict = &verdicts[len(verdicts)-1]
+			}
+			if err := s.scopedChecks(pa.at, pa.in, pa.verdict); err != nil {
+				return nil, err
 			}
 			pendingAssessments = append(pendingAssessments, pa)
 		}
@@ -964,7 +969,11 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 		if err != nil {
 			return nil, err
 		}
-		if pa.verdict != nil && pa.verdict.Class == domain.FindingNotAffected && len(untraced) > 0 && !s.rejectedNA[pa.it.ID] {
+		if s.cfg.Prompt.Features.ScopedVerdict {
+			if err := s.scopedCompletion(pa.at, pa.it.ID, pa.in, pa.verdict, untraced); err != nil {
+				return nil, err
+			}
+		} else if pa.verdict != nil && pa.verdict.Class == domain.FindingNotAffected && len(untraced) > 0 && !s.rejectedNA[pa.it.ID] {
 			s.rejectedNA[pa.it.ID] = true // recorded although the call is rejected: the check rejects once
 			return nil, rejectf("%s: a not-affected verdict needs the consumers of the item's exposed objects examined; %d were never retrieved in this session: %s. Trace them (trace_consumers changeItem=%s) or read them (get_rendered_object, read_artifact), then submit again. A second submission is accepted, with each untraced consumer recorded as an investigation gap.",
 				pa.at, len(untraced), listKeys(untraced, 20), pa.it.ID)

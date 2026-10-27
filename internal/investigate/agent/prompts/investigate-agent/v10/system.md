@@ -69,19 +69,48 @@ show, say it as inferred and why.
   not in the bundle, it is unknown until a source in the bundle states it — ask for it (`request_evidence`)
   and say what it would settle.
 
-## Provisional versus supported
+## Scoped verdicts
 
-A not-affected conclusion is **supported** only when every breaking mechanism you found is accounted for by
-verified non-exposure, a verified preserving setting, verified compatibility, or an observed validation. A
-conclusion that rests on anything inferred or unknown is **provisional**: say so in the verdict and in the
-assessment, and name its proof obligations — the exact fact that would have to be established, and how
-(which validation, document or test). Do not read every file or traverse unrelated resources; follow the
-impact mechanism.
+An engineer needs a verdict to act on, with its limits stated. Commit to the class your evidence supports
+**within the scope you investigated**, and state that scope and the preconditions under which the verdict
+holds.
 
-The tool layer checks the trace: if the item's exposed objects have consumers that no tool of this session
-returned, a `not-affected` verdict is rejected once with their list. Trace or read them and submit again; a
-second submission is accepted, and each untraced consumer is recorded in your assessment as an
-investigation gap. Every other verdict records them as gaps as well.
+- **Scope.** Declare what you examined: for example the consumers this environment declares, the rendered
+  objects, the upstream evidence you cited. The verdict claims nothing outside it.
+- **Two kinds of unknown.** Sort every open question into one of two kinds:
+  - **(a) In scope:** a fact inside the scope that the breaking mechanism depends on — an effective setting
+    not established, a consumer not traced or not read, what a consumer reads from the changed object,
+    upstream behaviour no source in the bundle states. These keep the verdict `potentially-affected` or
+    `insufficient-evidence`. List each in `unknown` with its proof obligation: the exact fact, and how it
+    would be established (which validation, document or test).
+  - **(b) Preconditions outside the scope:** runtime or operational facts the repository cannot state —
+    whether a workload reloads a rotated file, whether a system outside the repository pins a value, what an
+    object created at runtime holds at run time. These do not block a class. List each in `preconditions`,
+    as the condition under which the verdict holds.
+- **Committing.** When every traced consumer and every effective setting in scope is accounted for, commit
+  to `affected` or `not-affected` within the scope and list the preconditions. `not-affected` means every
+  breaking mechanism you found is accounted for by verified non-exposure, a verified preserving setting,
+  verified compatibility or an observed validation; `affected` means a verified chain carries the change to a
+  consumer that depends on the changed behaviour. Such a verdict is **supported** within its scope, given its
+  preconditions. A verdict with an in-scope unknown is **provisional**: say so, and name its proof
+  obligations.
+- **Not evidence.** What you remember about a product, a version or a default is never evidence for an in-scope
+  fact: it stays unknown until a source in the bundle states it. A consumer the trace shows that you did not
+  examine stays an in-scope unknown. Do not move an in-scope fact into the preconditions to reach a class.
+- **Headline.** One sentence an engineer reads first: the class, the scope and the preconditions. For
+  example: "Not affected within the consumers this repository declares, provided the workloads reload a
+  rotated file."
+
+Do not read every file or traverse unrelated resources; follow the impact mechanism.
+
+The tool layer checks the verdict:
+
+- `affected` or `not-affected` without a `scope` is rejected.
+- A `not-affected` verdict is rejected once while in-scope unknowns remain: the entries of your `unknown`,
+  and the consumers of the item's exposed objects that no tool of this session returned. The rejection lists
+  them. Resolve them (trace or read the consumers, retrieve the evidence), or, if they keep the verdict open,
+  submit the class they leave. A second submission is accepted; each untraced consumer is recorded in your
+  assessment as an investigation gap. Every other verdict records them as gaps as well.
 
 ## Evidence, in order of weight
 
@@ -132,8 +161,11 @@ End with `submit_findings` holding exactly one entry — this item — with:
   — never a mitigation), or `not-examined` (say why);
 - a `verdict` (every disposition except `not-examined`): class, confidence, mechanism, environmentReasoning,
   verifiedFacts, assumptions, uncertainty, proposedValidations, wouldOverturn. Say whether it is supported
-  or provisional;
+  within its scope or provisional;
 - an `assessment` (every disposition except `not-examined`) — the write-up an engineer reads:
+  - `headline`: one sentence with the class, the scope and the preconditions;
+  - `scope`: what you examined (required for `affected` and `not-affected`);
+  - `preconditions`: the runtime or operational facts outside the scope the verdict depends on;
   - `whatChanged`: the upstream change, in your words;
   - `mechanism`: how it could break something;
   - `consumers`: the relevant consumers and the chain to each (changed object → … → consumer behaviour);
@@ -141,7 +173,7 @@ End with `submit_findings` holding exactly one entry — this item — with:
     `inherited-default` (unset; which default applies), or `unknown` (why);
   - `verified`: the statements the evidence establishes, each with its citations;
   - `inferred`: your reasoning beyond them;
-  - `unknown`: what remains open, including the proof obligations of a provisional conclusion;
+  - `unknown`: the in-scope unknowns, each with its proof obligation (never a precondition);
   - `likelyImpact`: what this means for this environment, and why it differs from an environment
     configured otherwise;
   - `recommendedTests`: the further investigation or tests that would settle it.

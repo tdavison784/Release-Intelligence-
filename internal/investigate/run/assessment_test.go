@@ -33,7 +33,8 @@ func (a *assessAgent) Investigate(ctx context.Context, in investigate.Investigat
 	prov := domain.Provenance{Method: domain.MethodAI, Producer: "agent@v1", Confidence: domain.ConfidenceLow, Model: "scripted", ModelVersion: "v",
 		PromptVersion: "investigate-agent/v9", PromptDigest: domain.Digest([]byte("p")), GeneratedAt: &at, CallID: "call-1", Provider: "test", InputEvidence: inputs}
 	as := domain.AgentAssessment{ChangeItem: item, WhatChanged: "a default changes", Mechanism: "consumers see the new default",
-		LikelyImpact: "none: trust me", StatementKind: domain.StatementUnverifiedProse, Provenance: prov}
+		LikelyImpact: "none: trust me", StatementKind: domain.StatementUnverifiedProse, Provenance: prov,
+		Headline: "Not affected within scope-claim-x, provided precondition-claim-y.", Scope: "scope-claim-x", Preconditions: []string{"precondition-claim-y"}}
 	as.ID = domain.AgentAssessmentID(item, as.WhatChanged, as.Mechanism, prov.CallID)
 	out.Assessments = []domain.AgentAssessment{as}
 	return out, nil
@@ -67,10 +68,13 @@ func TestAssessmentsAreStoredButNotClassified(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(inv.AgentAssessments) != 1 || inv.AgentAssessments[0].LikelyImpact != "none: trust me" {
+	if len(inv.AgentAssessments) != 1 || inv.AgentAssessments[0].LikelyImpact != "none: trust me" || inv.AgentAssessments[0].Scope != "scope-claim-x" ||
+		len(inv.AgentAssessments[0].Preconditions) != 1 {
 		t.Fatalf("assessments %+v", inv.AgentAssessments)
 	}
-	if len(spy.agent) == 0 || strings.Contains(string(spy.agent), "trust me") || strings.Contains(string(spy.agent), domain.AgentAssessmentIDPrefix) {
+	// nor its scoped verdict (prompt v10): headline, scope, preconditions
+	if len(spy.agent) == 0 || strings.Contains(string(spy.agent), "trust me") || strings.Contains(string(spy.agent), domain.AgentAssessmentIDPrefix) ||
+		strings.Contains(string(spy.agent), "scope-claim-x") || strings.Contains(string(spy.agent), "precondition-claim-y") {
 		t.Fatalf("the classifier received the assessment: %s", spy.agent)
 	}
 }

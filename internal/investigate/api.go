@@ -789,6 +789,11 @@ type ItemSummary struct {
 // verified entries are checked — each needs citations that resolve, or the
 // call is rejected. CONTRACT-CHANGE(consumer): additive.
 type AssessmentInput struct {
+	// Headline, Scope and Preconditions: the scoped verdict (prompt versions
+	// with feature scopedVerdict). CONTRACT-CHANGE(scoped): additive.
+	Headline               string                     `json:"headline,omitempty"`
+	Scope                  string                     `json:"scope,omitempty"`
+	Preconditions          []string                   `json:"preconditions,omitempty"`
 	WhatChanged            string                     `json:"whatChanged"`
 	Mechanism              string                     `json:"mechanism"`
 	Consumers              []string                   `json:"consumers,omitempty"`
