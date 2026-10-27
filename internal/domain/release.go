@@ -281,7 +281,11 @@ type Advisory struct {
 	// Vulnerable is a semver constraint of affected versions (">= 1.0.0, < 1.17.2").
 	Vulnerable string `json:"vulnerable,omitempty"`
 	// Patched lists the first patched version per line.
-	Patched  []string     `json:"patched,omitempty"`
-	SourceID string       `json:"sourceId"`
+	Patched  []string `json:"patched,omitempty"`
+	SourceID string   `json:"sourceId"`
+	// Sources lists every security source that published the advisory, in
+	// priority order. When several did, SourceID is the one whose range
+	// Vulnerable comes from, and Evidence keeps every copy's record.
+	Sources  []string     `json:"sources,omitempty"`
 	Evidence []EvidenceID `json:"evidence"`
 }
