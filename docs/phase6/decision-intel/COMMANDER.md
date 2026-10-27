@@ -74,6 +74,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-28 (product owner): fix only the back door (K1) and contradiction reporting, then decide the M4 gate, then
+  go to the blind cases. Carried as known limitations: the semantic-check structured claimed values (§3b), loader
+  bounds and consistency (K2, K3). A standing order is in memory: stop sprawl early.
+
 - 2026-10-28 (product owner): **PD-6, "the role cannot form" is an observed outcome** (option 1): an observed
   role-membership default, through a confirmed proof only.
 
