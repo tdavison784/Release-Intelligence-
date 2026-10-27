@@ -38,7 +38,7 @@
       },
       "additionalProperties": false
     },
-    "CandidateKind": {"type": "string", "enum": ["target-line", "any-line", "clean"]},
+    "CandidateKind": {"type": "string", "enum": ["target-line", "any-line", "clean", "current-line"]},
     "Category": {
       "type": "string",
       "enum": [
@@ -1138,7 +1138,7 @@
       "properties": {
         "kind": {
           "$ref": "#/$defs/CandidateKind",
-          "description": "target-line: lowest release on the target's line above the current version that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release above the current version affected by no assessed advisory."
+          "description": "Upgrade targets, chosen at or above the target: target-line: lowest release on the target's line that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release affected by no assessed advisory. current-line is information, not a target: the lowest later patch of the current version's line, below the target, that removes every advisory persisting into the target and introduces none (for a defer or stay decision)."
         },
         "version": {
           "$ref": "#/$defs/Version",

@@ -147,14 +147,19 @@ func (s *securityAssessment) finish() {
 	s.b.edge.Security = s.sec
 }
 
-// candidates computes the candidate versions from every known stable release
-// above the current version (Input.Versions), when the target is affected by
-// an assessed advisory. The predicate of a "removes every regression"
-// candidate is that it is affected by no assessed advisory the current
-// version is free of, so it removes the target's regressions and introduces
-// none of its own; "clean" is affected by no assessed advisory at all.
-// Unassessed advisories cannot be cleared and are listed on every candidate.
-// Candidates are never computed when no source was read.
+// candidates computes the candidate versions when the target is affected by
+// an assessed advisory. Candidates are upgrade targets: they are chosen from
+// every known stable release at or above the target (Input.Versions), never
+// from a later patch of the line the upgrade leaves. The predicate of a
+// "removes every regression" candidate is that it is affected by no assessed
+// advisory the current version is free of, so it removes the target's
+// regressions and introduces none of its own; "clean" is affected by no
+// assessed advisory at all. When advisories persist into the target, the
+// current-line entry names the lowest later patch of the current version's
+// line below the target that removes them: information for a defer or stay
+// decision, not a target. Unassessed advisories cannot be cleared and are
+// listed on every candidate. Candidates are never computed when no source
+// was read.
 func (s *securityAssessment) candidates() {
 	if len(s.sec.Regressions) == 0 && len(s.sec.Persisting) == 0 {
 		return
@@ -163,18 +168,26 @@ func (s *securityAssessment) candidates() {
 		return
 	}
 	from, to := s.b.from.Version, s.b.to.Version
-	var pool []domain.Version
+	// pool: the upgrade targets (at or above To); current: the later patches
+	// of From's line below To
+	var pool, current []domain.Version
 	for _, v := range s.b.in.Versions {
 		sv, err := semver.NewVersion(v.Semver)
-		if err != nil || sv.Prerelease() != "" || v.Compare(from) <= 0 {
+		if err != nil || sv.Prerelease() != "" {
 			continue
 		}
-		pool = append(pool, v)
+		switch {
+		case v.Compare(to) >= 0:
+			pool = append(pool, v)
+		case v.Compare(from) > 0 && v.Line() == from.Line():
+			current = append(current, v)
+		}
 	}
 	domain.SortVersions(pool)
+	domain.SortVersions(current)
 	s.sec.VersionsConsidered = len(pool)
 	if len(pool) == 0 {
-		s.gapf("no known release list above %s was supplied: candidate versions were not computed", from)
+		s.gapf("no known release list at or above %s was supplied: candidate versions were not computed", to)
 		return
 	}
 	introducesNone := func(v domain.Version) bool {
@@ -193,8 +206,8 @@ func (s *securityAssessment) candidates() {
 		}
 		return true
 	}
-	lowest := func(pred func(domain.Version) bool) *domain.Version {
-		for _, v := range pool {
+	lowest := func(vs []domain.Version, pred func(domain.Version) bool) *domain.Version {
+		for _, v := range vs {
 			if pred(v) {
 				v := v
 				return &v
@@ -205,33 +218,54 @@ func (s *securityAssessment) candidates() {
 	newest := pool[len(pool)-1]
 	if len(s.sec.Regressions) > 0 {
 		line := to.Line()
-		v := lowest(func(v domain.Version) bool { return v.Line() == line && introducesNone(v) })
+		v := lowest(pool, func(v domain.Version) bool { return v.Line() == line && introducesNone(v) })
 		c := s.candidate(domain.CandidateTargetLine, v)
 		c.Line = line
 		if v == nil {
-			c.Statement = fmt.Sprintf("No known release on line %s above %s removes every regression of %s.", line, from, to)
+			c.Statement = fmt.Sprintf("No known release on line %s at or above %s removes every regression of %s.", line, to, to)
 		} else {
-			c.Statement = fmt.Sprintf("%s is the lowest known release on line %s above %s that removes every regression of %s.", v, line, from, to)
+			c.Statement = fmt.Sprintf("%s is the lowest known release on line %s at or above %s that removes every regression of %s.", v, line, to, to)
 		}
 		s.sec.Candidates = append(s.sec.Candidates, c)
 
-		v = lowest(introducesNone)
+		v = lowest(pool, introducesNone)
 		c = s.candidate(domain.CandidateAnyLine, v)
 		if v == nil {
-			c.Statement = fmt.Sprintf("No known release above %s (up to %s) removes every regression of %s.", from, newest, to)
+			c.Statement = fmt.Sprintf("No known release at or above %s (up to %s) removes every regression of %s.", to, newest, to)
 		} else {
-			c.Statement = fmt.Sprintf("%s is the lowest known release on any line above %s that removes every regression of %s.", v, from, to)
+			c.Statement = fmt.Sprintf("%s is the lowest known release on any line at or above %s that removes every regression of %s.", v, to, to)
 		}
 		s.sec.Candidates = append(s.sec.Candidates, c)
 	}
-	v := lowest(clean)
+	v := lowest(pool, clean)
 	c := s.candidate(domain.CandidateClean, v)
 	if v == nil {
-		c.Statement = fmt.Sprintf("No known release above %s (up to %s) is free of every assessed advisory.", from, newest)
+		c.Statement = fmt.Sprintf("No known release at or above %s (up to %s) is free of every assessed advisory.", to, newest)
 	} else {
-		c.Statement = fmt.Sprintf("%s is the lowest known release above %s free of every assessed advisory.", v, from)
+		c.Statement = fmt.Sprintf("%s is the lowest known release at or above %s free of every assessed advisory.", v, to)
 	}
 	s.sec.Candidates = append(s.sec.Candidates, c)
+
+	if len(s.sec.Persisting) > 0 {
+		removesPersisting := func(v domain.Version) bool {
+			for _, id := range s.order {
+				if s.fromAff[id] && s.toAff[id] && affected(s.ranges[id], v) {
+					return false
+				}
+			}
+			return introducesNone(v)
+		}
+		line := from.Line()
+		v := lowest(current, removesPersisting)
+		c := s.candidate(domain.CandidateCurrentLine, v)
+		c.Line = line
+		if v == nil {
+			c.Statement = fmt.Sprintf("No known later patch of %s on line %s below %s removes every advisory persisting into %s.", from, line, to, to)
+		} else {
+			c.Statement = fmt.Sprintf("%s is the lowest known later patch of %s on line %s that removes every advisory persisting into %s. It is below %s: information for a defer or stay decision, not an upgrade target.", v, from, line, to, to)
+		}
+		s.sec.Candidates = append(s.sec.Candidates, c)
+	}
 }
 
 // candidate fills in what v removes and leaves (relative to the target), the

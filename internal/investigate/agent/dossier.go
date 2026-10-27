@@ -1621,10 +1621,7 @@ func securitySummary(s *domain.EdgeSecurity) *DossierSecurity {
 	advisories(&out.Fixed, s.Fixed)
 	advisories(&out.Unassessed, s.Unassessed)
 	for _, c := range s.Candidates {
-		line := string(c.Kind)
-		if c.Line != "" {
-			line += " " + c.Line
-		}
+		line := c.Label()
 		if c.Version == nil {
 			line += ": none. " + c.Statement
 		} else {

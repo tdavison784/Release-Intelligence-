@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -11,10 +12,16 @@ var secSourceOK = domain.SourceStatus{SourceID: "global-advisories", Kind: "gith
 
 // securityInput is an upgrade 1.0.1 → 1.1.0 of a product whose known
 // releases are 1.0.0 … 1.2.1, with the given advisories (each with its own
-// evidence record).
+// evidence record). 1.0.2 is a later patch of the current line below the
+// target: never an upgrade-target candidate.
 func securityInput(advs ...domain.Advisory) Input {
-	in := simpleInput(bare("v1.0.1"), bare("v1.1.0"))
-	for _, t := range []string{"v1.0.0", "v1.0.1", "v1.1.0", "v1.1.1", "v1.1.2", "v1.2.0", "v1.2.1", "v1.3.0-rc.1"} {
+	return securityInputFor("v1.0.1", "v1.1.0", advs...)
+}
+
+// securityInputFor is securityInput for the upgrade from → to.
+func securityInputFor(from, to string, advs ...domain.Advisory) Input {
+	in := simpleInput(bare(from), bare(to))
+	for _, t := range []string{"v1.0.0", "v1.0.1", "v1.0.2", "v1.1.0", "v1.1.1", "v1.1.2", "v1.2.0", "v1.2.1", "v1.3.0-rc.1"} {
 		in.Versions = append(in.Versions, ver(t))
 	}
 	for i := range advs {
@@ -90,8 +97,9 @@ func TestSecurityClassificationAndCandidates(t *testing.T) {
 	if len(s.Gaps) != 1 || !strings.Contains(s.Gaps[0], "GHSA-unk") {
 		t.Errorf("gaps %v", s.Gaps)
 	}
-	// Releases above 1.0.1, stable only: 1.1.0 1.1.1 1.1.2 1.2.0 1.2.1.
-	if s.VersionsConsidered != 5 || len(s.Candidates) != 3 {
+	// Releases at or above 1.1.0, stable only: 1.1.0 1.1.1 1.1.2 1.2.0 1.2.1.
+	// 1.0.2 is not one, although it removes the regression and is lower.
+	if s.VersionsConsidered != 5 || len(s.Candidates) != 4 {
 		t.Fatalf("considered %d, candidates %+v", s.VersionsConsidered, s.Candidates)
 	}
 	tl := candidate(t, s, domain.CandidateTargetLine)
@@ -99,13 +107,19 @@ func TestSecurityClassificationAndCandidates(t *testing.T) {
 		strings.Join(tl.Unassessed, ",") != "GHSA-unk" || len(tl.Evidence) != 2 {
 		t.Errorf("target-line %+v", tl)
 	}
-	if al := candidate(t, s, domain.CandidateAnyLine); al.Version == nil || al.Version.Semver != "1.1.1" {
+	if al := candidate(t, s, domain.CandidateAnyLine); al.Version == nil || al.Version.Semver != "1.1.1" ||
+		!strings.Contains(al.Statement, "lowest known release on any line at or above v1.1.0") {
 		t.Errorf("any-line %+v", al)
 	}
 	cl := candidate(t, s, domain.CandidateClean)
 	if cl.Version == nil || cl.Version.Semver != "1.2.0" || advRefs(cl.Removes) != "GHSA-per,GHSA-reg" || len(cl.Leaves) != 0 ||
-		!strings.Contains(cl.Statement, "1.2.0 is the lowest known release above v1.0.1 free of every assessed advisory") {
+		!strings.Contains(cl.Statement, "1.2.0 is the lowest known release at or above v1.1.0 free of every assessed advisory") {
 		t.Errorf("clean %+v", cl)
+	}
+	// GHSA-per affects 1.0.2 too: no current-line patch removes it.
+	if cu := candidate(t, s, domain.CandidateCurrentLine); cu.Version != nil || cu.Line != "1.0" ||
+		!strings.Contains(cu.Statement, "No known later patch of v1.0.1 on line 1.0 below v1.1.0 removes every advisory persisting into v1.1.0") {
+		t.Errorf("current-line %+v", cu)
 	}
 	if err := e.Validate(); err != nil {
 		t.Fatal(err)
@@ -121,18 +135,123 @@ func TestSecurityCandidatesAcrossLines(t *testing.T) {
 	))
 	s := e.Security
 	tl := candidate(t, s, domain.CandidateTargetLine)
-	if tl.Version != nil || !strings.Contains(tl.Statement, "No known release on line 1.1 above v1.0.1 removes every regression of v1.1.0") || len(tl.Evidence) != 0 {
+	if tl.Version != nil || !strings.Contains(tl.Statement, "No known release on line 1.1 at or above v1.1.0 removes every regression of v1.1.0") || len(tl.Evidence) != 0 {
 		t.Errorf("target-line %+v", tl)
 	}
 	al := candidate(t, s, domain.CandidateAnyLine)
 	if al.Version == nil || al.Version.Semver != "1.2.0" || advRefs(al.Removes) != "GHSA-line" || advRefs(al.Leaves) != "GHSA-open" {
 		t.Errorf("any-line %+v", al)
 	}
-	if cl := candidate(t, s, domain.CandidateClean); cl.Version != nil || !strings.Contains(cl.Statement, "No known release above v1.0.1 (up to v1.2.1)") {
+	if cl := candidate(t, s, domain.CandidateClean); cl.Version != nil || !strings.Contains(cl.Statement, "No known release at or above v1.1.0 (up to v1.2.1)") {
 		t.Errorf("clean %+v", cl)
 	}
 	if err := e.Validate(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The current line has a later patch below the target (1.0.2) that removes
+// both the regression and the persisting advisory. It is the lowest such
+// release, but it is not an upgrade target: target-line, any-line and clean
+// are chosen at or above 1.1.0, and 1.0.2 is only the current-line
+// information.
+func TestSecurityCurrentLinePatchIsNotATarget(t *testing.T) {
+	in := securityInput(
+		domain.Advisory{ID: "GHSA-per", Vulnerable: ">= 1.0.0, < 1.0.2 || >= 1.1.0-0, < 1.2.0"},
+		domain.Advisory{ID: "GHSA-reg", Vulnerable: ">= 1.1.0-0, < 1.1.1"},
+		domain.Advisory{ID: "GHSA-unk", Summary: "free text"},
+	)
+	e := mustBuild(t, in)
+	s := e.Security
+	if secIDs(s.Regressions) != "GHSA-reg" || secIDs(s.Persisting) != "GHSA-per" || s.VersionsConsidered != 5 || len(s.Candidates) != 4 {
+		t.Fatalf("security %+v", s)
+	}
+	for _, k := range []domain.CandidateKind{domain.CandidateTargetLine, domain.CandidateAnyLine, domain.CandidateClean} {
+		c := candidate(t, s, k)
+		if c.Version == nil || c.Version.Compare(ver("v1.1.0")) < 0 || !strings.Contains(c.Statement, "at or above v1.1.0") ||
+			strings.Join(c.Unassessed, ",") != "GHSA-unk" {
+			t.Errorf("%s must be an upgrade target: %+v", k, c)
+		}
+	}
+	if tl := candidate(t, s, domain.CandidateTargetLine); tl.Version.Semver != "1.1.1" || advRefs(tl.Removes) != "GHSA-reg" || advRefs(tl.Leaves) != "GHSA-per" {
+		t.Errorf("target-line %+v", tl)
+	}
+	if al := candidate(t, s, domain.CandidateAnyLine); al.Version.Semver != "1.1.1" {
+		t.Errorf("any-line %+v", al)
+	}
+	if cl := candidate(t, s, domain.CandidateClean); cl.Version.Semver != "1.2.0" || advRefs(cl.Removes) != "GHSA-per,GHSA-reg" {
+		t.Errorf("clean %+v", cl)
+	}
+	cu := candidate(t, s, domain.CandidateCurrentLine)
+	if cu.Version == nil || cu.Version.Semver != "1.0.2" || cu.Line != "1.0" || advRefs(cu.Removes) != "GHSA-per,GHSA-reg" || len(cu.Leaves) != 0 ||
+		strings.Join(cu.Unassessed, ",") != "GHSA-unk" || len(cu.Evidence) != 2 ||
+		!strings.Contains(cu.Statement, "1.0.2 is the lowest known later patch of v1.0.1 on line 1.0 that removes every advisory persisting into v1.1.0") ||
+		!strings.Contains(cu.Statement, "not an upgrade target") {
+		t.Errorf("current-line %+v", cu)
+	}
+	if err := e.Validate(); err != nil {
+		t.Fatal(err)
+	}
+
+	text := strings.Join(SecurityLines(s, e.From, e.To, func(ids []domain.EvidenceID) string { return fmt.Sprint(len(ids)) }), "\n")
+	for _, want := range []string{
+		"Candidate versions (5 known releases at or above v1.1.0 considered):",
+		"• any-line: v1.1.1.",
+		"• current-line 1.0 (information for a defer or stay decision, not a target): v1.0.2.",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("text lacks %q:\n%s", want, text)
+		}
+	}
+}
+
+// No release at or above the target removes the regression or is clean:
+// each upgrade-target candidate is an explicit "none" with its statement,
+// even though a current-line patch below the target would qualify.
+func TestSecurityNoCandidateAtOrAboveTarget(t *testing.T) {
+	e := mustBuild(t, securityInput(
+		domain.Advisory{ID: "GHSA-new", Vulnerable: ">= 1.1.0-0"},
+		domain.Advisory{ID: "GHSA-per", Vulnerable: ">= 1.0.0, < 1.0.2 || >= 1.1.0-0"},
+	))
+	s := e.Security
+	for k, want := range map[domain.CandidateKind]string{
+		domain.CandidateTargetLine: "No known release on line 1.1 at or above v1.1.0 removes every regression of v1.1.0.",
+		domain.CandidateAnyLine:    "No known release at or above v1.1.0 (up to v1.2.1) removes every regression of v1.1.0.",
+		domain.CandidateClean:      "No known release at or above v1.1.0 (up to v1.2.1) is free of every assessed advisory.",
+	} {
+		if c := candidate(t, s, k); c.Version != nil || c.Statement != want || len(c.Evidence) != 0 {
+			t.Errorf("%s = %+v, want none: %q", k, c, want)
+		}
+	}
+	if cu := candidate(t, s, domain.CandidateCurrentLine); cu.Version == nil || cu.Version.Semver != "1.0.2" {
+		t.Errorf("current-line %+v", cu)
+	}
+	if vs := CandidateVersions(securityInput(
+		domain.Advisory{ID: "GHSA-new", Vulnerable: ">= 1.1.0-0"},
+	)); len(vs) != 0 {
+		t.Errorf("CandidateVersions = %v, want none (no persisting advisory, nothing at or above the target qualifies)", vs)
+	}
+	if err := e.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A patch upgrade within one line: the current-line entry is searched
+// between the current version and the target, never at or above it; with
+// nothing regressed, only clean and current-line are reported.
+func TestSecurityCurrentLineWithinTargetLine(t *testing.T) {
+	e := mustBuild(t, securityInputFor("v1.1.0", "v1.1.2",
+		domain.Advisory{ID: "GHSA-per", Vulnerable: ">= 1.0.0, < 1.1.1 || >= 1.1.2, < 1.2.0"},
+	))
+	s := e.Security
+	if secIDs(s.Persisting) != "GHSA-per" || len(s.Regressions) != 0 || len(s.Candidates) != 2 || s.VersionsConsidered != 3 {
+		t.Fatalf("security %+v", s)
+	}
+	if cl := candidate(t, s, domain.CandidateClean); cl.Version == nil || cl.Version.Semver != "1.2.0" {
+		t.Errorf("clean %+v", cl)
+	}
+	if cu := candidate(t, s, domain.CandidateCurrentLine); cu.Version == nil || cu.Version.Semver != "1.1.1" || cu.Line != "1.1" {
+		t.Errorf("current-line %+v", cu)
 	}
 }
 
@@ -154,7 +273,8 @@ func TestSecurityCandidateCharts(t *testing.T) {
 	if !found {
 		t.Error("chart evidence must be part of the edge")
 	}
-	// CandidateVersions names what to look up: 1.1.1 (target-line, any-line, clean).
+	// CandidateVersions names what to look up: 1.1.1 (target-line, any-line,
+	// clean), not the current line's 1.0.2, which the regression spares.
 	if vs := CandidateVersions(in); len(vs) != 1 || vs[0].Semver != "1.1.1" {
 		t.Errorf("CandidateVersions = %v", vs)
 	}

@@ -29,15 +29,20 @@ const (
 type CandidateKind string
 
 const (
-	// CandidateTargetLine: the lowest release on the target's line, above
-	// the current version, affected by no advisory the current version is
-	// free of (it removes every regression).
+	// CandidateTargetLine: the lowest release on the target's line, at or
+	// above the target, affected by no advisory the current version is free
+	// of (it removes every regression).
 	CandidateTargetLine CandidateKind = "target-line"
-	// CandidateAnyLine: the same on any line.
+	// CandidateAnyLine: the same on any line, at or above the target.
 	CandidateAnyLine CandidateKind = "any-line"
-	// CandidateClean: the lowest release above the current version affected
-	// by no assessed advisory.
+	// CandidateClean: the lowest release at or above the target affected by
+	// no assessed advisory.
 	CandidateClean CandidateKind = "clean"
+	// CandidateCurrentLine is information, not an upgrade target: the
+	// lowest later patch of the current version's line, below the target,
+	// that removes every advisory persisting into the target and introduces
+	// none. It informs a defer or stay decision.
+	CandidateCurrentLine CandidateKind = "current-line"
 )
 
 // EdgeSecurity is the deterministic advisory assessment of an upgrade: which
@@ -68,8 +73,8 @@ type EdgeSecurity struct {
 	// Candidates are computed when the target is affected by an assessed
 	// advisory and the source status allows it; see CandidateKind.
 	Candidates []VersionCandidate `json:"candidates,omitempty"`
-	// VersionsConsidered is how many known stable releases above the
-	// current version the candidates were chosen from.
+	// VersionsConsidered is how many known stable releases at or above the
+	// target the upgrade-target candidates were chosen from.
 	VersionsConsidered int `json:"versionsConsidered,omitempty"`
 }
 
@@ -106,7 +111,7 @@ type AdvisoryRef struct {
 type VersionCandidate struct {
 	Kind    CandidateKind `json:"kind"`
 	Version *Version      `json:"version,omitempty"`
-	// Line is the release line searched (target-line only).
+	// Line is the release line searched (target-line and current-line).
 	Line string `json:"line,omitempty"`
 	// Statement says in one sentence what the candidate establishes.
 	Statement string `json:"statement"`
@@ -122,6 +127,19 @@ type VersionCandidate struct {
 	Charts    []CandidateChart `json:"charts,omitempty"`
 	ChartGaps []string         `json:"chartGaps,omitempty"`
 	Evidence  []EvidenceID     `json:"evidence"`
+}
+
+// Label names the candidate in a report: its kind, its line, and for the
+// current-line entry the fact that it is not an upgrade target.
+func (c VersionCandidate) Label() string {
+	name := string(c.Kind)
+	if c.Line != "" {
+		name += " " + c.Line
+	}
+	if c.Kind == CandidateCurrentLine {
+		name += " (information for a defer or stay decision, not a target)"
+	}
+	return name
 }
 
 // CandidateChart is a chart version shipping a candidate release.
