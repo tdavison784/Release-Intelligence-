@@ -40,3 +40,41 @@ reload). Revisit agent-level scoping with M6's blind cases.
 - The scoped answer moves to M3 synthesis. **M3's gate must check that the upgrade recommendation commits, with its
   scope and preconditions in the headline** (mission C5, F3). If synthesis cannot, agent-level scoping returns, tested
   on blind cases (M6).
+
+## §1 Advisories, 2026-10-27: docs-eu MET; cert-manager PARTIAL (one advisory-consistency gap)
+
+**Runs:** `A0-K0-20261027-965ba258-adv-{deu,cm}`. These are deterministic, with no agent. They replay offline from a
+state recorded online the same day (`record-m2-advisories.sh`), after the merges of `advisories` (d73485b8) and
+`advisories2` (965ba258).
+
+**docs-eu (ingress-nginx 1.11.5 → 1.12.0): every GATE-M2 §1 item holds.**
+- **Regressions:** the 5 expected (mgvx critical; 823x, fwwp, vg63 high; 242m medium), all from the global source.
+  The repository source had 0.
+- **Persisting:** the 4 expected (`< 1.13.7 …`).
+- **Unassessed:** GHSA-f53h (pseudo-version range), with a gap, per amendment A1.
+- **Candidates:**
+  - `target-line` and `any-line`: 1.12.1, chart 4.12.1, both cited (chart index entry).
+  - `clean`: 1.13.7, chart 4.13.7.
+  - `current-line`: none.
+- **Statement example:** "controller-v1.12.1 is the lowest known release on line 1.12 at or above controller-v1.12.0
+  that removes every regression of controller-v1.12.0."
+
+**cert-manager pair (1.17.2 → 1.18.0):**
+- **Regressions:** both expected. GHSA-8rvj (high) comes from the repository source only. GHSA-gx3x (medium) comes
+  from both sources and is merged; the explicit-list copy and the global ranges are unioned.
+- **`target-line`:** "No known release on line 1.18 at or above v1.18.0 removes every regression of v1.18.0." As
+  expected.
+- **`any-line` and `clean`: 1.20.3, where 1.19.6 was expected.** GHSA-8rvj states `>= 1.18.0, <= 1.20.2` and lists
+  `patched: 1.19.6, 1.20.3`. The patched 1.19.6 lies inside the stated range: **the advisory contradicts itself.** RI
+  follows the range, the strict reading, and does not flag the contradiction. An engineer would want: "1.19.6 is listed
+  as patched but falls inside the stated range; check the advisory; if the patched list is right, 1.19.6 qualifies".
+  This is the one gap.
+- **Charts:** cert-manager's chart version follows a name template, not a chart index. It is stated in `chartGaps`
+  and not cited, which is correct.
+
+**Policy:** against the pre-advisories binary on identical bytes (base 0c89d9b1 comparison), no existing item changes
+class. The new advisory change items are all `potentially-affected`, so the effect is only stricter.
+
+**Next:** a small generic fix inside M2 (D-0012). When a patched version falls inside the advisory's own vulnerable
+range, record an advisory-consistency gap. Candidates stay fail-closed (on the range), and the statement names the
+alternative the patched list implies. Then re-run §1 offline from the same state.
