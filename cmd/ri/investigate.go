@@ -148,8 +148,15 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 	cls, rev := classify.New(), classify.NewReviewApplier()
 	var facts []domain.VerifiedFact
 	if *f.knowledge != "" {
-		if ks, err := app.LoadKnowledge(*f.knowledge); err == nil {
-			facts = ks.Facts
+		ks, err := app.LoadKnowledge(*f.knowledge)
+		if err != nil {
+			return nil, nil, fmt.Errorf("-knowledge: %w", err)
+		}
+		facts = ks.Facts
+		// a refused fact, or a fact default that is ignored, changes what
+		// the join and the pin rules can decide: say so
+		for _, w := range ks.Warnings {
+			fmt.Fprintf(c.err, "knowledge: %s\n", w)
 		}
 	}
 	var rtv investigate.Validator // the observed validator, only when opted in
