@@ -1627,6 +1627,49 @@ Stored evaluation runs are read-only: the page says so and offers no review form
 Tests: `internal/investigate/reportui/reportui_test.go` (list/filter, attention order, AI labelling, human review with
 reason, proxy cannot approve, read-only runs, cross-origin refusal, self-contained export).
 
+## Upgrade-level synthesis (`--synthesize`, Phase 6 Milestone 3)
+
+After classification, `--synthesize` makes one committed **upgrade judgement** per upgrade × environment
+(`Investigation.judgement`, `domain.UpgradeJudgement`; package `internal/synthesize`; plan
+`docs/phase6/decision-intel/PLAN-M3.md`, design and limits in `docs/phase6/decision-intel/M3-IMPLEMENTATION.md`). It is
+advisory AI output for an engineer to approve or deny (PD-1): it is never a policy input and never changes the findings,
+the decision, the review or knowledge.
+
+- **Deterministic pre-computation** (a pure function of the run record, bundle, impact report, edge and the product's
+  release list): the hard findings and disagreements, each with a content-derived id (security regressions, confirmed
+  breakage, failed validations, target options still affected, agent-versus-classification disagreements, untraced
+  consumers, unestablished upstream behaviour, advisory inconsistencies, an incomplete advisory picture); the target
+  options of the PD-3 rule (minimum safe release from the edge's candidates; the latest patch on the chosen line when it
+  removes every regression and adds no assessed advisory; nothing is safe while a security source is unread); the change
+  locations established by deterministic facts (a passing pin, verified setting claims, the GitOps line stating the
+  deployed version, with file and line); candidate tests; unresolved items as residual risks; items touching the same
+  object or setting; the backout line.
+- **One structured model call** (prompt `synthesize/v1`, generic, digest-pinned; default model `claude-opus-5-5`,
+  `-synthesize-model`) through the LLM answer cache over `-synthesize-exchange DIR` (answer with
+  `scripts/semantic-exchange.sh DIR`) or a stateless `claude -p` call; `-offline` answers from the cache only. A replay
+  is a cache hit.
+- **Deterministic floor** on the answer: `proceed` is impossible with a hard finding; the target is the proposed one or
+  a computed safe option (never one with a regression); `modify-target` names its version in the headline; every id and
+  citation resolves; a step's location is a computed location or none (`proposed`). A violating answer is retried
+  (at most 3 calls, each told the violations); after that the judgement is recorded as `failed`, never repaired. The
+  pre-computed findings are copied verbatim whatever the answer says. A changed target always requires the new
+  current → target investigation.
+
+```sh
+ri investigate ingress-nginx controller-v1.11.5 controller-v1.12.0 --repo ./env --synthesize   # claude -p
+ri investigate … --synthesize --synthesize-exchange /tmp/x    # writes the request; answer it, run again
+ri -offline investigate … --synthesize                          # replay from the answer cache
+ri investigate … --synthesize --temporal                        # the synthesize activity (ri worker serves it)
+ri eval -investigations … -synthesize                           # + the ungated judgement side table
+```
+
+`ri investigate` prints the judgement as a change-ticket section (summary and recommendation, target options,
+disagreements and hard findings, residual risks, impact with the agent's assessments, implementation steps with their
+locations, validation, backout, audit); the report UI page and its HTML export show the same section in an AI box.
+Under Temporal the step runs behind `workflow.GetVersion("synthesize")`, so histories recorded before it replay
+unchanged. A synthesis that yields no judgement (a pending exchange, an unreachable model) is audited as `failed` and
+the run continues to the review.
+
 ## Evaluation
 
 `ri eval -investigations` scores the investigation pipeline against the blind ground truth in
@@ -1703,6 +1746,10 @@ Scored runs are kept, never overwritten or cherry-picked; the analysis is
   per item, safety rows (false negatives, unsafe eligibility, clearances, unsafe clearances, clearances gained/lost),
   accuracy and coverage/risk detection as separate tables, human-review and cost rows, agent-verdict outcomes. The
   analysis is `docs/phase5/learning-loop/EVAL-REPORT.md`.
+- **Upgrade judgements (Phase 6 M3, `-synthesize`)** get an ungated side table (`ScoreJudgements`, `judgements` in the
+  score JSON): per case the status, recommendation, chosen / minimum / rule target, the counts of changes (and how many
+  have a deterministic location), tests, residual risks, findings (hard) and interactions, and the required parts that
+  are missing. It reads no expectation and feeds no gate; it is absent when no run carries a judgement.
 
 ### Held-out ground truth (Phase 5)
 
