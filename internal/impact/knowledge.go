@@ -387,7 +387,9 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 		opts.Observed, _ = f.UsableObservedDefaults()
 		// a role-membership default likewise, for its membership leaves only
 		opts.Membership, _ = f.UsableRoleMembershipDefaults()
-		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
+		// the condition is judged on the deployed objects (the effective
+		// object view), never on the files a render consumed
+		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.objs, b.edge, opts)
 		for _, c := range attached {
 			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
 			// decisively decides this change's exposure, it wins over the
@@ -399,7 +401,7 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 			}
 			var overlap ConditionResult
 			if ov := f.Assertion.Applicability.Overlap; ov != nil && exposure.Value == False {
-				overlap = EvaluateConditionWith(*ov, b.env, b.edge, opts)
+				overlap = EvaluateConditionWith(*ov, b.objs, b.edge, opts)
 			}
 			kf, ok := b.knowledgeFinding(f, exposure, overlap, c)
 			if !ok {

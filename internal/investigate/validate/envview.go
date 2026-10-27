@@ -82,12 +82,18 @@ type envView struct {
 	// gaps names environment inputs that were not collected completely.
 	gaps  []string
 	notes []string
+	// raw are the readable environment YAML files by bundle path; layers
+	// the layer rank of each file a kustomize render consumed, by render
+	// target (origin).
+	raw    map[string][]byte
+	layers map[string]map[string]int
 }
 
 // loadView reads the environment files and renders of a bundle. Unreadable
 // artifacts are recorded as notes (and gaps), never silently dropped.
 func loadView(ctx context.Context, c config, b *domain.EvidenceBundle) (*envView, error) {
-	v := &envView{unparsed: map[string][]byte{}, consumers: map[string][]string{}, unrendered: map[string][]string{}}
+	v := &envView{unparsed: map[string][]byte{}, consumers: map[string][]string{}, unrendered: map[string][]string{},
+		layers: map[string]map[string]int{}}
 	v.pairs, v.complete = envPairs(b)
 	raw := map[string][]byte{} // every readable environment YAML file, by bundle path
 	for _, in := range b.Snapshot.Inputs {
@@ -207,7 +213,13 @@ func loadView(ctx context.Context, c config, b *domain.EvidenceBundle) (*envView
 		if !ok {
 			continue
 		}
-		files, missing := kustomizeConsumes(raw, dir)
+		ranks, missing := kustomizeLayers(raw, dir)
+		var files []string
+		for f := range ranks {
+			files = append(files, f)
+		}
+		sort.Strings(files)
+		v.layers[p.Target] = ranks
 		for _, m := range missing {
 			v.notes = append(v.notes, fmt.Sprintf("render %s: %s", p.Target, m))
 		}
@@ -224,6 +236,7 @@ func loadView(ctx context.Context, c config, b *domain.EvidenceBundle) (*envView
 			v.schemas = append(v.schemas, e)
 		}
 	}
+	v.raw = raw
 	v.recoverWithheld()
 	return v, nil
 }
@@ -379,7 +392,21 @@ var kustomizationNames = []string{"kustomization.yaml", "kustomization.yml", "Ku
 // the bundle does not hold are reported, never guessed; remote references
 // are not files of the environment.
 func kustomizeConsumes(files map[string][]byte, dir string) (consumed, missing []string) {
-	seen := map[string]bool{}
+	ranks, missing := kustomizeLayers(files, dir)
+	for f := range ranks {
+		consumed = append(consumed, f)
+	}
+	sort.Strings(consumed)
+	return consumed, missing
+}
+
+// kustomizeLayers is kustomizeConsumes with each consumed file's layer rank,
+// as render.KustomizeLayers ranks a checkout: 2·depth for a patch of the
+// kustomization at that depth below dir, 2·depth+1 for anything else; a
+// lower rank is applied later and wins a field both state (join5: the pin
+// records cite the file that produced a rendered value).
+func kustomizeLayers(files map[string][]byte, dir string) (ranks map[string]int, missing []string) {
+	ranks = map[string]int{}
 	visited := map[string]bool{}
 	kfile := func(d string) string {
 		for _, n := range kustomizationNames {
@@ -388,6 +415,15 @@ func kustomizeConsumes(files map[string][]byte, dir string) (consumed, missing [
 			}
 		}
 		return ""
+	}
+	add := func(f string, depth int, patch bool) {
+		r := 2*depth + 1
+		if patch {
+			r = 2 * depth
+		}
+		if old, ok := ranks[f]; !ok || r < old {
+			ranks[f] = r
+		}
 	}
 	var walk func(d string, depth int)
 	walk = func(d string, depth int) {
@@ -400,28 +436,33 @@ func kustomizeConsumes(files map[string][]byte, dir string) (consumed, missing [
 			missing = append(missing, "the bundle holds no kustomization file in "+d)
 			return
 		}
-		seen[kf] = true
+		add(kf, depth, false)
 		var k map[string]any
 		if err := yaml.Unmarshal(files[kf], &k); err != nil {
 			missing = append(missing, fmt.Sprintf("%s: %v", kf, err))
 			return
 		}
-		var refs []string
+		type ref struct {
+			path  string
+			patch bool
+		}
+		var refs []ref
 		for _, key := range []string{"resources", "bases", "components", "crds", "patchesStrategicMerge", "patches", "patchesJson6902"} {
+			patch := key == "patchesStrategicMerge" || key == "patches" || key == "patchesJson6902"
 			l, _ := k[key].([]any)
 			for _, x := range l {
 				switch t := x.(type) {
 				case string:
-					refs = append(refs, t)
+					refs = append(refs, ref{t, patch})
 				case map[string]any:
 					if s, ok := t["path"].(string); ok {
-						refs = append(refs, s)
+						refs = append(refs, ref{s, patch})
 					}
 				}
 			}
 		}
-		for _, r := range refs {
-			r = strings.TrimSpace(r)
+		for _, x := range refs {
+			r := strings.TrimSpace(x.path)
 			if r == "" || strings.Contains(r, "\n") || remoteRef(r) {
 				continue
 			}
@@ -431,18 +472,14 @@ func kustomizeConsumes(files map[string][]byte, dir string) (consumed, missing [
 				continue
 			}
 			if _, ok := files[p]; ok {
-				seen[p] = true
+				add(p, depth, x.patch)
 				continue
 			}
 			missing = append(missing, fmt.Sprintf("%s references %s, which the bundle does not hold as an environment YAML file", kf, r))
 		}
 	}
 	walk(dir, 0)
-	for f := range seen {
-		consumed = append(consumed, f)
-	}
-	sort.Strings(consumed)
-	return consumed, missing
+	return ranks, missing
 }
 
 func remoteRef(r string) bool {

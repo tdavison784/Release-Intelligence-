@@ -289,3 +289,89 @@ proof validates, `m4rescore` 1004/1004 identical); membership defaults enter the
   negative condition types); a controller that names a failure otherwise is not recognised.
 - A membership default holds for the fixture's controller configuration and the observed versions only, like an
   observed default; it decides membership in role R for the rule that carries it, nothing else.
+
+## Lane `join5` (D-0028): evaluate rendered objects; membership defaults in the pin scope
+
+Branch `p6di/join5`. Two defects the commander found on a development evaluation (brief `briefs/join5.md`, generic
+description). Additive: stored runs, records, facts, proofs and prompts are unchanged and still validate (241/241
+checked-in facts verify, the stored proof validates, `m4rescore` 1004/1004 identical).
+
+### D2. Why the membership default was not applied
+
+Not the evaluators, the digest matching or the fact plumbing (all correct, and tested in memory): **the reader**.
+`app.LoadKnowledge`, which `ri investigate`, `ri impact` and `ri eval` use, never loaded `proof` records, so
+`impact.VerifyFacts` found no proof for any observed (PD-5) or role-membership (PD-6) default and ignored every one
+("proof … does not resolve"). The pin scope and the knowledge join take their facts from that loader (through the
+bundle's fact artifacts and `validate.WithFacts`), so they never saw the default. The investigation CLI dropped the
+loader's warnings, which hid it.
+
+| Change | Where |
+|---|---|
+| `LoadKnowledge` loads `RecordProof`; an ignored default is reported as "fact default ignored" (the fact is kept), not "fact refused" | `internal/app/knowledge.go` |
+| `ri investigate` / `ri eval -investigations` print the loader's warnings and fail on an unreadable `-knowledge` (was: silently no knowledge) | `cmd/ri/investigate.go` |
+
+### D1. The join judged source files, not the deployed objects
+
+`env.Resources` holds one resource per source document: a kustomize base and an overlay patch are separate objects,
+so a base that leaves a field unset was judged exposed although the overlay sets it — and, failing open, a base that
+pins a value an overlay removes or overrides was judged pinned.
+
+| Change | Where |
+|---|---|
+| **Effective object view** `env.Effective(e, renders)`: the rendered objects of the environment's render targets replace the files each render consumed; a file no render consumed is read as declared; a file consumed by a render whose objects are unavailable stays as its declaration marked `Resource.Unrendered`; a render without objects that consumed no file is an `Environment.RenderGaps` entry. Additive fields `Resource.Render`, `Resource.Unrendered`, `Environment.EffectiveView`, `Environment.RenderGaps` | `internal/env/effective.go` |
+| **Evidence through the render.** Each rendered field, text line and reference cites the consumed file of the latest kustomize layer that states it with the rendered value (`render.KustomizeLayers`: rank 2·depth for a patch, 2·depth+1 otherwise; an overlay patch before its base), else the rendered output (records of kind `rendered`, producer `env.effective@v1`: a transformer, a generator, a chart template). The rendered object's own record (an unset field's evidence) names the files that declare and patch it | `internal/env/effective.go`, `internal/render/kustomize.go` |
+| **Built for the join.** `app.ImpactRun` builds the view from the render pairs (to side of a complete pair; from side of a version-independent overlay; failed or incomplete-values renders unavailable); without `-render` the kustomize targets are detected, not rendered, so their files are unrendered. `impact.Input.Objects` carries it | `internal/app/effective.go`, `internal/app/impact.go`, `internal/impact/api.go`, `build.go` |
+| **Evaluators.** The knowledge join (exposure and overlap) and the schema-attribute joins (`crd:default-changed`, enum, required, type) read the view. Condition rule 7: an unrendered resource is unknown (per resource, by reference, in workload-wide leaves); under a render gap a would-be false is unknown, a true stands (as under partial health) and one resting on absence is never negated. The attribute join is unknown instead of clear (and adds an unknown beside a `pinned`) when objects of its scope are unrendered or a render gap exists | `internal/impact/condition.go`, `knowledge.go`, `crd_attrs.go` |
+| **Validators.** `SchemaCompat` judged every environment file as an object (a base and its patch separately, an unrendered file as declared): it now reads the effective view the pin scope already used; unrendered objects are never judged (`not-run`, `schema:unrendered`); producer `validate.schema-compat@v3`. A pin on a rendered object names the file and line that produced its value (`set at …:L7`), from the bundle's kustomizations (`kustomizeLayers`) | `internal/investigate/validate/schema.go`, `envview.go`, `origin.go`, `pins.go`, `common.go` |
+
+**Checked, unchanged.** The pin scope and the override inspection already used the effective view (renders over the
+files they consumed, unrendered ⇒ undecidable). The `crd:fields-removed` join reads every document, patch documents
+included, so it can only over-report (a JSON 6902 patch that adds a removed field is visible only in the render). The
+relations graph (consumer tracing) evaluates no field condition; it reads complete product renders plus every
+non-patch file, so the objects of a version-independent overlay appear there as their base declares them — a
+display/tracing limit, not an applicability evaluation (follow-up candidate).
+
+### Tests
+
+- D2: `verify.TestMembershipDefaultSurvivesLoadKnowledge`, `TestObservedDefaultSurvivesLoadKnowledge` (confirmed proof
+  → human promotion → files → `LoadKnowledge` → the join decides the object that leaves the role field unset; without
+  the proof on disk the default is ignored with a warning and the object is unknown). Both fail on the old loader with
+  the D2 symptom. The pin scope with a membership default, without a confirmed proof, and blocked by a contradicting
+  schema default: `validate.TestPinScopeRoleMembershipDefault` (verify4), through the bundle's fact artifact.
+- D1, join: `impact.TestEffectiveViewOverlaySetsAField` (files: exposed; render: not, the patch's line cited),
+  `TestEffectiveViewOverlayRemovesOrOverridesAField` (the fail-open direction: files pinned/clear, render exposed,
+  cited from the rendered object), `TestEffectiveViewWithoutRenderIsUnknown`, `TestEffectiveViewRenderGap`,
+  `TestEffectiveViewRenderGapOnFlags`, `TestKnowledgeJoinReadsRenderedObjects` (exposed → clear; clear → exposed;
+  unrendered → undecided), `TestDefaultChangedJoinReadsRenderedObjects`; `env.TestEffectiveSharedBase`;
+  `render.TestKustomizeLayers`; `app.TestEffectiveObjectsOfARealOverlay` (a real `kubectl kustomize` render with
+  `namespace` and `namePrefix`: the patch cited for the patched field, the base for the rest, the render for the
+  transformer's output; skips without kubectl/kustomize).
+- D1, validators: `validate.TestPinCitesTheOverlayPatch`, `TestPinOverlayRemovingTheBaseSettingDoesNotClear`,
+  `TestSchemaJudgesTheDeployedObject` (rendered: the overridden base value is not a violation; unavailable: not-run).
+
+### Regression
+
+- Stored runs (`m4rescore`, cases.tar.gz + run.json only): 19 runs, 50 cases, 1004 items, **1004 identical**.
+- The join on the 8 investigation cases (`ri -offline impact … -repo <case>/env -render -knowledge K0`, base fac5f22c
+  vs this branch, scratch clone of the warm state; JSON compared by change and rule id only): 828 changes, **827
+  identical**, 16 knowledge findings both sides. One difference, on `ingress-nginx … shop-nl` (not a development
+  case): `impact:knowledge-exposed` → `impact:knowledge-overlap` (review-required → informational) for a fact whose
+  exposure is "the controller does not pass flag F". The old `true` rested on absence in the repository files, which
+  do not contain the controller at all (the chart renders it); the complete chart render shows the controller passing
+  F explicitly, so the exposure is false and the overlap true. Not a clearance; it is a lost affected finding, so the
+  commander decides whether chart objects belong in the view (`renderedObjectsOf` is the one place to exclude them).
+  An earlier iteration also turned an absence-based true into unknown under an incomplete chart render (`shop-pl`);
+  that was changed (a gap never costs an exposed finding), and `shop-pl` is identical.
+- K0 has no fact on a kustomize-patched field of these environments, so D1's effect on the development pair shows
+  only with the commander's K1 (part B).
+
+### Known limits
+
+- Evidence mapping matches a rendered field to a consumed file by object identity (group, kind, a name that contains
+  the declared one) and equal value; two layers stating the same value cite the later one. A value that differs from
+  every consumed file (a transformer, a JSON 6902 patch, a replacement) is cited from the render.
+- Without `-render` every object of a kustomize target is unknown to the join (fail-closed); the investigation pipeline
+  always renders.
+- Chart objects rendered with complete values enter the view (as in the validators); a failed chart render is a gap
+  that only blocks false conclusions.
+- The pin origin crosses no list (`spec.a[].b` is cited from the render only).

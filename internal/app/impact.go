@@ -120,6 +120,8 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 			e, run.Env, in.Env = e2, e2, e2
 		}
 	}
+	// object-level evaluations read the objects as deployed (D1, join5)
+	in.Objects = a.effectiveObjects(in.Env, productID, run.Render)
 	if run.Report, err = impact.Build(in); err != nil {
 		return nil, err
 	}

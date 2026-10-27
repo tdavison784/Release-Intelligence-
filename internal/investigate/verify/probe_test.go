@@ -137,13 +137,15 @@ func TestObservedDefaultRecordedOnlyFromAConfirmedDistinguishingObservation(t *t
 // and a run record naming the refinement (as TestRefinementPromotionGateRequiresAHuman).
 type proofStore struct {
 	ks   knowledge.Store
+	dir  string // the file store's directory
 	item domain.ReviewItem
 	opts func(*runtime.FixtureResult, time.Time) Options
 }
 
 func newProofStore(t *testing.T, rule domain.SemanticAssertion) *proofStore {
 	t.Helper()
-	ks := knowledge.NewFileStore(t.TempDir())
+	dir := t.TempDir()
+	ks := knowledge.NewFileStore(dir)
 	runs := t.TempDir()
 	ev := cite("https://example.test/acme/blob/main/docs/release-notes-2.0.md", "The default value of spec.keyPolicy changed from Keep to Renew.",
 		"# Release 2.0\nThe default value of spec.keyPolicy changed from Keep to Renew.")
@@ -171,7 +173,7 @@ func newProofStore(t *testing.T, rule domain.SemanticAssertion) *proofStore {
 	if err := os.WriteFile(filepath.Join(runs, invID+".json"), b, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	return &proofStore{ks: ks, item: item, opts: func(res *runtime.FixtureResult, now time.Time) Options {
+	return &proofStore{ks: ks, dir: dir, item: item, opts: func(res *runtime.FixtureResult, now time.Time) Options {
 		return Options{Knowledge: ks, Resolver: mapResolver{ev.ContentDigest: "# Release 2.0\nThe default value of spec.keyPolicy changed from Keep to Renew."},
 			Runs: StateRuns{Dir: runs}, Runtime: true, Again: true, Fixtures: map[string]*FixtureSet{"acme-ctl": badgeOutsideSet(t)},
 			Exercises: []runtime.DeclaredExercise{reissueExercise()}, Relationships: func(string) []catalog.Relationship { return badgeProduces },

@@ -249,20 +249,20 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 		obj      render.Object
 		rendered bool
 	}
+	// the objects as deployed (the effective view): a file a render
+	// consumed is judged only through the render's objects, never on its
+	// own; one whose render is unavailable is not judged at all
 	var objs []objRef
-	for _, f := range view.files {
-		for _, o := range f.objects {
-			if o.ID.Kind == kind && o.ID.Group == group {
-				objs = append(objs, objRef{f, o, false})
-			}
+	var unrendered []string
+	for _, e := range view.objects() {
+		if e.obj.ID.Kind != kind || e.obj.ID.Group != group {
+			continue
 		}
-	}
-	for _, r := range view.renders {
-		for _, o := range r.to.objects {
-			if o.ID.Kind == kind && o.ID.Group == group {
-				objs = append(objs, objRef{r.to, o, true})
-			}
+		if e.unrendered != "" {
+			unrendered = append(unrendered, fmt.Sprintf("%s (%s): %s", e.obj.ID, e.src.artifact.Path, e.unrendered))
+			continue
 		}
+		objs = append(objs, objRef{e.src, e.obj, e.rendered})
 	}
 	var violations, checked, withheld []string
 	var vEvidence, cEvidence []domain.Evidence
@@ -358,6 +358,9 @@ func (v *schemaCompat) crd(ctx context.Context, in investigate.ValidationInput, 
 		return nil
 	}
 	switch {
+	case len(unrendered) > 0:
+		out.notRun(cov, "schema:unrendered", property, fmt.Sprintf("the deployed form of %d %s object(s) is unknown, so their compatibility is unknown: %s",
+			len(unrendered), kind, strings.Join(unrendered, "; ")))
 	case len(withheld) > 0:
 		out.notRun(cov, "schema:withheld", property, fmt.Sprintf("the value the change is about is withheld (redacted) in %d %s object(s), so their compatibility is unknown: %s",
 			len(withheld), kind, strings.Join(withheld, "; ")))

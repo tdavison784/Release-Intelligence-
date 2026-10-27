@@ -79,6 +79,12 @@ func LoadKnowledge(dir string) (*KnowledgeSet, error) {
 			s.ReviewItems = append(s.ReviewItems, *r.ReviewItem)
 		case domain.RecordDecision:
 			s.Decisions = append(s.Decisions, *r.Decision)
+		case domain.RecordProof:
+			// an observed or role-membership default of a fact is usable
+			// only through the confirmed proof that records it
+			// (VerifyFacts): without the proofs every such default would be
+			// ignored as "does not resolve"
+			s.Proofs = append(s.Proofs, *r.Proof)
 		case domain.RecordFact:
 			s.Facts = append(s.Facts, *r.Fact)
 		}
@@ -86,6 +92,11 @@ func LoadKnowledge(dir string) (*KnowledgeSet, error) {
 	facts, rejected := impact.VerifyFacts(s)
 	ks.Facts = facts
 	for _, r := range rejected {
+		if strings.Contains(r, " default ") && strings.Contains(r, " ignored: ") {
+			// the fact is kept; only the default is not used
+			ks.Warnings = append(ks.Warnings, "fact default ignored: "+r)
+			continue
+		}
 		ks.Warnings = append(ks.Warnings, "fact refused: "+r)
 	}
 	ks.Contexts = impact.ReviewContexts(s)

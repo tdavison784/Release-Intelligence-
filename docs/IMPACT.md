@@ -133,6 +133,41 @@ one port of two) hold the default too. Kleene `all`/`any`/`not` are monotone
 in the information order, so this only ever turns a decided result into
 unknown unless a default is established; a property test checks it against
 the previous semantics (`TestUnsetRuleNeverFailsOpen`).
+
+**Objects as deployed (Phase 6 M4, lane join5).** A fact's conditions, and the
+schema-attribute joins below (`impact:crd-default-*`, enum, required, type), are
+evaluated over the **effective object view** (`env.Effective`, built by `ri
+impact`/`ri investigate`; `impact.Input.Objects`), the same view the
+investigation validators use — never over a file a render consumed:
+
+- an environment file **no render consumed** is read as declared;
+- a file a render **consumed** (a kustomize base, an overlay patch, a
+  kustomization) is seen only through that render's objects: the target side of
+  a complete pair, or the render of a version-independent overlay. Every
+  rendered field cites the file and line that **produced** it: the consumed file
+  of the latest kustomize layer that states the field with the rendered value
+  (`render.KustomizeLayers`: an overlay's patch before its base), else the
+  rendered output itself (a transformer such as `namespace`/`namePrefix`, a
+  generator, a chart template). An unset field is read from the rendered object,
+  whose record names the files that declare and patch it;
+- a file consumed by a render whose objects are **not available** (the render
+  failed, or no render was requested: without `--render` the kustomize targets
+  are detected, not rendered) stays as its declaration marked **unrendered**: a
+  `resource` scope over it, a reference to it, its containers, are **unknown**
+  (`environment-visibility-gap`) — never the base file's view;
+- a render whose objects are unavailable and that consumed no file (a chart
+  render that failed or had incomplete values) is a **render gap**: no `false`
+  is concluded from the visible objects (a `true` stands, as under partial
+  health, but one resting on absence is never negated).
+
+Chart releases rendered with complete values contribute their objects too
+(the product's own workloads, so `cli-flag`/`env-var` leaves read the rendered
+container args). Before this, a kustomize base that leaves a field unset was
+judged exposed although its overlay sets it, and — the fail-open direction — a
+base that pins a value an overlay removes or overrides was judged pinned. The
+deterministic `crd:fields-removed` join still reads every document (patch
+documents included), which only ever over-reports a removed field; a JSON 6902
+patch that adds one is visible only in the render.
 Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
 `absence` (an examined record proving something is not stated) besides the
 join's own. A product missing from the inventory is "not installed" only when
@@ -424,6 +459,13 @@ Query API (all deterministic, load-ordered):
 | `FieldValues(sel, path)` | per matching resource: `Set` (false = the resource does not state it) and the `FieldFact`s; `path` with `[]` covers all elements, `[0]` one |
 | `TextBlocks(sel, pathPrefix)` + `TextBlock.Match(re)` | per resource, the text blocks under a path and the lines matching a regex (`Withheld` counts lines a "no line matches" predicate cannot see) |
 | `References(sel, path)` / `ResolveRef(from, ref)` | the references at a path, each with its resolution |
+
+**Effective object view** (`Effective(e, renders)`, lane join5): the same
+store with the resources replaced by the rendered objects of the environment's
+render targets (`Resource.Render`), files no render consumed as declared, and
+files consumed by an unavailable render kept as declarations marked
+`Resource.Unrendered`; `Environment.RenderGaps` names renders without objects
+that consumed no file. See "Objects as deployed" above.
 
 **Secrets.** Values are withheld (`Withheld: "sensitive"`, no `Value`, no value
 in the evidence excerpt) for `Secret` resources, for keys naming a credential
