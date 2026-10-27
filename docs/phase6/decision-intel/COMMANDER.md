@@ -79,3 +79,5 @@ handoffs (every item is `providers: [claude]`).
   :8485 (w1:t1J), pending the product owner.
 - 2026-10-26 (product owner: "close both review"): stopped the review UIs on :8484 and :8485 and closed tabs w1:tR
   and w1:t1J.
+- 2026-10-27 (product owner: "create a pr"): pushed `p6-decision-intel` and opened PR #9 (base `p6-natural-agent`,
+  stacked on #8 and #7). The pre-push scan was clean (no secrets, and no account email in the content or the run tarballs).
