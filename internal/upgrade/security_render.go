@@ -58,12 +58,20 @@ func SecurityLines(s *domain.EdgeSecurity, from, to domain.Version, cite func([]
 	list(fmt.Sprintf("Persisting: affect %s and %s", from, to), s.Persisting, true)
 	list(fmt.Sprintf("Fixed: affect %s, not %s", from, to), s.Fixed, false)
 	list("Unassessed: no machine-readable range, check manually", s.Unassessed, false)
+	if len(s.Inconsistencies) > 0 {
+		add("  Inconsistent: patched versions inside the advisory's own range, the range decides (%d):", len(s.Inconsistencies))
+		for _, a := range s.Inconsistencies {
+			add("    • %s", a.Statement)
+			add("      source %s  (%s)", a.SourceID, cite(a.Evidence))
+		}
+	}
 	if len(s.Candidates) > 0 {
 		add("  Candidate versions (%d known releases at or above %s considered):", s.VersionsConsidered, to)
 		for _, c := range s.Candidates {
 			name := c.Label()
 			if c.Version == nil {
 				add("    • %s: none. %s", name, c.Statement)
+				alternatives(add, c, cite)
 				continue
 			}
 			add("    • %s: %s. %s", name, c.Version, c.Statement)
@@ -77,6 +85,7 @@ func SecurityLines(s *domain.EdgeSecurity, from, to domain.Version, cite func([]
 			for _, g := range c.ChartGaps {
 				add("      chart: %s", g)
 			}
+			alternatives(add, c, cite)
 		}
 	}
 	if len(s.Gaps) > 0 {
@@ -86,6 +95,18 @@ func SecurityLines(s *domain.EdgeSecurity, from, to domain.Version, cite func([]
 		}
 	}
 	return out
+}
+
+// alternatives renders what a candidate would be if inconsistent
+// advisories' patched lists were right (never the candidate).
+func alternatives(add func(string, ...any), c domain.VersionCandidate, cite func([]domain.EvidenceID) string) {
+	for _, a := range c.Alternatives {
+		v := "none"
+		if a.Version != nil {
+			v = a.Version.String()
+		}
+		add("      alternative, not chosen (if the patched list of %s is right): %s  (%s)", strings.Join(a.Advisories, ", "), v, cite(a.Evidence))
+	}
 }
 
 func cveIDs(aliases []string) []string {

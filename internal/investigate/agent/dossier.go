@@ -114,8 +114,11 @@ type DossierSecurity struct {
 	Persisting  []string `json:"persisting,omitempty"`
 	Fixed       []string `json:"fixed,omitempty"`
 	Unassessed  []string `json:"unassessed,omitempty"`
-	Candidates  []string `json:"candidates,omitempty"`
-	Gaps        []string `json:"gaps,omitempty"`
+	// Inconsistent are advisories whose patched list contradicts their own
+	// range (the range decides).
+	Inconsistent []string `json:"inconsistent,omitempty"`
+	Candidates   []string `json:"candidates,omitempty"`
+	Gaps         []string `json:"gaps,omitempty"`
 }
 
 // DossierChange is the change item and what upstream says about it.
@@ -1620,6 +1623,9 @@ func securitySummary(s *domain.EdgeSecurity) *DossierSecurity {
 	advisories(&out.Persisting, s.Persisting)
 	advisories(&out.Fixed, s.Fixed)
 	advisories(&out.Unassessed, s.Unassessed)
+	for _, a := range s.Inconsistencies {
+		bounded(&out.Inconsistent, a.Statement+" source "+a.SourceID+" ["+cites(a.Evidence)+"]", len(s.Inconsistencies))
+	}
 	for _, c := range s.Candidates {
 		line := c.Label()
 		if c.Version == nil {
@@ -1637,6 +1643,9 @@ func securitySummary(s *domain.EdgeSecurity) *DossierSecurity {
 				line += fmt.Sprintf("; chart %s %s", ch.Name, ch.Version)
 			}
 			line += " [" + cites(c.Evidence) + "]"
+		}
+		for _, a := range c.Alternatives {
+			line += "; alternative, not chosen: " + a.Reason + " [" + cites(a.Evidence) + "]"
 		}
 		out.Candidates = append(out.Candidates, clip(line, dossierExcerpt))
 	}

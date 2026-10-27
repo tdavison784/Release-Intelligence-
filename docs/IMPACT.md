@@ -614,8 +614,10 @@ unknown.
 
 The report carries the edge's security section (`ImpactReport.Security`,
 docs/SECURITY_ADVISORIES.md): regressions, persisting and fixed advisories,
-candidate versions with chart versions, and the gaps (an unread advisory source
-is a gap, never "no advisories"). It is decided by advisory ranges against the
+candidate versions with chart versions, advisories whose patched list
+contradicts their own range (with the alternative each candidate would have,
+never chosen), and the gaps (an unread advisory source is a gap, never "no
+advisories"). It is decided by advisory ranges against the
 two versions, so it is the same for every environment on the upgrade; it adds
 no finding and changes no class. Advisory changes keep their `impact:not-joined`
 UNKNOWN finding (joined to the section by `changeId`), whose

@@ -70,6 +70,10 @@ type EdgeSecurity struct {
 	// against nothing, so their evidence records are not part of the edge;
 	// URL and SourceID locate them.
 	Unassessed []SecurityAdvisory `json:"unassessed,omitempty"`
+	// Inconsistencies are advisory-consistency findings: an assessed
+	// advisory that lists as patched a version its own range includes. The
+	// range still decides; each is also a gap and an edge warning.
+	Inconsistencies []AdvisoryInconsistency `json:"inconsistencies,omitempty"`
 	// Candidates are computed when the target is affected by an assessed
 	// advisory and the source status allows it; see CandidateKind.
 	Candidates []VersionCandidate `json:"candidates,omitempty"`
@@ -100,6 +104,29 @@ type SecurityAdvisory struct {
 	Evidence []EvidenceID `json:"evidence"`
 }
 
+// AdvisoryInconsistency is an advisory that contradicts itself: some of its
+// patched versions lie inside its own machine-readable affected range (for
+// example per-line fixes listed under one range spanning the lines). RI
+// follows the range; the finding says that the advisory needs checking.
+type AdvisoryInconsistency struct {
+	ID      string   `json:"id"`
+	Aliases []string `json:"aliases,omitempty"`
+	URL     string   `json:"url,omitempty"`
+	// Vulnerable is the affected-version constraint that was evaluated.
+	Vulnerable string `json:"vulnerable"`
+	// Patched is the advisory's full patched list; Contradicting the
+	// patched versions the range includes.
+	Patched       []string `json:"patched"`
+	Contradicting []string `json:"contradicting"`
+	SourceID      string   `json:"sourceId"`
+	Sources       []string `json:"sources,omitempty"`
+	// ChangeID is the edge change that reports the advisory, if any.
+	ChangeID string `json:"changeId,omitempty"`
+	// Statement says in one sentence what contradicts what.
+	Statement string       `json:"statement"`
+	Evidence  []EvidenceID `json:"evidence"`
+}
+
 // AdvisoryRef names an advisory and the evidence of its range.
 type AdvisoryRef struct {
 	ID       string       `json:"id"`
@@ -126,7 +153,22 @@ type VersionCandidate struct {
 	// product ships as a chart; ChartGaps say why a lookup gave nothing.
 	Charts    []CandidateChart `json:"charts,omitempty"`
 	ChartGaps []string         `json:"chartGaps,omitempty"`
-	Evidence  []EvidenceID     `json:"evidence"`
+	// Alternatives say what the answer would be if inconsistent
+	// advisories' patched lists were right. They are never the candidate:
+	// the stated ranges decide.
+	Alternatives []CandidateAlternative `json:"alternatives,omitempty"`
+	Evidence     []EvidenceID           `json:"evidence"`
+}
+
+// CandidateAlternative is the answer a candidate question would get under
+// the reading of some advisories' patched lists (Advisories) instead of
+// their stated ranges: Version, or none when nil. Reason says why it differs
+// and why it is not chosen.
+type CandidateAlternative struct {
+	Version    *Version     `json:"version,omitempty"`
+	Advisories []string     `json:"advisories"`
+	Reason     string       `json:"reason"`
+	Evidence   []EvidenceID `json:"evidence"`
 }
 
 // Label names the candidate in a report: its kind, its line, and for the
@@ -183,8 +225,20 @@ func (s *EdgeSecurity) validate(ev map[EvidenceID]bool) []error {
 	for _, a := range s.Unassessed {
 		cite("advisory "+a.ID, a.Evidence, false)
 	}
+	for _, a := range s.Inconsistencies {
+		if len(a.Contradicting) == 0 {
+			errs = append(errs, fmt.Errorf("security: inconsistency %s names no contradicting patched version", a.ID))
+		}
+		cite("inconsistency "+a.ID, a.Evidence, false)
+	}
 	for _, c := range s.Candidates {
 		what := "candidate " + string(c.Kind)
+		for _, alt := range c.Alternatives {
+			if len(alt.Advisories) == 0 || alt.Reason == "" {
+				errs = append(errs, fmt.Errorf("security: %s alternative without advisories or reason", what))
+			}
+			cite(what+" alternative", alt.Evidence, false)
+		}
 		cite(what, c.Evidence, c.Version != nil)
 		for _, r := range append(append([]AdvisoryRef(nil), c.Removes...), c.Leaves...) {
 			cite(what+" advisory "+r.ID, r.Evidence, true)

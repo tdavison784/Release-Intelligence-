@@ -47,7 +47,32 @@ func TestSecuritySummary(t *testing.T) {
 	if !strings.HasPrefix(d.Candidates[2], "current-line 1.0 (information for a defer or stay decision, not a target): v1.0.1.") {
 		t.Errorf("current-line line %q", d.Candidates[2])
 	}
+	if len(d.Inconsistent) != 0 {
+		t.Errorf("no inconsistency: %v", d.Inconsistent)
+	}
 	if len(d.Fixed) != dossierSecurityLines+1 || !strings.Contains(d.Fixed[dossierSecurityLines], "2 more") {
 		t.Errorf("fixed list must be bounded: %d %v", len(d.Fixed), d.Fixed[len(d.Fixed)-1])
+	}
+}
+
+// A self-contradicting advisory and the alternative it implies reach the
+// dossier; the candidate line keeps the strict version.
+func TestSecuritySummaryInconsistency(t *testing.T) {
+	strict := domain.MustVersion("v1.2.0", "1.2.0")
+	alt := domain.MustVersion("v1.1.1", "1.1.1")
+	reason := "If GHSA-self's patched list is right, v1.1.1 also qualifies; it is not chosen because the stated range includes it."
+	d := securitySummary(&domain.EdgeSecurity{
+		SchemaVersion: domain.EdgeSecuritySchemaVersion, Status: domain.SecurityComplete,
+		Inconsistencies: []domain.AdvisoryInconsistency{{ID: "GHSA-self", Vulnerable: ">= 1.1.0, <= 1.1.2", Patched: []string{"1.1.1", "1.2.0"},
+			Contradicting: []string{"1.1.1"}, SourceID: "global-advisories", Evidence: []domain.EvidenceID{"ev-s"},
+			Statement: "GHSA-self lists 1.1.1 as patched but its range >= 1.1.0, <= 1.1.2 includes it; check the advisory."}},
+		Candidates: []domain.VersionCandidate{{Kind: domain.CandidateAnyLine, Version: &strict, Evidence: []domain.EvidenceID{"ev-s"},
+			Alternatives: []domain.CandidateAlternative{{Version: &alt, Advisories: []string{"GHSA-self"}, Reason: reason, Evidence: []domain.EvidenceID{"ev-s"}}}}},
+	})
+	if len(d.Inconsistent) != 1 || d.Inconsistent[0] != "GHSA-self lists 1.1.1 as patched but its range >= 1.1.0, <= 1.1.2 includes it; check the advisory. source global-advisories [ev-s]" {
+		t.Errorf("inconsistent %v", d.Inconsistent)
+	}
+	if c := d.Candidates[0]; !strings.HasPrefix(c, "any-line: v1.2.0.") || !strings.Contains(c, "alternative, not chosen: "+reason+" [ev-s]") {
+		t.Errorf("candidate line %q", c)
 	}
 }
