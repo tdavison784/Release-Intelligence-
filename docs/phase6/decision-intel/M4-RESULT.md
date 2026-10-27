@@ -186,3 +186,48 @@ the D-EU `docs` Ingress (`env/apps/docs/base/ingress.yaml`, namespace `docs`, th
 - **Candidate fix (M4 follow-up):** the behaviour entry states the claimed value it relies on, structured (for
   example accepted characters, or a default value). semantic-check compares that against the cited passage, and the
   verdict's reasoning is checked for value tokens attributed to the same behaviour.
+
+## §2 Negative controls, 2026-10-28: MET (all four fail closed)
+
+**How the stores were built:** by a subagent in its own Herdr pane, using RI's own `knowledge.FileStore` and
+`Queue.Decide`, with no hand-edited JSON. All four load through `app.LoadKnowledge`. The build report is
+`evidence-m4-negative-controls-build.md`.
+
+**How they were run:** each store was evaluated with A0 on the pair (`A0-Kneg-*-20261028-*-m4`) and compared with K1.
+
+| Control | What changed | P-US B1 (K1 → control) | Unsafe / FNR |
+|---|---|---|---|
+| no default | `roleMembershipDefaults` removed from `vf-4d9b756f1343` | not-affected → **potentially-affected** | 0 / 0 |
+| expired | fact at release 1.17.0; proof bounds `(1.16.0, 1.17.0]` | not-affected → **potentially-affected** | 0 / 0 |
+| contradicted | a second active human fact: every unset Certificate exposed, action-required, no relation to `vf-4d9b756f1343` | not-affected → **affected** | 0 / 0 |
+| inapplicable | the role flipped to `isCA = false` | not-affected → **potentially-affected** | 0 / 0 |
+
+**Two nuances:**
+- **Contradicted:** the stricter fact wins, which fails closed. But RI does not *report* that two active facts
+  contradict on the subject. It should.
+- **Expired:** the decision path itself refuses this rule with these bounds (`PromotionGate`: "the item's release 1.18.0
+  lies outside the proof's bounds"). The store had to be hand-assembled through FileStore.
+
+**Knowledge-integrity gaps found while building the controls (not caught by any gate):**
+- **K1, a coexistence back door.** The promotion gate's proof requirement and its "name every active fact on the
+  subject" rule apply only to hypothesis-sourced items. A human `correct` on an *ordinary* fact-review item of the same
+  candidate minted a contradicting active fact that named no existing fact (this control's route B).
+- **K2, unchecked bounds.** Proof `versionBounds` is not part of the proof's content id, and the loader checks no
+  bounds, neither for facts nor for role-membership defaults.
+- **K3, unchecked consistency.** The loader does not check that a decision's `resultingFact` exists, or that a fact's
+  release matches its candidate's and proof's.
+
+## M4 status (commander)
+
+| Gate part | Result |
+|---|---|
+| §1 the loop: formalize → verify → product owner promotes → K1 clears P-US, not P-EU, nothing else changes | **met** (attempt 4) |
+| §2 negative controls | **met**: all four fail closed; the contradiction is not reported |
+| §3a admission dry-run on D-EU | **met**: observed rejection of `/.well-known` Prefix by the 1.12.0 webhook |
+| §3b semantic-check flags the M2 misread | **not met**: `undetermined`; behaviour entries carry no structured claimed value |
+
+**Proposed before the M4 gate decision, one lane (`integrity`):**
+- structured claimed values on behaviour entries, checked against the citation (§3b);
+- close the coexistence back door (K1) for every promotion route;
+- report contradicting active facts;
+- loader checks for proof bounds and record consistency (K2, K3).
