@@ -7,11 +7,14 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
-// AssertionTokens returns the value tokens a structured rule asserts: its
-// change's before and after values, the values its applicability
-// conditions compare with, and the tokens of its statement. Structured
-// values assert presence only (their polarity is the rule's structure, not
-// a word); the statement's tokens carry its clauses' polarity.
+// AssertionTokens returns the value tokens a structured rule asserts about
+// upstream behaviour: its change's before and after values and the tokens
+// of its statement. The before/after values assert presence only; the
+// statement's tokens carry its clauses' polarity. The applicability
+// condition's values are not among them: they scope the environment the
+// rule applies to (often through a consumer role or an alternative that
+// shields it), are not what an upstream passage states, and are tested by
+// the rule exercise's two arms and the applicability checks instead.
 func AssertionTokens(a domain.SemanticAssertion) []Token {
 	var out []Token
 	seen := map[string]bool{}
@@ -45,38 +48,6 @@ func AssertionTokens(a domain.SemanticAssertion) []Token {
 		}
 		if c.After != nil {
 			plain(TokenAfter, *c.After)
-		}
-	}
-	if ap := a.Applicability; ap != nil {
-		conds := []domain.Condition{ap.Exposure}
-		if ap.Overlap != nil {
-			conds = append(conds, *ap.Overlap)
-		}
-		for len(conds) > 0 {
-			c := conds[0]
-			conds = append(conds[1:], c.Of...)
-			switch c.State {
-			case domain.StateEquals, domain.StateNotEquals:
-				for _, v := range c.Values {
-					var x any
-					if json.Unmarshal([]byte(v), &x) != nil {
-						continue
-					}
-					switch x := x.(type) {
-					case string:
-						plain(TokenValue, x)
-					case bool, float64:
-						plain(TokenValue, v)
-					}
-				}
-			case domain.StateHasToken:
-				for _, v := range c.Values {
-					if k, val, ok := strings.Cut(v, "="); ok && k != "" {
-						v = val
-					}
-					plain(TokenValue, v)
-				}
-			}
 		}
 	}
 	for _, t := range ExtractTokens(a.Statement) {

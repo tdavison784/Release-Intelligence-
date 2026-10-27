@@ -83,11 +83,14 @@ func TestAssertionTokens(t *testing.T) {
 	for _, tk := range AssertionTokens(a) {
 		s = append(s, tk.String())
 	}
-	want := "before `Always`, after `Never`, boolean `true`, value `Strict`, value `Never`"
+	want := "before `Always`, after `Never`, value `Never`"
 	if strings.Join(s, ", ") != want {
 		t.Errorf("tokens = %s, want %s", strings.Join(s, ", "), want)
 	}
-	if r := CheckAssertion(a, []string{"The default rotation policy changes from `Always` to `Never`."}); r.Verdict != Unsupported || !strings.Contains(r.Detail, "`true`") {
+	if r := CheckAssertion(a, []string{"The default rotation policy changes from `Always` to `Never`."}); r.Verdict != Supported {
+		t.Errorf("CheckAssertion = %s: %s", r.Verdict, r.Detail)
+	}
+	if r := CheckAssertion(a, []string{"The default rotation policy changes from `Always` to `OnDemand`."}); r.Verdict != Unsupported || !strings.Contains(r.Detail, "`Never`") {
 		t.Errorf("CheckAssertion = %s: %s", r.Verdict, r.Detail)
 	}
 }

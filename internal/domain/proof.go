@@ -77,6 +77,9 @@ const (
 // runtime exercise).
 var ProofMethodKinds = []ProofMethodKind{ProofCitationCheck, ProofRuleExercise}
 
+// AllProofMethodKinds lists every method, the optional ones included.
+var AllProofMethodKinds = []ProofMethodKind{ProofCitationCheck, ProofRuleExercise, ProofSemanticCheck}
+
 // required reports whether a confirmation needs the method to pass.
 func (k ProofMethodKind) required() bool {
 	for _, r := range ProofMethodKinds {
