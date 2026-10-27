@@ -104,7 +104,8 @@ func (b *builder) advisoryChanges() {
 		}
 		sec.assessed(a, cs)
 		fromAff, toAff := affected(cs, b.from.Version), affected(cs, b.to.Version)
-		if !fromAff && !toAff {
+		contra := contradicting(a, cs)
+		if !fromAff && !toAff && len(contra) == 0 {
 			continue
 		}
 		for _, id := range a.Evidence {
@@ -113,6 +114,14 @@ func (b *builder) advisoryChanges() {
 			}
 		}
 		ev := b.resolve(a.Evidence...)
+		if len(contra) > 0 {
+			// the advisory contradicts itself: reported whether or not it
+			// affects an endpoint, since it can decide a candidate
+			sec.inconsistent(a, contra, ev)
+		}
+		if !fromAff && !toAff {
+			continue
+		}
 		patched := "unknown"
 		if len(a.Patched) > 0 {
 			patched = strings.Join(a.Patched, ", ")

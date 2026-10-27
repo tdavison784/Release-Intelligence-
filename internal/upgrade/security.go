@@ -33,6 +33,9 @@ type securityAssessment struct {
 	fromAff   map[string]bool
 	toAff     map[string]bool
 	changeIDs map[string]string
+	// spared are, per inconsistent advisory, the patched versions its own
+	// range includes (the alternative reading's fixes).
+	spared map[string][]domain.Version
 }
 
 func newSecurityAssessment(b *builder) *securityAssessment {
@@ -47,6 +50,7 @@ func newSecurityAssessment(b *builder) *securityAssessment {
 		fromAff:   map[string]bool{},
 		toAff:     map[string]bool{},
 		changeIDs: map[string]string{},
+		spared:    map[string][]domain.Version{},
 	}
 	read, unread := 0, 0
 	for _, st := range b.in.ExtraSources {
@@ -108,6 +112,49 @@ func (s *securityAssessment) assessed(a domain.Advisory, cs *semver.Constraints)
 	s.ranges[a.ID] = cs
 }
 
+// contradicting returns the advisory's patched versions that its own range
+// includes, as RI reads the range (the same check as every other version, so
+// a prerelease matches only a range that names a prerelease).
+func contradicting(a domain.Advisory, cs *semver.Constraints) []domain.Version {
+	var out []domain.Version
+	for _, p := range a.Patched {
+		p = strings.TrimSpace(p)
+		sv, err := semver.NewVersion(strings.TrimPrefix(p, "v"))
+		if err != nil {
+			continue
+		}
+		v := domain.MustVersion(p, sv.String())
+		if affected(cs, v) {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
+// inconsistent records an advisory-consistency finding: a patched version
+// inside the advisory's own range. The range still decides everything; the
+// finding is a gap and an edge warning, and the candidates state what the
+// patched list would change (alternatives).
+func (s *securityAssessment) inconsistent(a domain.Advisory, vs []domain.Version, ev []domain.EvidenceID) {
+	s.spared[a.ID] = vs
+	names := make([]string, len(vs))
+	for i, v := range vs {
+		names[i] = v.String()
+	}
+	vul := strings.TrimSpace(a.Vulnerable)
+	pronoun := "it"
+	if len(vs) > 1 {
+		pronoun = "them"
+	}
+	statement := fmt.Sprintf("%s lists %s as patched but its range %s includes %s; check the advisory", advisoryLabel(a), joinAnd(names), vul, pronoun)
+	s.sec.Inconsistencies = append(s.sec.Inconsistencies, domain.AdvisoryInconsistency{
+		ID: a.ID, Aliases: a.Aliases, URL: a.URL, Vulnerable: vul, Patched: a.Patched, Contradicting: names,
+		SourceID: a.SourceID, Sources: a.Sources, Statement: statement + ".", Evidence: ev,
+	})
+	s.gapf("advisory-consistency: %s (%s). The stated range decides which versions are affected and which candidates qualify", statement, where(a))
+	s.b.warnf("Advisory %s (%s); RI follows the stated range", statement, where(a))
+}
+
 // classified records an advisory affecting the current version, the target,
 // or both, with its resolved evidence.
 func (s *securityAssessment) classified(a domain.Advisory, ev []domain.EvidenceID, fromAff, toAff bool) {
@@ -142,6 +189,9 @@ func (s *securityAssessment) finish() {
 			a.ChangeID = s.changeIDs[a.ID]
 			s.entries[a.ID] = a
 		}
+	}
+	for i := range s.sec.Inconsistencies {
+		s.sec.Inconsistencies[i].ChangeID = s.changeIDs[s.sec.Inconsistencies[i].ID]
 	}
 	s.candidates()
 	s.b.edge.Security = s.sec
@@ -190,82 +240,170 @@ func (s *securityAssessment) candidates() {
 		s.gapf("no known release list at or above %s was supplied: candidate versions were not computed", to)
 		return
 	}
-	introducesNone := func(v domain.Version) bool {
+	strict := func(id string, v domain.Version) bool { return affected(s.ranges[id], v) }
+	// Each question is answered under a reading of the advisories: strict
+	// (the stated ranges, which decide) and, when an advisory contradicts
+	// itself, the alternative in which its patched list is right.
+	introducesNone := func(r reading, v domain.Version) bool {
 		for _, id := range s.order {
-			if affected(s.ranges[id], v) && !s.fromAff[id] {
+			if r(id, v) && !r(id, from) {
 				return false
 			}
 		}
 		return true
 	}
-	clean := func(v domain.Version) bool {
+	clean := func(r reading, v domain.Version) bool {
 		for _, id := range s.order {
-			if affected(s.ranges[id], v) {
+			if r(id, v) {
 				return false
 			}
 		}
 		return true
 	}
-	lowest := func(vs []domain.Version, pred func(domain.Version) bool) *domain.Version {
-		for _, v := range vs {
-			if pred(v) {
-				v := v
-				return &v
+	removesPersisting := func(r reading, v domain.Version) bool {
+		for _, id := range s.order {
+			if r(id, from) && r(id, to) && r(id, v) {
+				return false
 			}
 		}
-		return nil
+		return introducesNone(r, v)
 	}
 	newest := pool[len(pool)-1]
+	var qs []question
 	if len(s.sec.Regressions) > 0 {
 		line := to.Line()
-		v := lowest(pool, func(v domain.Version) bool { return v.Line() == line && introducesNone(v) })
-		c := s.candidate(domain.CandidateTargetLine, v)
-		c.Line = line
-		if v == nil {
-			c.Statement = fmt.Sprintf("No known release on line %s at or above %s removes every regression of %s.", line, to, to)
-		} else {
-			c.Statement = fmt.Sprintf("%s is the lowest known release on line %s at or above %s that removes every regression of %s.", v, line, to, to)
-		}
-		s.sec.Candidates = append(s.sec.Candidates, c)
-
-		v = lowest(pool, introducesNone)
-		c = s.candidate(domain.CandidateAnyLine, v)
-		if v == nil {
-			c.Statement = fmt.Sprintf("No known release at or above %s (up to %s) removes every regression of %s.", to, newest, to)
-		} else {
-			c.Statement = fmt.Sprintf("%s is the lowest known release on any line at or above %s that removes every regression of %s.", v, to, to)
-		}
-		s.sec.Candidates = append(s.sec.Candidates, c)
+		qs = append(qs,
+			question{domain.CandidateTargetLine, line, pool, func(r reading, v domain.Version) bool { return v.Line() == line && introducesNone(r, v) },
+				fmt.Sprintf("No known release on line %s at or above %s removes every regression of %s.", line, to, to),
+				fmt.Sprintf("%%s is the lowest known release on line %s at or above %s that removes every regression of %s.", line, to, to)},
+			question{domain.CandidateAnyLine, "", pool, introducesNone,
+				fmt.Sprintf("No known release at or above %s (up to %s) removes every regression of %s.", to, newest, to),
+				fmt.Sprintf("%%s is the lowest known release on any line at or above %s that removes every regression of %s.", to, to)})
 	}
-	v := lowest(pool, clean)
-	c := s.candidate(domain.CandidateClean, v)
-	if v == nil {
-		c.Statement = fmt.Sprintf("No known release at or above %s (up to %s) is free of every assessed advisory.", to, newest)
-	} else {
-		c.Statement = fmt.Sprintf("%s is the lowest known release at or above %s free of every assessed advisory.", v, to)
-	}
-	s.sec.Candidates = append(s.sec.Candidates, c)
-
+	qs = append(qs, question{domain.CandidateClean, "", pool, clean,
+		fmt.Sprintf("No known release at or above %s (up to %s) is free of every assessed advisory.", to, newest),
+		fmt.Sprintf("%%s is the lowest known release at or above %s free of every assessed advisory.", to)})
 	if len(s.sec.Persisting) > 0 {
-		removesPersisting := func(v domain.Version) bool {
-			for _, id := range s.order {
-				if s.fromAff[id] && s.toAff[id] && affected(s.ranges[id], v) {
-					return false
-				}
-			}
-			return introducesNone(v)
-		}
 		line := from.Line()
-		v := lowest(current, removesPersisting)
-		c := s.candidate(domain.CandidateCurrentLine, v)
-		c.Line = line
+		qs = append(qs, question{domain.CandidateCurrentLine, line, current, removesPersisting,
+			fmt.Sprintf("No known later patch of %s on line %s below %s removes every advisory persisting into %s.", from, line, to, to),
+			fmt.Sprintf("%%s is the lowest known later patch of %s on line %s that removes every advisory persisting into %s. It is below %s: information for a defer or stay decision, not an upgrade target.", from, line, to, to)})
+	}
+	for _, q := range qs {
+		v := lowest(q.pool, func(v domain.Version) bool { return q.ok(strict, v) })
+		c := s.candidate(q.kind, v)
+		c.Line = q.line
 		if v == nil {
-			c.Statement = fmt.Sprintf("No known later patch of %s on line %s below %s removes every advisory persisting into %s.", from, line, to, to)
+			c.Statement = q.none
 		} else {
-			c.Statement = fmt.Sprintf("%s is the lowest known later patch of %s on line %s that removes every advisory persisting into %s. It is below %s: information for a defer or stay decision, not an upgrade target.", v, from, line, to, to)
+			c.Statement = fmt.Sprintf(q.found, v)
+		}
+		if len(s.spared) > 0 {
+			s.alternative(&c, q, strict)
 		}
 		s.sec.Candidates = append(s.sec.Candidates, c)
 	}
+}
+
+// reading says whether advisory id affects v.
+type reading func(id string, v domain.Version) bool
+
+// question is one candidate kind: the releases it is chosen from, its
+// predicate under a reading, and its statements (found takes the version).
+type question struct {
+	kind        domain.CandidateKind
+	line        string
+	pool        []domain.Version
+	ok          func(reading, domain.Version) bool
+	none, found string
+}
+
+func lowest(vs []domain.Version, pred func(domain.Version) bool) *domain.Version {
+	for _, v := range vs {
+		if pred(v) {
+			v := v
+			return &v
+		}
+	}
+	return nil
+}
+
+// sparedBy reports whether v is fixed under advisory id's patched list
+// although its range includes v: v is at or above a contradicting patched
+// version on that version's line (a patched version is the first fix of its
+// line).
+func (s *securityAssessment) sparedBy(id string, v domain.Version) bool {
+	for _, p := range s.spared[id] {
+		if v.Line() == p.Line() && v.Compare(p) >= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// alternative answers q again under the reading in which the inconsistent
+// advisories' patched lists are right. When the answer differs from the
+// strict one, it is recorded as an alternative (never as the candidate) and
+// the statement says so. c.Version stays the strict answer.
+func (s *securityAssessment) alternative(c *domain.VersionCandidate, q question, strict reading) {
+	alt := func(id string, v domain.Version) bool { return strict(id, v) && !s.sparedBy(id, v) }
+	v := lowest(q.pool, func(v domain.Version) bool { return q.ok(alt, v) })
+	sv := c.Version
+	if (v == nil) == (sv == nil) && (v == nil || v.Equal(*sv)) {
+		return
+	}
+	// the advisories whose reading differs at a version the answer turns on
+	at := []domain.Version{s.b.from.Version, s.b.to.Version}
+	for _, x := range []*domain.Version{v, sv} {
+		if x != nil {
+			at = append(at, *x)
+		}
+	}
+	var ids []string
+	var ev []domain.EvidenceID
+	for _, a := range s.sec.Inconsistencies {
+		for _, x := range at {
+			if strict(a.ID, x) != alt(a.ID, x) {
+				ids = append(ids, a.ID)
+				ev = appendUniqueIDs(ev, a.Evidence...)
+				break
+			}
+		}
+	}
+	if ev == nil {
+		ev = []domain.EvidenceID{}
+	}
+	whose := ids[0] + "'s patched list is"
+	if len(ids) > 1 {
+		whose = "the patched lists of " + joinAnd(ids) + " are"
+	}
+	var reason string
+	switch {
+	case v != nil && (sv == nil || v.Less(*sv)):
+		also := ""
+		if sv != nil && q.ok(alt, *sv) {
+			also = "also "
+		}
+		reason = fmt.Sprintf("If %s right, %s %squalifies; it is not chosen because the stated range includes it.", whose, v, also)
+	default:
+		// The alternative is stricter: under it the current version is free
+		// of an advisory the strict candidate is affected by.
+		then := "no known release would qualify"
+		if v != nil {
+			then = fmt.Sprintf("%s would be the lowest that qualifies", v)
+		}
+		reason = fmt.Sprintf("If %s right, %s does not qualify (it would introduce an advisory %s is then free of) and %s; the stated range decides.", whose, sv, s.b.from.Version, then)
+	}
+	c.Alternatives = append(c.Alternatives, domain.CandidateAlternative{Version: v, Advisories: ids, Reason: reason, Evidence: ev})
+	c.Statement += " " + reason
+}
+
+// joinAnd renders "a", "a and b", "a, b and c".
+func joinAnd(xs []string) string {
+	if len(xs) <= 1 {
+		return strings.Join(xs, "")
+	}
+	return strings.Join(xs[:len(xs)-1], ", ") + " and " + xs[len(xs)-1]
 }
 
 // candidate fills in what v removes and leaves (relative to the target), the

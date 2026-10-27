@@ -973,10 +973,16 @@ func (b *builder) security() {
 			cite(a.Evidence)
 		}
 	}
+	for _, a := range s.Inconsistencies {
+		cite(a.Evidence)
+	}
 	for _, c := range s.Candidates {
 		cite(c.Evidence)
 		for _, r := range append(append([]domain.AdvisoryRef(nil), c.Removes...), c.Leaves...) {
 			cite(r.Evidence)
+		}
+		for _, alt := range c.Alternatives {
+			cite(alt.Evidence)
 		}
 		for _, ch := range c.Charts {
 			cite(ch.Evidence)

@@ -425,16 +425,19 @@ func snapshotKindRule(kind domain.SnapshotKind, payload string) obj {
 // "Type" for a type and "Type.jsonName" for a field. Only the fields whose
 // meaning is not obvious from the name are documented.
 var descriptions = map[string]string{
-	"UpgradeEdge.security":     "Deterministic advisory assessment of the upgrade (schemaVersion ri.dev/edge-security/v1alpha1): regressions, persisting, fixed and unassessed advisories, unread sources as gaps, and candidate versions. Absent on edges built before it existed.",
-	"EdgeSecurity.status":      "complete: every security source was read; incomplete: some could not be (see gaps); unavailable: none was read or none is declared, which is never \"no advisories\".",
-	"EdgeSecurity.gaps":        "Every reason the assessment is not complete; never empty unless status is complete.",
-	"EdgeSecurity.regressions": "Advisories whose machine-readable range covers the target but not the current version.",
-	"EdgeSecurity.unassessed":  "Advisories without a machine-readable range (free text, a list that is not one interval, a Go pseudo-version bound): not matched against any version; check manually.",
-	"VersionCandidate.kind":    "Upgrade targets, chosen at or above the target: target-line: lowest release on the target's line that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release affected by no assessed advisory. current-line is information, not a target: the lowest later patch of the current version's line, below the target, that removes every advisory persisting into the target and introduces none (for a defer or stay decision).",
-	"VersionCandidate.version": "The candidate release; absent when none exists (statement says so).",
-	"VersionCandidate.removes": "Advisories affecting the target that do not affect the candidate, with the evidence of their ranges.",
-	"VersionCandidate.leaves":  "Advisories that affect the candidate, with the evidence of their ranges.",
-	"VersionCandidate.charts":  "Chart versions shipping the candidate, from the definition's artifact relation (chart index appVersion), with the index entry as evidence.",
+	"UpgradeEdge.security":                "Deterministic advisory assessment of the upgrade (schemaVersion ri.dev/edge-security/v1alpha1): regressions, persisting, fixed and unassessed advisories, unread sources as gaps, and candidate versions. Absent on edges built before it existed.",
+	"EdgeSecurity.status":                 "complete: every security source was read; incomplete: some could not be (see gaps); unavailable: none was read or none is declared, which is never \"no advisories\".",
+	"EdgeSecurity.gaps":                   "Every reason the assessment is not complete; never empty unless status is complete.",
+	"EdgeSecurity.regressions":            "Advisories whose machine-readable range covers the target but not the current version.",
+	"EdgeSecurity.unassessed":             "Advisories without a machine-readable range (free text, a list that is not one interval, a Go pseudo-version bound): not matched against any version; check manually.",
+	"VersionCandidate.kind":               "Upgrade targets, chosen at or above the target: target-line: lowest release on the target's line that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release affected by no assessed advisory. current-line is information, not a target: the lowest later patch of the current version's line, below the target, that removes every advisory persisting into the target and introduces none (for a defer or stay decision).",
+	"EdgeSecurity.inconsistencies":        "Advisory-consistency findings: assessed advisories that list as patched a version their own range includes. The stated range still decides; each is also a gap and an edge warning.",
+	"AdvisoryInconsistency.contradicting": "The patched versions that the advisory's own range includes, as RI evaluates the range.",
+	"VersionCandidate.version":            "The candidate release; absent when none exists (statement says so).",
+	"VersionCandidate.alternatives":       "What this candidate question would answer if the inconsistent advisories' patched lists were right (a patched version fixes its line from that version on). Never the candidate: the stated ranges decide.",
+	"VersionCandidate.removes":            "Advisories affecting the target that do not affect the candidate, with the evidence of their ranges.",
+	"VersionCandidate.leaves":             "Advisories that affect the candidate, with the evidence of their ranges.",
+	"VersionCandidate.charts":             "Chart versions shipping the candidate, from the definition's artifact relation (chart index appVersion), with the index entry as evidence.",
 	"EvidenceBundle": "A reproducible, change- and environment-scoped evidence bundle (Phase 4 P1): the structured " +
 		"breaking-change evidence record, the environment snapshot, environment-scope renders, the searchable manifest of " +
 		"content-addressed artifacts and the evidence pool every cited id resolves in. Immutable once written " +
