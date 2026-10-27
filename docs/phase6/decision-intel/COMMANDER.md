@@ -25,6 +25,7 @@ handoffs (every item is `providers: [claude]`).
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
 | verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | done, merged, closed 2026-10-28 |
+| join5 | ri-join5 | Opus 5.5 | p6di/join5 | .claude/worktrees/p6di-join5 | w1:t2P (pane w1:p4E) | started 2026-10-28 (D-0028) |
 
 ## Merge log
 
@@ -100,12 +101,13 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Lane `verify4`** (D-0027, role-cannot-form). On LANE DONE:
+1. **Lane `join5`** (D-0028: evaluate rendered objects, not base files; membership defaults in the pin scope). On LANE
+   DONE:
    - merge it;
-   - reset K1 from K0;
-   - re-run formalize v2 + `verify hypotheses -runtime -again` on `inv-cd653b2be37c`;
-   - if the base rule and the refinement are confirmed with an observed membership default for unset isCA: the
-     product owner promotes, then part B.
+   - re-run part B (`$CLAUDE_JOB_DIR/tmp/m4/part-b1.sh`, with new run ids). K1 already holds the promoted fact
+     `vf-4d9b756f1343`.
+2. **Then the rest of part B:** negative controls, semcheck of the M2 misread, the admission dry-run on D-EU, and
+   M4-RESULT.
 
 ## Notes
 
