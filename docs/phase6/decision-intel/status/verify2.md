@@ -38,9 +38,16 @@ Branch `p6di/verify2` (from `p6-decision-intel` @ b5d7252d). Brief: `briefs/veri
 6. **Docs**: `M4-IMPLEMENTATION.md` (lane section), `docs/INVESTIGATE.md` (non-discriminating arms, role-absent
    observation, scope refinements, formalize/v2), README command line.
 
+7. **Real kind runs** (`TestRefinementKind`, opt-in, 2026-10-27, scratch clone of the warm state, real cert-manager
+   controller and the catalog fixture, synthetic rules; no case read): **confirmed** 1.17.2 → 1.18.0 (269 s; 6 arms as
+   predicted: shielded CA verified/verified, exposed CA verified/failed, role-absent non-CA and three omitted-`isCA`
+   arms on the role-absent observation verified/verified); **refuted** (a refinement of a wrong base rule declaring
+   `Always` shielding: shielded consumer failed/failed, 270 s); **inconclusive** 1.17.1 → 1.17.2 (exposed consumer
+   still verifies at TO, 268 s). Clusters `ri-verify-*` deleted (`kind get clusters` empty).
+
 ## In progress (exact next step)
 
-- Real kind run of `TestRefinementKind` (opt-in) on a scratch state clone; then cleanup and final report.
+- Nothing: lane done; awaiting the commander's merge.
 
 ## Decisions
 
@@ -78,4 +85,4 @@ Branch `p6di/verify2` (from `p6-decision-intel` @ b5d7252d). Brief: `briefs/veri
 
 ## Test status
 
-- `go build ./... && go vet ./... && go test ./...` green.
+- `go build ./... && go vet ./... && go test ./...` green; kind runs above.
