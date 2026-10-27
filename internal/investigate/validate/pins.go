@@ -464,7 +464,7 @@ func (s pinSpec) evalObjects(v *envView) pinResult {
 			res.undecidable = append(res.undecidable, fmt.Sprintf("%s: %s", at, e.unrendered))
 			continue
 		}
-		hits, miss := s.pinsOn(e, path)
+		hits, miss := s.pinsOn(v, e, path)
 		if s.scope != nil {
 			full := sc.decide(s.scope, e, miss == "")
 			res.schemaEvidence = append(res.schemaEvidence, full.evidence...)
@@ -510,7 +510,7 @@ func (s pinSpec) evalObjects(v *envView) pinResult {
 
 // pinsOn evaluates the setting on one object of the effective view: the
 // pinning records, or why the object does not pin it.
-func (s pinSpec) pinsOn(e effObj, path string) ([]pinHit, string) {
+func (s pinSpec) pinsOn(v *envView, e effObj, path string) ([]pinHit, string) {
 	o := e.obj
 	vals, missing := lookup(o.Body, path)
 	if missing > 0 || len(vals) == 0 {
@@ -533,8 +533,15 @@ func (s pinSpec) pinsOn(e effObj, path string) ([]pinHit, string) {
 		}
 		where := o.ID.String() + " " + s.path
 		why += e.src.readBackNote(o.ID, s.path)
+		excerpt := fmt.Sprintf("%s: %s%s", s.path, plainValue(val), e.src.readBackNote(o.ID, s.path))
+		// a rendered value cites the file and line that produced it (the
+		// overlay patch when one applies)
+		if at := v.origin(e, path, val); at != "" {
+			why += ", set at " + at
+			excerpt += " (set at " + at + ")"
+		}
 		hits = append(hits, pinHit{object: o.ID.String(), path: s.path, value: val, rendered: e.rendered, view: e.src.label(), why: why,
-			evidence: objectEvidence(e, where, fmt.Sprintf("%s: %s%s", s.path, plainValue(val), e.src.readBackNote(o.ID, s.path)), s.path, val)})
+			evidence: objectEvidence(e, where, excerpt, s.path, val)})
 	}
 	return hits, ""
 }
