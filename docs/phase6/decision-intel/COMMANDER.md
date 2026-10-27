@@ -17,7 +17,7 @@ handoffs (every item is `providers: [claude]`).
 | advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | done, merged, closed 2026-10-27 |
 | upstream | ri-upstream | Opus 5.5 | p6di/upstream | .claude/worktrees/p6di-upstream | w1:t2C (pane w1:p41) | done, merged, closed 2026-10-27 |
 | upstream2 | ri-upstream2 | Opus 5.5 | p6di/upstream2 | .claude/worktrees/p6di-upstream2 | w1:t2D (pane w1:p42) | done, merged, closed 2026-10-27 |
-| upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | started 2026-10-27 (D-0014) |
+| upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | done, merged, closed 2026-10-27 |
 
 ## Merge log
 
@@ -63,10 +63,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. GATE-M2 §1 is met. §2: live met, ablation failed (M2-RESULT §2).
-2. `upstream2` is merged (prompt v12). The §2 re-run is in progress: `P6_PROMPT=investigate-agent/v12 run-m2-upstream.sh`, scratch
-   `$CLAUDE_JOB_DIR/tmp/m2up2`. Score it and append to M2-RESULT.
-3. PD-1 is recorded. PLAN-M3, GATE-M3, PLAN-M5 and GATE-M5 must include it.
+1. The §2 re-run with v13 (fetch first) is running: scratch `$CLAUDE_JOB_DIR/tmp/m2up3`. Score live (retrieval) and
+   ablation (still 0 FS), and append to M2-RESULT.
+2. If live retrieval is still unreliable under v13, propose an `api` agent driver with a harness-controlled evidence
+   phase, where RI performs the declared fetches (product owner's SDK question, 2026-10-27). That needs an API key
+   decision from the product owner.
+3. PD-1 binds the M3 and M5 gates.
 
 ## Notes
 
