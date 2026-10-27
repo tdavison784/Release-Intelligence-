@@ -381,7 +381,8 @@
         "separator": {"type": "string"},
         "range": {"type": "string"},
         "reason": {"$ref": "#/$defs/UnknownReason"},
-        "needed": {"type": "string"}
+        "needed": {"type": "string"},
+        "default": {"$ref": "#/$defs/FieldDefault"}
       },
       "additionalProperties": false
     },
@@ -453,6 +454,7 @@
       },
       "additionalProperties": false
     },
+    "DefaultSource": {"type": "string", "enum": ["crd-schema", "controller"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -633,6 +635,16 @@
         "renderedChange": {"type": "string"},
         "impactFinding": {"type": "string"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "FieldDefault": {
+      "type": "object",
+      "required": ["value", "source", "citations"],
+      "properties": {
+        "value": {"type": "string"},
+        "source": {"$ref": "#/$defs/DefaultSource"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false
     },
@@ -978,7 +990,8 @@
         "path": {"type": "string"},
         "value": {"type": "string"},
         "renderedObject": {"type": "string"},
-        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1}
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1},
+        "crd": {"type": "string"}
       },
       "additionalProperties": false
     },

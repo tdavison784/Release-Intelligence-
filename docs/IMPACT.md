@@ -73,6 +73,30 @@ keeps: a leaf is false only against a supplied, healthy dimension; a withheld
 value decides nothing (a credential-named ConfigMap key's text lines are
 treated as withheld even when line-level redaction let them through);
 `not(false)` is true only when the operand examined at least one record.
+
+**Unset is not a value (Phase 6 M4, `internal/applicability`).** A value
+predicate (`equals`, `not-equals`, `matches`, `has-token`, `has-token-key`) on
+a field, flag, environment variable or values key the subject leaves unset is
+decided by the field's **established default** only, by the same rule the pin
+scope uses (below and INVESTIGATE.md):
+
+- the CRD schema `default` of the environment's CRDs (`--crds`, manifests,
+  rendered CRDs): every CRD serving the kind and version must describe the path
+  and agree, and the parent object must be present (the API server defaults a
+  field only inside a present parent); or
+- the rule's own **condition default**, `{"default": {"value": "false",
+  "source": "controller" | "crd-schema", "citations": ["ev-…"]}}` on the leaf,
+  used only when every citation resolves to the fact's **upstream** evidence
+  with a quoted excerpt (never environment evidence). A fact whose default
+  does not resolve does not validate.
+
+Otherwise the leaf is **unknown** (`semantic-ambiguity`, with what would settle
+it) — never false. A schema default and a condition default that disagree are
+unknown. List elements that leave the field unset (`spec.ports[].protocol` on
+one port of two) hold the default too. Kleene `all`/`any`/`not` are monotone
+in the information order, so this only ever turns a decided result into
+unknown unless a default is established; a property test checks it against
+the previous semantics (`TestUnsetRuleNeverFailsOpen`).
 Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
 `absence` (an examined record proving something is not stated) besides the
 join's own. A product missing from the inventory is "not installed" only when

@@ -19,6 +19,12 @@ package impact
 //     evaluated against the same resource.
 //  4. Every true carries evidence and every false carries a check.
 //  5. No product-specific code: every predicate is generic over its fields.
+//  6. Unset is not a value: a value predicate (equals, not-equals, matches,
+//     has-token, has-token-key) on a field the subject leaves unset is
+//     decided by the field's established default — the CRD schema default
+//     of the environment's CRDs, or the rule's own evidenced default
+//     (Condition.Default) — and is unknown without one
+//     (internal/applicability, shared with the pin-rule scope).
 
 import (
 	"encoding/json"
@@ -30,6 +36,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 
+	"github.com/tdavison784/release-intelligence/internal/applicability"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 )
@@ -92,6 +99,10 @@ func (RenderUnavailable) EvaluateRenderedChange(c domain.Condition, _ *env.Envir
 type ConditionOptions struct {
 	// Render evaluates rendered-change leaves (nil: RenderUnavailable).
 	Render RenderedChangeEvaluator
+	// Evidence is the rule's own evidence: the pool a condition default's
+	// citations must resolve to (the fact's evidence). A default whose
+	// citations do not resolve is ignored. CONTRACT-CHANGE(applicability).
+	Evidence []domain.Evidence
 }
 
 // EvaluateCondition evaluates an applicability condition against the
@@ -105,13 +116,17 @@ func EvaluateConditionWith(c domain.Condition, e *env.Environment, edge *domain.
 	if opts.Render == nil {
 		opts.Render = RenderUnavailable{}
 	}
-	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}}
+	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}, rule: map[domain.EvidenceID]domain.Evidence{}}
 	if e == nil {
 		return unknownResult(domain.UnknownEnvironmentVisibilityGap, "no environment supplied")
 	}
 	for _, x := range e.Evidence {
 		ev.ix[x.ID] = x
 	}
+	for _, x := range opts.Evidence {
+		ev.rule[x.ID] = x
+	}
+	ev.crds = SchemasOf(e)
 	if err := c.Validate(); err != nil {
 		return unknownResult(domain.UnknownSemanticAmbiguity, fmt.Sprintf("the condition is not well-formed: %v", err))
 	}
@@ -127,6 +142,61 @@ type evaluator struct {
 	edge   *domain.UpgradeEdge
 	render RenderedChangeEvaluator
 	ix     map[domain.EvidenceID]domain.Evidence
+	// rule is the rule's evidence (condition defaults cite it); crds are the
+	// environment's CRD schemas (schema defaults).
+	rule map[domain.EvidenceID]domain.Evidence
+	crds []applicability.CRD
+}
+
+// SchemasOf returns the structural schemas of the environment's CRDs (the
+// API server's defaults for unset fields).
+func SchemasOf(e *env.Environment) []applicability.CRD {
+	if e == nil {
+		return nil
+	}
+	var out []applicability.CRD
+	for _, c := range e.CRDs {
+		x := applicability.CRD{Group: c.Group, Kind: c.Kind, Schemas: map[string]map[string]any{}, Where: "CRD " + c.Name}
+		for _, v := range c.Versions {
+			if v.Schema != nil {
+				x.Schemas[v.Name] = v.Schema
+			}
+		}
+		out = append(out, x)
+	}
+	return out
+}
+
+// legacyUnsetFalse restores the evaluator's semantics before rule 6 (a value
+// predicate on an unset field was false whenever the dimension was healthy).
+// Tests only: the no-fail-open property is checked against it.
+var legacyUnsetFalse = false
+
+// fieldDefault is the established default of c's field on resource r: the
+// schema default of the environment's CRDs (inside a present parent) and the
+// rule's evidenced default, combined.
+func (ev *evaluator) fieldDefault(c domain.Condition, r *env.Resource) applicability.Default {
+	schema := applicability.SchemaDefault(ev.crds, r.Group, r.Version, r.Kind, c.Path)
+	if parent := applicability.ParentPath(c.Path); parent != "" && !hasPath(r, parent) {
+		schema = applicability.ParentAbsent(schema, c.Path)
+	}
+	return applicability.Resolve(schema, applicability.RuleDefault(c, ev.rule))
+}
+
+// ruleDefault is the rule's evidenced default of a leaf without a schema
+// (flags, environment variables, values keys).
+func (ev *evaluator) ruleDefault(c domain.Condition) applicability.Default {
+	return applicability.Resolve(applicability.Default{Why: "no schema states its default"}, applicability.RuleDefault(c, ev.rule))
+}
+
+// hasPath reports whether r states path (any element, for list paths).
+func hasPath(r *env.Resource, path string) bool {
+	for _, f := range r.Fields {
+		if f.Path == path {
+			return true
+		}
+	}
+	return false
 }
 
 // --- results ----------------------------------------------------------------------
@@ -564,7 +634,39 @@ func (ev *evaluator) field(c domain.Condition, r *env.Resource) ConditionResult 
 		})
 	}
 	absence := []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: resourceLabel(r) + " leaves " + c.Path + " unset", Evidence: []domain.EvidenceID{r.Evidence}}}
-	return ev.valueLeaf(c, domain.DimensionManifests, facts, absence, 1)
+	missing := missingInstances(r, c.Path)
+	return ev.valueLeafWith(c, domain.DimensionManifests, facts, absence, 1, missing, func() applicability.Default { return ev.fieldDefault(c, r) })
+}
+
+// missingInstances counts the elements of the deepest list on path that do
+// not state the field ("spec.containers[].image" on a container without an
+// image): such an element leaves the field unset although others set it.
+func missingInstances(r *env.Resource, path string) int {
+	i := strings.LastIndex(path, "[]")
+	if i < 0 {
+		return 0
+	}
+	list := path[:i+2]
+	if list == path {
+		return 0
+	}
+	n := 0
+	for _, e := range r.Fields {
+		if e.Path != list {
+			continue
+		}
+		stated := false
+		for _, f := range r.Fields {
+			if f.Path == path && strings.HasPrefix(f.Element, e.Element+".") {
+				stated = true
+				break
+			}
+		}
+		if !stated {
+			n++
+		}
+	}
+	return n
 }
 
 // valueLeaf evaluates the value states (unset, set, equals, not-equals,
@@ -572,6 +674,13 @@ func (ev *evaluator) field(c domain.Condition, r *env.Resource) ConditionResult 
 // absence is the evidence an unset subject is read from (empty when the
 // dimension offers none); n counts the facts compared for the check.
 func (ev *evaluator) valueLeaf(c domain.Condition, dim domain.EnvironmentDimension, facts []vfact, absence []domain.ImpactMatch, n int) ConditionResult {
+	return ev.valueLeafWith(c, dim, facts, absence, n, 0, func() applicability.Default { return ev.ruleDefault(c) })
+}
+
+// valueLeafWith is valueLeaf with the field's default (for a value predicate
+// on an unset field) and the number of list elements that leave it unset
+// although others set it.
+func (ev *evaluator) valueLeafWith(c domain.Condition, dim domain.EnvironmentDimension, facts []vfact, absence []domain.ImpactMatch, n, missing int, def func() applicability.Default) ConditionResult {
 	set := len(facts) > 0
 	var all []domain.EvidenceID
 	for _, f := range facts {
@@ -613,8 +722,41 @@ func (ev *evaluator) valueLeaf(c domain.Condition, dim domain.EnvironmentDimensi
 		}
 		return trueResult(dim, absence...)
 	}
+	// rule 6: an unset field holds its default, if one is established
+	unsetValue := func() (ConditionResult, bool) {
+		if ok, needed := ev.dimOK(dim); !ok {
+			r := unknownResult(domain.UnknownEnvironmentVisibilityGap, needed)
+			r.deps = []domain.EnvironmentDimension{dim}
+			return r, false
+		}
+		v := applicability.Unset(c, def(), func(value string) bool { return ev.valueHolds(c, value) })
+		if !v.Known {
+			r := unknownResult(domain.UnknownSemanticAmbiguity, v.Why+"; needed: "+applicability.Needed(c))
+			r.deps = []domain.EnvironmentDimension{dim}
+			return r, false
+		}
+		if !v.Holds {
+			return ev.decideFalse(dim, chk, absenceEvidence()...), true
+		}
+		if len(absence) == 0 {
+			return unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf("no environment record to read %s from", describe(c))), false
+		}
+		ms := make([]domain.ImpactMatch, 0, len(absence))
+		for _, m := range absence {
+			m.Subject += "; " + v.Why
+			ms = append(ms, m)
+		}
+		return trueResult(dim, ms...), true
+	}
 	if !set {
-		return unsetFalse()
+		if legacyUnsetFalse {
+			return unsetFalse()
+		}
+		r, _ := unsetValue()
+		return r
+	}
+	if legacyUnsetFalse {
+		missing = 0
 	}
 	var scalars, hits, withheld []vfact
 	for _, f := range facts {
@@ -645,6 +787,12 @@ func (ev *evaluator) valueLeaf(c domain.Condition, dim domain.EnvironmentDimensi
 			return ev.decideFalse(dim, chk, all...)
 		case len(withheld) > 0:
 			return withheldUnknown()
+		case missing > 0:
+			// elements that leave the field unset hold its default, which
+			// may be one of Values
+			if r, ok := unsetValue(); !ok || r.Value == False {
+				return r
+			}
 		}
 		return trueResult(dim, matchOf(facts)...)
 	}
@@ -653,6 +801,11 @@ func (ev *evaluator) valueLeaf(c domain.Condition, dim domain.EnvironmentDimensi
 		return trueResult(dim, matchOf(hits)...)
 	case len(withheld) > 0:
 		return withheldUnknown()
+	case missing > 0:
+		// some elements leave the field unset: they hold its default
+		if r, ok := unsetValue(); !ok || r.Value == True {
+			return r
+		}
 	}
 	return ev.decideFalse(dim, chk, all...)
 }

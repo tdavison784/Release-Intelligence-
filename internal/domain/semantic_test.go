@@ -1736,3 +1736,28 @@ func TestConsensusActionAudit(t *testing.T) {
 	f.Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman, Audited: true}
 	expectErr(t, r.Validate(), "audited marks a human-audited consensus-action fact")
 }
+
+// A fact's condition default must cite the fact's own upstream evidence
+// (CONTRACT-CHANGE(applicability)).
+func TestFactDefaultNeedsResolvableCitation(t *testing.T) {
+	cand := validCandidate()
+	v := validValidation(cand)
+	d := validDecision(validItem(cand))
+	withDefault := func(cites ...EvidenceID) VerifiedFact {
+		f := validFact(cand, v, d)
+		a := rotationAssertion()
+		a.Applicability.Exposure = certificates(Condition{Op: OpField, Path: "spec.privateKey.rotationPolicy", State: StateUnset},
+			Condition{Op: OpField, Path: "spec.isCA", State: StateEquals, Values: []string{"true"},
+				Default: &FieldDefault{Value: "false", Source: DefaultController, Citations: cites}})
+		f.Assertion = a
+		f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
+		return f
+	}
+	expectErr(t, withDefault(upEvidence().ID).Validate(), "")
+	expectErr(t, withDefault("ev-000000000000").Validate(), "no resolvable citation")
+	local := NewEvidence(EvidenceLocalFile, "", "env/certs.yaml", "L3", "isCA: false", "sha256:env", t0)
+	f := withDefault(local.ID)
+	f.Evidence = append(f.Evidence, local)
+	expectErr(t, f.Validate(), "not upstream evidence")
+	expectErr(t, withDefault().Validate(), "must cite")
+}

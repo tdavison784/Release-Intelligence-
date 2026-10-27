@@ -341,13 +341,24 @@ and listed (with evidence) in the pass's detail; *true* → a miss (the object i
 another condition); *unknown* → undecidable, never excluded. Leaves follow the impact join's semantics
 (`internal/impact`): field states over what the object states, Kleene `all`/`any`/`not`, `text-line`, and `ref`
 resolving to exactly one object of the view (by name and the kind/group/namespace it states, else the referring
-object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
-object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
-artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
-CRD, a CRD that states no default (the controller may default the field in code), an ancestor default, or a schema
-that does not describe the path, it is undecidable. What an unset field means is decided by the rule only when it
-says so explicitly with an `unset`/`set` leaf (`any{F equals X, F unset}`, `all{F not-equals X, F set}`); and a reference
-resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
+object's namespace). A value predicate on a field the object leaves unset is decided by the rule the impact join
+shares (`internal/applicability`, Phase 6 M4): the **schema default** the CustomResourceDefinitions of the bundle
+state (upstream `crd` artifacts, environment files, renders; every CRD for the kind must describe the path and
+agree, and the parent object must be present), or the rule's own **condition default** (`Condition.Default`:
+value, source `controller` | `crd-schema`, citations) when every citation resolves to the fact's upstream evidence;
+the two must agree. With neither — no such CRD, a CRD that states no default (the controller may default the field
+in code) and no evidenced condition default, an ancestor default, or a schema that does not describe the path — it
+is undecidable. A rule may also say what an unset field means with an explicit `unset`/`set` leaf
+(`any{F equals X, F unset}`, `all{F not-equals X, F set}`). One deliberate difference keeps exclusion fail-closed: a
+reference resolving to nothing (or to several objects) is undecidable.
+
+**Exact coverage (Phase 6 M4, R2.2).** A field pin's pass names the CRD serving the pinned kind
+(`PinnedSetting.crd`) and lists the item's environment rendered changes on **its own field**: a change of an
+object of the pinned kind at the pinned path, and the `crd-description-changed` text of that field in that CRD (a
+field-scoped documentation-only check, `domain.SchemaFieldPath`). The policy re-checks every such claim
+(`EvidenceBundle.PinCoversChange`) and counts only confirmed ones: another field's description in the same CRD, a
+schema or default change on the field, another CRD version, another resource, or any rendered change claimed by a
+flag/env/config-key pin stays a gap. An `undecidable` leaf is unknown. If every visible
 object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
 
 **Effective object view.** The objects are what the environment actually applies: the to side of every complete
@@ -1461,6 +1472,20 @@ passages its citations quote (the cited evidence records' excerpts in the run's 
 - **Stored runs.** `ri investigate semcheck [-store DIR] [-json] <key>…` re-checks stored runs (an investigation store,
   or stored evaluation runs with keys `<run-id>/<case>`) and prints every upstream entry with its verdict and reason.
 
+### Boundary fixtures (Phase 6 M4, lane applicability)
+
+The synthesised arms state every field the rule compares by value; real objects mostly omit them. Before any
+controller is rendered, the exercise **predicts every arm with the rule itself**, three-valued
+(`internal/applicability`, with only the rule's evidenced condition defaults: the fixture consults no CRD schema, so
+a rule relying on a schema default states it with source `crd-schema`). It then adds one **omitted-field arm** per
+arm and per field compared by value (`equals`/`not-equals`): the same object without the field (and without parents
+left empty), predicted by the rule, named `condition-present-omitted-N` / `condition-absent-omitted-N`; objects
+identical to an existing arm are not repeated (at most 6). The exercise **fails** — before any cluster runs — when
+the rule cannot predict an arm or an omitted-field object (a rule that only works when every field is explicit, or
+whose condition default is not evidenced), or when its exposure contradicts how an arm was built. At runtime an
+omitted-field arm predicted to keep the previous behaviour that changes refutes the rule; one that does not confirm
+its prediction keeps the exercise from passing.
+
 ### Consumer observation (lane verify2)
 
 The produced-object observation above can show that an explicit setting preserves an object's previous
@@ -1489,8 +1514,12 @@ Phase 5 verify-smoke proofs still load and re-verify). A rule naming the role fi
 fields and does not meet the exposure is a **shielded** arm (`condition-present`, `condition-present-2`, …;
 predicted: the consumer still verifies at TO); every exposure alternative that holds in the role and does not
 meet the overlap is an **exposed** arm (`condition-absent`, …; predicted: it verifies at FROM and fails at TO).
-Alternatives that contradict the role are not exercised and are listed as limitations. Each arm also gets the
-declared consuming objects (e.g. a CA issuer and a leaf it signs).
+A **shielded** alternative that contradicts the role is exercised **outside the role** (`condition-present-outside-role-N`,
+Phase 6 M4): the alternative's object with the same consuming objects. Its consumer verifying at FROM and failing at
+TO refutes the rule (the object plays the role after all and is exposed); verifying at both versions is consistent
+with the shield; no relationship at all is recorded and decides nothing. Omitting a role field in a boundary arm
+also takes the object outside the role. Exposed alternatives that contradict the role stay limitations. Each arm
+also gets the declared consuming objects (e.g. a CA issuer and a leaf it signs).
 
 **The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
 after the version's baseline observation and before its exercises (inside the exercise window at both

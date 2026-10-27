@@ -162,3 +162,24 @@ func TestAutoApprovalAcceptsNotApplicableRenders(t *testing.T) {
 	fx.b.Renders = []ManifestPair{na}
 	wantInvErr(t, fx.inv.ValidateAgainst(fx.b), "every environment render is not-applicable")
 }
+
+func TestSchemaFieldPath(t *testing.T) {
+	for _, c := range []struct {
+		path, version, field string
+		ok                   bool
+	}{
+		{"spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.privateKey.properties.rotationPolicy.description", "v1", "spec.privateKey.rotationPolicy", true},
+		{"spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.ports.items.properties.name.description", "v1", "spec.ports[].name", true},
+		{"spec.validation.openAPIV3Schema.properties.spec.properties.mode.description", "", "spec.mode", true},
+		{"spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.mode.type", "", "", false},
+		{"spec.versions[name=v1].schema.openAPIV3Schema.description", "", "", false},
+		{"spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.labels.additionalProperties.description", "", "", false},
+		{"spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.oneOf[0].description", "", "", false},
+		{"metadata.description", "", "", false},
+	} {
+		v, f, ok := SchemaFieldPath(c.path)
+		if ok != c.ok || (ok && (v != c.version || f != c.field)) {
+			t.Errorf("%s: %q %q %v", c.path, v, f, ok)
+		}
+	}
+}

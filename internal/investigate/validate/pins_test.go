@@ -387,7 +387,7 @@ func TestPinScopeUnsetFieldNeedsTheSchema(t *testing.T) {
 		detail   string
 	}{
 		{"equals, no CRD", widgetScope(rootRole, rotationUnset()), "", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
-			"no CustomResourceDefinition of gizmo.example.io/Widget in the bundle"},
+			"no CustomResourceDefinition of gizmo.example.io/Widget in the input"},
 		// (1) the commander's fail-open: absence of a schema default is no proof
 		{"equals, CRD states no default", widgetScope(rootRole, rotationUnset()), "-", false, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable,
 			"states no schema default for spec.role"},
@@ -541,35 +541,6 @@ func TestKustomizeConsumes(t *testing.T) {
 	}
 }
 
-func TestDefaultAt(t *testing.T) {
-	schema := map[string]any{"type": "object", "properties": map[string]any{
-		"spec": map[string]any{"type": "object", "properties": map[string]any{
-			"a":    map[string]any{"type": "boolean", "default": false},
-			"b":    map[string]any{"type": "string"},
-			"obj":  map[string]any{"type": "object", "default": map[string]any{}, "properties": map[string]any{"c": map[string]any{"type": "string"}}},
-			"list": map[string]any{"type": "array", "items": map[string]any{"type": "object", "properties": map[string]any{"d": map[string]any{"type": "string", "default": "x"}}}},
-			"free": map[string]any{"type": "object", "x-kubernetes-preserve-unknown-fields": true},
-		}},
-	}}
-	for _, c := range []struct {
-		path, val string
-		has       bool
-		why       string
-	}{
-		{"spec.a", "false", true, ""},
-		{"spec.b", "", false, ""},
-		{"spec.obj.c", "", false, "ancestor"},
-		{"spec.list[].d", `"x"`, true, ""},
-		{"spec.free.e", "", false, "preserves unknown fields"},
-		{"spec.nope", "", false, "does not describe"},
-	} {
-		v, has, why := defaultAt(schema, c.path)
-		if v != c.val || has != c.has || (c.why == "") != (why == "") || !strings.Contains(why, c.why) {
-			t.Fatalf("%s: %q %v %q", c.path, v, has, why)
-		}
-	}
-}
-
 // A fact's applicability decides who is exposed: its default change alone
 // never pins when the exposure names no setting that falsifies it, and an
 // exposure leaf on the subject's own setting accepts the old default.
@@ -594,5 +565,92 @@ func TestPinDefaultChangeDefersToApplicability(t *testing.T) {
 	wantOutcome(t, r, domain.ValidationPass, "the old default")
 	if r.Provenance.Rule != RulePinExposure {
 		t.Fatalf("rule %s", r.Provenance.Rule)
+	}
+}
+
+// The rule may state what an unset scope field means: a condition default
+// with citations. It decides the field only when every citation resolves to
+// the fact's upstream evidence; it never overrides a schema default that
+// disagrees (mission E1, PLAN-M4 lane applicability change 2).
+func TestPinScopeEvidencedRuleDefault(t *testing.T) {
+	roleDefault := func(value string, cites ...domain.EvidenceID) domain.Condition {
+		c := rootRole
+		c.Default = &domain.FieldDefault{Value: value, Source: domain.DefaultController, Citations: cites}
+		return c
+	}
+	cases := []struct {
+		name   string
+		role   func(o *overrideFx) domain.Condition
+		crd    string // "" none; "-" a CRD stating no default; else the default
+		want   domain.ValidationOutcomeKind
+		rule   string
+		detail string
+	}{
+		{"evidenced default keeps the unset object out of scope",
+			func(o *overrideFx) domain.Condition { return roleDefault(`"leaf"`, o.f.up.ID) }, "", domain.ValidationPass, "", "the rule's controller default"},
+		{"evidenced default decides a field the CRD leaves without a default",
+			func(o *overrideFx) domain.Condition { return roleDefault(`"leaf"`, o.f.up.ID) }, "-", domain.ValidationPass, "", "defaults to leaf"},
+		{"evidenced default puts the unset object in scope",
+			func(o *overrideFx) domain.Condition { return roleDefault(`"root"`, o.f.up.ID) }, "", domain.ValidationNotRun, ReasonPinNotEstablished, "w-plain"},
+		{"a default citing nothing of the fact is ignored",
+			func(o *overrideFx) domain.Condition { return roleDefault(`"leaf"`, "ev-000000000000") }, "", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable, "not evidenced"},
+		{"a default contradicting the schema default decides nothing",
+			func(o *overrideFx) domain.Condition { return roleDefault(`"leaf"`, o.f.up.ID) }, "root", domain.ValidationNotRun, ReasonPinApplicabilityUndecidable, "contradicts"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			o := newOverrideFx(t)
+			o.withFact(scopedFact("vf-scoped", domain.VerifiedHuman, o.f.up, widgetScope(c.role(o), rotationUnset())))
+			o.f.file("apps/w/widgets.yaml", stream(
+				gw("w-root", "apps", map[string]string{"role": "root", "rotation": "Never"}),
+				gw("w-plain", "apps", map[string]string{"size": "2"})))
+			o.f.pair("argocd:apps/gizmo.yaml", controller(), controller())
+			switch c.crd {
+			case "":
+			case "-":
+				o.f.crd(scopedWidgetCRD(""))
+			default:
+				o.f.crd(scopedWidgetCRD(c.crd))
+			}
+			r := o.run(t)
+			wantOutcome(t, r, c.want, c.detail)
+			if c.rule != "" && r.Provenance.Rule != c.rule {
+				t.Fatalf("rule %s, want %s:\n%s", r.Provenance.Rule, c.rule, r.Detail)
+			}
+			if c.want != domain.ValidationPass && r.ClearsBehaviour() {
+				t.Fatal("must not clear")
+			}
+		})
+	}
+}
+
+// A field pin's pass names the CRD serving the pinned kind and covers exactly
+// the item's rendered changes on its own field: the description of the pinned
+// field, not another field's description in the same CRD, a schema change on
+// the field, or another resource (mission E3; the policy re-checks the claim).
+func TestPinPassCoversExactlyItsField(t *testing.T) {
+	o := newOverrideFx(t)
+	o.withFact(rootScoped("vf-scoped", domain.VerifiedHuman, o.f.up))
+	o.f.file("apps/w/widgets.yaml", stream(
+		gw("w-root", "apps", map[string]string{"role": "root", "rotation": "Never"}),
+		gw("w-leaf", "apps", map[string]string{"role": "leaf"})))
+	o.f.crd(scopedWidgetCRD(""))
+	const crd = "apiextensions.k8s.io/v1/CustomResourceDefinition//widgets.gizmo.example.io"
+	schema := "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties."
+	linked := func(class, object, path string) domain.RenderedChange {
+		return domain.RenderedChange{Class: class, Object: object, Path: path, ChangeItems: []string{o.item}, Correlation: "documents-field"}
+	}
+	ids := o.f.pair("argocd:apps/gizmo.yaml", controller(), controller(),
+		linked(domain.RenderedClassCRDDescription, crd, schema+"rotation.description"),
+		linked(domain.RenderedClassCRDDescription, crd, schema+"size.description"),
+		linked("field-changed", crd, schema+"rotation.type"),
+		linked("field-changed", "apps/v1/Deployment/gizmo/gizmo-controller", "spec.replicas"))
+	r := o.run(t)
+	wantOutcome(t, r, domain.ValidationPass, "vf-scoped")
+	if r.Pin == nil || r.Pin.CRD != "widgets.gizmo.example.io" || r.Pin.Path != "spec.rotation" {
+		t.Fatalf("pin %+v", r.Pin)
+	}
+	if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
+		t.Fatalf("covers %v, want exactly the pinned field's description %s", r.RenderedChanges, ids[0])
 	}
 }
