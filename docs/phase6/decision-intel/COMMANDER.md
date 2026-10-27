@@ -19,7 +19,7 @@ handoffs (every item is `providers: [claude]`).
 | upstream2 | ri-upstream2 | Opus 5.5 | p6di/upstream2 | .claude/worktrees/p6di-upstream2 | w1:t2D (pane w1:p42) | done, merged, closed 2026-10-27 |
 | upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | done, merged, closed 2026-10-27 |
 | synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | done, merged, closed 2026-10-28 |
-| applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | started 2026-10-28 (D-0022) |
+| applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | done, merged, closed 2026-10-28 |
 | semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | started 2026-10-28 (D-0021) |
 
@@ -45,6 +45,9 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-28 Merge lane semverify (D-0023) first, since applicability was still running. Build, vet and test green (48).
   Lane closed; applicability was told to merge the integration branch.
+
+- 2026-10-28 Merge lane applicability (D-0022). Build, vet and test green (49). Re-score of the stored runs: 1004/1004
+  identical. Lane closed. formalize was told to merge and to emit evidenced defaults.
 
 ## Decisions
 
