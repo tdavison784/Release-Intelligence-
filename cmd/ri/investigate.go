@@ -26,6 +26,7 @@ import (
 	rtval "github.com/tdavison784/release-intelligence/internal/investigate/runtime"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/investigate/validate"
+	"github.com/tdavison784/release-intelligence/internal/linkedev"
 	"github.com/tdavison784/release-intelligence/internal/orchestrate"
 )
 
@@ -180,6 +181,12 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 	// The consumer graph of prompts with feature traceConsumers uses the
 	// pipeline graph's relationship rules (relations.WithConsumers adds the rest).
 	opts := []agent.Option{agent.WithValidators(validators(nil)...), agent.WithRelations(relations.WithCatalog(a.Catalog))}
+	// Upstream evidence requests (prompt feature upstream) read through the
+	// same cached repo-file / repo-dir adapters as ingestion, so -offline
+	// replays a recorded state.
+	if up, err := upstreamPort(a); err == nil {
+		opts = append(opts, agent.WithUpstream(up))
+	}
 	if *f.exchange != "" {
 		opts = append(opts, agent.WithDriver(agent.DriverExchange, &agent.Exchange{Dir: *f.exchange}))
 	}
@@ -234,6 +241,27 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 		},
 	}
 	return runpkg.New(d), st, nil
+}
+
+// upstreamPort is the agent's upstream fetch port: the product's code
+// repositories and tags (linkedev.CodeReposOf, TagFor) and the registered
+// repo-file / repo-dir adapters.
+func upstreamPort(a *app.App) (agent.Upstream, error) {
+	files, err := a.Registry.DocumentFetcher("repo-file")
+	if err != nil {
+		return agent.Upstream{}, err
+	}
+	dirs, err := a.Registry.DirectoryFetcher("repo-dir")
+	if err != nil {
+		return agent.Upstream{}, err
+	}
+	return agent.Upstream{Files: files, Dirs: dirs, Product: func(id domain.ProductID) ([]string, func(string) string, bool) {
+		def, ok := a.Catalog.Get(string(id))
+		if !ok {
+			return nil, nil, false
+		}
+		return linkedev.CodeReposOf(def), def.TagFor, true
+	}}, nil
 }
 
 // definitionDigest digests the product definition file (the ChangeKey input).

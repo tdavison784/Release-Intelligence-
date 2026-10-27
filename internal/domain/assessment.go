@@ -56,9 +56,14 @@ type AgentAssessment struct {
 	// UntracedConsumers are the graph consumers of the item's exposed objects
 	// the session never retrieved (node keys), added by the tool layer, not
 	// the model; each is also stated in Unknown as an investigation gap.
-	UntracedConsumers []string   `json:"untracedConsumers,omitempty"`
-	StatementKind     string     `json:"statementKind,omitempty"` // StatementUnverifiedProse
-	Provenance        Provenance `json:"provenance"`              // method ai
+	UntracedConsumers []string `json:"untracedConsumers,omitempty"`
+	// UnavailableEvidence are the item's upstream evidence requests that
+	// could not be fulfilled (prompt feature upstream), added by the tool
+	// layer; each is also stated in Unknown as "behaviour at <tag>
+	// unavailable: <reason>". CONTRACT-CHANGE(upstream): additive.
+	UnavailableEvidence []string   `json:"unavailableEvidence,omitempty"`
+	StatementKind       string     `json:"statementKind,omitempty"` // StatementUnverifiedProse
+	Provenance          Provenance `json:"provenance"`              // method ai
 }
 
 // AssessmentSetting is one setting the change touches and its effective

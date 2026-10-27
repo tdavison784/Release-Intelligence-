@@ -28,6 +28,8 @@ type assessmentView struct {
 	ChangeItem        string   `json:"changeItem"`
 	Verified          int      `json:"verified"`
 	UntracedConsumers []string `json:"untracedConsumers,omitempty"`
+	// UnavailableEvidence: prompt feature upstream.
+	UnavailableEvidence []string `json:"unavailableEvidence,omitempty"`
 }
 
 // assessmentOf builds the assessment of a closing entry (caller holds s.mu,
@@ -97,6 +99,9 @@ func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in inv
 	for _, k := range untraced {
 		a.Unknown = append(a.Unknown, "investigation gap (recorded by the tool layer): consumer "+k+" of the item's exposed objects was not traced in this session")
 	}
+	gaps, unavailable := s.upstreamGaps(it.ID)
+	a.Unknown = append(a.Unknown, gaps...)
+	a.UnavailableEvidence = unavailable
 	a.Provenance = s.aiProvenance(append(evidenceIDs(cited), it.Evidence...))
 	a.ID = domain.AgentAssessmentID(it.ID, a.WhatChanged, a.Mechanism, s.call.ID)
 	if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {

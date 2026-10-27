@@ -2133,10 +2133,17 @@ const (
 	RequestSource           EvidenceRequestKind = "source"            // re-collect a change source whose status is not ok
 	RequestEnvironmentInput EvidenceRequestKind = "environment-input" // an environment file/input not supplied
 	RequestLiveObservation  EvidenceRequestKind = "live-observation"  // a read-only live-cluster read (only when enabled)
+	// RequestUpstreamFile / RequestUpstreamSearch are fulfilled during the
+	// session (prompt feature upstream): one file, or a regex search over a
+	// directory, of the product's own code repositories at an immutable tag.
+	// CONTRACT-CHANGE(upstream): additive.
+	RequestUpstreamFile   EvidenceRequestKind = "upstream-file"
+	RequestUpstreamSearch EvidenceRequestKind = "upstream-search"
 )
 
 // EvidenceRequestKinds lists every kind.
-var EvidenceRequestKinds = []EvidenceRequestKind{RequestArtifact, RequestSource, RequestEnvironmentInput, RequestLiveObservation}
+var EvidenceRequestKinds = []EvidenceRequestKind{RequestArtifact, RequestSource, RequestEnvironmentInput, RequestLiveObservation,
+	RequestUpstreamFile, RequestUpstreamSearch}
 
 // RequestStatus is the state of an agent request.
 type RequestStatus string
@@ -2162,7 +2169,24 @@ type EvidenceRequest struct {
 	Status     RequestStatus       `json:"status"`
 	Resolution string              `json:"resolution,omitempty"` // required unless open/fulfilled
 	Fulfilled  []string            `json:"fulfilled,omitempty"`  // artifact ids
-	Provenance Provenance          `json:"provenance"`           // method ai
+	// Upstream is the resolved query of an upstream-file / upstream-search
+	// request (the repository, the tag it was read at, the file or the
+	// directory and pattern). CONTRACT-CHANGE(upstream): additive.
+	Upstream   *UpstreamQuery `json:"upstream,omitempty"`
+	Provenance Provenance     `json:"provenance"` // method ai
+}
+
+// UpstreamQuery is what an upstream evidence request read, or tried to read:
+// a file (Path) or a regex search (Dir, Pattern, Glob on base names) in
+// Repository ("owner/name") at Ref, an immutable tag of the upgrade (the
+// target's, or the current version's for comparison).
+type UpstreamQuery struct {
+	Repository string `json:"repository"`
+	Ref        string `json:"ref"`
+	Path       string `json:"path,omitempty"`
+	Dir        string `json:"dir,omitempty"`
+	Pattern    string `json:"pattern,omitempty"`
+	Glob       string `json:"glob,omitempty"`
 }
 
 // ValidationRequest is the agent asking a deterministic validator to test a
@@ -3421,6 +3445,7 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	}
 	for _, r := range inv.EvidenceRequests {
 		item("evidence request "+r.ID, r.ChangeItem)
+		art("evidence request "+r.ID, r.Fulfilled...)
 	}
 	for _, r := range inv.ValidationRequests {
 		item("validation request "+r.ID, r.ChangeItem)

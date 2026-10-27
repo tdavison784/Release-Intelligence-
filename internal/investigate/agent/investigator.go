@@ -26,6 +26,8 @@ type Investigator struct {
 	// a replayed transcript's, else relations.ConsumerRules).
 	rels          []relations.Option
 	consumerRules int
+	// upstream fetches the upstream request kinds (prompt feature upstream).
+	upstream *Upstream
 }
 
 // Option configures an Investigator.
@@ -57,6 +59,13 @@ func WithRelations(opts ...relations.Option) Option {
 func WithConsumerRules(rules int) Option {
 	return func(i *Investigator) { i.consumerRules = rules }
 }
+
+// WithUpstream sets the fetch port of request_evidence kinds upstream-file
+// and upstream-search (prompt feature upstream; upstream.go): the product's
+// repo-file and repo-dir fetchers, which cache and replay offline, and its
+// code repositories and tags. Without it such requests are recorded as
+// unavailable.
+func WithUpstream(u Upstream) Option { return func(i *Investigator) { i.upstream = &u } }
 
 // WithClock sets the clock that stamps generatedAt on agent records.
 func WithClock(now func() time.Time) Option { return func(i *Investigator) { i.now = now } }
@@ -102,6 +111,11 @@ func Prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, vali
 // PrepareWith is Prepare with the relationship rules of the consumer graph
 // (WithRelations) and its consumer rules (0: relations.ConsumerRules).
 func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time, rels []relations.Option, consumerRules int) (*Session, investigate.AgentSession, error) {
+	return prepare(st, in, validators, now, rels, consumerRules, nil)
+}
+
+// prepare is PrepareWith with the upstream fetch port (WithUpstream).
+func prepare(st investigate.ArtifactStore, in investigate.InvestigateInput, validators []investigate.Validator, now func() time.Time, rels []relations.Option, consumerRules int, up *Upstream) (*Session, investigate.AgentSession, error) {
 	if in.Bundle == nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, errors.New("agent: no bundle"))
 	}
@@ -149,7 +163,7 @@ func PrepareWith(st investigate.ArtifactStore, in investigate.InvestigateInput, 
 	s, err := NewSession(SessionConfig{Bundle: in.Bundle, Store: st, Graph: in.Graph, Traversal: in.Traversal, Report: in.Report,
 		Validations: in.Validations, ValidationArtifacts: in.ValidationArtifacts, ValidationEvidence: in.ValidationEvidence,
 		Validators: validators, Budget: budget, Prompt: p, PromptDigest: digest, Model: in.Config.Model, Now: now,
-		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap, ConsumerGraphs: graphs, ConsumerRules: consumerRules})
+		Agenda: agenda, BudgetRule: budgetRule, ItemCap: itemCap, ConsumerGraphs: graphs, ConsumerRules: consumerRules, Upstream: up})
 	if err != nil {
 		return nil, investigate.AgentSession{}, investigate.PermanentError(domain.StageInvestigate, err)
 	}
@@ -182,7 +196,7 @@ func (i *Investigator) Investigate(ctx context.Context, in investigate.Investiga
 			rules = t.ConsumerRules() // a replay serves the graph the recording saw
 		}
 	}
-	s, as, err := PrepareWith(i.st, in, i.validators, i.now, i.rels, rules)
+	s, as, err := prepare(i.st, in, i.validators, i.now, i.rels, rules, i.upstream)
 	if err != nil {
 		return nil, err
 	}

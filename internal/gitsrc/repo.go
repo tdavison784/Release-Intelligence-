@@ -190,6 +190,18 @@ func (r Repo) BlobURL(ref, p string) string {
 	return r.WebURL
 }
 
+// TreeURL returns the human-facing URL of a directory pinned to a ref. For
+// hosts whose layout is unknown it is the repository's web URL.
+func (r Repo) TreeURL(ref, p string) string {
+	switch r.flavor {
+	case flavorGitHub:
+		return r.WebURL + "/tree/" + escapePath(ref) + "/" + escapePath(p)
+	case flavorGitLab:
+		return r.WebURL + "/-/tree/" + escapePath(ref) + "/" + escapePath(p)
+	}
+	return r.WebURL
+}
+
 // CommitURL returns the human-facing URL of a commit, or "" when the host's
 // layout is unknown.
 func (r Repo) CommitURL(sha string) string {

@@ -100,7 +100,10 @@ type SessionConfig struct {
 	// (relations.ConsumerRulesV1, …), which the transcript header records.
 	ConsumerGraphs ConsumerGraphs
 	ConsumerRules  int
-	Now            func() time.Time
+	// Upstream fetches upstream-file / upstream-search requests (prompt
+	// feature upstream; upstream.go). Nil: such requests are unavailable.
+	Upstream *Upstream
+	Now      func() time.Time
 }
 
 // Session is the agent's tool surface for one investigation (investigate.Tools).
@@ -182,6 +185,10 @@ type Session struct {
 	traced      map[string]bool
 	rejectedNA  map[string]bool
 	assessments []domain.AgentAssessment
+
+	// upState is the focus item's upstream fetch budget and what it read
+	// (prompt feature upstream).
+	upState upstreamState
 }
 
 // itemStat is what one per-item session cost and how it ended.
@@ -212,7 +219,8 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
 		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
-		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{}}
+		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{},
+		upState: upstreamState{done: map[string][]string{}}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -612,9 +620,18 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		}
 	case investigate.ToolRequestEvidence:
 		var in investigate.EvidenceRequestInput
-		if decode(&in) {
-			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(in) })
+		if !s.cfg.Prompt.Features.Upstream.On() {
+			// Earlier prompt versions decode the fields they always had, so an
+			// argument they never took is refused exactly as before.
+			var old legacyEvidenceRequest
+			if !decode(&old) {
+				break
+			}
+			in = investigate.EvidenceRequestInput{ChangeItem: old.ChangeItem, Kind: old.Kind, Target: old.Target, Reason: old.Reason}
+		} else if !decode(&in) {
+			break
 		}
+		res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(ctx, in) })
 	case investigate.ToolRequestValidation:
 		var in investigate.ValidationRequestInput
 		if decode(&in) {
@@ -706,6 +723,15 @@ func argsForTranscript(args json.RawMessage) json.RawMessage {
 	return b
 }
 
+// legacyEvidenceRequest is request_evidence's arguments before prompt
+// feature upstream.
+type legacyEvidenceRequest struct {
+	ChangeItem string                     `json:"changeItem,omitempty"`
+	Kind       domain.EvidenceRequestKind `json:"kind"`
+	Target     string                     `json:"target"`
+	Reason     string                     `json:"reason"`
+}
+
 type getChangeItemArgs struct {
 	ID string `json:"id"`
 }
@@ -749,7 +775,7 @@ func (s *Session) ListPaths(ctx context.Context, q investigate.PathQuery) ([]dom
 }
 
 func (s *Session) RequestEvidence(ctx context.Context, in investigate.EvidenceRequestInput) (*domain.EvidenceRequest, error) {
-	return typed[*domain.EvidenceRequest](s, ctx, investigate.ToolRequestEvidence, in, func(context.Context) (*outcome, error) { return s.requestEvidence(in) })
+	return typed[*domain.EvidenceRequest](s, ctx, investigate.ToolRequestEvidence, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(ctx, in) })
 }
 
 func (s *Session) RequestValidation(ctx context.Context, in investigate.ValidationRequestInput) (*domain.ValidationRequest, *domain.ValidationRecord, error) {
@@ -976,6 +1002,7 @@ func (s *Session) BeginItem(item string, budget domain.AgentBudget, promptDigest
 	s.exhausted, s.submitted, s.itemCalls, s.itemRead = "", false, 0, 0
 	s.retrieved = map[string]bool{}
 	s.traced = map[string]bool{}
+	s.upState = upstreamState{done: map[string][]string{}}
 	s.sessions = append(s.sessions, item)
 	s.writeLine(map[string]any{"type": "item", "item": item, "promptDigest": promptDigest, "budget": budget})
 }
