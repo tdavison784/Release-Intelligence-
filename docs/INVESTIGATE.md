@@ -1194,6 +1194,26 @@ overturn it.
     parsing, a feature gate) the change text does not state exactly, fetch the implementation, documentation
     or tests at the target's tag before concluding; cite them or keep the behaviour unknown. The item task names
     the repositories and tags that may be read. Earlier versions decode `request_evidence` exactly as before.
+- **v12** (Phase 6 M2 fix, behaviour dependencies, `docs/phase6/decision-intel/briefs/upstream2.md`, ledger
+  D-0013; design and tests in `docs/phase6/decision-intel/M2-IMPLEMENTATION.md`). v11 plus `meta.json`
+  `behaviour: true`; **not the default** (`pinnedDefaultPrompt` holds v9). Why: under v11 fetching was a model
+  choice, and a not-affected verdict could rest on remembered behaviour that the assessment itself listed as not
+  fetched.
+  - **Assessment field `behaviour`** (additive): every upstream behaviour the verdict relies on (validation,
+    defaulting, parsing, feature gates, API semantics), each `{behaviour, source}`. `source` is `upstream`
+    (`citations` of upstream text beyond the item's change text: a fetched run artifact or an upstream source of
+    the bundle; verbatim, checked), `change-text` (`quote`: a verbatim quote of the item's change text, which is
+    its title, the change's title and detail, and the excerpts of its upstream evidence), `unavailable`
+    (`request`: an upstream request of the item recorded unavailable) or `not-checked`.
+  - **Checks on `submit_findings`.** Rejected every time: a `not-affected` verdict with any `unavailable` or
+    `not-checked` behaviour; a malformed entry (a non-upstream artifact or a quote that does not resolve under
+    `upstream`, or citations that all quote the change text; a `change-text` quote that is not in the change
+    text; an `unavailable` id that is not such a request). Rejected once (its own once-flag): a `not-affected`
+    verdict with no behaviour on a behavioural item, i.e. manifestation `controller-behaviour` / `unknown` or
+    family `behavior` (`behaviouralChange`). Each unestablished behaviour is recorded in `unknown` as
+    `behaviour "<b>" at <tag>: <source>`. The checks never read the wording. Earlier versions refuse the field.
+  - Like the rest of the assessment, `behaviour` is AI prose plus checked citations, never a classifier input
+    (`TestBehaviourNeverReachesThePolicy`).
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1253,7 +1273,7 @@ v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item d
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
 citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers;
 v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check; v10 adds scoped
-verdicts (headline, scope, preconditions); v11 is v9 plus upstream evidence fetched at the upgrade's tags. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+verdicts (headline, scope, preconditions); v11 is v9 plus upstream evidence fetched at the upgrade's tags; v12 is v11 plus the assessment's behaviour dependencies. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 
