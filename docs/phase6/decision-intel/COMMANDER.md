@@ -50,3 +50,7 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-20: the first `herdr agent start` lost its first keystroke to oh-my-zsh's update prompt (`laude: command not
   found`). The retry worked. If a new pane shows that prompt, wait for the shell before starting the agent.
+- 2026-10-26 (product owner: "close out all old herdr panes and workspaces that are no longer in use"): closed tabs
+  w1:tY (guided.sh shell), w1:t1V (ri-eval5; its worktree p5ll-eval5 stays until PR #7 merges) and w1:tN (ri-guard and
+  fleet_guard.py, which watched docs/phase5; Phase 6 has no GLM handoffs). Kept: the review UIs on :8484 (w1:tR) and
+  :8485 (w1:t1J), pending the product owner.
