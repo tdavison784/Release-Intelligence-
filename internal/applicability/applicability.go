@@ -108,7 +108,8 @@ func SchemaDefault(crds []CRD, group, version, kind, path string) Default {
 	case len(values) > 1 || (len(values) == 1 && none):
 		return Default{Why: fmt.Sprintf("the CRDs of the input disagree on the default of %s (%s)", path, src)}
 	case none:
-		return Default{State: None, Source: src, CRDs: used}
+		return Default{State: None, Source: src, CRDs: used,
+			Why: fmt.Sprintf("%s states no schema default for %s; a controller may default it in code", src, path)}
 	}
 	for v := range values {
 		return Default{State: Known, Value: v, Source: src, CRDs: used}
@@ -195,9 +196,6 @@ func Resolve(schema, rule Default) Default {
 		return out
 	}
 	why := schema.Why
-	if schema.State == None {
-		why = fmt.Sprintf("%s states no schema default; a controller may default the field in code", schema.Source)
-	}
 	if rule.Why != "" {
 		if why != "" {
 			why += "; "
@@ -235,7 +233,7 @@ func Unset(c domain.Condition, d Default, holds func(value string) bool) Verdict
 		if why == "" {
 			why = "nothing establishes its default"
 		}
-		return Verdict{Why: fmt.Sprintf("%s is unset and %s: whether %s %s holds is undecidable", leaf, why, leaf, c.State), Default: d}
+		return Verdict{Why: fmt.Sprintf("no default of %s is established (%s), so %s %s is undecidable on an object that leaves it unset", leaf, why, leaf, c.State), Default: d}
 	}
 	hit := holds(d.Value)
 	r := Verdict{Known: true, Holds: hit, Default: d}
