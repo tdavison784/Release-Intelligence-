@@ -185,6 +185,9 @@ type Session struct {
 	traced      map[string]bool
 	rejectedNA  map[string]bool
 	assessments []domain.AgentAssessment
+	// rejectedNoBehaviour: the items whose not-affected verdict declared no
+	// behaviour and was rejected once (prompt feature behaviour).
+	rejectedNoBehaviour map[string]bool
 
 	// upState is the focus item's upstream fetch budget and what it read
 	// (prompt feature upstream).
@@ -219,7 +222,7 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
 		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
-		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{},
+		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{}, rejectedNoBehaviour: map[string]bool{},
 		upState: upstreamState{done: map[string][]string{}}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a

@@ -34,8 +34,9 @@ type assessmentView struct {
 
 // assessmentOf builds the assessment of a closing entry (caller holds s.mu,
 // inside a tool implementation: nothing is committed here). verdict is the
-// entry's verdict id, untraced the consumer keys the session never retrieved.
-func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in investigate.AssessmentInput, verdict string, untraced []string, at string) (domain.AgentAssessment, []domain.Evidence, error) {
+// entry's verdict id, untraced the consumer keys the session never retrieved,
+// behaviour the entry's checked behaviour dependencies (behaviour.go).
+func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in investigate.AssessmentInput, verdict string, untraced []string, behaviour behaviourDeps, at string) (domain.AgentAssessment, []domain.Evidence, error) {
 	var a domain.AgentAssessment
 	what, err := s.statement(at+".whatChanged", in.WhatChanged)
 	if err != nil {
@@ -102,6 +103,10 @@ func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in inv
 	gaps, unavailable := s.upstreamGaps(it.ID)
 	a.Unknown = append(a.Unknown, gaps...)
 	a.UnavailableEvidence = unavailable
+	a.Behaviour = behaviour.list
+	a.Unknown = append(a.Unknown, s.behaviourGaps(behaviour.list)...)
+	cited = append(cited, behaviour.evidence...)
+	evs = append(evs, behaviour.evidence...)
 	a.Provenance = s.aiProvenance(append(evidenceIDs(cited), it.Evidence...))
 	a.ID = domain.AgentAssessmentID(it.ID, a.WhatChanged, a.Mechanism, s.call.ID)
 	if err := invalid(func() error { c := a; c.Provenance = placeholder(c.Provenance); return c.Validate() }()); err != nil {

@@ -123,3 +123,87 @@ the scored D-EU check).
   quote says (checked verbatim), not that the model read the code correctly. A conclusion built on it stays
   AI prose; the classifier never reads it.
 - `ri investigate mcp` serves no fetch port, so upstream requests there are refused as from a read-only session.
+
+## Fix: behaviour dependencies, prompt v12 (lane upstream2, ledger D-0013)
+
+**Defect** (found by the commander on development runs, described generically). Under v11, fetching upstream
+behaviour is a model choice. With the same prompt, dossier and first tool calls, some sessions of one item
+fetched the validation code at the target's tag; others never called `request_evidence` and concluded
+`not-affected` from remembered behaviour. The assessment's own `unknown` said the behaviour was not fetched.
+Nothing deterministic connected that admitted gap to the verdict.
+
+**Fix: prompt v12** = v11 + feature `behaviour` (`meta.json` `"behaviour": true`; needs `upstream`). v1–v11 are
+byte-frozen (v11 added to the digest list) and the default stays v9.
+
+| # | Change | Where |
+|---|---|---|
+| 1 | **`behaviour` on the assessment** (additive): the upstream behaviours the verdict relies on, each `{behaviour, source}` with `source` `upstream` (`citations`), `change-text` (`quote`), `unavailable` (`request`) or `not-checked`. Stored as `domain.AssessmentBehaviour` (`AgentAssessment.Behaviour`). `Validate` checks the shape; `Investigation.Validate` checks that an `unavailable` entry names an unavailable request of its item, and `ValidateAgainst` that the citations resolve. | `domain/assessment.go`, `domain/investigation.go`, `investigate/api.go` `BehaviourInput` |
+| 2 | **Source checks** (every time, any verdict). `upstream`: each citation resolves verbatim, names an `OriginUpstream` artifact (a fetched `upstream-document` or an upstream source of the bundle), and at least one quote is not in the item's change text. `change-text`: the quote is in the item's change text: its title, the change's title and detail, and the excerpts of its upstream evidence (`QuoteOccurs`, per piece). `unavailable`: the id of an upstream request of this item with status `unavailable`. `not-checked`: no other field. A field of another source, an unknown source or a blank behaviour is rejected. | `agent/behaviour.go` `behaviourOf` |
+| 3 | **Verdict check.** A `not-affected` verdict with any `unavailable` / `not-checked` entry is rejected every time; the message lists them and names the two ways out (fetch with `request_evidence`, or submit `potentially-affected` / `insufficient-evidence` with the gap). | `behaviourVerdictCheck` |
+| 4 | **Empty list, once.** A `not-affected` verdict with no behaviour on a behavioural item is rejected once, with its own once-flag (independent of the consumer completion check, so each can fire once). Behavioural is the bundle's declared classification (`bundle/scope.go`): manifestation `controller-behaviour` or `unknown` (runtime or default semantics of the shipped software; unknown fails closed), or family `behavior` (runtime behaviour stated in prose, even when correlated to a rendered change). Values, schema, image, platform-bound, chart-rendered and procedure items in rendered configuration are not; documentation-only changes are out of scope and get no session. | `behaviouralChange`, `behaviourCompletion` |
+| 5 | **Gaps.** Each `not-checked` entry adds `investigation gap (recorded by the tool layer): behaviour "<b>" at <target tag>: not-checked` to `unknown`; each `unavailable` entry `… at <request ref>: unavailable (request <id>: <reason>)`. Upstream citations become run evidence and inputs of the assessment's provenance. | `behaviourGaps`, `agent/assessment.go` |
+| 6 | **Prompt v12.** `system.md`: section "Behaviour the verdict relies on" (the four sources, what the tool layer checks, the gap format) and one Closing bullet; every other section is v11's (tested). `item.md`: step 4 names the list and the rule, step 6 the field. `tools.json`: only `submit_findings` (the `behaviour` schema and one description sentence). `task.md` is v11's. Generic wording (tested). | `prompts/investigate-agent/v12/` |
+
+**No product logic.** The checks read only the structured fields, the item's family and manifestation, the
+request records and citation resolution. They never inspect the behaviour's wording.
+
+**Earlier prompts.** Without feature `behaviour`, `behaviour` is refused (`this prompt version … takes no
+behaviour`). Before, the strict decoder refused the unknown field with another message, so a stored call that sent
+it would no longer replay byte for byte. None did: the 412 `submit_findings` calls in the 31 transcripts of the
+stored v9–v11 runs (19 `cases.tar.gz`, transcripts only; no label-bearing file opened) carry no `behaviour`.
+The canonical arguments of earlier calls are unchanged (`omitempty`), and the assessments of v9–v11 sessions
+are built exactly as before.
+
+**Policy isolation.** The classifier never reads assessments. `TestBehaviourNeverReachesThePolicy`: findings,
+decision and eligibility are byte-identical without the agent records, with the behaviour list stripped, and with
+an adversarial not-affected verdict resting on a fetched citation and a change-text quote.
+
+**How to run.** As v11 ("How to run v11" above), with `-agent-prompt investigate-agent/v12`.
+
+### Tests (`agent/prompt_v12_test.go`)
+
+- `TestPromptV12`: features are v11's plus `behaviour`; only `submit_findings` differs from v11's tools;
+  `task.md` and `meta.json` as above; every v11 system section but Closing is unchanged, Closing gains only the
+  bullet, plus the new section; the default is v9; `behaviour` without `upstream` is refused.
+  `TestPromptV12IsGeneric`: v11's word list plus "strict". `TestEarlierPromptVersionsAreFrozen`: v1–v11.
+- `TestV12NotCheckedBehaviourBlocksNotAffected`: not-affected with a `not-checked` behaviour is rejected, twice;
+  resubmitted as `potentially-affected` it is accepted, with the gap in `unknown`.
+- `TestV12UpstreamBehaviourAccepted`: not-affected citing the fetched artifact is accepted at once; the citation is
+  run evidence and a provenance input; the record validates against the bundle. A bundle upstream source is
+  accepted when its quote goes beyond the change text, rejected when every quote is the change text.
+- `TestV12UpstreamSourceIsChecked`: an environment artifact, a forged quote, no citations, a stray `request`, an
+  unknown source and a blank behaviour are rejected.
+- `TestV12ChangeTextQuote`: a forged quote and a quote from the notes outside the item's text are rejected, as
+  are citations on `change-text`; the change's detail and an evidence excerpt are accepted, and support
+  not-affected.
+- `TestV12UnavailableNeedsTheRequest`: an unknown id and a fulfilled request's id are rejected; a real
+  unavailable request blocks not-affected and is accepted with `potentially-affected`, with the gap;
+  `Investigation.Validate` rejects a record whose `unavailable` names a fulfilled request.
+- `TestV12EmptyBehaviourList`: a behavioural item's not-affected with no behaviour is rejected once, then
+  accepted; other classes are not asked; a non-behavioural item (values, rendered-config) is accepted at once;
+  the `behaviouralChange` table.
+- `TestV12BehaviourAndConsumerChecksRejectOnceEach`: the consumer check, then the behaviour check, then accepted.
+- `TestEarlierPromptsRefuseBehaviour`: v11 refuses the field with the exact message; v11's not-affected is not
+  asked for behaviour.
+- `TestBehaviourNeverReachesThePolicy`, as above.
+- `TestV12Replay`: a scripted v12 run (a fetch, the not-checked rejection, the empty-list rejection, the accepted
+  resubmission) replays with no mismatch; transcript, prompt digest and assessments identical.
+
+Mutation checks: disabling the verdict check, the once-check, or the change-text quote check each fails v12
+tests.
+
+### Known limits
+
+- **The change text is the bundle's record of the item:** its title, the change's title and detail, and the
+  (truncated) excerpts of its upstream evidence. A quote from the same release note outside those excerpts
+  counts as upstream text beyond the change text. A quote that spans two pieces does not match.
+- **Whether a quote states the behaviour** (rather than only that it changed) is not checked; only that it is
+  verbatim and of the right kind of source. A `change-text` or `upstream` entry can still be cited for a
+  behaviour the text does not establish; it stays AI prose, as every verified statement does.
+- **Completeness of the list is not checked** beyond "non-empty on a behavioural not-affected verdict, once". A
+  model can omit a behaviour it relies on; the second submission of an empty list is accepted, as with the
+  consumer completion check.
+- **Only not-affected is gated.** `affected`, `potentially-affected` and `insufficient-evidence` record their gaps
+  but are never rejected for them.
+- No live run on a development case (brief). The scored check of v12 is the commander's.
+
