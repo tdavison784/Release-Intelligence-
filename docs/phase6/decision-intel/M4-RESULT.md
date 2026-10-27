@@ -231,3 +231,21 @@ the D-EU `docs` Ingress (`env/apps/docs/base/ingress.yaml`, namespace `docs`, th
 - close the coexistence back door (K1) for every promotion route;
 - report contradicting active facts;
 - loader checks for proof bounds and record consistency (K2, K3).
+
+## Back-door fix (D-0029), 2026-10-28: K1 closed
+
+- **Refusal.** A decision that creates or changes a fact (accept, correct or duplicate, on an ordinary or a hypothesis
+  item) must name every other active fact on the same product, release and subject as `supersedes` or `coexists`.
+  Otherwise it is refused before anything is written. The route-B reproduction from the negative-control build is now
+  refused, and naming the fact is accepted.
+- **Coexistence** is allowed only for compatible facts: the same change, exposure and consequence kind.
+- **Contradicting active facts:** a load warning naming both, plus a `knowledge-contradiction` gap in the join that
+  stops either fact from clearing. Kneg-contradicted is now flagged.
+- **Stored pairs** that newly count as contradicting are both proxy-level, so they never cleared anything:
+  loki `vf-7f12b0dedc81`/`vf-b446bc665090` and cilium `vf-a78f85d3eec5`/`vf-afa8a757b5f1`.
+- **Regression:** re-score 1004/1004 identical; everything loads.
+- **Remaining, as known limitations:**
+  - auto-approval can still mint a fact without naming others; it is reported and blocked in the join, not refused at
+    write time;
+  - semantic-check structured claimed values (§3b);
+  - loader proof-bounds and record-consistency checks (K2, K3).
