@@ -1025,7 +1025,7 @@ classification still runs only over validation records.
 **Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
 verdict citation inheritance, and v8 revises the mitigation instructions, both below; v9 (the default since the M1
 gate, 2026-10-26) is the
-consumer-aware investigation further down; Phase 5,
+consumer-aware investigation further down, and v10 its scoped verdicts; Phase 5,
 `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
 the v5 surface. It adds three things.
 
@@ -1152,6 +1152,25 @@ overturn it.
   - The prompt asks the mission's eight questions, consumers first, verified / inferred / unknown kept apart
     (model memory is never evidence), and provisional versus supported conclusions with their proof
     obligations; the mitigation and consistency instructions are gone. Generic wording (tested like v8).
+- **v10** (Phase 6, scoped verdicts, `docs/phase6/decision-intel/briefs/scoped.md`, ledger D-0007; product owner
+  decision 2026-10-26). v9 with only the verdict rules changed; **not the default** until its check on the
+  development pair (`pinnedDefaultPrompt` in `claims_test.go` holds v9). `meta.json` adds `scopedVerdict`.
+  - **Scoped verdict.** The agent declares the scope it investigated (e.g. the consumers the environment
+    declares, the rendered objects, the cited upstream evidence) and sorts what is open into (a) in-scope
+    unknowns the breaking mechanism depends on, which keep the verdict `potentially-affected` or
+    `insufficient-evidence`, and (b) preconditions outside the scope that the repository cannot state (reload
+    behaviour, pinning by external systems, runtime object contents), which do not. When every traced consumer
+    and effective setting in scope is accounted for, it commits to `affected` or `not-affected` within the scope
+    and lists the preconditions. Model memory is never evidence for an in-scope fact; untraced consumers stay
+    in-scope unknowns.
+  - **Assessment fields** (additive): `headline` (one sentence: class, scope, preconditions; required),
+    `scope`, `preconditions`. Earlier versions refuse them.
+  - **Checks.** `affected` / `not-affected` without a `scope` is rejected (every time). A `not-affected` verdict
+    is rejected once while in-scope unknowns remain: the assessment's `unknown` entries and the untraced
+    consumers, listed in the rejection; it shares the v9 completion check's once-flag, so an item is rejected at
+    most once. The resubmission is accepted, with the untraced consumers recorded as gaps as in v9.
+  - Like the rest of the assessment, the scoped fields are AI prose and never a classifier input
+    (`TestScopedVerdictsNeverReachThePolicy`, `run/assessment_test.go`).
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1210,7 +1229,8 @@ agenda and subject resolution; v3 adds answer links and the depth rules; v4 adds
 v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item dossier
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
 citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers;
-v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check; v10 adds scoped
+verdicts (headline, scope, preconditions). `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 

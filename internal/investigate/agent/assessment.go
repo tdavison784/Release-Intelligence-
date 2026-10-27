@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
@@ -47,12 +48,13 @@ func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in inv
 		return a, nil, err
 	}
 	a = domain.AgentAssessment{ChangeItem: it.ID, Verdict: verdict, WhatChanged: what, Mechanism: mech, LikelyImpact: impact,
-		StatementKind: s.proseKind(), UntracedConsumers: untraced}
+		StatementKind: s.proseKind(), UntracedConsumers: untraced, Headline: trimmed(in.Headline), Scope: trimmed(in.Scope)}
 	for _, l := range []struct {
 		name string
 		in   []string
 		out  *[]string
-	}{{"consumers", in.Consumers, &a.Consumers}, {"inferred", in.Inferred, &a.Inferred}, {"unknown", in.Unknown, &a.Unknown}, {"recommendedTests", in.RecommendedTests, &a.RecommendedTests}} {
+	}{{"consumers", in.Consumers, &a.Consumers}, {"inferred", in.Inferred, &a.Inferred}, {"unknown", in.Unknown, &a.Unknown}, {"recommendedTests", in.RecommendedTests, &a.RecommendedTests},
+		{"preconditions", in.Preconditions, &a.Preconditions}} {
 		if len(l.in) > maxAssessmentList {
 			return a, nil, rejectf("%s.%s: at most %d entries", at, l.name, maxAssessmentList)
 		}
@@ -101,4 +103,70 @@ func (s *Session) assessmentOf(ctx context.Context, it domain.ChangeItem, in inv
 		return domain.AgentAssessment{}, nil, err
 	}
 	return a, evs, nil
+}
+
+// scopedChecks checks an entry's scoped verdict fields before anything is
+// recorded (prompt feature scopedVerdict; docs/phase6/decision-intel/briefs/
+// scoped.md). Without the feature the fields are refused. With it, the
+// headline is required, and a committed class (affected, not-affected) needs
+// the scope it was reached in.
+func (s *Session) scopedChecks(at string, in investigate.AssessmentInput, verdict *domain.AgentVerdict) error {
+	if !s.cfg.Prompt.Features.ScopedVerdict {
+		if trimmed(in.Headline) != "" || trimmed(in.Scope) != "" || len(in.Preconditions) > 0 {
+			return rejectf("%s: this prompt version (%s) takes no headline, scope or preconditions", at, s.cfg.Prompt.Version)
+		}
+		return nil
+	}
+	if _, err := s.statement(at+".headline (one sentence: the class, the scope and the preconditions)", in.Headline); err != nil {
+		return err
+	}
+	if len(in.Scope) > MaxStatement {
+		return rejectf("%s.scope is %d bytes (max %d)", at, len(in.Scope), MaxStatement)
+	}
+	if len(in.Preconditions) > maxAssessmentList {
+		return rejectf("%s.preconditions: at most %d entries", at, maxAssessmentList)
+	}
+	if verdict != nil && committed(verdict.Class) && trimmed(in.Scope) == "" {
+		return rejectf("%s: the class %s commits within a declared scope; scope is required: what this session examined (e.g. the consumers the environment declares, the rendered objects, the cited upstream evidence)", at, verdict.Class)
+	}
+	return nil
+}
+
+// committed reports whether a class commits to an outcome.
+func committed(c domain.FindingClass) bool {
+	return c == domain.FindingAffected || c == domain.FindingNotAffected
+}
+
+// scopedCompletion is the completion check of a scoped verdict: a
+// not-affected verdict is rejected once while in-scope unknowns remain, the
+// model's own unknown entries and the consumers no tool of the session
+// returned, and the rejection lists them. It shares the once-flag of the
+// consumer completion check, so an item is rejected at most once.
+func (s *Session) scopedCompletion(at, item string, in investigate.AssessmentInput, verdict *domain.AgentVerdict, untraced []string) error {
+	if verdict == nil || verdict.Class != domain.FindingNotAffected || s.rejectedNA[item] {
+		return nil
+	}
+	var unknown []string
+	for _, u := range in.Unknown {
+		if u = trimmed(u); u != "" {
+			unknown = append(unknown, u)
+		}
+	}
+	if len(unknown) == 0 && len(untraced) == 0 {
+		return nil
+	}
+	s.rejectedNA[item] = true // recorded although the call is rejected: the check rejects once
+	var open []string
+	if len(unknown) > 0 {
+		quoted := make([]string, len(unknown))
+		for i, u := range unknown {
+			quoted[i] = fmt.Sprintf("%q", u)
+		}
+		open = append(open, fmt.Sprintf("in-scope unknowns stated in unknown: %s", listKeys(quoted, 20)))
+	}
+	if len(untraced) > 0 {
+		open = append(open, fmt.Sprintf("consumers of the item's exposed objects never retrieved in this session: %s (trace_consumers changeItem=%s, get_rendered_object, read_artifact)", listKeys(untraced, 20), item))
+	}
+	return rejectf("%s: a not-affected verdict needs every in-scope unknown resolved; %d remain: %s. Resolve them, or submit the class they leave (potentially-affected, insufficient-evidence). A runtime or operational fact the repository cannot state belongs in preconditions; an in-scope fact never does. A second submission is accepted, with each untraced consumer recorded as an investigation gap.",
+		at, len(unknown)+len(untraced), strings.Join(open, "; "))
 }
