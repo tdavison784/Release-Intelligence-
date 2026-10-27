@@ -40,24 +40,74 @@ Branch `p6di/applicability` (from `p6-decision-intel` @ 971636bc). Brief: `brief
 
 ## Done
 
-- (nothing yet)
+1. **Shared helper** `internal/applicability` (SchemaDefault, DefaultAt moved from pins.go, RuleDefault, Resolve,
+   Unset, ParentPath/ParentAbsent). Commit 810d2b24.
+2. **`domain.Condition.Default`** (`FieldDefault{value, source, citations}`; `DefaultSources` enum; schemas
+   regenerated). `Condition.Validate` checks shape and placement (value leaves of field/cli-flag/env-var only);
+   `VerifiedFact.Validate` rejects a default whose citations do not resolve to the fact's upstream evidence
+   (`FieldDefault.Unevidenced`).
+3. **Impact join** (`impact/condition.go` rule 6, `ConditionOptions.Evidence`, `knowledge.go` passes `f.Evidence`):
+   unset + value predicate → schema default (environment CRDs, parent present) or evidenced rule default, else
+   unknown `semantic-ambiguity`; list elements that omit the field hold the default too.
+4. **Pin scope** (`validate/pins.go`) on the same helper, with the fact's evidence as pool. Commit 3d8bc9d3.
+5. **Exact coverage**: `PinnedSetting.CRD`, `EvidenceBundle.PinCoversChange`, `domain.SchemaFieldPath`;
+   `override.go` `pinCoverage` records the item's rendered changes on the pin's own field; `classify/policy.go`
+   re-checks every rendered change a pin pass claims. Commit 5c785576.
+6. **Boundary fixtures** (`verify/boundary.go`): every arm predicted by the rule (three-valued, evidenced rule
+   defaults only); omitted-field arms; undecidable or self-contradicting ⇒ exercise `fail` before any cluster runs;
+   role-contradicting shielded alternatives exercised as outside-role arms (`consumer.go`). `ExerciseInput.Evidence`
+   carries the rule's citations. Commit b75e7669.
+7. **No fail-open evidence**:
+   - `TestUnsetRuleNeverFailsOpen`: 3672 evaluations without an established default vs the previous semantics
+     (test-only switch `legacyUnsetFalse`): 2052 moved to unknown, none moved toward a decision.
+   - Stored runs re-classified (`cmd/ri/m4_rescore_test.go`, tag `m4rescore`, reads only cases.tar.gz + run.json):
+     19 runs (3 B0, 13 C1, 3 D1), 50 cases, 1004 items: **1004 identical** (class and rule); no rule id changed.
+   - Join re-run on the 8 cases those runs use (base 971636bc vs this branch, `ri impact -render -knowledge K0`,
+     state cloned into scratch): 878 findings, **878 identical** (16 knowledge findings evaluated). K0 has 35
+     active facts with value-predicate leaves; none changes on these environments.
+   - Not re-run: the override-inspection validator on stored bundles (their CAS artifacts are not in the run
+     archives). Its changes are stricter (parent-absent schema defaults) or need an evidenced default, which no K0
+     fact states.
+8. **Docs**: `docs/IMPACT.md` (unset rule, condition defaults), `docs/INVESTIGATE.md` (pin scope, exact coverage,
+   boundary fixtures, outside-role arms).
 
 ## In progress (exact next step)
 
-- Implementing 1–4.
+- Merge `p6-decision-intel` (semverify merged), re-run build/vet/test, cleanup, LANE DONE.
+
+## Decisions
+
+- A schema default counts as established (brief: "as pins already do"); the no-fail-open property is stated for
+  inputs without an established default.
+- Schema defaults apply only inside a present parent (stricter than pins before).
+- A flag/env/config-key pin covers no rendered change (a container-args change is never provably only the flag).
+  One existing test (`TestR2_4BehaviourItems`) used a flag pin to cover an args change; it now uses a field pin on
+  that exact field.
+- Boundary failure is recorded on the `rule-exercise` method (fixtures are this lane's; proof methods are
+  semverify's), with the detail "decided before any cluster ran". It runs only under `-runtime`, as the exercise
+  does; without it the proof stays inconclusive, never confirmed.
+- The Phase 5 human-authored rule shape (`isCA equals true` without a default) now fails its boundary fixtures; the
+  same rule with an evidenced controller default for the compared field is exercised and can be confirmed.
 
 ## Files touched outside ownership
 
-- (none yet)
+- `internal/env/env.go`: `CRDVersion.Schema` (additive, `json:"-"`), filled from the CRD document.
+- `internal/domain/schemagen/meta.go`: enum registration; `schemas/*.json` regenerated.
+- `internal/investigate/classify/rules_test.go`: one test adjusted (see Decisions).
+- `cmd/ri/m4_rescore_test.go`: build-tagged check, not in the normal suite.
 
 ## Contract changes (additive)
 
-- (none yet)
+- `domain.Condition.Default`, `domain.FieldDefault`, `domain.DefaultSource(s)`, `FieldDefault.Validate/Unevidenced`,
+  `Condition.Defaults`.
+- `domain.PinnedSetting.CRD`, `EvidenceBundle.PinCoversChange`, `domain.SchemaFieldPath`.
+- `impact.ConditionOptions.Evidence`, `impact.SchemasOf`; `verify.ExerciseInput.Evidence`.
 
 ## Open questions
 
-- (none)
+- None blocking. For the demo: the formalizer (or a human) must state the compared field's default with an upstream
+  citation (e.g. the controller's default for the role field) for a scope rule to decide objects that omit it.
 
 ## Test status
 
-- not run yet
+- `go build ./... && go vet ./... && go test ./...` green before the merge.
