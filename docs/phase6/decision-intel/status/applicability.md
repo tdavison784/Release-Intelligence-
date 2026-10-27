@@ -73,7 +73,8 @@ Branch `p6di/applicability` (from `p6-decision-intel` @ 971636bc). Brief: `brief
 
 ## In progress (exact next step)
 
-- Merge `p6-decision-intel` (semverify merged), re-run build/vet/test, cleanup, LANE DONE.
+- Nothing. Lane done; merged `p6-decision-intel` (semverify) at 20f7d02f (conflict in docs/INVESTIGATE.md: both
+  sections kept). Next is the commander's: merge, then the M4 demo.
 
 ## Decisions
 
@@ -110,4 +111,5 @@ Branch `p6di/applicability` (from `p6-decision-intel` @ 971636bc). Brief: `brief
 
 ## Test status
 
-- `go build ./... && go vet ./... && go test ./...` green before the merge.
+- `go build ./... && go vet ./... && go test ./...` green after the merge with `p6-decision-intel`; the m4rescore
+  check still 1004/1004 identical after the merge.
