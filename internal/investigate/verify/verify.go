@@ -267,7 +267,8 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		}
 		var notes []string
 		ex, notes = ExerciseRule(ctx, ExerciseInput{Product: string(it.Product), Rule: rule, Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)],
-			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner})
+			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner,
+			Evidence: evs})
 		limitations = append(limitations, notes...)
 	} else {
 		ex = domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ExerciseProducer, Level: domain.LevelObserved, Outcome: domain.MethodNotRun,

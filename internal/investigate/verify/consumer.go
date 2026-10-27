@@ -32,12 +32,19 @@ import (
 // verifies at TO); every alternative of the exposure condition that holds in
 // the role and does not meet the overlap is an exposed arm (predicted: it
 // verifies at FROM and fails at TO). Alternatives that contradict the role
-// are not exercised and are listed as limitations. Outcome (fixed by the
-// protocol): pass iff every shielded arm verifies at FROM and TO and every
-// exposed arm verifies at FROM and fails at TO; fail if a shielded arm fails
-// at either version; otherwise inconclusive — a quiet exposed arm is never a
-// pass, and without an exposed arm the rule can be refuted but not
-// confirmed.
+// are not exercised in the role. A shielded alternative that contradicts the
+// role is exercised outside it instead (lane applicability, mission E2): an
+// outside-role arm is the alternative's object with the same consuming
+// objects, predicted to keep its consumers (as any shielded arm) or not to
+// form the relationship at all; a consumer that verifies at FROM and fails at
+// TO refutes the rule (the object plays the role after all, and is exposed),
+// anything else is recorded and never counts toward a pass on its own.
+// Exposed alternatives that contradict the role stay limitations. Outcome
+// (fixed by the protocol): pass iff every shielded arm verifies at FROM and
+// TO and every exposed arm verifies at FROM and fails at TO; fail if a
+// shielded arm fails at either version (or an outside-role arm breaks);
+// otherwise inconclusive — a quiet exposed arm is never a pass, and without
+// an exposed arm the rule can be refuted but not confirmed.
 
 // ConsumerExerciseProducer names the rule exercise when its consumer
 // observation decides it (component@vN; the produced-object observation
@@ -301,7 +308,20 @@ func BuildConsumerArms(rule domain.SemanticAssertion, fx *SubjectFixture, cf *Co
 				armName, objName = fmt.Sprintf("%s-%d", armName, n+1), fmt.Sprintf("%s-%d", objName, n+1)
 			}
 			text := describe(a, rule.Change.Before)
+			outside := false
 			obj, err := buildObject(fx, objName, append(append([]domain.Condition(nil), a...), role...), rule.Change.Before)
+			if err != nil && kind == "shielded" {
+				// exercised outside the role (see the comment above)
+				n := 0
+				for _, x := range arms {
+					if isOutsideRole(x.Name) {
+						n++
+					}
+				}
+				armName, objName = fmt.Sprintf("%s%s-%d", domain.ArmConditionPresent, outsideRoleSuffix, n+1), fmt.Sprintf("ri-arm-outside-%d", n+1)
+				obj, err = buildObject(fx, objName, a, rule.Change.Before)
+				outside = err == nil
+			}
 			if err != nil {
 				limitations = append(limitations, fmt.Sprintf("%s alternative %d (%s) is not exercised: it cannot hold in the consumer role (%s)", kind, j+1, text, roleText))
 				continue
@@ -318,7 +338,11 @@ func BuildConsumerArms(rule domain.SemanticAssertion, fx *SubjectFixture, cf *Co
 				}
 				cons = append(cons, c)
 			}
-			arms = append(arms, consumerArm{Arm: Arm{Name: armName, Object: obj, Condition: text + " (consumer role: " + roleText + ")", Predicted: predicted}, consumers: cons})
+			cond := text + " (consumer role: " + roleText + ")"
+			if outside {
+				cond = text + " (outside the consumer role " + roleText + ")"
+			}
+			arms = append(arms, consumerArm{Arm: Arm{Name: armName, Object: obj, Condition: cond, Predicted: predicted}, consumers: cons})
 		}
 	}
 	build("shielded", overlap, exposure, "exposure")
@@ -332,9 +356,14 @@ func BuildConsumerArms(rule domain.SemanticAssertion, fx *SubjectFixture, cf *Co
 	return arms, limitations, ""
 }
 
+// countOf counts the in-role arms of a base name (outside-role and
+// omitted-field arms are counted apart).
 func countOf(arms []consumerArm, base string) int {
 	n := 0
 	for _, a := range arms {
+		if isBoundary(a.Name) {
+			continue
+		}
 		if a.Name == base || strings.HasPrefix(a.Name, base+"-") {
 			n++
 		}
@@ -393,7 +422,7 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 		results[c.Check][c.Phase] = c
 	}
 	infra := false
-	var shieldedFail, undetermined, quiet, noBaseline []string
+	var shieldedFail, outsideFail, undetermined, quiet, noBaseline []string
 	exposed := 0
 	for _, p := range plans {
 		from, to := results[p.Name]["from"], results[p.Name]["to"]
@@ -418,6 +447,22 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 		}
 		sort.Strings(a.Signatures)
 		fo, too := outcomeOf(from), outcomeOf(to)
+		if isOutsideRole(p.Name) {
+			switch {
+			case fo == runtime.ConsumerVerified && too == runtime.ConsumerFailed:
+				a.Observed, a.Changed = domain.BehaviourNew, true
+				outsideFail = append(outsideFail, fmt.Sprintf("%s (FROM %s, TO %s)", p.Name, fo, too))
+			case fo == runtime.ConsumerVerified && too == runtime.ConsumerVerified:
+				a.Observed = domain.BehaviourPrevious
+			default:
+				a.Observed = domain.BehaviourUndetermined
+				a.Signatures = append(a.Signatures, "outside the role: no consumer relationship verified at FROM")
+			}
+			a.Signatures = append([]string{fmt.Sprintf("consumer: FROM %s, TO %s", fo, too)}, a.Signatures...)
+			m.Arms = append(m.Arms, a)
+			m.Checks = append(m.Checks, domain.ProofCheck{Subject: a.Name, Outcome: outsideArmOutcome(fo, too), Detail: consumerArmDetail(a, from, to)})
+			continue
+		}
 		switch {
 		case fo == runtime.ConsumerVerified && too == runtime.ConsumerVerified:
 			a.Observed = domain.BehaviourPrevious
@@ -451,6 +496,8 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the sandbox could not run an arm's objects (image pull)"
 	case len(shieldedFail) > 0:
 		m.Outcome, m.Detail = domain.MethodFail, summary+": with the mitigating condition the consumer does not verify ("+strings.Join(shieldedFail, "; ")+"): the condition does not shield its consumers"
+	case len(outsideFail) > 0:
+		m.Outcome, m.Detail = domain.MethodFail, summary+": an object the rule declares shielded outside the consumer role does play it, and its consumer breaks at TO ("+strings.Join(outsideFail, "; ")+"): the rule's shielding (or the default it states) is wrong"
 	case len(undetermined) > 0:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the consumer observation was not made on every arm at both versions ("+strings.Join(undetermined, ", ")+") — a quiet window proves nothing"
 	case exposed == 0:
@@ -488,6 +535,20 @@ func proofResult(r *runtime.ConsumerResult) *domain.ProofConsumerResult {
 	}
 	return &domain.ProofConsumerResult{Outcome: r.Outcome, Detail: r.Detail, TrustCertificates: r.TrustCertificates, TrustKeys: r.TrustKeys,
 		Certificate: r.Certificate, CertificateKey: r.CertificateKey}
+}
+
+// outsideArmOutcome is the check outcome of an outside-role arm: refuted when
+// its consumer verifies at FROM and fails at TO; a pass when it keeps
+// verifying; otherwise undetermined (no relationship formed), which never
+// decides the method.
+func outsideArmOutcome(from, to string) domain.MethodOutcome {
+	switch {
+	case from == runtime.ConsumerVerified && to == runtime.ConsumerFailed:
+		return domain.MethodFail
+	case from == runtime.ConsumerVerified && to == runtime.ConsumerVerified:
+		return domain.MethodPass
+	}
+	return domain.MethodInconclusive
 }
 
 func consumerArmOutcome(name, from, to string) domain.MethodOutcome {
