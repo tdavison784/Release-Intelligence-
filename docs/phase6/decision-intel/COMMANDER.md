@@ -54,3 +54,5 @@ handoffs (every item is `providers: [claude]`).
   w1:tY (guided.sh shell), w1:t1V (ri-eval5; its worktree p5ll-eval5 stays until PR #7 merges) and w1:tN (ri-guard and
   fleet_guard.py, which watched docs/phase5; Phase 6 has no GLM handoffs). Kept: the review UIs on :8484 (w1:tR) and
   :8485 (w1:t1J), pending the product owner.
+- 2026-10-26 (product owner: "close both review"): stopped the review UIs on :8484 and :8485 and closed tabs w1:tR
+  and w1:t1J.
