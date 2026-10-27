@@ -1990,7 +1990,55 @@ type Hypothesis struct {
 	// CONTRACT-CHANGE(verdict): additive (PROTOCOL §8).
 	Mitigation         *MitigationSpec `json:"mitigation,omitempty"`
 	MitigationRejected string          `json:"mitigationRejected,omitempty"`
-	Provenance         Provenance      `json:"provenance"` // method ai
+	// ProposedVerification is what the formalization stage (Milestone 4,
+	// internal/formalize) keeps from the assessment it formalized: how the
+	// claim should be verified, its intended conditions and the assessment's
+	// unresolved uncertainties, and for a claim the rule grammar cannot
+	// carry (MitigationRejected states the limitation) the rule as far as it
+	// can be written. Agent hypotheses leave it empty.
+	// CONTRACT-CHANGE(formalize): additive.
+	ProposedVerification *ProposedVerification `json:"proposedVerification,omitempty"`
+	Provenance           Provenance            `json:"provenance"` // method ai
+}
+
+// ProposedVerification is a formalized hypothesis' verification proposal
+// and what it keeps from its assessment (mission D3, D4).
+type ProposedVerification struct {
+	// Assessment is the agent assessment (aas-…) the hypothesis was
+	// formalized from.
+	Assessment string `json:"assessment"`
+	// Method is how the claim should be verified.
+	Method string `json:"method"`
+	// Conditions are the intended applicability conditions, in prose.
+	Conditions []string `json:"conditions,omitempty"`
+	// Uncertainties are the assessment's unresolved uncertainties (unknowns,
+	// unestablished behaviours, unknown or defaulted settings,
+	// preconditions), verbatim.
+	Uncertainties []string `json:"uncertainties,omitempty"`
+	// Rule is the partial rule of a claim the grammar cannot carry as a
+	// mitigation (for example one with an undecidable leaf); never set on a
+	// hypothesis with a stored Mitigation.
+	Rule *ProposedRule `json:"rule,omitempty"`
+}
+
+// Validate checks the proposal's shape.
+func (v ProposedVerification) Validate() error {
+	var errs []error
+	if !strings.HasPrefix(v.Assessment, AgentAssessmentIDPrefix) {
+		errs = append(errs, errors.New("proposed verification: assessment is required"))
+	}
+	if strings.TrimSpace(v.Method) == "" {
+		errs = append(errs, errors.New("proposed verification: method is required"))
+	}
+	if v.Rule != nil {
+		if err := v.Rule.Assertion.Validate(false); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: rule: %w", err))
+		}
+		if _, _, err := v.Rule.Release.Versions(); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: rule: %w", err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // AssertionStance is what an agent assertion does to a finding (DESIGN.md
@@ -2242,6 +2290,14 @@ func (h Hypothesis) Validate() error {
 		}
 		if h.MitigationRejected != "" {
 			errs = append(errs, fmt.Errorf("hypothesis %s: a mitigation is either stored or rejected", h.ID))
+		}
+	}
+	if v := h.ProposedVerification; v != nil {
+		if err := v.Validate(); err != nil {
+			errs = append(errs, fmt.Errorf("hypothesis %s: %w", h.ID, err))
+		}
+		if v.Rule != nil && h.Mitigation != nil {
+			errs = append(errs, fmt.Errorf("hypothesis %s: a partial rule is kept only when no mitigation is stored", h.ID))
 		}
 	}
 	return errors.Join(errs...)
