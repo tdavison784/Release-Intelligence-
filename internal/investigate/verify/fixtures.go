@@ -169,6 +169,9 @@ func (s *FixtureSet) validate() error {
 				bad("%s: %v", cw, e)
 			}
 			refs(cw, cf.References, true)
+			if cf.Outside != nil {
+				refs(cw+" outside", cf.Outside.References, true)
+			}
 		}
 	}
 	return errors.Join(errs...)
@@ -226,6 +229,9 @@ type Arm struct {
 	Object    map[string]any
 	Condition string // how the object was built (plain text)
 	Predicted string // domain.BehaviourPrevious / BehaviourNew
+	// NonDiscriminating says why the arm cannot contrast FROM with TO
+	// (discriminate.go); "" when it can.
+	NonDiscriminating string
 }
 
 // Arm object names (DNS labels, fixed so fixture ids are reproducible).

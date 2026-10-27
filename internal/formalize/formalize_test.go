@@ -161,11 +161,20 @@ func TestUnrepresentableClaimIsKept(t *testing.T) {
 	}
 }
 
+// Both prompts replay: formalize/v1 (frozen: it was run) under its own
+// producer, and the default formalize/v2.
 func TestCallThroughExchangeReplaysIdentically(t *testing.T) {
+	for _, version := range []string{"formalize/v1", PromptVersion} {
+		t.Run(version, func(t *testing.T) { replaysIdentically(t, version) })
+	}
+}
+
+func replaysIdentically(t *testing.T, version string) {
 	f := newFixture()
 	p := precompute(t, f.input())
 	xdir, cdir := t.TempDir(), t.TempDir()
-	fz := &Formalizer{Client: &llm.Cache{Dir: cdir, Inner: &llm.Exchange{Dir: xdir}}}
+	fz := &Formalizer{Client: &llm.Cache{Dir: cdir, Inner: &llm.Exchange{Dir: xdir}}, Prompt: version}
+	Producer := ProducerFor(version)
 	if _, err := fz.Formalize(context.Background(), f.input()); !errors.Is(err, llm.ErrPending) {
 		t.Fatalf("first call = %v, want pending", err)
 	}
@@ -192,7 +201,7 @@ func TestCallThroughExchangeReplaysIdentically(t *testing.T) {
 		t.Fatal(err)
 	}
 	pv := r.Provenance
-	if r.Status != StatusComplete || pv.Model != DefaultModel || pv.ModelVersion == "" || pv.PromptVersion != PromptVersion ||
+	if r.Status != StatusComplete || pv.Model != DefaultModel || pv.ModelVersion == "" || pv.PromptVersion != version ||
 		!strings.HasPrefix(pv.PromptDigest, "sha256:") || len(pv.InputEvidence) == 0 || pv.GeneratedAt == nil || pv.CallID != "session-1" ||
 		pv.Provider != "anthropic" || pv.Producer != Producer || r.StatementKind != domain.StatementUnverifiedProse || r.Input != p.Digest() {
 		t.Errorf("provenance incomplete: %+v", pv)
@@ -203,7 +212,7 @@ func TestCallThroughExchangeReplaysIdentically(t *testing.T) {
 		}
 	}
 	// replay offline: no exchange, the cache answers
-	r2, err := (&Formalizer{Client: &llm.Cache{Dir: cdir}}).Formalize(context.Background(), f.input())
+	r2, err := (&Formalizer{Client: &llm.Cache{Dir: cdir}, Prompt: version}).Formalize(context.Background(), f.input())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -319,22 +328,34 @@ func TestStoreRoundTrip(t *testing.T) {
 	}
 }
 
+// formalizeV1Digest pins formalize/v1: it was run on a development case, so
+// it is frozen (lane verify2); changes go into a new version.
+const formalizeV1Digest = "sha256:d72c95b3b32fdfc7d513a428ade2de0c3591954de168feba587bcf891220b847"
+
 func TestPromptIsGenericAndVersioned(t *testing.T) {
-	pr, err := LoadPrompt(PromptVersion)
-	if err != nil {
-		t.Fatal(err)
+	if PromptVersion != "formalize/v2" {
+		t.Errorf("default prompt %s", PromptVersion)
 	}
-	if pr.Version != "formalize/v1" || !strings.HasPrefix(pr.Digest(), "sha256:") {
-		t.Errorf("prompt %s digest %s", pr.Version, pr.Digest())
-	}
-	text := strings.ToLower(pr.System + pr.Task + string(pr.Schema))
-	for _, banned := range []string{"cert-manager", "ingress-nginx", "isca", "ca.crt", "ledger", "payments", "docs-eu", "strict-path", "pathtype", "privatekey", "rotationpolicy"} {
-		if strings.Contains(text, banned) {
-			t.Errorf("the prompt names %q", banned)
+	for _, version := range []string{"formalize/v1", "formalize/v2"} {
+		pr, err := LoadPrompt(version)
+		if err != nil {
+			t.Fatal(err)
 		}
-	}
-	if regexp.MustCompile(`\bv?\d+\.\d+\.\d+\b`).MatchString(text) {
-		t.Error("the prompt names a version")
+		if pr.Version != version || !strings.HasPrefix(pr.Digest(), "sha256:") {
+			t.Errorf("prompt %s digest %s", pr.Version, pr.Digest())
+		}
+		if version == "formalize/v1" && pr.Digest() != formalizeV1Digest {
+			t.Errorf("formalize/v1 changed (%s): it is frozen, write a new version", pr.Digest())
+		}
+		text := strings.ToLower(pr.System + pr.Task + string(pr.Schema))
+		for _, banned := range []string{"cert-manager", "ingress-nginx", "isca", "ca.crt", "ledger", "payments", "docs-eu", "strict-path", "pathtype", "privatekey", "rotationpolicy", "issuer", "certificate"} {
+			if strings.Contains(text, banned) {
+				t.Errorf("%s names %q", version, banned)
+			}
+		}
+		if regexp.MustCompile(`\bv?\d+\.\d+\.\d+\b`).MatchString(text) {
+			t.Errorf("%s names a version", version)
+		}
 	}
 	if _, err := LoadPrompt("formalize/v0"); err == nil {
 		t.Error("an unknown prompt loads")

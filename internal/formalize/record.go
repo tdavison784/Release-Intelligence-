@@ -45,8 +45,12 @@ type Record struct {
 	Hypotheses         []domain.Hypothesis `json:"hypotheses,omitempty"`
 	NoHypothesisReason string              `json:"noHypothesisReason,omitempty"`
 	Failure            *Failure            `json:"failure,omitempty"`
-	StatementKind      string              `json:"statementKind"` // domain.StatementUnverifiedProse
-	Provenance         domain.Provenance   `json:"provenance"`    // method ai
+	// RefinementNotes say why a rule hypothesis got no scope-refinement
+	// candidate for a consumer role of its subject kind (refine.go;
+	// formalize/v2 on). CONTRACT-CHANGE(verify2): additive.
+	RefinementNotes []string          `json:"refinementNotes,omitempty"`
+	StatementKind   string            `json:"statementKind"` // domain.StatementUnverifiedProse
+	Provenance      domain.Provenance `json:"provenance"`    // method ai
 }
 
 // Failure records a formalization no answer of which passed the floor.
@@ -80,8 +84,9 @@ func (r Record) Validate() error {
 	if r.StatementKind != domain.StatementUnverifiedProse {
 		bad("statementKind must be %s", domain.StatementUnverifiedProse)
 	}
-	if r.Provenance.Method != domain.MethodAI || r.Provenance.Producer != Producer {
-		bad("provenance is ai, producer %s", Producer)
+	producer := ProducerFor(r.Provenance.PromptVersion)
+	if r.Provenance.Method != domain.MethodAI || r.Provenance.Producer != producer {
+		bad("provenance is ai, producer %s", producer)
 	}
 	if err := r.Provenance.Validate(); err != nil {
 		bad("provenance: %v", err)
@@ -131,8 +136,25 @@ func (r Record) Validate() error {
 		if h.Mitigation == nil && h.MitigationRejected == "" {
 			bad("hypothesis %s carries neither a mitigation nor the limitation that kept it out of the grammar", h.ID)
 		}
-		if h.Provenance.Producer != Producer || h.Provenance.CallID != r.Provenance.CallID {
+		call := r.Provenance.CallID
+		if v := h.ProposedVerification; v != nil && v.Refinement != nil {
+			call = RefinementCallID(call, v.Refinement.Consumer)
+		}
+		if h.Provenance.Producer != producer || h.Provenance.CallID != call {
 			bad("hypothesis %s is not of this formalization's call", h.ID)
+		}
+	}
+	// a refinement refines a rule hypothesis of the same record
+	for _, h := range r.Hypotheses {
+		if v := h.ProposedVerification; v != nil && v.Refinement != nil {
+			ok := false
+			for _, b := range r.Hypotheses {
+				ok = ok || (b.ID == v.Refinement.Refines && b.Mitigation != nil && b.Mitigation.ProposedRule.Assertion.Digest() == v.Refinement.BaseRule &&
+					(b.ProposedVerification == nil || b.ProposedVerification.Refinement == nil))
+			}
+			if !ok {
+				bad("refinement %s does not refine a rule hypothesis of this record (with its rule digest)", h.ID)
+			}
 		}
 	}
 	return errors.Join(errs...)

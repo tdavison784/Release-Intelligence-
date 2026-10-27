@@ -48,8 +48,9 @@ import (
 
 // ConsumerExerciseProducer names the rule exercise when its consumer
 // observation decides it (component@vN; the produced-object observation
-// stays ExerciseProducer).
-const ConsumerExerciseProducer = "verify.exercise-consumer@v1"
+// stays ExerciseProducer). v2 (lane verify2, D-0025): non-discriminating
+// exposed arms never decide; the role-absent observation; scope refinements.
+const ConsumerExerciseProducer = "verify.exercise-consumer@v2"
 
 // ConsumerFixture is one declared consumer observation of a subject kind.
 type ConsumerFixture struct {
@@ -65,6 +66,28 @@ type ConsumerFixture struct {
 	Verify SecretRef `yaml:"verify" json:"verify"`
 	// Reissue are names of objects of the subject kind (the arm's subject
 	// object or a consuming object), re-issued in this order.
+	Reissue    []string                  `yaml:"reissue" json:"reissue"`
+	References []catalog.ConfigReference `yaml:"references" json:"references"`
+	// Outside is the role-absent observation (optional; lane verify2,
+	// D-0025): how a consumer uses the key material of a subject that does
+	// not play the role. Without it an outside-role arm keeps the role's
+	// consuming objects (whose relationship may then not form at all).
+	Outside *OutsideRole `yaml:"outside,omitempty" json:"outside,omitempty"`
+}
+
+// OutsideRole is a consumer observation of a subject outside the role: the
+// role fields such a subject holds (Role, the same fields with other values;
+// a scope refinement's outside condition, refinement.go), fields set on the
+// arm's subject for the observation (Subject, e.g. a reference to an issuer
+// the Objects declare), the consuming objects, and the trust captured before
+// re-issuance, the objects re-issued and the certificate verified after it.
+type OutsideRole struct {
+	Summary    string                    `yaml:"summary,omitempty" json:"summary,omitempty"`
+	Role       []FieldValue              `yaml:"role" json:"role"`
+	Subject    []FieldValue              `yaml:"subject,omitempty" json:"subject,omitempty"`
+	Objects    []map[string]any          `yaml:"objects,omitempty" json:"objects,omitempty"`
+	Trust      SecretRef                 `yaml:"trust" json:"trust"`
+	Verify     SecretRef                 `yaml:"verify" json:"verify"`
 	Reissue    []string                  `yaml:"reissue" json:"reissue"`
 	References []catalog.ConfigReference `yaml:"references" json:"references"`
 }
@@ -120,6 +143,49 @@ func (cf ConsumerFixture) validate(x SubjectFixture) []error {
 		if s.Secret == "" || s.Key == "" {
 			bad("trust and verify need a secret and a key")
 		}
+	}
+	if o := cf.Outside; o != nil {
+		for _, e := range o.validate(cf, x) {
+			bad("outside: %v", e)
+		}
+	}
+	return errs
+}
+
+func (o OutsideRole) validate(cf ConsumerFixture, x SubjectFixture) []error {
+	var errs []error
+	bad := func(format string, args ...any) { errs = append(errs, fmt.Errorf(format, args...)) }
+	role := map[string]any{}
+	for _, r := range cf.Role {
+		role[r.Path] = r.Value
+	}
+	if len(o.Role) == 0 {
+		bad("role: the fields a subject outside the role holds are required")
+	}
+	for _, r := range o.Role {
+		v, ok := role[r.Path]
+		switch {
+		case !ok:
+			bad("role field %q is not a field of the role", r.Path)
+		case r.Value == nil || encode(r.Value) == encode(v):
+			bad("role field %q needs a value other than the role's", r.Path)
+		}
+	}
+	for _, f := range o.Subject {
+		if _, err := catalog.SplitFieldPath(f.Path); err != nil || strings.Contains(f.Path, "[]") || f.Value == nil {
+			bad("subject field %q needs a non-list path and a value", f.Path)
+		}
+		if _, ok := role[f.Path]; ok {
+			bad("subject field %q is a role field (the arm's condition sets it)", f.Path)
+		}
+	}
+	shadow := cf
+	shadow.Objects, shadow.Reissue, shadow.Trust, shadow.Verify, shadow.Outside = o.Objects, o.Reissue, o.Trust, o.Verify, nil
+	for _, e := range shadow.validate(x) {
+		bad("%v", e)
+	}
+	if len(o.References) == 0 {
+		bad("at least one upstream reference is required")
 	}
 	return errs
 }
@@ -326,18 +392,17 @@ func BuildConsumerArms(rule domain.SemanticAssertion, fx *SubjectFixture, cf *Co
 				limitations = append(limitations, fmt.Sprintf("%s alternative %d (%s) is not exercised: it cannot hold in the consumer role (%s)", kind, j+1, text, roleText))
 				continue
 			}
+			if outside {
+				if err := cf.placeOutside(obj, objName, a); err != nil {
+					limitations = append(limitations, fmt.Sprintf("%s alternative %d (%s) is not exercised outside the role: %v", kind, j+1, text, err))
+					continue
+				}
+			}
 			if ok, known := holdsAny(other, obj); !known || ok {
 				limitations = append(limitations, fmt.Sprintf("%s alternative %d (%s) is not exercised: in the consumer role it also meets the %s condition", kind, j+1, text, otherName))
 				continue
 			}
-			var cons []map[string]any
-			for _, o := range cf.Objects {
-				c := substitute(deepCopy(o), objName).(map[string]any)
-				if meta, _ := c["metadata"].(map[string]any); meta != nil && meta["namespace"] == nil {
-					meta["namespace"] = fx.Namespace
-				}
-				cons = append(cons, c)
-			}
+			cons := cf.consumersFor(fx, objName, outside)
 			cond := text + " (consumer role: " + roleText + ")"
 			if outside {
 				cond = text + " (outside the consumer role " + roleText + ")"
@@ -376,7 +441,47 @@ func shielded(name string) bool {
 	return name == domain.ArmConditionPresent || strings.HasPrefix(name, domain.ArmConditionPresent+"-")
 }
 
-// consumerCheckOf is the runtime check of one arm.
+// consumersFor are the consuming objects of an arm whose subject object is
+// objName: the role's, or — for an outside-role arm when the catalog
+// declares a role-absent observation — that observation's.
+func (cf *ConsumerFixture) consumersFor(fx *SubjectFixture, objName string, outside bool) []map[string]any {
+	objs := cf.Objects
+	if outside && cf.Outside != nil {
+		objs = cf.Outside.Objects
+	}
+	var out []map[string]any
+	for _, o := range objs {
+		c := substitute(deepCopy(o), objName).(map[string]any)
+		if meta, _ := c["metadata"].(map[string]any); meta != nil && meta["namespace"] == nil {
+			meta["namespace"] = fx.Namespace
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
+// placeOutside sets the role-absent observation's subject fields on an
+// outside-role arm's object (nothing without one); the arm's condition
+// leaves must still hold.
+func (cf *ConsumerFixture) placeOutside(obj map[string]any, objName string, leaves []domain.Condition) error {
+	if cf.Outside == nil {
+		return nil
+	}
+	for _, f := range cf.Outside.Subject {
+		keys, err := catalog.SplitFieldPath(f.Path)
+		if err != nil {
+			return err
+		}
+		setPath(obj, keys, substitute(deepCopy(f.Value), objName))
+	}
+	if ok, known := holds(leaves, obj); !known || !ok {
+		return fmt.Errorf("the role-absent observation's subject fields contradict %s", describe(leaves, nil))
+	}
+	return nil
+}
+
+// consumerCheckOf is the runtime check of one arm: the role's consumer, or
+// for an outside-role arm the role-absent observation's when declared.
 func consumerCheckOf(a consumerArm, cf *ConsumerFixture, fx *SubjectFixture, exercise string) runtime.ConsumerCheck {
 	name := a.Object["metadata"].(map[string]any)["name"].(string)
 	secret := func(s SecretRef) runtime.SecretKey {
@@ -386,16 +491,23 @@ func consumerCheckOf(a consumerArm, cf *ConsumerFixture, fx *SubjectFixture, exe
 	if g == "" {
 		g = "core"
 	}
-	c := runtime.ConsumerCheck{ID: a.Name, Exercise: exercise, Trust: secret(cf.Trust), Verify: secret(cf.Verify)}
-	for _, n := range cf.Reissue {
+	trust, verify, reissue := cf.Trust, cf.Verify, cf.Reissue
+	if o := cf.Outside; o != nil && isOutsideRole(a.Name) {
+		trust, verify, reissue = o.Trust, o.Verify, o.Reissue
+	}
+	c := runtime.ConsumerCheck{ID: a.Name, Exercise: exercise, Trust: secret(trust), Verify: secret(verify)}
+	for _, n := range reissue {
 		c.Reissue = append(c.Reissue, g+"/"+fx.Target.Version+"/"+fx.Target.Kind+"/"+fx.Namespace+"/"+strings.ReplaceAll(n, NamePlaceholder, name))
 	}
 	return c
 }
 
 // EvaluateConsumerArms decides a consumer observation from a fixture run
-// (the outcome rule in the package comment above).
-func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.ProofMethod {
+// (the outcome rule in the package comment above). A non-discriminating
+// exposed arm (discriminate.go) is recorded and never decides. For a scope
+// refinement (refinement.go) a pass also needs a role-absent arm observed
+// without consumer harm.
+func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan, refinement *domain.ScopeRefinement) domain.ProofMethod {
 	m := domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ConsumerExerciseProducer, Level: domain.LevelObserved}
 	r := res.Run
 	summary := fmt.Sprintf("fixture %s %s → %s in %s (%s, %.0fs), consumer observation", r.Product, r.From, r.To, r.Cluster, r.Status, r.DurationSeconds)
@@ -422,12 +534,12 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 		results[c.Check][c.Phase] = c
 	}
 	infra := false
-	var shieldedFail, outsideFail, undetermined, quiet, noBaseline []string
-	exposed := 0
+	var shieldedFail, outsideFail, undetermined, quiet, noBaseline, nonDisc, roleAbsentOpen []string
+	exposed, roleAbsentKept := 0, 0
 	for _, p := range plans {
 		from, to := results[p.Name]["from"], results[p.Name]["to"]
 		a := domain.ProofArm{Name: p.Name, Objects: p.objects, Condition: p.Condition, Predicted: p.Predicted,
-			ReactedFrom: answered(from, p.consumer), ReactedTo: answered(to, p.consumer),
+			ReactedFrom: answered(from, p.consumer), ReactedTo: answered(to, p.consumer), NonDiscriminating: p.NonDiscriminating,
 			Consumer: &domain.ProofConsumer{Check: p.consumer.ID, Trust: p.consumer.Trust.Secret + "[" + p.consumer.Trust.Key + "]",
 				Reissue: p.consumer.Reissue, Verified: p.consumer.Verify.Secret + "[" + p.consumer.Verify.Key + "]",
 				From: proofResult(from), To: proofResult(to)}}
@@ -454,9 +566,13 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 				outsideFail = append(outsideFail, fmt.Sprintf("%s (FROM %s, TO %s)", p.Name, fo, too))
 			case fo == runtime.ConsumerVerified && too == runtime.ConsumerVerified:
 				a.Observed = domain.BehaviourPrevious
+				if p.Predicted == domain.BehaviourPrevious {
+					roleAbsentKept++
+				}
 			default:
 				a.Observed = domain.BehaviourUndetermined
 				a.Signatures = append(a.Signatures, "outside the role: no consumer relationship verified at FROM")
+				roleAbsentOpen = append(roleAbsentOpen, fmt.Sprintf("%s (FROM %s, TO %s)", p.Name, fo, too))
 			}
 			a.Signatures = append([]string{fmt.Sprintf("consumer: FROM %s, TO %s", fo, too)}, a.Signatures...)
 			m.Arms = append(m.Arms, a)
@@ -472,6 +588,14 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 			a.Observed = domain.BehaviourUndetermined
 		}
 		a.Signatures = append([]string{fmt.Sprintf("consumer: FROM %s, TO %s", fo, too)}, a.Signatures...)
+		if p.NonDiscriminating != "" {
+			// recorded, never decisive (discriminate.go)
+			nonDisc = append(nonDisc, p.Name+" ("+p.NonDiscriminating+")")
+			m.Arms = append(m.Arms, a)
+			m.Checks = append(m.Checks, domain.ProofCheck{Subject: a.Name, Outcome: domain.MethodInconclusive,
+				Detail: consumerArmDetail(a, from, to) + "; non-discriminating, not decisive: " + p.NonDiscriminating})
+			continue
+		}
 		if shielded(p.Name) {
 			if fo == runtime.ConsumerFailed || too == runtime.ConsumerFailed {
 				shieldedFail = append(shieldedFail, fmt.Sprintf("%s (FROM %s, TO %s)", p.Name, fo, too))
@@ -500,14 +624,28 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan) domain.Pr
 		m.Outcome, m.Detail = domain.MethodFail, summary+": an object the rule declares shielded outside the consumer role does play it, and its consumer breaks at TO ("+strings.Join(outsideFail, "; ")+"): the rule's shielding (or the default it states) is wrong"
 	case len(undetermined) > 0:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the consumer observation was not made on every arm at both versions ("+strings.Join(undetermined, ", ")+") — a quiet window proves nothing"
+	case exposed == 0 && len(nonDisc) > 0:
+		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": every shielded arm's consumer verified, but the only exposed arms cannot discriminate FROM from TO: the change was not shown, so neither is the mitigation"
 	case exposed == 0:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": every shielded arm's consumer verified, but no exposed arm could be built: the rule is not refuted, and not confirmed"
 	case len(noBaseline) > 0:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the exposed arm's consumer does not verify even at FROM ("+strings.Join(noBaseline, ", ")+"): there is no baseline"
 	case len(quiet) > 0:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": without the condition the consumer still verifies at TO ("+strings.Join(quiet, ", ")+"): the change was not demonstrated, so neither is the mitigation"
+	case refinement != nil && roleAbsentKept == 0:
+		why := "no role-absent arm was built"
+		if len(roleAbsentOpen) > 0 {
+			why = "no consumer relationship was verified on the role-absent arms (" + strings.Join(roleAbsentOpen, "; ") + ")"
+		}
+		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": in the role the consumer verifies with the condition and breaks without it, but the scope refinement (role "+refinement.Consumer+") is established only by a role-absent arm observed without consumer harm: "+why
 	default:
 		m.Outcome, m.Detail = domain.MethodPass, summary+": with the condition the consumer verifies at FROM and TO; without it, it verifies at FROM and fails at TO"
+		if refinement != nil {
+			m.Detail += fmt.Sprintf("; outside the role (%s) the consumer verifies at FROM and TO on %d arm(s): the harm is confined to the role", refinement.Consumer, roleAbsentKept)
+		}
+	}
+	if len(nonDisc) > 0 {
+		m.Detail += "; recorded, not decisive (non-discriminating): " + strings.Join(nonDisc, "; ")
 	}
 	if m.Outcome == domain.MethodPass && len(m.Evidence) == 0 {
 		m.Outcome, m.Detail = domain.MethodInconclusive, m.Detail+"; but no observation artifacts were stored, so the result cannot be audited"

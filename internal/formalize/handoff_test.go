@@ -19,9 +19,10 @@ import (
 // whole-fact review item proposing exactly its assertion; the
 // unrepresentable record is skipped with its limitation; nothing becomes a
 // fact, and the stored run record is not changed.
-func TestFormalizedHypothesesFeedExportUnchanged(t *testing.T) {
-	ctx := context.Background()
-	f := newFixture()
+// handoffWorld stores the fixture's artifacts and upgrade edge and the
+// knowledge candidate of the item's upstream change.
+func handoffWorld(t *testing.T, ctx context.Context, f fixture) (*store.Store, knowledge.Store) {
+	t.Helper()
 	st, err := store.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -63,6 +64,13 @@ func TestFormalizedHypothesesFeedExportUnchanged(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	return st, ks
+}
+
+func TestFormalizedHypothesesFeedExportUnchanged(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture()
+	st, ks := handoffWorld(t, ctx, f)
 	before, _ := json.Marshal(f.Inv)
 	p := precompute(t, Input{Investigation: f.Inv, Bundle: f.Bundle, Assessment: aas1, Read: agent.StoreReader(st)})
 	in := Input{Investigation: f.Inv, Bundle: f.Bundle, Assessment: aas1, Read: agent.StoreReader(st)}
@@ -109,10 +117,57 @@ func TestFormalizedHypothesesFeedExportUnchanged(t *testing.T) {
 		t.Errorf("review item = %+v", it)
 	}
 	hyp, run, ok := domain.ParseHypothesisRule(snap.Proposals[0].Provenance.Rule)
-	if !ok || hyp != rule.ID || run != f.Inv.ID || snap.Proposals[0].Provenance.Producer != Producer {
+	if !ok || hyp != rule.ID || run != f.Inv.ID || snap.Proposals[0].Provenance.Producer != ProducerV2 {
 		t.Errorf("proposal provenance = %+v", snap.Proposals[0].Provenance)
 	}
 	if after, _ := json.Marshal(f.Inv); string(after) != string(before) {
 		t.Error("the run record changed")
+	}
+}
+
+// A scope-refinement candidate is exported like any rule: its own proposal
+// and whole-fact review item proposing exactly the refined rule (another
+// digest than the behaviour rule's), never a fact.
+func TestRefinementCandidateIsExported(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture()
+	st, ks := handoffWorld(t, ctx, f)
+	gref, err := st.Put(ctx, investigate.ArtifactSpec{Kind: domain.ArtifactGraph, Path: "derived/agent/consumers/to/rg-000000000001.json", Origin: domain.OriginDerived,
+		MediaType: "application/json", URI: "ri:" + agent.ConsumerGraphProducer, Producer: agent.ConsumerGraphProducer}, []byte(consumerGraph("ca.crt", domain.EdgeEstablished)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Inv.Artifacts = append(f.Inv.Artifacts, gref)
+	in := Input{Investigation: f.Inv, Bundle: f.Bundle, Assessment: aas1, Read: agent.StoreReader(st), Roles: []ConsumerRole{signerRole}}
+	r, err := (&Formalizer{Client: &scripted{texts: []string{answerJSON(t, validAnswer(precompute(t, in)))}}}).Formalize(ctx, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, refined := refinementsOf(r)
+	if len(refined) != 1 {
+		t.Fatalf("refined %+v notes %v", r.Hypotheses, r.RefinementNotes)
+	}
+	view := *f.Inv
+	view.Hypotheses = Hypotheses([]Record{*r})
+	res, err := agent.ExportHypotheses(ctx, &view, f.Bundle, st, ks, fixedNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	exported := map[string]bool{}
+	for _, x := range res {
+		if x.Status == agent.ExportExported {
+			exported[x.Hypothesis] = true
+		}
+	}
+	snap, _ := ks.Load(ctx, knowledge.Query{})
+	if !exported[refined[0].ID] || len(exported) != 2 || len(snap.ReviewItems) != 2 || len(snap.Facts) != 0 {
+		t.Fatalf("export %+v; %d review items, %d facts", res, len(snap.ReviewItems), len(snap.Facts))
+	}
+	found := false
+	for _, it := range snap.ReviewItems {
+		found = found || it.Proposed.Digest() == refined[0].Mitigation.ProposedRule.Assertion.Digest()
+	}
+	if !found {
+		t.Error("no review item proposes the refined rule")
 	}
 }

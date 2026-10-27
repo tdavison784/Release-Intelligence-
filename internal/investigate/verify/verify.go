@@ -25,6 +25,9 @@ type Mitigation struct {
 	Rule     *domain.SemanticAssertion
 	Bounds   *domain.ProofBounds
 	Rejected string // why the agent's spec was not stored ("" when it was)
+	// Refinement is set when the hypothesis is a scope-refinement candidate
+	// (its ProposedVerification.Refinement; lane verify2).
+	Refinement *domain.ScopeRefinement
 }
 
 // RunSource reads a hypothesis' mitigation from its investigation record.
@@ -66,14 +69,23 @@ func (r StateRuns) Mitigation(ctx context.Context, inv, hyp string) (*Mitigation
 		if h.ID != hyp {
 			continue
 		}
-		m := h.Mitigation
-		if m == nil {
-			return &Mitigation{Rejected: h.MitigationRejected}, nil
-		}
-		rule := m.ProposedRule.Assertion
-		return &Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}, nil
+		return MitigationOf(h), nil
 	}
 	return nil, fmt.Errorf("verify: run %s has no hypothesis %s", inv, hyp)
+}
+
+// MitigationOf is what a hypothesis states about its proposed rule.
+func MitigationOf(h domain.Hypothesis) *Mitigation {
+	m := h.Mitigation
+	if m == nil {
+		return &Mitigation{Rejected: h.MitigationRejected}
+	}
+	rule := m.ProposedRule.Assertion
+	out := &Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}
+	if v := h.ProposedVerification; v != nil {
+		out.Refinement = v.Refinement
+	}
+	return out
 }
 
 // Options configure a verification pass.
@@ -205,6 +217,7 @@ func decisive(snap *knowledge.Snapshot, it domain.ReviewItem) *domain.ProofRecor
 func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c domain.SemanticCandidate, it domain.ReviewItem, hyp, inv string) (*domain.ProofRecord, string) {
 	rule := it.Proposed
 	var bounds *domain.ProofBounds
+	var refinement *domain.ScopeRefinement
 	var limitations []string
 	switch {
 	case inv == "":
@@ -225,8 +238,12 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		case m.Rule.Digest() != rule.Digest():
 			return nil, fmt.Sprintf("item %s proposes another rule than hypothesis %s's mitigation spec (digest %s vs %s)", it.ID, hyp, rule.Digest(), m.Rule.Digest())
 		default:
-			bounds = m.Bounds
+			bounds, refinement = m.Bounds, m.Refinement
 		}
+	}
+	if r := refinement; r != nil {
+		limitations = append(limitations, fmt.Sprintf("a scope refinement of rule %s (hypothesis %s) to consumer role %s, proposed from %d reads-file edge(s) of the investigation's consumer trace: it holds only for consumers that use the key material as the role's consumer exercise does (they read %s); a consumer that uses it otherwise (for example pins a leaf) is not covered",
+			r.BaseRule, r.Refines, r.Consumer, len(r.Trace), r.TrustKey))
 	}
 	// the upstream citations of the hypothesis proposals of this rule
 	evByID := map[domain.EvidenceID]domain.Evidence{}
@@ -273,7 +290,7 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		var notes []string
 		ex, notes = ExerciseRule(ctx, ExerciseInput{Product: string(it.Product), Rule: rule, Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)],
 			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner,
-			Evidence: evs})
+			Evidence: evs, Refinement: refinement})
 		limitations = append(limitations, notes...)
 	} else {
 		ex = domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ExerciseProducer, Level: domain.LevelObserved, Outcome: domain.MethodNotRun,

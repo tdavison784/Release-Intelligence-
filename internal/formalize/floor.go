@@ -23,6 +23,15 @@ const (
 type Answer struct {
 	Hypotheses         []AnswerHypothesis `json:"hypotheses"`
 	NoHypothesisReason string             `json:"noHypothesisReason"`
+	// RoleDefaults (formalize/v2) are what unset consumer-role fields mean,
+	// each established by citable upstream evidence (refine.go).
+	RoleDefaults []AnswerRoleDefault `json:"roleDefaults,omitempty"`
+}
+
+// AnswerRoleDefault is the evidenced default of one consumer-role field.
+type AnswerRoleDefault struct {
+	Path    string              `json:"path"`
+	Default domain.FieldDefault `json:"default"`
 }
 
 // AnswerHypothesis is one hypothesis of the answer.
@@ -87,21 +96,28 @@ func Floor(ctx context.Context, p *Precomputed, a *Answer) []string {
 	return v
 }
 
-func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string) {
+// floorOut is what the floor accepted: the hypotheses and the evidenced
+// role-field defaults (by path).
+type floorOut struct {
+	hyps         []checked
+	roleDefaults map[string]domain.FieldDefault
+}
+
+func floor(ctx context.Context, p *Precomputed, a *Answer) (floorOut, []string) {
 	var violations []string
 	bad := func(format string, args ...any) { violations = append(violations, fmt.Sprintf(format, args...)) }
+	out := floorOut{roleDefaults: p.roleDefaults(a.RoleDefaults, bad)}
 	if len(a.Hypotheses) == 0 {
 		if strings.TrimSpace(a.NoHypothesisReason) == "" {
 			bad("no hypothesis and no noHypothesisReason: say why the assessment states no testable claim")
 		}
-		return nil, violations
+		return out, violations
 	}
 	if strings.TrimSpace(a.NoHypothesisReason) != "" {
 		bad("noHypothesisReason is only for an answer without hypotheses")
 	}
 	kept, discharged := map[string]bool{}, map[string]bool{}
 	claims := map[string]int{}
-	var out []checked
 	for i, h := range a.Hypotheses {
 		at := func(format string, args ...any) { bad("hypotheses[%d]: %s", i, fmt.Sprintf(format, args...)) }
 		c := checked{h: h}
@@ -127,6 +143,9 @@ func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string)
 			r := *h.Rule
 			r.Assertion = keepLeaves(p, r.Assertion, &c.kept)
 			c.rule = &r
+			if why := p.roleNarrowing(r.Assertion); why != "" {
+				at("%s", why)
+			}
 			for _, why := range unevidencedDefaults(r.Assertion) {
 				at("%s", why)
 			}
@@ -192,7 +211,7 @@ func floor(ctx context.Context, p *Precomputed, a *Answer) ([]checked, []string)
 		for _, id := range c.discharged {
 			discharged[id] = true
 		}
-		out = append(out, c)
+		out.hyps = append(out.hyps, c)
 	}
 	for _, u := range p.Uncertainties {
 		if !kept[u.ID] && !discharged[u.ID] {
@@ -332,13 +351,24 @@ func ruleDefaults(a domain.SemanticAssertion) []domain.FieldDefault {
 // default as the evaluators read it (domain.FieldDefault.Unevidenced over the
 // citable evidence). It returns the cited evidence and the violations.
 func (p *Precomputed) defaults(a domain.SemanticAssertion) ([]domain.Evidence, []string) {
+	var cites []domain.Evidence
+	var out []string
+	for _, d := range ruleDefaults(a) {
+		c, why := p.checkDefault(d)
+		cites, out = append(cites, c...), append(out, why...)
+	}
+	return cites, uniqStrings(out)
+}
+
+// checkDefault checks one stated default (see defaults).
+func (p *Precomputed) checkDefault(d domain.FieldDefault) ([]domain.Evidence, []string) {
 	citable := map[domain.EvidenceID]domain.Evidence{}
 	for id := range p.allowed {
 		citable[id] = p.pool[id]
 	}
 	var cites []domain.Evidence
 	var out []string
-	for _, d := range ruleDefaults(a) {
+	{
 		for _, id := range d.Citations {
 			e, ok := citable[id]
 			switch {
@@ -354,7 +384,73 @@ func (p *Precomputed) defaults(a domain.SemanticAssertion) ([]domain.Evidence, [
 			out = append(out, fmt.Sprintf("the default %s is not established: %s", d.Value, why))
 		}
 	}
-	return cites, uniqStrings(out)
+	return cites, out
+}
+
+// roleDefaults checks the answer's role-field defaults (formalize/v2): each
+// names a field of a consumer role the input offered, once, and is a default
+// established by upstream evidence the assessment holds (checkDefault). It
+// returns the accepted ones by path.
+func (p *Precomputed) roleDefaults(rds []AnswerRoleDefault, bad func(format string, args ...any)) map[string]domain.FieldDefault {
+	out := map[string]domain.FieldDefault{}
+	paths := map[string]bool{}
+	for _, r := range p.ConsumerRoles {
+		for k := range r.paths() {
+			paths[k] = true
+		}
+	}
+	for i, rd := range rds {
+		at := func(format string, args ...any) { bad("roleDefaults[%d]: %s", i, fmt.Sprintf(format, args...)) }
+		switch {
+		case len(p.ConsumerRoles) == 0:
+			at("no consumer role was offered: leave roleDefaults empty")
+			continue
+		case !paths[rd.Path]:
+			at("%q is not a field of a consumer role in `consumerRoles`", rd.Path)
+			continue
+		case out[rd.Path].Value != "":
+			at("repeats the default of %s", rd.Path)
+			continue
+		}
+		if err := rd.Default.Validate(); err != nil {
+			at("%v", err)
+			continue
+		}
+		if len(rd.Default.Citations) == 0 {
+			at("a default cites the upstream evidence that establishes it")
+			continue
+		}
+		if _, why := p.checkDefault(rd.Default); len(why) > 0 {
+			for _, w := range why {
+				at("%s", w)
+			}
+			continue
+		}
+		out[rd.Path] = rd.Default
+	}
+	return out
+}
+
+// roleNarrowing says why a rule narrows its scope to a consumer role ("" if
+// it does not): with consumer roles offered (formalize/v2), a rule on a role's
+// subject kind must not name the role's fields — the stage proposes that
+// narrowing itself, only with trace evidence (refine.go) — unless the change
+// is about the role field itself.
+func (p *Precomputed) roleNarrowing(a domain.SemanticAssertion) string {
+	if a.Subject == nil || a.Applicability == nil {
+		return ""
+	}
+	for _, r := range p.ConsumerRoles {
+		if a.Subject.Group != r.Group || a.Subject.Kind != r.Kind {
+			continue
+		}
+		paths := r.paths()
+		delete(paths, a.Subject.Path)
+		if names(a.Applicability.Exposure, paths) || (a.Applicability.Overlap != nil && names(*a.Applicability.Overlap, paths)) {
+			return fmt.Sprintf("the rule narrows its scope to consumer role %s (it names %s): write the behaviour rule as the assessment establishes it; the stage proposes a role refinement itself, only with consumer-trace evidence", r.ID, fieldsText(r.Role))
+		}
+	}
+	return ""
 }
 
 // env is what the spec checks read about the stored run.

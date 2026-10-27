@@ -1418,7 +1418,7 @@ stored beside the item under `<product>/<release>/proofs/`):
   flag-like names and versions are never values. Applicability-condition values are not compared: they scope the
   environment and are tested by the exercise arms and the applicability checks. The method is **optional**: it never
   replaces the citation check or the rule exercise.
-- **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
+- **Rule exercise** (`verify.exercise@v2`, observed, opt-in `-runtime`; v1 before non-discriminating arms). A **synthetic** fixture built from the
   rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
   in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
   prerequisites, e.g. an issuer) in two arms — **condition-present** satisfies the rule's mitigating (`overlap`)
@@ -1486,6 +1486,20 @@ whose condition default is not evidenced), or when its exposure contradicts how 
 omitted-field arm predicted to keep the previous behaviour that changes refutes the rule; one that does not confirm
 its prediction keeps the exercise from passing.
 
+### Non-discriminating arms (Phase 6 M4 fix, lane verify2)
+
+An arm predicted to take the new behaviour is evidence of the change only if its object can behave differently at
+FROM and at TO. Under a `default-changed` rule only an object that **leaves the changed field unset** meets the new
+default at TO; an object that sets the field (the rule's subject path) explicitly keeps its value at both versions —
+an explicit value equal to the new default already has the new behaviour at FROM. Such an arm is
+**non-discriminating**: it is run and recorded (`ProofArm.nonDiscriminating` says why; its check is `inconclusive`)
+and never decides the exercise. A default-change rule is then decided by its condition arm and the omitted-field
+arms predicted to change (`condition-absent-omitted-N`, which leave the field unset): all must change for a pass. A
+rule whose only contrast arm is non-discriminating stays `inconclusive`. Under any other kind of change an explicit
+value can discriminate (accepted at FROM, rejected at TO), so nothing is classified. `ProofRecord.Validate` requires a
+passing exercise to rest on the condition arm and a discriminating condition-absent arm (stored proofs, which have no
+classified arm, validate as before).
+
 ### Consumer observation (lane verify2)
 
 The produced-object observation above can show that an explicit setting preserves an object's previous
@@ -1520,6 +1534,37 @@ TO refutes the rule (the object plays the role after all and is exposed); verify
 with the shield; no relationship at all is recorded and decides nothing. Omitting a role field in a boundary arm
 also takes the object outside the role. Exposed alternatives that contradict the role stay limitations. Each arm
 also gets the declared consuming objects (e.g. a CA issuer and a leaf it signs).
+
+**The role-absent observation** (optional, Phase 6 M4 fix): a consumer observation may declare how a consumer uses the
+key material of a subject that does **not** play the role — the role fields such a subject holds (`role`, the same
+fields with other values), fields set on the arm's subject for the observation (`subject`, e.g. a reference to an
+issuer the objects declare), its consuming objects, and its `trust` / `reissue` / `verify`:
+
+```yaml
+  outside:
+    role:    [{path: spec.isCA, value: false}]
+    subject: [{path: spec.issuerRef.name, value: "{{name}}-issuer"}]
+    objects: [ ...a CA and its issuer... ]
+    trust:   {secret: "{{name}}-tls", key: ca.crt}   # the issuing CA, as a client that verifies peers against the CA
+    reissue: ["{{name}}"]
+    verify:  {secret: "{{name}}-tls", key: tls.crt}
+    references: [ ...upstream documentation... ]
+```
+
+Outside-role arms (and omitted-role-field arms that leave the role) then use it instead of the role's consuming
+objects. It is what establishes a scope refinement (below).
+
+**Scope refinements** (formalization `formalize/v2`, see "Evidence formalization"). A refinement candidate is a
+behaviour rule narrowed to a catalog role (the role fields join the exposure's object scope; the overlap becomes `any(overlap, outside)` in the same scope), carried by
+`proposedVerification.refinement`. Its exercise must be the consumer observation the refinement names, with a
+declared role-absent observation (else `not-run`). On top of the outcome rule below, a pass needs **a role-absent arm
+observed without consumer harm** (verified at FROM and at TO): an unobserved or never-established role-absent arm is
+`inconclusive`; a role-absent consumer that breaks at TO refutes. A role field with no evidenced default stays
+**undecidable** for objects that omit it: its omitted-field arms are not built and the proof records the limitation
+(the evaluators keep such objects unknown), instead of failing the boundary fixtures as an ordinary rule does. Every
+refinement proof states that it covers only consumers that use the key material as the role's consumer exercise
+does. The resulting rule is promoted through the unchanged gate (a human, a confirmed proof of the same digest,
+version bounds).
 
 **The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
 after the version's baseline observation and before its exercises (inside the exercise window at both
@@ -1789,9 +1834,25 @@ separate stage after the investigation: the investigator explains naturally, the
   uncertainty, bounds beyond the run, a subject of another product, a rule that treats an unset field as a value (a
   default without evidence), an undecidable rule, a basis outside the run are all violations. A violating answer is
   retried (at most 3 calls, each told the violations); after that the record is `failed`, never repaired.
-- **One structured model call** (prompt `formalize/v1`, generic, digest-pinned; default model `claude-opus-5-5`,
+- **One structured model call** (prompt `formalize/v2` by default, generic, digest-pinned; `-formalize-prompt
+  formalize/v1` replays the frozen first version, which was run; default model `claude-opus-5-5`,
   `-formalize-model`) through the LLM answer cache over `-formalize-exchange DIR` or a stateless `claude -p`;
   `-offline` answers from the cache only. A replay is a cache hit.
+- **Scope-refinement candidates** (`formalize/v2`, producer `formalize@v2`; lane verify2). Whether a behaviour change
+  harms consumers can depend on the role a subject plays for them, which no upstream fetch establishes. The model sees
+  the catalog's consumer roles (`products/exercises/fixtures/<product>.yaml` `consumers:` with an `outside:`
+  observation) but must not narrow a rule to one itself (a violation); it may state what an unset role field means
+  (`roleDefaults`, upstream evidence only, checked like any default). The **stage** then proposes, deterministically,
+  one candidate per rule hypothesis and role of its subject kind when the run's consumer graph has **established
+  `reads-file` edges reading the role's trust key from a Secret an object of the subject kind produces**: the same
+  rule with the role fields added to the exposure's own object scope and `any(overlap, outside)` in the overlap's
+  (a `resource` condition holds when *some* object meets it, so separate scopes would pair different objects; a rule
+  whose conditions are not one scope of the subject kind gets no candidate; role leaves carry the evidenced default,
+  if any), citing the
+  base rule's evidence, with `proposedVerification.method` = `consumer exercise (role <id>)` and
+  `proposedVerification.refinement` (base hypothesis and rule digest, role and outside fields, trust key, the trace
+  edges). Without such edges, no candidate (the record's `refinementNotes` say why). A candidate is never a confirmed
+  rule: only the role's consumer exercise establishes it (see "Consumer observation"), and a human promotes it.
 
 Records are stored at `<state>/investigations/formalizations/<inv-id>/<fmz-id>.json`. The run record, its findings,
 decision and review are never changed, and formalized hypotheses never enter the classifier's input. With

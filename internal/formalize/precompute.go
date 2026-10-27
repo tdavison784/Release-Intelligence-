@@ -14,8 +14,11 @@ import (
 // Producer is the provenance producer of a formalization and its
 // hypotheses; PromptVersion the default prompt.
 const (
-	Producer      = "formalize@v1"
-	PromptVersion = "formalize/v1"
+	Producer = "formalize@v1"
+	// ProducerV2 is the stage with scope refinements (refine.go; lane
+	// verify2, D-0025), used with prompt formalize/v2 and later.
+	ProducerV2    = "formalize@v2"
+	PromptVersion = "formalize/v2"
 )
 
 // UncertaintyIDPrefix prefixes uncertainty ids.
@@ -38,6 +41,9 @@ type Input struct {
 	Bundle        *domain.EvidenceBundle
 	Assessment    string // aas-…
 	Read          func(ctx context.Context, a domain.ArtifactRef) ([]byte, error)
+	// Roles are the consumer roles the product's exercises catalog declares
+	// (refine.go); used from prompt formalize/v2 on.
+	Roles []ConsumerRole
 }
 
 // Precomputed is the deterministic input of the call: the model sees its
@@ -50,6 +56,10 @@ type Precomputed struct {
 	Uncertainties []Uncertainty   `json:"uncertainties"`
 	Basis         []Basis         `json:"environmentBasis"`
 	Evidence      []CitableRecord `json:"evidence"`
+	// ConsumerRoles are the catalog's consumer roles of the transition's
+	// product, shown from prompt formalize/v2 on (empty, and absent from
+	// the input, for formalize/v1).
+	ConsumerRoles []ConsumerRole `json:"consumerRoles,omitempty"`
 
 	in      Input
 	item    domain.ChangeItem

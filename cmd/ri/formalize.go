@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -29,6 +31,7 @@ type formalizeFlags struct {
 	on       *bool
 	model    *string
 	exchange *string
+	prompt   *string
 }
 
 func addFormalizeFlags(fs interface {
@@ -38,6 +41,7 @@ func addFormalizeFlags(fs interface {
 	f := formalizeFlags{
 		model:    fs.String("formalize-model", formalize.DefaultModel, "model of the formalization stage"),
 		exchange: fs.String("formalize-exchange", "", "answer the formalization through request/response files in `DIR` (scripts/semantic-exchange.sh answers them) instead of `claude -p`"),
+		prompt:   fs.String("formalize-prompt", formalize.PromptVersion, "formalization prompt version (formalize/v1 replays the frozen first version: no scope refinements)"),
 	}
 	if withSwitch {
 		f.on = fs.Bool("formalize", false, "after each investigation, formalize its agent assessments into cited hypotheses (one cached model call each; stored beside the run, never a policy input)")
@@ -62,7 +66,48 @@ func (c *cli) formalizer(a *app.App, f formalizeFlags, claudeBin string) *formal
 	if f.model != nil && *f.model != "" {
 		model = *f.model
 	}
-	return &formalize.Formalizer{Client: &llm.Cache{Dir: a.LLMCacheDir(), Inner: inner}, Model: model}
+	prompt := formalize.PromptVersion
+	if f.prompt != nil && *f.prompt != "" {
+		prompt = *f.prompt
+	}
+	return &formalize.Formalizer{Client: &llm.Cache{Dir: a.LLMCacheDir(), Inner: inner}, Model: model, Prompt: prompt}
+}
+
+// consumerRoles are the consumer roles the product's exercises catalog
+// declares (products/exercises/fixtures/<product>.yaml `consumers:` with a
+// role-absent observation `outside:`): the input of formalization's scope
+// refinements (lane verify2). A product without fixtures has none.
+func (c *cli) consumerRoles(product domain.ProductID) ([]formalize.ConsumerRole, error) {
+	sets, err := verify.LoadFixtures(filepath.Join(c.g.products, "exercises", "fixtures"))
+	if err != nil {
+		return nil, err
+	}
+	return consumerRolesOf(sets[string(product)]), nil
+}
+
+func consumerRolesOf(set *verify.FixtureSet) []formalize.ConsumerRole {
+	if set == nil {
+		return nil
+	}
+	fields := func(fs []verify.FieldValue) []domain.RoleField {
+		var out []domain.RoleField
+		for _, f := range fs {
+			b, _ := json.Marshal(f.Value)
+			out = append(out, domain.RoleField{Path: f.Path, Value: string(b)})
+		}
+		return out
+	}
+	var out []formalize.ConsumerRole
+	for _, x := range set.Subjects {
+		for _, cf := range x.Consumers {
+			if cf.Outside == nil {
+				continue // a refinement needs the role-absent observation
+			}
+			out = append(out, formalize.ConsumerRole{ID: cf.ID, Summary: cf.Summary, Group: x.Target.Group, Kind: x.Target.Kind,
+				Role: fields(cf.Role), Outside: fields(cf.Outside.Role), TrustKey: cf.Trust.Key})
+		}
+	}
+	return out
 }
 
 // formalizeOutcome says what became of one assessment.
@@ -73,6 +118,8 @@ type formalizeOutcome struct {
 	Status     string                    `json:"status"` // complete | failed | pending | error
 	Hypotheses []formalizedHypothesisRow `json:"hypotheses,omitempty"`
 	Detail     string                    `json:"detail,omitempty"`
+	// Refinements say why a rule got no scope-refinement candidate.
+	Refinements []string `json:"refinements,omitempty"`
 }
 
 type formalizedHypothesisRow struct {
@@ -85,7 +132,8 @@ type formalizedHypothesisRow struct {
 // formalizeRun formalizes the run's assessments (all, or the one named)
 // and stores the records. A pending exchange or an unreachable model is
 // reported per assessment; the others go on.
-func formalizeRun(ctx context.Context, fz *formalize.Formalizer, fst formalize.Store, st *store.Store, inv *domain.Investigation, b *domain.EvidenceBundle, only string) ([]formalizeOutcome, []formalize.Record, error) {
+func formalizeRun(ctx context.Context, fz *formalize.Formalizer, fst formalize.Store, st *store.Store, inv *domain.Investigation, b *domain.EvidenceBundle, only string,
+	roles []formalize.ConsumerRole) ([]formalizeOutcome, []formalize.Record, error) {
 	var out []formalizeOutcome
 	var recs []formalize.Record
 	found := false
@@ -95,7 +143,7 @@ func formalizeRun(ctx context.Context, fz *formalize.Formalizer, fst formalize.S
 		}
 		found = true
 		o := formalizeOutcome{Assessment: a.ID, ChangeItem: a.ChangeItem}
-		r, err := fz.Formalize(ctx, formalize.Input{Investigation: inv, Bundle: b, Assessment: a.ID, Read: agent.StoreReader(st)})
+		r, err := fz.Formalize(ctx, formalize.Input{Investigation: inv, Bundle: b, Assessment: a.ID, Read: agent.StoreReader(st), Roles: roles})
 		switch {
 		case errors.Is(err, llm.ErrPending):
 			o.Status, o.Detail = "pending", err.Error()
@@ -106,14 +154,17 @@ func formalizeRun(ctx context.Context, fz *formalize.Formalizer, fst formalize.S
 				return nil, nil, err
 			}
 			recs = append(recs, *r)
-			o.Record, o.Status, o.Detail = r.ID, r.Status, r.NoHypothesisReason
+			o.Record, o.Status, o.Detail, o.Refinements = r.ID, r.Status, r.NoHypothesisReason, r.RefinementNotes
 			if r.Failure != nil {
 				o.Detail = strings.Join(r.Failure.Violations, "; ")
 			}
 			for _, h := range r.Hypotheses {
 				row := formalizedHypothesisRow{ID: h.ID, Kind: formalize.KindRule, Statement: h.Statement}
-				if h.Mitigation == nil {
+				switch {
+				case h.Mitigation == nil:
 					row.Kind, row.Limitation = formalize.KindUnrepresentable, h.MitigationRejected
+				case h.ProposedVerification != nil && h.ProposedVerification.Refinement != nil:
+					row.Kind = "refinement"
 				}
 				o.Hypotheses = append(o.Hypotheses, row)
 			}
@@ -156,7 +207,11 @@ func (c *cli) investigateFormalize(args []string) error {
 		return err
 	}
 	fst := formalize.Store{Dir: formalize.StateDir(c.g.state)}
-	outcomes, _, err := formalizeRun(c.ctx, c.formalizer(a, ff, *claudeBin), fst, r.st, r.inv, r.bundle, *only)
+	roles, err := c.consumerRoles(r.bundle.Change.Product.ID)
+	if err != nil {
+		return err
+	}
+	outcomes, _, err := formalizeRun(c.ctx, c.formalizer(a, ff, *claudeBin), fst, r.st, r.inv, r.bundle, *only, roles)
 	if err != nil {
 		return err
 	}
@@ -204,14 +259,9 @@ func (r formalizedRuns) Mitigation(ctx context.Context, inv, hyp string) (*verif
 		return nil, err
 	}
 	for _, h := range formalize.Hypotheses(recs) {
-		if h.ID != hyp {
-			continue
+		if h.ID == hyp {
+			return verify.MitigationOf(h), nil
 		}
-		if m := h.Mitigation; m != nil {
-			rule := m.ProposedRule.Assertion
-			return &verify.Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}, nil
-		}
-		return &verify.Mitigation{Rejected: h.MitigationRejected}, nil
 	}
 	return r.next.Mitigation(ctx, inv, hyp)
 }

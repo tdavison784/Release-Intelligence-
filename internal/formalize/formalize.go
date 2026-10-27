@@ -123,6 +123,12 @@ func (f *Formalizer) Run(ctx context.Context, p *Precomputed) (*Record, error) {
 	if maxTokens == 0 {
 		maxTokens = 16000
 	}
+	// the consumer roles are part of the input from formalize/v2 on only, so
+	// a formalize/v1 input (and its digest and cache key) is what it was
+	p.ConsumerRoles = nil
+	if refinesPrompt(pr.Version) {
+		p.ConsumerRoles = p.in.Roles
+	}
 	input, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return nil, err
@@ -131,7 +137,7 @@ func (f *Formalizer) Run(ctx context.Context, p *Precomputed) (*Record, error) {
 	var answers, violations []string
 	var resp *llm.Response
 	var req llm.Request
-	var accepted []checked
+	var accepted floorOut
 	var acceptedAnswer *Answer
 	for attempt := 1; attempt <= MaxAttempts && acceptedAnswer == nil; attempt++ {
 		msg := task
@@ -150,9 +156,9 @@ func (f *Formalizer) Run(ctx context.Context, p *Precomputed) (*Record, error) {
 			violations = []string{derr.Error()}
 			continue
 		}
-		var cs []checked
-		if cs, violations = floor(ctx, p, a); len(violations) == 0 {
-			accepted, acceptedAnswer = cs, a
+		var fo floorOut
+		if fo, violations = floor(ctx, p, a); len(violations) == 0 {
+			accepted, acceptedAnswer = fo, a
 		}
 	}
 	r, err := f.base(p, pr, req, resp)
@@ -165,7 +171,12 @@ func (f *Formalizer) Run(ctx context.Context, p *Precomputed) (*Record, error) {
 	} else {
 		r.Status = StatusComplete
 		r.NoHypothesisReason = strings.TrimSpace(acceptedAnswer.NoHypothesisReason)
-		r.Hypotheses = hypotheses(p, r, accepted)
+		var byID map[string]checked
+		r.Hypotheses, byID = hypotheses(p, r, accepted.hyps)
+		refined, notes := refinements(ctx, p, r.Hypotheses, byID, accepted.roleDefaults)
+		r.Hypotheses = append(r.Hypotheses, refined...)
+		sort.Slice(r.Hypotheses, func(i, j int) bool { return r.Hypotheses[i].ID < r.Hypotheses[j].ID })
+		r.RefinementNotes = notes
 	}
 	if err := r.Validate(); err != nil {
 		return nil, fmt.Errorf("formalize: the record does not validate: %w", err)
@@ -209,7 +220,7 @@ func (f *Formalizer) base(p *Precomputed, pr *Prompt, req llm.Request, resp *llm
 	at := resp.GeneratedAt.UTC()
 	r := &Record{SchemaVersion: SchemaVersion, Investigation: p.Investigation, Assessment: p.Assessment.ID, ChangeItem: p.item.ID,
 		Input: p.Digest(), Uncertainties: append([]Uncertainty(nil), p.Uncertainties...), StatementKind: domain.StatementUnverifiedProse,
-		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: Producer, Confidence: domain.ConfidenceLow,
+		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: ProducerFor(pr.Version), Confidence: domain.ConfidenceLow,
 			Model: resp.Model, ModelVersion: resp.ModelVersion, PromptVersion: pr.Version, PromptDigest: llm.PromptDigest(req),
 			InputEvidence: inputs, GeneratedAt: &at, CallID: resp.CallID, Provider: provider}}
 	r.ID = RecordID(r.Investigation, r.Assessment, r.Input, r.Provenance.CallID)
@@ -222,7 +233,8 @@ func (f *Formalizer) base(p *Precomputed, pr *Prompt, req llm.Request, resp *llm
 // requested verification). An unrepresentable record keeps its claim,
 // citations, conditions, limitation, proposed verification, the
 // uncertainties it keeps and its partial rule.
-func hypotheses(p *Precomputed, r *Record, cs []checked) []domain.Hypothesis {
+func hypotheses(p *Precomputed, r *Record, cs []checked) ([]domain.Hypothesis, map[string]checked) {
+	byID := map[string]checked{}
 	var all []string
 	for _, u := range p.Uncertainties {
 		all = append(all, u.Text)
@@ -263,9 +275,10 @@ func hypotheses(p *Precomputed, r *Record, cs []checked) []domain.Hypothesis {
 		}
 		h.ProposedVerification = pv
 		out = append(out, h)
+		byID[h.ID] = c
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
-	return out
+	return out, byID
 }
 
 // unresolved are the uncertainties' texts, less the defaults a rule settles.

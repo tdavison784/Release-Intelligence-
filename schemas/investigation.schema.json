@@ -1035,7 +1035,8 @@
         "method": {"type": "string"},
         "conditions": {"type": "array", "items": {"type": "string"}},
         "uncertainties": {"type": "array", "items": {"type": "string"}},
-        "rule": {"$ref": "#/$defs/ProposedRule"}
+        "rule": {"$ref": "#/$defs/ProposedRule"},
+        "refinement": {"$ref": "#/$defs/ScopeRefinement"}
       },
       "additionalProperties": false
     },
@@ -1181,6 +1182,29 @@
       "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "RoleField": {
+      "type": "object",
+      "required": ["path", "value"],
+      "properties": {
+        "path": {"type": "string"},
+        "value": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ScopeRefinement": {
+      "type": "object",
+      "required": ["refines", "baseRule", "consumer", "role", "outside", "trustKey", "trace"],
+      "properties": {
+        "refines": {"type": "string"},
+        "baseRule": {"type": "string"},
+        "consumer": {"type": "string"},
+        "role": {"type": "array", "items": {"$ref": "#/$defs/RoleField"}},
+        "outside": {"type": "array", "items": {"$ref": "#/$defs/RoleField"}},
+        "trustKey": {"type": "string"},
+        "trace": {"type": "array", "items": {"$ref": "#/$defs/TraceRead"}}
+      },
+      "additionalProperties": false
+    },
     "SecurityStatus": {"type": "string", "enum": ["complete", "incomplete", "unavailable"]},
     "SemanticAssertion": {
       "type": "object",
@@ -1279,6 +1303,23 @@
         "charts": {"type": "array", "items": {"$ref": "#/$defs/CandidateChart"}},
         "statement": {"type": "string"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "TraceRead": {
+      "type": "object",
+      "required": ["graph", "edge", "producer", "secret", "key", "workload"],
+      "properties": {
+        "graph": {"type": "string"},
+        "edge": {"type": "string"},
+        "producer": {"type": "string"},
+        "secret": {"type": "string"},
+        "key": {"type": "string"},
+        "workload": {"type": "string"},
+        "container": {"type": "string"},
+        "path": {"type": "string"},
+        "artifact": {"type": "string"},
+        "line": {"type": "integer"}
       },
       "additionalProperties": false
     },

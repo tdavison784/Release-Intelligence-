@@ -2198,6 +2198,98 @@ type ProposedVerification struct {
 	// mitigation (for example one with an undecidable leaf); never set on a
 	// hypothesis with a stored Mitigation.
 	Rule *ProposedRule `json:"rule,omitempty"`
+	// Refinement marks a scope-refinement candidate (Milestone 4 fix, lane
+	// verify2, D-0025): the hypothesis' mitigation is another hypothesis'
+	// behaviour rule narrowed to the subjects in one consumer role the
+	// product's exercises catalog declares, proposed because the
+	// investigation's consumer trace shows consumers reading the key
+	// material that role produces. Only the role's consumer exercise can
+	// establish it; it is never a confirmed rule by itself.
+	// CONTRACT-CHANGE(verify2): additive.
+	Refinement *ScopeRefinement `json:"refinement,omitempty"`
+}
+
+// RefinementMethodPrefix starts the method of a scope-refinement candidate
+// ("consumer exercise (role <id>)").
+const RefinementMethodPrefix = "consumer exercise (role "
+
+// ScopeRefinement is a scope-refinement candidate: "the harmful consequence
+// of rule Refines occurs only for subjects in consumer role Consumer".
+type ScopeRefinement struct {
+	// Refines is the hypothesis of the behaviour rule refined; BaseRule
+	// its rule's digest (SemanticAssertion.Digest).
+	Refines  string `json:"refines"`
+	BaseRule string `json:"baseRule"`
+	// Consumer is the id of the catalog's consumer observation (role R).
+	Consumer string `json:"consumer"`
+	// Role are the fields a subject holds in role R, Outside those it
+	// holds outside it (both from the catalog; values JSON-encoded).
+	Role    []RoleField `json:"role"`
+	Outside []RoleField `json:"outside"`
+	// TrustKey is the key of a subject's output that a consumer in role R
+	// reads (the catalog consumer's trust).
+	TrustKey string `json:"trustKey"`
+	// Trace are the reads-file edges of the investigation's consumer graph
+	// that read TrustKey from a Secret an object of the subject kind
+	// produces: the evidence that consumers depend on what role R produces.
+	Trace []TraceRead `json:"trace"`
+}
+
+// RoleField is one field of a consumer role and its JSON-encoded value.
+type RoleField struct {
+	Path  string `json:"path"`
+	Value string `json:"value"`
+}
+
+// TraceRead is one reads-file edge of a consumer graph, with the object that
+// produces the Secret it reads.
+type TraceRead struct {
+	// Graph is the consumer graph's artifact id, Edge the edge id.
+	Graph string `json:"graph"`
+	Edge  string `json:"edge"`
+	// Producer is the object of the subject kind that produces Secret.
+	Producer string `json:"producer"`
+	Secret   string `json:"secret"`
+	Key      string `json:"key"`
+	// Workload and Container read the file at Path.
+	Workload  string `json:"workload"`
+	Container string `json:"container,omitempty"`
+	Path      string `json:"path,omitempty"`
+	// Artifact and Line state the read (where the graph located it).
+	Artifact string `json:"artifact,omitempty"`
+	Line     int    `json:"line,omitempty"`
+}
+
+// Validate checks the refinement's shape.
+func (r ScopeRefinement) Validate() error {
+	var errs []error
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("scope refinement: %s", fmt.Sprintf(format, args...)))
+	}
+	if !strings.HasPrefix(r.Refines, HypothesisIDPrefix) || strings.TrimSpace(r.BaseRule) == "" {
+		bad("refines (a hypothesis id) and baseRule are required")
+	}
+	if strings.TrimSpace(r.Consumer) == "" || strings.TrimSpace(r.TrustKey) == "" {
+		bad("consumer and trustKey are required")
+	}
+	if len(r.Role) == 0 || len(r.Outside) == 0 {
+		bad("role and outside fields are required")
+	}
+	for _, f := range append(append([]RoleField(nil), r.Role...), r.Outside...) {
+		var v any
+		if strings.TrimSpace(f.Path) == "" || json.Unmarshal([]byte(f.Value), &v) != nil {
+			bad("role field %q needs a path and a JSON value", f.Path)
+		}
+	}
+	if len(r.Trace) == 0 {
+		bad("a refinement is proposed only with trace evidence (reads-file edges)")
+	}
+	for i, t := range r.Trace {
+		if t.Graph == "" || t.Edge == "" || t.Producer == "" || t.Secret == "" || t.Workload == "" || t.Key != r.TrustKey {
+			bad("trace[%d]: graph, edge, producer, secret and workload are required, and the key read is the trust key", i)
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // Validate checks the proposal's shape.
@@ -2208,6 +2300,17 @@ func (v ProposedVerification) Validate() error {
 	}
 	if strings.TrimSpace(v.Method) == "" {
 		errs = append(errs, errors.New("proposed verification: method is required"))
+	}
+	if r := v.Refinement; r != nil {
+		if err := r.Validate(); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: %w", err))
+		}
+		if v.Method != RefinementMethodPrefix+r.Consumer+")" {
+			errs = append(errs, fmt.Errorf("proposed verification: a refinement is verified by %s%s)", RefinementMethodPrefix, r.Consumer))
+		}
+		if v.Rule != nil {
+			errs = append(errs, errors.New("proposed verification: a refinement is a rule, never a partial one"))
+		}
 	}
 	if v.Rule != nil {
 		if err := v.Rule.Assertion.Validate(false); err != nil {
@@ -2477,6 +2580,14 @@ func (h Hypothesis) Validate() error {
 		}
 		if v.Rule != nil && h.Mitigation != nil {
 			errs = append(errs, fmt.Errorf("hypothesis %s: a partial rule is kept only when no mitigation is stored", h.ID))
+		}
+		if r := v.Refinement; r != nil {
+			switch {
+			case h.Mitigation == nil:
+				errs = append(errs, fmt.Errorf("hypothesis %s: a scope refinement carries its refined rule as the mitigation", h.ID))
+			case r.Refines == h.ID:
+				errs = append(errs, fmt.Errorf("hypothesis %s: a refinement refines another hypothesis", h.ID))
+			}
 		}
 	}
 	return errors.Join(errs...)
