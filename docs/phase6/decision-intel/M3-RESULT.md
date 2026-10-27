@@ -72,3 +72,8 @@ advisories; no unconditional proceed):
   version, the isolated sequence, the tests, the caveat about the new upgrade path, and every hard finding attached.
 - The one deviation from the gate is a judgement on behaviour preservation that follows the product owner's own
   principle.
+
+## Product-owner decision, 2026-10-28
+
+**M3 passes:** "I accept M3". This includes the P-US leaf pin, behaviour preserved before the bump, as consistent with
+PD-0b.

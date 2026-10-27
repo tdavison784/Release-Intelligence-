@@ -42,6 +42,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-28 (product owner): **M3 passes** (PD-4: pin-before-bump is acceptable where the change looks benign).
+
 - 2026-10-27 (product owner): **M2 passes; v13 becomes the default** (PD-2). The commander switched the default
   (tests and docs updated).
 
@@ -67,9 +69,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. D-0018: `scripts/phase6/run-m3-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m3`, recorded state
-   `$CLAUDE_JOB_DIR/tmp/m2adv/state`. Score it per GATE-M3 and write M3-RESULT.md.
-2. Tell the product owner: the lane's strict rule (safe needs a complete advisory assessment) is kept, fail-closed.
+1. D-0020: an M4 code map (a Herdr pane agent), then PLAN-M4 and GATE-M4. Show the product owner before any code
+   changes.
 
 ## Notes
 

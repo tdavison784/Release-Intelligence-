@@ -54,6 +54,13 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-4. M3 passes; pin-before-bump also applies where the change looks benign (2026-10-28): M4, M5
+
+> "I accept M3"
+
+Recommending an explicit pin of today's behaviour before a version bump (and adopting the new default later, as its
+own change) is acceptable even when the change appears benign for the environment. PD-0b applies generally.
+
 ## PD-3. Target rule: latest safe patch, lowest safe shown as the minimum (2026-10-27): M3
 
 > "I am fine with your proposal, begin."
