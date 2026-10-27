@@ -204,3 +204,10 @@ deterministically without changing the verdict rules. Then re-run live × 3. The
 - **§0 Scoped verdicts (v10): not passed.** Moved to M3 (PD-0d, PD-1).
 - **Prompts:** v9 is still the default. v13 is the candidate for M3 (consumers, assessments, upstream fetch first,
   behaviour dependencies).
+
+## Product-owner decision, 2026-10-27
+
+- **M2 passes:** "I also consider M2 being met, lets continue."
+- **Prompt v13 becomes the default for M3:** "Lets do v13 as the default for M3." Done the same day (commander).
+- **Carried to M4:** the misread-evidence finding (live r3). It needs independent semantic or runtime verification
+  (E4/E5).

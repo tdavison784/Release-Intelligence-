@@ -54,6 +54,13 @@ hard findings acknowledged, timestamp, and the exact judgement version and evide
   - approval never alters classification or knowledge;
   - a denial's reason is stored.
 
+## PD-2. M2 passes; v13 is the default (2026-10-27): M3
+
+> "Lets do v13 as the default for M3. I also consider M2 being met, lets continue."
+
+Prompt `investigate-agent/v13` is the default from now on: consumer tracing, natural assessments, upstream evidence
+fetched at the tags, behaviour dependencies, fetch first. M3's synthesis builds on v13 investigations.
+
 ## Earlier decisions carried forward
 
 - **PD-0a (2026-10-20). Recommend a concrete safer target.** When the target regresses security, recommend the safer

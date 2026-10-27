@@ -79,11 +79,10 @@ func TestPromptV9(t *testing.T) {
 			t.Errorf("v9 system prompt still has %q", s)
 		}
 	}
-	if DefaultPromptVersion != promptV9 {
-		t.Fatalf("default %s, want %s since the M1 gate", DefaultPromptVersion, promptV9)
-	}
-	if p, err := LoadPrompt(""); err != nil || p.Version != promptV9 {
-		t.Fatalf("LoadPrompt(\"\"): %v %v", p, err)
+	// v9 was the default from the M1 gate to the M2 gate; the default is
+	// covered by TestDefaultPromptIsTheNewest.
+	if p, err := LoadPrompt(promptV9); err != nil || p.Version != promptV9 {
+		t.Fatalf("LoadPrompt(v9): %v %v", p, err)
 	}
 	if v8.Digest("t") == v9.Digest("t") {
 		t.Error("v8 and v9 share a prompt digest")

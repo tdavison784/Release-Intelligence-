@@ -74,8 +74,8 @@ func TestPromptV13(t *testing.T) {
 	if len(s13) != len(s12) || strings.Replace(s13[section], order, "", 1) != s12[section] {
 		t.Error("v13's system prompt is v12's plus the sentence on the order only")
 	}
-	if DefaultPromptVersion != promptV9 {
-		t.Fatalf("default %s: v13 waits for the commander's check", DefaultPromptVersion)
+	if DefaultPromptVersion != promptV13 {
+		t.Fatalf("default %s: v13 is the default since the M2 gate", DefaultPromptVersion)
 	}
 	if v12.Digest("t") == v13.Digest("t") {
 		t.Error("v12 and v13 share a prompt digest")

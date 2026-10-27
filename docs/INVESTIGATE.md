@@ -1023,8 +1023,8 @@ A claim supports the agent's records; it is never a validation and never a polic
 classification still runs only over validation records.
 
 **Item dossier, provisional verdicts and mitigation hypotheses (prompt `investigate-agent/v6`; v7 is v6 plus
-verdict citation inheritance, and v8 revises the mitigation instructions, both below; v9 (the default since the M1
-gate, 2026-10-26) is the
+verdict citation inheritance, and v8 revises the mitigation instructions, both below; v9 (the default from the M1 gate, 2026-10-26, until v13 replaced it at the M2 gate,
+2026-10-27) is the
 consumer-aware investigation further down, and v10 its scoped verdicts; Phase 5,
 `docs/phase5/learning-loop/PROTOCOL.md` §8).** v6 keeps
 the v5 surface. It adds three things.
@@ -1128,7 +1128,7 @@ overturn it.
   none) of the exposed objects stores it, and an empty basis is still rejected. Smoke (one Phase 4 regression
   case, not cert-manager, `claude-sonnet-5-5`): 10 sessions, 125k tokens, every call well-formed; no hypothesis
   was recorded there, and every verdict's `wouldOverturn` carried a not-expressible reason.
-- **v9** (Phase 6 Milestone 1, `docs/phase6/decision-intel/PLAN-M1.md`, `M1-IMPLEMENTATION.md`; the default since the M1 gate was met, 2026-10-26; mission §13).
+- **v9** (Phase 6 Milestone 1, `docs/phase6/decision-intel/PLAN-M1.md`, `M1-IMPLEMENTATION.md`; the default from the M1 gate, 2026-10-26, to the M2 gate, 2026-10-27; mission §13).
   Per-item sessions kept; `meta.json` turns `mitigation` off (`record_hypothesis` has no `mitigation`) and adds
   `traceConsumers`, `assessment`, `itemCalls: 24`, `itemTurns: 18` (rule `item@v2`; v1–v8 keep `item@v1`).
   - **Consumer graph.** The session builds the consumer-mode graph of the bundle (TO side; FROM on demand) with
@@ -1216,7 +1216,7 @@ overturn it.
     (`TestBehaviourNeverReachesThePolicy`).
 - **v13** (Phase 6 M2 fix, fetch first, `docs/phase6/decision-intel/briefs/upstream3.md`, ledger D-0014; design
   and tests in `docs/phase6/decision-intel/M2-IMPLEMENTATION.md`). v12 plus `meta.json` `fetchFirst: true`;
-  **not the default** (v9 stays). Why: under v12, with fetching configured and working, the agent often declared
+  **the default since the M2 gate** (product owner, 2026-10-27; v9 before). Why: under v12, with fetching configured and working, the agent often declared
   the deciding behaviour `not-checked` and took a safe verdict without ever calling `request_evidence`.
   - **Check on `submit_findings`**, whatever the verdict, while the session can fetch for the item (a fetch port,
     a known repository of the product, budget left) and the item is behavioural: a `not-checked` behaviour is

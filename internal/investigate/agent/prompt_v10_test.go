@@ -92,8 +92,8 @@ func TestPromptV10(t *testing.T) {
 			t.Errorf("v10 changes section %q", title)
 		}
 	}
-	if DefaultPromptVersion != promptV9 {
-		t.Fatalf("default %s: v10 waits for its check", DefaultPromptVersion)
+	if DefaultPromptVersion != promptV13 {
+		t.Fatalf("default %s: v13 is the default since the M2 gate", DefaultPromptVersion)
 	}
 	if v9.Digest("t") == v10.Digest("t") {
 		t.Error("v9 and v10 share a prompt digest")

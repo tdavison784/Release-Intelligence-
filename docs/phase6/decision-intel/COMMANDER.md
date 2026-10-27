@@ -41,6 +41,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-27 (product owner): **M2 passes; v13 becomes the default** (PD-2). The commander switched the default
+  (tests and docs updated).
+
 - 2026-10-27 (product owner): **PD-1, engineer approval of the agent's judgement**, in PRODUCT-DECISIONS.md. It binds
   the M3 and M5 plans and gates: informed approval (disagreements and residual risks shown first), override distinct
   from approval, no knowledge promotion, denial as feedback, policy floor unchanged.
@@ -63,11 +66,8 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **The product owner decides the M2 gate** (M2-RESULT "M2 summary"). Propose making v13 the default.
-2. **On a pass:** write PLAN-M3 and GATE-M3 (synthesis) with PD-1, PD-0a/b/d and the scoped headline. Also record the
-   misread-evidence finding for M4 (runtime admission check E5; semantic check of a claim against its citation).
-3. **No API driver is needed for retrieval** (v13 gives 3/3). Revisit if M3 synthesis needs harness-controlled
-   phases.
+1. D-0016: map the code for synthesis, then write PLAN-M3 (lane-safe) and GATE-M3 (commander). Show the product owner
+   before any code changes.
 
 ## Notes
 

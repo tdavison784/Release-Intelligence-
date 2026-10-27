@@ -15,10 +15,11 @@ import (
 )
 
 // DefaultPromptVersion is the prompt set used when the configuration names
-// none. Every version stays embedded so its transcripts replay. v9 became
-// the default when the Phase 6 M1 gate was met (product owner, 2026-10-26);
-// v8 and older are selected with -agent-prompt.
-const DefaultPromptVersion = "investigate-agent/v9"
+// none. Every version stays embedded so its transcripts replay. v13 became
+// the default when the Phase 6 M2 gate was met (product owner, 2026-10-27);
+// v9 had been the default since M1. Older versions are selected with
+// -agent-prompt.
+const DefaultPromptVersion = "investigate-agent/v13"
 
 //go:embed prompts
 var promptFS embed.FS

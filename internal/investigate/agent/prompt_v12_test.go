@@ -87,8 +87,8 @@ func TestPromptV12(t *testing.T) {
 			t.Errorf("v12 item.md lacks %q", s)
 		}
 	}
-	if DefaultPromptVersion != promptV9 {
-		t.Fatalf("default %s: v12 waits for the commander's check", DefaultPromptVersion)
+	if DefaultPromptVersion != promptV13 {
+		t.Fatalf("default %s: v13 is the default since the M2 gate", DefaultPromptVersion)
 	}
 	if v11.Digest("t") == v12.Digest("t") {
 		t.Error("v11 and v12 share a prompt digest")
