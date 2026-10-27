@@ -92,3 +92,40 @@ Run `A0-K0-20261027-aed956a9-adv-cm`, offline from the same recorded state.
 - The section lists the inconsistency (range `>= 1.18.0, <= 1.20.2`, contradicting patched 1.19.6) with a gap and a
   warning.
 - **GATE-M2 §1 is met for both development edges.**
+
+## §2 Strict-path semantics, 2026-10-27: live MET; ablation FAILED (the fetch is optional, so memory fills the gap)
+
+**Runs:**
+- **Live:** `C1-K0-20261027-c8b67f09-v11-deu-r{1,2,3}`, online. Upstream fetches are allowed.
+- **Ablation:** `C1-K0-20261027-c8b67f09-v11-deu-abl-r{1,2,3}`, offline, from a state without upstream source caches.
+- **Both:** prompt v11, D-EU.
+- **Item:** `ci-0e8570d62156` (#11819 "Enable security features by default", which carries B1–B4). Expected: affected,
+  through B3.
+
+| Run | `request_evidence` on the item | Verdict | B3 |
+|---|---|---|---|
+| live r1 | 2 × `upstream-search` at controller-v1.12.0 (`internal/ingress/controller`, `internal/ingress/inspector`), ok | potentially-affected | not FS; assertion cites the fetched inspector source |
+| live r2 | 2 × `upstream-search`, ok | potentially-affected | not FS: "the regex does not accept '.'" |
+| live r3 | 2 × `upstream-search`, ok | potentially-affected | not FS |
+| abl r1 | **none** | **not-affected** | **FS**: "Both paths are Prefix paths with plain values" |
+| abl r2 | **none** | **not-affected** | **FS**: "'/' and '/.well-known' … are valid under strict validation" |
+| abl r3 | **none** | **not-affected** | **FS**: "… with pathType Prefix, which are valid" |
+
+**Live: met.** B3 is not false-safe in 3 of 3, and every run fetched the validator source at the target tag. Against
+Phase 5 arm B (FS) and Phase 0 (5 of 6 natural runs FS), this is the first time the RI agent has grounded this item in
+upstream code.
+
+**Ablation: failed.** B3 is false-safe in 3 of 3, and no run recorded "behaviour unavailable".
+- **The ablation did not exercise the cache-miss path,** because the agent never asked. The upstream port was wired
+  and the item prompt named the readable repository and tags in every run (the same prompt digest everywhere).
+- **The first six tool calls are the same in live and ablation runs.** Only the live runs then chose to fetch.
+- **The ablation runs' own unknowns admit the gap:** "Behaviour of the 1.12.0 validation code, which I did not fetch"
+  (r1). They concluded not-affected anyway.
+- **Reading:** fetching is a model choice. When it is skipped, remembered behaviour returns as a false-safe. v11's
+  rule ("cite it or record it unavailable") is not enforced by anything deterministic. Mission §2 warns exactly this
+  about prompt wording.
+
+**Next (inside M2): lane `upstream2` (D-0013).** A deterministic check, in the style of M1's consumer check: a
+not-affected verdict on an item whose outcome rests on upstream behaviour must cite that behaviour from upstream
+evidence beyond the change text (a fetched file, or a source artifact), or carry a recorded unavailable request.
+Otherwise it is rejected once, and the gap is recorded on resubmission. Then re-run live and ablation × 3.
