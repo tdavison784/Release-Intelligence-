@@ -149,6 +149,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 	b.compatibilityChecks()
 	b.imageFamily()
 	b.unjoinedChanges()
+	b.security()
 	if len(in.Facts) > 0 {
 		b.knowledge(in.Facts, in.MinVerification, in.Render)
 	}
@@ -927,7 +928,9 @@ func (b *builder) unjoinedChanges() {
 			continue
 		}
 		var needed string
-		if unimplementedDiffRules[c.Provenance.Rule] {
+		if advisoryRules[c.Provenance.Rule] {
+			needed = "the advisory's affected range decides version applicability (see the report's security section); whether this environment exercises the vulnerable component cannot be decided deterministically"
+		} else if unimplementedDiffRules[c.Provenance.Rule] {
 			needed = fmt.Sprintf("diff rule %s has no join rule; whether the change applies to the environment cannot be decided deterministically", c.Provenance.Rule)
 		} else {
 			needed = "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
@@ -936,6 +939,48 @@ func (b *builder) unjoinedChanges() {
 			fmt.Sprintf("Not evaluated for this environment: %s", c.Title),
 			"The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
 			c, c.Evidence, nil, needed)
+	}
+}
+
+// advisoryRules are the edge's computed advisory rules: their changes stay
+// unknown findings here (an advisory range decides which versions are
+// affected, not whether an environment exercises the vulnerable code), and
+// the version-based answer is the report's security section.
+var advisoryRules = map[string]bool{
+	upgrade.RuleAdvisoryFixed: true, upgrade.RuleAdvisoryAffected: true, upgrade.RuleAdvisoryRegression: true,
+}
+
+// security carries the edge's advisory assessment into the report and cites
+// its evidence. The section is version-based (it applies to every
+// environment upgrading from → to); it adds no finding and changes no
+// classification. Its entries join the findings of their changes by
+// changeId.
+func (b *builder) security() {
+	if b.edge.Security == nil {
+		return
+	}
+	s := *b.edge.Security
+	b.rep.Security = &s
+	cite := func(ids []domain.EvidenceID) {
+		for _, id := range ids {
+			if b.edgeEv[id] {
+				b.upCited[id] = true
+			}
+		}
+	}
+	for _, list := range [][]domain.SecurityAdvisory{s.Regressions, s.Persisting, s.Fixed, s.Unassessed} {
+		for _, a := range list {
+			cite(a.Evidence)
+		}
+	}
+	for _, c := range s.Candidates {
+		cite(c.Evidence)
+		for _, r := range append(append([]domain.AdvisoryRef(nil), c.Removes...), c.Leaves...) {
+			cite(r.Evidence)
+		}
+		for _, ch := range c.Charts {
+			cite(ch.Evidence)
+		}
 	}
 }
 

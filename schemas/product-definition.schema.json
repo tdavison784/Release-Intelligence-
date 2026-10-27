@@ -212,7 +212,7 @@
       "additionalProperties": false,
       "required": ["kind"],
       "properties": {
-        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git", "chart-tgz"]},
+        "kind": {"enum": ["github-releases", "github-advisories", "github-global-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git", "chart-tgz"]},
         "repository": {"type": "string"},
         "ref": {"type": "string"},
         "baseRef": {"type": "string"},
@@ -220,10 +220,13 @@
         "glob": {"type": "string"},
         "url": {"type": "string"},
         "chart": {"type": "string"},
-        "tagPattern": {"type": "string"}
+        "tagPattern": {"type": "string"},
+        "ecosystem": {"enum": ["actions", "composer", "erlang", "go", "maven", "npm", "nuget", "other", "pip", "pub", "rubygems", "rust", "swift"], "description": "GitHub advisory-database ecosystem of the shipped binary's package (github-global-advisories)."},
+        "package": {"type": "string", "description": "Canonical package name in that ecosystem: for a Go binary, the module path of its main module (github-global-advisories)."}
       },
       "allOf": [
         {"if": {"properties": {"kind": {"enum": ["github-releases", "github-advisories", "git-tags", "oci"]}}}, "then": {"required": ["repository"]}},
+        {"if": {"properties": {"kind": {"const": "github-global-advisories"}}}, "then": {"required": ["ecosystem", "package"]}},
         {"if": {"properties": {"kind": {"enum": ["repo-file", "repo-dir"]}}}, "then": {"required": ["repository", "path"]}},
         {"if": {"properties": {"kind": {"const": "git-log"}}}, "then": {"required": ["repository", "ref"]}},
         {"if": {"properties": {"kind": {"const": "http"}}}, "then": {"required": ["url"]}},

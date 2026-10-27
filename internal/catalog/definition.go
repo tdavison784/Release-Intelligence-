@@ -161,13 +161,19 @@ func (s Source) HasRole(r domain.SourceRole) bool {
 const (
 	LocatorGitHubReleases   = "github-releases"   // repository: owner/name
 	LocatorGitHubAdvisories = "github-advisories" // repository: owner/name
-	LocatorGitTags          = "git-tags"          // repository: host/owner/name or URL; optional tagPattern
-	LocatorRepoFile         = "repo-file"         // repository, ref, path
-	LocatorRepoDir          = "repo-dir"          // repository, ref, path, glob
-	LocatorHTTP             = "http"              // url
-	LocatorHelmRepo         = "helm-repo"         // url, chart
-	LocatorOCI              = "oci"               // repository: registry/name
-	LocatorHelmGit          = "helm-git"          // repository, path (chart dir), tagPattern
+	// LocatorGitHubGlobalAdvisories lists the reviewed advisories of GitHub's
+	// global advisory database that affect one package: the ecosystem and
+	// canonical package name of the product's shipped binary (for a Go
+	// binary, the module path of its main module). See
+	// docs/SECURITY_ADVISORIES.md for how the identity is chosen.
+	LocatorGitHubGlobalAdvisories = "github-global-advisories" // ecosystem, package
+	LocatorGitTags                = "git-tags"                 // repository: host/owner/name or URL; optional tagPattern
+	LocatorRepoFile               = "repo-file"                // repository, ref, path
+	LocatorRepoDir                = "repo-dir"                 // repository, ref, path, glob
+	LocatorHTTP                   = "http"                     // url
+	LocatorHelmRepo               = "helm-repo"                // url, chart
+	LocatorOCI                    = "oci"                      // repository: registry/name
+	LocatorHelmGit                = "helm-git"                 // repository, path (chart dir), tagPattern
 	// LocatorChartTGZ addresses a packaged Helm chart tarball by URL: a
 	// release asset (".../releases/download/v1/acme-1.2.3.tgz") or a plain
 	// chart-archive URL. Read as a chart package (members: Chart.yaml,
@@ -195,6 +201,11 @@ type Locator struct {
 	URL        string `yaml:"url,omitempty" json:"url,omitempty"`
 	Chart      string `yaml:"chart,omitempty" json:"chart,omitempty"`
 	TagPattern string `yaml:"tagPattern,omitempty" json:"tagPattern,omitempty"`
+	// Ecosystem and Package (github-global-advisories only) identify the
+	// product's package in the advisory database ("go",
+	// "k8s.io/ingress-nginx"). Catalog data, never product logic.
+	Ecosystem string `yaml:"ecosystem,omitempty" json:"ecosystem,omitempty"`
+	Package   string `yaml:"package,omitempty" json:"package,omitempty"`
 }
 
 // Extract types.

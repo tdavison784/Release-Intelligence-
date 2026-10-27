@@ -62,7 +62,50 @@ type Input struct {
 	AdvisoryEvidence []domain.Evidence
 	// ExtraSources are product-level source statuses (e.g. versions listing, advisories).
 	ExtraSources []domain.SourceStatus
-	Now          time.Time
+	// Versions are every known stable release of the product (the version
+	// listing), from which the security section's candidate versions are
+	// chosen. Empty: no candidates (a gap when the target is affected).
+	Versions []domain.Version
+	// Charts maps a candidate's semver to the chart versions that ship it
+	// (CandidateVersions lists which versions to look up).
+	Charts map[string]ChartLookup
+	Now    time.Time
+}
+
+// ChartLookup is the result of looking up which chart versions ship one
+// release: the charts found, with their evidence, and why a lookup found
+// nothing (an unread index, no chart with that appVersion).
+type ChartLookup struct {
+	Charts []ChartVersion
+	Gaps   []string
+}
+
+// ChartVersion is one chart version shipping a release.
+type ChartVersion struct {
+	Artifact string // definition artifact id
+	Name     string // chart name
+	Version  string
+	Evidence []domain.Evidence
+}
+
+// CandidateVersions returns the candidate versions Build would put in the
+// edge's security section for in (ignoring in.Charts), so that a caller can
+// look up their chart versions before building. It is pure.
+func CandidateVersions(in Input) []domain.Version {
+	in.Charts = nil
+	e, err := build(in)
+	if err != nil || e.Security == nil {
+		return nil
+	}
+	var out []domain.Version
+	seen := map[string]bool{}
+	for _, c := range e.Security.Candidates {
+		if c.Version != nil && !seen[c.Version.Semver] {
+			seen[c.Version.Semver] = true
+			out = append(out, *c.Version)
+		}
+	}
+	return out
 }
 
 // Build assembles the UpgradeEdge. The result must pass domain.UpgradeEdge.Validate.

@@ -50,7 +50,7 @@ internal/catalog       ProductDefinition format, loader, static validator, templ
 internal/fetch         HTTP client + filesystem cache (online / offline / refresh)
 internal/sources       ports (VersionLister, DocumentFetcher, DirectoryFetcher, ArtifactProbe,
                        VersionIndex, AdvisorySource) + Registry keyed by locator kind
-internal/github        adapters: github-releases, github-advisories (GitHub REST API)
+internal/github        adapters: github-releases, github-advisories, github-global-advisories (GitHub REST API)
 internal/gitsrc        adapters: git-tags, repo-file, repo-dir, git-log (git + raw content hosts)
 internal/httpsrc       adapters: http (documents + release-asset probes)
 internal/oci           adapters: oci (Distribution v2 API: tags, manifests, chart config,
@@ -154,7 +154,9 @@ edges of the stored run. Adapters never import `ingest` or `upgrade`.
      (locator kinds `helm-repo`, `oci`, `chart-tgz`), each fact and evidence
      record carrying the representation it came from
      (`docs/ARTIFACTS.md`).
-5. `ingest.Advisories` lists advisories from the `security` sources.
+5. `ingest.Advisories` lists advisories from the `security` sources (repository
+   advisories and the global advisory database by package identity), merging
+   copies of one id (docs/SECURITY_ADVISORIES.md).
 6. `upgrade.Build` aggregates the path's NoteItems into Changes and diffs the
    From/To snapshots: values keys added or removed and defaults changed, CRD
    versions or schema fields removed, and per-path CRD schema attributes
@@ -162,7 +164,9 @@ edges of the stored run. Adapters never import `ingest` or `upgrade`.
    `crd:enum-changed`, `crd:field-required`, `crd:field-type-changed`, one
    aggregated change per rule and CRD version), images added or removed. It also
    compares compatibility constraints, matches advisories (fixed by the
-   upgrade, or still affecting To) and validates the edge.
+   upgrade, still affecting To, or a regression introduced by To), records
+   the security section with candidate versions (`UpgradeEdge.Security`,
+   docs/SECURITY_ADVISORIES.md) and validates the edge.
    - Every note-derived Change also gets the deterministic routine-maintenance
      test (`internal/upgrade/routine.go`): bare dependency bumps ("Bump x
      from 1.2.3 to 1.4.5", "auth/x: Update plugin to v0.23.1"), UI-only work
@@ -265,6 +269,7 @@ edges of the stored run. Adapters never import `ingest` or `upgrade`.
 |---|---|---|
 | `github-releases` | repository `owner/name` (+ ref = tag for documents) | versions, documents (release body) |
 | `github-advisories` | repository | advisories |
+| `github-global-advisories` | ecosystem, package (the shipped binary's package; docs/SECURITY_ADVISORIES.md) | advisories |
 | `git-tags` | repository `host/owner/name`, tagPattern? | versions |
 | `repo-file` | repository, ref (default `{{.Tag}}`), path | documents |
 | `repo-dir` | repository, ref, path, glob, baseRef? (only files added since baseRef) | directories |

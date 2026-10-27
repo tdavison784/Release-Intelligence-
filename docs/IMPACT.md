@@ -610,6 +610,18 @@ already references the target tag). Unreferenced repositories →
 `impact:image-not-referenced` · not-affected; no image-bearing input at all →
 unknown.
 
+### Security advisories (version-based)
+
+The report carries the edge's security section (`ImpactReport.Security`,
+docs/SECURITY_ADVISORIES.md): regressions, persisting and fixed advisories,
+candidate versions with chart versions, and the gaps (an unread advisory source
+is a gap, never "no advisories"). It is decided by advisory ranges against the
+two versions, so it is the same for every environment on the upgrade; it adds
+no finding and changes no class. Advisory changes keep their `impact:not-joined`
+UNKNOWN finding (joined to the section by `changeId`), whose
+`neededToDetermine` says what stays open: whether the environment exercises the
+vulnerable component.
+
 ## Example (from the checked-in fixture)
 
 `internal/app/testdata/e2e/env/cert-manager` against the recorded

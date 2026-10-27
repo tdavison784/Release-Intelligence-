@@ -99,6 +99,23 @@ type Dossier struct {
 	Relations       DossierRelations        `json:"relations"`
 	Gaps            []DossierGap            `json:"gaps"`
 	Truncated       []string                `json:"truncated,omitempty"`
+	// Security is the edge's deterministic advisory assessment (absent when
+	// the edge has none): the same for every item of the upgrade.
+	Security *DossierSecurity `json:"security,omitempty"`
+}
+
+// DossierSecurity summarises UpgradeEdge.Security: which advisories the
+// target introduces (regressions), keeps (persisting) or removes (fixed),
+// which could not be assessed, the candidate versions, and the gaps. Each
+// line cites the evidence ids of the advisory ranges it rests on.
+type DossierSecurity struct {
+	Status      string   `json:"status"`
+	Regressions []string `json:"regressions,omitempty"`
+	Persisting  []string `json:"persisting,omitempty"`
+	Fixed       []string `json:"fixed,omitempty"`
+	Unassessed  []string `json:"unassessed,omitempty"`
+	Candidates  []string `json:"candidates,omitempty"`
+	Gaps        []string `json:"gaps,omitempty"`
 }
 
 // DossierChange is the change item and what upstream says about it.
@@ -445,6 +462,7 @@ func (db *dossierBuilder) change(ctx context.Context) error {
 				d.Change.Compatibility = &c
 			}
 		}
+		d.Security = securitySummary(e.Security)
 	}
 	pool := b.EvidenceByID()
 	uris := map[string]bool{}
@@ -1552,4 +1570,81 @@ func (db *dossierBuilder) bound() {
 		l.cut(l.n / 2)
 		d.Truncated = append(d.Truncated, fmt.Sprintf("%s: cut to %d to fit %d bytes", l.name, l.n/2, MaxDossierBytes))
 	}
+}
+
+// dossierSecurityLines bounds each list of the security summary.
+const dossierSecurityLines = 10
+
+// securitySummary condenses an edge's security section for the dossier.
+func securitySummary(s *domain.EdgeSecurity) *DossierSecurity {
+	if s == nil {
+		return nil
+	}
+	out := &DossierSecurity{Status: string(s.Status)}
+	cites := func(ids []domain.EvidenceID) string {
+		if len(ids) == 0 {
+			return "no evidence"
+		}
+		parts := make([]string, len(ids))
+		for i, id := range ids {
+			parts[i] = string(id)
+		}
+		return strings.Join(parts, ", ")
+	}
+	bounded := func(dst *[]string, line string, n int) {
+		switch {
+		case len(*dst) < dossierSecurityLines:
+			*dst = append(*dst, clip(line, dossierExcerpt))
+		case len(*dst) == dossierSecurityLines:
+			*dst = append(*dst, fmt.Sprintf("… and %d more (read_artifact on the upgrade edge)", n-dossierSecurityLines))
+		}
+	}
+	advisories := func(dst *[]string, as []domain.SecurityAdvisory) {
+		for _, a := range as {
+			line := a.ID
+			if a.Severity != "" {
+				line += " (" + a.Severity + ")"
+			}
+			line += ": " + a.Summary
+			if a.Vulnerable != "" {
+				line += "; affected " + a.Vulnerable
+			}
+			if len(a.Patched) > 0 {
+				line += "; patched " + strings.Join(a.Patched, ", ")
+			}
+			line += "; source " + a.SourceID + " [" + cites(a.Evidence) + "]"
+			bounded(dst, line, len(as))
+		}
+	}
+	advisories(&out.Regressions, s.Regressions)
+	advisories(&out.Persisting, s.Persisting)
+	advisories(&out.Fixed, s.Fixed)
+	advisories(&out.Unassessed, s.Unassessed)
+	for _, c := range s.Candidates {
+		line := string(c.Kind)
+		if c.Line != "" {
+			line += " " + c.Line
+		}
+		if c.Version == nil {
+			line += ": none. " + c.Statement
+		} else {
+			var rm, lv []string
+			for _, r := range c.Removes {
+				rm = append(rm, r.ID)
+			}
+			for _, r := range c.Leaves {
+				lv = append(lv, r.ID)
+			}
+			line += fmt.Sprintf(": %s. removes [%s]; leaves [%s]", c.Version, strings.Join(rm, ", "), strings.Join(lv, ", "))
+			for _, ch := range c.Charts {
+				line += fmt.Sprintf("; chart %s %s", ch.Name, ch.Version)
+			}
+			line += " [" + cites(c.Evidence) + "]"
+		}
+		out.Candidates = append(out.Candidates, clip(line, dossierExcerpt))
+	}
+	for _, g := range s.Gaps {
+		bounded(&out.Gaps, g, len(s.Gaps))
+	}
+	return out
 }

@@ -18,6 +18,15 @@
         "inputEvidence": {"minItems": 1}
       }
     },
+    "AdvisoryRef": {
+      "type": "object",
+      "required": ["id", "evidence"],
+      "properties": {
+        "id": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
     "ArtifactChange": {
       "type": "object",
       "description": "Comparison of one artifact between the two endpoints of an edge.",
@@ -81,6 +90,18 @@
         "documentation"
       ]
     },
+    "CandidateChart": {
+      "type": "object",
+      "required": ["artifact", "version", "evidence"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "CandidateKind": {"type": "string", "enum": ["target-line", "any-line", "clean"]},
     "Category": {
       "type": "string",
       "enum": [
@@ -213,6 +234,38 @@
           {"required": ["promptVersion"]}
         ]
       }
+    },
+    "EdgeSecurity": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "sources"],
+      "properties": {
+        "schemaVersion": {"type": "string"},
+        "status": {
+          "$ref": "#/$defs/SecurityStatus",
+          "description": "complete: every security source was read; incomplete: some could not be (see gaps); unavailable: none was read or none is declared, which is never \"no advisories\"."
+        },
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/SourceStatus"}},
+        "gaps": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Every reason the assessment is not complete; never empty unless status is complete."
+        },
+        "regressions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/SecurityAdvisory"},
+          "description": "Advisories whose machine-readable range covers the target but not the current version."
+        },
+        "persisting": {"type": "array", "items": {"$ref": "#/$defs/SecurityAdvisory"}},
+        "fixed": {"type": "array", "items": {"$ref": "#/$defs/SecurityAdvisory"}},
+        "unassessed": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/SecurityAdvisory"},
+          "description": "Advisories without a machine-readable range (free text, a list that is not one interval, a Go pseudo-version bound): not matched against any version; check manually."
+        },
+        "candidates": {"type": "array", "items": {"$ref": "#/$defs/VersionCandidate"}},
+        "versionsConsidered": {"type": "integer"}
+      },
+      "additionalProperties": false
     },
     "Enrichment": {
       "type": "object",
@@ -588,6 +641,27 @@
       },
       "additionalProperties": false
     },
+    "SecurityAdvisory": {
+      "type": "object",
+      "required": ["id", "sourceId", "evidence"],
+      "properties": {
+        "id": {"type": "string"},
+        "aliases": {"type": "array", "items": {"type": "string"}},
+        "severity": {"type": "string"},
+        "summary": {"type": "string"},
+        "url": {"type": "string"},
+        "vulnerable": {"type": "string"},
+        "patched": {"type": "array", "items": {"type": "string"}},
+        "sourceId": {"type": "string"},
+        "sources": {"type": "array", "items": {"type": "string"}},
+        "publishedAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "changeId": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "SecurityStatus": {"type": "string", "enum": ["complete", "incomplete", "unavailable"]},
     "SourceRole": {
       "type": "string",
       "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
@@ -706,6 +780,10 @@
         "enrichmentRun": {
           "$ref": "#/$defs/EnrichmentRun",
           "description": "Present when enrichment was attempted: how the AI enrichments were produced and what the validator rejected."
+        },
+        "security": {
+          "$ref": "#/$defs/EdgeSecurity",
+          "description": "Deterministic advisory assessment of the upgrade (schemaVersion ri.dev/edge-security/v1alpha1): regressions, persisting, fixed and unassessed advisories, unread sources as gaps, and candidate versions. Absent on edges built before it existed."
         }
       },
       "additionalProperties": false
@@ -723,6 +801,41 @@
           "type": "string",
           "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
         }
+      },
+      "additionalProperties": false
+    },
+    "VersionCandidate": {
+      "type": "object",
+      "required": ["kind", "statement", "evidence"],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/CandidateKind",
+          "description": "target-line: lowest release on the target's line above the current version that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release above the current version affected by no assessed advisory."
+        },
+        "version": {
+          "$ref": "#/$defs/Version",
+          "description": "The candidate release; absent when none exists (statement says so)."
+        },
+        "line": {"type": "string"},
+        "statement": {"type": "string"},
+        "removes": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/AdvisoryRef"},
+          "description": "Advisories affecting the target that do not affect the candidate, with the evidence of their ranges."
+        },
+        "leaves": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/AdvisoryRef"},
+          "description": "Advisories that affect the candidate, with the evidence of their ranges."
+        },
+        "unassessed": {"type": "array", "items": {"type": "string"}},
+        "charts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/CandidateChart"},
+          "description": "Chart versions shipping the candidate, from the definition's artifact relation (chart index appVersion), with the index entry as evidence."
+        },
+        "chartGaps": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false
     }
