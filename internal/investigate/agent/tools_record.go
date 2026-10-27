@@ -884,6 +884,9 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 			if pa.behaviour, err = s.behaviourOf(ctx, pa.at, it, pa.in.Behaviour); err != nil {
 				return nil, err
 			}
+			if err := s.fetchFirst(pa.at, it, pa.behaviour.list); err != nil {
+				return nil, err
+			}
 			if err := behaviourVerdictCheck(pa.at, pa.verdict, pa.behaviour.list); err != nil {
 				return nil, err
 			}

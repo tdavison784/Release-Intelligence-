@@ -55,6 +55,7 @@ func TestEarlierPromptVersionsAreFrozen(t *testing.T) {
 		"investigate-agent/v9":  "4f90310ac7670e0c106a670fd6f18e151f037954a3ce2a787db859a2dedfdf6d",
 		"investigate-agent/v10": "8d75d01dfc4809179bcff0fa8e770c5520b7154867bdd5c790c6e59f5aabc5ea",
 		"investigate-agent/v11": "2f4f3e5652c1a4e67aecf0f249873c2cf16c999083e6cac83634dca49d80b038",
+		"investigate-agent/v12": "8d8dd2046ae9f4f7fc0f12948bd04923a373937e39df393cd4773804252f48e8",
 	}
 	for v, d := range want {
 		if _, err := LoadPrompt(v); err != nil {

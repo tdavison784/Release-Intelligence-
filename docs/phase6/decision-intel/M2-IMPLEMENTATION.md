@@ -207,3 +207,87 @@ tests.
   but are never rejected for them.
 - No live run on a development case (brief). The scored check of v12 is the commander's.
 
+
+## Fix: fetch first, prompt v13 (lane upstream3, ledger D-0014)
+
+**Gap** (found by the commander on development runs, described generically). Under v12, `not-affected` can no
+longer rest on unestablished upstream behaviour. But with fetching configured and working, the agent often
+declared the deciding behaviour `not-checked` and took `potentially-affected` or `insufficient-evidence` without
+ever calling `request_evidence`. The verdict was safe; the evidence, one call away, was never gathered.
+
+**Fix: prompt v13** = v12 + feature `fetchFirst` (`meta.json` `"fetchFirst": true`; needs `behaviour`). v1–v12
+are byte-frozen (v12 added to the digest list) and the default stays v9.
+
+| # | Change | Where |
+|---|---|---|
+| 1 | **The check** on `submit_findings`, whatever the verdict. It applies while the session can fetch for the item: a fetch port (`WithUpstream`), at least one code repository of the product (`upstreamScope`), and the session budget not spent. The item must be behavioural (`behaviouralChange`, as v12). **No upstream request for the item:** a `not-checked` entry is rejected **once** (own once-flag `rejectedNoFetch`), with "Upstream fetching is available for <repos> at <target> (target) and <current> (current): request the behaviour, or state in the entry why upstream source cannot answer it." The resubmission is accepted. **After a request** (any upstream request of the item, fulfilled or unavailable, refusals included): a `not-checked` entry is rejected **every time**; the entry is `upstream` (cited) or `unavailable` (the request id), under v12's source checks. The message lists the item's requests with their status. | `agent/behaviour.go` `fetchFirst`, `tools_record.go` (before v12's verdict check) |
+| 2 | **`reason`** (additive, on `not-checked` only): why the upstream source cannot answer the behaviour. It does not skip the once-rejection; it is accepted on the resubmission and recorded in the gap: `behaviour "<b>" at <tag>: not-checked (reason: <r>)`. A reason on another source is rejected (tool layer and `AgentAssessment.Validate`). | `domain/assessment.go` `AssessmentBehaviour.Reason`, `investigate/api.go` `BehaviourInput.Reason`, `behaviourList`, `behaviourGaps` |
+| 3 | **Prompt v13.** `system.md`: one sentence at the end of "Behaviour the verdict relies on" (fetch first, then conclude; the once-rejection; `reason`; after a request, `upstream` or `unavailable`). `tools.json`: only `submit_findings` (the `reason` property and one description sentence). `item.md`, `task.md` are v12's. Generic wording (tested). | `prompts/investigate-agent/v13/` |
+| 4 | **Earlier prompts.** Without `fetchFirst` the check never runs. A behaviour `reason` is refused with exactly the message the strict decoder gave before the field existed (`invalid arguments for submit_findings: json: unknown field "reason"`, the key as sent), through the same path, so the transcript records the call as before. Checked against the stored v12 runs (6 transcripts from the commander's `cases.tar.gz`, transcripts only): 75 `submit_findings` calls, 82 behaviour entries, none with a `reason` key. | `agent/session.go` `legacyBehaviourReason` |
+
+**No product logic.** The check reads the sources, the item's family and manifestation, the request records, the
+port and the budget. It never reads the behaviour's or the reason's wording.
+
+**Policy isolation.** The classifier never reads assessments. `TestFetchFirstNeverReachesThePolicy`: findings,
+decision and eligibility are byte-identical without the agent records, with the behaviour list stripped, and with a
+reasoned `not-checked`.
+
+**How to run.** As v11 ("How to run v11" above), with `-agent-prompt investigate-agent/v13`.
+
+### Tests (`agent/prompt_v13_test.go`)
+
+- `TestPromptV13`: features are v12's plus `fetchFirst`; only `submit_findings` differs (the `reason` property;
+  the description is v12's plus one sentence); `item.md`, `task.md` and `meta.json` as above; the system prompt is
+  v12's plus the one sentence; the default is v9; `fetchFirst` without `behaviour` is refused.
+  `TestPromptV13IsGeneric`. `TestEarlierPromptVersionsAreFrozen`: v1–v12.
+- `TestV13NotCheckedWithoutAttemptRejectedOnce`: with a port and no request, `not-checked` is rejected once for
+  `potentially-affected`, `insufficient-evidence` and `affected`, then accepted with the gap. With `not-affected`,
+  the fetch-first message comes first, then v12's verdict check every time.
+- `TestV13ReasonAcceptedOnResubmission`: a reason does not skip the once-rejection; a reason on `upstream` is
+  rejected; the resubmission is accepted with the reason in the gap; the record validates; a reason on another
+  source fails `Validate`.
+- `TestV13AfterAttemptUpstreamOrUnavailable`: after a fulfilled request, `not-checked` is rejected every time (a
+  reason included), and the cited `upstream` entry is accepted; after an unavailable request, `not-checked` is
+  rejected and `unavailable` naming it is accepted.
+- `TestV13NotCheckedAcceptedWhenTheCheckDoesNotApply`: no port; a port with no repository for the product; a
+  non-behavioural item. Each is accepted at once.
+- `TestV13SpentBudgetAcceptsNotChecked`: a driver that keeps calling past the budget; the closing submission is
+  accepted (no request can be made).
+- `TestEarlierPromptsRefuseBehaviourReason`: v12 refuses `reason` and `Reason` with the decoder's exact message,
+  and the transcript keeps the call as sent. v12 accepts `not-checked` with a port and no request. The Go
+  interface refuses it with "takes no reason".
+- `TestV12ReplayUnchangedByFetchFirst`: v12 accepts `not-checked` with no request and after one, and replays
+  with no mismatch; `TestV12Replay` is unchanged and passes.
+- `TestV13Replay`: two scripted v13 runs replay with no mismatch, with identical transcripts, prompt digests and
+  assessments. The first has the once-rejection, a fetch, the after-request rejection and the cited
+  resubmission; the second is accepted with a reason.
+- `TestFetchFirstNeverReachesThePolicy`, as above.
+
+Mutation checks: each of these, when disabled, fails at least one test:
+- the check;
+- the after-request rejection;
+- the once-flag;
+- the spent-budget, no-repository and behavioural exemptions;
+- the feature gate (v12's tests fail);
+- the legacy `reason` refusal;
+- the reason in the gap.
+
+### Known limits
+
+- **The attempt is per item, not per behaviour.** Without reading wording, a request cannot be matched to the
+  behaviour it was meant to answer. Any upstream request of the item counts. After one, each `not-checked`
+  behaviour needs its own `upstream` citation or `unavailable` request, so one fetch does not excuse the others.
+  But an `unavailable` entry can name any unavailable request of the item, as in v12.
+- **After a request, `reason` is not an exit.** A behaviour the product's source cannot answer then needs a
+  request that ends unavailable: for example a search with no match, or a request outside the readable scope,
+  which is refused and recorded. The gap names that request's reason. This follows the brief ("after an attempt,
+  the entry must be upstream or unavailable"). It costs one tool call and can leave refusals in `unknown`.
+- **A model can still skip the fetch.** It gives a reason on the resubmission, or submits a second time. The
+  once-rejection asks; it does not force. The reason is recorded, never checked.
+- **The spent-budget exemption** covers the session's tool-call or read budget (`Exhausted`). An exhausted
+  upstream fetch budget still allows a request, which is recorded unavailable (`budget`) and gives the
+  `unavailable` exit.
+- **Decoder parity for earlier prompts** holds for a string `reason` (any case). A non-string `reason` on a pre-v13
+  prompt now fails decoding with a type error rather than "unknown field". No stored transcript sends a `reason` at
+  all.
+- No live run on a development case (brief). The scored check of v13 is the commander's.

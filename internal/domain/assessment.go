@@ -93,7 +93,8 @@ const (
 	// BehaviourUnavailable: an upstream request_evidence request of the item
 	// that was recorded unavailable.
 	BehaviourUnavailable = "unavailable"
-	// BehaviourNotChecked: honestly unestablished.
+	// BehaviourNotChecked: honestly unestablished; with prompt feature
+	// fetchFirst it may carry the reason the upstream source cannot answer it.
 	BehaviourNotChecked = "not-checked"
 )
 
@@ -103,13 +104,16 @@ var BehaviourSources = []string{BehaviourUpstream, BehaviourChangeText, Behaviou
 // AssessmentBehaviour is one upstream behaviour (validation, defaulting,
 // parsing, a feature gate, API semantics) an assessment's verdict relies on,
 // and where it is established: Citations (upstream), Quote (change-text),
-// Request (unavailable), or nowhere (not-checked).
+// Request (unavailable), or nowhere (not-checked, optionally with the Reason
+// the upstream source cannot answer it). CONTRACT-CHANGE(upstream3): Reason
+// is additive.
 type AssessmentBehaviour struct {
 	Behaviour string       `json:"behaviour"`
 	Source    string       `json:"source"`
 	Citations []EvidenceID `json:"citations,omitempty"`
 	Quote     string       `json:"quote,omitempty"`
 	Request   string       `json:"request,omitempty"`
+	Reason    string       `json:"reason,omitempty"`
 }
 
 // Gap reports whether the behaviour is left unestablished.
@@ -187,6 +191,9 @@ func (a AgentAssessment) Validate() error {
 		}
 		if !ok {
 			bad("behaviour[%d]: source %s takes citations (upstream), a quote (change-text), a request id (unavailable) or nothing (not-checked)", i, b.Source)
+		}
+		if b.Reason != "" && b.Source != BehaviourNotChecked {
+			bad("behaviour[%d]: only source not-checked takes a reason", i)
 		}
 	}
 	return errors.Join(errs...)

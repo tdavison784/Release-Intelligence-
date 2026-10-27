@@ -118,6 +118,12 @@ type Features struct {
 	// behavioural item declares none; each gap is stated in Unknown. Needs
 	// Upstream.
 	Behaviour bool `json:"behaviour"`
+	// FetchFirst: while the session can fetch upstream behaviour for a
+	// behavioural item, a not-checked behaviour is rejected once when the
+	// item made no upstream request (the entry may then state the reason the
+	// upstream source cannot answer it), and every time after one (it is
+	// upstream or unavailable). Needs Behaviour.
+	FetchFirst bool `json:"fetchFirst"`
 }
 
 // UpstreamBounds bound upstream evidence fetching per item session.
@@ -259,6 +265,9 @@ func (p *Prompt) checkSurface() error {
 	}
 	if p.Features.Behaviour && !p.Features.Upstream.On() {
 		return fmt.Errorf("agent: prompt %s: feature behaviour needs feature upstream", p.Version)
+	}
+	if p.Features.FetchFirst && !p.Features.Behaviour {
+		return fmt.Errorf("agent: prompt %s: feature fetchFirst needs feature behaviour", p.Version)
 	}
 	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
 		return fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", p.Version)

@@ -1214,6 +1214,20 @@ overturn it.
     `behaviour "<b>" at <tag>: <source>`. The checks never read the wording. Earlier versions refuse the field.
   - Like the rest of the assessment, `behaviour` is AI prose plus checked citations, never a classifier input
     (`TestBehaviourNeverReachesThePolicy`).
+- **v13** (Phase 6 M2 fix, fetch first, `docs/phase6/decision-intel/briefs/upstream3.md`, ledger D-0014; design
+  and tests in `docs/phase6/decision-intel/M2-IMPLEMENTATION.md`). v12 plus `meta.json` `fetchFirst: true`;
+  **not the default** (v9 stays). Why: under v12, with fetching configured and working, the agent often declared
+  the deciding behaviour `not-checked` and took a safe verdict without ever calling `request_evidence`.
+  - **Check on `submit_findings`**, whatever the verdict, while the session can fetch for the item (a fetch port,
+    a known repository of the product, budget left) and the item is behavioural: a `not-checked` behaviour is
+    rejected **once** when the item made no upstream request ("Upstream fetching is available for <repos> at
+    <tags>: request the behaviour, or state in the entry why upstream source cannot answer it"), and **every
+    time** after a request (any upstream request of the item, fulfilled or unavailable): the entry is then
+    `upstream` (cited) or `unavailable` (the request id), under v12's rules.
+  - **`reason`** (additive, `not-checked` only): why the upstream source cannot answer the behaviour; accepted on
+    the resubmission and recorded in the gap, `behaviour "<b>" at <tag>: not-checked (reason: <r>)`.
+  - **Prompt:** one sentence on the order (fetch first, then conclude) and the `reason` field. Earlier versions
+    refuse a behaviour `reason` with the strict decoder's exact message, so their transcripts replay unchanged.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1273,7 +1287,7 @@ v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item d
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
 citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers;
 v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check; v10 adds scoped
-verdicts (headline, scope, preconditions); v11 is v9 plus upstream evidence fetched at the upgrade's tags; v12 is v11 plus the assessment's behaviour dependencies. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+verdicts (headline, scope, preconditions); v11 is v9 plus upstream evidence fetched at the upgrade's tags; v12 is v11 plus the assessment's behaviour dependencies; v13 is v12 plus the fetch-first check. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 
