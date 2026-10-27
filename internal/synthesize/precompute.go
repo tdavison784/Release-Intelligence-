@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/investigate/verify/semantic"
 )
 
 // Producer is the provenance producer of a judgement; PromptVersion the
@@ -243,7 +244,8 @@ func (p *pre) itemLabel(id string) string {
 }
 
 // itemFindings: confirmed breakage, failed validations, agent
-// disagreements, untraced consumers and unestablished behaviour.
+// disagreements, untraced consumers, unestablished behaviour and behaviour
+// its citations do not support.
 func (p *pre) itemFindings() {
 	verdicts := p.verdicts()
 	for _, f := range p.inv.Findings {
@@ -290,6 +292,17 @@ func (p *pre) itemFindings() {
 			p.finding(domain.JudgementFinding{Kind: domain.JFBehaviourUnestablished, ChangeItem: a.ChangeItem, Subject: b.Behaviour,
 				Statement: fmt.Sprintf("Upstream behaviour %q, which the assessment of item %s relies on, is %s.", clip(b.Behaviour, 300), p.itemLabel(a.ChangeItem), how),
 				Refs:      nonEmpty(a.ID, b.Request)})
+		}
+		// the report-only semantic check (lane semverify): an upstream
+		// behaviour whose cited passages lack a value it asserts, or state
+		// it reversed. Recorded as a disagreement, never a classification input.
+		for _, bc := range semantic.CheckBehaviours([]domain.AgentAssessment{a}, p.pool) {
+			if bc.Verdict != semantic.Unsupported {
+				continue
+			}
+			p.finding(domain.JudgementFinding{Kind: domain.JFBehaviourUnsupported, ChangeItem: a.ChangeItem, Subject: bc.Behaviour,
+				Statement: fmt.Sprintf("Upstream behaviour %q, which the assessment of item %s relies on, is not supported by its cited passages: %s", clip(bc.Behaviour, 300), p.itemLabel(a.ChangeItem), clip(bc.Detail, 400)),
+				Evidence:  p.cite(bc.Citations, maxEvidence), Refs: []string{a.ID}})
 		}
 		for _, r := range a.UnavailableEvidence {
 			if named[r] {

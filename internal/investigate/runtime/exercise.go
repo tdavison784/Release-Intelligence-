@@ -33,6 +33,10 @@ func (d DeclaredExercise) covers(f domain.ChangeItemFamily) bool {
 	return false
 }
 
+// admission reports an admission dry run (admission.go): never run by the
+// isolated upgrade, which acts on live objects.
+func (d DeclaredExercise) admission() bool { return d.Exercise.Action == catalog.ActionAdmissionDryRun }
+
 // targets reports whether an object is a target of the exercise.
 func (d DeclaredExercise) targets(r ObjectRef) bool {
 	return r.Group == d.Exercise.Target.Group && r.Kind == d.Exercise.Target.Kind

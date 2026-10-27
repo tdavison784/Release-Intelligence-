@@ -43,10 +43,18 @@ const (
 	ActionAnnotate ExerciseAction = "annotate"
 	// ActionRolloutRestart restarts a workload's pods (kubectl rollout restart).
 	ActionRolloutRestart ExerciseAction = "rollout-restart"
+	// ActionAdmissionDryRun submits one environment object of the target
+	// kind as a server-side dry run against the target version's validating
+	// admission webhook (runtime.admission-dry-run@v1, opt-in, lane
+	// semverify). Its outcome is the API server's answer — accepted, or
+	// rejected with the message — so it declares no reaction, and the
+	// isolated-upgrade validator never runs it. CONTRACT-CHANGE(semverify):
+	// additive.
+	ActionAdmissionDryRun ExerciseAction = "admission-dry-run"
 )
 
 // ExerciseActions lists every action.
-var ExerciseActions = []ExerciseAction{ActionStatusCondition, ActionAnnotate, ActionRolloutRestart}
+var ExerciseActions = []ExerciseAction{ActionStatusCondition, ActionAnnotate, ActionRolloutRestart, ActionAdmissionDryRun}
 
 // Reaction kinds: how the controller's response to an exercise is observed.
 const (
@@ -237,6 +245,9 @@ func ValidateExercises(s *ExerciseSet) ValidationReport {
 			if x.Target.Group != "apps" || (x.Target.Kind != "Deployment" && x.Target.Kind != "StatefulSet" && x.Target.Kind != "DaemonSet") {
 				v.errf(p+".target", "rollout-restart targets apps Deployment, StatefulSet or DaemonSet, got %q", x.Target.Group+"/"+x.Target.Kind)
 			}
+		}
+		if x.Action == ActionAdmissionDryRun && x.Reaction != nil {
+			v.errf(p+".reaction", "an admission-dry-run has no controller reaction: its outcome is the API server's answer")
 		}
 		if x.Action != ActionStatusCondition && x.Condition != nil {
 			v.errf(p+".condition", "only a status-condition exercise has a condition")

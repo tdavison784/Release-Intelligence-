@@ -345,7 +345,16 @@ func TestHumanAuthoredRuleVerifiedByConsumerObservation(t *testing.T) {
 		case eres.ReviewItem:
 			// explicit fields only: refuted by the boundary fixtures
 			ex := x.Proof
-			if ex == nil || ex.Outcome != domain.ProofRefuted || !strings.Contains(ex.Methods[1].Detail, "boundary fixtures") || !strings.Contains(ex.Methods[1].Detail, "spec.signer") {
+			if ex == nil {
+				t.Fatalf("explicit-only rule: no proof: %+v", x)
+			}
+			detail := ""
+			for _, m := range ex.Methods {
+				if m.Method == domain.ProofRuleExercise {
+					detail = m.Detail
+				}
+			}
+			if ex.Outcome != domain.ProofRefuted || !strings.Contains(detail, "boundary fixtures") || !strings.Contains(detail, "spec.signer") {
 				t.Fatalf("explicit-only rule: %+v", ex)
 			}
 		}

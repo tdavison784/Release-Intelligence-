@@ -34,8 +34,8 @@ Branch `p6di/applicability` (from `p6-decision-intel` @ 971636bc). Brief: `brief
 6. **Boundary fixtures**: the rule exercise adds an **omitted-field arm** per field a rule compares by value; the
    arm's prediction is the rule evaluated with the shared helper. An undecidable prediction makes the exercise
    **fail** before any cluster runs (a rule that only works with every field explicit is refuted, E2). Shielded
-   alternatives that contradict the consumer role become **outside-role arms**: predicted "the consumer never
-   verifies"; a consumer that verifies at either version refutes the rule; otherwise the arm is recorded and never
+   alternatives that contradict the consumer role become **outside-role arms** (same consumers): a consumer that
+   verifies at FROM and fails at TO refutes the rule; otherwise the arm is recorded and never
    counts toward a pass on its own.
 
 ## Done

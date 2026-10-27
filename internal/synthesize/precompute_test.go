@@ -40,6 +40,7 @@ func TestPrecomputeFindingsHaveStableIDs(t *testing.T) {
 		f.Report.Security.Gaps = []string{"security source not read (vendor)"}
 	}).input())
 	got[domain.JFSecurityIncomplete] = byKind(inc)[domain.JFSecurityIncomplete]
+	got[domain.JFBehaviourUnsupported] = byKind(precompute(t, withUpstreamBehaviour().input()))[domain.JFBehaviourUnsupported]
 	for _, k := range domain.JudgementFindingKinds {
 		if len(got[k]) == 0 {
 			t.Errorf("no %s finding", k)
@@ -302,5 +303,41 @@ func TestPrecomputeNeedsAClassifiedInvestigation(t *testing.T) {
 	f.Inv.Decision = nil
 	if _, err := Precompute(f.input()); err == nil {
 		t.Error("an unclassified investigation was accepted")
+	}
+}
+
+// withUpstreamBehaviour: the assessment of it2 relies on two upstream
+// behaviours: one its cited passage states reversed, one it states, and one
+// it cannot decide.
+func withUpstreamBehaviour() fixture {
+	return newFixtureWith(func(f *fixture) {
+		f.Inv.Evidence = append(f.Inv.Evidence, ev("ev-src", "document", "https://example.test/parse.go#L10", "L10", "the parser rejects `*` in flag values"))
+		a := &f.Inv.AgentAssessments[0]
+		a.Behaviour = append(a.Behaviour,
+			domain.AssessmentBehaviour{Behaviour: "the parser accepts `*` in flag values", Source: domain.BehaviourUpstream, Citations: []domain.EvidenceID{"ev-src"}},
+			domain.AssessmentBehaviour{Behaviour: "the parser rejects `*` in flag values", Source: domain.BehaviourUpstream, Citations: []domain.EvidenceID{"ev-src"}},
+			domain.AssessmentBehaviour{Behaviour: "the parser reads flag values at startup", Source: domain.BehaviourUpstream, Citations: []domain.EvidenceID{"ev-src"}})
+	})
+}
+
+// The report-only semantic check of upstream behaviour: only an unsupported
+// behaviour becomes a disagreement (not hard), citing its passage; the
+// classification is untouched.
+func TestPrecomputeBehaviourUnsupportedByCitation(t *testing.T) {
+	f := withUpstreamBehaviour()
+	p := precompute(t, f.input())
+	got := byKind(p)[domain.JFBehaviourUnsupported]
+	if len(got) != 1 {
+		t.Fatalf("unsupported findings = %+v, want exactly the reversed behaviour", got)
+	}
+	x := got[0]
+	if x.Hard || x.ChangeItem != it2 || x.Subject != "the parser accepts `*` in flag values" || len(x.Evidence) != 1 || x.Evidence[0] != "ev-src" ||
+		!strings.Contains(x.Statement, "opposite polarity") || len(x.Refs) != 1 || x.Refs[0] != "aas-2" {
+		t.Errorf("finding %+v", x)
+	}
+	for _, it := range p.Items {
+		if it.ChangeItem == it2 && it.Classification != domain.FindingPotentiallyAffected {
+			t.Errorf("classification changed: %+v", it)
+		}
 	}
 }

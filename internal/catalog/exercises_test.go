@@ -30,7 +30,9 @@ func TestExercisesValid(t *testing.T) {
 	rr := Exercise{ID: "restart", Summary: "restart", Target: ObjectType{Group: "apps", Kind: "Deployment"},
 		Action: ActionRolloutRestart, Families: []string{"procedure"}, References: exRef,
 		Reaction: &ExerciseReaction{Kind: ReactionFieldChanged, Path: "status.observedGeneration"}}
-	if rep := ValidateExercises(exSet(validExercise(), ann, rr)); !rep.OK() {
+	adm := Exercise{ID: "admission", Summary: "dry-run", Target: ObjectType{Group: "networking.k8s.io", Kind: "Ingress"},
+		Action: ActionAdmissionDryRun, Families: []string{"behavior"}, References: exRef}
+	if rep := ValidateExercises(exSet(validExercise(), ann, rr, adm)); !rep.OK() {
 		t.Fatalf("valid exercises rejected: %v", rep.Errors())
 	}
 }
@@ -62,7 +64,10 @@ func TestExercisesRejectBadDeclarations(t *testing.T) {
 		"stray condition": {exSet(mut(func(x *Exercise) {
 			x.Action, x.Annotation = ActionAnnotate, "a.io/b"
 		})), "only a status-condition exercise"},
-		"restart non-workload":      {exSet(mut(func(x *Exercise) { x.Action, x.Condition = ActionRolloutRestart, nil })), "rollout-restart targets"},
+		"restart non-workload": {exSet(mut(func(x *Exercise) { x.Action, x.Condition = ActionRolloutRestart, nil })), "rollout-restart targets"},
+		"admission with a reaction": {exSet(mut(func(x *Exercise) {
+			x.Action, x.Condition, x.Reaction = ActionAdmissionDryRun, nil, &ExerciseReaction{Kind: ReactionEvent, Reason: "Sync"}
+		})), "no controller reaction"},
 		"unknown family":            {exSet(mut(func(x *Exercise) { x.Families = []string{"behaviour"} })), "unknown change-item family"},
 		"no families":               {exSet(mut(func(x *Exercise) { x.Families = nil })), "at least one change-item family"},
 		"unknown reaction":          {exSet(mut(func(x *Exercise) { x.Reaction = &ExerciseReaction{Kind: "log"} })), "reaction.kind"},
