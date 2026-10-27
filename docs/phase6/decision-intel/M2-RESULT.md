@@ -129,3 +129,33 @@ upstream code.
 not-affected verdict on an item whose outcome rests on upstream behaviour must cite that behaviour from upstream
 evidence beyond the change text (a fetched file, or a source artifact), or carry a recorded unavailable request.
 Otherwise it is rejected once, and the gap is recorded on resubmission. Then re-run live and ablation × 3.
+
+### §2 re-run with prompt v12 (D-0013 merged), 2026-10-27: SAFETY MET; RETRIEVAL 1/3
+
+**Runs:** `C1-K0-20261027-c920f190-v12-deu-r{1,2,3}` (live, online) and `…-v12-deu-abl-r{1,2,3}` (offline, no upstream
+cache).
+
+| Run | Fetches on the item | Verdict | B3 | Behaviour entry for path validation |
+|---|---|---|---|---|
+| live r1 | 2 × search, ok | potentially-affected | not FS | `upstream`: "the regex that rejects '.'", cited (ev-191b4003dcab) |
+| live r2 | none | insufficient-evidence | not FS | `not-checked` |
+| live r3 | none | potentially-affected | not FS | `not-checked` |
+| abl r1 | 1 × search, unavailable (cache miss) | potentially-affected | not FS | `unavailable` (erq-cf29fd0b9364) |
+| abl r2 | none | potentially-affected | not FS | `not-checked` |
+| abl r3 | 1 × search, unavailable | potentially-affected | not FS | `unavailable` (erq-472a5aa4e8ff) |
+
+- **False-safe: 0 of 6** (v11 ablation: 3 of 3). Every run records the gap in `unknown` through the tool layer.
+- The check fired on live r1 and r2: the first `submit_findings` was rejected and the second accepted.
+- **Classification:** identical to the deterministic run `A0-K0-20261027-965ba258-adv-deu` in 6 of 6.
+- **Gate status:**
+  - **Ablation: met.** Never false-safe; the gap is explicit. abl r2 says `not-checked` rather than `unavailable`,
+    because it never tried. That is explicit, but it is not a recorded attempt.
+  - **Live: not met on retrieval.** Not false-safe in 3 of 3, but only 1 of 3 cites the validator source (v11: 3 of 3).
+    v12 removed the memory false-safe; the model now takes the safe hedge (`not-checked`) instead of fetching.
+  - Mission M2: "no longer relies on unverified model memory to establish strict-path compatibility". **Met: no run
+    asserts compatibility from memory.** "Retrieval of exact strict-path validation semantics": **1 of 3.**
+
+**Next (inside M2): D-0014, small.** When upstream fetching is configured for the session, a `not-checked` behaviour
+entry on a behavioural item with no `request_evidence` attempt is rejected once ("fetching is available: request it,
+or say why it cannot answer this"). An attempted fetch then yields `upstream` or `unavailable`. This pushes retrieval
+deterministically without changing the verdict rules. Then re-run live × 3. The ablation is already met.
