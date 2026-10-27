@@ -82,3 +82,13 @@ alternative the patched list implies. Then re-run §1 offline from the same stat
 **Product-owner decision, 2026-10-27:** "Im fine with it recomending 1.20.3, that could be newer since it last
 recommended 1.19.x." The cert-manager `any-line` and `clean` result of 1.20.3 is accepted. D-0012 (the consistency
 gap) continues as an informational improvement and does not change that answer.
+
+### §1 re-run after D-0012 (advisories3 merged), 2026-10-27: MET
+
+Run `A0-K0-20261027-aed956a9-adv-cm`, offline from the same recorded state.
+- The cert-manager `any-line` and `clean` candidates stay 1.20.3 (accepted by the product owner). Each statement adds:
+  "If GHSA-8rvj-mm4h-c258's patched list is right, v1.19.6 also qualifies; it is not chosen because the stated range
+  includes it."
+- The section lists the inconsistency (range `>= 1.18.0, <= 1.20.2`, contradicting patched 1.19.6) with a gap and a
+  warning.
+- **GATE-M2 §1 is met for both development edges.**

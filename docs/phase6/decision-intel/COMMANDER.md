@@ -14,7 +14,7 @@ handoffs (every item is `providers: [claude]`).
 | scoped | ri-scoped | Opus 5.5 | p6di/scoped | .claude/worktrees/p6di-scoped | w1:t27 (pane w1:p3W) | done, merged, closed 2026-10-26 |
 | advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | done, merged, closed 2026-10-27 |
 | advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | done, merged, closed 2026-10-27 |
-| advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | started 2026-10-27 (D-0012) |
+| advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | done, merged, closed 2026-10-27 |
 
 ## Merge log
 
@@ -56,11 +56,7 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `advisories3` is running (D-0012). On LANE DONE:
-   - merge it;
-   - re-run GATE-M2 §1 offline from `$CLAUDE_JOB_DIR/tmp/m2adv/state` (the bin/ri eval A0 commands in COMMANDER's
-     2026-10-27 merge note);
-   - append to M2-RESULT §1.
+1. GATE-M2 §1 is MET (M2-RESULT §1 re-run). The advisories work is complete.
 2. Lane `upstream` is running (D-0009). On LANE DONE:
    - merge it;
    - record the upstream fetches online into the M2 state;
