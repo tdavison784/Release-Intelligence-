@@ -30,6 +30,24 @@ func affected(c *semver.Constraints, v domain.Version) bool {
 	return c.Check(sv)
 }
 
+// AdvisoryReading reads advisory a's machine-readable range at v exactly as
+// the edge's security section does. Assessed is false when the advisory has
+// no range or its range does not parse (an unassessed advisory: whether it
+// affects v is unknown). Pure; the upgrade synthesis (internal/synthesize)
+// uses it for releases the section does not cover.
+// CONTRACT-CHANGE(synthesis): additive.
+func AdvisoryReading(a domain.Advisory, v domain.Version) (isAffected, assessed bool) {
+	vul := strings.TrimSpace(a.Vulnerable)
+	if vul == "" {
+		return false, false
+	}
+	cs, err := semver.NewConstraint(vul)
+	if err != nil {
+		return false, false
+	}
+	return affected(cs, v), true
+}
+
 func advisoryRefs(a domain.Advisory) []domain.Reference {
 	var out []domain.Reference
 	seen := map[string]bool{}

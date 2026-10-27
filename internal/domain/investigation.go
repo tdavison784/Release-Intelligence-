@@ -2766,11 +2766,14 @@ const (
 	StageInvestigate   Stage = "investigate"
 	StageValidate      Stage = "validate"
 	StageClassify      Stage = "classify"
-	StageHumanReview   Stage = "human-review"
+	// StageSynthesize: the upgrade-level judgement, after classify and
+	// before review (Milestone 3). CONTRACT-CHANGE(synthesis): additive.
+	StageSynthesize  Stage = "synthesize"
+	StageHumanReview Stage = "human-review"
 )
 
 // Stages lists every stage in pipeline order.
-var Stages = []Stage{StageCollectChange, StageBuildSnapshot, StageAssemble, StageBuildGraph, StageTraverse, StageInvestigate, StageValidate, StageClassify, StageHumanReview}
+var Stages = []Stage{StageCollectChange, StageBuildSnapshot, StageAssemble, StageBuildGraph, StageTraverse, StageInvestigate, StageValidate, StageClassify, StageSynthesize, StageHumanReview}
 
 // AuditEvent is one entry of the append-only audit trail. Events form a hash
 // chain: Prev is the Digest of the previous event ("" for the first), so a
@@ -2838,7 +2841,11 @@ type Investigation struct {
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
 	Findings           []InvestigationFinding `json:"findings,omitempty"`
 	Decision           *PolicyDecision        `json:"decision,omitempty"`
-	Review             HumanReview            `json:"review"`
+	// Judgement is the upgrade-level synthesis (Milestone 3, judgement.go):
+	// advisory AI output computed after classification, never a policy
+	// input. CONTRACT-CHANGE(synthesis): additive.
+	Judgement *UpgradeJudgement `json:"judgement,omitempty"`
+	Review    HumanReview       `json:"review"`
 	// Artifacts are the run's derived artifacts (graph, renders, validator
 	// outputs, transcript, fulfilled evidence requests); Evidence the
 	// records the run created (agent citations, validator evidence). Ids
@@ -3150,6 +3157,14 @@ func (inv *Investigation) Validate() error {
 					bad("agent: coverage of %s (%s) needs its closing %s assertion about the item (got %q)", c.ChangeItem, c.Disposition, stance, c.Assertion)
 				}
 			}
+		}
+	}
+	if j := inv.Judgement; j != nil {
+		if err := j.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if j.Investigation != inv.ID || j.Environment != inv.Environment {
+			bad("judgement %s belongs to %s/%s", j.ID, j.Investigation, j.Environment)
 		}
 	}
 	errs = append(errs, validateAudit(inv.Audit)...)
@@ -3465,6 +3480,30 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	for _, r := range inv.ValidationRequests {
 		item("validation request "+r.ID, r.ChangeItem)
 		art("validation request "+r.ID, r.Inputs...)
+	}
+	if j := inv.Judgement; j != nil {
+		// The judgement's own records (edge advisory and chart evidence) join
+		// the pool only for the judgement's citations.
+		jev := map[EvidenceID]bool{}
+		for _, e := range j.Evidence {
+			jev[e.ID] = true
+		}
+		for _, id := range j.citedEvidence() {
+			if _, ok := ev[id]; !ok && !jev[id] {
+				bad("judgement %s: evidence %s does not resolve", j.ID, id)
+			}
+		}
+		for _, f := range j.Findings {
+			item("judgement finding "+f.ID, f.ChangeItem)
+		}
+		for _, l := range j.Locations {
+			item("judgement location "+l.ID, l.ChangeItem)
+		}
+		for _, c := range j.Changes {
+			for _, id := range c.ChangeItems {
+				item(fmt.Sprintf("judgement change %d", c.Order), id)
+			}
+		}
 	}
 	for _, v := range inv.Validations {
 		item("validation "+v.ID, v.ChangeItem)

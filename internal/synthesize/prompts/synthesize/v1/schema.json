@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recommendation", "headline", "scope", "preconditions", "targetVersion", "rationale", "changes", "validation",
+    "residualRisks", "findingComments", "interactionComments", "verified", "inferred", "unknown", "backoutNotes"],
+  "properties": {
+    "recommendation": {"type": "string", "enum": ["proceed", "proceed-with-changes", "modify-target", "validation-required", "do-not-proceed"]},
+    "headline": {"type": "string"},
+    "scope": {"type": "string"},
+    "preconditions": {"type": "array", "items": {"type": "string"}},
+    "targetVersion": {"type": "string"},
+    "rationale": {"type": "string"},
+    "changes": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["kind", "summary", "changeItems", "location"],
+      "properties": {
+        "kind": {"type": "string", "enum": ["pin-behaviour", "version-bump", "validate", "adopt-new-default", "other"]},
+        "summary": {"type": "string"},
+        "changeItems": {"type": "array", "items": {"type": "string"}},
+        "location": {"type": "string"}}}},
+    "validation": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["test", "expected", "basis", "changeItems"],
+      "properties": {
+        "test": {"type": "string"},
+        "expected": {"type": "string"},
+        "basis": {"type": "array", "items": {"type": "string"}},
+        "changeItems": {"type": "array", "items": {"type": "string"}}}}},
+    "residualRisks": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["statement", "changeItem", "refs"],
+      "properties": {
+        "statement": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "refs": {"type": "array", "items": {"type": "string"}}}}},
+    "findingComments": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["id", "comment"], "properties": {"id": {"type": "string"}, "comment": {"type": "string"}}}},
+    "interactionComments": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["id", "comment"], "properties": {"id": {"type": "string"}, "comment": {"type": "string"}}}},
+    "verified": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["statement", "citations"],
+      "properties": {"statement": {"type": "string"}, "citations": {"type": "array", "items": {"type": "string"}}}}},
+    "inferred": {"type": "array", "items": {"type": "string"}},
+    "unknown": {"type": "array", "items": {"type": "string"}},
+    "backoutNotes": {"type": "string"}
+  }
+}
