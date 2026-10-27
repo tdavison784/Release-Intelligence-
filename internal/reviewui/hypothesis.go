@@ -16,7 +16,9 @@ import (
 // outcome, evidence and the rule exercise's two arms), the limitations, and
 // the promotion gate. When other active facts state the same subject, the
 // reviewer says per fact whether the promoted rule supersedes it or coexists
-// with it; the gate refuses a promotion that leaves one unaccounted for.
+// with it; the gate refuses a promotion that leaves one unaccounted for. An
+// ordinary item offers the same choice for the active facts of its release
+// (lane backdoor).
 
 type hypothesisView struct {
 	Hypothesis, Investigation string
@@ -93,16 +95,48 @@ func newHypothesisView(rc *knowledge.ReviewContext, form url.Values) *hypothesis
 	for i := len(g.Proofs) - 1; i >= 0; i-- {
 		v.Proofs = append(v.Proofs, newProofView(g.Proofs[i]))
 	}
-	self := domain.VerifiedFactID(rc.Item.Product, rc.Item.Release, a)
+	v.Related = sameSubjectFacts(rc, form, a.Subject, false)
+	return v
+}
+
+// sameSubjectFacts are the active facts on subject the reviewer must place
+// (supersedes or coexists), apart from the fact the item itself proposes:
+// every release of the product for a hypothesis-sourced rule (the gate),
+// the item's release otherwise (lane backdoor: every accept or correct
+// names them).
+func sameSubjectFacts(rc *knowledge.ReviewContext, form url.Values, subject *domain.Subject, sameRelease bool) []relatedFact {
+	if subject == nil {
+		return nil
+	}
+	self := domain.VerifiedFactID(rc.Item.Product, rc.Item.Release, rc.Item.Proposed)
+	var out []relatedFact
 	for _, f := range rc.RelatedFacts {
-		if f.Status != domain.FactActive || f.ID == self || f.Assertion.Subject == nil || a.Subject == nil || f.Assertion.Subject.Key() != a.Subject.Key() {
+		if f.Status != domain.FactActive || f.ID == self || f.Product != rc.Item.Product || (sameRelease && f.Release != rc.Item.Release) ||
+			f.Assertion.Subject == nil || f.Assertion.Subject.Key() != subject.Key() {
 			continue
 		}
-		v.Related = append(v.Related, relatedFact{ID: f.ID, Statement: truncate(f.Assertion.Statement, 220), Level: string(f.Level()),
+		out = append(out, relatedFact{ID: f.ID, Statement: truncate(f.Assertion.Statement, 220), Level: string(f.Level()),
 			Choice: form.Get(relationField(f.ID))})
 	}
-	sort.Slice(v.Related, func(i, j int) bool { return v.Related[i].ID < v.Related[j].ID })
-	return v
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
+}
+
+// relationChoices are the facts the decision form offers to supersede or
+// keep: the hypothesis view's for an agent-proposed rule, else the active
+// facts of the item's release on the subject the item (or, for a partial
+// question, its proposals) states.
+func relationChoices(rc *knowledge.ReviewContext, form url.Values) []relatedFact {
+	if v := newHypothesisView(rc, form); v != nil {
+		return v.Related
+	}
+	subject := rc.Item.Proposed.Subject
+	for _, p := range rc.Proposals {
+		if subject == nil {
+			subject = p.Assertion.Subject
+		}
+	}
+	return sameSubjectFacts(rc, form, subject, true)
 }
 
 func newProofView(p domain.ProofRecord) proofView {
@@ -139,11 +173,7 @@ func newProofView(p domain.ProofRecord) proofView {
 // same-subject facts the page offered; any other fact id is ignored (the
 // gate checks the decision against the store).
 func relations(rc *knowledge.ReviewContext, form url.Values) (supersedes, coexists []string, err error) {
-	v := newHypothesisView(rc, url.Values{})
-	if v == nil {
-		return nil, nil, nil
-	}
-	for _, f := range v.Related {
+	for _, f := range relationChoices(rc, url.Values{}) {
 		switch c := strings.TrimSpace(form.Get(relationField(f.ID))); c {
 		case "supersedes":
 			supersedes = append(supersedes, f.ID)

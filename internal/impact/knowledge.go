@@ -38,6 +38,9 @@ const (
 	RuleKnowledgeOverlap   = domain.KnowledgeRulePrefix + "overlap"   // informational, from the overlap condition
 	RuleKnowledgeClear     = domain.KnowledgeRulePrefix + "clear"     // not-affected
 	RuleKnowledgeUndecided = domain.KnowledgeRulePrefix + "undecided" // unknown
+	// RuleKnowledgeContradiction: two facts of one subject contradict each
+	// other (unknown; neither clears)
+	RuleKnowledgeContradiction = domain.RuleKnowledgeContradiction
 )
 
 // ClassifyKnowledge applies the trust ladder (DESIGN.md §4) to one fact and
@@ -376,7 +379,16 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 	perChange := map[string][]domain.ImpactFinding{}
 	var order []string
 	changes := map[string]domain.Change{}
-	for _, f := range usableFacts(facts, min) {
+	usable := usableFacts(facts, min)
+	// lane backdoor: a fact another usable fact of its subject contradicts
+	// never clears; each gets a knowledge-contradiction gap naming both
+	partners := map[string][]string{}
+	for _, x := range domain.Contradictions(usable) {
+		partners[x.A] = append(partners[x.A], x.B+" ("+x.Why+")")
+		partners[x.B] = append(partners[x.B], x.A+" ("+x.Why+")")
+	}
+	gaps := map[string][]domain.ImpactFinding{}
+	for _, f := range usable {
 		attached := AttachedChanges(f, b.edge)
 		if len(attached) == 0 || f.Assertion.Applicability == nil {
 			continue
@@ -404,6 +416,17 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 				overlap = EvaluateConditionWith(*ov, b.objs, b.edge, opts)
 			}
 			kf, ok := b.knowledgeFinding(f, exposure, overlap, c)
+			if ps := partners[f.ID]; len(ps) > 0 {
+				// only a stricter (affected) finding stands
+				ok = ok && (kf.Classification == domain.ImpactActionRequired || kf.Classification == domain.ImpactReviewRequired)
+				if gap, gok := b.contradictionFinding(f, ps, c); gok {
+					if _, seen := changes[c.ID]; !seen {
+						order = append(order, c.ID)
+						changes[c.ID] = c
+					}
+					gaps[c.ID] = append(gaps[c.ID], gap)
+				}
+			}
 			if !ok {
 				continue
 			}
@@ -429,6 +452,12 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 			b.findings = append(b.findings, kf)
 			superseded[id] = true
 			b.cite(kf)
+		}
+		// a contradiction is always recorded, beside any verdict
+		for _, g := range gaps[id] {
+			b.findings = append(b.findings, g)
+			superseded[id] = true
+			b.cite(g)
 		}
 	}
 	if len(superseded) == 0 {
@@ -544,6 +573,23 @@ func (b *builder) knowledgeFinding(f domain.VerifiedFact, exposure, overlap Cond
 		}
 	}
 	kf.Title, kf.Detail = knowledgeText(f, class, rule, exposure, overlap)
+	return kf, true
+}
+
+// contradictionFinding is the unknown gap of fact f on change c when other
+// active facts of its subject (partners, each with why) contradict it.
+func (b *builder) contradictionFinding(f domain.VerifiedFact, partners []string, c domain.Change) (domain.ImpactFinding, bool) {
+	needed := fmt.Sprintf("a human resolves the contradiction between fact %s and %s: supersede or retract one (`ri review`)", f.ID, strings.Join(partners, ", "))
+	kf, ok := b.knowledgeFinding(f, ConditionResult{Value: Unknown, Reason: domain.UnknownReleaseKnowledgeGap, Needed: []string{needed}}, ConditionResult{}, c)
+	if !ok {
+		return kf, false
+	}
+	kf.Rule, kf.Provenance.Rule = RuleKnowledgeContradiction, RuleKnowledgeContradiction
+	kf.ID = "imp-" + domain.ShortHash(kf.Rule, c.ID, f.ID)
+	kf.UnknownReason = domain.UnknownReleaseKnowledgeGap
+	kf.Title = "Contradicting knowledge, not used to clear: " + factStatement(f)
+	kf.Detail = fmt.Sprintf("Verified knowledge %s (%s-verified) is contradicted by active fact(s) %s on the same subject (%s) at release %s. Neither fact clears this change until a human supersedes or retracts one.",
+		f.ID, f.Level(), strings.Join(partners, ", "), f.Assertion.Subject.Key(), f.Release)
 	return kf, true
 }
 

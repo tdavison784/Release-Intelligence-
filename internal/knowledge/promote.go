@@ -170,7 +170,8 @@ func boundsCover(b *domain.ProofBounds, release string) string {
 
 // gateDecisions refuses decisions the promotion gate does not allow. Ordinary
 // (non-hypothesis) items are untouched, except that any supersedes/coexists
-// they name must be active facts on the same subject.
+// they name must be active facts on the same subject (and accountFor, when
+// the fact is composed, that they name every other one).
 func gateDecisions(snap *Snapshot, ds []domain.ReviewDecision) error {
 	items := map[string]domain.ReviewItem{}
 	for _, it := range snap.ReviewItems {
@@ -201,9 +202,14 @@ func gateDecision(snap *Snapshot, it domain.ReviewItem, d domain.ReviewDecision)
 		return nil // validateDecisions reports it
 	}
 	_, _, hyp := HypothesisSource(snap, it)
-	named, err := namedFacts(snap, it, *fin, d)
-	if err != nil {
-		return err
+	var named map[string]bool
+	// a partial ordinary question states no subject: accountFor checks the
+	// names against the fact the decision composes
+	if hyp || fin.Subject != nil {
+		var err error
+		if named, err = namedFacts(snap, it, *fin, d); err != nil {
+			return err
+		}
 	}
 	if !hyp {
 		return nil

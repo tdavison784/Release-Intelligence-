@@ -30,7 +30,9 @@ type KnowledgeSet struct {
 // domain.KnowledgeRecord) read-only, validates each record, and keeps the
 // facts whose per-aspect verification is proven by the loaded records
 // (impact.VerifyFacts). Invalid records are refused with a warning, never
-// used.
+// used. Each pair of kept active facts of one product, release and subject
+// that contradict each other (domain.FactIncompatibility) is a warning
+// naming both.
 //
 // The knowledge lane's knowledge.Store (NewFileStore) is the write path; this
 // reader only needs the same files, so the two stay interchangeable.
@@ -98,6 +100,11 @@ func LoadKnowledge(dir string) (*KnowledgeSet, error) {
 			continue
 		}
 		ks.Warnings = append(ks.Warnings, "fact refused: "+r)
+	}
+	// lane backdoor: active facts of one subject that contradict each other
+	// are reported (the join never lets either clear a change)
+	for _, x := range domain.Contradictions(ks.Facts) {
+		ks.Warnings = append(ks.Warnings, "knowledge contradiction: "+x.String())
 	}
 	ks.Contexts = impact.ReviewContexts(s)
 	return ks, nil
