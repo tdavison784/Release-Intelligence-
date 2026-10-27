@@ -232,6 +232,10 @@ func (c *cli) knowledgeDecide(args []string) error {
 			fmt.Fprintf(c.out, "  observed default (PD-5): an unset %s on %s behaves as %s, by confirmed proof %s at controller %s — limitation: %s\n",
 				od.Path, od.Kind, od.Value, od.Proof, strings.Join(od.Versions, ", "), od.Limitation)
 		}
+		for _, md := range o.Fact.RoleMembershipDefaults {
+			fmt.Fprintf(c.out, "  role-membership default (PD-6): %s on %s, by confirmed proof %s at controller %s; used only for membership in role %s — limitation: %s\n",
+				md.Statement(), md.Kind, md.Proof, strings.Join(md.Versions, ", "), md.Role, md.Limitation)
+		}
 	}
 	if o.Conflict != "" {
 		fmt.Fprintf(c.out, "conflict (decision recorded, no fact): %s\n", o.Conflict)

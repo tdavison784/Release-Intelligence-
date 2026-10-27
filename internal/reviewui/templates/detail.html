@@ -59,6 +59,9 @@
         {{if .ObservedDefaults}}<div class="flash flash-warn"><p><b>Observed defaults</b> <span class="badge soft">observed</span> — promoting this rule carries them into the fact; the evaluator uses them only through this confirmed proof.</p><ul class="small">
         {{range .ObservedDefaults}}<li>An unset <code>{{.Path}}</code> on {{.Kind}} behaves as <code>{{.Value}}</code> at controller {{range .Versions}}{{.}} {{end}}(fixture values <code>{{.ControllerValues}}</code>). <b>Limitation: {{.Limitation}}.</b> {{.Observation}}</li>{{end}}
         </ul></div>{{end}}
+        {{if .RoleMemberships}}<div class="flash flash-warn"><p><b>Role-membership defaults</b> <span class="badge soft">observed</span> — promoting this rule carries them into the fact; the evaluator uses each only to decide membership in its role, for this rule, through this confirmed proof. They are not defaults of the field.</p><ul class="small">
+        {{range .RoleMemberships}}<li><code>{{.Path}}</code> unset on {{.Kind}} ⇒ outside role <b>{{.Role}}</b> (in the role: <code>{{.RoleValue}}</code>; outside: <code>{{.OutsideValue}}</code>) at controller {{range .Versions}}{{.}} {{end}}(fixture values <code>{{.ControllerValues}}</code>). <b>Limitation: {{.Limitation}}.</b> {{.Observation}}</li>{{end}}
+        </ul></div>{{end}}
         <details><summary>Limitations — what this proof does not cover</summary><ul class="small">{{range .Limitations}}<li>{{.}}</li>{{end}}</ul></details>
       </div>
       {{end}}

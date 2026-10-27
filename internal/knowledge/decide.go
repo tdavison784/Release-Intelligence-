@@ -647,9 +647,10 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 }
 
 // carryObservedDefaults carries the defaults a confirmed proof observed
-// (PD-5, lane verify3) into the fact a human promotes through the gate: the
-// proof that opened it, of exactly the promoted rule. Nothing else carries
-// one, so a default that is only proposed never reaches a fact.
+// (PD-5, lane verify3) and its role-membership defaults (PD-6, lane verify4)
+// into the fact a human promotes through the gate: the proof that opened
+// it, of exactly the promoted rule. Nothing else carries one, so a default
+// that is only proposed never reaches a fact.
 func carryObservedDefaults(snap *Snapshot, item domain.ReviewItem, d domain.ReviewDecision, f *domain.VerifiedFact) {
 	fin := d.Final()
 	if fin == nil || d.ReviewerKind != domain.ReviewerHuman || (d.Action != domain.ActionAccept && d.Action != domain.ActionCorrect) {
@@ -670,6 +671,16 @@ func carryObservedDefaults(snap *Snapshot, item domain.ReviewItem, d domain.Revi
 		}
 		if !dup {
 			f.ObservedDefaults = append(f.ObservedDefaults, od)
+		}
+	}
+	for _, md := range g.Proof.RoleMembershipDefaults {
+		md.Proof = g.Proof.ID
+		dup := false
+		for _, x := range f.RoleMembershipDefaults {
+			dup = dup || (x.Proof == md.Proof && x.Same(md))
+		}
+		if !dup {
+			f.RoleMembershipDefaults = append(f.RoleMembershipDefaults, md)
 		}
 	}
 }

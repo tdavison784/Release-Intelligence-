@@ -261,7 +261,9 @@ func ObservedDefaults(rule domain.SemanticAssertion, ex domain.ProofMethod, fx O
 			var v string
 			switch {
 			case kb == "" || ku == "" || ko == "":
-				notes = append(notes, fmt.Sprintf("default probe of %s on arm %s: not every arm was observed at both versions (%s: %s; %s: %s; %s: %s)", f, b, b, orNone(kb), u.Name, orNone(ku), o.Name, orNone(ko)))
+				// role-cannot-form is not a value the field behaves as: it
+				// establishes membership only (RoleMembershipDefaults, PD-6)
+				notes = append(notes, fmt.Sprintf("default probe of %s on arm %s: not every arm was observed at both versions (%s: %s; %s: %s; %s: %s)", f, b, b, shown(base, kb), u.Name, shown(u, ku), o.Name, shown(o, ko)))
 				continue
 			case kb == ko:
 				notes = append(notes, fmt.Sprintf("default probe of %s on arm %s: the observation does not distinguish %s = %s from %s = %s (both %s), so it shows nothing about an unset %s", f, b, f, u.Probe.BaseValue, f, o.Probe.Value, kb, f))
@@ -296,9 +298,110 @@ func ObservedDefaults(rule domain.SemanticAssertion, ex domain.ProofMethod, fx O
 	return out, notes
 }
 
-func orNone(k string) string {
+// shown is an arm's consumer key, or its outcomes when it has none.
+func shown(a domain.ProofArm, k string) string {
 	if k == "" {
-		return "undetermined"
+		return consumerOutcomes(a)
 	}
 	return k
+}
+
+// RoleMembershipDefaults derives the observed role-membership defaults
+// (PD-6, lane verify4, D-0027) of a scope refinement's in-role default
+// probes. Call it only for a confirmed proof; notes say why a probed role
+// field got none. For role field F with value RV in the refinement's role
+// and OV outside it, "F unset ⇒ outside role R" is recorded when, in the
+// role's observation:
+//
+//   - the base arm sets F = RV and formed the relationship (its consumer
+//     decided) at FROM and at TO;
+//   - the unset probe could not form it at FROM and at TO
+//     (role-cannot-form, formation.go);
+//   - the other-value probe did not form it at either version. If it did,
+//     the catalog's other value acts in the role, so F does not decide
+//     membership as declared, and nothing is recorded.
+//
+// An explicit value needs no default, so only the unset probe establishes
+// one; the other-value probe's outcomes are part of the observation.
+func RoleMembershipDefaults(rule domain.SemanticAssertion, ex domain.ProofMethod, fx ObservationFixture, ref *domain.ScopeRefinement) (out []domain.RoleMembershipDefault, notes []string) {
+	if ex.Method != domain.ProofRuleExercise || rule.Subject == nil || ref == nil || fx.Bounds == nil || fx.Fixtures == nil {
+		return nil, nil
+	}
+	valueOf := func(fs []domain.RoleField, path string) (string, bool) {
+		for _, f := range fs {
+			if f.Path == path {
+				return f.Value, true
+			}
+		}
+		return "", false
+	}
+	byName := map[string]domain.ProofArm{}
+	for _, a := range ex.Arms {
+		byName[a.Name] = a
+	}
+	type group struct{ unset, other []domain.ProofArm }
+	groups := map[string]*group{} // field + base → probes
+	var keys []string
+	for _, a := range ex.Arms {
+		p := a.Probe
+		if p == nil || isOutsideRole(p.Base) {
+			continue
+		}
+		k := p.Field + "\x00" + p.Base
+		if groups[k] == nil {
+			groups[k] = &group{}
+			keys = append(keys, k)
+		}
+		if p.Omitted {
+			groups[k].unset = append(groups[k].unset, a)
+		} else {
+			groups[k].other = append(groups[k].other, a)
+		}
+	}
+	sort.Strings(keys)
+	values, _ := json.Marshal(fx.Fixtures.Controller.Values)
+	if fx.Fixtures.Controller.Values == nil {
+		values = []byte("{}")
+	}
+	for _, k := range keys {
+		f, b, _ := strings.Cut(k, "\x00")
+		g := groups[k]
+		base, ok := byName[b]
+		rv, inRole := valueOf(ref.Role, f)
+		ov, outside := valueOf(ref.Outside, f)
+		switch {
+		case !ok || len(g.unset) != 1 || len(g.other) != 1:
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s is incomplete", f, b))
+			continue
+		case !inRole || !outside:
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s: %s is not a field of role %s in and outside it", f, b, f, ref.Consumer))
+			continue
+		}
+		u, o := g.unset[0], g.other[0]
+		switch {
+		case !applicability.SameValue(u.Probe.BaseValue, rv):
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s: the base arm sets %s = %s, not the role's value %s", f, b, f, u.Probe.BaseValue, rv))
+			continue
+		case !formed(base):
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s: the arm in role %s (%s = %s) did not form the relationship at both versions (%s), so its not forming without %s shows nothing", f, b, ref.Consumer, f, rv, consumerOutcomes(base), f))
+			continue
+		case formedEither(o):
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s: with %s = %s the relationship of role %s formed (%s): %s does not decide membership as the catalog declares, so no role-membership default is recorded", f, b, f, o.Probe.Value, ref.Consumer, consumerOutcomes(o), f))
+			continue
+		case !cannotForm(u):
+			notes = append(notes, fmt.Sprintf("role-membership probe of %s on arm %s: with %s unset the relationship of role %s was not observed not to form at both versions (%s)", f, b, f, ref.Consumer, consumerOutcomes(u)))
+			continue
+		}
+		var formation []string
+		for _, r := range []*domain.ProofConsumerResult{u.Consumer.From, u.Consumer.To} {
+			formation = append(formation, r.Formation...)
+		}
+		obs := fmt.Sprintf("in the observation of arm %s (%s = %s, in role %s) the relationship formed (%s); with %s unset (%s) it could not form at FROM and TO (%s); with %s = %s (%s): %s",
+			b, f, rv, ref.Consumer, consumerOutcomes(base), f, u.Name, strings.Join(formation, "; "), f, o.Probe.Value, o.Name, consumerOutcomes(o))
+		out = append(out, domain.RoleMembershipDefault{Group: rule.Subject.Group, Kind: rule.Subject.Kind, Path: f, Role: ref.Consumer, RoleValue: rv, OutsideValue: ov,
+			Level: domain.LevelObserved, Arms: []string{b, u.Name, o.Name}, Observation: obs, Versions: []string{fx.Bounds.From, fx.Bounds.To},
+			ControllerValues: string(values), Fixture: fx.Fixtures.Digest(), Evidence: append([]domain.Evidence(nil), ex.Evidence...),
+			Limitation: domain.ObservedDefaultLimitation, RuleDigest: rule.Digest()})
+	}
+	return out, notes
 }

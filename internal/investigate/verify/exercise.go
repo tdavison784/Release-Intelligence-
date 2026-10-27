@@ -59,8 +59,10 @@ type armPlan struct {
 	Arm
 	subject string   // live id of the subject object
 	objects []string // subject + produced (+ consuming objects and theirs)
-	// consumer is the arm's consumer check (consumer observation only).
-	consumer *runtime.ConsumerCheck
+	// consumer is the arm's consumer check (consumer observation only);
+	// consuming the live ids of its consuming objects.
+	consumer  *runtime.ConsumerCheck
+	consuming []string
 }
 
 // ExerciseRule runs the two-arm exercise of a rule. It never runs against an
@@ -176,11 +178,14 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 	var observe []string
 	for _, a := range arms {
 		p := armPlan{Arm: a.Arm, subject: objectID(a.Object)}
-		for _, obj := range append([]map[string]any{a.Object}, a.consumers...) {
+		for i, obj := range append([]map[string]any{a.Object}, a.consumers...) {
 			if err := write(obj); err != nil {
 				return notRun("fixture object: %v", err)
 			}
 			p.objects = append(p.objects, objectID(obj))
+			if i > 0 {
+				p.consuming = append(p.consuming, objectID(obj))
+			}
 			if obj["kind"] != fx.Target.Kind || !strings.HasPrefix(objectID(obj), groupOr(fx.Target.Group)+"/") {
 				continue // a consuming object of another kind: its outputs are not declared
 			}

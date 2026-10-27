@@ -51,8 +51,10 @@ import (
 // stays ExerciseProducer). v2 (lane verify2, D-0025): non-discriminating
 // exposed arms never decide; the role-absent observation; scope refinements.
 // v3 (lane verify3, D-0026): log lines and warning events are diagnostics;
-// default probes (PD-5) are recorded and never decide.
-const ConsumerExerciseProducer = "verify.exercise-consumer@v3"
+// default probes (PD-5) are recorded and never decide. v4 (lane verify4,
+// D-0027): an in-role default probe whose relationship cannot form is
+// recorded role-cannot-form with its object-state evidence (PD-6).
+const ConsumerExerciseProducer = "verify.exercise-consumer@v4"
 
 // ConsumerFixture is one declared consumer observation of a subject kind.
 type ConsumerFixture struct {
@@ -572,18 +574,44 @@ func EvaluateConsumerArms(res *runtime.FixtureResult, plans []armPlan, refinemen
 		if p.Probe != nil {
 			// a default probe (probe.go): recorded, never decisive
 			a.Probe = p.Probe
+			var notFormed []string
+			if !isOutsideRole(p.Probe.Base) {
+				// in the role: the relationship may not form (formation.go)
+				for _, v := range []struct {
+					version string
+					res     *runtime.ConsumerResult
+					out     *string
+					rec     *domain.ProofConsumerResult
+				}{{"from", from, &fo, a.Consumer.From}, {"to", to, &too, a.Consumer.To}} {
+					ev, why := RoleCannotForm(res, p, v.version, v.res)
+					if ev == nil {
+						if *v.out == runtime.ConsumerUndetermined {
+							notFormed = append(notFormed, fmt.Sprintf("%s undetermined, not role-cannot-form: %s", v.version, why))
+						}
+						continue
+					}
+					*v.out = domain.ConsumerRoleCannotForm
+					v.rec.Outcome, v.rec.Formation = domain.ConsumerRoleCannotForm, ev
+					notFormed = append(notFormed, fmt.Sprintf("%s role-cannot-form: %s", v.version, strings.Join(ev, "; ")))
+				}
+			}
 			switch {
 			case fo == runtime.ConsumerVerified && too == runtime.ConsumerVerified:
 				a.Observed = domain.BehaviourPrevious
 			case fo == runtime.ConsumerVerified && too == runtime.ConsumerFailed:
 				a.Observed, a.Changed = domain.BehaviourNew, true
+			case fo == domain.ConsumerRoleCannotForm && too == domain.ConsumerRoleCannotForm:
+				a.Observed = domain.BehaviourRoleCannotForm
 			default:
 				a.Observed = domain.BehaviourUndetermined
 			}
 			a.Signatures = append([]string{fmt.Sprintf("consumer: FROM %s, TO %s", fo, too)}, a.Signatures...)
 			m.Arms = append(m.Arms, a)
-			m.Checks = append(m.Checks, domain.ProofCheck{Subject: a.Name, Outcome: domain.MethodInconclusive,
-				Detail: consumerArmDetail(a, from, to) + "; a default probe, never decisive"})
+			detail := consumerArmDetail(a, from, to)
+			if len(notFormed) > 0 {
+				detail += "; " + strings.Join(notFormed, "; ")
+			}
+			m.Checks = append(m.Checks, domain.ProofCheck{Subject: a.Name, Outcome: domain.MethodInconclusive, Detail: detail + "; a default probe, never decisive"})
 			continue
 		}
 		if isOutsideRole(p.Name) {
@@ -729,8 +757,12 @@ func consumerArmOutcome(name, from, to string) domain.MethodOutcome {
 }
 
 func consumerArmDetail(a domain.ProofArm, from, to *runtime.ConsumerResult) string {
+	fo, too := outcomeOf(from), outcomeOf(to)
+	if c := a.Consumer; c != nil && c.From != nil && c.To != nil {
+		fo, too = c.From.Outcome, c.To.Outcome
+	}
 	d := fmt.Sprintf("%s (%s): predicted %s, observed %s; consumer at FROM %s, at TO %s",
-		a.Name, a.Condition, a.Predicted, a.Observed, outcomeOf(from), outcomeOf(to))
+		a.Name, a.Condition, a.Predicted, a.Observed, fo, too)
 	for _, x := range []*runtime.ConsumerResult{from, to} {
 		if x != nil && x.Detail != "" {
 			d += "; " + x.Phase + ": " + x.Detail

@@ -2487,6 +2487,12 @@ type VerifiedFact struct {
 	// through that proof (ObservedDefaultEstablished); any other is ignored
 	// and its field stays unknown. CONTRACT-CHANGE(verify3): additive.
 	ObservedDefaults []ObservedDefault `json:"observedDefaults,omitempty"`
+	// RoleMembershipDefaults are observed role-membership defaults (PD-6),
+	// carried on human promotion like ObservedDefaults. The evaluators use
+	// one only for the rule's membership leaves of its role, only through
+	// that proof (RoleMembershipEstablished); never as a field default.
+	// CONTRACT-CHANGE(verify4): additive.
+	RoleMembershipDefaults []RoleMembershipDefault `json:"roleMembershipDefaults,omitempty"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing
