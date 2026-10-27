@@ -196,6 +196,11 @@ type CRDVersion struct {
 	Storage            bool
 	Deprecated         bool
 	DeprecationWarning string
+	// Schema is the version's structural openAPIV3Schema, decoded (nil when
+	// the CRD states none or it does not decode): what the API server
+	// defaults unset fields from (internal/applicability).
+	// CONTRACT-CHANGE(applicability): additive, never serialised.
+	Schema map[string]any `json:"-"`
 }
 
 // InstalledCRD is a CustomResourceDefinition found in the inputs.
@@ -779,6 +784,12 @@ func (l *loader) loadCRD(d doc, rs *RenderedCRDSource) {
 				v.Deprecated = s == "true"
 			}
 			v.DeprecationWarning = scalarOf(vn, "deprecationWarning")
+			if sn := fieldOf(vn, "schema", "openAPIV3Schema"); sn != nil {
+				var m map[string]any
+				if sn.Decode(&m) == nil {
+					v.Schema = m
+				}
+			}
 			crd.Versions = append(crd.Versions, v)
 		}
 	}

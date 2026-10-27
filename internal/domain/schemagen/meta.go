@@ -105,6 +105,7 @@ var enums = []enumSet{
 	enumOf(domain.ConsequenceKinds...),
 	enumOf(domain.Aspects...),
 	enumOf(domain.UnknownReasons...),
+	enumOf(domain.DefaultSources...), // CONTRACT-CHANGE(applicability)
 	enumOf(domain.VerificationLevels...),
 	enumOf(domain.ReviewerHuman, domain.ReviewerProxy),
 	enumOf(domain.ProposalTasks...),

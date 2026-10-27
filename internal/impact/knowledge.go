@@ -381,7 +381,8 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 		if len(attached) == 0 || f.Assertion.Applicability == nil {
 			continue
 		}
-		opts := ConditionOptions{Render: render}
+		// a condition default must cite the fact's own evidence
+		opts := ConditionOptions{Render: render, Evidence: f.Evidence}
 		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
 		for _, c := range attached {
 			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
