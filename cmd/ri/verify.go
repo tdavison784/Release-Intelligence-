@@ -13,6 +13,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/formalize"
 	rtval "github.com/tdavison784/release-intelligence/internal/investigate/runtime"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/investigate/verify"
@@ -23,7 +24,8 @@ import (
 const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR] [-again] [-json]
 
   Independently verify every open agent-proposed rule (hypothesis-sourced
-  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + `, or a
+  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + ` or
+  ` + "`ri investigate formalize -knowledge`" + `, or a
   human-authored rule taken in by ` + "`ri knowledge intake-rule`" + `) in a
   knowledge directory and store a proof record beside it (PROTOCOL §7–§8):
 
@@ -95,7 +97,8 @@ func (c *cli) verifyCmd(args []string) error {
 		Knowledge: knowledge.NewFileStore(*kdir),
 		Resolver: verify.Resolvers{verify.StoreResolver{Store: st},
 			&verify.HTTPCacheResolver{Dir: filepath.Join(c.g.state, "cache")}},
-		Runs:              verify.StateRuns{Dir: filepath.Join(st.Dir(), "runs")},
+		Runs: formalizedRuns{store: formalize.Store{Dir: formalize.StateDir(root)},
+			next: verify.StateRuns{Dir: filepath.Join(st.Dir(), "runs")}},
 		Runtime:           *runtimeOn,
 		KubernetesVersion: *kube,
 		Again:             *again,

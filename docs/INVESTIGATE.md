@@ -1766,6 +1766,46 @@ Under Temporal the step runs behind `workflow.GetVersion("synthesize")`, so hist
 unchanged. A synthesis that yields no judgement (a pending exchange, an unreachable model) is audited as `failed` and
 the run continues to the review.
 
+## Evidence formalization (`ri investigate formalize`, Phase 6 Milestone 4)
+
+Formalization turns one natural agent assessment (prompt v9 onwards; v13 is the default) into testable hypotheses that
+the existing verification and review path can check (package `internal/formalize`; plan
+`docs/phase6/decision-intel/PLAN-M4.md`, design and limits in `docs/phase6/decision-intel/M4-IMPLEMENTATION.md`). It is a
+separate stage after the investigation: the investigator explains naturally, the formalizer extracts the rule.
+
+- **Input:** the assessment, its change item and the run's evidence. The model sees the assessment, the *citable*
+  evidence (what the assessment's verified and behaviour entries cite, the item's change text when a behaviour quotes
+  it, the evidence of the run's verified setting claims about the item), the *uncertainties* it leaves (unknowns,
+  not-checked or unavailable behaviours, settings in state unknown or inherited-default, preconditions), and the
+  environment basis (the item's verified setting claims and validation records).
+- **Output:** per assessment, a formalization record with zero or more `Hypothesis` records:
+  - **rule**: a `MitigationSpec` that passes the agent's own spec checks (`agent.CheckMitigation`: complete and
+    decidable, the subject is of the run's product and occurs in the bundle, the bounds lie within the run, the basis
+    resolves, an upstream citation);
+  - **unrepresentable** (mission D3): the claim, its citations, `MitigationRejected` = the grammar limitation, and
+    `proposedVerification` with the method, the intended conditions, the uncertainties it keeps and the rule as far as
+    it can be written (undecidable leaves allowed).
+- **Non-invention floor** (mission D4), checked after the call: a citation outside the citable evidence, a dropped
+  uncertainty, bounds beyond the run, a subject of another product, a rule that treats an unset field as a value (a
+  default without evidence), an undecidable rule, a basis outside the run are all violations. A violating answer is
+  retried (at most 3 calls, each told the violations); after that the record is `failed`, never repaired.
+- **One structured model call** (prompt `formalize/v1`, generic, digest-pinned; default model `claude-opus-5-5`,
+  `-formalize-model`) through the LLM answer cache over `-formalize-exchange DIR` or a stateless `claude -p`;
+  `-offline` answers from the cache only. A replay is a cache hit.
+
+Records are stored at `<state>/investigations/formalizations/<inv-id>/<fmz-id>.json`. The run record, its findings,
+decision and review are never changed, and formalized hypotheses never enter the classifier's input. With
+`-knowledge`, the run's formalized hypotheses go through `ExportHypotheses` unchanged (proposals and whole-fact review
+items, never facts); `ri verify hypotheses` finds them in the formalization records; a human promotes.
+
+```sh
+ri investigate formalize <inv-id>                                  # claude -p, every assessment of the run
+ri investigate formalize <inv-id> -formalize-exchange /tmp/x       # writes the requests; answer them, run again
+ri investigate formalize <inv-id> -assessment aas-… -knowledge K   # one assessment; export to a knowledge copy
+ri verify hypotheses -knowledge K -runtime                         # independent verification, as for agent rules
+ri eval -investigations … -agent -formalize                        # formalize each case's assessments (stored as formalizations.json)
+```
+
 ## Evaluation
 
 `ri eval -investigations` scores the investigation pipeline against the blind ground truth in

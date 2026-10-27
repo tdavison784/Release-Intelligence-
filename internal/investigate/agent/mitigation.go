@@ -26,35 +26,67 @@ import (
 // mitigationSpec checks a mitigation and returns the spec, or the reason it
 // is malformed.
 func (s *Session) mitigationSpec(ctx context.Context, it domain.ChangeItem, in investigate.MitigationInput, cites []domain.Evidence) (*domain.MitigationSpec, string) {
+	return CheckMitigation(ctx, s.mitigationEnv(), it.ID, in, cites)
+}
+
+// MitigationEnv is what the spec checks read about a run. The agent's
+// session supplies its own lookups; the formalization stage
+// (internal/formalize) supplies the stored run's.
+type MitigationEnv struct {
+	Product  domain.ProductID
+	From, To string // the run's transition (release tags)
+	// Artifacts are the bundle artifacts the subject check reads with Read.
+	Artifacts []domain.ArtifactRef
+	Read      func(ctx context.Context, a domain.ArtifactRef) ([]byte, error)
+	// Artifact resolves a cited artifact id (bundle or run).
+	Artifact func(id string) (domain.ArtifactRef, bool)
+	// Basis says why an environment-basis reference does not resolve for
+	// the item ("" = it does).
+	Basis func(ctx context.Context, item, ref string) string
+}
+
+func (s *Session) mitigationEnv() MitigationEnv {
+	b := s.cfg.Bundle
+	return MitigationEnv{Product: b.Change.Product.ID, From: b.Change.From.Tag, To: b.Change.To.Tag,
+		Artifacts: b.Manifest.Artifacts, Read: s.bytesOf, Artifact: s.artifact, Basis: s.basisRef}
+}
+
+// CheckMitigation checks a mitigation against a run and returns the spec,
+// or the reason it is malformed. It reads nothing but env: the grammar (a
+// complete, decidable assertion), the subject exists in the bundle and
+// belongs to the run's product, the release bounds lie within the run's
+// transition, every basis reference resolves, and at least one citation is
+// upstream text.
+func CheckMitigation(ctx context.Context, env MitigationEnv, item string, in investigate.MitigationInput, cites []domain.Evidence) (*domain.MitigationSpec, string) {
 	var basis []string
 	for _, b := range in.EnvironmentBasis {
 		if b = trimmed(b); b != "" {
 			basis = append(basis, b)
 		}
 	}
-	spec := &domain.MitigationSpec{Item: it.ID, ProposedRule: in.ProposedRule, EnvironmentBasis: uniqSorted(basis),
+	spec := &domain.MitigationSpec{Item: item, ProposedRule: in.ProposedRule, EnvironmentBasis: uniqSorted(basis),
 		RequestedVerification: trimmed(in.RequestedVerification)}
 	if err := spec.Validate(); err != nil {
 		return nil, clip(err.Error(), maxDetail)
 	}
 	sub := spec.ProposedRule.Assertion.Subject
-	if string(sub.Product) != string(s.cfg.Bundle.Change.Product.ID) {
-		return nil, fmt.Sprintf("subject product %q is not this investigation's product %q", sub.Product, s.cfg.Bundle.Change.Product.ID)
+	if string(sub.Product) != string(env.Product) {
+		return nil, fmt.Sprintf("subject product %q is not this investigation's product %q", sub.Product, env.Product)
 	}
-	if why := s.subjectInBundle(ctx, *sub); why != "" {
+	if why := subjectInBundle(ctx, env, *sub); why != "" {
 		return nil, why
 	}
-	if why := s.boundsWithinRun(spec.ProposedRule.Release); why != "" {
+	if why := BoundsWithinRun(spec.ProposedRule.Release, env.From, env.To); why != "" {
 		return nil, why
 	}
 	for _, ref := range spec.EnvironmentBasis {
-		if why := s.basisRef(ctx, it.ID, ref); why != "" {
+		if why := env.Basis(ctx, item, ref); why != "" {
 			return nil, fmt.Sprintf("environmentBasis %q: %s", ref, why)
 		}
 	}
 	upstream := false
 	for _, e := range cites {
-		if a, ok := s.artifact(e.SourceID); ok && a.Origin == domain.OriginUpstream {
+		if a, ok := env.Artifact(e.SourceID); ok && a.Origin == domain.OriginUpstream {
 			upstream = true
 		}
 	}
@@ -84,10 +116,10 @@ func subjectTokens(sub domain.Subject) []string {
 
 // subjectInBundle reports why the subject cannot be found in the bundle
 // ("" = found): its identifying words occur together in one artifact.
-func (s *Session) subjectInBundle(ctx context.Context, sub domain.Subject) string {
+func subjectInBundle(ctx context.Context, env MitigationEnv, sub domain.Subject) string {
 	toks := subjectTokens(sub)
-	for _, a := range s.cfg.Bundle.Manifest.Artifacts {
-		b, err := s.bytesOf(ctx, a)
+	for _, a := range env.Artifacts {
+		b, err := env.Read(ctx, a)
 		if err != nil || isBinary(b) {
 			continue
 		}
@@ -102,20 +134,20 @@ func (s *Session) subjectInBundle(ctx context.Context, sub domain.Subject) strin
 	return fmt.Sprintf("subject %s does not occur in the bundle (no artifact names %s)", sub.Key(), strings.Join(toks, " and "))
 }
 
-// boundsWithinRun reports why the rule's bounds are not within this run's
-// FROM→TO ("" = they are): the rule must be about this transition.
-func (s *Session) boundsWithinRun(r domain.ReleaseBounds) string {
+// BoundsWithinRun reports why the rule's bounds are not within the run's
+// from → to ("" = they are): the rule must be about this transition.
+func BoundsWithinRun(r domain.ReleaseBounds, runFromTag, runToTag string) string {
 	from, to, err := r.Versions()
 	if err != nil {
 		return err.Error()
 	}
-	runFrom, err1 := domain.ParseReleaseVersion(s.cfg.Bundle.Change.From.Tag)
-	runTo, err2 := domain.ParseReleaseVersion(s.cfg.Bundle.Change.To.Tag)
+	runFrom, err1 := domain.ParseReleaseVersion(runFromTag)
+	runTo, err2 := domain.ParseReleaseVersion(runToTag)
 	if err1 != nil || err2 != nil {
-		return fmt.Sprintf("this run's versions %s → %s are not semver: the release bounds cannot be checked", s.cfg.Bundle.Change.From.Tag, s.cfg.Bundle.Change.To.Tag)
+		return fmt.Sprintf("this run's versions %s → %s are not semver: the release bounds cannot be checked", runFromTag, runToTag)
 	}
 	if from.LessThan(runFrom) || runTo.LessThan(to) {
-		return fmt.Sprintf("release bounds (%s, %s] are not within this run's transition %s → %s", r.From, r.To, s.cfg.Bundle.Change.From.Tag, s.cfg.Bundle.Change.To.Tag)
+		return fmt.Sprintf("release bounds (%s, %s] are not within this run's transition %s → %s", r.From, r.To, runFromTag, runToTag)
 	}
 	return ""
 }

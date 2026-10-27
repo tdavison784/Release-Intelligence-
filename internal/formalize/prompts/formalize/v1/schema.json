@@ -1,0 +1,299 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hypotheses",
+    "noHypothesisReason"
+  ],
+  "properties": {
+    "hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "claim",
+          "citations",
+          "conditions",
+          "rule",
+          "environmentBasis",
+          "requestedVerification",
+          "limitation",
+          "proposedVerification",
+          "keeps",
+          "discharges"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "rule",
+              "unrepresentable"
+            ]
+          },
+          "claim": {
+            "type": "string",
+            "description": "the hypothesis in one or two plain sentences, as the assessment states it"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "evidence ids from `evidence`"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "the intended applicability conditions, in prose"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "assertion",
+                  "release"
+                ],
+                "properties": {
+                  "assertion": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "subject",
+                      "change",
+                      "applicability",
+                      "consequence",
+                      "statement"
+                    ],
+                    "properties": {
+                      "subject": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "family",
+                          "product"
+                        ],
+                        "description": "{family, product, group?, version?, kind?, path?, name?, component?}; the fields a family takes: crd-field (group, kind, path; version?), helm-value (path), cli-flag (name), env-var (name), feature-gate (name), config-key (path), gvk (version, kind), image (name), protocol-behavior (name), api-endpoint (name), migration (name), …",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "enum": [
+                              "crd-field",
+                              "helm-value",
+                              "gvk",
+                              "feature-gate",
+                              "image",
+                              "config-key",
+                              "rbac-permission",
+                              "cli-flag",
+                              "env-var",
+                              "compatibility-boundary",
+                              "api-endpoint",
+                              "protocol-behavior",
+                              "terraform-attribute",
+                              "product-relationship",
+                              "migration"
+                            ]
+                          },
+                          "product": {
+                            "type": "string"
+                          },
+                          "group": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "component": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "change": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "type"
+                        ],
+                        "description": "{type, before?, after?, replacedBy?}; default-changed and value-changed take before and after (JSON-encoded scalars); renamed takes replacedBy (a subject)",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "added",
+                              "removed",
+                              "renamed",
+                              "default-changed",
+                              "value-changed",
+                              "behavior-changed",
+                              "deprecated",
+                              "now-required",
+                              "validation-tightened",
+                              "requirement-changed",
+                              "migration-required"
+                            ]
+                          },
+                          "before": {
+                            "type": "string"
+                          },
+                          "after": {
+                            "type": "string"
+                          },
+                          "replacedBy": {
+                            "type": "object"
+                          }
+                        }
+                      },
+                      "applicability": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "exposure"
+                        ],
+                        "properties": {
+                          "exposure": {
+                            "type": "object",
+                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?, default?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it). A `field`, `cli-flag` or `env-var` leaf with a value state (equals, not-equals, matches, has-token, has-token-key) may state `default`: {value (JSON-encoded), source crd-schema|controller, citations: upstream evidence ids that establish what an unset field holds}."
+                          },
+                          "overlap": {
+                            "type": "object",
+                            "description": "a condition of the fact grammar: {op, of?, group?, version?, kind?, name?, path?, component?, state?, values?, pattern?, separator?, range?, reason?, needed?, default?}. Combinators all/any (one or more operands in `of`) and not (exactly one); `resource` (kind, group?, version?, name?) scopes `field` (path; state unset|set|equals|not-equals|matches|has-token|has-token-key), `text-line` (path, pattern; state exists|none) and `ref` (path, kind?, group?) to one object of that kind; environment-wide leaves values-key, cli-flag, env-var, feature-gate, gvk-in-use, image-in-use, product-version, cluster-version, edge-from-version, rendered-change; `undecidable` (reason, needed) is always unknown. equals/not-equals values are JSON-encoded (\"\\\"Never\\\"\", \"true\"). In an undecidable leaf, `needed` is the id of the uncertainty it keeps (or, for a new gap, what is needed to decide it). A `field`, `cli-flag` or `env-var` leaf with a value state (equals, not-equals, matches, has-token, has-token-key) may state `default`: {value (JSON-encoded), source crd-schema|controller, citations: upstream evidence ids that establish what an unset field holds}."
+                          }
+                        }
+                      },
+                      "consequence": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "exposedClass"
+                        ],
+                        "description": "{kind, exposedClass, statement?, remediation?, severity?}; the class follows the kind: upgrade-blocked, resource-rejected, setting-ignored, permission-lost, workload-failure, migration-required → action-required (statement required); behavior-change, deprecation, superseded-upstream → review-required; none → informational",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "upgrade-blocked",
+                              "resource-rejected",
+                              "setting-ignored",
+                              "behavior-change",
+                              "permission-lost",
+                              "workload-failure",
+                              "migration-required",
+                              "deprecation",
+                              "superseded-upstream",
+                              "none"
+                            ]
+                          },
+                          "exposedClass": {
+                            "type": "string",
+                            "enum": [
+                              "action-required",
+                              "review-required",
+                              "informational"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "remediation": {
+                            "type": "string"
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": [
+                              "critical",
+                              "high",
+                              "medium",
+                              "low"
+                            ]
+                          }
+                        }
+                      },
+                      "statement": {
+                        "type": "string",
+                        "description": "the rule in one plain sentence"
+                      }
+                    }
+                  },
+                  "release": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "description": "from = the last version with the old behaviour (exclusive), to = the first version with the new one (inclusive); within the transition",
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "kind rule: the complete, decidable rule; kind unrepresentable: the rule as far as the grammar can carry it, or null"
+          },
+          "environmentBasis": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "kind rule: ids from `environmentBasis`; otherwise empty"
+          },
+          "requestedVerification": {
+            "type": "string",
+            "description": "kind rule: what an independent check must show, with and without the condition; otherwise empty"
+          },
+          "limitation": {
+            "type": "string",
+            "description": "kind unrepresentable: the specific grammar limitation; otherwise empty"
+          },
+          "proposedVerification": {
+            "type": "string",
+            "description": "kind unrepresentable: how the claim can be verified; otherwise empty"
+          },
+          "keeps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "kind unrepresentable: ids of the uncertainties this record keeps; otherwise empty"
+          },
+          "discharges": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ids of the `default` uncertainties the rule settles with an evidenced default (a value leaf's `default`); otherwise empty"
+          }
+        }
+      }
+    },
+    "noHypothesisReason": {
+      "type": "string",
+      "description": "only when hypotheses is empty: why the assessment states no testable hypothesis"
+    }
+  }
+}
