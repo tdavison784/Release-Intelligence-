@@ -402,3 +402,38 @@ func TestWorkRepoIsReusedAcrossRefs(t *testing.T) {
 		t.Fatalf("want exactly one work repository, got %v (%v)", entries, err)
 	}
 }
+
+// A directory with no files at an immutable tag is a cached not-found: it
+// replays offline as not-found, not as a cache miss. A missing ref, or an
+// absent directory on a branch, is never cached.
+func TestFetchDirAbsentDirectoryReplaysOffline(t *testing.T) {
+	r := istioLikeRepo(t)
+	ctx := context.Background()
+	cacheDir := t.TempDir()
+	g := newTestGit(t, cacheDir, nil, nil, nil, Options{})
+	absent := func(ref string) catalog.Locator {
+		return catalog.Locator{Kind: catalog.LocatorRepoDir, Repository: r.URL, Ref: ref, Path: "does/not/exist"}
+	}
+	for _, ref := range []string{"1.0.0", "main", "9.9.9"} {
+		if _, err := g.Dirs().FetchDirectory(ctx, absent(ref)); !errors.Is(err, fetch.ErrNotFound) {
+			t.Fatalf("%s online: want ErrNotFound, got %v", ref, err)
+		}
+	}
+	off := newTestGit(t, cacheDir, failRunner(t), nil, nil, Options{Offline: true})
+	_, err := off.Dirs().FetchDirectory(ctx, absent("1.0.0"))
+	if !errors.Is(err, fetch.ErrNotFound) || !strings.Contains(err.Error(), `no files under "does/not/exist" at 1.0.0`) {
+		t.Fatalf("immutable tag offline: want the recorded not-found, got %v", err)
+	}
+	for _, ref := range []string{"main", "9.9.9"} {
+		if _, err := off.Dirs().FetchDirectory(ctx, absent(ref)); !errors.Is(err, fetch.ErrOffline) {
+			t.Errorf("%s offline: want ErrOffline (never cached), got %v", ref, err)
+		}
+	}
+	// The directory that exists still replays as before.
+	if _, err := g.Dirs().FetchDirectory(ctx, dirLocator(r, "1.0.0", "", "")); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := pathsOf(t, off, dirLocator(r, "1.0.0", "", "")); err != nil || got != "a.yaml,c.txt,sub/b.yaml" {
+		t.Errorf("offline files %q, %v", got, err)
+	}
+}

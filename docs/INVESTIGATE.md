@@ -801,7 +801,7 @@ the bundle itself, only the manifest it can search.
 | `search_manifest`, `read_artifact` | artifacts by terms/kind/item plus a bounded RE2 grep; line windows (≤400 lines / 64 KiB) or one YAML node |
 | `expand_graph`, `list_paths` | the relationship graph (depth ≤3) and impact paths |
 | `record_hypothesis`, `record_assertion` | `raises-concern` / `explains` / `claims-mitigation`, optionally a proposed (always inferred) edge |
-| `request_evidence` | recorded for the next collection round; live-cluster reads are rejected in milestone 1 |
+| `request_evidence` | recorded for the next collection round; live-cluster reads are rejected in milestone 1. v11: kinds `upstream-file` / `upstream-search` are fetched during the session (below) |
 | `request_validation` | runs the configured deterministic validators of that kind now; the validator's record is the result |
 | `submit_findings` | v2: closes every agenda item with a disposition (below); v1: one `explains` summary per item. Ends the run |
 
@@ -1171,6 +1171,29 @@ overturn it.
     most once. The resubmission is accepted, with the untraced consumers recorded as gaps as in v9.
   - Like the rest of the assessment, the scoped fields are AI prose and never a classifier input
     (`TestScopedVerdictsNeverReachThePolicy`, `run/assessment_test.go`).
+- **v11** (Phase 6 M2, upstream behavioural evidence, `docs/phase6/decision-intel/briefs/upstream.md`, ledger
+  D-0009; design and tests in `docs/phase6/decision-intel/M2-IMPLEMENTATION.md`). v9 plus evidence fetching;
+  `scopedVerdict` off; **not the default** (`pinnedDefaultPrompt` holds v9). `meta.json` adds `upstream`, the
+  per-item bounds: 6 fetches, 384 KiB stored (at most the item's `MaxReadBytes`), a search scans ≤ 1500 files and
+  returns ≤ 30 matching lines with 2 lines of context, stores ≤ 6 matching files; a file result shows its first
+  40 lines.
+  - **`request_evidence` kinds `upstream-file`** (`{repo, ref, path}`, or a blob URL at the tag in `target`) **and
+    `upstream-search`** (`{repo, ref, dir, pattern, glob}`: an RE2 regex matched line by line over every file below
+    `dir`, `glob` on base names). Read only in the product's own code repositories (`linkedev.CodeReposOf`) at an
+    immutable ref that is the target's tag (`TagFor`, the default) or the current version's tag (comparison).
+    Fetches run through the cached `repo-file` / `repo-dir` adapters (`internal/gitsrc`), so `-offline` replays a
+    recorded state with identical bytes.
+  - **Fulfilled:** each file read becomes an `upstream-document` run artifact (`OriginUpstream`, URI = blob URL at
+    the tag, producer `evidence-fetch@v1`), in `EvidenceRequest.Fulfilled`, citable verbatim at once and readable
+    with `read_artifact` / `search_manifest`. The bundle never changes.
+  - **Unavailable:** another repository or ref (refused, without a fetch), a spent budget, not found, an offline
+    cache miss, no match: `RequestUnavailable` with the reason. The item's assessment states each in `unknown` as
+    "behaviour at <tag> unavailable: <reason>" and lists the request in `unavailableEvidence` (a refusal whose
+    file or search a later request of the item fulfilled is not a gap). Malformed requests are rejected.
+  - **Prompt:** one generic rule: when the outcome depends on upstream behaviour (validation, defaulting,
+    parsing, a feature gate) the change text does not state exactly, fetch the implementation, documentation
+    or tests at the target's tag before concluding; cite them or keep the behaviour unknown. The item task names
+    the repositories and tags that may be read. Earlier versions decode `request_evidence` exactly as before.
 
 Verdicts are stored as `Investigation.AgentVerdicts` (`avd-…`, AI provenance, prose labelled
 `unverified-ai-prose`) and named in `AgendaCoverage.Verdict`. They are **never** a classifier input: the
@@ -1230,7 +1253,7 @@ v5 adds setting claims (`record_claim`) and the prose labels; v6 adds the item d
 (`get_dossier`), provisional verdicts and structured mitigations; v7 lets a verdict inherit its entry's checked
 citations; v8 records mitigations as release-level rules from named overturning conditions and traces consumers;
 v9 adds `trace_consumers`, the consumer dossier, natural assessments and the completion check; v10 adds scoped
-verdicts (headline, scope, preconditions). `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
+verdicts (headline, scope, preconditions); v11 is v9 plus upstream evidence fetched at the upgrade's tags. `-agent-prompt <version>` (`ri investigate`, `ri worker`, `ri eval -investigations`) selects one; the
 version is part of the config digest, hence of the investigation id.
 Every version stays embedded, and its tasks and digests are unchanged.
 

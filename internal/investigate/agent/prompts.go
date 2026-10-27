@@ -107,7 +107,33 @@ type Features struct {
 	// and turns (0: the item@v1 defaults).
 	ItemCalls int `json:"itemCalls"`
 	ItemTurns int `json:"itemTurns"`
+	// Upstream: request_evidence fulfils kinds upstream-file and
+	// upstream-search during the item's session, within these bounds
+	// (upstream.go); an unfulfilled one becomes a gap in the assessment's
+	// unknown. On when Fetches > 0. Needs Assessment.
+	Upstream UpstreamBounds `json:"upstream"`
 }
+
+// UpstreamBounds bound upstream evidence fetching per item session.
+type UpstreamBounds struct {
+	// Fetches is how many upstream requests may read the network or the
+	// cache; Bytes how many bytes of fetched files may be stored as run
+	// artifacts (at most the session's MaxReadBytes).
+	Fetches int   `json:"fetches"`
+	Bytes   int64 `json:"bytes"`
+	// SearchFiles caps the files one search scans and SearchMatches the
+	// matching lines it returns, each with SearchContext lines around it;
+	// SearchStore caps the matching files stored as citable artifacts.
+	SearchFiles   int `json:"searchFiles"`
+	SearchMatches int `json:"searchMatches"`
+	SearchContext int `json:"searchContext"`
+	SearchStore   int `json:"searchStore"`
+	// HeadLines is how many leading lines of a fetched file the result shows.
+	HeadLines int `json:"headLines"`
+}
+
+// On reports whether upstream fetching is enabled.
+func (b UpstreamBounds) On() bool { return b.Fetches > 0 }
 
 // ToolSchema is one tool as offered over MCP (name, description, JSON
 // Schema of the arguments).
@@ -216,6 +242,14 @@ func (p *Prompt) checkSurface() error {
 	}
 	if p.Features.ScopedVerdict && !p.Features.Assessment {
 		return fmt.Errorf("agent: prompt %s: feature scopedVerdict needs feature assessment", p.Version)
+	}
+	if u := p.Features.Upstream; u != (UpstreamBounds{}) {
+		if !p.Features.Assessment {
+			return fmt.Errorf("agent: prompt %s: feature upstream needs feature assessment", p.Version)
+		}
+		if u.Fetches <= 0 || u.Bytes <= 0 || u.SearchFiles <= 0 || u.SearchMatches <= 0 || u.SearchContext < 0 || u.SearchStore <= 0 || u.HeadLines < 0 {
+			return fmt.Errorf("agent: prompt %s: upstream bounds must all be set (fetches, bytes, searchFiles, searchMatches, searchStore positive; searchContext, headLines non-negative)", p.Version)
+		}
 	}
 	if (p.Features.ItemCalls != 0 || p.Features.ItemTurns != 0) && (!p.Features.PerItem || p.Features.ItemCalls < 0 || p.Features.ItemTurns < 0) {
 		return fmt.Errorf("agent: prompt %s: itemCalls/itemTurns are per-item budget defaults (non-negative, feature perItem)", p.Version)
@@ -479,10 +513,19 @@ type itemTaskData struct {
 	Budget                                                    string
 	// Dossier is the item's dossier JSON (feature dossier) and its artifact.
 	Dossier, DossierArtifact string
+	// Upstream names the repositories and tags upstream requests may read
+	// (feature upstream).
+	Upstream string
 }
 
 // renderItemTask renders the task of one per-item session.
 func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget, dossier []byte, dossierArt string) (string, error) {
+	return p.renderItemTaskWith(in, e, position, total, cap, budget, dossier, dossierArt, "")
+}
+
+// renderItemTaskWith is renderItemTask with the upstream line (feature
+// upstream; ignored by item tasks that do not show it).
+func (p *Prompt) renderItemTaskWith(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget, dossier []byte, dossierArt, upstream string) (string, error) {
 	if p.item == nil {
 		return "", fmt.Errorf("agent: prompt %s has no per-item task", p.Version)
 	}
@@ -494,7 +537,7 @@ func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.Agenda
 	d := itemTaskData{Product: full.Product, From: full.From, To: full.To, Environment: full.Environment, KubernetesVersion: full.KubernetesVersion,
 		Bundle: b.ID, Position: position, Total: total, Cap: cap, Rule: e.PriorityRule, Renders: full.Renders,
 		Budget:  fmt.Sprintf("%d tool calls, %d KiB returned, %d turns, %d s", budget.MaxToolCalls, budget.MaxReadBytes>>10, budget.MaxTurns, budget.MaxSeconds),
-		Dossier: strings.TrimSpace(string(dossier)), DossierArtifact: dossierArt}
+		Dossier: strings.TrimSpace(string(dossier)), DossierArtifact: dossierArt, Upstream: upstream}
 	for _, ti := range full.Items {
 		if ti.ID == e.ChangeItem {
 			d.Item = ti

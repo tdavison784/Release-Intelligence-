@@ -430,9 +430,17 @@ func nodeKindKnown(k domain.NodeKind) bool {
 
 // --- request_evidence -------------------------------------------------------------------
 
-func (s *Session) requestEvidence(in investigate.EvidenceRequestInput) (*outcome, error) {
+func (s *Session) requestEvidence(ctx context.Context, in investigate.EvidenceRequestInput) (*outcome, error) {
 	if err := s.writable(); err != nil {
 		return nil, err
+	}
+	if s.cfg.Prompt.Features.Upstream.On() {
+		switch {
+		case in.Kind == domain.RequestUpstreamFile || in.Kind == domain.RequestUpstreamSearch:
+			return s.requestUpstream(ctx, in)
+		case upstreamFieldsSet(in):
+			return nil, rejectf("repo, ref, path, dir, pattern and glob are for kinds upstream-file and upstream-search")
+		}
 	}
 	var inputs []domain.EvidenceID
 	if in.ChangeItem != "" {
@@ -466,6 +474,9 @@ func (s *Session) requestEvidence(in investigate.EvidenceRequestInput) (*outcome
 			}
 		}
 	default:
+		if s.cfg.Prompt.Features.Upstream.On() {
+			return nil, rejectf("kind %q: want upstream-file, upstream-search, artifact, source, environment-input or live-observation", in.Kind)
+		}
 		return nil, rejectf("kind %q: want artifact, source, environment-input or live-observation", in.Kind)
 	}
 	id := domain.AgentRecordID(domain.EvidenceRequestIDPrefix, in.ChangeItem, string(in.Kind)+"\x00"+target, s.call.ID)
@@ -991,7 +1002,8 @@ func (s *Session) submitFindings(ctx context.Context, in investigate.SubmitInput
 	}
 	view := submitView{Submitted: true, Assertions: ids, Note: "submitted: the run is over; the deterministic policy classifies every item. Stop now."}
 	for _, a := range assessments {
-		view.Assessments = append(view.Assessments, assessmentView{ID: a.ID, ChangeItem: a.ChangeItem, Verified: len(a.Verified), UntracedConsumers: a.UntracedConsumers})
+		view.Assessments = append(view.Assessments, assessmentView{ID: a.ID, ChangeItem: a.ChangeItem, Verified: len(a.Verified), UntracedConsumers: a.UntracedConsumers,
+			UnavailableEvidence: a.UnavailableEvidence})
 	}
 	for _, v := range verdicts {
 		view.Verdicts = append(view.Verdicts, verdictView{ID: v.ID, ChangeItem: v.ChangeItem, Class: v.Class, Citations: len(v.Citations),

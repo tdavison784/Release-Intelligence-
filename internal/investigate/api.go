@@ -742,6 +742,16 @@ type EvidenceRequestInput struct {
 	Kind       domain.EvidenceRequestKind `json:"kind"`
 	Target     string                     `json:"target"`
 	Reason     string                     `json:"reason"`
+	// Repo, Ref, Path, Dir, Pattern and Glob address an upstream-file
+	// ({repo, ref, path}, or a blob URL in Target) or upstream-search
+	// ({repo, ref, dir, pattern, glob}) request (prompt feature upstream).
+	// CONTRACT-CHANGE(upstream): additive.
+	Repo    string `json:"repo,omitempty"`
+	Ref     string `json:"ref,omitempty"`
+	Path    string `json:"path,omitempty"`
+	Dir     string `json:"dir,omitempty"`
+	Pattern string `json:"pattern,omitempty"`
+	Glob    string `json:"glob,omitempty"`
 }
 
 // ValidationRequestInput asks a deterministic validator to test something.
