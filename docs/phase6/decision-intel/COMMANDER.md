@@ -37,6 +37,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-27 (product owner): v9 stays the default ("yes thats fine for v9"). The scoped verdict moves to M3
+  synthesis. M3's gate must require a committed recommendation with scope and preconditions in the headline.
+
 - 2026-10-26 (product owner): **M1 passes.** Scoped verdicts approved: the agent commits to a verdict scoped to the
   evidence, with scope and precondition in the headline (D-0007, prompt v10). The commander made v9 the default
   prompt.

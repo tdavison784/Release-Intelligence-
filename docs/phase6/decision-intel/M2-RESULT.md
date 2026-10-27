@@ -33,3 +33,10 @@ this development pair would be fitting to the case.
 Put the scoped, actionable answer where the mission puts the decision: M3 synthesis ("Proceed with changes: pin `Never`
 or confirm reload; validation required: a staging renewal test") and M4 verification (a runtime renewal test settles
 reload). Revisit agent-level scoping with M6's blind cases.
+
+**Product-owner decision, 2026-10-27:** "yes thats fine for v9".
+- v9 stays the default prompt; v10 stays available.
+- No further prompt iteration on the development pair.
+- The scoped answer moves to M3 synthesis. **M3's gate must check that the upgrade recommendation commits, with its
+  scope and preconditions in the headline** (mission C5, F3). If synthesis cannot, agent-level scoping returns, tested
+  on blind cases (M6).
