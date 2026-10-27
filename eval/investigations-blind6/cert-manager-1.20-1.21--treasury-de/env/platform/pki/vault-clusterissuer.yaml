@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-pki
+spec:
+  vault:
+    server: https://vault.security.example.internal:8200
+    path: pki_int/sign/treasury-internal
+    caBundleSecretRef:
+      name: vault-server-ca
+      key: ca.crt
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes-treasury-prod
+        role: cert-manager-treasury
+        serviceAccountRef:
+          name: cert-manager

@@ -1,0 +1,73 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: cert-manager-1.20-1.21--treasury-de
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [2]                # PLAN-M6 §2: cert-manager upgrade with a mechanism different from the development cases
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed:
+      - observed/run.log#L180-L213     # FROM: the chart creates Role/RoleBinding cert-manager-tokenrequest
+      - observed/run.log#L236-L247     # FROM: ClusterIssuer Ready (VaultVerified), certificate issued and renewed
+      - observed/run.log#L249-L293     # TO: the Role/RoleBinding are gone; ClusterIssuer Ready=False "... cannot create resource serviceaccounts/token"
+      - observed/run.log#L295-L325     # TO: the renewal is not issued ("Referenced issuer does not have a Ready status condition")
+    citations:
+      - url: https://github.com/cert-manager/website/blob/9ae897eae4d47184d9cd868cb6a4c7e3b45d9604/content/docs/releases/release-notes/release-notes-1.21.md
+        lines: L12-L18
+        quote: "The Helm chart no longer creates a default `Role` and `RoleBinding` granting the cert-manager controller permission to create tokens for its own ServiceAccount (`serviceaccounts/token: create`). ... If you use `serviceAccountRef.name` pointing at the controller ServiceAccount, you must now either create your own `Role`/`RoleBinding` granting `serviceaccounts/token: create`, or migrate to a dedicated ServiceAccount"
+      - url: https://github.com/cert-manager/website/blob/9ae897eae4d47184d9cd868cb6a4c7e3b45d9604/content/docs/releases/release-notes/release-notes-1.21.md
+        lines: L269
+        quote: "**BREAKING**: The Helm chart no longer ships a default `Role` and `RoleBinding` granting the cert-manager controller ServiceAccount permission to create tokens for itself (`serviceaccounts/token: create`). This RBAC was added in v1.16 (#7213) ..."
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.20.4/deploy/charts/cert-manager/templates/rbac.yaml
+        lines: L48-L88
+        quote: 'name: {{ template "cert-manager.fullname" . }}-tokenrequest ... resources: ["serviceaccounts/token"] resourceNames: ["{{ template "cert-manager.serviceAccountName" . }}"] verbs: ["create"]'
+    match:
+      - subject: serviceaccounts/token
+      - text: '(?i)token ?request|serviceaccounts/token'
+    components:
+      - ref: {file: env/platform/pki/vault-clusterissuer.yaml, apiVersion: cert-manager.io/v1, kind: ClusterIssuer, name: vault-pki}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}, relation: deploys}
+          - {ref: {kind: Role, namespace: cert-manager, name: cert-manager-tokenrequest, renderedFrom: env/clusters/prod/cert-manager.yaml}, relation: configures}
+          - {ref: {file: env/platform/pki/vault-clusterissuer.yaml, kind: ClusterIssuer, name: vault-pki}, field: spec.vault.auth.kubernetes.serviceAccountRef.name, relation: depends-on}
+          - {ref: {file: env/apps/ledger/base/certificate.yaml, kind: Certificate, namespace: ledger, name: ledger-api-tls}, relation: references}
+          - {ref: {kind: Secret, namespace: ledger, name: ledger-api-tls}, relation: produces}
+          - {ref: {file: env/apps/ledger/base/deployment.yaml, kind: Deployment, namespace: ledger, name: ledger-api}, relation: references}
+        reason: >-
+          The ClusterIssuer authenticates to Vault as the controller's own ServiceAccount
+          (serviceAccountRef.name: cert-manager), so cert-manager must create tokens for that
+          ServiceAccount. Up to v1.20 the chart grants this (Role/RoleBinding cert-manager-tokenrequest);
+          v1.21 removes them and the repository grants nothing else. After the upgrade the ClusterIssuer
+          goes Ready=False ("serviceaccounts \"cert-manager\" is forbidden: ... cannot create resource
+          \"serviceaccounts/token\"") and no certificate from vault-pki can be issued or renewed (observed).
+          The existing ledger-api-tls keeps serving until it expires: with duration 168h and renewBefore
+          48h, the first missed renewal is at most five days after the upgrade and the API's TLS breaks at
+          most seven days after it.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/platform/pki/vault-clusterissuer.yaml, object: ClusterIssuer/vault-pki, field: spec.vault.auth.kubernetes.serviceAccountRef}
+          - {file: env/apps/ledger/base/certificate.yaml, object: Certificate/ledger-api-tls, field: spec.issuerRef}
+    remediation: >-
+      Before upgrading, either add a Role/RoleBinding in cert-manager granting the cert-manager
+      ServiceAccount create on serviceaccounts/token for resourceNames [cert-manager], or (recommended
+      upstream) move vault-pki to a dedicated ServiceAccount with its own Role/RoleBinding and rebind the
+      Vault role cert-manager-treasury to it.
+renderedChanges:
+  - diff: observed/render.diff#L1143-L1165
+    object: Role/cert-manager/cert-manager-tokenrequest
+    change: removed (serviceaccounts/token create on the cert-manager ServiceAccount)
+    item: B1
+    impact: breaking
+  - diff: observed/render.diff#L1225-L1246
+    object: RoleBinding/cert-manager/cert-manager-tokenrequest
+    change: removed
+    item: B1
+    impact: breaking
+  - diff: [observed/render.diff#L351-L475, observed/render.diff#L490-L565, observed/render.diff#L580-L743, observed/render.diff#L758-L921, observed/render.diff#L936-L954]
+    object: CustomResourceDefinitions (certificates, challenges, clusterissuers, issuers, orders)
+    change: new optional fields (renewal policies, Vault AWS auth, NGTS, waitInsteadOfSelfCheck) and description edits
+    item: null
+    impact: harmless

@@ -1,0 +1,36 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: cert-manager-1.20-1.21--treasury-de
+pair: cert-manager-1.20-1.21--vault-pki
+product: cert-manager
+chart:
+  repo: https://charts.jetstack.io
+  name: cert-manager
+from:
+  version: v1.20.4
+  chartVersion: v1.20.4
+to:
+  version: v1.21.3
+  chartVersion: v1.21.3
+environment:
+  id: treasury-prod-de
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.34"
+  description: >-
+    Production cluster of the treasury platform, managed by Argo CD from this repository
+    (app-of-apps rooted at clusters/prod). cert-manager is installed from the upstream Helm chart
+    with the values in platform/cert-manager/values.yaml. All internal serving certificates come
+    from the vault-pki ClusterIssuer (platform/pki), backed by the security team's Vault, which
+    cert-manager reaches with the Kubernetes auth method; the Vault side (mount, role, policy) is
+    described in the repository README. The ledger API (apps/ledger) serves TLS with a short-lived
+    certificate from that issuer. The repository is the complete declaration of what runs in the
+    cluster; nothing is applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: The Helm chart no longer creates the Role and RoleBinding that let the cert-manager controller create tokens for its own ServiceAccount (serviceaccounts/token create)
+    subject: serviceaccounts/token
+    source: https://github.com/cert-manager/website/blob/9ae897eae4d47184d9cd868cb6a4c7e3b45d9604/content/docs/releases/release-notes/release-notes-1.21.md#L12-L18
+withheld: []
