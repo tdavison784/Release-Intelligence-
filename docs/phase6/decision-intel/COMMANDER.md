@@ -38,6 +38,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-27 (product owner): the cert-manager candidate 1.20.3 is accepted. Go for lane `upstream`; prompt v11 builds
+  on v9.
+
 - 2026-10-27 (product owner): v9 stays the default ("yes thats fine for v9"). The scoped verdict moves to M3
   synthesis. M3's gate must require a committed recommendation with scope and preconditions in the headline.
 
@@ -58,7 +61,10 @@ handoffs (every item is `providers: [claude]`).
    - re-run GATE-M2 §1 offline from `$CLAUDE_JOB_DIR/tmp/m2adv/state` (the bin/ri eval A0 commands in COMMANDER's
      2026-10-27 merge note);
    - append to M2-RESULT §1.
-2. Lane `upstream` (D-0009): waiting for the product owner's go. The brief is not written yet.
+2. Lane `upstream` is running (D-0009). On LANE DONE:
+   - merge it;
+   - record the upstream fetches online into the M2 state;
+   - run GATE-M2 §2 (v11 × 3 on D-EU, then the ablation × 3).
 
 ## Notes
 

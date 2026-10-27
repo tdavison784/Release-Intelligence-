@@ -78,3 +78,7 @@ class. The new advisory change items are all `potentially-affected`, so the effe
 **Next:** a small generic fix inside M2 (D-0012). When a patched version falls inside the advisory's own vulnerable
 range, record an advisory-consistency gap. Candidates stay fail-closed (on the range), and the statement names the
 alternative the patched list implies. Then re-run §1 offline from the same state.
+
+**Product-owner decision, 2026-10-27:** "Im fine with it recomending 1.20.3, that could be newer since it last
+recommended 1.19.x." The cert-manager `any-line` and `clean` result of 1.20.3 is accepted. D-0012 (the consistency
+gap) continues as an informational improvement and does not change that answer.
