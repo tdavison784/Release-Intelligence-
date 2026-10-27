@@ -30,11 +30,16 @@ func byKind(p *Precomputed) map[domain.JudgementFindingKind][]domain.JudgementFi
 // from its content, the same on every computation.
 func TestPrecomputeFindingsHaveStableIDs(t *testing.T) {
 	f := newFixture()
-	f.Report.Security.Status = domain.SecurityIncomplete
-	f.Report.Security.Gaps = []string{"security source not read (vendor)"}
 	f.Report.Security.Candidates[0].Leaves = []domain.AdvisoryRef{{ID: "GHSA-p", Evidence: []domain.EvidenceID{"ev-adv-i"}}}
 	p := precompute(t, f.input())
 	got := byKind(p)
+	// an incomplete advisory picture is its own finding (and then no option
+	// is safe, so none is reported still affected)
+	inc := precompute(t, newFixtureWith(func(f *fixture) {
+		f.Report.Security.Status = domain.SecurityIncomplete
+		f.Report.Security.Gaps = []string{"security source not read (vendor)"}
+	}).input())
+	got[domain.JFSecurityIncomplete] = byKind(inc)[domain.JFSecurityIncomplete]
 	for _, k := range domain.JudgementFindingKinds {
 		if len(got[k]) == 0 {
 			t.Errorf("no %s finding", k)
@@ -66,8 +71,6 @@ func TestPrecomputeFindingsHaveStableIDs(t *testing.T) {
 		t.Errorf("disagreements = %d, want 2", n)
 	}
 	again := precompute(t, newFixtureWith(func(f *fixture) {
-		f.Report.Security.Status = domain.SecurityIncomplete
-		f.Report.Security.Gaps = []string{"security source not read (vendor)"}
 		f.Report.Security.Candidates[0].Leaves = []domain.AdvisoryRef{{ID: "GHSA-p", Evidence: []domain.EvidenceID{"ev-adv-i"}}}
 	}).input())
 	if p.Digest() != again.Digest() || !reflect.DeepEqual(p.Findings, again.Findings) {
@@ -187,6 +190,20 @@ func TestTargetLatestPatchVersusMinimum(t *testing.T) {
 		p := precompute(t, f.input())
 		if p.Target.Minimum != nil || p.Target.Recommended != nil || len(byKind(p)[domain.JFCandidateAffected]) != 1 {
 			t.Errorf("target %+v; want no minimum and a no-safe-release finding", p.Target)
+		}
+	})
+	t.Run("incomplete advisory assessment", func(t *testing.T) {
+		f := newFixtureWith(func(f *fixture) {
+			f.Report.Security.Status, f.Report.Security.Gaps = domain.SecurityIncomplete, []string{"a source was not read"}
+		})
+		p := precompute(t, f.input())
+		for _, o := range p.Target.Options {
+			if o.Safe {
+				t.Errorf("option %+v is safe while a security source is unread", o)
+			}
+		}
+		if p.Target.Minimum != nil || p.Target.Recommended != nil || !strings.Contains(p.Target.Rule, "incomplete") {
+			t.Errorf("target %+v", p.Target)
 		}
 	})
 	t.Run("no advisory source read", func(t *testing.T) {

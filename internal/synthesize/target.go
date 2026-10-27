@@ -19,13 +19,17 @@ import (
 //     and adds no assessed advisory the minimum is free of; otherwise the
 //     minimum.
 //
-// The proposed target is always an option (unsafe when it regresses, or when
-// no advisory source was read). The edge's clean candidate is an option when
-// it differs. The current-line candidate is never a target.
+// Safe needs a complete advisory assessment: while a security source is
+// unread, an advisory it lists is unknown, not absent (mission A2), so no
+// release is established as safe and none is recommended. The proposed
+// target is always an option (unsafe when it regresses or its status is not
+// established). The edge's clean candidate is an option when it differs. The
+// current-line candidate is never a target.
 func (p *pre) target() {
 	up := p.out.Upgrade
 	t := domain.JudgementTarget{Current: up.From, Proposed: up.To}
 	s := p.sec
+	complete := s != nil && s.Status == domain.SecurityComplete
 	if s != nil {
 		t.SecurityStatus = s.Status
 	}
@@ -36,7 +40,7 @@ func (p *pre) target() {
 	case s.Status == domain.SecurityUnavailable:
 		proposed.Statement = fmt.Sprintf("%s is the proposed target; no advisory source was read, so its security status is not established.", up.To)
 	default:
-		proposed.Safe = len(s.Regressions) == 0
+		proposed.Safe = complete && len(s.Regressions) == 0
 		for _, a := range s.Regressions {
 			proposed.Introduces = append(proposed.Introduces, a.ID)
 			proposed.Evidence = append(proposed.Evidence, p.cite(a.Evidence, 2)...)
@@ -49,10 +53,13 @@ func (p *pre) target() {
 		for _, a := range s.Unassessed {
 			proposed.Unassessed = append(proposed.Unassessed, a.ID)
 		}
-		if proposed.Safe {
-			proposed.Statement = fmt.Sprintf("%s is the proposed target; it is affected by no assessed advisory %s is free of.", up.To, up.From)
-		} else {
+		switch {
+		case len(proposed.Introduces) > 0:
 			proposed.Statement = fmt.Sprintf("%s is the proposed target; it introduces %s, which %s is free of.", up.To, strings.Join(proposed.Introduces, ", "), up.From)
+		case !complete:
+			proposed.Statement = fmt.Sprintf("%s is the proposed target; no advisory of the sources read affects it beyond %s, but the advisory assessment is %s (an unread source may list one), so its security status is not established.", up.To, up.From, s.Status)
+		default:
+			proposed.Statement = fmt.Sprintf("%s is the proposed target; it is affected by no assessed advisory %s is free of.", up.To, up.From)
 		}
 	}
 	t.Options = append(t.Options, proposed)
@@ -65,7 +72,9 @@ func (p *pre) target() {
 			if c := candidate(s, kind); c != nil && c.Version != nil {
 				o := p.candidateOption(domain.TargetMinimum, *c)
 				t.Options = append(t.Options, o)
-				minimum = &t.Options[len(t.Options)-1]
+				if o.Safe {
+					minimum = &t.Options[len(t.Options)-1]
+				}
 				break
 			}
 		}
@@ -81,6 +90,8 @@ func (p *pre) target() {
 	}
 
 	switch {
+	case minimum == nil && s != nil && s.Status == domain.SecurityIncomplete:
+		t.Rule = "The advisory assessment is incomplete: no release is established as safe until every security source is read, so none is recommended."
 	case minimum == nil:
 		t.Rule = "No release is established as safe, so none is recommended."
 	default:
@@ -109,7 +120,10 @@ func candidate(s *domain.EdgeSecurity, kind domain.CandidateKind) *domain.Versio
 }
 
 func (p *pre) candidateOption(role string, c domain.VersionCandidate) domain.TargetOption {
-	o := domain.TargetOption{Role: role, Version: *c.Version, Line: c.Line, Safe: true, Unassessed: c.Unassessed, Statement: c.Statement}
+	o := domain.TargetOption{Role: role, Version: *c.Version, Line: c.Line, Safe: p.sec.Status == domain.SecurityComplete, Unassessed: c.Unassessed, Statement: c.Statement}
+	if !o.Safe {
+		o.Statement += fmt.Sprintf(" The advisory assessment is %s, so this is not established as safe.", p.sec.Status)
+	}
 	if o.Line == "" {
 		o.Line = c.Version.Line()
 	}
