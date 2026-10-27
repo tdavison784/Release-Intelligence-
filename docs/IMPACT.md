@@ -62,6 +62,18 @@ the level; facts whose verification their own records do not prove are refused
 with a warning, never evaluated. Without `--knowledge` the report is
 byte-identical to the knowledge-free join.
 
+**Contradicting facts** (lane backdoor, D-0029). Two active facts of one
+product, release and subject must state the same change (a before/after one
+leaves unstated is no disagreement), the same exposure condition and the same
+consequence kind; severity, prose and the overlap may differ
+(`domain.FactIncompatibility`). A pair that does not is a loader warning
+(`knowledge contradiction: active facts A and B …`), and in the join neither
+clears: a contradicted fact keeps only its affected (action/review-required)
+findings, and gets an unknown `impact:knowledge-contradiction` gap
+(`release-knowledge-gap`) on each change it attaches to, naming the other fact
+and why, recorded beside any other verdict of the change. A human resolves it
+by superseding or retracting one.
+
 How a fact's applicability condition is evaluated — three-valued, each leaf
 bound to the environment model (`field`/`text-line`/`ref` to the resource
 facts, `values-key`, `gvk-in-use`, `image-in-use`, `cli-flag`/`env-var`/

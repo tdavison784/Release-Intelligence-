@@ -375,3 +375,67 @@ display/tracing limit, not an applicability evaluation (follow-up candidate).
 - Chart objects rendered with complete values enter the view (as in the validators); a failed chart render is a gap
   that only blocks false conclusions.
 - The pin origin crosses no list (`spec.a[].b` is cited from the render only).
+
+## Lane `backdoor` (D-0029): every route that changes active knowledge names the facts it affects
+
+Branch `p6di/backdoor`. Brief `briefs/backdoor.md`; the gap is finding 1 of `evidence-m4-negative-controls-build.md`
+(route B: a human `correct` on an ordinary fact-review item minted a second, contradicting active fact that named
+none). Minimal and safety-only: no new proof requirement; the hypothesis gate is unchanged.
+
+### What changed, and where
+
+| Change | Where |
+|---|---|
+| **Compatibility, one definition.** Two facts of one product, release and subject (`domain.SameFactScope`) are compatible when they state the same change (same kind; each before/after/replacement equal, or unstated on one side), the same **exposure** condition, and the same consequence kind and class. Severity, prose and the overlap (it only labels unexposed objects shielded) may differ. Conditions are compared as written, so an equivalent condition written differently is a contradiction (fail closed). `domain.Contradictions` lists the incompatible active pairs | `internal/domain/contradiction.go` |
+| **Every route names the others.** `FactFromDecision` (the snapshot-level helper `Queue.Decide` runs before any write) refuses an accept, correct or duplicate that mints or changes a fact while another active fact of its product, release and subject is in neither `supersedes` nor `coexists`, listing them (`accountFor`). The route's own target is named by the route: a correction of a fact's review item supersedes it; a reject retracts it. `coexists` with an incompatible fact is refused with the disagreement. Hypothesis and ordinary items alike; the hypothesis gate's wider rule (every release of the product) stays | `internal/knowledge/promote.go`, `decide.go` |
+| **Duplicates may coexist.** `ReviewDecision.Validate` allows `coexists` (never `supersedes`) on a reject with `duplicateOf`: a duplicate changes the named fact (anchors). The gate's name check skips a partial ordinary question that states no subject (the composed fact is checked instead) | `internal/domain/semantic.go`, `internal/knowledge/promote.go` |
+| **Loader warning.** `app.LoadKnowledge` warns `knowledge contradiction: active facts A and B contradict each other on <subject> at <product> <release> (<why>)` for each pair | `internal/app/knowledge.go` |
+| **Join gap.** In the knowledge join, a usable fact contradicted by another usable fact keeps only its affected (action/review-required) findings; its clear / overlap / informational findings are dropped, and it gets an unknown `impact:knowledge-contradiction` finding (`release-knowledge-gap`) on each attached change, naming the other fact and why. The gap is recorded beside any other verdict of the change (it is not subject to "knowledge never weakens a deterministic verdict"), so `JoinVerdicts` is never decisive-pass on such a change. Rule → class `unknown` in `ImpactFinding.Validate` and the schema | `internal/impact/knowledge.go`, `internal/domain/impact.go`, `schemagen/meta.go`, `schemas/impact-report.schema.json` |
+| **Review UI.** An ordinary item offers the supersede/keep choice for the active facts of its release on its subject (the item's, or for a partial question its proposals'), as hypothesis items do | `internal/reviewui/hypothesis.go`, `view.go`, `templates/detail.html` |
+| **CLI.** `ri knowledge decide -supersedes … -coexists …` | `cmd/ri/knowledge.go` |
+
+### Tests
+
+- Knowledge (`internal/knowledge/backdoor_test.go`): `TestRouteBOrdinaryCorrectionMustNameTheActiveFact` (the route-B
+  reproduction on a synthetic product: refused, nothing written), `TestRouteBNamingTheFactIsAccepted`,
+  `TestCoexistenceOfContradictingFactsIsRefused`, `TestCompatibleCoexistenceIsAllowed`,
+  `TestDuplicateMustNameTheOtherActiveFacts` (refused unnamed, accepted with `coexists`, `supersedes` invalid),
+  `TestOrdinaryDecisionWithoutOtherFactsIsUnchanged`. With `accountFor` disabled the first, third and fifth fail.
+- Join (`impact.TestKnowledgeContradictionNeverClears`): in a pinned, an empty and an exposed environment, no clear or
+  overlap from a contradicted pair, one gap per fact naming the other, the affected finding stands when exposed; a
+  compatible pair (other severity) clears as before. With the contradiction lookup disabled it fails.
+- Loader (`app.TestCheckedInKnowledgeContradictions`): the checked-in store loads (no fact refused) and reports
+  exactly the stored pairs below.
+- UI (`reviewui.TestOrdinaryItemOffersTheRelationChoice`): the choice is shown on an ordinary item; an accept leaving
+  the other fact unnamed is refused; keeping a compatible fact is recorded.
+
+### Stored records and regression
+
+- **Checked-in `knowledge/`**: 241 facts kept, 0 refused, 3494 decisions load. Two stored pairs now count as
+  contradicting, both **proxy-level** (they never clear; unchanged):
+  - `vf-7f12b0dedc81` / `vf-b446bc665090` (loki 3.0.0, env-var DROP_LABELS): exposure differs (one adds "unset");
+  - `vf-a78f85d3eec5` / `vf-afa8a757b5f1` (cilium 1.17.0, protocol-behavior mtu-auto-detection): exposure differs.
+  Three other same-scope pairs are compatible (same change and exposure; severity or an unstated after differ):
+  `vf-b577957e2615`/`vf-62c94002eb36`, `vf-80389bbf04ea`/`vf-1ebcfe02d402`, `vf-f85e9aa3feef`/`vf-885a80103ada`.
+- **The commander's M4 stores** (read-only): K0, K1 and the four Kneg stores load with 0 refused and the same two
+  warnings; `Kneg-contradicted` adds `vf-45b922ec1cc6` / `vf-4d9b756f1343` (exposure differs; consequence
+  workload-failure vs behavior-change). On a scratch copy of K1, replaying that store's route-B decision
+  `rd-f4ab657a81a9` through `Queue.Decide` is **refused** naming `vf-4d9b756f1343`; with `supersedes` it is accepted.
+  The copy was deleted.
+- `m4rescore`: 19 runs, 50 cases, 1004 items, 1004 identical. The join on K0/K1 at the default `-min-verification
+  human` is unchanged by construction: no usable (human or deterministic) pair contradicts in either store.
+
+### Known limits
+
+- **Auto-approval is not a decision route.** A deterministic or consensus fact minted by `ri knowledge route` names
+  nothing; a contradiction it creates is reported by the loader and blocked in the join, not refused at write time.
+- **Candidate-level composition.** An accept composes the fact from every decision on the item's candidate. On a
+  candidate that also carries a promoted rule, accepting the older fact's item can merge into the promoted fact; the
+  route must then name the older fact, which the gate's self check refuses. Fail closed (the decision is refused with
+  the list); a correction on that item works.
+- **UI duplicates.** The duplicate form offers no choice (its item states no subject); a refused duplicate is
+  recorded with `ri knowledge decide -coexists`.
+- **With `-min-verification proxy`** the two stored proxy pairs produce gaps on their changes (proxy facts never
+  cleared those changes anyway).
+- Finding 2 (proof bounds not in the id, never checked on load) and finding 3 (dangling `resultingFact`, release
+  mismatches) of the build report are out of scope.
