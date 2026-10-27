@@ -47,6 +47,9 @@ type Deps struct {
 	Investigator investigate.Investigator
 	Classifier   investigate.Classifier
 	Reviewer     investigate.ReviewApplier
+	// Synthesizer makes the upgrade-level judgement (Pipeline.Synthesize,
+	// Milestone 3); nil means none is available.
+	Synthesizer Synthesizer
 
 	Now func() time.Time
 }

@@ -80,3 +80,13 @@ func (a *Activities) Finalize(ctx context.Context, in run.FinalizeInput) (run.Re
 	out, err := a.P.Finalize(ctx, in)
 	return out, toTemporal(ctx, err)
 }
+
+// Synthesize records the upgrade judgement (stage synthesize).
+func (a *Activities) Synthesize(ctx context.Context, in run.SynthesizeInput) (run.SynthesizeOutput, error) {
+	var out run.SynthesizeOutput
+	err := heartbeating(ctx, func(ctx context.Context) (err error) {
+		out, err = a.P.Synthesize(ctx, in)
+		return err
+	})
+	return out, toTemporal(ctx, err)
+}

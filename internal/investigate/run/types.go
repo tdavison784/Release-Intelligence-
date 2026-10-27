@@ -199,6 +199,9 @@ func PolicyOf(stage domain.Stage, cfg investigate.Config) Policy {
 		base.Heartbeat = 30 * time.Second
 	case domain.StageClassify:
 		base.StartToClose = time.Minute
+	case domain.StageSynthesize:
+		// one model call and at most two retries of it
+		base.MaxAttempts, base.StartToClose, base.Heartbeat = 2, 30*time.Minute, 30*time.Second
 	default:
 		base.StartToClose = time.Minute
 	}

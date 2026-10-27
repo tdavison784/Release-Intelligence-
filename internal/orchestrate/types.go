@@ -32,6 +32,11 @@ const (
 	// without one (timeout, cancellation, exhausted rounds).
 	ActivityReview   = string(domain.StageHumanReview)
 	ActivityFinalize = "finalize"
+	// ActivitySynthesize records the upgrade judgement (Pipeline.Synthesize).
+	ActivitySynthesize = string(domain.StageSynthesize)
+	// VersionSynthesize is the workflow.GetVersion change id of the
+	// synthesis step (version 1 runs it).
+	VersionSynthesize = "synthesize"
 )
 
 // Error types of application errors. Permanent is non-retryable.
@@ -62,6 +67,10 @@ type Input struct {
 	// SearchAttributes upserts the Ri* search attributes (they must be
 	// registered on the cluster).
 	SearchAttributes bool `json:"searchAttributes,omitempty"`
+	// Synthesize runs the upgrade-level synthesis after classify, before the
+	// review (Milestone 3), behind workflow.GetVersion(VersionSynthesize):
+	// histories recorded before it replay unchanged.
+	Synthesize bool `json:"synthesize,omitempty"`
 }
 
 // AuditEntry is one deterministic workflow-level transition (§5.4: the

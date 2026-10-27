@@ -101,11 +101,11 @@ func newFixture() fixture {
 		AgentAssessments: []domain.AgentAssessment{{ID: "aas-2", ChangeItem: it2, Verdict: "avd-2", Headline: "not affected provided the flag stays unset",
 			WhatChanged: "a flag is removed", Mechanism: "startup fails with the flag", LikelyImpact: "none",
 			EffectiveConfiguration: []domain.AssessmentSetting{{Setting: "flag", State: domain.AssessmentInheritedDefault}},
-			Preconditions: []string{"the flag is not set outside the repository"}, Unknown: []string{"runtime arguments"},
+			Preconditions:          []string{"the flag is not set outside the repository"}, Unknown: []string{"runtime arguments"},
 			RecommendedTests: []string{"start the workload with the new version"}, UntracedConsumers: []string{"apps/v1/Deployment/ns/web"},
 			UnavailableEvidence: []string{"evr-1"},
-			Behaviour: []domain.AssessmentBehaviour{{Behaviour: "how the flag is parsed", Source: domain.BehaviourNotChecked, Reason: "no source"}},
-			Provenance: ai("call-1")}},
+			Behaviour:           []domain.AssessmentBehaviour{{Behaviour: "how the flag is parsed", Source: domain.BehaviourNotChecked, Reason: "no source"}},
+			Provenance:          ai("call-1")}},
 		EvidenceRequests: []domain.EvidenceRequest{{ID: "evr-1", ChangeItem: it2, Status: domain.RequestUnavailable, Resolution: "not found at the tag"}},
 		AgentClaims: []domain.SettingClaim{
 			{ID: "clm-set", ChangeItem: it2, Kind: domain.ClaimValue, Setting: "replicas", Value: "2", Input: "art-values", Evidence: []domain.EvidenceID{"ev-set"}, Provenance: ai("call-1")},
@@ -142,8 +142,8 @@ func newFixture() fixture {
 			{ID: "GHSA-i", Vulnerable: "<0.9.0", Evidence: []domain.EvidenceID{"ev-adv-i"}},
 			{ID: "GHSA-u", Summary: "no range"},
 		},
-		Evidence: adv,
-		Charts:   map[string][]domain.CandidateChart{"1.1.3": {{Artifact: "chart", Name: "acme", Version: "1.1.3", Evidence: []domain.EvidenceID{"ev-chart3"}}}},
+		Evidence:      adv,
+		Charts:        map[string][]domain.CandidateChart{"1.1.3": {{Artifact: "chart", Name: "acme", Version: "1.1.3", Evidence: []domain.EvidenceID{"ev-chart3"}}}},
 		ChartEvidence: []domain.Evidence{ev("ev-chart3", "registry", "https://example.test/index.yaml", "acme-1.1.3", "acme 1.1.3")},
 	}
 	return fixture{Inv: inv, Bundle: b, Report: rep, Releases: rel}

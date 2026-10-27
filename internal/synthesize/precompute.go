@@ -82,6 +82,9 @@ type ItemDigest struct {
 	Unknown        []string                   `json:"unknown,omitempty"`
 	Tests          []string                   `json:"tests,omitempty"` // TestCandidate ids
 	Assessment     string                     `json:"assessment,omitempty"`
+	// Evidence are the finding's and the assessment's verified citations
+	// (bounded), citable by the answer.
+	Evidence []domain.EvidenceID `json:"evidence,omitempty"`
 }
 
 // EvidenceRef is a citable evidence record as the model sees it.
@@ -395,7 +398,7 @@ func (p *pre) digests() {
 	for _, f := range p.inv.Findings {
 		it := p.items[f.ChangeItem]
 		d := ItemDigest{ChangeItem: f.ChangeItem, Title: clip(it.Title, 200), Manifestation: string(f.Manifestation),
-			Classification: f.Class, Rule: f.Rule, Finding: f.ID}
+			Classification: f.Class, Rule: f.Rule, Finding: f.ID, Evidence: p.cite(f.Evidence, maxEvidence)}
 		if v, ok := verdicts[f.ChangeItem]; ok {
 			d.AgentVerdict = v.Class
 		}
@@ -407,6 +410,9 @@ func (p *pre) digests() {
 					break
 				}
 				d.Effective = append(d.Effective, domain.AssessmentSetting{Setting: clip(s.Setting, 200), State: s.State, Detail: clip(s.Detail, 200)})
+			}
+			for _, v := range a.Verified {
+				d.Evidence = append(d.Evidence, p.cite(v.Citations, 2)...)
 			}
 			d.Preconditions = clipList(a.Preconditions, maxList, 300)
 			d.Unknown = clipList(a.Unknown, maxList, 300)
