@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -268,4 +269,67 @@ func namedFacts(snap *Snapshot, it domain.ReviewItem, fin domain.SemanticAsserti
 		out[id] = true
 	}
 	return out, nil
+}
+
+// accountFor refuses a decision that mints or changes fact f (accept,
+// correct, duplicate; ordinary and hypothesis-sourced items alike) while
+// another active fact of f's product, release and subject is left unnamed,
+// or is kept beside f although the two contradict each other (lane backdoor,
+// D-0029). implied is the fact the route supersedes by itself (a correction
+// of that fact's own review item), "" when none. The hypothesis gate's wider
+// rule (every release of the product, gateDecision) is unchanged.
+func accountFor(facts map[string]domain.VerifiedFact, it domain.ReviewItem, d domain.ReviewDecision, f domain.VerifiedFact, implied string) error {
+	refuse := func(format string, args ...any) error {
+		return fmt.Errorf("knowledge: decision %s on %s refused: %w: %s", d.ID, it.ID, ErrPromotionRefused, fmt.Sprintf(format, args...))
+	}
+	named := map[string]bool{}
+	for _, id := range d.Supersedes {
+		named[id] = true
+	}
+	kept := map[string]bool{}
+	for _, id := range d.Coexists {
+		named[id], kept[id] = true, true
+	}
+	for id := range named {
+		g, ok := facts[id]
+		switch {
+		case !ok:
+			return refuse("names fact %s, which does not exist", id)
+		case g.Status != domain.FactActive:
+			return refuse("names fact %s, which is %s (only an active fact can be superseded or kept)", id, g.Status)
+		case id == f.ID:
+			return refuse("names fact %s, which is the fact this decision mints or changes", id)
+		case g.Product != f.Product || g.Assertion.Subject == nil || f.Assertion.Subject == nil || g.Assertion.Subject.Key() != f.Assertion.Subject.Key():
+			return refuse("names fact %s, which states another subject than fact %s", id, f.ID)
+		}
+	}
+	var unnamed, clash []string
+	for _, g := range facts {
+		if g.Status != domain.FactActive || g.ID == f.ID || g.ID == implied || !domain.SameFactScope(f, g) {
+			continue
+		}
+		switch {
+		case !named[g.ID]:
+			unnamed = append(unnamed, g.ID)
+		case kept[g.ID]:
+			if why := domain.FactIncompatibility(f, g); why != "" {
+				clash = append(clash, g.ID+" ("+why+")")
+			}
+		}
+	}
+	sort.Strings(unnamed)
+	sort.Strings(clash)
+	if len(unnamed) > 0 {
+		how := "supersedes or coexists"
+		if d.Action == domain.ActionReject {
+			how = "coexists; to replace one, correct or reject its own review item"
+		}
+		return refuse("active fact(s) %s state(s) the same subject (%s) at %s %s as fact %s; the decision must name each (%s) — no fact silently coexists",
+			strings.Join(unnamed, ", "), f.Assertion.Subject.Key(), f.Product, f.Release, f.ID, how)
+	}
+	if len(clash) > 0 {
+		return refuse("fact %s cannot coexist with %s: they contradict each other; supersede it, or retract one",
+			f.ID, strings.Join(clash, ", "))
+	}
+	return nil
 }

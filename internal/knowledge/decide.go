@@ -459,6 +459,10 @@ func factReviewTarget(it domain.ReviewItem, facts map[string]domain.VerifiedFact
 //     items. A correction of a fact-review item supersedes the old fact.
 //   - reject: a negative example; on a fact-review item it retracts the fact;
 //     with the duplicate label it adds this candidate's anchors to the named fact.
+//
+// A decision that mints or changes a fact names every other active fact of
+// its product, release and subject (supersedes or coexists), or is refused
+// (accountFor).
 //   - need-more-evidence / defer: no fact.
 func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) {
 	items := map[string]domain.ReviewItem{}
@@ -487,10 +491,12 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	case domain.ActionNeedMoreEvidence, domain.ActionDefer:
 		return out, nil
 	case domain.ActionReject:
+		retracted := ""
 		if target, ok := factReviewTarget(item, facts); ok {
 			f := facts[target]
 			f.Status = domain.FactRetracted
 			out.Touched = append(out.Touched, f)
+			retracted = target
 		}
 		if d.DuplicateOf != "" {
 			f, ok := facts[d.DuplicateOf]
@@ -507,6 +513,9 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 				f.Anchors = addAnchor(f.Anchors, an)
 			}
 			f.Candidates = appendUnique(f.Candidates, cand.ID)
+			if err := accountFor(facts, item, d, f, retracted); err != nil {
+				return nil, err
+			}
 			out.Touched = append(out.Touched, f)
 		}
 		return out, nil
@@ -624,7 +633,15 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		merged.AutoApproved = old.AutoApproved || auto
 		f = &merged
 	}
+	implied := "" // the fact a correction of its own review item supersedes
 	if target, ok := factReviewTarget(item, facts); ok && d.Action == domain.ActionCorrect && target != f.ID {
+		implied = target
+	}
+	if err := accountFor(facts, item, d, *f, implied); err != nil {
+		return nil, err
+	}
+	if implied != "" {
+		target := implied
 		f.Supersedes = appendUnique(f.Supersedes, target)
 		old := facts[target]
 		old.Status = domain.FactSuperseded

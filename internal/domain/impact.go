@@ -327,6 +327,11 @@ type Refinement struct {
 // RuleKnowledgeRefined is the rule of a refined finding (PO-4).
 const RuleKnowledgeRefined = KnowledgeRulePrefix + "refined"
 
+// RuleKnowledgeContradiction is the unknown gap a fact gets when another
+// active fact of its product, release and subject contradicts it
+// (FactIncompatibility): neither clears the change (lane backdoor).
+const RuleKnowledgeContradiction = KnowledgeRulePrefix + "contradiction"
+
 // KnowledgeRulePrefix starts the rule of every finding produced from
 // verified knowledge (impact:knowledge-exposed / -overlap / -clear /
 // -undecided).
@@ -798,6 +803,7 @@ func (f ImpactFinding) validateKnowledge() []error {
 		KnowledgeRulePrefix + "overlap":   {ImpactInformational},
 		KnowledgeRulePrefix + "clear":     {ImpactNotAffected},
 		KnowledgeRulePrefix + "undecided": {ImpactUnknown},
+		RuleKnowledgeContradiction:        {ImpactUnknown},
 		// PO-4: a refinement stays affected (validateRefinements has the rest).
 		RuleKnowledgeRefined: {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
 	}
