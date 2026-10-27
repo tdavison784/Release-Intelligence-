@@ -12,7 +12,8 @@ handoffs (every item is `providers: [claude]`).
 | consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | done, merged, closed 2026-10-21 |
 | consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | done, merged, closed 2026-10-21 |
 | scoped | ri-scoped | Opus 5.5 | p6di/scoped | .claude/worktrees/p6di-scoped | w1:t27 (pane w1:p3W) | done, merged, closed 2026-10-26 |
-| advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | started 2026-10-26 (D-0008) |
+| advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | done, merged, closed 2026-10-27 |
+| advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | started 2026-10-27 (D-0011) |
 
 ## Merge log
 
@@ -27,6 +28,12 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-21 `e59f89c8` Merge lane consumer3 (D-0006): consumer rules v3, pod-spec paths. Build, vet and test green (46).
   The non-test code is generic. v1 and v2 graphs are pinned by golden files. Lane closed.
+
+- 2026-10-27 `d73485b8` Merge lane advisories (D-0008). Build, vet and test green (46). Lane closed.
+- 2026-10-27 Recorded advisory state and stored runs `A0-K0-20261027-a7a9ef48-adv-{deu,cm}` (0c89d9b1).
+  - Against the base binary on identical bytes: no existing item changes class. New advisory items are all
+    potentially-affected, so the only effect is stricter.
+  - The candidates' any-line/clean defect went to D-0011.
 
 ## Decisions
 
