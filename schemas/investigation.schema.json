@@ -91,6 +91,7 @@
         "likelyImpact": {"type": "string"},
         "recommendedTests": {"type": "array", "items": {"type": "string"}},
         "untracedConsumers": {"type": "array", "items": {"type": "string"}},
+        "unavailableEvidence": {"type": "array", "items": {"type": "string"}},
         "statementKind": {"type": "string"},
         "provenance": {"$ref": "#/$defs/Provenance"}
       },
@@ -541,11 +542,22 @@
         "status": {"$ref": "#/$defs/RequestStatus"},
         "resolution": {"type": "string"},
         "fulfilled": {"type": "array", "items": {"type": "string"}},
+        "upstream": {"$ref": "#/$defs/UpstreamQuery"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
     },
-    "EvidenceRequestKind": {"type": "string", "enum": ["artifact", "source", "environment-input", "live-observation"]},
+    "EvidenceRequestKind": {
+      "type": "string",
+      "enum": [
+        "artifact",
+        "source",
+        "environment-input",
+        "live-observation",
+        "upstream-file",
+        "upstream-search"
+      ]
+    },
     "ExposureRoot": {
       "type": "object",
       "required": ["changeItem", "node", "rule"],
@@ -1080,6 +1092,19 @@
         "evidence-gap",
         "semantic-ambiguity"
       ]
+    },
+    "UpstreamQuery": {
+      "type": "object",
+      "required": ["repository", "ref"],
+      "properties": {
+        "repository": {"type": "string"},
+        "ref": {"type": "string"},
+        "path": {"type": "string"},
+        "dir": {"type": "string"},
+        "pattern": {"type": "string"},
+        "glob": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "ValidationKind": {
       "type": "string",

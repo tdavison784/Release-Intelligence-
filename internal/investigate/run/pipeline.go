@@ -633,13 +633,27 @@ func (p *Pipeline) investigate(ctx context.Context, in StageInput) (*stageResult
 			inv.Evidence = mergeEvidence(inv.Evidence, out.Evidence)
 			// §5.4: one `requested` event per agent request, actor agent:<model>.
 			for _, r := range out.EvidenceRequests {
-				inv.AppendAudit(domain.AuditEvent{At: p.now(), Stage: domain.StageInvestigate, Event: "requested", Actor: actor, Refs: []string{r.ID}, Detail: "evidence: " + string(r.Kind) + " " + r.Target})
+				inv.AppendAudit(domain.AuditEvent{At: p.now(), Stage: domain.StageInvestigate, Event: "requested", Actor: actor, Refs: append([]string{r.ID}, r.Fulfilled...),
+					Detail: "evidence: " + string(r.Kind) + " " + r.Target + upstreamOutcome(r)})
 			}
 			for _, r := range out.ValidationRequests {
 				inv.AppendAudit(domain.AuditEvent{At: p.now(), Stage: domain.StageInvestigate, Event: "requested", Actor: actor, Refs: []string{r.ID}, Detail: "validation: " + string(r.Kind)})
 			}
 			return nil
 		}}, nil
+}
+
+// upstreamOutcome is how an upstream evidence request (fetched during the
+// session) ended, for its audit event: the run artifacts that fulfilled it,
+// or why it was unavailable. Other requests are only recorded ("").
+func upstreamOutcome(r domain.EvidenceRequest) string {
+	switch {
+	case r.Upstream == nil:
+		return ""
+	case len(r.Fulfilled) > 0:
+		return " (fulfilled: " + strings.Join(r.Fulfilled, ", ") + ")"
+	}
+	return " (" + string(r.Status) + ": " + r.Resolution + ")"
 }
 
 // agentOutcome is the agent's part of the classifier input. It deliberately

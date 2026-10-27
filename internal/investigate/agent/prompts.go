@@ -513,10 +513,19 @@ type itemTaskData struct {
 	Budget                                                    string
 	// Dossier is the item's dossier JSON (feature dossier) and its artifact.
 	Dossier, DossierArtifact string
+	// Upstream names the repositories and tags upstream requests may read
+	// (feature upstream).
+	Upstream string
 }
 
 // renderItemTask renders the task of one per-item session.
 func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget, dossier []byte, dossierArt string) (string, error) {
+	return p.renderItemTaskWith(in, e, position, total, cap, budget, dossier, dossierArt, "")
+}
+
+// renderItemTaskWith is renderItemTask with the upstream line (feature
+// upstream; ignored by item tasks that do not show it).
+func (p *Prompt) renderItemTaskWith(in investigate.InvestigateInput, e domain.AgendaCoverage, position, total, cap int, budget domain.AgentBudget, dossier []byte, dossierArt, upstream string) (string, error) {
 	if p.item == nil {
 		return "", fmt.Errorf("agent: prompt %s has no per-item task", p.Version)
 	}
@@ -528,7 +537,7 @@ func (p *Prompt) renderItemTask(in investigate.InvestigateInput, e domain.Agenda
 	d := itemTaskData{Product: full.Product, From: full.From, To: full.To, Environment: full.Environment, KubernetesVersion: full.KubernetesVersion,
 		Bundle: b.ID, Position: position, Total: total, Cap: cap, Rule: e.PriorityRule, Renders: full.Renders,
 		Budget:  fmt.Sprintf("%d tool calls, %d KiB returned, %d turns, %d s", budget.MaxToolCalls, budget.MaxReadBytes>>10, budget.MaxTurns, budget.MaxSeconds),
-		Dossier: strings.TrimSpace(string(dossier)), DossierArtifact: dossierArt}
+		Dossier: strings.TrimSpace(string(dossier)), DossierArtifact: dossierArt, Upstream: upstream}
 	for _, ti := range full.Items {
 		if ti.ID == e.ChangeItem {
 			d.Item = ti

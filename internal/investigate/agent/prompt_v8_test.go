@@ -44,15 +44,16 @@ func promptSetDigest(t *testing.T, version string) string {
 // frozen byte for byte.
 func TestEarlierPromptVersionsAreFrozen(t *testing.T) {
 	want := map[string]string{
-		"investigate-agent/v1": "94ab8d1d90c9d8b5203ffb29ee98a03ff38632f17eebfa195341ace933154d57",
-		"investigate-agent/v2": "5fd7268490d08c866615771fea77962bc0b8a3eb2eed5d3a2fd9bd2b601b9e18",
-		"investigate-agent/v3": "2fc7522e1aa0b9a8bbc65ef529b2afce0dbce185ebdfc900e72e0c621018b40e",
-		"investigate-agent/v4": "cac2682aa6bbfbbd8a281846918520f2c9e45e3557a6572fbabcd470c38c4436",
-		"investigate-agent/v5": "85331d84ddadaa6588aeaf43f8810f1e38cabac9c4d2b37f7689f18ee829272c",
-		"investigate-agent/v6": "15cff2638ce18cccafc245b0557e47d953b15088aad0005744865045393772f8",
-		"investigate-agent/v7": "18e8cdba89cc7ff73dfd824b42361f8d296ce9644f1a3c889f140d8629e0db43",
-		"investigate-agent/v8": "c9fdfd7584ae70a8db9c23b5c4a842e9ee124e883e3ad6855331f5f99a29a7ff",
-		"investigate-agent/v9": "4f90310ac7670e0c106a670fd6f18e151f037954a3ce2a787db859a2dedfdf6d",
+		"investigate-agent/v1":  "94ab8d1d90c9d8b5203ffb29ee98a03ff38632f17eebfa195341ace933154d57",
+		"investigate-agent/v2":  "5fd7268490d08c866615771fea77962bc0b8a3eb2eed5d3a2fd9bd2b601b9e18",
+		"investigate-agent/v3":  "2fc7522e1aa0b9a8bbc65ef529b2afce0dbce185ebdfc900e72e0c621018b40e",
+		"investigate-agent/v4":  "cac2682aa6bbfbbd8a281846918520f2c9e45e3557a6572fbabcd470c38c4436",
+		"investigate-agent/v5":  "85331d84ddadaa6588aeaf43f8810f1e38cabac9c4d2b37f7689f18ee829272c",
+		"investigate-agent/v6":  "15cff2638ce18cccafc245b0557e47d953b15088aad0005744865045393772f8",
+		"investigate-agent/v7":  "18e8cdba89cc7ff73dfd824b42361f8d296ce9644f1a3c889f140d8629e0db43",
+		"investigate-agent/v8":  "c9fdfd7584ae70a8db9c23b5c4a842e9ee124e883e3ad6855331f5f99a29a7ff",
+		"investigate-agent/v9":  "4f90310ac7670e0c106a670fd6f18e151f037954a3ce2a787db859a2dedfdf6d",
+		"investigate-agent/v10": "8d75d01dfc4809179bcff0fa8e770c5520b7154867bdd5c790c6e59f5aabc5ea",
 	}
 	for v, d := range want {
 		if _, err := LoadPrompt(v); err != nil {

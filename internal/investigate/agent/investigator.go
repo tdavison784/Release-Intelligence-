@@ -547,7 +547,7 @@ func (i *Investigator) investigateItems(ctx context.Context, in investigate.Inve
 				return nil, err
 			}
 		}
-		task, err := p.renderItemTask(in, e, k+1, n, cap, base.Budget, dossierBytes, dossierRef.ID)
+		task, err := p.renderItemTaskWith(in, e, k+1, n, cap, base.Budget, dossierBytes, dossierRef.ID, s.upstreamLine())
 		if err != nil {
 			return nil, investigate.PermanentError(domain.StageInvestigate, err)
 		}

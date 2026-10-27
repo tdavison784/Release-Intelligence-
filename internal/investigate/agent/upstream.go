@@ -136,7 +136,10 @@ func parseUpstream(in investigate.EvidenceRequestInput, tags []string) (*upstrea
 			return nil, rejectf("upstream-file needs repo and path (or a blob URL at a tag in target)")
 		}
 		cp, err := cleanPath("path", p)
-		if err != nil || cp == "" {
+		if err != nil {
+			return nil, err
+		}
+		if cp == "" {
 			return nil, rejectf("path %q: want a file path of the repository", p)
 		}
 		uq.q.Path = cp
@@ -252,6 +255,23 @@ func (s *Session) upstreamScope() upstreamScope {
 		}
 	}
 	return sc
+}
+
+// upstreamLine tells the item task what upstream requests may read (""
+// without feature upstream).
+func (s *Session) upstreamLine() string {
+	if !s.cfg.Prompt.Features.Upstream.On() {
+		return ""
+	}
+	sc := s.upstreamScope()
+	tags := fmt.Sprintf("target's tag %s (the default ref), current version's tag %s (for comparison)", sc.target, sc.current)
+	switch {
+	case s.cfg.Upstream == nil:
+		return "not configured for this run: upstream requests are recorded as unavailable"
+	case len(sc.repos) == 0:
+		return "no source repository is known for this product: upstream requests are recorded as unavailable; " + tags
+	}
+	return "repositories " + strings.Join(sc.repos, ", ") + "; " + tags
 }
 
 // refusal says why a well-formed request is outside what may be read ("" =
@@ -416,7 +436,7 @@ func (s *Session) fetchUpstreamFile(ctx context.Context, uq *upstreamQuery, room
 	}
 	doc, err := s.cfg.Upstream.Files.FetchDocument(ctx, catalog.Locator{Kind: "repo-file", Repository: uq.repo.CloneURL, Ref: uq.q.Ref, Path: uq.q.Path})
 	if err != nil {
-		return nil, nil, fetchReason(err, uq.q.Ref)
+		return nil, nil, fetchReason(err, uq)
 	}
 	if why := unreadable(doc.Content); why != "" {
 		return nil, nil, why
@@ -445,7 +465,7 @@ func (s *Session) searchUpstream(ctx context.Context, uq *upstreamQuery, room in
 	}
 	docs, err := s.cfg.Upstream.Dirs.FetchDirectory(ctx, catalog.Locator{Kind: "repo-dir", Repository: uq.repo.CloneURL, Ref: uq.q.Ref, Path: uq.q.Dir, Glob: uq.q.Glob})
 	if err != nil {
-		return nil, nil, fetchReason(err, uq.q.Ref)
+		return nil, nil, fetchReason(err, uq)
 	}
 	res := &upstreamSearch{FilesListed: len(docs), Matches: []upstreamMatch{}}
 	var scanned int64
@@ -551,15 +571,20 @@ func mediaTypeOf(p string) string {
 	return "text/plain"
 }
 
-// fetchReason is the recorded reason of a failed fetch. It names the kind of
-// failure first; the error text is deterministic for a cached or offline
-// replay.
-func fetchReason(err error, ref string) string {
+// fetchReason is the recorded reason of a failed fetch. Not-found and
+// offline reasons name only the request, never the transport's error text,
+// so a not-found answered online and the same answer replayed from the cache
+// read alike. A network failure is not cached: its replay is "offline".
+func fetchReason(err error, uq *upstreamQuery) string {
+	what := uq.q.Path
+	if uq.kind == domain.RequestUpstreamSearch {
+		what = "directory " + uq.q.Dir
+	}
 	switch {
 	case errors.Is(err, fetch.ErrOffline):
-		return "offline: not in the recorded cache (" + short(err.Error()) + ")"
+		return "offline: not in the recorded cache: " + what + " at " + uq.q.Ref
 	case errors.Is(err, fetch.ErrNotFound):
-		return "not found at " + ref + " (" + short(err.Error()) + ")"
+		return "not found at " + uq.q.Ref + ": " + what + " in " + uq.q.Repository
 	case errors.Is(err, fetch.ErrUnavailable):
 		return "upstream unavailable (" + short(err.Error()) + ")"
 	}
