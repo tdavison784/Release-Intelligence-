@@ -179,3 +179,29 @@ func TestAgentProposedRuleThroughTheUI(t *testing.T) {
 		t.Fatalf("facts after promotion: %v", status)
 	}
 }
+
+// A confirmed proof's role-membership default (PD-6, lane verify4) is shown
+// to the reviewer with its role, values and limitation before the decision,
+// and said not to be a default of the field.
+func TestRoleMembershipDefaultShownToTheReviewer(t *testing.T) {
+	s, _, it := hStore(t)
+	clock := func() time.Time { return hT0.Add(time.Hour) }
+	srv := httptest.NewServer(NewServer(knowledge.NewQueue(s, clock), Options{Now: clock, Logf: t.Logf,
+		Snapshot: func(ctx context.Context) (*knowledge.Snapshot, error) { return s.Load(ctx, knowledge.Query{}) }}))
+	defer srv.Close()
+	r := &rig{t: t, srv: srv, c: newRig(t).c}
+	p := hProof(it)
+	ex := p.Methods[1]
+	p.RoleMembershipDefaults = []domain.RoleMembershipDefault{{Group: "acme.example", Kind: "Widget", Path: "spec.archiver", Role: "archive-trust",
+		RoleValue: "true", OutsideValue: "false", Level: domain.LevelObserved, Arms: []string{domain.ArmConditionAbsent, domain.ArmConditionPresent, domain.ArmConditionAbsent},
+		Observation: "with spec.archiver unset the relationship could not form", Versions: []string{"1.9.4", "2.0.0"}, ControllerValues: "{}",
+		Fixture: "sha256:fx", Evidence: ex.Evidence, Limitation: domain.ObservedDefaultLimitation, RuleDigest: p.ProposedRuleDigest}}
+	p.ID = domain.ProofRecordID(p)
+	if err := p.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	hPut(t, s, p)
+	_, page := r.get("/items/" + it.ID)
+	contains(t, page, "Role-membership defaults", "spec.archiver</code> unset on Widget ⇒ outside role <b>archive-trust</b>",
+		"Limitation: observed on the fixture", "They are not defaults of the field", "the relationship could not form")
+}

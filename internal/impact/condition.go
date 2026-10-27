@@ -109,6 +109,11 @@ type ConditionOptions struct {
 	// decides an unset field nothing else establishes; one contradicting a
 	// schema or cited default blocks both. CONTRACT-CHANGE(verify3).
 	Observed []domain.ObservedDefault
+	// Membership are the fact's usable role-membership defaults (PD-6,
+	// VerifiedFact.UsableRoleMembershipDefaults): each decides only the
+	// rule's membership leaves of its role, never another condition on the
+	// field. CONTRACT-CHANGE(verify4).
+	Membership []domain.RoleMembershipDefault
 }
 
 // EvaluateCondition evaluates an applicability condition against the
@@ -122,7 +127,8 @@ func EvaluateConditionWith(c domain.Condition, e *env.Environment, edge *domain.
 	if opts.Render == nil {
 		opts.Render = RenderUnavailable{}
 	}
-	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}, rule: map[domain.EvidenceID]domain.Evidence{}, observed: opts.Observed}
+	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}, rule: map[domain.EvidenceID]domain.Evidence{}, observed: opts.Observed,
+		membership: opts.Membership}
 	if e == nil {
 		return unknownResult(domain.UnknownEnvironmentVisibilityGap, "no environment supplied")
 	}
@@ -152,8 +158,10 @@ type evaluator struct {
 	// environment's CRD schemas (schema defaults).
 	rule map[domain.EvidenceID]domain.Evidence
 	crds []applicability.CRD
-	// observed are the fact's usable observed defaults (PD-5).
-	observed []domain.ObservedDefault
+	// observed are the fact's usable observed defaults (PD-5); membership
+	// its usable role-membership defaults (PD-6).
+	observed   []domain.ObservedDefault
+	membership []domain.RoleMembershipDefault
 }
 
 // SchemasOf returns the structural schemas of the environment's CRDs (the
@@ -189,7 +197,9 @@ func (ev *evaluator) fieldDefault(c domain.Condition, r *env.Resource) applicabi
 		schema = applicability.ParentAbsent(schema, c.Path)
 	}
 	obs, conflict := applicability.ObservedFor(ev.observed, r.Group, r.Kind, c.Path)
-	return applicability.WithObserved(applicability.Resolve(schema, applicability.RuleDefault(c, ev.rule)), obs, conflict)
+	d := applicability.WithObserved(applicability.Resolve(schema, applicability.RuleDefault(c, ev.rule)), obs, conflict)
+	m, mconflict := applicability.MembershipFor(ev.membership, r.Group, r.Kind, c)
+	return applicability.WithMembership(d, m, mconflict)
 }
 
 // ruleDefault is the rule's evidenced default of a leaf without a schema

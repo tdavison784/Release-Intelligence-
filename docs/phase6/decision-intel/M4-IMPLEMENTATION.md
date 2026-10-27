@@ -218,3 +218,74 @@ observation where the values differ".
   range of its own beyond the proof's bounds, like a cited controller default.
 - The semantic-check exclusion needs the refinement clause verbatim; a human who rewrites the statement gets every token
   checked.
+
+## Lane `verify4` (D-0027): "the role cannot form" as an observed probe outcome (PD-6)
+
+Branch `p6di/verify4`. verify3's real run left objects that leave a role field unset undecidable: in the role's
+observation the unset and other-value probes were `undetermined`, because the dependent output was never issued.
+PD-6 makes that an observed outcome that establishes role membership only. Everything is additive: stored proofs,
+facts, formalization records and prompts are unchanged and still validate (241/241 checked-in facts verify, the stored
+proof validates, `m4rescore` 1004/1004 identical); membership defaults enter the proof id only when present.
+
+| # | Change | Where |
+|---|---|---|
+| 1 | **Outcome `role-cannot-form`** for an in-role default probe at one version, from the run's object observations of that version (settled and after the exercises) and its consumer check: run completed (at TO the upgrade completed); the subject exists, was applied, is ready, its trust output was captured and it answered its re-issue; the dependent output was not produced (a consuming object not re-issued, or the verified output unreadable; never an x509 error on a read output); every consuming object exists and was applied, and in every observation at least one reports a **failure** (a failure condition that holds, or a condition not holding for a reason naming a failure). Not-ready-while-progressing is context only. Evidence: object states, conditions, warning events (`ProofConsumerResult.formation`); never logs. Anything else stays `undetermined`. Recorded on the probe (arm observed `role-cannot-form` when both versions are), never decisive. Producer `verify.exercise-consumer@v4`. | `verify/formation.go`, `verify/consumer.go`, `verify/exercise.go` (`armPlan.consuming`), `domain/proof.go` |
+| 2 | **Role-membership default.** On a confirmed proof only, `ProofRecord.roleMembershipDefaults` records "F unset ⇒ outside role R (observed)" (`domain.RoleMembershipDefault`: field, role, role and outside values, arms, observation with the formation evidence, versions, fixture values and digest, run artifacts, rule digest, limitation "observed on the fixture's controller configuration") when the base arm (F = R's value) formed the relationship at FROM and TO, the unset probe was `role-cannot-form` at both, and the other-value probe formed it at neither. `role-cannot-form` never yields a PD-5 field default. | `verify/probe.go` (`RoleMembershipDefaults`), `verify/verify.go` |
+| 3 | **Used only for membership.** `applicability.MembershipFor` selects a membership default only for a membership leaf (F `equals` R's value or the outside value, one value); `WithMembership` decides it only when nothing else establishes F (unset ⇒ outside R: role leaf false, outside leaf true), blocks on an established default (schema, cited, observed) that puts unset F in R, keeps a contradiction already found, and blocks on disagreeing membership defaults. The impact join and the pin scope call both after the PD-5 step. | `internal/applicability`, `impact/condition.go`, `impact/knowledge.go`, `validate/pins.go` |
+| 4 | **Guards, promotion, display.** Usable only through a confirmed proof of the same rule digest that records it (`UsableRoleMembershipDefaults`, `RoleMembershipEstablished`, checked in `impact.VerifyFacts`; else ignored and reported); `ProofRecord.Validate` refuses one on a non-confirmed proof or naming foreign arms. Human promotion carries it into the fact (`VerifiedFact.roleMembershipDefaults` + proof id); the gate is unchanged. The review UI lists it with its limitation and "not defaults of the field"; `ri knowledge decide` prints it. | `domain/proof.go`, `domain/semantic.go`, `knowledge/decide.go`, `reviewui`, `cmd/ri/knowledge.go` |
+
+### Decisions
+
+- **A reported failure is required.** On the real controller the leaf of a relationship that cannot form reads
+  `Ready=False (DoesNotExist)` with `Issuing=True`, which is also what a late leaf looks like. The decisive signal is
+  the consuming issuer's `Ready=False (ErrInvalidKeyPair): certificate is not a CA`. So "never produced" counts only
+  together with a failure some consuming object reports, in every observation of the version; not-ready alone is a
+  timeout (`undetermined`).
+- **Only the unset probe establishes membership**; the other-value probe corroborates (it must not form the
+  relationship) and is part of the observation. An explicit value is decided by its value.
+- **Membership leaves are recognised by shape** (F `equals` R's value or the outside value), not by position: a
+  refinement never names its role field elsewhere (`formalize.RefineRule` rejects that), and any other predicate on F
+  stays unknown, so the default cannot act as a field default.
+- **Only in-role probes**: decisive arms keep their outcomes and producer semantics; role-absent probes are judged by
+  the role-absent observation.
+- **An earlier contradiction stays blocked** (`applicability.Default.Contradiction`): before this lane, a schema
+  default contradicting the rule's cited default could be settled by a PD-5 observed default (fail-open). Now neither
+  an observed nor a membership default settles it (`impact.TestObservedDefaultKeepsAnEarlierContradiction`).
+
+### Tests
+
+- `verify.TestRoleCannotFormVersusUndetermined`: role-cannot-form with evidence (conditions, events, no logs; both
+  observations of each version); undetermined for a leaf that never reported, a leaf still progressing (not ready, no
+  failure), a timeout at TO only, a missing or unapplied consuming object, a subject not ready or missing, logs only,
+  the subject not answering, the trust output not captured, an x509 error on a read output, a sandbox failure, no
+  observations; an upgrade that did not complete decides nothing; role-absent probes never role-cannot-form; the method
+  is never decided by the probes.
+- `verify.TestRoleMembershipDefaultRecordedOnlyWhenTheRoleFormed`: recorded (shape, statement, observation, no PD-5
+  field default); none when the role arm did not form the relationship, when the other value formed it, when unset
+  could not form it at one version only, without a refinement; the other value undetermined still allows it.
+- `verify.TestRoleMembershipDefaultThroughPromotion`: none on an inconclusive proof (limitation), recorded and in the
+  id on a confirmed one; an edited default breaks the id; one on an inconclusive proof does not validate; human
+  promotion carries it with the proof id; `VerifyFacts` keeps it and ignores it when it names the inconclusive proof,
+  no proof, another rule, or a default the proof does not record.
+- `impact.TestRoleMembershipDefaults`, `TestRoleMembershipDefaultAgainstSchema`: decides the role and outside leaves
+  and the refined rule's exposure and overlap on an unset object (naming proof, role, limitation); a stated value
+  wins; another value, not-equals, matches, several values, another field stay unknown; no proof, another rule, no
+  limitation ignored; a cited, observed or schema default in the role blocks; one outside agrees; an earlier
+  contradiction stays; disagreeing membership defaults block. `TestObservedDefaultKeepsAnEarlierContradiction`.
+- `validate.TestPinScopeRoleMembershipDefault`: the pin scope clears an unset object outside the role only with a
+  proven membership default; not for another condition on the field; a schema default in the role contradicts it.
+- Kind (opt-in): case `role-cannot-form` in `TestRefinementKind`
+  (`RI_VERIFY2_KIND=1 RI_VERIFY2_CASES=role-cannot-form RI_VERIFY2_STATE=<scratch state> go test ./cmd/ri -run RefinementKind -v -timeout 60m`).
+  Run 2026-10-27 (cert-manager 1.17.2 → 1.18.0, 555 s): the refinement is confirmed; the in-role probes (unset,
+  `false`) are `role-cannot-form` at FROM and TO (the CA Issuer reports `Ready=False (ErrInvalidKeyPair): certificate
+  is not a CA` in every observation; the leaf stays `Ready=False (DoesNotExist)`, `Issuing=True`; its Secret never
+  exists); `spec.isCA unset ⇒ outside role ca-trust (observed)` is derived; no field default.
+
+### Known limits
+
+- The outcome needs the controller to report a failure in object state. A controller that silently never produces
+  the output (or only logs why) leaves the probe `undetermined`, and the field undecidable, as before.
+- The failure words are generic (`fail`, `error`, `Err…`, `invalid`, `denied`, `reject`, `forbidden`, and the usual
+  negative condition types); a controller that names a failure otherwise is not recognised.
+- A membership default holds for the fixture's controller configuration and the observed versions only, like an
+  observed default; it decides membership in role R for the rule that carries it, nothing else.

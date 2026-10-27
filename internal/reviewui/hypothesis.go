@@ -42,6 +42,9 @@ type proofView struct {
 	// ObservedDefaults are the defaults the proof observed (PD-5): shown
 	// with their limitation before the reviewer decides.
 	ObservedDefaults []domain.ObservedDefault
+	// RoleMemberships are its role-membership defaults (PD-6), shown the
+	// same way.
+	RoleMemberships []domain.RoleMembershipDefault
 }
 
 type methodView struct {
@@ -104,7 +107,8 @@ func newHypothesisView(rc *knowledge.ReviewContext, form url.Values) *hypothesis
 
 func newProofView(p domain.ProofRecord) proofView {
 	pv := proofView{ID: p.ID, Outcome: string(p.Outcome), Level: string(p.Level), CheckedAt: p.CheckedAt.Format("2006-01-02 15:04 MST"),
-		Limitations: p.Limitations, ObservedDefaults: p.ObservedDefaults}
+		Limitations: p.Limitations, ObservedDefaults: p.ObservedDefaults,
+		RoleMemberships: p.RoleMembershipDefaults}
 	if b := p.VersionBounds; b != nil {
 		pv.Bounds = fmt.Sprintf("(%s, %s]", b.From, b.To)
 	}

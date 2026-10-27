@@ -319,6 +319,155 @@ func (f VerifiedFact) UsableObservedDefaults() (usable []ObservedDefault, ignore
 	return usable, ignored
 }
 
+// RoleMembershipDefault is an observed role-membership default (PD-6, lane
+// verify4, D-0027): in a scope refinement's rule exercise on the real
+// controller, the in-role object that leaves Path unset could not form the
+// consumer relationship of role Role (probe outcome role-cannot-form at FROM
+// and at TO), while its base arm, which sets Path to RoleValue, formed it at
+// both. It says "Path unset ⇒ outside role Role (observed)" and nothing
+// else: it is not a default of the field. The evaluators use it only for
+// the refinement's membership leaves (Path equals RoleValue, Path equals
+// OutsideValue) and only through a confirmed proof of the same rule digest,
+// carried into the fact on human promotion; never for any other condition
+// on Path. Level is always observed; the limitation is the observed
+// default's (the fixture's controller configuration).
+type RoleMembershipDefault struct {
+	// Group and Kind are the subject kind; Path the role field.
+	Group string `json:"group,omitempty"`
+	Kind  string `json:"kind"`
+	Path  string `json:"path"`
+	// Role is the catalog consumer role (ScopeRefinement.Consumer);
+	// RoleValue and OutsideValue Path's JSON-encoded values in and outside
+	// it (ScopeRefinement.Role / Outside).
+	Role         string          `json:"role"`
+	RoleValue    string          `json:"roleValue"`
+	OutsideValue string          `json:"outsideValue"`
+	Level        ValidationLevel `json:"level"`
+	// Arms are the base arm, the unset probe and the other-value probe;
+	// Observation says what each observed, with the object states,
+	// conditions and events of the relationship that could not form.
+	Arms        []string `json:"arms"`
+	Observation string   `json:"observation"`
+	// Versions, ControllerValues, Fixture and Evidence as ObservedDefault.
+	Versions         []string   `json:"versions"`
+	ControllerValues string     `json:"controllerValues"`
+	Fixture          string     `json:"fixture"`
+	Evidence         []Evidence `json:"evidence"`
+	Limitation       string     `json:"limitation"`
+	// RuleDigest is the rule the proof verified; Proof the confirmed proof
+	// (set when carried into a fact; empty on the proof).
+	RuleDigest string `json:"ruleDigest"`
+	Proof      string `json:"proof,omitempty"`
+}
+
+// Key identifies the field and role a membership default is about.
+func (d RoleMembershipDefault) Key() string {
+	return d.Group + "/" + d.Kind + "/" + d.Path + " (role " + d.Role + ")"
+}
+
+// Statement is the default in words.
+func (d RoleMembershipDefault) Statement() string {
+	return fmt.Sprintf("%s unset ⇒ outside role %s (observed)", d.Path, d.Role)
+}
+
+// Same reports whether two membership defaults state the same thing from
+// the same observation (the proof reference aside).
+func (d RoleMembershipDefault) Same(o RoleMembershipDefault) bool {
+	d.Proof, o.Proof = "", ""
+	a, _ := json.Marshal(d)
+	b, _ := json.Marshal(o)
+	return string(a) == string(b)
+}
+
+// Validate checks the default's shape (not where it comes from: see
+// RoleMembershipEstablished).
+func (d RoleMembershipDefault) Validate() error {
+	var errs []error
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("role-membership default %s: %s", d.Key(), fmt.Sprintf(format, args...)))
+	}
+	var rv, ov any
+	if strings.TrimSpace(d.Kind) == "" || strings.TrimSpace(d.Path) == "" || strings.TrimSpace(d.Role) == "" ||
+		json.Unmarshal([]byte(d.RoleValue), &rv) != nil || json.Unmarshal([]byte(d.OutsideValue), &ov) != nil {
+		bad("kind, path, role and the JSON role and outside values are required")
+	} else if d.RoleValue == d.OutsideValue {
+		bad("the role value and the outside value must differ")
+	}
+	if d.Level != LevelObserved {
+		bad("level %q: a role-membership default is observed", d.Level)
+	}
+	if len(d.Arms) < 3 || strings.TrimSpace(d.Observation) == "" {
+		bad("the base arm, the unset probe and the other-value probe, and what they observed, are required")
+	}
+	if len(d.Versions) == 0 || strings.TrimSpace(d.Fixture) == "" {
+		bad("the controller versions and the fixture are required")
+	}
+	if len(d.Evidence) == 0 {
+		bad("the exercise evidence is required")
+	}
+	if d.Limitation != ObservedDefaultLimitation {
+		bad("the limitation must be %q", ObservedDefaultLimitation)
+	}
+	if strings.TrimSpace(d.RuleDigest) == "" {
+		bad("ruleDigest is required")
+	}
+	if d.Proof != "" && !strings.HasPrefix(d.Proof, ProofIDPrefix) {
+		bad("proof %q lacks the %s prefix", d.Proof, ProofIDPrefix)
+	}
+	return errors.Join(errs...)
+}
+
+// RoleMembershipEstablished reports why a fact cannot use a membership
+// default ("" when it can): it must name a confirmed proof of exactly the
+// fact's rule (digest) that records the same default.
+func RoleMembershipEstablished(f VerifiedFact, d RoleMembershipDefault, proofs map[string]ProofRecord) string {
+	if why := d.usableBy(f); why != "" {
+		return why
+	}
+	p, ok := proofs[d.Proof]
+	switch {
+	case !ok:
+		return "proof " + d.Proof + " does not resolve"
+	case p.Outcome != ProofConfirmed:
+		return fmt.Sprintf("proof %s is %s, not confirmed", p.ID, p.Outcome)
+	case p.ProposedRuleDigest != d.RuleDigest:
+		return fmt.Sprintf("proof %s verified another rule (digest %s)", p.ID, p.ProposedRuleDigest)
+	}
+	for _, x := range p.RoleMembershipDefaults {
+		if x.Same(d) {
+			return ""
+		}
+	}
+	return "proof " + p.ID + " does not record this role-membership default"
+}
+
+func (d RoleMembershipDefault) usableBy(f VerifiedFact) string {
+	switch {
+	case d.Validate() != nil:
+		return d.Validate().Error()
+	case d.Proof == "":
+		return "it names no confirmed proof (a default that is merely proposed is ignored)"
+	case d.RuleDigest != f.Assertion.Digest():
+		return fmt.Sprintf("it was observed for another rule (digest %s, the fact's is %s)", d.RuleDigest, f.Assertion.Digest())
+	}
+	return ""
+}
+
+// UsableRoleMembershipDefaults are the fact's membership defaults that name
+// a confirmed proof of exactly its rule (on their face; impact.VerifyFacts
+// checks them against the proof records). ignored says why each other one
+// is not used.
+func (f VerifiedFact) UsableRoleMembershipDefaults() (usable []RoleMembershipDefault, ignored []string) {
+	for _, d := range f.RoleMembershipDefaults {
+		if why := d.usableBy(f); why != "" {
+			ignored = append(ignored, fmt.Sprintf("role-membership default %s ignored: %s", d.Key(), why))
+			continue
+		}
+		usable = append(usable, d)
+	}
+	return usable, ignored
+}
+
 // Answered reports whether the arm's exercise (or consumer observation) was
 // answered at FROM and at TO.
 func (a ProofArm) Answered() bool { return a.ReactedFrom && a.ReactedTo }
@@ -354,9 +503,14 @@ type ProofConsumer struct {
 // ProofConsumerResult is the consumer observation at one version.
 type ProofConsumerResult struct {
 	// Outcome is "verified", "failed" (the chain does not reach the
-	// captured trust) or "undetermined".
-	Outcome           string   `json:"outcome"`
-	Detail            string   `json:"detail"`
+	// captured trust), "role-cannot-form" (ConsumerRoleCannotForm, a
+	// default probe in the role only) or "undetermined".
+	Outcome string `json:"outcome"`
+	Detail  string `json:"detail"`
+	// Formation is the object-state evidence of a role-cannot-form outcome
+	// (states, conditions and events of the arm's objects; never logs).
+	// CONTRACT-CHANGE(verify4): additive.
+	Formation         []string `json:"formation,omitempty"`
 	TrustCertificates []string `json:"trustCertificates,omitempty"`
 	TrustKeys         []string `json:"trustKeys,omitempty"`
 	Certificate       string   `json:"certificate,omitempty"`
@@ -370,6 +524,16 @@ const (
 	BehaviourPrevious     = "previous-behaviour"
 	BehaviourNew          = "new-behaviour"
 	BehaviourUndetermined = "undetermined"
+	// ConsumerRoleCannotForm is the consumer outcome, at one version, of a
+	// default probe in the role whose relationship cannot form (PD-6, lane
+	// verify4): the controller is healthy, the subject exists and is ready,
+	// and the dependent output the consumer verifies is not produced while
+	// the controller reports the consuming objects not ready. An arm with
+	// it at both versions is observed BehaviourRoleCannotForm. It is
+	// observed, and distinct from undetermined (timeouts, controller
+	// failures, objects missing for other reasons).
+	ConsumerRoleCannotForm  = "role-cannot-form"
+	BehaviourRoleCannotForm = "role-cannot-form"
 )
 
 // ProofMethod is one method's result.
@@ -422,6 +586,10 @@ type ProofRecord struct {
 	// established by observation (PD-5): only on a confirmed proof.
 	// CONTRACT-CHANGE(verify3): additive.
 	ObservedDefaults []ObservedDefault `json:"observedDefaults,omitempty"`
+	// RoleMembershipDefaults are role-membership defaults the rule exercise
+	// observed (PD-6): only on a confirmed proof. CONTRACT-CHANGE(verify4):
+	// additive.
+	RoleMembershipDefaults []RoleMembershipDefault `json:"roleMembershipDefaults,omitempty"`
 }
 
 // ProofRecordID derives a proof id from its content.
@@ -432,6 +600,11 @@ func ProofRecordID(p ProofRecord) string {
 		// only when present, so the ids of earlier proofs are unchanged
 		d, _ := json.Marshal(p.ObservedDefaults)
 		parts = append(parts, Digest(d))
+	}
+	if len(p.RoleMembershipDefaults) > 0 {
+		// likewise
+		d, _ := json.Marshal(p.RoleMembershipDefaults)
+		parts = append(parts, "membership", Digest(d))
 	}
 	return ProofIDPrefix + ShortHash(parts...)
 }
@@ -577,6 +750,22 @@ func (p ProofRecord) Validate() error {
 		for _, a := range d.Arms {
 			if !arms[a] {
 				bad("observed default %s: arm %s is not an arm of the rule exercise", d.Key(), a)
+			}
+		}
+	}
+	if len(p.RoleMembershipDefaults) > 0 && p.Outcome != ProofConfirmed {
+		bad("role-membership defaults are recorded only on a confirmed proof")
+	}
+	for _, d := range p.RoleMembershipDefaults {
+		if err := d.Validate(); err != nil {
+			bad("%v", err)
+		}
+		if d.RuleDigest != p.ProposedRuleDigest || d.Proof != "" {
+			bad("role-membership default %s: it is the proof's own (ruleDigest = proposedRuleDigest, no proof reference)", d.Key())
+		}
+		for _, a := range d.Arms {
+			if !arms[a] {
+				bad("role-membership default %s: arm %s is not an arm of the rule exercise", d.Key(), a)
 			}
 		}
 	}

@@ -55,6 +55,14 @@ type Default struct {
 	// CRDs are the indexes (into the caller's CRD slice) of the schemas a
 	// schema default was read from.
 	CRDs []int
+	// Contradiction marks an Unknown caused by two established defaults
+	// that disagree: nothing may settle the field afterwards.
+	Contradiction bool
+	// Membership is the consumer role whose observed membership default
+	// decided the leaf (PD-6, WithMembership): Value is then the role
+	// field's outside value, standing for "outside the role", not a default
+	// of the field.
+	Membership string
 }
 
 // CRD is one CustomResourceDefinition: what it serves and its structural
@@ -182,7 +190,7 @@ func Resolve(schema, rule Default) Default {
 	switch {
 	case schema.State == Known && rule.State == Known:
 		if !SameValue(schema.Value, rule.Value) {
-			return Default{Why: fmt.Sprintf("the schema default %s (%s) contradicts the rule's default %s", plain(schema.Value), schema.Source, plain(rule.Value))}
+			return Default{Why: fmt.Sprintf("the schema default %s (%s) contradicts the rule's default %s", plain(schema.Value), schema.Source, plain(rule.Value)), Contradiction: true}
 		}
 		out := schema
 		out.Citations = rule.Citations
@@ -233,20 +241,73 @@ func ObservedFor(ds []domain.ObservedDefault, group, kind, path string) (d *doma
 // (ObservedFor's why): the field is unknown.
 func WithObserved(d Default, obs *domain.ObservedDefault, conflict string) Default {
 	if conflict != "" {
-		return Default{Why: "contradiction: " + conflict, CRDs: d.CRDs}
+		return Default{Why: "contradiction: " + conflict, CRDs: d.CRDs, Contradiction: true}
 	}
 	if obs == nil {
 		return d
 	}
 	src := fmt.Sprintf("observed by confirmed proof %s at controller %s (%s)", obs.Proof, strings.Join(obs.Versions, ", "), obs.Limitation)
 	switch {
+	case d.Contradiction:
+		return d
 	case d.State == Known && !SameValue(d.Value, obs.Value):
-		return Default{Why: fmt.Sprintf("contradiction: the default %s %s contradicts the default %s %s: both are blocked", plain(obs.Value), src, plain(d.Value), "("+d.Source+")"), CRDs: d.CRDs}
+		return Default{Why: fmt.Sprintf("contradiction: the default %s %s contradicts the default %s %s: both are blocked", plain(obs.Value), src, plain(d.Value), "("+d.Source+")"), CRDs: d.CRDs, Contradiction: true}
 	case d.State == Known:
 		d.Source += "; agreeing with the default " + src
 		return d
 	}
 	return Default{State: Known, Value: obs.Value, Source: "the default " + src, CRDs: d.CRDs}
+}
+
+// MembershipFor is the role-membership default (PD-6) that decides leaf c of
+// an object of group/kind, nil when none does. A membership default decides
+// only a membership leaf of its role: a field leaf on its path that equals
+// the role's value or the outside value. Any other condition on the same
+// field (another state, another value) gets none: the default says which
+// objects are outside the role, not what the field holds. Two that disagree
+// on the same leaf are a contradiction: nil, with why.
+func MembershipFor(ds []domain.RoleMembershipDefault, group, kind string, c domain.Condition) (d *domain.RoleMembershipDefault, why string) {
+	if c.Op != domain.OpField || c.State != domain.StateEquals || len(c.Values) != 1 {
+		return nil, ""
+	}
+	for i := range ds {
+		x := &ds[i]
+		if x.Group != group || x.Kind != kind || x.Path != c.Path ||
+			!(SameValue(c.Values[0], x.RoleValue) || SameValue(c.Values[0], x.OutsideValue)) {
+			continue
+		}
+		if d != nil && (!SameValue(d.RoleValue, x.RoleValue) || !SameValue(d.OutsideValue, x.OutsideValue)) {
+			return nil, fmt.Sprintf("the role-membership defaults of %s disagree (%s by proof %s, %s by proof %s): both are blocked", c.Path, d.Statement(), d.Proof, x.Statement(), x.Proof)
+		}
+		d = x
+	}
+	return d, ""
+}
+
+// WithMembership combines a field's established default (WithObserved's
+// result) with the role-membership default MembershipFor found for one
+// membership leaf. The membership default decides the leaf only when
+// nothing else establishes the field: an unset field is outside the role,
+// so the role leaf is false and the outside leaf true. An established
+// default that puts an unset field in the role (the role's value)
+// contradicts it and blocks both; one that agrees decides the leaf by its
+// value, as before. A contradiction already found stays.
+func WithMembership(d Default, m *domain.RoleMembershipDefault, conflict string) Default {
+	if conflict != "" {
+		return Default{Why: "contradiction: " + conflict, CRDs: d.CRDs, Contradiction: true}
+	}
+	if m == nil || d.Contradiction {
+		return d
+	}
+	src := fmt.Sprintf("role-membership default %s, by confirmed proof %s at controller %s (%s)", m.Statement(), m.Proof, strings.Join(m.Versions, ", "), m.Limitation)
+	switch {
+	case d.State == Known && SameValue(d.Value, m.RoleValue):
+		return Default{Why: fmt.Sprintf("contradiction: the default %s (%s) puts an unset %s in role %s, the %s says it is outside: both are blocked", plain(d.Value), d.Source, m.Path, m.Role, src), CRDs: d.CRDs, Contradiction: true}
+	case d.State == Known:
+		d.Source += "; agreeing with the " + src
+		return d
+	}
+	return Default{State: Known, Value: m.OutsideValue, Source: "the " + src, CRDs: d.CRDs, Membership: m.Role}
 }
 
 // Needed is what would settle an unset field's value predicate.
@@ -285,6 +346,9 @@ func Unset(c domain.Condition, d Default, holds func(value string) bool) Verdict
 		r.Holds = !hit
 	}
 	r.Why = fmt.Sprintf("%s is unset and defaults to %s (%s)", leaf, plain(d.Value), d.Source)
+	if d.Membership != "" {
+		r.Why = fmt.Sprintf("%s is unset, so the object is outside role %s (%s)", leaf, d.Membership, d.Source)
+	}
 	return r
 }
 

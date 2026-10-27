@@ -1604,6 +1604,44 @@ decision, and `ri knowledge decide` prints them on the minted fact. The evaluato
 (IMPACT.md). The distinguishing condition is this lane's reading of PD-5: an observation in which the explicit values
 behave alike cannot show how an unset field behaves.
 
+**"The role cannot form" and role-membership defaults** (PD-6, Phase 6 M4 fix, lane verify4; `verify/formation.go`,
+`verify/probe.go`). In the role's observation a probe whose object cannot act in the role never gets the dependent
+output the consumer verifies (a would-be CA that is not a CA cannot back the consumer's issuer, so the leaf is never
+issued), and the consumer check stops `undetermined`. Such an in-role probe's consumer outcome at a version is
+recorded **`role-cannot-form`** (`ProofConsumerResult.outcome`, with its evidence in `formation`; the arm is observed
+`role-cannot-form` when both versions are) only when the version's object observations (the settled one and the one
+after the exercises) show all of: the run completed and, at TO, the upgrade completed; the subject exists, was
+applied and is ready, its trust output was captured and it answered its own re-issue; the dependent output was not
+produced (a consuming object was not re-issued, or the verified output could not be read; an x509 error on an output
+that was read is not this); every consuming object exists and was applied, and in **every** observation at least
+one of them carries a **failure its controller reports**: a failure condition that holds, or a condition that does
+not hold for a reason naming a failure (`fail`, `error`, `Err…`, `invalid`, `denied`, `reject`, `forbidden`).
+"Not ready" while the controller is still working on it (`Ready=False` for a reason naming no failure) looks the same
+as a late output, so it is recorded as context and never suffices. The evidence is object states, conditions and
+warning events; log lines are never read for it. Everything else stays `undetermined` (timeouts, controller
+failures, missing or unapplied objects, the sandbox). Role-absent probes are never `role-cannot-form`, and a probe
+never decides the method (producer `verify.exercise-consumer@v4`).
+
+`role-cannot-form` is not a value the field behaves as: it never yields an observed **field** default (the PD-5
+probe pair treats it as not observed). On a **confirmed** proof only, `ProofRecord.roleMembershipDefaults` records
+**"F unset ⇒ outside role R (observed)"** (`domain.RoleMembershipDefault`: field, role, the role's and the outside
+value, arms, observation with the formation evidence, controller versions, fixture values and digest, the run's
+artifacts, the rule digest, the limitation "observed on the fixture's controller configuration") when, in the role's
+observation, the base arm (F = the role's value) formed the relationship at FROM and TO (its consumer decided), the
+unset probe was `role-cannot-form` at both, and the other-value probe formed it at neither (if it did, F does not
+decide membership as the catalog declares, and nothing is recorded). An explicit value needs no default, so only the
+unset probe establishes one. Promotion carries it into the fact like an observed default
+(`VerifiedFact.roleMembershipDefaults`, with the proof id); the review UI shows it ("… unset ⇒ outside role R", in
+and outside values, limitation, observation, "not defaults of the field") and `ri knowledge decide` prints it. The
+evaluators use it only for the rule's **membership leaves** of role R (IMPACT.md).
+
+Real run (2026-10-27, cert-manager 1.17.2 → 1.18.0, catalog consumer `ca-trust`, opt-in kind case
+`role-cannot-form`): with `spec.isCA` unset or `false`, the subject Certificate is ready and its Secret carries
+`ca.crt`, the consumer's CA Issuer reports `Ready=False (ErrInvalidKeyPair): … certificate is not a CA` at every
+observation, the leaf stays `Ready=False (DoesNotExist)` with `Issuing=True`, its Secret never exists, and the leaf
+is never re-issued: both in-role probes are `role-cannot-form` at FROM and TO, and the observation establishes
+`spec.isCA unset ⇒ outside role ca-trust (observed)`; no field default is recorded.
+
 **The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
 after the version's baseline observation and before its exercises (inside the exercise window at both
 versions, so the upgrade window stays clean): capture the PEM certificates of `trust`; re-issue the `reissue`

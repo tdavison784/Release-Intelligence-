@@ -385,6 +385,8 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 		opts := ConditionOptions{Render: render, Evidence: f.Evidence}
 		// an observed default only through a confirmed proof of this rule
 		opts.Observed, _ = f.UsableObservedDefaults()
+		// a role-membership default likewise, for its membership leaves only
+		opts.Membership, _ = f.UsableRoleMembershipDefaults()
 		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
 		for _, c := range attached {
 			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
@@ -677,6 +679,18 @@ func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected [
 				kept = append(kept, d)
 			}
 			f.ObservedDefaults = kept
+		}
+		// PD-6: a role-membership default likewise
+		if len(f.RoleMembershipDefaults) > 0 {
+			var kept []domain.RoleMembershipDefault
+			for _, d := range f.RoleMembershipDefaults {
+				if why := domain.RoleMembershipEstablished(f, d, proofs); why != "" {
+					rejected = append(rejected, fmt.Sprintf("%s: role-membership default %s ignored: %s", f.ID, d.Key(), why))
+					continue
+				}
+				kept = append(kept, d)
+			}
+			f.RoleMembershipDefaults = kept
 		}
 		facts = append(facts, f)
 	}

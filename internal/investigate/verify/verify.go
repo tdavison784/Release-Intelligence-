@@ -315,6 +315,19 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 				d.Path, d.Path, d.Value, d.Limitation, strings.Join(d.Versions, " and ")))
 		}
 	}
+	// PD-6: role-membership defaults from the in-role probes, likewise
+	if mds, notes := RoleMembershipDefaults(rule, ex, ObservationFixture{Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)]}, refinement); len(mds) > 0 || len(notes) > 0 {
+		p.Limitations = append(p.Limitations, notes...)
+		for _, d := range mds {
+			if p.Outcome != domain.ProofConfirmed {
+				p.Limitations = append(p.Limitations, fmt.Sprintf("the default probes observed %s, but the proof is %s, so no role-membership default is recorded", d.Statement(), p.Outcome))
+				continue
+			}
+			p.RoleMembershipDefaults = append(p.RoleMembershipDefaults, d)
+			p.Limitations = append(p.Limitations, fmt.Sprintf("objects that leave %s unset are decided outside role %s by the role-membership default %s observed by this proof (%s, controller %s), for this rule's membership conditions only; it is not a default of %s",
+				d.Path, d.Role, d.Statement(), d.Limitation, strings.Join(d.Versions, " and "), d.Path))
+		}
+	}
 	p.Level = domain.LevelDeterministic
 	if ex.Outcome != domain.MethodNotRun {
 		p.Level = domain.LevelObserved

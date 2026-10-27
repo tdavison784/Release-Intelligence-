@@ -654,3 +654,49 @@ func TestPinPassCoversExactlyItsField(t *testing.T) {
 		t.Fatalf("covers %v, want exactly the pinned field's description %s", r.RenderedChanges, ids[0])
 	}
 }
+
+// A role-membership default (PD-6, lane verify4) carried by the fact decides
+// the pin scope's membership leaf (spec.role equals the role's value) on an
+// object that leaves the field unset: outside the role. It decides no other
+// condition on the field, a proposed one (no proof) is ignored, and a schema
+// default that puts the unset field in the role contradicts it.
+func TestPinScopeRoleMembershipDefault(t *testing.T) {
+	notLeaf := domain.Condition{Op: domain.OpField, Path: "spec.role", State: domain.StateNotEquals, Values: []string{`"leaf"`}}
+	cases := []struct {
+		name     string
+		exposure domain.Condition
+		proof    string
+		crd      string
+		want     domain.ValidationOutcomeKind
+		detail   string
+	}{
+		{"membership keeps the unset object out of the role", widgetScope(rootRole, rotationUnset()), "pf-0123456789ab", "", domain.ValidationPass, "outside role root-trust"},
+		{"merely proposed: ignored", widgetScope(rootRole, rotationUnset()), "", "", domain.ValidationNotRun, "no CustomResourceDefinition"},
+		{"another condition on the field: undecided", widgetScope(notLeaf, rotationUnset()), "pf-0123456789ab", "", domain.ValidationNotRun, "no CustomResourceDefinition"},
+		{"a schema default in the role contradicts it", widgetScope(rootRole, rotationUnset()), "pf-0123456789ab", "root", domain.ValidationNotRun, "contradiction"},
+		{"a schema default outside the role agrees", widgetScope(rootRole, rotationUnset()), "pf-0123456789ab", "leaf", domain.ValidationPass, "agreeing with the role-membership default"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			o := newOverrideFx(t)
+			f := scopedFact("vf-scoped", domain.VerifiedHuman, o.f.up, c.exposure)
+			f.RoleMembershipDefaults = []domain.RoleMembershipDefault{{Group: "gizmo.example.io", Kind: "Widget", Path: "spec.role", Role: "root-trust",
+				RoleValue: `"root"`, OutsideValue: `"leaf"`, Level: domain.LevelObserved, Arms: []string{"a", "b", "c"}, Observation: "o",
+				Versions: []string{"1.0.0", "2.0.0"}, ControllerValues: "{}", Fixture: "sha256:fx", Evidence: []domain.Evidence{o.f.up},
+				Limitation: domain.ObservedDefaultLimitation, RuleDigest: f.Assertion.Digest(), Proof: c.proof}}
+			o.withFact(f)
+			o.f.file("apps/w/widgets.yaml", stream(
+				gw("w-root", "apps", map[string]string{"role": "root", "rotation": "Never"}),
+				gw("w-plain", "apps", map[string]string{"size": "2"})))
+			o.f.pair("argocd:apps/gizmo.yaml", controller(), controller())
+			if c.crd != "" {
+				o.f.crd(scopedWidgetCRD(c.crd))
+			}
+			r := o.run(t)
+			wantOutcome(t, r, c.want, c.detail)
+			if c.want != domain.ValidationPass && r.ClearsBehaviour() {
+				t.Fatal("must not clear")
+			}
+		})
+	}
+}
