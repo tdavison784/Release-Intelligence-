@@ -11,7 +11,8 @@ handoffs (every item is `providers: [claude]`).
 | consumer | ri-consumer | Opus 5.5 | p6di/consumer | .claude/worktrees/p6di-consumer | w1:t23 (pane w1:p3R) | done, merged, closed 2026-10-21 |
 | consumer2 | ri-consumer2 | Opus 5.5 | p6di/consumer2 | .claude/worktrees/p6di-consumer2 | w1:t24 (pane w1:p3S) | done, merged, closed 2026-10-21 |
 | consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | done, merged, closed 2026-10-21 |
-| scoped | ri-scoped | Opus 5.5 | p6di/scoped | .claude/worktrees/p6di-scoped | w1:t27 (pane w1:p3W) | started 2026-10-26 (D-0007) |
+| scoped | ri-scoped | Opus 5.5 | p6di/scoped | .claude/worktrees/p6di-scoped | w1:t27 (pane w1:p3W) | done, merged, closed 2026-10-26 |
+| advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | started 2026-10-26 (D-0008) |
 
 ## Merge log
 
@@ -41,10 +42,13 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **D-0004:** write PLAN-M2 (lane-safe) and GATE-M2 (commander-only). Show the product owner the plan before any code
-   changes.
-2. **D-0007 lane `scoped` is running.** On LANE DONE: review, merge, then run the GATE-M2 §0 check (v10 × 3 on the
-   cert-manager pair).
+1. The GATE-M2 §0 check is running: v10 × 3 on the cert-manager pair, scratch `$CLAUDE_JOB_DIR/tmp/v10`, run ids
+   `C1-K0-*-v10-r{1,2,3}`. Score it; on a pass, make v10 the default.
+2. Lane `advisories` is running (D-0008). On LANE DONE:
+   - review and merge it;
+   - record the advisory state online into a cloned state;
+   - run GATE-M2 §1.
+3. Lane `upstream` (D-0009) can start now that `scoped` is merged: write its brief and launch it.
 
 ## Notes
 
