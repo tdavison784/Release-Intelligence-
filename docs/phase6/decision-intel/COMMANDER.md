@@ -23,6 +23,7 @@ handoffs (every item is `providers: [claude]`).
 | semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
+| verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | started 2026-10-28 (D-0026) |
 
 ## Merge log
 
@@ -58,6 +59,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-28 (product owner): **PD-5, observed defaults count as evidence** (option 1), only through a confirmed proof,
+  with promotion still human.
+
 - 2026-10-28 (product owner): **M3 passes** (PD-4: pin-before-bump is acceptable where the change looks benign).
 
 - 2026-10-27 (product owner): **M2 passes; v13 becomes the default** (PD-2). The commander switched the default
@@ -85,11 +89,11 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `verify2` is running (D-0025): non-discriminating arms, and a scope refinement established by the consumer
-   exercise. On LANE DONE:
+1. **Lane `verify3`** (D-0026: role tokens, log noise, observed defaults). On LANE DONE:
    - merge it;
-   - re-run demo part A (formalize with v2 + verify -runtime) on `inv-cd653b2be37c`, the same investigation;
-   - if a rule is confirmed, the product owner promotes it, then part B.
+   - reset K1 from K0, re-run formalize v2 + verify `-runtime` on `inv-cd653b2be37c`;
+   - if the base rule and the refinement are confirmed with an observed isCA default: the product owner promotes, then
+     part B.
 
 ## Notes
 
