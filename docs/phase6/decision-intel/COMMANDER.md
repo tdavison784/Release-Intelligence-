@@ -20,7 +20,7 @@ handoffs (every item is `providers: [claude]`).
 | upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | done, merged, closed 2026-10-27 |
 | synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | done, merged, closed 2026-10-28 |
 | applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | started 2026-10-28 (D-0022) |
-| semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | started 2026-10-28 (D-0023) |
+| semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | started 2026-10-28 (D-0021) |
 
 ## Merge log
@@ -42,6 +42,9 @@ handoffs (every item is `providers: [claude]`).
   - Against the base binary on identical bytes: no existing item changes class. New advisory items are all
     potentially-affected, so the only effect is stricter.
   - The candidates' any-line/clean defect went to D-0011.
+
+- 2026-10-28 Merge lane semverify (D-0023) first, since applicability was still running. Build, vet and test green (48).
+  Lane closed; applicability was told to merge the integration branch.
 
 ## Decisions
 
