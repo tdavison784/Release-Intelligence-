@@ -44,7 +44,14 @@ func TestReplayRecordedHistories(t *testing.T) {
 //
 // Re-record only when the workflow code changes on purpose, and keep the old
 // files while in-flight executions of the old code may exist.
-func TestRecordHistory(t *testing.T) {
+func TestRecordHistory(t *testing.T) { recordHistory(t, "history-approve.json", false) }
+
+// TestRecordHistorySynthesize records testdata/history-synthesize.json: the
+// same run with Input.Synthesize, which takes the GetVersion(VersionSynthesize)
+// path (Milestone 3), so the versioned synthesis step is replay-tested too.
+func TestRecordHistorySynthesize(t *testing.T) { recordHistory(t, "history-synthesize.json", true) }
+
+func recordHistory(t *testing.T, name string, synthesize bool) {
 	if os.Getenv("RI_RECORD_HISTORY") == "" {
 		t.Skip("set RI_RECORD_HISTORY=1 and RI_TEMPORAL_ADDR to record a history from a dev server")
 	}
@@ -55,6 +62,10 @@ func TestRecordHistory(t *testing.T) {
 	}
 	defer c.Close()
 	f := runtest.New(t)
+	if synthesize {
+		client, _ := runtest.SynthClient(t)
+		f.Deps.Synthesizer = runtest.Synth{Client: client}
+	}
 	queue := "ri-record-" + t.Name()
 	w := worker.New(c, queue, worker.Options{})
 	orchestrate.Register(w, &orchestrate.Activities{P: run.New(f.Deps)})
@@ -63,8 +74,8 @@ func TestRecordHistory(t *testing.T) {
 	}
 	defer w.Stop()
 	ctx := context.Background()
-	wr, err := c.ExecuteWorkflow(ctx, client.StartWorkflowOptions{ID: "record-" + time.Now().Format("150405"), TaskQueue: queue},
-		orchestrate.WorkflowType, orchestrate.Input{Request: f.Request(), ReviewTimeout: time.Hour})
+	wr, err := c.ExecuteWorkflow(ctx, client.StartWorkflowOptions{ID: "record-" + name + "-" + time.Now().Format("150405"), TaskQueue: queue},
+		orchestrate.WorkflowType, orchestrate.Input{Request: f.Request(), ReviewTimeout: time.Hour, Synthesize: synthesize})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +98,7 @@ func TestRecordHistory(t *testing.T) {
 	if err := os.MkdirAll("testdata", 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join("testdata", "history-approve.json"), hist, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join("testdata", name), hist, 0o644); err != nil {
 		t.Fatal(err)
 	}
 }

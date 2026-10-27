@@ -359,6 +359,9 @@ type InvScore struct {
 	// Verdicts is the agent-verdict table (ungated; absent when the arm
 	// stored no verdicts).
 	Verdicts []VerdictDecision `json:"agentVerdicts,omitempty"`
+	// Judgements is the upgrade-judgement side table (Milestone 3; ungated;
+	// absent when no run carries a judgement).
+	Judgements []JudgementRow `json:"judgements,omitempty"`
 }
 
 // ScoreInvestigations scores every case (runs keyed by case id; a missing
@@ -376,6 +379,7 @@ func ScoreInvestigations(cases []*InvCase, runs map[string]*InvRun, g *InvGates)
 	}
 	s.Splits = Splits(s.Decisions)
 	s.Verdicts = ScoreVerdicts(cases, runs)
+	s.Judgements = ScoreJudgements(cases, runs)
 	if g != nil {
 		s.Gates = EvaluateInvGates(g, s.Metrics)
 		s.Autonomy = EvaluateAutonomy(g, s.Gates, s.Decisions)
@@ -461,6 +465,7 @@ func WriteInvText(w io.Writer, title string, s *InvScore) {
 		fmt.Fprintf(w, "  %-13s %-22s n=%-3d %s\n", sp.By, sp.Value, sp.N, strings.Join(parts, "; "))
 	}
 	WriteVerdictText(w, s.Verdicts)
+	WriteJudgementText(w, s.Judgements)
 	if len(s.Gates) > 0 {
 		fmt.Fprintf(w, "\n── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──\n")
 		for _, g := range s.Gates {

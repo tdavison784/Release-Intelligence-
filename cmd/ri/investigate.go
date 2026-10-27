@@ -42,6 +42,7 @@ type invFlags struct {
 	runtime                                                               *bool // opt-in observed validator (nil = off; `ri eval -investigations -runtime` sets it)
 	driver, model, exchange, replay, script, claudeBin                    *string
 	prompt                                                                *string // agent prompt version (nil or "" = agent.DefaultPromptVersion)
+	synth                                                                 synthFlags
 }
 
 func addInvFlags(c *cli, fs interface {
@@ -68,6 +69,7 @@ func addInvFlags(c *cli, fs interface {
 		script:     fs.String("agent-script", "", "scripted driver: JSON file [{\"tool\":…,\"args\":{…}}, …] played as the model's tool calls (deterministic runs, live checks without a model)"),
 		claudeBin:  fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)"),
 		prompt:     fs.String("agent-prompt", agent.DefaultPromptVersion, "agent prompt version (part of the config digest); an earlier one replays that version's transcripts"),
+		synth:      addSynthFlags(fs),
 	}
 }
 
@@ -230,6 +232,7 @@ func (c *cli) pipelineAt(f invFlags, storeDir string) (*runpkg.Pipeline, *store.
 		Validators:   validators,
 		Investigator: agent.New(st, opts...),
 		Classifier:   cls, Reviewer: rev,
+		Synthesizer:  c.synthesizer(a, f.synth, *f.claudeBin),
 		Report: func(ctx context.Context, r investigate.Request) (*domain.ImpactReport, error) {
 			e := r.Environment
 			return a.Impact(ctx, r.Product, r.From, r.To, app.ImpactOptions{
@@ -324,13 +327,13 @@ func (c *cli) investigateCmd(args []string) error {
 	}
 	req.Product, req.From, req.To = pos[0], pos[1], pos[2]
 	if *useTemporal {
-		return c.investigateTemporal(req, *addr, *ns, *detach, *rerun, *attrs, *reviewTimeout, *output)
+		return c.investigateTemporal(req, *addr, *ns, *detach, *rerun, *attrs, *reviewTimeout, *output, f.synth.enabled())
 	}
 	p, st, err := c.pipeline(f)
 	if err != nil {
 		return err
 	}
-	r := &runpkg.Runner{P: p, Definition: c.definitionDigest, ReviewTimeout: *reviewTimeout,
+	r := &runpkg.Runner{P: p, Definition: c.definitionDigest, ReviewTimeout: *reviewTimeout, Synthesize: f.synth.enabled(),
 		Logf: func(f string, a ...any) { fmt.Fprintf(c.err, "· "+f+"\n", a...) }}
 	if *reviewAction != "" {
 		d, err := reviewDecision(*reviewAction, *reviewer, *note, nil)
@@ -398,7 +401,7 @@ func (c *cli) printInvestigation(st *store.Store, res *runpkg.Result, output str
 	if res.Outcome == runpkg.OutcomeAwaitingReview {
 		fmt.Fprintf(c.out, "  awaiting a human: ri investigate review %s approve|reject|more --reviewer NAME\n", inv.ID)
 	}
-	return nil
+	return c.printJudgement(c.out, st, inv)
 }
 
 func agentStatus(inv *domain.Investigation) string {
@@ -507,14 +510,14 @@ func (c *cli) investigateState(args []string) error {
 		"findings": len(inv.Findings), "validations": len(inv.Validations), "audit": inv.Audit})
 }
 
-func (c *cli) investigateTemporal(req investigate.Request, addr, ns string, detach bool, rerun int, attrs bool, reviewTimeout time.Duration, output string) error {
+func (c *cli) investigateTemporal(req investigate.Request, addr, ns string, detach bool, rerun int, attrs bool, reviewTimeout time.Duration, output string, synthesize bool) error {
 	tc, err := orchestrate.Dial(addr, ns, c.logger())
 	if err != nil {
 		return err
 	}
 	defer tc.Close()
 	wr, err := orchestrate.Start(c.ctx, tc, orchestrate.Input{
-		Request: req, Definition: c.definitionDigest(req.Product), ReviewTimeout: reviewTimeout, SearchAttributes: attrs,
+		Request: req, Definition: c.definitionDigest(req.Product), ReviewTimeout: reviewTimeout, SearchAttributes: attrs, Synthesize: synthesize,
 	}, rerun)
 	if err != nil {
 		return err

@@ -1,0 +1,84 @@
+
+══ upgrade judgement (advisory; AI judgement for an engineer to approve or deny) ══
+acme v1.0.0 → v1.1.0 · environment prod
+Recommendation  MODIFY-TARGET
+Headline        Modify target to 1.1.3; keep the pinned mode, then upgrade; provided the flag stays unset; start test required before production.
+Scope           the repository's configuration
+Precondition    the flag is not set outside the repository
+
+── target version ──
+  current v1.0.0 · proposed v1.1.0 · minimum safe v1.1.2 · recommended by rule v1.1.3 · CHOSEN v1.1.3
+  rule: v1.1.3 is the latest known patch on line 1.1: it removes every regression and adds no assessed advisory v1.1.2 is free of, so it is recommended (PD-3); v1.1.2 is the minimum.
+  - proposed      v1.1.0     NOT SAFE. v1.1.0 is the proposed target; it introduces GHSA-r, which v1.0.0 is free of.
+      still affected by: GHSA-r
+  - minimum       v1.1.2     safe. 1.1.2 is the lowest known release on line 1.1 that removes every regression.
+      chart acme 1.1.2
+  - latest-patch  v1.1.3     safe. v1.1.3 is the latest known patch on line 1.1; checked against 2 assessed advisories of the product, it is affected by none v1.0.0 or v1.1.2 is free of.
+      chart acme 1.1.3
+      not assessable: GHSA-u
+  ! the v1.0.0 → v1.1.3 transition has not been investigated; that investigation is required (see validation).
+
+  rationale: the proposed target regresses security
+
+── disagreements and hard findings (deterministic; an approval against a HARD one is an override) ──
+  HARD [jf-3a1d3ccad085] confirmed-breakage Item "a default changes" (chi-000000000001) is classified affected (classify:validated-affected): a validation failed
+      evidence ev-up1
+      model: removed by the target change
+    [jf-131076abd644] agent-disagreement For item "a flag is removed" (chi-000000000002) the agent's verdict is not-affected and the deterministic classification is potentially-affected (classify:unvalidated).
+      evidence ev-up2
+    [jf-a07146f13718] agent-disagreement For item "a field is added" (chi-000000000003) the agent's verdict is affected and the deterministic classification is not-affected (classify:validated-clear).
+      evidence ev-up3
+  HARD [jf-bbc34a8f965a] failed-validation Validation vr-fail (render-diff, deterministic) of item "a default changes" (chi-000000000001) failed: the rendered change does not reach the workload. it does
+      evidence ev-up1
+    [jf-f687f37441b4] untraced-consumer Consumer apps/v1/Deployment/ns/web of an object item "a flag is removed" (chi-000000000002) exposes was never traced by the investigation.
+    [jf-9e2ff18fefe4] behaviour-unestablished Upstream behaviour "how the flag is parsed", which the assessment of item "a flag is removed" (chi-000000000002) relies on, is not checked (reason: no source).
+    [jf-77a6f6968aef] behaviour-unestablished Upstream evidence request evr-1 of item "a flag is removed" (chi-000000000002) could not be fulfilled: not found at the tag.
+  HARD [jf-01dff8ef0014] security-regression GHSA-r (CVE-2026-1) affects the target v1.1.0 and not the current v1.0.0 (affected range >=1.1.0, <1.1.2; patched 1.1.2).
+      evidence ev-adv-r
+    [jf-4917378dfe08] advisory-inconsistency GHSA-i lists 1.0.5 as patched but its range <2.0.0 includes it; check the advisory.
+      evidence ev-adv-i
+
+── cross-change interactions ──
+  [xc-d9e235c816f3] 2 items touch the same object apps/v1/Deployment/ns/acme: "a default changes" (chi-000000000001), "a flag is removed" (chi-000000000002).
+
+── residual risks an approval accepts ──
+  [rr-1c2ba084c607] (deterministic) Item "a flag is removed" (chi-000000000002) is classified potentially-affected (classify:unvalidated): not established either way by validation.
+  [rr-9f88d5a76de6] (model) runtime arguments are not in the repository
+
+── impact ──
+  affected              a default changes [chi-000000000001] (classify:validated-affected)
+  potentially-affected  a flag is removed [chi-000000000002] (classify:unvalidated)
+  not-affected          a field is added [chi-000000000003] (classify:validated-clear)
+  agent assessments (unverified AI prose):
+  · a flag is removed [chi-000000000002]
+      headline: not affected provided the flag stays unset
+      mechanism: startup fails with the flag
+      likely impact: none
+      setting flag: inherited-default
+      precondition: the flag is not set outside the repository
+  upgrade level:
+    verified  the advisory range covers the proposed target (ev-adv-r)
+    inferred  the workload does not set the flag at runtime
+    unknown   runtime arguments
+
+── implementation (ordered, isolated steps) ──
+  1. pin-behaviour     keep the pinned mode
+       where: values/prod.yaml line 7 feature.mode (now "legacy")
+  2. version-bump      bump to 1.1.3
+       where: proposed (no deterministic location)
+  3. validate          run the start test
+       where: proposed (no deterministic location)
+
+── validation before proceeding ──
+  - start the workload
+      expected: it starts
+  - Investigate the v1.0.0 → v1.1.3 upgrade against this environment (this investigation covered only the proposed target)
+      expected: Every change of the new transition is classified, with no new hard finding.
+
+── backout ──
+  Restore $.spec.source.targetRevision in apps/acme.yaml line 12 to v1.0.0 (the value before the upgrade), then revert any configuration step of this change in reverse order.
+  model: revert the pin last
+
+── audit ──
+  judgement jdg-798286421be9 (complete) · synthesize@v1 · model claude-opus-5-5 (claude-opus-5-5) · prompt synthesize/v1 sha256:1647b7c5600b5f529ce332509933debfa7309eb8b701ce735a9964ded0cee485
+  call fake-call-1 · input sha256:2dd66d4f2395ed72d9f4c77068859370db9bcf9ee991601acb25f403ad8caad2

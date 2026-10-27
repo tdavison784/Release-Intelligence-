@@ -154,6 +154,10 @@ var enums = []enumSet{
 	enumOf(domain.PinKinds...),
 	enumOf(domain.CoverageDispositions...),
 	enumOf(domain.ClaimKinds...),
+	enumOf(domain.Recommendations...),
+	enumOf(domain.JudgementStatuses...),
+	enumOf(domain.JudgementFindingKinds...),
+	enumOf(domain.StepKinds...),
 }
 
 // notSerialised names typed-constant sets that never appear in the JSON

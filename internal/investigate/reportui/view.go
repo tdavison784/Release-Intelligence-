@@ -11,6 +11,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	runpkg "github.com/tdavison784/release-intelligence/internal/investigate/run"
+	"github.com/tdavison784/release-intelligence/internal/synthesize"
 )
 
 // classOrder is the attention order of the item list (DESIGN §3.1 "ordering
@@ -248,11 +249,45 @@ type View struct {
 	Checked       CheckedView
 	Groups        []Group
 	AINotes       []AIRecord
+	// Judgement is the upgrade-level judgement (Milestone 3), when the run
+	// has one: advisory AI output, shown apart from the policy decision.
+	Judgement *JudgementView
 
 	Review   ReviewView
 	Audit    []AuditRow
 	ChainOK  bool
 	ChainErr []string
+}
+
+// JudgementView is the judgement section: the recommendation, the headline
+// and the change-ticket text (synthesize.RenderJudgement).
+type JudgementView struct {
+	Status, Recommendation, Headline, Tone string
+	Hard                                   int
+	Text                                   string
+}
+
+func judgementView(inv *domain.Investigation, b *domain.EvidenceBundle) *JudgementView {
+	j := inv.Judgement
+	if j == nil {
+		return nil
+	}
+	jv := &JudgementView{Status: string(j.Status), Recommendation: string(j.Recommendation), Headline: j.Headline, Hard: len(j.HardFindings()), Tone: "warn"}
+	switch j.Recommendation {
+	case domain.RecommendProceed:
+		jv.Tone = "ok"
+	case domain.RecommendDoNotProceed, "":
+		jv.Tone = "danger"
+	}
+	if j.Status == domain.JudgementFailed {
+		jv.Recommendation, jv.Headline = "synthesis failed", "No answer passed the deterministic floor; the failure is recorded below."
+	}
+	var buf strings.Builder
+	if err := synthesize.RenderJudgement(&buf, inv, b); err != nil {
+		buf.WriteString("\n(rendering failed: " + err.Error() + ")")
+	}
+	jv.Text = strings.TrimLeft(buf.String(), "\n")
+	return jv
 }
 
 // ReleaseView is the upgrade under investigation.
@@ -500,6 +535,7 @@ func Build(ctx context.Context, rec *Record, links Links, has func(digest string
 	}
 	v.Review = reviewView(inv, rec, inv.Decision != nil)
 	v.ReviewLine = reviewLine(inv.Review)
+	v.Judgement = judgementView(inv, b)
 
 	// Release and environment.
 	if b != nil {
