@@ -131,6 +131,7 @@ func (c *cli) evalInvestigations(args []string) error {
 	claudeBin := fs.String("claude-bin", "", "claude CLI binary (claude-cli driver)")
 	allowLive := fs.Bool("allow-live-knowledge", false, "permit the live knowledge/ tree (default: -knowledge must name a snapshot; see scripts/phase5/snapshot.sh)")
 	runtimeOn := fs.Bool("runtime", false, "add runtime (observed) validation in throwaway kind clusters (arm C)")
+	synth := addSynthFlags(fs)
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
@@ -250,7 +251,7 @@ func (c *cli) evalInvestigations(args []string) error {
 		t0 := time.Now()
 		fmt.Fprintf(c.err, "· %s …\n", cs.ID)
 		s, run, err := c.invRunCase(cs, workDir, invCaseFlags{knowledge: *knowledge, agent: *agentOn, driver: *driver, model: *model,
-			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt})
+			replayDir: *replayDir, claudeBin: *claudeBin, runtime: *runtimeOn, prompt: *prompt, synth: synth})
 		m := InvRunMetaCase{ID: cs.ID, InputDigest: cs.InputDigest, EnvDigest: cs.EnvDigest, ExpectedDigest: cs.ExpectedDigest,
 			Seconds: int(time.Since(t0).Seconds())}
 		if err != nil {
@@ -319,6 +320,7 @@ type invCaseFlags struct {
 	runtime                             bool
 	driver, model, replayDir, claudeBin string
 	prompt                              string // agent prompt version ("" = default)
+	synth                               synthFlags
 }
 
 // invRunCase runs one case through the real pipeline and loads what it stored.
@@ -349,7 +351,7 @@ func (c *cli) invRunCase(cs *eval.InvCase, workDir string, cf invCaseFlags) (*in
 		inventory: str(req0.Environment.Inventory), kubernetes: str(req0.Environment.KubernetesVersion), envName: str(req0.Environment.Name),
 		knowledge: str(cf.knowledge), minVerification: str(""), render: b(true), agent: b(cf.agent), runtime: b(cf.runtime),
 		driver: str(cf.driver), model: str(cf.model), exchange: str(""), replay: str(replay), script: str(""), claudeBin: str(cf.claudeBin),
-		prompt: str(cf.prompt),
+		prompt: str(cf.prompt), synth: cf.synth,
 	}
 	req, err := f.request()
 	if err != nil {
@@ -360,9 +362,16 @@ func (c *cli) invRunCase(cs *eval.InvCase, workDir string, cf invCaseFlags) (*in
 	if err != nil {
 		return nil, nil, err
 	}
-	r := &runpkg.Runner{P: p, Definition: c.definitionDigest}
+	r := &runpkg.Runner{P: p, Definition: c.definitionDigest, Synthesize: cf.synth.enabled()}
 	if c.g.verbose {
 		r.Logf = func(f string, a ...any) { fmt.Fprintf(c.err, "  · "+f+"\n", a...) }
+	} else if cf.synth.enabled() {
+		// the synthesis line only (a pending exchange says where its request is)
+		r.Logf = func(f string, a ...any) {
+			if line := fmt.Sprintf(f, a...); strings.HasPrefix(line, string(domain.StageSynthesize)+":") {
+				fmt.Fprintf(c.err, "  · %s\n", line)
+			}
+		}
 	}
 	res, err := r.Run(c.ctx, req)
 	if err != nil {

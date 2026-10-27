@@ -61,6 +61,9 @@ const (
 	JudgementFailed JudgementStatus = "failed"
 )
 
+// JudgementStatuses lists every status.
+var JudgementStatuses = []JudgementStatus{JudgementComplete, JudgementFailed}
+
 // JudgementFindingKind is one kind of disagreement or hard finding.
 type JudgementFindingKind string
 

@@ -297,6 +297,28 @@
       },
       "additionalProperties": false
     },
+    "Backout": {
+      "type": "object",
+      "required": ["version", "statement"],
+      "properties": {
+        "version": {"$ref": "#/$defs/Version"},
+        "location": {"type": "string"},
+        "statement": {"type": "string"},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "CandidateChart": {
+      "type": "object",
+      "required": ["artifact", "version", "evidence"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
     "ChangeKind": {
       "type": "string",
       "enum": [
@@ -312,6 +334,22 @@
         "requirement-changed",
         "migration-required"
       ]
+    },
+    "ChangeLocation": {
+      "type": "object",
+      "required": ["id", "kind", "file", "key", "source"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "file": {"type": "string"},
+        "line": {"type": "integer"},
+        "key": {"type": "string"},
+        "value": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "source": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "ChangeSpec": {
       "type": "object",
@@ -401,6 +439,19 @@
     "CoverageDisposition": {
       "type": "string",
       "enum": ["raises-concern", "claims-mitigation", "explains", "examined-no-concern", "not-examined"]
+    },
+    "CrossChange": {
+      "type": "object",
+      "required": ["id", "kind", "shared", "items", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "shared": {"type": "string"},
+        "items": {"type": "array", "items": {"type": "string"}},
+        "statement": {"type": "string"},
+        "comment": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
@@ -741,6 +792,7 @@
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
         "findings": {"type": "array", "items": {"$ref": "#/$defs/InvestigationFinding"}},
         "decision": {"$ref": "#/$defs/PolicyDecision"},
+        "judgement": {"$ref": "#/$defs/UpgradeJudgement"},
         "review": {"$ref": "#/$defs/HumanReview"},
         "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
@@ -798,6 +850,98 @@
       "type": "string",
       "enum": ["running", "awaiting-review", "completed", "failed", "cancelled"]
     },
+    "JudgementChange": {
+      "type": "object",
+      "required": ["order", "kind", "summary"],
+      "properties": {
+        "order": {"type": "integer"},
+        "kind": {"$ref": "#/$defs/StepKind"},
+        "summary": {"type": "string"},
+        "changeItems": {"type": "array", "items": {"type": "string"}},
+        "location": {"type": "string"},
+        "proposed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFailure": {
+      "type": "object",
+      "required": ["attempts", "violations", "answers"],
+      "properties": {
+        "attempts": {"type": "integer"},
+        "violations": {"type": "array", "items": {"type": "string"}},
+        "answers": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFinding": {
+      "type": "object",
+      "required": ["id", "kind", "hard", "subject", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"$ref": "#/$defs/JudgementFindingKind"},
+        "hard": {"type": "boolean"},
+        "changeItem": {"type": "string"},
+        "subject": {"type": "string"},
+        "statement": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "refs": {"type": "array", "items": {"type": "string"}},
+        "comment": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFindingKind": {
+      "type": "string",
+      "enum": [
+        "security-regression",
+        "confirmed-breakage",
+        "failed-validation",
+        "candidate-still-affected",
+        "agent-disagreement",
+        "untraced-consumer",
+        "behaviour-unestablished",
+        "advisory-inconsistency",
+        "security-incomplete"
+      ]
+    },
+    "JudgementStatus": {"type": "string", "enum": ["complete", "failed"]},
+    "JudgementSummary": {
+      "type": "object",
+      "properties": {
+        "verified": {"type": "array", "items": {"$ref": "#/$defs/AssessmentFinding"}},
+        "inferred": {"type": "array", "items": {"type": "string"}},
+        "unknown": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "JudgementTarget": {
+      "type": "object",
+      "required": ["current", "proposed", "rule"],
+      "properties": {
+        "current": {"$ref": "#/$defs/Version"},
+        "proposed": {"$ref": "#/$defs/Version"},
+        "minimum": {"$ref": "#/$defs/Version"},
+        "recommended": {"$ref": "#/$defs/Version"},
+        "rule": {"type": "string"},
+        "options": {"type": "array", "items": {"$ref": "#/$defs/TargetOption"}},
+        "chosen": {"$ref": "#/$defs/Version"},
+        "changed": {"type": "boolean"},
+        "transitionInvestigated": {"type": "boolean"},
+        "securityStatus": {"$ref": "#/$defs/SecurityStatus"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementTest": {
+      "type": "object",
+      "required": ["id", "test", "expected", "basis"],
+      "properties": {
+        "id": {"type": "string"},
+        "test": {"type": "string"},
+        "expected": {"type": "string"},
+        "basis": {"type": "array", "items": {"type": "string"}},
+        "changeItems": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "KeyToPath": {
       "type": "object",
       "required": ["key", "path"],
@@ -850,6 +994,15 @@
     },
     "PolicyOutcome": {"type": "string", "enum": ["auto-approve-eligible", "human-review-required"]},
     "ProductID": {"type": "string"},
+    "ProductRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/ProductID"},
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "ProposedRule": {
       "type": "object",
       "required": ["assertion", "release"],
@@ -911,6 +1064,16 @@
         "provider": {"type": "string"}
       },
       "additionalProperties": false
+    },
+    "Recommendation": {
+      "type": "string",
+      "enum": [
+        "proceed",
+        "proceed-with-changes",
+        "modify-target",
+        "validation-required",
+        "do-not-proceed"
+      ]
     },
     "ReleaseBounds": {
       "type": "object",
@@ -974,11 +1137,24 @@
       ]
     },
     "RequestStatus": {"type": "string", "enum": ["open", "fulfilled", "unavailable", "rejected"]},
+    "ResidualRisk": {
+      "type": "object",
+      "required": ["id", "source", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "source": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "statement": {"type": "string"},
+        "refs": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "ReviewState": {
       "type": "string",
       "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "SecurityStatus": {"type": "string", "enum": ["complete", "incomplete", "unavailable"]},
     "SemanticAssertion": {
       "type": "object",
       "properties": {
@@ -1019,8 +1195,13 @@
         "investigate",
         "validate",
         "classify",
+        "synthesize",
         "human-review"
       ]
+    },
+    "StepKind": {
+      "type": "string",
+      "enum": ["pin-behaviour", "version-bump", "validate", "adopt-new-default", "other"]
     },
     "Subject": {
       "type": "object",
@@ -1056,6 +1237,23 @@
         "product-relationship",
         "migration"
       ]
+    },
+    "TargetOption": {
+      "type": "object",
+      "required": ["role", "version", "safe", "statement"],
+      "properties": {
+        "role": {"type": "string"},
+        "version": {"$ref": "#/$defs/Version"},
+        "line": {"type": "string"},
+        "safe": {"type": "boolean"},
+        "introduces": {"type": "array", "items": {"type": "string"}},
+        "leaves": {"type": "array", "items": {"type": "string"}},
+        "unassessed": {"type": "array", "items": {"type": "string"}},
+        "charts": {"type": "array", "items": {"$ref": "#/$defs/CandidateChart"}},
+        "statement": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "TraversalBound": {
       "type": "object",
@@ -1106,6 +1304,55 @@
         "evidence-gap",
         "semantic-ambiguity"
       ]
+    },
+    "UpgradeJudgement": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "id",
+        "investigation",
+        "status",
+        "product",
+        "from",
+        "to",
+        "environment",
+        "target",
+        "summary",
+        "backout",
+        "input",
+        "statementKind",
+        "provenance"
+      ],
+      "properties": {
+        "schemaVersion": {"type": "string"},
+        "id": {"type": "string"},
+        "investigation": {"type": "string"},
+        "status": {"$ref": "#/$defs/JudgementStatus"},
+        "product": {"$ref": "#/$defs/ProductRef"},
+        "from": {"$ref": "#/$defs/Version"},
+        "to": {"$ref": "#/$defs/Version"},
+        "environment": {"type": "string"},
+        "recommendation": {"$ref": "#/$defs/Recommendation"},
+        "headline": {"type": "string"},
+        "scope": {"type": "string"},
+        "preconditions": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "string"},
+        "target": {"$ref": "#/$defs/JudgementTarget"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/JudgementChange"}},
+        "locations": {"type": "array", "items": {"$ref": "#/$defs/ChangeLocation"}},
+        "validation": {"type": "array", "items": {"$ref": "#/$defs/JudgementTest"}},
+        "residualRisks": {"type": "array", "items": {"$ref": "#/$defs/ResidualRisk"}},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/JudgementFinding"}},
+        "interactions": {"type": "array", "items": {"$ref": "#/$defs/CrossChange"}},
+        "summary": {"$ref": "#/$defs/JudgementSummary"},
+        "backout": {"$ref": "#/$defs/Backout"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "input": {"type": "string"},
+        "failure": {"$ref": "#/$defs/JudgementFailure"},
+        "statementKind": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
     },
     "UpstreamQuery": {
       "type": "object",
@@ -1180,6 +1427,22 @@
         "resolution": {"type": "string"},
         "result": {"type": "string"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "Version": {
+      "type": "object",
+      "description": "A release version of a product.",
+      "required": ["tag", "version"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Identifier exactly as published by the canonical release channel, e.g. \"v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
+        }
       },
       "additionalProperties": false
     },
