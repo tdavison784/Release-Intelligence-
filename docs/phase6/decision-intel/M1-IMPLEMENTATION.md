@@ -182,6 +182,68 @@ were then built from its bundle.
   - The controller's `LD_PRELOAD` value `/usr/local/lib/libmimalloc.so`, an image file, is an unresolved edge.
 - No development case was run or replayed.
 
+## Prompt v10: scoped verdicts (lane scoped, ledger D-0007)
+
+**Why** (product owner, 2026-10-26). Under v9 the agent keeps every verdict provisional while anything is
+unproven, so it answers `potentially-affected` for environments whose reasoning clearly differs: operational
+unknowns stay open (reload behaviour, pinning outside the repository, runtime Secret contents). v10 lets it commit
+to the class its evidence supports **within a declared scope**, with the scope and any precondition in the
+headline. Agent verdicts stay unverified AI prose and never reach the classifier; proven clearance stays with
+verification (mission M4). This is calibration, not a policy change.
+
+**What changed.** v10 is v9 with only the verdict rules changed. `task.md` is v9's; `meta.json` is v9's plus
+`scopedVerdict: true`; `tools.json` changes only `submit_findings` (its description and the assessment schema).
+
+- `system.md`: the section "Provisional versus supported" becomes "Scoped verdicts": scope; (a) in-scope unknowns
+  the breaking mechanism depends on keep the verdict `potentially-affected` / `insufficient-evidence`, (b)
+  preconditions outside the scope (runtime or operational facts the repository cannot state) do not; commit to
+  `affected` / `not-affected` within scope when every traced consumer and effective setting in it is accounted
+  for; model memory is never evidence for an in-scope fact, and an untraced consumer stays an in-scope unknown; the
+  headline states class, scope and preconditions. The closing section lists the three new fields. Every other
+  section is v9's (tested).
+- `item.md`: one step added (sort in-scope unknowns from preconditions; commit within scope), and the closing
+  step names the new fields.
+
+**Assessment fields** (additive; `AssessmentInput` and `domain.AgentAssessment`, schema regenerated):
+`headline` (required under v10), `scope`, `preconditions` (list).
+
+**Checks** (`agent/assessment.go` `scopedChecks`, `scopedCompletion`; called from `submitFindings`):
+
+- Prompt versions without `scopedVerdict` refuse the three fields. Before, the strict decoder refused them with a
+  different message, so a v9 call that sent one would no longer replay byte for byte. None did: the 265
+  `submit_findings` calls in the stored v9 transcripts (the M1 runs and the shop-de smoke, read from
+  `cases.tar.gz`, no label-bearing file opened) carry none of the three.
+- `affected` / `not-affected` without a non-blank `scope` is rejected, every time, before the completion check.
+- A `not-affected` verdict is rejected once while in-scope unknowns remain: the non-blank `unknown` entries and the
+  untraced consumers (the v9 completion check). The rejection lists both. It shares v9's once-flag, so an item is
+  rejected at most once; the resubmission is accepted, and the untraced consumers are recorded as in v9.
+- Preconditions alone never block a class. `affected` with in-scope unknowns is accepted (only not-affected
+  waits), as are the uncommitted classes without a scope.
+
+**Default.** v9 stays the default: `pinnedDefaultPrompt = "investigate-agent/v9"` in `claims_test.go`. When v10's
+check on the development pair passes, set `DefaultPromptVersion` to v10 and the pin to `""`. v9 is now frozen by
+digest (`TestEarlierPromptVersionsAreFrozen`).
+
+**Tests** (`agent/prompt_v10_test.go`, `run/assessment_test.go`):
+
+- `TestPromptV10`: v10 loads; features are v9's plus `scopedVerdict`; only `submit_findings` differs from v9's
+  tools; `task.md` and `meta.json` as above; every system section but the replaced one and the closing is v9's;
+  the default is v9; `scopedVerdict` without `assessment` is refused. `TestPromptV10IsGeneric`: v9's word list.
+  `TestEarlierPromptVersionsAreFrozen`: v1–v9.
+- `TestV10ScopedVerdictChecks`: committed class without scope rejected (blank too, every time); headline required;
+  not-affected with an in-scope unknown rejected once with the list, then accepted; preconditions only accepted
+  at once; untraced consumers plus an unknown, one rejection listing both; untraced only; affected with an unknown
+  accepted; v9 refuses each field and keeps its own check.
+- `TestScopedVerdictsNeverReachThePolicy`: an adversarial not-affected headline/scope/preconditions leaves findings,
+  decision and eligibility byte-identical; `TestAssessmentsAreStoredButNotClassified` also checks the classifier
+  input carries no scoped field.
+- `TestV10Replay`: a scripted v10 run (trace, read, the once-rejection, the resubmission) replays with no mismatch.
+
+A mutation check (scope check and scoped completion check disabled) fails the v10 tests.
+
+**Not done here.** No live run on a development case (brief); no live smoke on another case was run. The
+scored check of v10 on the development pair is the commander's.
+
 ## How to run v9
 
 v9 is the default prompt since the M1 gate (2026-10-26). To pin it explicitly:
@@ -283,5 +345,5 @@ did not read its score, report or gates (they are label-bearing); the commander 
 - `ri investigate mcp --run` (read-only) serves no consumer graph: `trace_consumers` is refused there.
 - Assessments are AI prose except the verified entries' citations; nothing checks that a verified statement
   says what its quote says (the same limit as every agent record).
-- v9 is not the default: `DefaultPromptVersion` stays `investigate-agent/v8` until the M1 gate is met (commander
-  review of D-0001); `TestDefaultPromptIsTheNewest` allows that pinned default.
+- v9 is the default since the M1 gate (2026-10-26). v10 (scoped verdicts, below) is embedded but not the
+  default: `pinnedDefaultPrompt` holds v9 until v10's check.
