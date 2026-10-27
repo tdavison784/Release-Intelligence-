@@ -275,6 +275,9 @@ type Advisory struct {
 	Severity    string     `json:"severity,omitempty"`
 	URL         string     `json:"url,omitempty"`
 	PublishedAt *time.Time `json:"publishedAt,omitempty"`
+	// UpdatedAt is when the source last changed the advisory (its ranges
+	// can be revised after publication).
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	// Vulnerable is a semver constraint of affected versions (">= 1.0.0, < 1.17.2").
 	Vulnerable string `json:"vulnerable,omitempty"`
 	// Patched lists the first patched version per line.

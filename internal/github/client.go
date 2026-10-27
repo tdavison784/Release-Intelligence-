@@ -3,6 +3,7 @@
 //	github-releases    sources.VersionLister   releases of a repository
 //	github-releases    sources.DocumentFetcher the body of the release of a tag
 //	github-advisories  sources.AdvisorySource  published repository security advisories
+//	github-global-advisories sources.AdvisorySource reviewed advisories of the global database, by package
 //
 // All requests go through fetch.Client (cached, replayable offline) and carry
 // the headers GitHub asks for: Accept: application/vnd.github+json,

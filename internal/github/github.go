@@ -10,7 +10,8 @@ import (
 // it is non-empty) and registers the GitHub adapters:
 //
 //	github-releases    VersionLister and DocumentFetcher
-//	github-advisories  AdvisorySource
+//	github-advisories         AdvisorySource (repository advisories)
+//	github-global-advisories  AdvisorySource (global advisory database, by package)
 //
 // Pass options such as WithBaseURL to point the adapters at GitHub
 // Enterprise Server or at a test server.
@@ -20,4 +21,5 @@ func Register(reg *sources.Registry, f fetch.Client, token string, opts ...Optio
 	reg.RegisterVersionLister(catalog.LocatorGitHubReleases, releases)
 	reg.RegisterDocumentFetcher(catalog.LocatorGitHubReleases, releases)
 	reg.RegisterAdvisorySource(catalog.LocatorGitHubAdvisories, NewAdvisories(c))
+	reg.RegisterAdvisorySource(catalog.LocatorGitHubGlobalAdvisories, NewGlobalAdvisories(c))
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -269,6 +270,8 @@ func locatorURI(l catalog.Locator) string {
 		return "https://github.com/" + l.Repository + "/releases"
 	case catalog.LocatorGitHubAdvisories:
 		return "https://github.com/" + l.Repository + "/security/advisories"
+	case catalog.LocatorGitHubGlobalAdvisories:
+		return "https://github.com/advisories?query=" + url.QueryEscape("ecosystem:"+l.Ecosystem+" "+l.Package)
 	case catalog.LocatorOCI:
 		return "oci://" + strings.TrimPrefix(l.Repository, "oci://")
 	}

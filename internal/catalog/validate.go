@@ -82,17 +82,18 @@ var knownArtifactTypes = map[domain.ArtifactType]bool{
 
 // locatorSpec lists required fields per locator kind.
 var locatorSpec = map[string][]string{
-	LocatorGitHubReleases:   {"repository"},
-	LocatorGitHubAdvisories: {"repository"},
-	LocatorGitTags:          {"repository"},
-	LocatorRepoFile:         {"repository", "path"},
-	LocatorRepoDir:          {"repository", "path"},
-	LocatorHTTP:             {"url"},
-	LocatorHelmRepo:         {"url", "chart"},
-	LocatorOCI:              {"repository"},
-	LocatorHelmGit:          {"repository", "path", "tagPattern"},
-	LocatorChartTGZ:         {"url"},
-	LocatorGitLog:           {"repository", "ref"},
+	LocatorGitHubReleases:         {"repository"},
+	LocatorGitHubAdvisories:       {"repository"},
+	LocatorGitHubGlobalAdvisories: {"ecosystem", "package"},
+	LocatorGitTags:                {"repository"},
+	LocatorRepoFile:               {"repository", "path"},
+	LocatorRepoDir:                {"repository", "path"},
+	LocatorHTTP:                   {"url"},
+	LocatorHelmRepo:               {"url", "chart"},
+	LocatorOCI:                    {"repository"},
+	LocatorHelmGit:                {"repository", "path", "tagPattern"},
+	LocatorChartTGZ:               {"url"},
+	LocatorGitLog:                 {"repository", "ref"},
 }
 
 // channel kinds allowed per artifact type.
@@ -393,6 +394,7 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 	}
 	get := map[string]string{
 		"repository": l.Repository, "path": l.Path, "url": l.URL, "chart": l.Chart, "tagPattern": l.TagPattern, "ref": l.Ref,
+		"ecosystem": l.Ecosystem, "package": l.Package,
 	}
 	for _, f := range req {
 		if strings.TrimSpace(get[f]) == "" {
@@ -419,6 +421,24 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 	if (l.Kind == LocatorGitHubReleases || l.Kind == LocatorGitHubAdvisories) && strings.Count(l.Repository, "/") != 1 {
 		v.errf(path+".repository", "must be owner/name for %s", l.Kind)
 	}
+	if (l.Ecosystem != "" || l.Package != "") && l.Kind != LocatorGitHubGlobalAdvisories {
+		v.errf(path+".ecosystem", "ecosystem and package are only supported for kind %s", LocatorGitHubGlobalAdvisories)
+	}
+	if l.Kind == LocatorGitHubGlobalAdvisories {
+		if l.Ecosystem != "" && !advisoryEcosystems[l.Ecosystem] {
+			v.errf(path+".ecosystem", "unknown advisory ecosystem %q", l.Ecosystem)
+		}
+		if p := l.Package; p != "" && (strings.TrimSpace(p) != p || strings.ContainsAny(p, " \t\n{}")) {
+			v.errf(path+".package", "must be a plain package name (no spaces or templates), got %q", p)
+		}
+	}
+}
+
+// advisoryEcosystems are the ecosystems of GitHub's global advisory
+// database (the "ecosystem" parameter of GET /advisories).
+var advisoryEcosystems = map[string]bool{
+	"actions": true, "composer": true, "erlang": true, "go": true, "maven": true, "npm": true, "nuget": true,
+	"other": true, "pip": true, "pub": true, "rubygems": true, "rust": true, "swift": true,
 }
 
 func (v *validator) extract(path string, e Extract, rc RenderContext) {

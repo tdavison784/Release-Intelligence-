@@ -24,6 +24,7 @@ type advisory struct {
 	Severity    string     `json:"severity"`
 	State       string     `json:"state"`
 	PublishedAt *time.Time `json:"published_at"`
+	UpdatedAt   *time.Time `json:"updated_at"`
 	WithdrawnAt *time.Time `json:"withdrawn_at"`
 	Identifiers []struct {
 		Type  string `json:"type"`
@@ -80,11 +81,7 @@ func (a *Advisories) ListAdvisories(ctx context.Context, loc catalog.Locator) ([
 	first := a.c.endpoint("/repos/"+owner+"/"+name+"/security-advisories",
 		url.Values{"state": {"published"}, "per_page": {fmt.Sprint(perPage)}})
 
-	type pair struct {
-		adv domain.Advisory
-		ev  domain.Evidence
-	}
-	var pairs []pair
+	var pairs []advisoryPair
 	seen := map[string]bool{}
 	err = a.c.paginate(ctx, first, func(doc *fetch.Document) error {
 		var page []json.RawMessage
@@ -101,14 +98,25 @@ func (a *Advisories) ListAdvisories(ctx context.Context, loc catalog.Locator) ([
 			}
 			seen[ga.GHSAID] = true
 			adv, ev := convertAdvisory(owner, name, ga, raw, doc.RetrievedAt)
-			pairs = append(pairs, pair{adv, ev})
+			pairs = append(pairs, advisoryPair{adv, ev})
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, nil, err
 	}
+	return sortedAdvisories(pairs)
+}
 
+// advisoryPair is one converted advisory and its evidence record.
+type advisoryPair struct {
+	adv domain.Advisory
+	ev  domain.Evidence
+}
+
+// sortedAdvisories orders advisories newest first (ties by ID) and splits
+// the pairs.
+func sortedAdvisories(pairs []advisoryPair) ([]domain.Advisory, []domain.Evidence, error) {
 	sort.SliceStable(pairs, func(i, j int) bool {
 		pi, pj := pairs[i].adv.PublishedAt, pairs[j].adv.PublishedAt
 		switch {
@@ -127,20 +135,37 @@ func (a *Advisories) ListAdvisories(ctx context.Context, loc catalog.Locator) ([
 	return advs, evs, nil
 }
 
-// convertAdvisory maps an API advisory (and its raw JSON, which is digested
-// for the evidence) to the domain model.
+// convertAdvisory maps a repository advisory of owner/name (and its raw
+// JSON, which is digested for the evidence) to the domain model.
 func convertAdvisory(owner, name string, ga advisory, raw []byte, retrievedAt time.Time) (domain.Advisory, domain.Evidence) {
 	var ranges, patched []string
-	var patchedSeen = map[string]bool{}
 	for _, v := range ga.Vulnerabilities {
-		if r := strings.TrimSpace(v.VulnerableVersionRange); r != "" {
+		ranges = append(ranges, v.VulnerableVersionRange)
+		patched = append(patched, ParsePatchedVersions(v.PatchedVersions)...)
+	}
+	uri := ga.HTMLURL
+	if uri == "" {
+		uri = "https://github.com/" + owner + "/" + name + "/security/advisories/" + ga.GHSAID
+	}
+	return convertAdvisoryRanges(ga, uri, ranges, patched, raw, retrievedAt)
+}
+
+// convertAdvisoryRanges maps an API advisory to the domain model: uri is its
+// human page, rawRanges the vulnerable_version_range of every vulnerability
+// entry that applies, rawPatched the patched versions they name, and raw the
+// advisory's JSON (digested for the evidence).
+func convertAdvisoryRanges(ga advisory, uri string, rawRanges, rawPatched []string, raw []byte, retrievedAt time.Time) (domain.Advisory, domain.Evidence) {
+	var ranges, patched []string
+	var patchedSeen = map[string]bool{}
+	for _, r := range rawRanges {
+		if r = strings.TrimSpace(r); r != "" {
 			ranges = append(ranges, r)
 		}
-		for _, p := range ParsePatchedVersions(v.PatchedVersions) {
-			if !patchedSeen[p] {
-				patchedSeen[p] = true
-				patched = append(patched, p)
-			}
+	}
+	for _, p := range rawPatched {
+		if !patchedSeen[p] {
+			patchedSeen[p] = true
+			patched = append(patched, p)
 		}
 	}
 	// A range that cannot be converted may still cover the target version, so
@@ -168,11 +193,6 @@ func convertAdvisory(owner, name string, ga advisory, raw []byte, retrievedAt ti
 		aliases = append(aliases, a)
 	}
 	sort.Strings(aliases)
-
-	uri := ga.HTMLURL
-	if uri == "" {
-		uri = "https://github.com/" + owner + "/" + name + "/security/advisories/" + ga.GHSAID
-	}
 
 	excerpt := ga.GHSAID
 	if ga.Severity != "" {
@@ -204,5 +224,121 @@ func convertAdvisory(owner, name string, ga advisory, raw []byte, retrievedAt ti
 		t := ga.PublishedAt.UTC()
 		adv.PublishedAt = &t
 	}
+	if ga.UpdatedAt != nil {
+		t := ga.UpdatedAt.UTC()
+		adv.UpdatedAt = &t
+	}
 	return adv, ev
+}
+
+// globalAdvisory is the subset of a GitHub global advisory database object
+// (GET /advisories) used here. Unlike a repository advisory, every
+// vulnerability entry names its package, and the fix is one
+// first_patched_version per entry.
+type globalAdvisory struct {
+	advisory
+	Type            string `json:"type"`
+	Vulnerabilities []struct {
+		Package struct {
+			Ecosystem string `json:"ecosystem"`
+			Name      string `json:"name"`
+		} `json:"package"`
+		VulnerableVersionRange string          `json:"vulnerable_version_range"`
+		FirstPatchedVersion    json.RawMessage `json:"first_patched_version"`
+	} `json:"vulnerabilities"`
+}
+
+// firstPatched reads first_patched_version, which the API writes as a
+// string ("1.12.1"), as an object ({"identifier": "1.12.1"}) in older
+// responses, or as null.
+func firstPatched(raw json.RawMessage) string {
+	var s string
+	if json.Unmarshal(raw, &s) == nil {
+		return s
+	}
+	var o struct {
+		Identifier string `json:"identifier"`
+	}
+	if json.Unmarshal(raw, &o) == nil {
+		return o.Identifier
+	}
+	return ""
+}
+
+// ListGlobal lists the reviewed advisories of GitHub's global advisory
+// database that affect one package (loc.Ecosystem, loc.Package): all pages
+// of GET /advisories?ecosystem=…&affects=…&type=reviewed&per_page=100.
+//
+// Many projects publish no repository advisories, so their advisories exist
+// only here. Only the vulnerability entries whose package equals the
+// locator's (ecosystem case-insensitive, name exact) contribute ranges and
+// patched versions; an advisory with no such entry is dropped (the API's
+// affects filter may also match other packages). Conversion is the one of
+// ListAdvisories: Vulnerable is the union of the entries' ranges, empty when
+// any of them cannot be converted, Patched the entries'
+// first_patched_version, URL the advisory's html_url
+// (https://github.com/advisories/GHSA-…), and one advisory-evidence record
+// per advisory digests its JSON. Withdrawn advisories are skipped.
+func (a *Advisories) ListGlobal(ctx context.Context, loc catalog.Locator) ([]domain.Advisory, []domain.Evidence, error) {
+	eco, pkg := strings.ToLower(strings.TrimSpace(loc.Ecosystem)), strings.TrimSpace(loc.Package)
+	if eco == "" || pkg == "" {
+		return nil, nil, fmt.Errorf("github-global-advisories: locator needs ecosystem and package (got %q, %q)", loc.Ecosystem, loc.Package)
+	}
+	first := a.c.endpoint("/advisories", url.Values{
+		"ecosystem": {eco}, "affects": {pkg}, "type": {"reviewed"}, "per_page": {fmt.Sprint(perPage)},
+	})
+	var pairs []advisoryPair
+	seen := map[string]bool{}
+	err := a.c.paginate(ctx, first, func(doc *fetch.Document) error {
+		var page []json.RawMessage
+		if err := json.Unmarshal(doc.Body, &page); err != nil {
+			return fmt.Errorf("github-global-advisories %s %s: decoding %s: %w", eco, pkg, doc.URL, err)
+		}
+		for _, raw := range page {
+			var ga globalAdvisory
+			if err := json.Unmarshal(raw, &ga); err != nil {
+				return fmt.Errorf("github-global-advisories %s %s: decoding advisory: %w", eco, pkg, err)
+			}
+			if ga.GHSAID == "" || ga.WithdrawnAt != nil || seen[ga.GHSAID] {
+				continue
+			}
+			var ranges, patched []string
+			for _, v := range ga.Vulnerabilities {
+				if !strings.EqualFold(v.Package.Ecosystem, eco) || v.Package.Name != pkg {
+					continue
+				}
+				ranges = append(ranges, v.VulnerableVersionRange)
+				patched = append(patched, ParsePatchedVersions(firstPatched(v.FirstPatchedVersion))...)
+			}
+			if len(ranges) == 0 {
+				continue
+			}
+			seen[ga.GHSAID] = true
+			uri := ga.HTMLURL
+			if uri == "" {
+				uri = "https://github.com/advisories/" + ga.GHSAID
+			}
+			adv, ev := convertAdvisoryRanges(ga.advisory, uri, ranges, patched, raw, doc.RetrievedAt)
+			pairs = append(pairs, advisoryPair{adv, ev})
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return sortedAdvisories(pairs)
+}
+
+// GlobalAdvisories implements sources.AdvisorySource for the
+// github-global-advisories locator kind (Advisories.ListGlobal).
+type GlobalAdvisories struct{ a *Advisories }
+
+// NewGlobalAdvisories returns the github-global-advisories adapter.
+func NewGlobalAdvisories(c *Client) *GlobalAdvisories {
+	return &GlobalAdvisories{a: NewAdvisories(c)}
+}
+
+// ListAdvisories implements sources.AdvisorySource.
+func (g *GlobalAdvisories) ListAdvisories(ctx context.Context, loc catalog.Locator) ([]domain.Advisory, []domain.Evidence, error) {
+	return g.a.ListGlobal(ctx, loc)
 }
