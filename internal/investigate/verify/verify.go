@@ -109,7 +109,7 @@ type Result struct {
 var baseLimitations = []string{
 	"the rule exercise uses one synthetic subject object per arm in a fresh cluster: other consumers of the subject's outputs, other topologies, pre-existing state and other controller configurations are not covered",
 	"the controller is installed from its chart with the fixture's declared values only; environment-specific controller settings are not exercised",
-	"the citation check proves the passages exist in version-bounded upstream text and name the subject; whether they state the claimed behaviour is the human reviewer's judgement",
+	"the citation check proves the passages exist in version-bounded upstream text and name the subject; the semantic check compares only the value tokens the rule asserts with them: whether they state the claimed behaviour is otherwise the human reviewer's judgement",
 	"a proof never decides whether an environment meets the rule's conditions: the deterministic validators decide that at investigation time",
 }
 
@@ -258,7 +258,12 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 	if res == nil {
 		res = Resolvers{}
 	}
-	methods := []domain.ProofMethod{CheckCitations(ctx, res, rule, bounds, evs)}
+	cit := CheckCitations(ctx, res, rule, bounds, evs)
+	sem := CheckSemantics(rule, evs, cit)
+	if sem.Outcome == domain.MethodInconclusive {
+		limitations = append(limitations, "the semantic check could not decide every token the rule asserts: the human reviewer judges whether the cited passages state it")
+	}
+	methods := []domain.ProofMethod{cit, sem}
 	var ex domain.ProofMethod
 	if o.Runtime {
 		var rels []catalog.Relationship
@@ -267,7 +272,8 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		}
 		var notes []string
 		ex, notes = ExerciseRule(ctx, ExerciseInput{Product: string(it.Product), Rule: rule, Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)],
-			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner})
+			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner,
+			Evidence: evs})
 		limitations = append(limitations, notes...)
 	} else {
 		ex = domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ExerciseProducer, Level: domain.LevelObserved, Outcome: domain.MethodNotRun,

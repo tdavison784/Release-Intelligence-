@@ -147,7 +147,9 @@ ri investigate review <inv-id> approve --reviewer me                         # r
 ri investigate serve -store eval/investigations/results                      # per-upgrade view: what was checked, verdicts, human review, export (docs/INVESTIGATE.md)
 ri worker && ri investigate cert-manager v1.17.2 v1.18.0 --repo ./customer-repo --temporal   # the same pipeline as a durable Temporal workflow
 ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
-ri verify hypotheses -knowledge <dir> -runtime  # independently verify agent-proposed rules (citation check + two-arm fixture in a throwaway kind cluster); proof records gate human promotion (docs/INVESTIGATE.md "Verifying mitigation hypotheses")
+ri verify hypotheses -knowledge <dir> -runtime  # independently verify agent-proposed rules (citation check + semantic check + two-arm fixture in a throwaway kind cluster); proof records gate human promotion (docs/INVESTIGATE.md "Verifying mitigation hypotheses")
+ri investigate semcheck -store eval/investigations/results <run-id>/<case>   # report-only: does each upstream behaviour the agent relied on match its cited passage? (docs/INVESTIGATE.md "Semantic check of agent behaviour")
+ri investigate admission -product ingress-nginx -version 1.12.1 -object ingress.yaml   # server-side dry run of one object against the target version's admission webhook in a throwaway kind cluster (docs/INVESTIGATE.md "Admission dry run")
 ri investigate mcp --run <inv-id>             # serve a stored investigation's agent tools over MCP stdio, read-only (docs/INVESTIGATE.md)
 ri investigate dossier <inv-id> <item>        # the item dossier an agent session started from, rebuilt read-only (docs/INVESTIGATE.md)
 ri investigate export-hypotheses <inv-id> -knowledge <dir>   # agent mitigation hypotheses → proposals + whole-fact review items (never facts)

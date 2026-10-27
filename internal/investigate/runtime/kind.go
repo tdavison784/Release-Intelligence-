@@ -212,6 +212,30 @@ func (c *kindCluster) Apply(ctx context.Context, m Manifest, namespace string) (
 	return obj, nil
 }
 
+func (c *kindCluster) DryRunApply(ctx context.Context, m Manifest, namespace string) (map[string]any, error) {
+	doc, err := m.YAML()
+	if err != nil {
+		return nil, err
+	}
+	args := []string{"apply", "--server-side", "--dry-run=server", "--field-manager=ri-runtime", "-o", "json", "-f", "-"}
+	if m.Ref.Namespace == "" {
+		args = append(args, nsArgs(namespace)...)
+	}
+	out, err := c.k(ctx, doc, args...)
+	if err != nil {
+		return nil, err
+	}
+	var obj map[string]any
+	if err := json.Unmarshal(out, &obj); err != nil {
+		return nil, fmt.Errorf("dry-run %s: unreadable response: %w", m.Ref, err)
+	}
+	return obj, nil
+}
+
+func (c *kindCluster) Raw(ctx context.Context, path string) ([]byte, error) {
+	return c.k(ctx, nil, "get", "--raw", path)
+}
+
 func (c *kindCluster) Delete(ctx context.Context, ref ObjectRef) error {
 	args := append([]string{"delete", resource(ref.GVK()), ref.Name, "--ignore-not-found", "--wait=true", "--timeout=60s"}, nsArgs(ref.Namespace)...)
 	_, err := c.k(ctx, nil, args...)

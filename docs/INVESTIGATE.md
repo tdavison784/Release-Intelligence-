@@ -341,13 +341,24 @@ and listed (with evidence) in the pass's detail; *true* → a miss (the object i
 another condition); *unknown* → undecidable, never excluded. Leaves follow the impact join's semantics
 (`internal/impact`): field states over what the object states, Kleene `all`/`any`/`not`, `text-line`, and `ref`
 resolving to exactly one object of the view (by name and the kind/group/namespace it states, else the referring
-object's namespace). Two deliberate differences keep exclusion fail-closed: a value predicate on a field the
-object leaves unset uses the **schema default** a CustomResourceDefinition of the bundle states (upstream `crd`
-artifacts, environment files, renders; every CRD for the kind must describe the path and agree) — with no such
-CRD, a CRD that states no default (the controller may default the field in code), an ancestor default, or a schema
-that does not describe the path, it is undecidable. What an unset field means is decided by the rule only when it
-says so explicitly with an `unset`/`set` leaf (`any{F equals X, F unset}`, `all{F not-equals X, F set}`); and a reference
-resolving to nothing (or to several objects) is undecidable. An `undecidable` leaf is unknown. If every visible
+object's namespace). A value predicate on a field the object leaves unset is decided by the rule the impact join
+shares (`internal/applicability`, Phase 6 M4): the **schema default** the CustomResourceDefinitions of the bundle
+state (upstream `crd` artifacts, environment files, renders; every CRD for the kind must describe the path and
+agree, and the parent object must be present), or the rule's own **condition default** (`Condition.Default`:
+value, source `controller` | `crd-schema`, citations) when every citation resolves to the fact's upstream evidence;
+the two must agree. With neither — no such CRD, a CRD that states no default (the controller may default the field
+in code) and no evidenced condition default, an ancestor default, or a schema that does not describe the path — it
+is undecidable. A rule may also say what an unset field means with an explicit `unset`/`set` leaf
+(`any{F equals X, F unset}`, `all{F not-equals X, F set}`). One deliberate difference keeps exclusion fail-closed: a
+reference resolving to nothing (or to several objects) is undecidable.
+
+**Exact coverage (Phase 6 M4, R2.2).** A field pin's pass names the CRD serving the pinned kind
+(`PinnedSetting.crd`) and lists the item's environment rendered changes on **its own field**: a change of an
+object of the pinned kind at the pinned path, and the `crd-description-changed` text of that field in that CRD (a
+field-scoped documentation-only check, `domain.SchemaFieldPath`). The policy re-checks every such claim
+(`EvidenceBundle.PinCoversChange`) and counts only confirmed ones: another field's description in the same CRD, a
+schema or default change on the field, another CRD version, another resource, or any rendered change claimed by a
+flag/env/config-key pin stays a gap. An `undecidable` leaf is unknown. If every visible
 object is out of scope, nothing is pinned (whether the environment is exposed at all is the join's decision).
 
 **Effective object view.** The objects are what the environment actually applies: the to side of every complete
@@ -604,6 +615,43 @@ product: every outcome path, "quiet window without exercise ⇒ never pass", cle
 diffing). Real runs on groundtruth inputs (one kind cluster at a time, minutes per case):
 `RI_RUNTIME_STATE=<warm .ri> RI_RUNTIME_CASES=<case>[,<case>] [RI_RUNTIME_TIMEOUT=20m] go test
 ./internal/investigate/runtime -run Groundtruth -v -timeout 60m`.
+
+### Admission dry run (`runtime.admission-dry-run@v1`, Phase 6 Milestone 4)
+
+Does the **target version's validating admission webhook** accept one environment object? Static evidence can leave
+this open (a parser's actual character class, a validation the documentation does not state); the API server's answer
+settles it. **Opt-in**: its own command, never part of an investigation run.
+
+```
+ri investigate admission -product ingress-nginx -version 1.12.1 -object ingress.yaml \
+    [-setup refs.yaml] [-values controller-values.yaml] [-namespace ns] [-exercise ID] [-kubernetes 1.31] [-timeout 15m] [-json]
+```
+
+1. The product's controller is rendered at the target version (chart defaults; the product's verification fixture's
+   `controller.values` when declared; `-values` instead) and installed with the isolated upgrade's apply and readiness
+   rules into a throwaway cluster `ri-admission-<8 hex>` (same preflight: tools, free disk, the pinned node image, one
+   isolated cluster at a time; same budget; deleted on every exit path, deletion verified). `-setup` objects (what the
+   submitted object refers to) are applied for real; the object's namespace is created.
+2. The validating webhooks whose rules cover a `CREATE` of the object's resource (from discovery) are listed with their
+   selectors evaluated (`namespaceSelector`, `objectSelector`: matchLabels and In/NotIn/Exists/DoesNotExist;
+   `matchConditions` are not evaluated, so such a webhook is not counted) and waited for until their service has a
+   ready endpoint.
+3. The object is submitted once as `kubectl apply --server-side --dry-run=server` (nothing is stored), retried while
+   the webhook cannot be called (connection refused, certificate not yet injected, …).
+
+The record (`AdmissionRun`, level **observed**, stored as `derived/runtime-admission/<id>/admission.json`):
+
+| outcome | when |
+|---|---|
+| `accepted` | the API server admitted the dry run with at least one **effective** covering webhook in its path: its service had a ready endpoint, or its failure policy is `Fail` (a failed call rejects, it never silently admits) |
+| `rejected` | `admission webhook "<name>" denied the request: …` (`rejectedBy: webhook <name>`), or the API server's own validation (`is invalid`, `Invalid value`; `rejectedBy: api-server`, before any validating webhook), with the full message |
+| `undetermined` | no effective covering webhook (acceptance would show only the API server's own validation), a covering webhook whose `sideEffects` refuse dry runs, an answer that is neither a decision nor a validation failure after the retries, or a run that did not complete |
+
+Exercises of action `admission-dry-run` are declared in `products/exercises/<product>.yaml` (target kind, families,
+upstream references; no reaction — the outcome is the API server's answer); the isolated upgrade never runs them.
+ingress-nginx declares `ingress-admission` (Ingress). Tests: fake driver paths in `admission_test.go`; real kind
+fixtures (a stdlib webhook compiled into a `FROM scratch` image, clusters `ri-semverify-*`, accepted and rejected):
+`RI_ADMISSION_KIND=1 go test ./internal/investigate/runtime -run AdmissionKind -v -timeout 20m`.
 
 ## Relationships
 
@@ -1355,6 +1403,21 @@ stored beside the item under `<product>/<release>/proofs/`):
   version outside the bounds (versions are read from the URL; a minor-only token like `1.18` names a release
   line). Any failure ⇒ `fail`; no bounds or no citation ⇒ `not-run`; no passing passage naming the subject ⇒
   `inconclusive` (whether the text *states* the behaviour is the reviewer's judgement, listed as a limitation).
+- **Semantic check** (`verify.semantic-check@v1`, deterministic, Phase 6 M4; package
+  `internal/investigate/verify/semantic`). The citation check proves a passage exists, not that it says what the rule
+  says (the M2 finding: correct upstream text, misread). Over the passages that **passed** the citation check, the value
+  tokens the rule asserts — its change's before/after values and the values its statement asserts (defaults, allowed or
+  enumerated values, character classes and single characters, booleans) — must each occur with the **same polarity**
+  ("accepts" vs "rejects", "true" vs "false", "enabled" vs "disabled", "valid" vs "invalid", negators flip). A token the
+  passages lack, or one they state only reversed ⇒ `fail` (the rule is unsupported, the proof refuted). A claim with no
+  comparable token, or whose token's polarity cannot be read in the passage ⇒ `inconclusive`: it is routed to the human
+  reviewer (never to a model) and recorded as a limitation. No established passage ⇒ `not-run`. A regular-expression
+  character class, or a list in a clause with "only", is an exhaustive allowed set: claiming a character outside it is
+  *accepted* is unsupported; claiming it is *rejected* is supported. Extraction is lexical and generic: quoted spans count
+  as values only in value positions (after *is*, *to*, *of*, *accepts*, …, or continuing such a list); dotted, lowerCamel,
+  flag-like names and versions are never values. Applicability-condition values are not compared: they scope the
+  environment and are tested by the exercise arms and the applicability checks. The method is **optional**: it never
+  replaces the citation check or the rule exercise.
 - **Rule exercise** (`verify.exercise@v1`, observed, opt-in `-runtime`). A **synthetic** fixture built from the
   rule, never an evaluation environment: the product's controller at FROM (its chart with the values declared
   in `products/exercises/fixtures/<product>.yaml`), the subject kind's minimal object from the same file (plus
@@ -1381,8 +1444,9 @@ stored beside the item under `<product>/<release>/proofs/`):
   `set`/`not-equals` use the change's previous value; a rule without an overlap is mitigated by setting an
   "exposed while unset" field to its previous value) — never approximated.
 
-**Outcome** = `confirmed` only when both methods passed; any `fail` ⇒ `refuted`; otherwise `inconclusive`
-(`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
+**Outcome** = `confirmed` only when both required methods (citation check, rule exercise) passed; any `fail` of any
+method (the semantic check included) ⇒ `refuted`; otherwise `inconclusive` — an inconclusive or not-run semantic check
+does not hold back an otherwise confirmed proof, since a human must accept the item anyway (`domain.ProofOutcomeOf`; `ProofRecord.Validate` rejects an outcome the methods do not support, a passing
 exercise without both arms answered, and a level that does not match: `observed` exactly when the exercise
 ran). Each proof lists its limitations (one synthetic object per arm, chart-default controller, other consumers
 and topologies not covered, applicability to an environment decided by the validators, not by the proof). A
@@ -1394,6 +1458,33 @@ files' digests, recorded by every runtime run, are untouched): `controller.value
 and per subject `target` (group/version/kind), `exercise` (an id from `products/exercises/<product>.yaml`, which
 must declare a reaction), `namespace`, `prerequisites`, `template` (`{{name}}` is replaced by the arm object's
 name) and upstream `references`. Unknown fields, missing references or an evaluation-data URL are load errors.
+
+### Semantic check of agent behaviour (report-only, Phase 6 M4)
+
+The same check runs over every agent assessment `behaviour` entry sourced `upstream`: its statement against the
+passages its citations quote (the cited evidence records' excerpts in the run's pool). Each entry is `supported`,
+`unsupported` or `undetermined`. It is **report-only**: never a classification input, never a policy input.
+
+- **Synthesis input and reports.** The upgrade-level pre-computation adds one disagreement
+  `behaviour-unsupported-by-citation` (not hard) per unsupported entry, with the reason (the missing token, or the
+  reversed polarity) and the cited evidence; the judgement copies it verbatim, so the change-ticket section and the report
+  UI show it beside the other disagreements.
+- **Stored runs.** `ri investigate semcheck [-store DIR] [-json] <key>…` re-checks stored runs (an investigation store,
+  or stored evaluation runs with keys `<run-id>/<case>`) and prints every upstream entry with its verdict and reason.
+
+### Boundary fixtures (Phase 6 M4, lane applicability)
+
+The synthesised arms state every field the rule compares by value; real objects mostly omit them. Before any
+controller is rendered, the exercise **predicts every arm with the rule itself**, three-valued
+(`internal/applicability`, with only the rule's evidenced condition defaults: the fixture consults no CRD schema, so
+a rule relying on a schema default states it with source `crd-schema`). It then adds one **omitted-field arm** per
+arm and per field compared by value (`equals`/`not-equals`): the same object without the field (and without parents
+left empty), predicted by the rule, named `condition-present-omitted-N` / `condition-absent-omitted-N`; objects
+identical to an existing arm are not repeated (at most 6). The exercise **fails** — before any cluster runs — when
+the rule cannot predict an arm or an omitted-field object (a rule that only works when every field is explicit, or
+whose condition default is not evidenced), or when its exposure contradicts how an arm was built. At runtime an
+omitted-field arm predicted to keep the previous behaviour that changes refutes the rule; one that does not confirm
+its prediction keeps the exercise from passing.
 
 ### Consumer observation (lane verify2)
 
@@ -1423,8 +1514,12 @@ Phase 5 verify-smoke proofs still load and re-verify). A rule naming the role fi
 fields and does not meet the exposure is a **shielded** arm (`condition-present`, `condition-present-2`, …;
 predicted: the consumer still verifies at TO); every exposure alternative that holds in the role and does not
 meet the overlap is an **exposed** arm (`condition-absent`, …; predicted: it verifies at FROM and fails at TO).
-Alternatives that contradict the role are not exercised and are listed as limitations. Each arm also gets the
-declared consuming objects (e.g. a CA issuer and a leaf it signs).
+A **shielded** alternative that contradicts the role is exercised **outside the role** (`condition-present-outside-role-N`,
+Phase 6 M4): the alternative's object with the same consuming objects. Its consumer verifying at FROM and failing at
+TO refutes the rule (the object plays the role after all and is exposed); verifying at both versions is consistent
+with the shield; no relationship at all is recorded and decides nothing. Omitting a role field in a boundary arm
+also takes the object outside the role. Exposed alternatives that contradict the role stay limitations. Each arm
+also gets the declared consuming objects (e.g. a CA issuer and a leaf it signs).
 
 **The observation** (`runtime.ConsumerCheck`, `internal/investigate/runtime/consumer.go`), at each version right
 after the version's baseline observation and before its exercises (inside the exercise window at both
@@ -1638,7 +1733,8 @@ the decision, the review or knowledge.
 - **Deterministic pre-computation** (a pure function of the run record, bundle, impact report, edge and the product's
   release list): the hard findings and disagreements, each with a content-derived id (security regressions, confirmed
   breakage, failed validations, target options still affected, agent-versus-classification disagreements, untraced
-  consumers, unestablished upstream behaviour, advisory inconsistencies, an incomplete advisory picture); the target
+  consumers, unestablished upstream behaviour, upstream behaviour its own citations do not support (the report-only
+semantic check, Milestone 4), advisory inconsistencies, an incomplete advisory picture); the target
   options of the PD-3 rule (minimum safe release from the edge's candidates; the latest patch on the chosen line when it
   removes every regression and adds no assessed advisory; nothing is safe while a security source is unread); the change
   locations established by deterministic facts (a passing pin, verified setting claims, the GitOps line stating the

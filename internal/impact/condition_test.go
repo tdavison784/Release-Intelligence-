@@ -127,13 +127,16 @@ func TestEvaluateConditionLeaves(t *testing.T) {
 	}{
 		{"field unset on some Certificate", certScope(field("spec.privateKey.rotationPolicy", domain.StateUnset)), True, ""},
 		{"field equals on the same Certificate", certScope(field("spec.privateKey.rotationPolicy", domain.StateEquals, `"Never"`)), True, ""},
-		{"field equals another value", certScope(field("spec.privateKey.rotationPolicy", domain.StateEquals, `"Always"`)), False, ""},
+		// Certificate a leaves the field unset and nothing establishes its
+		// default: undecidable, never false (internal/applicability)
+		{"field equals another value, one Certificate unset", certScope(field("spec.privateKey.rotationPolicy", domain.StateEquals, `"Always"`)), Unknown, domain.UnknownSemanticAmbiguity},
+		{"field equals another value, every Certificate states it", certScope(field("spec.secretName", domain.StateEquals, `"z-tls"`)), False, ""},
 		{"field not-equals", certScope(field("spec.privateKey.rotationPolicy", domain.StateNotEquals, `"Always"`)), True, ""},
 		{"list descent", certScope(field("spec.dnsNames[]", domain.StateEquals, `"c.example.com"`)), True, ""},
 		{"matches", certScope(domain.Condition{Op: domain.OpField, Path: "spec.secretName", State: domain.StateMatches, Pattern: `^b-`}), True, ""},
 		{"no resource of the kind is false", domain.Condition{Op: domain.OpResource, Group: "cert-manager.io", Kind: "ClusterIssuer", Of: []domain.Condition{field("spec", domain.StateSet)}}, False, ""},
-		// per-resource scope: no single Certificate both sets Never and lacks secretName
-		{"scope is per resource", certScope(field("spec.privateKey.rotationPolicy", domain.StateEquals, `"Never"`), field("spec.issuerRef.group", domain.StateSet)), False, ""},
+		// per-resource scope: no single Certificate both names b-tls and states an issuer group
+		{"scope is per resource", certScope(field("spec.secretName", domain.StateEquals, `"b-tls"`), field("spec.issuerRef.group", domain.StateSet)), False, ""},
 		{"ref resolves to a CA issuer", certScope(domain.Condition{Op: domain.OpRef, Path: "spec.issuerRef", Kind: "Issuer", Of: []domain.Condition{field("spec.ca", domain.StateSet)}}), True, ""},
 		{"ref of the wrong kind", certScope(domain.Condition{Op: domain.OpRef, Path: "spec.issuerRef", Kind: "ClusterIssuer", Of: []domain.Condition{field("spec", domain.StateSet)}}), False, ""},
 		{"text-line exists", domain.Condition{Op: domain.OpResource, Kind: "ConfigMap", Of: []domain.Condition{{Op: domain.OpTextLine, Path: `data["policy.csv"]`, State: domain.StateExists, Pattern: `^p, role:admin, applications`}}}, True, ""},

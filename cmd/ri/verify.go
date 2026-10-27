@@ -33,6 +33,11 @@ const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR]
                      evidence cache (the investigation store, the fetch cache),
                      contains the cited passage and names only versions inside
                      the rule's release bounds
+    semantic check   (deterministic, optional) the values the rule asserts
+                     (before/after, defaults, allowed values, character
+                     classes, booleans) occur in those passages with the same
+                     polarity; unsupported refutes, undecidable is left to
+                     the human reviewer
     rule exercise    (observed, -runtime) a synthetic fixture built from the rule
                      (products/exercises/fixtures/<product>.yaml), the condition
                      present and absent, upgraded FROM → TO in a throwaway kind
@@ -42,7 +47,8 @@ const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR]
                      certificate issued after re-issuance against the trust
                      captured before it)
 
-  confirmed only when both pass; any failure refutes; otherwise inconclusive.
+  confirmed only when the citation check and the rule exercise pass; any
+  failure refutes; otherwise inconclusive.
   A human accept/correct of the item then needs a confirmed proof of exactly
   that rule (` + "`ri review serve`" + ` shows the proof and the gate). Never runs
   against an evaluation environment.

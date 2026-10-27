@@ -1761,6 +1761,12 @@ type PinnedSetting struct {
 	// Evidence cites the environment evidence (local-file, input or an
 	// environment-scope render) that states the setting.
 	Evidence []EvidenceID `json:"evidence"`
+	// CRD is the name of the CustomResourceDefinition serving the pinned
+	// objects' kind (field pins; "" when unknown): a description change of
+	// the pinned field in that CRD is documentation of the pinned setting
+	// (EvidenceBundle.PinCoversChange). CONTRACT-CHANGE(applicability):
+	// additive.
+	CRD string `json:"crd,omitempty"`
 }
 
 // ValidationRecord is one deterministic (or observed) validation of a
@@ -1970,6 +1976,179 @@ func (b *EvidenceBundle) DocumentationOnlyChange(id string) (ok bool, why string
 		}
 	}
 	return false, fmt.Sprintf("%s is not an environment rendered change of the bundle", id)
+}
+
+// PinCoversChange reports whether a passing pin covers environment rendered
+// change id (R2.2, mission E3: a pass covers exactly the changes it proves
+// compatible). A field pin covers exactly the rendered changes on its own
+// field: a change of an object of the pinned kind at the pinned path, and the
+// description text of that field in the CRD serving the kind (a field-scoped
+// documentation-only check: whatever else changes in the CRD stays its own
+// gap). Every other change — another field's description in the same CRD, a
+// schema or default change on the field, another resource — is not covered.
+// CONTRACT-CHANGE(applicability): additive.
+func (b *EvidenceBundle) PinCoversChange(id string, p PinnedSetting) (ok bool, why string) {
+	if p.Kind != PinField {
+		return false, fmt.Sprintf("a %s pin covers no rendered change", p.Kind)
+	}
+	group, version, kind, okSubject := objectType(p.Subject)
+	if !okSubject {
+		return false, fmt.Sprintf("the pin's subject %q is not an object id", p.Subject)
+	}
+	for _, pr := range b.Renders {
+		for _, c := range pr.Changes {
+			if c.ID != id {
+				continue
+			}
+			if pr.Status != CollectionOK {
+				return false, fmt.Sprintf("render %s is %s", pr.Target, pr.Status)
+			}
+			g, _, k, okObj := objectType(c.Object)
+			if !okObj {
+				return false, fmt.Sprintf("%s: object %q is not an object id", id, c.Object)
+			}
+			if g == group && k == kind {
+				if fieldPattern(c.Path) == p.Path {
+					return true, ""
+				}
+				return false, fmt.Sprintf("%s changes %s, not the pinned field %s", id, c.Path, p.Path)
+			}
+			if c.Class != RenderedClassCRDDescription {
+				return false, fmt.Sprintf("%s is a %s change of %s, not of the pinned %s/%s field %s", id, c.Class, c.Object, group, kind, p.Path)
+			}
+			if p.CRD == "" || g != "apiextensions.k8s.io" || k != "CustomResourceDefinition" || objectName(c.Object) != p.CRD {
+				return false, fmt.Sprintf("%s documents %s, not the CRD serving the pinned kind (%s)", id, c.Object, orNone(p.CRD))
+			}
+			v, field, okField := SchemaFieldPath(c.Path)
+			switch {
+			case !okField:
+				return false, fmt.Sprintf("%s documents no named field (%s)", id, c.Path)
+			case v != "" && v != version:
+				return false, fmt.Sprintf("%s documents version %s, not the pinned objects' %s", id, v, version)
+			case field != p.Path:
+				return false, fmt.Sprintf("%s documents %s, not the pinned field %s", id, field, p.Path)
+			}
+			return true, ""
+		}
+	}
+	return false, fmt.Sprintf("%s is not an environment rendered change of the bundle", id)
+}
+
+// SchemaFieldPath reads the field a CRD description path documents: the
+// served version (from "versions[name=V]", "" when the path names none) and
+// the field path of the served kind ("…openAPIV3Schema.properties.spec
+// .properties.privateKey.properties.rotationPolicy.description" →
+// "spec.privateKey.rotationPolicy"; a list's "items" adds "[]"). ok is false
+// for anything else: not a description, no openAPIV3Schema, a map's
+// additionalProperties, a composition branch or a quoted property name.
+func SchemaFieldPath(path string) (version, field string, ok bool) {
+	segs := splitObjectPath(path)
+	if len(segs) == 0 || segs[len(segs)-1] != "description" {
+		return "", "", false
+	}
+	start := -1
+	for i, s := range segs {
+		if name, ok := strings.CutPrefix(s, "versions[name="); ok {
+			version = strings.TrimSuffix(name, "]")
+		}
+		if s == "openAPIV3Schema" {
+			start = i + 1
+			break
+		}
+	}
+	if start < 0 {
+		return "", "", false
+	}
+	var fields []string
+	rest := segs[start : len(segs)-1]
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case "properties":
+			if i+1 >= len(rest) || strings.ContainsAny(rest[i+1], `[]"`) {
+				return "", "", false
+			}
+			fields = append(fields, rest[i+1])
+			i++
+		case "items":
+			if len(fields) == 0 {
+				return "", "", false
+			}
+			fields[len(fields)-1] += "[]"
+		default:
+			return "", "", false
+		}
+	}
+	if len(fields) == 0 {
+		return "", "", false
+	}
+	return version, strings.Join(fields, "."), true
+}
+
+// splitObjectPath splits a rendered-change path on dots outside brackets
+// ("a.b[name=x.y].c" → a, b[name=x.y], c).
+func splitObjectPath(p string) []string {
+	var out []string
+	depth, start := 0, 0
+	for i := 0; i < len(p); i++ {
+		switch p[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+		case '.':
+			if depth == 0 {
+				out = append(out, p[start:i])
+				start = i + 1
+			}
+		}
+	}
+	return append(out, p[start:])
+}
+
+// fieldPattern replaces element selectors with "[]" ("spec.ports[name=a]
+// .protocol" → "spec.ports[].protocol").
+func fieldPattern(p string) string {
+	var b strings.Builder
+	depth := 0
+	for i := 0; i < len(p); i++ {
+		switch c := p[i]; {
+		case c == '[':
+			if depth == 0 {
+				b.WriteString("[]")
+			}
+			depth++
+		case c == ']':
+			depth--
+		case depth == 0:
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
+}
+
+// objectType reads group, version and kind from an object id
+// (<group>/<version>/<kind>/<namespace>/<name>; group "core" is "").
+func objectType(id string) (group, version, kind string, ok bool) {
+	parts := strings.Split(id, "/")
+	if len(parts) != 5 || parts[1] == "" || parts[2] == "" {
+		return "", "", "", false
+	}
+	if parts[0] == "core" {
+		parts[0] = ""
+	}
+	return parts[0], parts[1], parts[2], true
+}
+
+func objectName(id string) string {
+	parts := strings.Split(id, "/")
+	return parts[len(parts)-1]
+}
+
+func orNone(s string) string {
+	if s == "" {
+		return "none known"
+	}
+	return s
 }
 
 // --- agent records (§A4, P3) --------------------------------------------------------------

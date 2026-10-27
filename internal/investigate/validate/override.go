@@ -86,6 +86,13 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 		}
 		if ok {
 			d.subjects, d.paths, d.property = cov.subjects, cov.paths, property
+			if d.pin != nil && d.pin.Kind == domain.PinField {
+				view, err := loadView(ctx, v.cfg, in.Bundle)
+				if err != nil {
+					return nil, err
+				}
+				pinCoverage(in.Bundle, item, view, &d)
+			}
 			out.add(d)
 			return out.result()
 		} else if note != "" {
@@ -163,6 +170,7 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 			d.evidence = append(d.evidence, out.cite(e))
 		}
 		d.pin = pinOf(s.kind, pinPath(s), res.hits)
+		pinCoverage(in.Bundle, item, view, &d)
 		d.detail = fmt.Sprintf("pin rule %s, from fact %s (verification %s, release %s): %s\nPinning setting: %s, %s — it holds everywhere it matters:\n%s%s",
 			s.rule, s.fact.ID, s.fact.Level(), s.fact.Release, factStatement(*s.fact), s.setting(), s.acceptance(), describeHits(res.hits), describeScope(res))
 		if d.pin.RenderedObject != "" {
@@ -177,6 +185,45 @@ func (v *overrideInspection) Validate(ctx context.Context, in investigate.Valida
 	}
 	out.notRun(cov, reason, property, why+":\n- "+strings.Join(notes, "\n- "))
 	return out.result()
+}
+
+// pinCoverage names, on a field pin's pass, the CRD serving the pinned kind
+// and the item's environment rendered changes the pin covers exactly: those
+// on its own field (EvidenceBundle.PinCoversChange, which the policy
+// re-checks). Everything else of the item stays a gap (R2.2, mission E3).
+func pinCoverage(b *domain.EvidenceBundle, item domain.ChangeItem, view *envView, d *draft) {
+	p := d.pin
+	if p == nil || p.Kind != domain.PinField {
+		return
+	}
+	parts := strings.Split(p.Subject, "/")
+	if len(parts) != 5 {
+		return
+	}
+	group := parts[0]
+	if group == "core" {
+		group = ""
+	}
+	var names []string
+	for _, s := range view.schemas {
+		if yStr(s.obj.Body, "spec", "group") == group && yStr(s.obj.Body, "spec", "names", "kind") == parts[2] {
+			names = append(names, s.obj.ID.Name)
+		}
+	}
+	if names = uniq(names); len(names) == 1 {
+		p.CRD = names[0]
+	}
+	for _, pr := range b.Renders {
+		for _, c := range pr.Changes {
+			if !contains(c.ChangeItems, item.ID) {
+				continue
+			}
+			if ok, _ := b.PinCoversChange(c.ID, *p); ok {
+				d.rcs = append(d.rcs, c.ID)
+			}
+		}
+	}
+	d.rcs = uniq(d.rcs)
 }
 
 func pinPath(s pinSpec) string {

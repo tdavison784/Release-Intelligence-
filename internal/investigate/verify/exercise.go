@@ -42,6 +42,9 @@ type ExerciseInput struct {
 	KubernetesVersion string
 	Renderer          ControllerRenderer
 	Runner            FixtureRunner
+	// Evidence is the rule's upstream evidence: the pool its condition
+	// defaults must cite (boundary.go).
+	Evidence []domain.Evidence
 }
 
 // armPlan is an arm with the objects observed for it.
@@ -69,8 +72,6 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return notRun("the rule names no subject")
 	case in.Fixtures == nil:
 		return notRun("no fixtures are declared for %s (products/exercises/fixtures/%s.yaml)", in.Product, in.Product)
-	case in.Renderer == nil || in.Runner == nil:
-		return notRun("no controller renderer or cluster runner configured")
 	}
 	fx, ok := in.Fixtures.Subject(in.Rule.Subject.Group, in.Rule.Subject.Kind)
 	if !ok {
@@ -109,6 +110,28 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		for _, a := range plain {
 			arms = append(arms, consumerArm{Arm: a})
 		}
+	}
+	// boundary fixtures: the arms again, each without a field the rule
+	// compares by value; a rule that cannot predict them fails here
+	var rolePaths map[string]bool
+	if cf != nil {
+		rolePaths = map[string]bool{}
+		for _, r := range cf.Role {
+			rolePaths[r.Path] = true
+		}
+	}
+	extra, lims, why := BoundaryArms(in.Rule, fx, arms, rolePaths, rulePool(in.Evidence))
+	if why != "" {
+		m.Outcome, m.Detail = domain.MethodFail, "boundary fixtures (decided before any cluster ran): "+why
+		m.Checks = []domain.ProofCheck{{Subject: "omitted-field arms", Outcome: domain.MethodFail, Detail: why}}
+		return m, limitations
+	}
+	limitations = append(limitations, lims...)
+	for _, b := range extra {
+		arms = append(arms, b.consumerArm)
+	}
+	if in.Renderer == nil || in.Runner == nil {
+		return notRun("no controller renderer or cluster runner configured")
 	}
 	var plans []armPlan
 	var consumers []runtime.ConsumerCheck
@@ -267,6 +290,30 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 	default:
 		m.Outcome, m.Detail = domain.MethodPass, summary+": with the condition the behaviour at TO matched FROM; without it, it changed ("+strings.Join(absent.Signatures, "; ")+")"
 	}
+	// omitted-field arms: the rule's prediction for an object that leaves a
+	// compared field unset must hold too (boundary.go)
+	if m.Outcome == domain.MethodPass || m.Outcome == domain.MethodInconclusive {
+		var contradicted, open []string
+		for _, a := range armsOut {
+			if !isBoundary(a.Name) {
+				continue
+			}
+			switch {
+			case a.Observed == domain.BehaviourUndetermined:
+				open = append(open, a.Name+" (not answered)")
+			case a.Predicted == domain.BehaviourPrevious && a.Changed:
+				contradicted = append(contradicted, fmt.Sprintf("%s (%s) changed: %s", a.Name, a.Condition, strings.Join(a.Signatures, "; ")))
+			case a.Observed != a.Predicted:
+				open = append(open, fmt.Sprintf("%s predicted %s, observed %s", a.Name, a.Predicted, a.Observed))
+			}
+		}
+		switch {
+		case len(contradicted) > 0:
+			m.Outcome, m.Detail = domain.MethodFail, summary+": an object that omits a compared field behaved against the rule's prediction ("+strings.Join(contradicted, "; ")+"): the rule's applicability (or the default it states) is wrong for omitted fields"
+		case len(open) > 0 && m.Outcome == domain.MethodPass:
+			m.Outcome, m.Detail = domain.MethodInconclusive, m.Detail+"; but the omitted-field arms do not confirm the rule's prediction ("+strings.Join(open, "; ")+")"
+		}
+	}
 	if m.Outcome == domain.MethodPass && len(m.Evidence) == 0 {
 		m.Outcome, m.Detail = domain.MethodInconclusive, m.Detail+"; but no observation artifacts were stored, so the result cannot be audited"
 	}
@@ -289,7 +336,7 @@ func armOutcome(a domain.ProofArm) domain.MethodOutcome {
 		return domain.MethodInconclusive
 	case a.Observed == a.Predicted:
 		return domain.MethodPass
-	case a.Name == domain.ArmConditionPresent:
+	case a.Name == domain.ArmConditionPresent, isBoundary(a.Name) && a.Predicted == domain.BehaviourPrevious:
 		return domain.MethodFail
 	}
 	return domain.MethodInconclusive

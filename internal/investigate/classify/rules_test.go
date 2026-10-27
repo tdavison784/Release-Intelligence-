@@ -277,7 +277,10 @@ func TestR2_4BehaviourItems(t *testing.T) {
 			t.Fatalf("the finding must say render silence is not decisive: %s %+v", f.Reasoning, f.Gaps)
 		}
 
-		pin := c.f.vrec(c.item, domain.ValidationOverrideInspection, domain.ValidationPass, rcs(c.rc), paths(c.path), withPin(c.f.envEvidence()))
+		// a field pin on exactly the changed field covers it (exact coverage:
+		// a flag pin would cover no rendered change)
+		pin := c.f.vrec(c.item, domain.ValidationOverrideInspection, domain.ValidationPass, rcs(c.rc), paths(c.path),
+			withFieldPinAt(c.f.envEvidence(), controllerObj, "spec.template.spec.containers[].args"))
 		cls, _ = run(t, c.f.in(c.tr, nil, silent, pin))
 		f = finding(t, cls, c.item)
 		wantClass(t, f, domain.FindingNotAffected, RuleValidatedClear)

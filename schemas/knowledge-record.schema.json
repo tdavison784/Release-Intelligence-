@@ -135,7 +135,8 @@
         "separator": {"type": "string"},
         "range": {"type": "string"},
         "reason": {"$ref": "#/$defs/UnknownReason"},
-        "needed": {"type": "string"}
+        "needed": {"type": "string"},
+        "default": {"$ref": "#/$defs/FieldDefault"}
       },
       "additionalProperties": false
     },
@@ -192,6 +193,7 @@
       ]
     },
     "DecisionAction": {"type": "string", "enum": ["accept", "reject", "correct", "need-more-evidence", "defer"]},
+    "DefaultSource": {"type": "string", "enum": ["crd-schema", "controller"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -293,6 +295,16 @@
         "duplicate",
         "improved-statement"
       ]
+    },
+    "FieldDefault": {
+      "type": "object",
+      "required": ["value", "source", "citations"],
+      "properties": {
+        "value": {"type": "string"},
+        "source": {"$ref": "#/$defs/DefaultSource"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "FieldState": {
       "type": "string",
@@ -427,7 +439,7 @@
       },
       "additionalProperties": false
     },
-    "ProofMethodKind": {"type": "string", "enum": ["citation-check", "rule-exercise"]},
+    "ProofMethodKind": {"type": "string", "enum": ["citation-check", "rule-exercise", "semantic-check"]},
     "ProofOutcome": {"type": "string", "enum": ["confirmed", "refuted", "inconclusive"]},
     "ProofRecord": {
       "type": "object",

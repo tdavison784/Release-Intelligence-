@@ -5,6 +5,11 @@
 //   - a citation check (deterministic, citations.go): every cited upstream
 //     text resolves in the evidence cache, contains the cited passage and
 //     names only versions inside the rule's release bounds;
+//   - a semantic check (deterministic, semantics.go and package semantic;
+//     Phase 6 M4): the value tokens the rule asserts (defaults, allowed
+//     values, character classes, before/after values, booleans) each occur in
+//     an established passage with the same polarity. Optional: unsupported
+//     refutes, undecidable is left to the human reviewer;
 //   - a rule exercise (observed, opt-in, exercise.go): a synthetic minimal
 //     fixture built from the rule — the subject object with the rule's
 //     mitigating condition present and absent — installed with the
