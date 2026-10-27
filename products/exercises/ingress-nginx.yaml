@@ -24,3 +24,18 @@ exercises:
     quote: The address to start an admission controller on to validate incoming ingresses.
   - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/internal/ingress/controller/store/store.go
     quote: recorder.Eventf(curIng, corev1.EventTypeNormal, "Sync", "Scheduled for sync")
+- id: ingress-admission
+  summary: >-
+    Submit one environment Ingress as a server-side dry run against the target version's validating
+    admission webhook (runtime.admission-dry-run@v1, opt-in: `ri investigate admission`): the API
+    server's answer, accepted or rejected with the webhook's message, is the observation. Nothing is
+    stored and the controller does not act, so it declares no reaction and the isolated upgrade never
+    runs it.
+  target: {group: networking.k8s.io, kind: Ingress}
+  action: admission-dry-run
+  families: [behavior]
+  references:
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/deploy/index.md
+    quote: to validate Ingress definitions.
+  - url: https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/docs/user-guide/cli-arguments.md
+    quote: The address to start an admission controller on to validate incoming ingresses.
