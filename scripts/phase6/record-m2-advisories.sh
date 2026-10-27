@@ -25,9 +25,11 @@ mkdir -p "$scratch"
 export DO_NOT_TRACK=1
 
 go build -o bin/ri ./cmd/ri
-git worktree add --detach "$scratch/base-src" "$base" >/dev/null
-(cd "$scratch/base-src" && go build -o "$scratch/ri-base" ./cmd/ri)
-git worktree remove --force "$scratch/base-src"
+if [ ! -x "$scratch/ri-base" ]; then
+  git worktree add --detach "$scratch/base-src" "$base" >/dev/null 2>&1
+  (cd "$scratch/base-src" && go build -o "$scratch/ri-base" ./cmd/ri)
+  git worktree remove --force "$scratch/base-src"
+fi
 [ -d "$scratch/K0" ] || scripts/phase5/snapshot.sh 03b6ff43 "$scratch/K0"
 [ -d "$scratch/state" ] || cp -c -R "$shared" "$scratch/state"
 
@@ -40,11 +42,11 @@ run() { # <binary> <mode: online|offline> <dir> <cases> <run-id> <save: yes|no>
   echo "=== $id ($mode, $(basename "$bin")) $(date -u +%H:%M:%SZ)"
   if [ "$mode" = online ]; then
     GITHUB_TOKEN=$(gh auth token) "$bin" -state "$scratch/state" eval -investigations -dir "$dir" -arm A0 -run-id "$id" \
-      -case "$cases" -knowledge "$scratch/K0" -work "$scratch/work-$id" "${extra[@]}" \
+      -case "$cases" -knowledge "$scratch/K0" -work "$scratch/work-$id" ${extra[@]+"${extra[@]}"} \
       >"$scratch/$id.stdout" 2>"$scratch/$id.stderr" || echo "exit $? for $id (gate checks exit non-zero; see stderr)"
   else
-    "$bin" -state "$scratch/state" "${flags[@]}" eval -investigations -dir "$dir" -arm A0 -run-id "$id" \
-      -case "$cases" -knowledge "$scratch/K0" -work "$scratch/work-$id" "${extra[@]}" \
+    "$bin" -state "$scratch/state" ${flags[@]+"${flags[@]}"} eval -investigations -dir "$dir" -arm A0 -run-id "$id" \
+      -case "$cases" -knowledge "$scratch/K0" -work "$scratch/work-$id" ${extra[@]+"${extra[@]}"} \
       >"$scratch/$id.stdout" 2>"$scratch/$id.stderr" || echo "exit $? for $id (gate checks exit non-zero; see stderr)"
   fi
 }
