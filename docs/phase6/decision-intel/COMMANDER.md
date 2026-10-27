@@ -21,7 +21,7 @@ handoffs (every item is `providers: [claude]`).
 | synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | done, merged, closed 2026-10-28 |
 | applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | done, merged, closed 2026-10-28 |
 | semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
-| formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | started 2026-10-28 (D-0021) |
+| formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 
 ## Merge log
 
@@ -48,6 +48,9 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-28 Merge lane applicability (D-0022). Build, vet and test green (49). Re-score of the stored runs: 1004/1004
   identical. Lane closed. formalize was told to merge and to emit evidenced defaults.
+
+- 2026-10-28 Merge lane formalize (D-0021), after applicability. Build, vet and test green (50). Lane closed. All M4 lanes
+  are merged.
 
 ## Decisions
 
@@ -78,10 +81,13 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Three M4 lanes are running in parallel.** Merge order: applicability, then semverify, then formalize. After each
-   merge, tell the still-running lanes to `git merge p6-decision-intel`.
-2. **After all three, D-0024:** the demo and gate per GATE-M4.
-   - The product owner promotes the confirmed rule in the review UI. Prepare it, and point them at the screen.
+1. **D-0024 part A is running:** `scripts/phase6/run-m4-demo-a.sh`, scratch `$CLAUDE_JOB_DIR/tmp/m4` (K0, K1 = a working
+   copy, the state clone). It runs investigate (P-US, v13), formalize → export into K1, then verify with runtime.
+2. **Then:**
+   - start the review UI on K1 (`ri review serve -knowledge K1`, port 8486);
+   - the product owner promotes the confirmed rule;
+   - part B: eval A0 with K0 vs K1 on the pair, the negative controls, the semcheck of the M2 run, and the admission
+     dry-run on D-EU.
 
 ## Notes
 
