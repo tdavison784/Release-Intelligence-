@@ -22,6 +22,7 @@ handoffs (every item is `providers: [claude]`).
 | applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | done, merged, closed 2026-10-28 |
 | semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
+| verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | started 2026-10-28 (D-0025) |
 
 ## Merge log
 
@@ -81,13 +82,11 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **D-0024 part A is running:** `scripts/phase6/run-m4-demo-a.sh`, scratch `$CLAUDE_JOB_DIR/tmp/m4` (K0, K1 = a working
-   copy, the state clone). It runs investigate (P-US, v13), formalize → export into K1, then verify with runtime.
-2. **Then:**
-   - start the review UI on K1 (`ri review serve -knowledge K1`, port 8486);
-   - the product owner promotes the confirmed rule;
-   - part B: eval A0 with K0 vs K1 on the pair, the negative controls, the semcheck of the M2 run, and the admission
-     dry-run on D-EU.
+1. Lane `verify2` is running (D-0025): non-discriminating arms, and a scope refinement established by the consumer
+   exercise. On LANE DONE:
+   - merge it;
+   - re-run demo part A (formalize with v2 + verify -runtime) on `inv-cd653b2be37c`, the same investigation;
+   - if a rule is confirmed, the product owner promotes it, then part B.
 
 ## Notes
 
