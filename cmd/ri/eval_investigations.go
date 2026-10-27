@@ -404,7 +404,11 @@ func (c *cli) invFormalize(s *invStored, st *store.Store, workDir string, cf inv
 	if err != nil {
 		return err
 	}
-	outcomes, recs, err := formalizeRun(c.ctx, c.formalizer(a, cf.formalize, cf.claudeBin), formalize.Store{Dir: formalize.StateDir(workDir)}, st, s.Inv, s.Bundle, "")
+	roles, err := c.consumerRoles(s.Bundle.Change.Product.ID)
+	if err != nil {
+		return err
+	}
+	outcomes, recs, err := formalizeRun(c.ctx, c.formalizer(a, cf.formalize, cf.claudeBin), formalize.Store{Dir: formalize.StateDir(workDir)}, st, s.Inv, s.Bundle, "", roles)
 	if err != nil {
 		return err
 	}

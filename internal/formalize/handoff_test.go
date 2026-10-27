@@ -109,7 +109,7 @@ func TestFormalizedHypothesesFeedExportUnchanged(t *testing.T) {
 		t.Errorf("review item = %+v", it)
 	}
 	hyp, run, ok := domain.ParseHypothesisRule(snap.Proposals[0].Provenance.Rule)
-	if !ok || hyp != rule.ID || run != f.Inv.ID || snap.Proposals[0].Provenance.Producer != Producer {
+	if !ok || hyp != rule.ID || run != f.Inv.ID || snap.Proposals[0].Provenance.Producer != ProducerV2 {
 		t.Errorf("proposal provenance = %+v", snap.Proposals[0].Provenance)
 	}
 	if after, _ := json.Marshal(f.Inv); string(after) != string(before) {
