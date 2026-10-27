@@ -22,7 +22,7 @@ handoffs (every item is `providers: [claude]`).
 | applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | done, merged, closed 2026-10-28 |
 | semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | done, merged, closed 2026-10-28 |
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
-| verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | started 2026-10-28 (D-0025) |
+| verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 
 ## Merge log
 
@@ -52,6 +52,9 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-28 Merge lane formalize (D-0021), after applicability. Build, vet and test green (50). Lane closed. All M4 lanes
   are merged.
+
+- 2026-10-28 Merge lane verify2 (D-0025). Build, vet and test green (50). On the real kind runs the refinement was
+  confirmed, refuted and inconclusive as designed. Lane closed.
 
 ## Decisions
 
