@@ -135,9 +135,19 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return m, limitations
 	}
 	limitations = append(limitations, lims...)
+	var probes []consumerArm
+	if in.Refinement != nil {
+		// default probes of the role fields the rule cannot predict when
+		// omitted (PD-5, probe.go), built from the arms before the
+		// omitted-field ones and run after them
+		var lims []string
+		probes, lims = DefaultProbes(in.Rule, fx, arms, cf, rulePool(in.Evidence))
+		limitations = append(limitations, lims...)
+	}
 	for _, b := range extra {
 		arms = append(arms, b.consumerArm)
 	}
+	arms = append(arms, probes...)
 	arms = classify(in.Rule, fx.Target, arms)
 	if in.Renderer == nil || in.Runner == nil {
 		return notRun("no controller renderer or cluster runner configured")

@@ -205,6 +205,50 @@ func Resolve(schema, rule Default) Default {
 	return Default{Why: why, CRDs: schema.CRDs}
 }
 
+// ObservedFor is the observed default of path on group/kind among ds (the
+// fact's usable observed defaults, PD-5), nil when none. Two that disagree
+// are a contradiction: nil, with why.
+func ObservedFor(ds []domain.ObservedDefault, group, kind, path string) (d *domain.ObservedDefault, why string) {
+	for i := range ds {
+		x := &ds[i]
+		if x.Group != group || x.Kind != kind || x.Path != path {
+			continue
+		}
+		if d != nil && !SameValue(d.Value, x.Value) {
+			return nil, fmt.Sprintf("the observed defaults of %s disagree (%s by proof %s, %s by proof %s): both are blocked", path, plain(d.Value), d.Proof, plain(x.Value), x.Proof)
+		}
+		d = x
+	}
+	return d, ""
+}
+
+// WithObserved combines an established default (schema and rule, Resolve)
+// with a default observed on the real controller (PD-5: a confirmed proof's
+// omitted-field arm, carried into the fact on human promotion). The
+// observed default decides a field nothing else establishes; one that
+// agrees with an established default is noted beside it; one that
+// contradicts an upstream-cited or schema default blocks both — the field
+// is unknown, the contradiction recorded, never silently resolved.
+// conflict is a disagreement among the observed defaults themselves
+// (ObservedFor's why): the field is unknown.
+func WithObserved(d Default, obs *domain.ObservedDefault, conflict string) Default {
+	if conflict != "" {
+		return Default{Why: "contradiction: " + conflict, CRDs: d.CRDs}
+	}
+	if obs == nil {
+		return d
+	}
+	src := fmt.Sprintf("observed by confirmed proof %s at controller %s (%s)", obs.Proof, strings.Join(obs.Versions, ", "), obs.Limitation)
+	switch {
+	case d.State == Known && !SameValue(d.Value, obs.Value):
+		return Default{Why: fmt.Sprintf("contradiction: the default %s %s contradicts the default %s %s: both are blocked", plain(obs.Value), src, plain(d.Value), "("+d.Source+")"), CRDs: d.CRDs}
+	case d.State == Known:
+		d.Source += "; agreeing with the default " + src
+		return d
+	}
+	return Default{State: Known, Value: obs.Value, Source: "the default " + src, CRDs: d.CRDs}
+}
+
 // Needed is what would settle an unset field's value predicate.
 func Needed(c domain.Condition) string {
 	return fmt.Sprintf("what an unset %s means: a CRD schema default, or a rule default (condition default) citing upstream evidence of the controller's default", subjectOf(c))

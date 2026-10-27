@@ -27,6 +27,18 @@
       },
       "additionalProperties": false
     },
+    "ArmProbe": {
+      "type": "object",
+      "required": ["field", "base", "baseValue"],
+      "properties": {
+        "field": {"type": "string"},
+        "base": {"type": "string"},
+        "baseValue": {"type": "string"},
+        "omitted": {"type": "boolean"},
+        "value": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "Aspect": {"type": "string", "enum": ["subject", "change", "applicability", "consequence"]},
     "AspectCheck": {
       "type": "object",
@@ -352,6 +364,40 @@
     },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
     "MethodOutcome": {"type": "string", "enum": ["pass", "fail", "inconclusive", "not-run"]},
+    "ObservedDefault": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "value",
+        "level",
+        "arms",
+        "observation",
+        "versions",
+        "controllerValues",
+        "fixture",
+        "evidence",
+        "limitation",
+        "ruleDigest"
+      ],
+      "properties": {
+        "group": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "value": {"type": "string"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "arms": {"type": "array", "items": {"type": "string"}},
+        "observation": {"type": "string"},
+        "versions": {"type": "array", "items": {"type": "string"}},
+        "controllerValues": {"type": "string"},
+        "fixture": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "limitation": {"type": "string"},
+        "ruleDigest": {"type": "string"},
+        "proof": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "ProductID": {"type": "string"},
     "ProofArm": {
       "type": "object",
@@ -374,9 +420,11 @@
         "reactedTo": {"type": "boolean"},
         "changed": {"type": "boolean"},
         "signatures": {"type": "array", "items": {"type": "string"}},
+        "diagnostics": {"type": "array", "items": {"type": "string"}},
         "observed": {"type": "string"},
         "consumer": {"$ref": "#/$defs/ProofConsumer"},
-        "nonDiscriminating": {"type": "string"}
+        "nonDiscriminating": {"type": "string"},
+        "probe": {"$ref": "#/$defs/ArmProbe"}
       },
       "additionalProperties": false
     },
@@ -474,7 +522,8 @@
         "limitations": {"type": "array", "items": {"type": "string"}},
         "level": {"$ref": "#/$defs/ValidationLevel"},
         "producer": {"type": "string"},
-        "checkedAt": {"type": "string", "format": "date-time"}
+        "checkedAt": {"type": "string", "format": "date-time"},
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}}
       },
       "additionalProperties": false
     },
@@ -860,7 +909,8 @@
         "autoApproved": {"type": "boolean"},
         "consensusAction": {"type": "boolean"},
         "auditedBy": {"type": "string"},
-        "createdAt": {"type": "string", "format": "date-time"}
+        "createdAt": {"type": "string", "format": "date-time"},
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}}
       },
       "additionalProperties": false
     }

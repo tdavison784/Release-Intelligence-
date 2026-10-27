@@ -232,6 +232,9 @@ type Arm struct {
 	// NonDiscriminating says why the arm cannot contrast FROM with TO
 	// (discriminate.go); "" when it can.
 	NonDiscriminating string
+	// Probe marks a default probe (probe.go): run and recorded, never
+	// decisive.
+	Probe *domain.ArmProbe
 }
 
 // Arm object names (DNS labels, fixed so fixture ids are reproducible).

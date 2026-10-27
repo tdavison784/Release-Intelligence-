@@ -103,6 +103,12 @@ type ConditionOptions struct {
 	// citations must resolve to (the fact's evidence). A default whose
 	// citations do not resolve is ignored. CONTRACT-CHANGE(applicability).
 	Evidence []domain.Evidence
+	// Observed are the fact's usable observed defaults (PD-5: established
+	// by a confirmed proof of exactly the fact's rule, carried on human
+	// promotion; VerifiedFact.UsableObservedDefaults). An observed default
+	// decides an unset field nothing else establishes; one contradicting a
+	// schema or cited default blocks both. CONTRACT-CHANGE(verify3).
+	Observed []domain.ObservedDefault
 }
 
 // EvaluateCondition evaluates an applicability condition against the
@@ -116,7 +122,7 @@ func EvaluateConditionWith(c domain.Condition, e *env.Environment, edge *domain.
 	if opts.Render == nil {
 		opts.Render = RenderUnavailable{}
 	}
-	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}, rule: map[domain.EvidenceID]domain.Evidence{}}
+	ev := &evaluator{env: e, edge: edge, render: opts.Render, ix: map[domain.EvidenceID]domain.Evidence{}, rule: map[domain.EvidenceID]domain.Evidence{}, observed: opts.Observed}
 	if e == nil {
 		return unknownResult(domain.UnknownEnvironmentVisibilityGap, "no environment supplied")
 	}
@@ -146,6 +152,8 @@ type evaluator struct {
 	// environment's CRD schemas (schema defaults).
 	rule map[domain.EvidenceID]domain.Evidence
 	crds []applicability.CRD
+	// observed are the fact's usable observed defaults (PD-5).
+	observed []domain.ObservedDefault
 }
 
 // SchemasOf returns the structural schemas of the environment's CRDs (the
@@ -180,7 +188,8 @@ func (ev *evaluator) fieldDefault(c domain.Condition, r *env.Resource) applicabi
 	if parent := applicability.ParentPath(c.Path); parent != "" && !hasPath(r, parent) {
 		schema = applicability.ParentAbsent(schema, c.Path)
 	}
-	return applicability.Resolve(schema, applicability.RuleDefault(c, ev.rule))
+	obs, conflict := applicability.ObservedFor(ev.observed, r.Group, r.Kind, c.Path)
+	return applicability.WithObserved(applicability.Resolve(schema, applicability.RuleDefault(c, ev.rule)), obs, conflict)
 }
 
 // ruleDefault is the rule's evidenced default of a leaf without a schema

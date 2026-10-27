@@ -50,12 +50,15 @@
         <div class="method">
           <p><b>{{.Method}}</b> <span class="badge soft" title="{{.LevelLabel}}">{{.Level}}</span> <span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> — {{.Detail}}</p>
           {{if .Arms}}<table class="wf arms"><thead><tr><th>Arm</th><th>Built as</th><th>Predicted</th><th>Observed</th><th>Exercise answered (FROM / TO)</th><th>Differences at TO</th></tr></thead><tbody>
-          {{range .Arms}}<tr><th scope="row">{{.Name}}</th><td>{{.Condition}}</td><td>{{.Predicted}}</td><td>{{.Observed}}</td><td>{{.ReactedFrom}} / {{.ReactedTo}}</td><td>{{range .Signatures}}<code>{{.}}</code> {{else}}none{{end}}</td></tr>{{end}}
+          {{range .Arms}}<tr><th scope="row">{{.Name}}</th><td>{{.Condition}}</td><td>{{.Predicted}}</td><td>{{.Observed}}</td><td>{{.ReactedFrom}} / {{.ReactedTo}}</td><td>{{range .Signatures}}<code>{{.}}</code> {{else}}none{{end}}{{if .Diagnostics}}<div class="small muted">diagnostics, never decisive: {{range .Diagnostics}}<code>{{.}}</code> {{end}}</div>{{end}}</td></tr>{{end}}
           </tbody></table>{{end}}
           {{if .Checks}}<ul class="small">{{range .Checks}}<li><span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> {{.Detail}}</li>{{end}}</ul>{{end}}
           {{if .Evidence}}<p class="small">Evidence: {{range .Evidence}}{{if .Href}}<a href="{{.Href}}" target="_blank" rel="noopener noreferrer">{{.Text}}</a>{{else}}<code>{{.Text}}</code>{{end}} <span class="muted">{{.Digest}}</span>; {{end}}</p>{{end}}
         </div>
         {{end}}
+        {{if .ObservedDefaults}}<div class="flash flash-warn"><p><b>Observed defaults</b> <span class="badge soft">observed</span> — promoting this rule carries them into the fact; the evaluator uses them only through this confirmed proof.</p><ul class="small">
+        {{range .ObservedDefaults}}<li>An unset <code>{{.Path}}</code> on {{.Kind}} behaves as <code>{{.Value}}</code> at controller {{range .Versions}}{{.}} {{end}}(fixture values <code>{{.ControllerValues}}</code>). <b>Limitation: {{.Limitation}}.</b> {{.Observation}}</li>{{end}}
+        </ul></div>{{end}}
         <details><summary>Limitations — what this proof does not cover</summary><ul class="small">{{range .Limitations}}<li>{{.}}</li>{{end}}</ul></details>
       </div>
       {{end}}

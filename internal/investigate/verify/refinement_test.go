@@ -151,8 +151,11 @@ func TestRefinementExercise(t *testing.T) {
 		}
 		// shielded, role-absent, exposed, and the shielded arm without
 		// spec.signer (decidable: its keyPolicy shields it in any role) on
-		// the role-absent observation
-		if len(run.spec.Consumers) != 4 {
+		// the role-absent observation; and the default probes of spec.signer
+		// (PD-5, lane verify3): the exposed arm and the role-absent arm each
+		// without spec.signer and with its other value, in their own
+		// observation
+		if len(run.spec.Consumers) != 8 || run.spec.Consumers[6].Trust.Key != "ca.crt" || len(run.spec.Consumers[6].Reissue) != 1 || len(run.spec.Consumers[4].Reissue) != 2 {
 			t.Errorf("%s: consumer checks %+v", name, run.spec.Consumers)
 		}
 	}
