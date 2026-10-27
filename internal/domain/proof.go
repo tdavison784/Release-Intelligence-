@@ -61,12 +61,31 @@ const (
 	// cluster, the declared exercise run on both arms (condition present /
 	// absent), both observed (observed).
 	ProofRuleExercise ProofMethodKind = "rule-exercise"
+	// ProofSemanticCheck: the value tokens the rule asserts (defaults,
+	// allowed values, character classes, before/after values, booleans)
+	// each occur in a cited passage with the same polarity (deterministic;
+	// Phase 6 M4, mission E4, lane semverify). A token the passages lack, or
+	// a flipped polarity, fails it; a claim it cannot decide is inconclusive
+	// and left to the human reviewer, never to a model. It is optional: a
+	// failure refutes the proof, a pass is recorded beside the required
+	// methods and never replaces one. CONTRACT-CHANGE(semverify): additive.
+	ProofSemanticCheck ProofMethodKind = "semantic-check"
 )
 
 // ProofMethodKinds lists the methods a confirmation requires (PROTOCOL §7.1:
 // the upstream rule is confirmed only by a citation check and a two-arm
 // runtime exercise).
 var ProofMethodKinds = []ProofMethodKind{ProofCitationCheck, ProofRuleExercise}
+
+// required reports whether a confirmation needs the method to pass.
+func (k ProofMethodKind) required() bool {
+	for _, r := range ProofMethodKinds {
+		if k == r {
+			return true
+		}
+	}
+	return false
+}
 
 // MethodOutcome is the result of one method.
 type MethodOutcome string
@@ -217,8 +236,9 @@ func ProofRecordID(p ProofRecord) string {
 }
 
 // ProofOutcomeOf derives the outcome from the methods: confirmed only when
-// every required method ran and passed; any failure refutes; otherwise
-// inconclusive.
+// every required method ran and passed; any failure (of any method)
+// refutes; otherwise inconclusive. An optional method (semantic-check) that
+// did not pass and did not fail leaves the outcome to the required ones.
 func ProofOutcomeOf(ms []ProofMethod) ProofOutcome {
 	passed := map[ProofMethodKind]bool{}
 	for _, m := range ms {
@@ -228,6 +248,9 @@ func ProofOutcomeOf(ms []ProofMethod) ProofOutcome {
 	}
 	for _, m := range ms {
 		if m.Outcome != MethodPass {
+			if !m.Method.required() {
+				continue
+			}
 			return ProofInconclusive
 		}
 		passed[m.Method] = true
@@ -277,6 +300,10 @@ func (p ProofRecord) Validate() error {
 		case ProofCitationCheck:
 			if m.Level != LevelDeterministic {
 				bad("%s: a citation check is deterministic", w)
+			}
+		case ProofSemanticCheck:
+			if m.Level != LevelDeterministic {
+				bad("%s: a semantic check is deterministic", w)
 			}
 		case ProofRuleExercise:
 			if m.Level != LevelObserved {
