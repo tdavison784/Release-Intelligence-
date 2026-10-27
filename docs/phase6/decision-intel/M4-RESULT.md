@@ -56,3 +56,39 @@ inconclusive.
 
 No kind cluster was left behind. Part B (product-owner promotion, K1 evaluation, controls) is **not started**:
 nothing is confirmed to promote.
+
+## Attempt 2, part A rerun after verify2 (formalize/v2 on the same `inv-cd653b2be37c`), 2026-10-28
+
+Formalization produced 3 rules, **2 scope refinements** and 13 unrepresentable records. Verification ran with
+runtime.
+
+**Fixed by verify2:**
+- **The broad behaviour rule `hyp-3b48ffc30a8e`** ("a Certificate whose rotationPolicy is unset gets Always …
+  explicit Never keeps the old behaviour") is **CONFIRMED (observed)**, `pf-683f9715ed0d`. The omitted-field arm
+  decided it: the key changed at TO without the condition and matched FROM with it. The explicit-`Always` arm was
+  "recorded, not decisive (non-discriminating)".
+- **The scope refinement `hyp-cc18d162127a`** ("harmful consequence occurs only for Certificate objects in consumer
+  role ca-trust (spec.isCA = true) … outside the role (spec.isCA = false) are shielded"). **Its consumer exercise
+  passed:** "outside the role (ca-trust) the consumer verifies at FROM and TO on 2 arm(s): the harm is confined to
+  the role."
+
+**Still blocking:**
+- **A. semantic-check refutes the refinement.** "boolean `true` / `false` does not occur in the cited passages". The
+  role tokens (`isCA = true/false`) come from the catalog role and are established by the consumer exercise, not by
+  the upstream citation, so the semantic check must not test them against the passage. The same applies to
+  `hyp-66ec2571d3a3`. This is a defect in how semverify and verify2 interact.
+- **B. The exercise signal is flaky.** The v2 copy of the same broad rule (`hyp-c9ace2753bd7`) **failed**: "with the
+  mitigating condition the behaviour still changed at TO". The "change" was controller **log lines** ("unable to fetch
+  certificate that owns the secret"), not a key change. The v1 copy of the identical rule passed in another cluster.
+  Log lines must not count as behaviour signatures, or must be normalised away.
+- **C. An unset role field.** The P-US leaf Certificates leave `isCA` **unset**. The refinement's outside-role
+  condition is `isCA = false`. With no evidenced default, unset stays undecidable (fail closed), so P-US cannot clear
+  even after A and B. The investigation holds no upstream evidence of the `isCA` default (Go zero value; the CRD has
+  no `default`).
+  - The real kind run already **observed** unset-`isCA` leaves behaving as outside-role (verify2's confirmed case,
+    "including certificates that leave isCA unset").
+  - **Decision for the product owner:** may an **observed** default, established by the verifier's omitted-field arm
+    on the real controller and recorded with its limitation, count as an evidenced default? Today only an upstream
+    citation counts.
+
+No kind cluster was left behind.
