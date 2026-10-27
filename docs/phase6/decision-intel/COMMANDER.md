@@ -40,6 +40,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Decisions
 
+- 2026-10-27 (product owner): **PD-1, engineer approval of the agent's judgement**, in PRODUCT-DECISIONS.md. It binds
+  the M3 and M5 plans and gates: informed approval (disagreements and residual risks shown first), override distinct
+  from approval, no knowledge promotion, denial as feedback, policy floor unchanged.
+
 - 2026-10-27 (product owner): the cert-manager candidate 1.20.3 is accepted. Go for lane `upstream`; prompt v11 builds
   on v9.
 
@@ -61,7 +65,7 @@ handoffs (every item is `providers: [claude]`).
 1. GATE-M2 §1 is met. §2: live met, ablation failed (M2-RESULT §2).
 2. `upstream2` is merged (prompt v12). The §2 re-run is in progress: `P6_PROMPT=investigate-agent/v12 run-m2-upstream.sh`, scratch
    `$CLAUDE_JOB_DIR/tmp/m2up2`. Score it and append to M2-RESULT.
-3. Product owner question, open: the approve/deny model for agent judgements. The proposal is to add it to M3/M5 if confirmed.
+3. PD-1 is recorded. PLAN-M3, GATE-M3, PLAN-M5 and GATE-M5 must include it.
 
 ## Notes
 
