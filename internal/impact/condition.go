@@ -31,7 +31,8 @@ package impact
 //     (Resource.Unrendered: its file was consumed by a render whose objects
 //     are unavailable) decides nothing: it is unknown, never its file's
 //     view; and while a render's objects are unavailable (RenderGaps), no
-//     absence is concluded from the objects that are visible.
+//     false is concluded from the objects that are visible (a true stands,
+//     as under rule 1, but is never negated when it rests on absence).
 
 import (
 	"encoding/json"
@@ -505,6 +506,9 @@ func (ev *evaluator) not(c domain.Condition, scope *env.Resource) ConditionResul
 	case Unknown:
 		out.Value, out.Reason, out.Needed = Unknown, r.Reason, r.Needed
 	case True:
+		if gap := ev.absenceUnderGap(r); gap != "" {
+			return ev.gapUnknown(gap)
+		}
 		// a false needs every dimension the operand read to be healthy
 		for _, d := range r.deps {
 			if ok, needed := ev.dimOK(d); !ok {
@@ -650,24 +654,30 @@ func (ev *evaluator) gapUnknown(why string) ConditionResult {
 	return r
 }
 
-// withObjectGap keeps a workload-wide leaf's result only when no object it
-// may read is unknown, or when it is a true resting on stated values (rule
-// 7): an absence, and a false, need every object.
+// withObjectGap is rule 7 for a workload-wide leaf (flags, environment
+// variables, feature gates): while an object it may read is unknown, a false
+// is unknown. A true stands, as under partial health (rule 1): the exposed
+// direction never loses its finding to a gap; `not` refuses to negate one
+// that rests on absence (absenceUnderGap).
 func (ev *evaluator) withObjectGap(r ConditionResult) ConditionResult {
-	gap := ev.objectGap()
-	if gap == "" || r.Value == Unknown {
+	if r.Value != False {
 		return r
 	}
-	if r.Value == True {
-		stated := len(r.Matches) > 0
-		for _, m := range r.Matches {
-			stated = stated && m.Kind != domain.MatchAbsence
-		}
-		if stated {
-			return r
+	if gap := ev.objectGap(); gap != "" {
+		return ev.gapUnknown(gap)
+	}
+	return r
+}
+
+// absenceUnderGap: r is a true that rests on an absence while some object is
+// unknown (rule 7) — its negation would be a false without evidence.
+func (ev *evaluator) absenceUnderGap(r ConditionResult) string {
+	for _, m := range r.Matches {
+		if m.Kind == domain.MatchAbsence {
+			return ev.objectGap()
 		}
 	}
-	return ev.gapUnknown(gap)
+	return ""
 }
 
 // fieldFacts returns the facts of r at path ("[]" markers cover every

@@ -334,3 +334,42 @@ func TestDefaultChangedJoinReadsRenderedObjects(t *testing.T) {
 		t.Errorf("unrendered: %v, want unknown only", got)
 	}
 }
+
+// Workload-wide leaves under a render gap: the exposed direction keeps its
+// finding (a true stands, as under partial health), a false is unknown, and
+// a true resting on absence is never negated into a false.
+func TestEffectiveViewRenderGapOnFlags(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "deploy.yaml", `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          args: ["--foo=1"]
+`)
+	files := loadEnv(t, env.Inputs{Manifests: []string{dir}})
+	eff := env.Effective(files, []env.RenderedObjects{{Target: "helm:gizmo", Unavailable: "rendered with incomplete values"}})
+	flag := func(name string, st domain.FieldState) domain.Condition {
+		return domain.Condition{Op: domain.OpCLIFlag, Name: name, State: st}
+	}
+	if r := EvaluateCondition(flag("--bar", domain.StateUnset), eff, nil); r.Value != True {
+		t.Errorf("absence true under a gap: %s, want it to stand", r.Value)
+	}
+	if r := EvaluateCondition(flag("--foo", domain.StateUnset), eff, nil); r.Value != Unknown {
+		t.Errorf("false under a gap: %s, want unknown", r.Value)
+	}
+	if r := EvaluateCondition(flag("--foo", domain.StateUnset), files, nil); r.Value != False {
+		t.Errorf("control without the view: %s", r.Value)
+	}
+	not := domain.Condition{Op: domain.OpNot, Of: []domain.Condition{flag("--bar", domain.StateUnset)}}
+	if r := EvaluateCondition(not, eff, nil); r.Value != Unknown {
+		t.Errorf("negated absence under a gap: %s, want unknown", r.Value)
+	}
+	if r := EvaluateCondition(not, files, nil); r.Value != False {
+		t.Errorf("negated absence without a gap: %s", r.Value)
+	}
+}
