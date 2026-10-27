@@ -105,6 +105,8 @@ scope uses (below and INVESTIGATE.md):
   limitation. An observed default that contradicts the schema default or the
   rule's cited default — or another observed default of the same field — blocks
   both: the leaf is unknown with the contradiction, never silently resolved.
+  A schema default and a cited default that already contradict each other are
+  never settled by an observed default either (lane verify4).
   The pin scope (INVESTIGATE.md) applies the same rule.
 - a **role-membership default** (PD-6, lane verify4): "F unset ⇒ outside role
   R (observed)", recorded on a confirmed scope-refinement proof when the role's

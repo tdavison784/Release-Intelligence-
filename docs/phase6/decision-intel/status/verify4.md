@@ -50,6 +50,10 @@ lane `verify4`.
   become a field default by construction.
 - **Only in-role probes** get the new outcome; decisive arms and role-absent probes are unchanged.
 - An established default **outside** the role agrees and decides the leaf by its own value.
+- **Fixed a fail-open gap in verify3's `WithObserved`** (found while adding `Default.Contradiction`): a schema default
+  contradicting the rule's cited default left the field unknown, but an observed default then settled it. Now any
+  contradiction found earlier stays blocked (`impact.TestObservedDefaultKeepsAnEarlierContradiction`, which fails
+  on the old code). Stricter only; `m4rescore` unchanged.
 
 ## Files touched outside ownership
 

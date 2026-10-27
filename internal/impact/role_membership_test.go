@@ -161,3 +161,21 @@ func TestRoleMembershipDefaultAgainstSchema(t *testing.T) {
 		}
 	}
 }
+
+// A schema default and a cited default that contradict each other block the
+// field; an observed default (PD-5) or a membership default (PD-6) never
+// settles it afterwards (before lane verify4 an observed default did).
+func TestObservedDefaultKeepsAnEarlierContradiction(t *testing.T) {
+	edge := newEdge().edge
+	rule := domain.SemanticAssertion{Statement: "r"}
+	crd := strings.Replace(defaultBadgeCRD, "signer: {type: boolean}", "signer: {type: boolean, default: true}", 1)
+	e := condEnv(t, "", map[string]string{"badges.yaml": defaultBadges, "badge-crd.yaml": crd})
+	od := domain.ObservedDefault{Group: "acme.example", Kind: "Badge", Path: "spec.signer", Value: "false", Level: domain.LevelObserved,
+		Arms: []string{"a", "b", "c"}, Observation: "o", Versions: []string{"2.0.0"}, ControllerValues: "{}", Fixture: "sha256:fx",
+		Evidence: []domain.Evidence{upstreamDoc}, Limitation: domain.ObservedDefaultLimitation, RuleDigest: rule.Digest(), Proof: "pf-0123456789ab"}
+	cited := withDefault(field("spec.signer", domain.StateEquals, "false"), "false", domain.DefaultController, upstreamDoc.ID)
+	r := EvaluateConditionWith(badgeScope("plain", cited), e, edge, ConditionOptions{Evidence: []domain.Evidence{upstreamDoc}, Observed: []domain.ObservedDefault{od}})
+	if r.Value != Unknown || !strings.Contains(strings.Join(r.Needed, "|"), "contradicts") {
+		t.Fatalf("an observed default settled a schema/cited contradiction: %v %v", r.Value, r.Needed)
+	}
+}

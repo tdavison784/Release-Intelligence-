@@ -248,6 +248,9 @@ proof validates, `m4rescore` 1004/1004 identical); membership defaults enter the
   stays unknown, so the default cannot act as a field default.
 - **Only in-role probes**: decisive arms keep their outcomes and producer semantics; role-absent probes are judged by
   the role-absent observation.
+- **An earlier contradiction stays blocked** (`applicability.Default.Contradiction`): before this lane, a schema
+  default contradicting the rule's cited default could be settled by a PD-5 observed default (fail-open). Now neither
+  an observed nor a membership default settles it (`impact.TestObservedDefaultKeepsAnEarlierContradiction`).
 
 ### Tests
 
@@ -268,7 +271,7 @@ proof validates, `m4rescore` 1004/1004 identical); membership defaults enter the
   and the refined rule's exposure and overlap on an unset object (naming proof, role, limitation); a stated value
   wins; another value, not-equals, matches, several values, another field stay unknown; no proof, another rule, no
   limitation ignored; a cited, observed or schema default in the role blocks; one outside agrees; an earlier
-  contradiction stays; disagreeing membership defaults block.
+  contradiction stays; disagreeing membership defaults block. `TestObservedDefaultKeepsAnEarlierContradiction`.
 - `validate.TestPinScopeRoleMembershipDefault`: the pin scope clears an unset object outside the role only with a
   proven membership default; not for another condition on the field; a schema default in the role contradicts it.
 - Kind (opt-in): case `role-cannot-form` in `TestRefinementKind`
