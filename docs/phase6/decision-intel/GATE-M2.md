@@ -65,3 +65,14 @@ were false-safe on it, from memory ("." allowed).
 - **Both runs:** the other D-EU items get no new false-safe, and the classification is identical to the stored D-EU
   baseline.
 
+
+## Amendment A1, 2026-10-27 (before any §1 scoring)
+
+- **GHSA-f53h-mxv9-cp98.** Its range bound is a Go pseudo-version (`< 0.0.0-20260319175635-5183b7d86137`, "fixed at a
+  commit"). Lane `advisories` treats it as **unassessed**: a warning, a gap, and listed as unassessed on every
+  candidate. That is correct, and stricter than §1's "must not mark 1.x as affected": the bound may cover real
+  releases, so ignoring it would risk a false-safe. §1 now expects it **unassessed**. A "clean" candidate is stated
+  as clean of every *assessed* advisory, with f53h listed as unassessed.
+- **Candidate meaning.** Every candidate (`target-line`, `any-line`, `clean`) is at or above the proposed target.
+  §1's 1.12.1 / 1.13.7 / none / 1.19.6 assume this. The first recorded run computed them "above the current
+  version" (a defect, D-0011).
