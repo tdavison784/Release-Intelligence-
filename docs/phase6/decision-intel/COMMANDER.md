@@ -24,6 +24,7 @@ handoffs (every item is `providers: [claude]`).
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
+| verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | started 2026-10-28 (D-0027) |
 
 ## Merge log
 
@@ -96,11 +97,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Lane `verify3`** (D-0026: role tokens, log noise, observed defaults). On LANE DONE:
+1. **Lane `verify4`** (D-0027, role-cannot-form). On LANE DONE:
    - merge it;
-   - reset K1 from K0, re-run formalize v2 + verify `-runtime` on `inv-cd653b2be37c`;
-   - if the base rule and the refinement are confirmed with an observed isCA default: the product owner promotes, then
-     part B.
+   - reset K1 from K0;
+   - re-run formalize v2 + `verify hypotheses -runtime -again` on `inv-cd653b2be37c`;
+   - if the base rule and the refinement are confirmed with an observed membership default for unset isCA: the
+     product owner promotes, then part B.
 
 ## Notes
 
