@@ -92,3 +92,31 @@ runtime.
     citation counts.
 
 No kind cluster was left behind.
+
+## Attempt 3, 2026-10-28: rule confirmed and promoted; K1 clears nothing yet (two deterministic defects)
+
+**Part A rerun after verify3 and verify4:**
+- The base rule `hyp-c9ace2753bd7` is **confirmed (observed)**, `pf-e65df896f76e`.
+- The refinement `hyp-cc18d162127a` is **confirmed (observed)**, `pf-ae4237aaecac`, with semantic-check pass (role tokens
+  excluded and recorded) and the consumer exercise "the harm is confined to the role". Its **observed role-membership
+  default** is: isCA unset ⇒ outside ca-trust ("with spec.isCA unset … it could not form at FROM and TO").
+
+**Promotion:** the product owner accepted `ri-3110ace7e891`, superseding `vf-9b9cfa5c9f5f`. That produced decision
+`rd-49bea9629f0a` and the active fact `vf-4d9b756f1343` (CA-scoped exposure, membership default carried). That
+knowledge is K1 (`sha256:a028f48a…`).
+
+**Part B, K0 vs K1, arm A0** (`A0-K{0,1}-20261028-a3c3a764-m4`): **no clearance gained**. All four items stay
+`potentially-affected` on both sides. falseNegativeRate is 0, and there are no unsafe clearances. Two defects:
+- **D1. The knowledge join evaluates base environment files, not the rendered overlay.**
+  - `impact:knowledge-exposed` on P-US matched "mesh-root-ca leaves spec.privateKey.rotationPolicy unset", with
+    evidence `platform/pki/base/mesh-root-ca.yaml`.
+  - The deployed object carries `rotationPolicy: Never` from the kustomize patch
+    `platform/pki/overlays/prod/mesh-root-ca-prod.yaml`.
+  - It fails closed here, but it can fail **open** wherever an overlay *removes* or *overrides* a setting.
+- **D2. The pin scope did not apply the observed role-membership default.** `pin:knowledge-exposure@v2` from
+  `vf-4d9b756f1343` reported `checkout-tls` (isCA unset) as **undecidable**, although the fact carries
+  "isCA unset ⇒ outside ca-trust (observed)" through its confirmed proof.
+
+**Next:** lane `join5` (D-0028). Knowledge and pin evaluation run over the **rendered** objects of the environment's
+entrypoints, with source-file evidence mapped through the render; and membership defaults are applied in the pin scope
+through the fact's confirmed proof. Then re-run part B.
