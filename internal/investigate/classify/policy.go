@@ -249,6 +249,14 @@ func (x *index) classify(id string) (domain.InvestigationFinding, error) {
 			e.covered["path:"+p] = true
 		}
 		for _, rc := range v.RenderedChanges {
+			// CONTRACT-CHANGE(applicability): a pin covers exactly the
+			// rendered changes on its own field (R2.2, mission E3), and the
+			// record's claim is re-checked against the bundle
+			if v.Pin != nil {
+				if ok, _ := x.b.PinCoversChange(rc, *v.Pin); !ok {
+					continue
+				}
+			}
 			e.covered["rc:"+rc] = true
 		}
 		for _, s := range v.Subjects {

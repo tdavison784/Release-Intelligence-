@@ -623,3 +623,34 @@ func TestPinScopeEvidencedRuleDefault(t *testing.T) {
 		})
 	}
 }
+
+// A field pin's pass names the CRD serving the pinned kind and covers exactly
+// the item's rendered changes on its own field: the description of the pinned
+// field, not another field's description in the same CRD, a schema change on
+// the field, or another resource (mission E3; the policy re-checks the claim).
+func TestPinPassCoversExactlyItsField(t *testing.T) {
+	o := newOverrideFx(t)
+	o.withFact(rootScoped("vf-scoped", domain.VerifiedHuman, o.f.up))
+	o.f.file("apps/w/widgets.yaml", stream(
+		gw("w-root", "apps", map[string]string{"role": "root", "rotation": "Never"}),
+		gw("w-leaf", "apps", map[string]string{"role": "leaf"})))
+	o.f.crd(scopedWidgetCRD(""))
+	const crd = "apiextensions.k8s.io/v1/CustomResourceDefinition//widgets.gizmo.example.io"
+	schema := "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties."
+	linked := func(class, object, path string) domain.RenderedChange {
+		return domain.RenderedChange{Class: class, Object: object, Path: path, ChangeItems: []string{o.item}, Correlation: "documents-field"}
+	}
+	ids := o.f.pair("argocd:apps/gizmo.yaml", controller(), controller(),
+		linked(domain.RenderedClassCRDDescription, crd, schema+"rotation.description"),
+		linked(domain.RenderedClassCRDDescription, crd, schema+"size.description"),
+		linked("field-changed", crd, schema+"rotation.type"),
+		linked("field-changed", "apps/v1/Deployment/gizmo/gizmo-controller", "spec.replicas"))
+	r := o.run(t)
+	wantOutcome(t, r, domain.ValidationPass, "vf-scoped")
+	if r.Pin == nil || r.Pin.CRD != "widgets.gizmo.example.io" || r.Pin.Path != "spec.rotation" {
+		t.Fatalf("pin %+v", r.Pin)
+	}
+	if len(r.RenderedChanges) != 1 || r.RenderedChanges[0] != ids[0] {
+		t.Fatalf("covers %v, want exactly the pinned field's description %s", r.RenderedChanges, ids[0])
+	}
+}
