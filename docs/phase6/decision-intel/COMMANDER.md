@@ -19,6 +19,9 @@ handoffs (every item is `providers: [claude]`).
 | upstream2 | ri-upstream2 | Opus 5.5 | p6di/upstream2 | .claude/worktrees/p6di-upstream2 | w1:t2D (pane w1:p42) | done, merged, closed 2026-10-27 |
 | upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | done, merged, closed 2026-10-27 |
 | synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | done, merged, closed 2026-10-28 |
+| applicability | ri-applicability | Opus 5.5 | p6di/applicability | .claude/worktrees/p6di-applicability | w1:t2G (pane w1:p47) | started 2026-10-28 (D-0022) |
+| semverify | ri-semverify | Opus 5.5 | p6di/semverify | .claude/worktrees/p6di-semverify | w1:t2H (pane w1:p48) | started 2026-10-28 (D-0023) |
+| formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | started 2026-10-28 (D-0021) |
 
 ## Merge log
 
@@ -69,8 +72,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. D-0020: an M4 code map (a Herdr pane agent), then PLAN-M4 and GATE-M4. Show the product owner before any code
-   changes.
+1. **Three M4 lanes are running in parallel.** Merge order: applicability, then semverify, then formalize. After each
+   merge, tell the still-running lanes to `git merge p6-decision-intel`.
+2. **After all three, D-0024:** the demo and gate per GATE-M4.
+   - The product owner promotes the confirmed rule in the review UI. Prepare it, and point them at the screen.
 
 ## Notes
 
