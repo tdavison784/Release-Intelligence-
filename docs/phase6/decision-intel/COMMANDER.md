@@ -24,7 +24,7 @@ handoffs (every item is `providers: [claude]`).
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
-| verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | started 2026-10-28 (D-0027) |
+| verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | done, merged, closed 2026-10-28 |
 
 ## Merge log
 
@@ -61,6 +61,9 @@ handoffs (every item is `providers: [claude]`).
 - 2026-10-28 Merge lane verify3 (D-0026). Fixes A and B work. C (observed default) is built, but on the real controller
   the isCA probes could not tell unset from false: the leaf is never issued under a non-CA. A product-owner decision
   is pending. Build, vet and test green.
+
+- 2026-10-28 Merge lane verify4 (D-0027): role-cannot-form was confirmed on the real controller, and it fixed verify3's
+  contradiction fail-open. Build, vet and test green (50). Lane closed. Part A re-run (A4) started on a fresh K1.
 
 ## Decisions
 
