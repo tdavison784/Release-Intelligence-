@@ -81,3 +81,6 @@ handoffs (every item is `providers: [claude]`).
   and w1:t1J.
 - 2026-10-27 (product owner: "create a pr"): pushed `p6-decision-intel` and opened PR #9 (base `p6-natural-agent`,
   stacked on #8 and #7). The pre-push scan was clean (no secrets, and no account email in the content or the run tarballs).
+- 2026-10-27 (product owner): "make sure to use the herdr skill so all sub-agents get their own pane". Subagents now run
+  as Herdr agents in their own panes (brief and report via files). The M3 code map is `ri-m3map` (pane w1:p44, split
+  beside the commander).
