@@ -247,21 +247,62 @@ type kzImage struct {
 // an overlay transitively reads, the remote references it makes, and a
 // non-empty reason when it uses a feature this path does not support.
 func KustomizeInputs(root, dir string) (files, remote []string, unsupported string, err error) {
-	root, _ = filepath.Abs(root)
-	dir, _ = filepath.Abs(dir)
 	seen := map[string]bool{}
-	visited := map[string]bool{}
-	var walk func(d string, depth int) error
-	add := func(abs string) error {
-		rel, err := filepath.Rel(root, abs)
-		if err != nil || strings.HasPrefix(rel, "..") {
-			return fmt.Errorf("kustomize input %s is outside the root %s", abs, root)
-		}
-		rel = filepath.ToSlash(rel)
+	remote, unsupported, err = kustomizeWalk(root, dir, func(rel string, _ int, _ bool) {
 		if !seen[rel] {
 			seen[rel] = true
 			files = append(files, rel)
 		}
+	})
+	if err != nil {
+		return nil, nil, "", err
+	}
+	sort.Strings(files)
+	sort.Strings(remote)
+	return files, remote, unsupported, nil
+}
+
+// KustomizeLayers ranks every local input file of an overlay (relative to
+// root, as KustomizeInputs names them) by when kustomize applies what it
+// states: a kustomization builds its bases first and applies its own
+// patches last, so a lower rank is applied later and wins a field both
+// state. Rank = 2·depth (a patch of the kustomization at that depth below
+// dir) or 2·depth+1 (a resource, base, component or other input). A file
+// reached twice keeps its lowest rank. CONTRACT-CHANGE(join5): additive; the
+// effective object view (env.Effective) cites the layer that produced a
+// rendered field.
+func KustomizeLayers(root, dir string) (map[string]int, error) {
+	out := map[string]int{}
+	_, _, err := kustomizeWalk(root, dir, func(rel string, depth int, patch bool) {
+		r := 2*depth + 1
+		if patch {
+			r = 2 * depth
+		}
+		if old, ok := out[rel]; !ok || r < old {
+			out[rel] = r
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// kustomizeWalk walks the kustomization in dir and calls visit for every
+// local input file (relative to root) with the depth of the kustomization
+// that references it (0: dir itself) and whether it is a patch of that
+// kustomization.
+func kustomizeWalk(root, dir string, visit func(rel string, depth int, patch bool)) (remote []string, unsupported string, err error) {
+	root, _ = filepath.Abs(root)
+	dir, _ = filepath.Abs(dir)
+	visited := map[string]bool{}
+	var walk func(d string, depth int) error
+	add := func(abs string, depth int, patch bool) error {
+		rel, err := filepath.Rel(root, abs)
+		if err != nil || strings.HasPrefix(rel, "..") {
+			return fmt.Errorf("kustomize input %s is outside the root %s", abs, root)
+		}
+		visit(filepath.ToSlash(rel), depth, patch)
 		return nil
 	}
 	walk = func(d string, depth int) error {
@@ -276,7 +317,7 @@ func KustomizeInputs(root, dir string) (files, remote []string, unsupported stri
 		if kf == "" {
 			return fmt.Errorf("%s has no kustomization file", d)
 		}
-		if err := add(kf); err != nil {
+		if err := add(kf, depth, false); err != nil {
 			return err
 		}
 		b, err := os.ReadFile(kf)
@@ -290,35 +331,45 @@ func KustomizeInputs(root, dir string) (files, remote []string, unsupported stri
 		if len(k.HelmCharts) > 0 && unsupported == "" {
 			unsupported = fmt.Sprintf("%s uses helmCharts (requires --enable-helm and chart downloads); render the chart through the Helm path instead", kf)
 		}
-		var refs []string
-		refs = append(refs, k.Resources...)
-		refs = append(refs, k.Bases...)
-		refs = append(refs, k.Components...)
-		refs = append(refs, k.CRDs...)
-		refs = append(refs, k.PatchesStrategicMerge...)
-		refs = append(refs, k.Transformers...)
-		refs = append(refs, k.Generators...)
+		type ref struct {
+			path  string
+			patch bool
+		}
+		var refs []ref
+		for _, list := range [][]string{k.Resources, k.Bases, k.Components, k.CRDs} {
+			for _, r := range list {
+				refs = append(refs, ref{r, false})
+			}
+		}
+		for _, r := range k.PatchesStrategicMerge {
+			refs = append(refs, ref{r, true})
+		}
+		for _, r := range append(append([]string(nil), k.Transformers...), k.Generators...) {
+			refs = append(refs, ref{r, false})
+		}
 		for _, p := range k.Patches {
-			refs = append(refs, p.Path)
+			refs = append(refs, ref{p.Path, true})
 		}
 		for _, p := range k.PatchesJSON6902 {
-			refs = append(refs, p.Path)
+			refs = append(refs, ref{p.Path, true})
 		}
 		for _, p := range k.Replacements {
-			refs = append(refs, p.Path)
+			refs = append(refs, ref{p.Path, false})
 		}
 		for _, g := range append(k.ConfigMapGenerator, k.SecretGenerator...) {
 			for _, f := range g.Files {
 				if i := strings.IndexByte(f, '='); i >= 0 {
 					f = f[i+1:]
 				}
-				refs = append(refs, f)
+				refs = append(refs, ref{f, false})
 			}
-			refs = append(refs, g.Envs...)
-			refs = append(refs, g.Env)
+			for _, e := range g.Envs {
+				refs = append(refs, ref{e, false})
+			}
+			refs = append(refs, ref{g.Env, false})
 		}
-		for _, r := range refs {
-			r = strings.TrimSpace(r)
+		for _, x := range refs {
+			r := strings.TrimSpace(x.path)
 			if r == "" || strings.Contains(r, "\n") { // inline patches
 				continue
 			}
@@ -337,18 +388,16 @@ func KustomizeInputs(root, dir string) (files, remote []string, unsupported stri
 				}
 				continue
 			}
-			if err := add(p); err != nil {
+			if err := add(p, depth, x.patch); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
 	if err := walk(dir, 0); err != nil {
-		return nil, nil, "", err
+		return nil, "", err
 	}
-	sort.Strings(files)
-	sort.Strings(remote)
-	return files, remote, unsupported, nil
+	return remote, unsupported, nil
 }
 
 func copyInputs(root, dst string, files []string) error {

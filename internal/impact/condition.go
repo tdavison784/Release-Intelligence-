@@ -25,6 +25,13 @@ package impact
 //     of the environment's CRDs, or the rule's own evidenced default
 //     (Condition.Default) — and is unknown without one
 //     (internal/applicability, shared with the pin-rule scope).
+//  7. Objects as deployed: with the effective object view (env.Effective,
+//     Input.Objects) the resources are the rendered objects of the
+//     environment's entrypoints. A resource whose deployed form is unknown
+//     (Resource.Unrendered: its file was consumed by a render whose objects
+//     are unavailable) decides nothing: it is unknown, never its file's
+//     view; and while a render's objects are unavailable (RenderGaps), no
+//     absence is concluded from the objects that are visible.
 
 import (
 	"encoding/json"
@@ -452,7 +459,7 @@ func (ev *evaluator) eval(c domain.Condition, scope *env.Resource) ConditionResu
 	case domain.OpEnvVar:
 		return ev.envVar(c)
 	case domain.OpFeatureGate:
-		return ev.featureGate(c)
+		return ev.withObjectGap(ev.featureGate(c))
 	case domain.OpProductVersion:
 		return ev.productVersion(c)
 	case domain.OpClusterVersion:
@@ -574,10 +581,17 @@ func (ev *evaluator) resource(c domain.Condition) ConditionResult {
 		}
 	}
 	if len(rs) == 0 {
+		if gap := ev.renderGap(); gap != "" {
+			return ev.gapUnknown(gap)
+		}
 		return ev.decideFalse(domain.DimensionManifests, ev.check(domain.DimensionManifests, 0, c))
 	}
 	per := make([]ConditionResult, 0, len(rs))
 	for _, r := range rs {
+		if r.Unrendered != "" {
+			per = append(per, ev.gapUnknown(r.Unrendered))
+			continue
+		}
 		x := all(ev.operands(c.Of, r))
 		x.deps = appendUnique(x.deps, domain.DimensionManifests)
 		switch x.Value {
@@ -589,6 +603,9 @@ func (ev *evaluator) resource(c domain.Condition) ConditionResult {
 		per = append(per, x)
 	}
 	out := anyOf(per)
+	if gap := ev.renderGap(); out.Value == False && gap != "" {
+		return ev.gapUnknown(gap)
+	}
 	if out.Value == False {
 		// one check for the scope, counting every resource examined, keeping
 		// the evidence the inner checks cite (e.g. a completeness declaration)
@@ -599,6 +616,58 @@ func (ev *evaluator) resource(c domain.Condition) ConditionResult {
 		out.Checks = []domain.ImpactCheck{scope}
 	}
 	return out
+}
+
+// renderGap is why objects the condition may read are unknown (rule 7): a
+// render whose objects are unavailable and that consumed no environment
+// file. "" when every render's objects are visible.
+func (ev *evaluator) renderGap() string {
+	if len(ev.env.RenderGaps) == 0 {
+		return ""
+	}
+	return "the rendered objects of " + strings.Join(ev.env.RenderGaps, "; ") + " are not available; an object this condition reads may be among them"
+}
+
+// objectGap is renderGap, or why a resource whose deployed form is unknown
+// may hold what a workload-wide leaf (flags, environment variables, named
+// containers) reads.
+func (ev *evaluator) objectGap() string {
+	if g := ev.renderGap(); g != "" {
+		return g
+	}
+	for i := range ev.env.Resources {
+		if u := ev.env.Resources[i].Unrendered; u != "" {
+			return u
+		}
+	}
+	return ""
+}
+
+// gapUnknown is the unknown of rule 7.
+func (ev *evaluator) gapUnknown(why string) ConditionResult {
+	r := unknownResult(domain.UnknownEnvironmentVisibilityGap, why+" (the rendered objects of the environment's entrypoints are needed: render them)")
+	r.deps = []domain.EnvironmentDimension{domain.DimensionManifests}
+	return r
+}
+
+// withObjectGap keeps a workload-wide leaf's result only when no object it
+// may read is unknown, or when it is a true resting on stated values (rule
+// 7): an absence, and a false, need every object.
+func (ev *evaluator) withObjectGap(r ConditionResult) ConditionResult {
+	gap := ev.objectGap()
+	if gap == "" || r.Value == Unknown {
+		return r
+	}
+	if r.Value == True {
+		stated := len(r.Matches) > 0
+		for _, m := range r.Matches {
+			stated = stated && m.Kind != domain.MatchAbsence
+		}
+		if stated {
+			return r
+		}
+	}
+	return ev.gapUnknown(gap)
 }
 
 // fieldFacts returns the facts of r at path ("[]" markers cover every
@@ -1039,11 +1108,19 @@ func (ev *evaluator) ref(c domain.Condition, r *env.Resource) ConditionResult {
 				per = append(per, x)
 				continue
 			}
+			if gap := ev.renderGap(); gap != "" {
+				per = append(per, ev.gapUnknown(gap))
+				continue
+			}
 			declared := chk
 			declared.Evidence = append(append([]domain.EvidenceID{}, chk.Evidence...), ev.env.ManifestsCompleteEvidence...)
 			per = append(per, falseResult(domain.DimensionManifests, declared, append(append([]domain.EvidenceID{}, ref.Evidence...), ev.env.ManifestsCompleteEvidence...)...))
 		case env.RefResolved:
 			t := res.Target
+			if t.Unrendered != "" {
+				per = append(per, ev.gapUnknown(t.Unrendered))
+				continue
+			}
 			if (c.Kind != "" && t.Kind != c.Kind) || (c.Group != "" && t.Group != c.Group) {
 				per = append(per, falseResult(domain.DimensionManifests, chk, append(append([]domain.EvidenceID{}, ref.Evidence...), t.Evidence)...))
 				continue
@@ -1234,6 +1311,9 @@ var containerNamePath = regexp.MustCompile(`(?:^|\.)(?:containers|initContainers
 func (ev *evaluator) containersNamed(name string) []domain.EvidenceID {
 	var out []domain.EvidenceID
 	for i := range ev.env.Resources {
+		if ev.env.Resources[i].Unrendered != "" {
+			continue // its deployed form is unknown (rule 7)
+		}
 		for _, f := range ev.env.Resources[i].Fields {
 			if !f.Container && f.Withheld == "" && containerNamePath.MatchString(f.Path) && plainValue(f.Value) == name {
 				out = appendUnique(out, f.Evidence...)
@@ -1252,6 +1332,9 @@ func (ev *evaluator) containersNamed(name string) []domain.EvidenceID {
 // workload genuinely absent: false (nothing runs that could be exposed), with
 // a check citing the declaration.
 func (ev *evaluator) componentAbsent(c domain.Condition) ConditionResult {
+	if gap := ev.objectGap(); gap != "" {
+		return ev.gapUnknown(gap)
+	}
 	if ok, _ := ev.dimOK(domain.DimensionManifests); ok && ev.env.ManifestsDeclaredComplete {
 		chk := ev.check(domain.DimensionManifests, len(ev.env.Resources), c, ev.env.ManifestsCompleteEvidence...)
 		return falseResult(domain.DimensionManifests, chk, ev.env.ManifestsCompleteEvidence...)
@@ -1278,6 +1361,9 @@ type flagUse struct {
 func (ev *evaluator) flags(component string) (uses []flagUse, examined []domain.EvidenceID) {
 	for i := range ev.env.Resources {
 		r := &ev.env.Resources[i]
+		if r.Unrendered != "" {
+			continue // its deployed form is unknown (rule 7, withObjectGap)
+		}
 		byContainer := map[string][]env.FieldFact{}
 		var order []string
 		for _, f := range r.Fields {
@@ -1359,7 +1445,7 @@ func (ev *evaluator) cliFlag(c domain.Condition) ConditionResult {
 		// like an absent resource kind).
 		return unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf("no environment record to read %s from", describe(c)))
 	}
-	return ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined))
+	return ev.withObjectGap(ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined)))
 }
 
 func (ev *evaluator) envVar(c domain.Condition) ConditionResult {
@@ -1367,6 +1453,9 @@ func (ev *evaluator) envVar(c domain.Condition) ConditionResult {
 	var examined []domain.EvidenceID
 	for i := range ev.env.Resources {
 		r := &ev.env.Resources[i]
+		if r.Unrendered != "" {
+			continue // its deployed form is unknown (rule 7, withObjectGap)
+		}
 		for _, f := range r.Fields {
 			if f.Container || !containerEnvNamePath.MatchString(f.Path) {
 				continue
@@ -1410,7 +1499,7 @@ func (ev *evaluator) envVar(c domain.Condition) ConditionResult {
 		// false, like an absent resource kind).
 		return unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf("no environment record to read %s from", describe(c)))
 	}
-	return ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined))
+	return ev.withObjectGap(ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined)))
 }
 
 // gateObservation is one place a feature gate is stated.

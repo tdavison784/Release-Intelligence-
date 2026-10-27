@@ -90,6 +90,9 @@ type builder struct {
 	edge *domain.UpgradeEdge
 	env  *env.Environment
 	rep  *domain.ImpactReport
+	// objs is the environment whose resources the object-level evaluations
+	// read: Input.Objects (the effective object view), else env.
+	objs *env.Environment
 
 	findings []domain.ImpactFinding
 	seen     map[string]bool
@@ -122,7 +125,24 @@ func build(in Input) (*domain.ImpactReport, error) {
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
 		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
-		unset: in.Unset, set: in.Set, image: in.Image,
+		unset: in.Unset, set: in.Set, image: in.Image, objs: in.Env,
+	}
+	if in.Objects != nil {
+		b.objs = in.Objects
+		// the records of rendered objects are environment evidence the
+		// files' pool does not hold
+		inEnv := map[domain.EvidenceID]bool{}
+		for _, e := range in.Env.Evidence {
+			inEnv[e.ID] = true
+		}
+		for _, e := range in.Objects.Evidence {
+			if !inEnv[e.ID] {
+				if _, ok := b.extraLocal[e.ID]; !ok {
+					b.extraLocal[e.ID] = e
+					b.extraLocalOrder = append(b.extraLocalOrder, e.ID)
+				}
+			}
+		}
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
