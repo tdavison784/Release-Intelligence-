@@ -25,7 +25,7 @@ handoffs (every item is `providers: [claude]`).
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
 | verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | done, merged, closed 2026-10-28 |
-| join5 | ri-join5 | Opus 5.5 | p6di/join5 | .claude/worktrees/p6di-join5 | w1:t2P (pane w1:p4E) | started 2026-10-28 (D-0028) |
+| join5 | ri-join5 | Opus 5.5 | p6di/join5 | .claude/worktrees/p6di-join5 | w1:t2P (pane w1:p4E) | done, merged, closed 2026-10-28 |
 
 ## Merge log
 
@@ -65,6 +65,12 @@ handoffs (every item is `providers: [claude]`).
 
 - 2026-10-28 Merge lane verify4 (D-0027): role-cannot-form was confirmed on the real controller, and it fixed verify3's
   contradiction fail-open. Build, vet and test green (50). Lane closed. Part A re-run (A4) started on a fresh K1.
+
+- 2026-10-28 Merge lane join5 (D-0028). D2 cause: the knowledge loader never loaded proofs; fixed. D1: the effective
+  rendered view, with producing-line evidence. One shop-nl change (knowledge-exposed → overlap) accepted by the
+  commander: its expected items are all not-affected, so the old exposure was a false alarm resting on absence from
+  files that never hold the controller args. A disclosed integrity note: a broad grep printed 3 lines of the Phase 5
+  EVAL-REPORT; it was not opened, and the code is generic. Build, vet and test green. Lane closed. Part B re-run.
 
 ## Decisions
 
