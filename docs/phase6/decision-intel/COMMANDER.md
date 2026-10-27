@@ -13,7 +13,8 @@ handoffs (every item is `providers: [claude]`).
 | consumer3 | ri-consumer3 | Opus 5.5 | p6di/consumer3 | .claude/worktrees/p6di-consumer3 | w1:t25 (pane w1:p3T) | done, merged, closed 2026-10-21 |
 | scoped | ri-scoped | Opus 5.5 | p6di/scoped | .claude/worktrees/p6di-scoped | w1:t27 (pane w1:p3W) | done, merged, closed 2026-10-26 |
 | advisories | ri-advisories | Opus 5.5 | p6di/advisories | .claude/worktrees/p6di-advisories | w1:t28 (pane w1:p3X) | done, merged, closed 2026-10-27 |
-| advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | started 2026-10-27 (D-0011) |
+| advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | done, merged, closed 2026-10-27 |
+| advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | started 2026-10-27 (D-0012) |
 
 ## Merge log
 
@@ -52,13 +53,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. The GATE-M2 §0 check is running: v10 × 3 on the cert-manager pair, scratch `$CLAUDE_JOB_DIR/tmp/v10`, run ids
-   `C1-K0-*-v10-r{1,2,3}`. Score it; on a pass, make v10 the default.
-2. Lane `advisories` is running (D-0008). On LANE DONE:
-   - review and merge it;
-   - record the advisory state online into a cloned state;
-   - run GATE-M2 §1.
-3. Lane `upstream` (D-0009) can start now that `scoped` is merged: write its brief and launch it.
+1. Lane `advisories3` is running (D-0012). On LANE DONE:
+   - merge it;
+   - re-run GATE-M2 §1 offline from `$CLAUDE_JOB_DIR/tmp/m2adv/state` (the bin/ri eval A0 commands in COMMANDER's
+     2026-10-27 merge note);
+   - append to M2-RESULT §1.
+2. Lane `upstream` (D-0009): waiting for the product owner's go. The brief is not written yet.
 
 ## Notes
 
