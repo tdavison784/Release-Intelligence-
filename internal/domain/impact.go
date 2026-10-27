@@ -467,6 +467,13 @@ type ImpactReport struct {
 	// EnrichmentRun records how the enrichments were produced (prompts,
 	// acceptances, rejections). Present when enrichment was attempted.
 	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
+
+	// Security is the edge's advisory assessment carried into the report
+	// (UpgradeEdge.Security): version-based, so it applies to every
+	// environment that upgrades. Its advisory entries join the findings by
+	// changeId; the evidence it cites is part of Evidence. Absent when the
+	// edge has none.
+	Security *EdgeSecurity `json:"security,omitempty"`
 }
 
 // IdentifiedContent returns the report's identified content: a copy with the
@@ -584,6 +591,9 @@ func (r *ImpactReport) Validate() error {
 			errs = append(errs, fmt.Errorf("duplicate evidence id %s", x.ID))
 		}
 		up[x.ID] = true
+	}
+	if r.Security != nil {
+		errs = append(errs, r.Security.validate(up)...)
 	}
 	local := map[EvidenceID]bool{}
 	for _, x := range r.EnvironmentEvidence {

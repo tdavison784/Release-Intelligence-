@@ -136,9 +136,22 @@ func (r *renderer) render() {
 	r.header()
 	r.sources()
 	r.changeSections()
+	r.securitySection()
 	r.enrichments()
 	r.warnings()
 	r.evidence()
+}
+
+// securitySection renders the edge's advisory assessment (security.go).
+func (r *renderer) securitySection() {
+	s := r.e.Security
+	if !SecurityShown(s) {
+		return
+	}
+	r.heading(ansiBold, "Security advisories:")
+	for _, l := range SecurityLines(s, r.e.From, r.e.To, r.cite) {
+		r.line("%s", l)
+	}
 }
 
 func (r *renderer) header() {

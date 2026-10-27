@@ -34,6 +34,8 @@ func enumOf[T ~string](values ...T) enumSet {
 }
 
 var enums = []enumSet{
+	enumOf(domain.SecurityComplete, domain.SecurityIncomplete, domain.SecurityUnavailable),
+	enumOf(domain.CandidateTargetLine, domain.CandidateAnyLine, domain.CandidateClean),
 	enumOf(domain.MethodDeclared, domain.MethodComputed, domain.MethodHeuristic, domain.MethodAI),
 	enumOf(domain.ConfidenceHigh, domain.ConfidenceMedium, domain.ConfidenceLow),
 	enumOf(
@@ -423,6 +425,16 @@ func snapshotKindRule(kind domain.SnapshotKind, payload string) obj {
 // "Type" for a type and "Type.jsonName" for a field. Only the fields whose
 // meaning is not obvious from the name are documented.
 var descriptions = map[string]string{
+	"UpgradeEdge.security":     "Deterministic advisory assessment of the upgrade (schemaVersion ri.dev/edge-security/v1alpha1): regressions, persisting, fixed and unassessed advisories, unread sources as gaps, and candidate versions. Absent on edges built before it existed.",
+	"EdgeSecurity.status":      "complete: every security source was read; incomplete: some could not be (see gaps); unavailable: none was read or none is declared, which is never \"no advisories\".",
+	"EdgeSecurity.gaps":        "Every reason the assessment is not complete; never empty unless status is complete.",
+	"EdgeSecurity.regressions": "Advisories whose machine-readable range covers the target but not the current version.",
+	"EdgeSecurity.unassessed":  "Advisories without a machine-readable range (free text, a list that is not one interval, a Go pseudo-version bound): not matched against any version; check manually.",
+	"VersionCandidate.kind":    "target-line: lowest release on the target's line above the current version that is affected by no advisory the current version is free of; any-line: the same on any line; clean: lowest release above the current version affected by no assessed advisory.",
+	"VersionCandidate.version": "The candidate release; absent when none exists (statement says so).",
+	"VersionCandidate.removes": "Advisories affecting the target that do not affect the candidate, with the evidence of their ranges.",
+	"VersionCandidate.leaves":  "Advisories that affect the candidate, with the evidence of their ranges.",
+	"VersionCandidate.charts":  "Chart versions shipping the candidate, from the definition's artifact relation (chart index appVersion), with the index entry as evidence.",
 	"EvidenceBundle": "A reproducible, change- and environment-scoped evidence bundle (Phase 4 P1): the structured " +
 		"breaking-change evidence record, the environment snapshot, environment-scope renders, the searchable manifest of " +
 		"content-addressed artifacts and the evidence pool every cited id resolves in. Immutable once written " +

@@ -122,3 +122,39 @@ func TestAdvisoriesUnreadableSource(t *testing.T) {
 		}
 	}
 }
+
+// The chart version shipping a candidate release is looked up through the
+// definition's own artifact relation (appVersion in the chart index), with
+// the index entry as evidence; a release no chart ships is a gap.
+func TestChartVersions(t *testing.T) {
+	w, def := newWorld(), testDef()
+	ing := newTestIngester(w, &fakeParser{})
+	ctx := context.Background()
+	vl, err := ing.ListVersions(ctx, def)
+	if err != nil {
+		t.Fatal(err)
+	}
+	charts, gaps, err := ing.ChartVersions(ctx, def, domain.MustVersion("v1.1.1", "1.1.1"), vl)
+	if err != nil || len(gaps) != 0 || len(charts) != 1 {
+		t.Fatalf("1.1.1: %+v %v %v", charts, gaps, err)
+	}
+	if c := charts[0]; c.Artifact != "chart" || c.Name != "acme" || c.Version != "0.4.1" || len(c.Evidence) != 1 || !strings.Contains(c.Evidence[0].Excerpt, "appVersion: v1.1.1") {
+		t.Errorf("chart %+v", c)
+	}
+	// Two charts ship 1.2.0; the definition selects one, as ingestion does.
+	charts, _, _ = ing.ChartVersions(ctx, def, domain.MustVersion("v1.2.0", "1.2.0"), vl)
+	if len(charts) != 1 || charts[0].Version != "0.5.1" {
+		t.Errorf("1.2.0: %+v", charts)
+	}
+	charts, gaps, err = ing.ChartVersions(ctx, def, domain.MustVersion("v1.2.1", "1.2.1"), vl)
+	if err != nil || len(charts) != 0 || len(gaps) != 1 || !strings.Contains(gaps[0], "chart chart for v1.2.1") {
+		t.Errorf("1.2.1 (no chart): %+v %v %v", charts, gaps, err)
+	}
+	// An unreadable index is a gap too.
+	w.down[catalog.LocatorHelmRepo] = true
+	ing = newTestIngester(w, &fakeParser{})
+	charts, gaps, _ = ing.ChartVersions(ctx, def, domain.MustVersion("v1.1.1", "1.1.1"), vl)
+	if len(charts) != 0 || len(gaps) != 1 {
+		t.Errorf("index down: %+v %v", charts, gaps)
+	}
+}

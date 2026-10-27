@@ -62,7 +62,7 @@ func newSecurityAssessment(b *builder) *securityAssessment {
 			// kind without an advisory adapter: not a read, not a failure
 		default:
 			unread++
-			s.gapf("security source %s (%s) was not read (%s): the advisories it lists are unknown, not absent", st.SourceID, st.Kind, statusPhrase(st))
+			s.gapf("security source not read (%s): the advisories it lists are unknown, not absent", statusPhrase(st))
 		}
 	}
 	switch {

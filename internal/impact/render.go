@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/upgrade"
 )
 
 const (
@@ -87,9 +88,33 @@ func (r *renderer) render() {
 	r.header()
 	r.environmentSection()
 	r.findingSections()
+	r.securitySection()
 	r.enrichmentSection()
 	r.warnings()
 	r.evidenceLegend()
+}
+
+// securitySection renders the report's advisory assessment: version-based,
+// the same for every environment upgrading from → to.
+func (r *renderer) securitySection() {
+	s := r.r.Security
+	if !upgrade.SecurityShown(s) {
+		return
+	}
+	r.heading(ansiBold, "Security advisories (version-based: applies to every environment on this upgrade)")
+	cite := func(ids []domain.EvidenceID) string {
+		if len(ids) == 0 {
+			return "no evidence"
+		}
+		out := make([]string, len(ids))
+		for i, id := range ids {
+			out[i] = r.citeUp(id)
+		}
+		return strings.Join(out, ", ")
+	}
+	for _, l := range upgrade.SecurityLines(s, r.r.From, r.r.To, cite) {
+		r.line("%s", l)
+	}
 }
 
 // header prints the funnel: every upstream change is analyzed and every
