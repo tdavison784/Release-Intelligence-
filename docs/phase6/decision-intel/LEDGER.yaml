@@ -28,7 +28,8 @@ items:
   - id: D-0004
     title: "Milestone 2 plan (Workstream A: strict-path semantics, global advisories — absorbs X-0009)"
     kind: commander-task
-    status: in-progress
+    status: done
+    note: "PLAN-M2.md (lane-safe) + GATE-M2.md (commander); waiting for the product owner's go"
     depends: [D-0003]
     providers: [claude]
     glm-executable: false
@@ -53,5 +54,28 @@ items:
     kind: lane
     lane: scoped
     status: in-progress
+    providers: [claude]
+    glm-executable: false
+  - id: D-0008
+    title: Lane advisories — M2 A2 (global advisories, regression rule, candidate versions, chart mapping, unavailability)
+    kind: lane
+    lane: advisories
+    status: ready
+    depends: [D-0004]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0009
+    title: Lane upstream — M2 A1/A3/B6 (request_evidence fulfilment at immutable tags, unavailable gaps, prompt v11)
+    kind: lane
+    lane: upstream
+    status: queued
+    depends: [D-0004, D-0007]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0010
+    title: M2 gate runs (GATE-M2 §1 advisories, §2 strict-path + ablation) and M2-RESULT.md
+    kind: commander-task
+    status: queued
+    depends: [D-0008, D-0009]
     providers: [claude]
     glm-executable: false
