@@ -20,6 +20,7 @@ import (
 // citations, never the wording: a not-affected verdict is rejected while any
 // behaviour is unavailable or not-checked, and once when a behavioural item
 // declares none. Each unestablished behaviour becomes a gap in Unknown.
+// Feature fetchFirst (briefs/upstream3.md) adds the fetch-first check.
 
 // behaviourGap prefixes the tool layer's unknown entry for an unestablished
 // behaviour.
@@ -112,6 +113,9 @@ func (s *Session) behaviourList(ctx context.Context, at string, it domain.Change
 		}
 		e := domain.AssessmentBehaviour{Behaviour: stmt, Source: b.Source}
 		quote, request := trimmed(b.Quote), trimmed(b.Request)
+		if trimmed(b.Reason) != "" && b.Source != domain.BehaviourNotChecked {
+			return nil, nil, rejectf("%s: only source not-checked takes reason", where)
+		}
 		switch b.Source {
 		case domain.BehaviourUpstream:
 			if quote != "" || request != "" {
@@ -166,12 +170,64 @@ func (s *Session) behaviourList(ctx context.Context, at string, it domain.Change
 			if len(b.Citations) > 0 || quote != "" || request != "" {
 				return nil, nil, rejectf("%s: source not-checked takes no citations, quote or request", where)
 			}
+			if trimmed(b.Reason) != "" {
+				if !s.cfg.Prompt.Features.FetchFirst {
+					return nil, nil, rejectf("%s: this prompt version (%s) takes no reason", where, s.cfg.Prompt.Version)
+				}
+				if e.Reason, err = s.statement(where+".reason (why the upstream source cannot answer the behaviour)", b.Reason); err != nil {
+					return nil, nil, err
+				}
+			}
 		default:
 			return nil, nil, rejectf("%s.source %q: want %s", where, b.Source, strings.Join(domain.BehaviourSources, ", "))
 		}
 		out = append(out, e)
 	}
 	return out, evs, nil
+}
+
+// fetchFirst (prompt feature fetchFirst) asks for the fetch before the
+// conclusion. While the session can fetch upstream behaviour for the item (a
+// fetch port, the product's repositories, budget left) and the item is
+// behavioural, a not-checked behaviour is rejected, whatever the verdict:
+// once while the item made no upstream request (resubmitted, it is accepted,
+// with the reason the upstream source cannot answer it when the entry gives
+// one), and every time after a request, when each behaviour is cited
+// (upstream) or names a request recorded unavailable. Only the structured
+// fields and the request records are read, never the wording.
+func (s *Session) fetchFirst(at string, it domain.ChangeItem, bs []domain.AssessmentBehaviour) error {
+	if !s.cfg.Prompt.Features.FetchFirst || !behaviouralChange(it) || s.cfg.Upstream == nil || s.exhausted != "" {
+		return nil
+	}
+	sc := s.upstreamScope()
+	if len(sc.repos) == 0 {
+		return nil
+	}
+	var open []string
+	for i, b := range bs {
+		if b.Source == domain.BehaviourNotChecked {
+			open = append(open, fmt.Sprintf("behaviour[%d] %q", i, b.Behaviour))
+		}
+	}
+	if len(open) == 0 {
+		return nil
+	}
+	var reqs []string
+	for _, r := range s.evReqs {
+		if r.ChangeItem == it.ID && r.Upstream != nil {
+			reqs = append(reqs, fmt.Sprintf("%s (%s)", r.ID, r.Status))
+		}
+	}
+	if len(reqs) > 0 {
+		return rejectf("%s: this session requested upstream evidence for item %s (%s), so each behaviour is cited or reported unavailable; %d are not-checked: %s. Cite the fetched text with source upstream, name a request recorded unavailable with source unavailable, or request the behaviour first (request_evidence kind upstream-search or upstream-file).",
+			at, it.ID, strings.Join(reqs, ", "), len(open), strings.Join(open, "; "))
+	}
+	if s.rejectedNoFetch[it.ID] {
+		return nil
+	}
+	s.rejectedNoFetch[it.ID] = true // recorded although the call is rejected: the check rejects once
+	return rejectf("%s: %d behaviours are not-checked and this session made no upstream request for item %s: %s. Upstream fetching is available for %s at %s (target) and %s (current): request the behaviour, or state in the entry why upstream source cannot answer it. Request it with request_evidence (kind upstream-search or upstream-file) and cite it with source upstream, or name the request with source unavailable if it is recorded unavailable; or keep source not-checked and give reason. A resubmission is accepted, with each not-checked behaviour recorded as a gap.",
+		at, len(open), it.ID, strings.Join(open, "; "), strings.Join(sc.repos, ", "), sc.target, sc.current)
 }
 
 // behaviourVerdictCheck rejects a not-affected verdict, every time, while a
@@ -215,7 +271,11 @@ func (s *Session) behaviourGaps(bs []domain.AssessmentBehaviour) []string {
 			if target == "" {
 				target = s.upstreamScope().target
 			}
-			out = append(out, fmt.Sprintf("%s%q at %s: %s", behaviourGap, b.Behaviour, target, b.Source))
+			gap := fmt.Sprintf("%s%q at %s: %s", behaviourGap, b.Behaviour, target, b.Source)
+			if b.Reason != "" {
+				gap += " (reason: " + b.Reason + ")"
+			}
+			out = append(out, gap)
 		case domain.BehaviourUnavailable:
 			for _, r := range s.evReqs {
 				if r.ID == b.Request {

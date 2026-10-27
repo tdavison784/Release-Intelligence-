@@ -830,6 +830,9 @@ type BehaviourInput struct {
 	Citations []Citation `json:"citations,omitempty"`
 	Quote     string     `json:"quote,omitempty"`
 	Request   string     `json:"request,omitempty"`
+	// Reason (source not-checked, prompt feature fetchFirst): why the
+	// upstream source cannot answer the behaviour.
+	Reason string `json:"reason,omitempty"`
 }
 
 // VerifiedInput is one verified statement and the citations that establish it.

@@ -188,6 +188,9 @@ type Session struct {
 	// rejectedNoBehaviour: the items whose not-affected verdict declared no
 	// behaviour and was rejected once (prompt feature behaviour).
 	rejectedNoBehaviour map[string]bool
+	// rejectedNoFetch: the items whose not-checked behaviour, with no
+	// upstream request made, was rejected once (prompt feature fetchFirst).
+	rejectedNoFetch map[string]bool
 
 	// upState is the focus item's upstream fetch budget and what it read
 	// (prompt feature upstream).
@@ -223,7 +226,7 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
 		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
 		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{}, rejectedNoBehaviour: map[string]bool{},
-		upState: upstreamState{done: map[string][]string{}}}
+		rejectedNoFetch: map[string]bool{}, upState: upstreamState{done: map[string][]string{}}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -679,9 +682,16 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		}
 	case investigate.ToolSubmitFindings:
 		var in investigate.SubmitInput
-		if decode(&in) {
-			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.submitFindings(ctx, in) })
+		if !decode(&in) {
+			break
 		}
+		if k := legacyBehaviourReason(args); k != "" && !s.cfg.Prompt.Features.FetchFirst {
+			// Before feature fetchFirst a behaviour entry had no reason: the
+			// strict decoder refused it, and still does, byte for byte.
+			bad(rejectf("invalid arguments for %s: %v", tool, fmt.Errorf("json: unknown field %q", k)))
+			break
+		}
+		res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.submitFindings(ctx, in) })
 	default:
 		_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
 	}
@@ -733,6 +743,37 @@ type legacyEvidenceRequest struct {
 	Kind       domain.EvidenceRequestKind `json:"kind"`
 	Target     string                     `json:"target"`
 	Reason     string                     `json:"reason"`
+}
+
+// legacyBehaviourReason returns the key of the first behaviour entry's
+// reason in submit_findings arguments ("" if none). The arguments decoded
+// strictly, so it is the only field the decoder before feature fetchFirst
+// would have refused, and it would have named this key (matched without
+// regard to case, as encoding/json matches fields).
+func legacyBehaviourReason(args json.RawMessage) string {
+	var in struct {
+		Items []struct {
+			Assessment *struct {
+				Behaviour []map[string]json.RawMessage `json:"behaviour"`
+			} `json:"assessment"`
+		} `json:"items"`
+	}
+	if json.Unmarshal(args, &in) != nil {
+		return ""
+	}
+	for _, it := range in.Items {
+		if it.Assessment == nil {
+			continue
+		}
+		for _, b := range it.Assessment.Behaviour {
+			for k := range b {
+				if strings.EqualFold(k, "reason") {
+					return k
+				}
+			}
+		}
+	}
+	return ""
 }
 
 type getChangeItemArgs struct {
