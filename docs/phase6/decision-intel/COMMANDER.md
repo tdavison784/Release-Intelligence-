@@ -18,7 +18,7 @@ handoffs (every item is `providers: [claude]`).
 | upstream | ri-upstream | Opus 5.5 | p6di/upstream | .claude/worktrees/p6di-upstream | w1:t2C (pane w1:p41) | done, merged, closed 2026-10-27 |
 | upstream2 | ri-upstream2 | Opus 5.5 | p6di/upstream2 | .claude/worktrees/p6di-upstream2 | w1:t2D (pane w1:p42) | done, merged, closed 2026-10-27 |
 | upstream3 | ri-upstream3 | Opus 5.5 | p6di/upstream3 | .claude/worktrees/p6di-upstream3 | w1:t2E (pane w1:p43) | done, merged, closed 2026-10-27 |
-| synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | started 2026-10-27 (D-0017) |
+| synthesis | ri-synthesis | Opus 5.5 | p6di/synthesis | .claude/worktrees/p6di-synthesis | w1:t2F (pane w1:p45) | done, merged, closed 2026-10-28 |
 
 ## Merge log
 
@@ -67,11 +67,9 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. Lane `synthesis` is running (D-0017). On LANE DONE:
-   - review it: generic prompt, floor enforced, policy isolation, Temporal replay;
-   - merge it;
-   - run GATE-M3 (v13 + synthesis × 3 on P-US, P-EU and D-EU);
-   - score it and write M3-RESULT.md.
+1. D-0018: `scripts/phase6/run-m3-gate.sh` under nohup, scratch `$CLAUDE_JOB_DIR/tmp/m3`, recorded state
+   `$CLAUDE_JOB_DIR/tmp/m2adv/state`. Score it per GATE-M3 and write M3-RESULT.md.
+2. Tell the product owner: the lane's strict rule (safe needs a complete advisory assessment) is kept, fail-closed.
 
 ## Notes
 
