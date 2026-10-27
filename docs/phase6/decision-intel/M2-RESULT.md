@@ -159,3 +159,48 @@ cache).
 entry on a behavioural item with no `request_evidence` attempt is rejected once ("fetching is available: request it,
 or say why it cannot answer this"). An attempted fetch then yields `upstream` or `unavailable`. This pushes retrieval
 deterministically without changing the verdict rules. Then re-run live × 3. The ablation is already met.
+
+### §2 re-run with prompt v13 (fetch first; D-0014 merged), 2026-10-27: MET, with one interpretation error
+
+**Runs:** `C1-K0-20261027-35027090-v13-deu-r{1,2,3}` (live) and `…-v13-deu-abl-r{1,2,3}` (ablation).
+
+| Run | Fetches on the item | Verdict | B3 | Path-validation behaviour source |
+|---|---|---|---|---|
+| live r1 | 2, ok | potentially-affected | not FS | `upstream` (cited) |
+| live r2 | 2, ok (first submission rejected) | potentially-affected | not FS | `upstream` (cited) |
+| live r3 | 1, ok | **not-affected** | **FS** | `upstream` (cited) **but misread** |
+| abl r1 | 0 (rejected once, resubmitted) | potentially-affected | not FS | `not-checked` |
+| abl r2 | 1, unavailable | potentially-affected | not FS | `unavailable` |
+| abl r3 | 1, unavailable | potentially-affected | not FS | `unavailable` |
+
+- **Retrieval: 3 of 3 live** (v12: 1 of 3). The fetch-first check works, so no new agent driver is needed for
+  retrieval (the product owner's SDK question).
+- **Live r3: a new failure class, misreading correctly retrieved evidence.**
+  - It cites `config.go` at controller-v1.12.0 (ev-a9149dc068e9): `alphanumeric chars, "-", "_", "/".In case of
+    additional characters,`. That is the correct upstream statement, and it excludes '.'.
+  - The verdict says the paths "satisfy the strict path pattern (alphanumeric, '-', '_', '/'... '.')". The citation
+    contradicts the claim.
+  - By design, no deterministic check reads wording. This is mission D4's "a syntactically correct hypothesis is not
+    necessarily a technically correct hypothesis". It belongs to **M4 independent verification**: a targeted runtime
+    check (apply the Ingress to a 1.12.0 admission webhook in kind, E5) settles it, or a semantic check of the claim
+    against the cited text. Under PD-1, the engineer would also see the quote beside the claim.
+- **Ablation:** 0 of 3 false-safe. Two record `unavailable`, one records `not-checked` after the once-rejection.
+- **Classification:** identical to the deterministic run in 6 of 6.
+
+**GATE-M2 §2 against its pre-registered criteria:**
+- **Live:** B3 is not false-safe in 2 of 3 (≥ 2 required), each non-FS run cites the validator source, and no run
+  states the character set without a citation. **Met.**
+- **Ablation:** never false-safe, with the gap explicit. **Met.** abl r1 says `not-checked`, not `unavailable`.
+
+## M2 summary (commander), for the product owner's gate decision
+
+- **§1 Advisories: met.** Both edges, recorded state, offline replay, classification stricter only. The product
+  owner accepted 1.20.3.
+- **§2 Strict-path semantics: met.** Mission M2 gate: "The investigation no longer relies on unverified model memory
+  to establish strict-path compatibility or a target version's security status."
+  - Across v12 and v13 (12 runs), no verdict rests on memory: each run cites fetched source or records an explicit
+    gap.
+  - One run cites correct evidence and misreads it. That is an M4 problem, not M2.
+- **§0 Scoped verdicts (v10): not passed.** Moved to M3 (PD-0d, PD-1).
+- **Prompts:** v9 is still the default. v13 is the candidate for M3 (consumers, assessments, upstream fetch first,
+  behaviour dependencies).
