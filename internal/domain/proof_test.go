@@ -63,6 +63,24 @@ func TestProofValidateRejectsAnOutcomeTheMethodsDoNotSupport(t *testing.T) {
 	if err := p.Validate(); err == nil || !strings.Contains(err.Error(), "both arms") {
 		t.Fatalf("one-arm pass: %v", err)
 	}
+	// a non-discriminating condition-absent arm cannot carry a pass; an
+	// omitted-field arm predicted to change can (lane verify2)
+	p = testProof(MethodPass, MethodPass)
+	p.Methods[1].Arms[1].NonDiscriminating = "it sets the field explicitly to the new default"
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err == nil || !strings.Contains(err.Error(), "discriminating arm") {
+		t.Fatalf("pass on a non-discriminating arm: %v", err)
+	}
+	p.Methods[1].Arms = append(p.Methods[1].Arms, ProofArm{Name: ArmConditionAbsent + "-omitted-1", Predicted: BehaviourNew, ReactedFrom: true, ReactedTo: true, Changed: true})
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err != nil {
+		t.Fatalf("pass on the omitted-field arm: %v", err)
+	}
+	p.Methods[1].Arms[2].Predicted = BehaviourPrevious
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err == nil {
+		t.Fatal("an omitted-field arm predicted to keep its behaviour cannot carry a pass")
+	}
 	p = testProof(MethodPass, MethodNotRun)
 	p.Level = LevelObserved
 	p.ID = ProofRecordID(p)

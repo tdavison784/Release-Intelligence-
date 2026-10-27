@@ -26,6 +26,10 @@ func tierRule(def *domain.FieldDefault) domain.SemanticAssertion {
 	return r
 }
 
+// tierRole is a consumer observation whose role is spec.tier (no
+// role-absent observation declared).
+var tierRole = &ConsumerFixture{ID: "tier", Role: []FieldValue{{Path: "spec.tier", Value: "gold"}}}
+
 var tierEvidence = cite("https://example.test/acme/v2.0.0/api/types.go", "Tier defaults to silver when omitted.", "// Tier defaults to silver when omitted.")
 
 func tierDefault(value string, cites ...domain.EvidenceID) *domain.FieldDefault {
@@ -67,7 +71,7 @@ func TestBoundaryArms(t *testing.T) {
 	t.Run("explicit-only rule fails", func(t *testing.T) {
 		rule := tierRule(nil)
 		arms, fx := tierArms(t, rule)
-		_, _, why := BoundaryArms(rule, fx, arms, nil, pool)
+		_, _, why := BoundaryArms(rule, fx, arms, nil, pool, false)
 		if !strings.Contains(why, "omits spec.tier") || !strings.Contains(why, "only works when every field") {
 			t.Fatalf("why %q", why)
 		}
@@ -75,7 +79,7 @@ func TestBoundaryArms(t *testing.T) {
 	t.Run("unevidenced default fails", func(t *testing.T) {
 		rule := tierRule(tierDefault(`"silver"`, "ev-000000000000"))
 		arms, fx := tierArms(t, rule)
-		_, _, why := BoundaryArms(rule, fx, arms, nil, pool)
+		_, _, why := BoundaryArms(rule, fx, arms, nil, pool, false)
 		if !strings.Contains(why, "not evidenced") {
 			t.Fatalf("why %q", why)
 		}
@@ -83,7 +87,7 @@ func TestBoundaryArms(t *testing.T) {
 	t.Run("evidenced default predicts the omitted object shielded", func(t *testing.T) {
 		rule := tierRule(tierDefault(`"silver"`, tierEvidence.ID))
 		arms, fx := tierArms(t, rule)
-		extra, _, why := BoundaryArms(rule, fx, arms, nil, pool)
+		extra, _, why := BoundaryArms(rule, fx, arms, nil, pool, false)
 		if why != "" || len(extra) != 1 {
 			t.Fatalf("extra %+v why %q", extra, why)
 		}
@@ -99,7 +103,7 @@ func TestBoundaryArms(t *testing.T) {
 	t.Run("evidenced default predicts the omitted object exposed", func(t *testing.T) {
 		rule := tierRule(tierDefault(`"gold"`, tierEvidence.ID))
 		arms, fx := tierArms(t, rule)
-		extra, _, why := BoundaryArms(rule, fx, arms, nil, pool)
+		extra, _, why := BoundaryArms(rule, fx, arms, nil, pool, false)
 		if why != "" || len(extra) != 1 || extra[0].Predicted != domain.BehaviourNew || shielded(extra[0].Name) {
 			t.Fatalf("extra %+v why %q", extra, why)
 		}
@@ -107,14 +111,14 @@ func TestBoundaryArms(t *testing.T) {
 	t.Run("omitting a role field takes the object outside the role", func(t *testing.T) {
 		rule := tierRule(tierDefault(`"silver"`, tierEvidence.ID))
 		arms, fx := tierArms(t, rule)
-		extra, _, why := BoundaryArms(rule, fx, arms, map[string]bool{"spec.tier": true}, pool)
+		extra, _, why := BoundaryArms(rule, fx, arms, tierRole, pool, false)
 		if why != "" || len(extra) != 1 || !isOutsideRole(extra[0].Name) || !extra[0].outsideRole {
 			t.Fatalf("extra %+v why %q", extra, why)
 		}
 		// exposed outside the role: the consumer cannot observe it
 		rule = tierRule(tierDefault(`"gold"`, tierEvidence.ID))
 		arms, fx = tierArms(t, rule)
-		extra, lims, why := BoundaryArms(rule, fx, arms, map[string]bool{"spec.tier": true}, pool)
+		extra, lims, why := BoundaryArms(rule, fx, arms, tierRole, pool, false)
 		if why != "" || len(extra) != 0 || len(lims) != 1 || !strings.Contains(lims[0], "outside the consumer role") {
 			t.Fatalf("extra %+v lims %v why %q", extra, lims, why)
 		}
@@ -126,7 +130,7 @@ func TestBoundaryArms(t *testing.T) {
 		rule := tierRule(tierDefault(`"silver"`, tierEvidence.ID))
 		arms, fx := tierArms(t, rule)
 		arms[1].Predicted = domain.BehaviourNew
-		if _, _, why := BoundaryArms(rule, fx, arms, nil, pool); !strings.Contains(why, "disagree") {
+		if _, _, why := BoundaryArms(rule, fx, arms, nil, pool, false); !strings.Contains(why, "disagree") {
 			t.Fatalf("why %q", why)
 		}
 	})
@@ -200,7 +204,7 @@ func TestEvaluateConsumerOutsideRoleArms(t *testing.T) {
 		"plays the role and keeps verifying": {map[string][2]string{present: {v, v}, absent: {v, f}, outside: {v, v}}, domain.MethodPass},
 		"plays the role and breaks":          {map[string][2]string{present: {v, v}, absent: {v, f}, outside: {v, f}}, domain.MethodFail},
 	} {
-		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(present, outside, absent))
+		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(present, outside, absent), nil)
 		if m.Outcome != tc.want {
 			t.Errorf("%s: %s (%s)", name, m.Outcome, m.Detail)
 		}

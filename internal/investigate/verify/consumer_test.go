@@ -214,7 +214,7 @@ func TestEvaluateConsumerArms(t *testing.T) {
 		"no exposed arm":                    {[]string{present, present2}, map[string][2]string{present: {v, v}, present2: {v, v}}, domain.MethodInconclusive, "no exposed arm"},
 		"wrong rule refuted":                {[]string{present, present2}, map[string][2]string{present: {v, v}, present2: {v, f}}, domain.MethodFail, "does not shield"},
 	} {
-		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(tc.arms...))
+		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(tc.arms...), nil)
 		if m.Outcome != tc.want || !strings.Contains(m.Detail, tc.why) || m.Producer != ConsumerExerciseProducer {
 			t.Errorf("%s: %s %s", name, m.Outcome, m.Detail)
 		}
@@ -238,7 +238,7 @@ func TestEvaluateConsumerArms(t *testing.T) {
 	// a broken run is never decided by its consumer results
 	broken := consumerRun(map[string][2]string{present: {v, v}, absent: {v, f}})
 	broken.Run.UpgradeCompleted = false
-	if m := EvaluateConsumerArms(broken, consumerPlans(present, absent)); m.Outcome != domain.MethodInconclusive {
+	if m := EvaluateConsumerArms(broken, consumerPlans(present, absent), nil); m.Outcome != domain.MethodInconclusive {
 		t.Errorf("upgrade incomplete: %s", m.Outcome)
 	}
 }

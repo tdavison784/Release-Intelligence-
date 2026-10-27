@@ -147,6 +147,30 @@ type ProofArm struct {
 	// (lane verify2): then it, not the data of the arm's objects, decides
 	// the arm. CONTRACT-CHANGE(verify2): additive.
 	Consumer *ProofConsumer `json:"consumer,omitempty"`
+	// NonDiscriminating says why the arm cannot contrast FROM with TO by
+	// construction (for example an explicit value of a field whose default
+	// changed: it behaves the same at both versions): such an arm is run and
+	// recorded but never decides the method (Milestone 4 fix, lane verify2,
+	// D-0025). "" for every other arm. CONTRACT-CHANGE(verify2): additive.
+	NonDiscriminating string `json:"nonDiscriminating,omitempty"`
+}
+
+// Answered reports whether the arm's exercise (or consumer observation) was
+// answered at FROM and at TO.
+func (a ProofArm) Answered() bool { return a.ReactedFrom && a.ReactedTo }
+
+// Contrast reports whether the arm can decide that the behaviour changed:
+// the principal condition-absent arm, or another condition-absent arm (a
+// numbered alternative, an omitted-field arm) predicted to take the new
+// behaviour — never a non-discriminating one.
+func (a ProofArm) Contrast() bool {
+	switch {
+	case a.NonDiscriminating != "":
+		return false
+	case a.Name == ArmConditionAbsent:
+		return true
+	}
+	return strings.HasPrefix(a.Name, ArmConditionAbsent+"-") && a.Predicted == BehaviourNew
 }
 
 // ProofConsumer is a consumer observation of one arm: at each version a
@@ -314,12 +338,15 @@ func (p ProofRecord) Validate() error {
 			}
 			observed = observed || m.Outcome != MethodNotRun
 			if m.Outcome == MethodPass {
-				arms := map[string]bool{}
+				// the condition arm, and an arm that can show the change
+				// (a non-discriminating condition-absent arm cannot)
+				present, contrast := false, false
 				for _, a := range m.Arms {
-					arms[a.Name] = a.ReactedFrom && a.ReactedTo
+					present = present || (a.Name == ArmConditionPresent && a.Answered())
+					contrast = contrast || (a.Contrast() && a.Answered())
 				}
-				if !arms[ArmConditionPresent] || !arms[ArmConditionAbsent] {
-					bad("%s: a passing exercise needs both arms observed with the exercise answered at both versions", w)
+				if !present || !contrast {
+					bad("%s: a passing exercise needs both arms observed with the exercise answered at both versions (the condition-absent side by a discriminating arm)", w)
 				}
 			}
 		default:

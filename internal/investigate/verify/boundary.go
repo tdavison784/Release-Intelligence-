@@ -227,13 +227,23 @@ type boundaryArm struct {
 }
 
 // BoundaryArms builds the omitted-field arms of a rule from its arms (see
-// the comment above). rolePaths are the consumer role's fields (nil without a
-// consumer observation): omitting one takes the object out of the role, so a
-// shielded prediction becomes an outside-role arm and an exposed one cannot be
+// the comment above). cf is the consumer observation (nil without one):
+// omitting one of its role fields takes the object out of the role, so a
+// shielded prediction becomes an outside-role arm (observed by the catalog's
+// role-absent observation when it declares one) and an exposed one cannot be
 // observed by the consumer (a limitation). why is set when the rule cannot
-// predict an omitted-field object: the exercise then fails.
-func BoundaryArms(rule domain.SemanticAssertion, fx *SubjectFixture, arms []consumerArm, rolePaths map[string]bool,
-	pool map[domain.EvidenceID]domain.Evidence) (out []boundaryArm, limitations []string, why string) {
+// predict an omitted-field object: the exercise then fails — except, for a
+// scope refinement, an omitted role field without an evidenced default: what
+// such objects do stays undecidable (a limitation; the evaluators keep them
+// unknown), which does not refute the refinement for the objects that set it.
+func BoundaryArms(rule domain.SemanticAssertion, fx *SubjectFixture, arms []consumerArm, cf *ConsumerFixture,
+	pool map[domain.EvidenceID]domain.Evidence, refinement bool) (out []boundaryArm, limitations []string, why string) {
+	rolePaths := map[string]bool{}
+	if cf != nil {
+		for _, r := range cf.Role {
+			rolePaths[r.Path] = true
+		}
+	}
 	fields := valueFields(rule)
 	// every arm already built must be predicted by the rule itself, as its
 	// construction says (an alternative the overlap shields but whose
@@ -269,12 +279,26 @@ func BoundaryArms(rule domain.SemanticAssertion, fx *SubjectFixture, arms []cons
 				continue
 			}
 			seen[canonical(obj)] = true
+			outside := rolePaths[f]
+			objName := fmt.Sprintf("ri-arm-omit-%d", n+1)
+			// an in-role arm leaving the role: the role-absent observation's
+			// subject fields and consumers (when the catalog declares them)
+			leaves := outside && !isOutsideRole(a.Name) && cf != nil && cf.Outside != nil
+			if leaves {
+				if err := cf.placeOutside(obj, objName, nil); err != nil {
+					limitations = append(limitations, fmt.Sprintf("arm %s without %s is not exercised: %v", a.Name, f, err))
+					continue
+				}
+			}
 			predicted, undecided := predict(rule, fx.Target, obj, pool)
 			if undecided != "" {
+				if refinement && outside {
+					limitations = append(limitations, fmt.Sprintf("objects that leave the role field %s unset stay undecidable: the refinement states no evidenced default for it (%s); arm %s without it is not exercised", f, undecided, a.Name))
+					continue
+				}
 				return nil, nil, fmt.Sprintf("the rule cannot predict an object that omits %s (arm %s without it): %s — a rule that only works when every field it compares is explicit is not generally applicable (state the field's default with evidence, or what an unset %s means)",
 					f, a.Name, undecided, f)
 			}
-			outside := rolePaths[f]
 			if outside && predicted == domain.BehaviourNew {
 				limitations = append(limitations, fmt.Sprintf("arm %s without %s is predicted exposed but outside the consumer role: the consumer observation cannot test it", a.Name, f))
 				continue
@@ -292,13 +316,17 @@ func BoundaryArms(rule domain.SemanticAssertion, fx *SubjectFixture, arms []cons
 				suffix += outsideRoleSuffix
 			}
 			name := fmt.Sprintf("%s%s-%d", base, suffix, n)
-			objName := fmt.Sprintf("ri-arm-omit-%d", n)
 			renamed := renameArm(obj, a.Object, objName)
 			b := boundaryArm{outsideRole: outside}
 			b.Arm = Arm{Name: name, Object: renamed, Predicted: predicted,
 				Condition: fmt.Sprintf("%s without %s (omitted; the rule predicts %s)", a.Condition, f, predicted)}
-			for _, c := range a.consumers {
-				b.consumers = append(b.consumers, renameArm(deepCopy(c).(map[string]any), a.Object, objName))
+			if leaves {
+				b.Condition += " (outside the role: the role-absent observation)"
+				b.consumers = cf.consumersFor(fx, objName, true)
+			} else {
+				for _, c := range a.consumers {
+					b.consumers = append(b.consumers, renameArm(deepCopy(c).(map[string]any), a.Object, objName))
+				}
 			}
 			out = append(out, b)
 		}
