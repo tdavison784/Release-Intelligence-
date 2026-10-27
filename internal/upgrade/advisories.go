@@ -12,8 +12,14 @@ import (
 
 // Advisory rules.
 const (
-	RuleAdvisoryFixed    = "advisory:fixed"
+	RuleAdvisoryFixed = "advisory:fixed"
+	// RuleAdvisoryAffected: the target and the current version are both
+	// affected (a persisting exposure).
 	RuleAdvisoryAffected = "advisory:affects-target"
+	// RuleAdvisoryRegression: the target is affected and the current version
+	// is not, so the upgrade introduces the vulnerability. Action required;
+	// policy treats it at least as strictly as RuleAdvisoryAffected.
+	RuleAdvisoryRegression = "advisory:regression"
 )
 
 func affected(c *semver.Constraints, v domain.Version) bool {
@@ -67,8 +73,11 @@ func advisoryLabel(a domain.Advisory) string {
 	return a.ID
 }
 
-// advisoryChanges matches advisories against From, the path and To.
+// advisoryChanges matches advisories against From, the path and To, and
+// records the security section (security.go) from the same classification.
 func (b *builder) advisoryChanges() {
+	sec := newSecurityAssessment(b)
+	defer sec.finish()
 	advs := append([]domain.Advisory(nil), b.in.Advisories...)
 	sort.SliceStable(advs, func(i, j int) bool { return advs[i].ID < advs[j].ID })
 	pool := map[domain.EvidenceID]domain.Evidence{}
@@ -84,13 +93,16 @@ func (b *builder) advisoryChanges() {
 		vul := strings.TrimSpace(a.Vulnerable)
 		if vul == "" {
 			b.warnf("Advisory %s has no machine-readable affected-version range; check manually whether it applies (%s)", advisoryLabel(a), where)
+			sec.unassessed(a)
 			continue
 		}
 		cs, err := semver.NewConstraint(vul)
 		if err != nil {
 			b.warnf("Advisory %s has an unparsable affected-version range %q; check manually whether it applies (%s)", advisoryLabel(a), vul, where)
+			sec.unassessed(a)
 			continue
 		}
+		sec.assessed(a, cs)
 		fromAff, toAff := affected(cs, b.from.Version), affected(cs, b.to.Version)
 		if !fromAff && !toAff {
 			continue
@@ -109,6 +121,7 @@ func (b *builder) advisoryChanges() {
 		if severity == "" {
 			severity = "unspecified"
 		}
+		sec.classified(a, ev, fromAff, toAff)
 		if len(ev) == 0 {
 			if toAff {
 				b.warnf("Target %s is affected by %s, severity %s; patched versions: %s (no evidence record available, not reported as a change)", toTag, advisoryLabel(a), severity, patched)
@@ -137,7 +150,7 @@ func (b *builder) advisoryChanges() {
 					break
 				}
 			}
-			b.addChange(domain.Change{
+			sec.changed(a.ID, b.addChange(domain.Change{
 				Category:   domain.CategorySecurity,
 				Title:      shorten(fmt.Sprintf("Fixes %s: %s", advisoryLabel(a), summary), MaxTitle),
 				Detail:     detail + fmt.Sprintf(" %s is affected; %s is not.", fromTag, toTag),
@@ -147,24 +160,36 @@ func (b *builder) advisoryChanges() {
 				Provenance: computed(RuleAdvisoryFixed),
 				Facts:      []domain.FactID{fact.ID},
 				Evidence:   ev,
-			}, RuleAdvisoryFixed, a.ID)
+			}, RuleAdvisoryFixed, a.ID))
 			continue
 		}
-		state := "still affects"
 		if !fromAff {
-			state = "affects"
+			// The upgrade introduces the vulnerability: a regression.
+			sec.changed(a.ID, b.addChange(domain.Change{
+				Category:       domain.CategorySecurity,
+				ActionRequired: true,
+				Title:          shorten(fmt.Sprintf("%s affects target %s: %s", advisoryLabel(a), toTag, summary), MaxTitle),
+				Detail:         detail + fmt.Sprintf(" Security regression: %s is not affected; %s is. Consider a release that removes the regression instead (see the security section's candidates).", fromTag, toTag),
+				Subjects:       []string{a.ID},
+				References:     advisoryRefs(a),
+				Provenance:     computed(RuleAdvisoryRegression),
+				Facts:          []domain.FactID{fact.ID},
+				Evidence:       ev,
+			}, RuleAdvisoryRegression, a.ID))
+			b.warnf("Target %s is affected by %s, severity %s, and %s is not (a security regression); patched versions: %s", toTag, advisoryLabel(a), severity, fromTag, patched)
+			continue
 		}
-		b.addChange(domain.Change{
+		sec.changed(a.ID, b.addChange(domain.Change{
 			Category:       domain.CategorySecurity,
 			ActionRequired: true,
-			Title:          shorten(fmt.Sprintf("%s %s target %s: %s", advisoryLabel(a), state, toTag, summary), MaxTitle),
+			Title:          shorten(fmt.Sprintf("%s still affects target %s: %s", advisoryLabel(a), toTag, summary), MaxTitle),
 			Detail:         detail + " Consider upgrading to a patched release instead.",
 			Subjects:       []string{a.ID},
 			References:     advisoryRefs(a),
 			Provenance:     computed(RuleAdvisoryAffected),
 			Facts:          []domain.FactID{fact.ID},
 			Evidence:       ev,
-		}, RuleAdvisoryAffected, a.ID)
+		}, RuleAdvisoryAffected, a.ID))
 		b.warnf("Target %s is affected by %s, severity %s; patched versions: %s", toTag, advisoryLabel(a), severity, patched)
 	}
 }

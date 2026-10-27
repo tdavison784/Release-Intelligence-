@@ -146,6 +146,12 @@ type UpgradeEdge struct {
 	// EnrichmentRun describes the AI run that produced Enrichments (absent
 	// when no enrichment was attempted). See enrichment.go.
 	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
+
+	// Security is the deterministic advisory assessment: regressions,
+	// persisting and fixed advisories, unread sources as gaps, and the
+	// candidate versions (edgesecurity.go). Absent on edges built before it
+	// existed or without a product definition.
+	Security *EdgeSecurity `json:"security,omitempty"`
 }
 
 // ChangesWhere returns changes matching pred.
@@ -165,7 +171,9 @@ func (e *UpgradeEdge) ChangesWhere(pred func(Change) bool) []Change {
 //   - every Enrichment has complete AI provenance, relates to existing
 //     Changes and cites only evidence it was given, which resolves within the
 //     edge (see validateEnrichments);
-//   - every fact's evidence resolves.
+//   - every fact's evidence resolves;
+//   - the security section, when present, is well-formed and cites
+//     resolvable evidence.
 func (e *UpgradeEdge) Validate() error {
 	var errs []error
 	ev := map[EvidenceID]bool{}
@@ -206,6 +214,9 @@ func (e *UpgradeEdge) Validate() error {
 		}
 	}
 	errs = append(errs, e.validateEnrichments(ev)...)
+	if e.Security != nil {
+		errs = append(errs, e.Security.validate(ev)...)
+	}
 	if e.From.Compare(e.To) >= 0 {
 		errs = append(errs, errors.New("edge 'from' must be lower than 'to'"))
 	}

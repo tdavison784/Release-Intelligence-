@@ -224,6 +224,20 @@ func (b *builder) resolve(ids ...domain.EvidenceID) []domain.EvidenceID {
 	return out
 }
 
+// resolveOrAdd adds evidence records to the edge's pool and returns their
+// ids.
+func (b *builder) resolveOrAdd(evs []domain.Evidence) []domain.EvidenceID {
+	var out []domain.EvidenceID
+	for _, e := range evs {
+		if e.ID == "" {
+			continue
+		}
+		b.ev.Add(e)
+		out = appendUniqueIDs(out, e.ID)
+	}
+	return out
+}
+
 // addChange assigns a deterministic id and appends c. Changes without
 // resolvable evidence are not added; a warning is recorded instead.
 func (b *builder) addChange(c domain.Change, idParts ...string) bool {
