@@ -16,6 +16,7 @@ handoffs (every item is `providers: [claude]`).
 | advisories2 | ri-advisories2 | Opus 5.5 | p6di/advisories2 | .claude/worktrees/p6di-advisories2 | w1:t2A (pane w1:p3Z) | done, merged, closed 2026-10-27 |
 | advisories3 | ri-advisories3 | Opus 5.5 | p6di/advisories3 | .claude/worktrees/p6di-advisories3 | w1:t2B (pane w1:p30) | done, merged, closed 2026-10-27 |
 | upstream | ri-upstream | Opus 5.5 | p6di/upstream | .claude/worktrees/p6di-upstream | w1:t2C (pane w1:p41) | done, merged, closed 2026-10-27 |
+| upstream2 | ri-upstream2 | Opus 5.5 | p6di/upstream2 | .claude/worktrees/p6di-upstream2 | w1:t2D (pane w1:p42) | started 2026-10-27 (D-0013) |
 
 ## Merge log
 
