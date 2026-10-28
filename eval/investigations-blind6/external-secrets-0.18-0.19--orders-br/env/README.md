@@ -14,4 +14,4 @@ repository.
 External Secrets Operator itself is a cluster add-on: the platform team's `platform-addons`
 ApplicationSet (in the platform repository, `gitops-platform`) installs it in every registered
 cluster from the upstream chart, at the chart version the platform team sets there, with the values
-file from this repository. The proposed upgrade is that chart version bump.
+file from this repository.
