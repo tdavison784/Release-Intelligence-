@@ -24,7 +24,7 @@ handoffs (every item is `providers: [claude]`).
 | formalize | ri-formalize | Opus 5.5 | p6di/formalize | .claude/worktrees/p6di-formalize | w1:t2J (pane w1:p49) | done, merged, closed 2026-10-28 |
 | verify2 | ri-verify2 | Opus 5.5 | p6di/verify2 | .claude/worktrees/p6di-verify2 | w1:t2K (pane w1:p4A) | done, merged, closed 2026-10-28 |
 | verify3 | ri-verify3 | Opus 5.5 | p6di/verify3 | .claude/worktrees/p6di-verify3 | w1:t2M (pane w1:p4B) | done, merged, closed 2026-10-28 |
-| groundtruth6 | ri-groundtruth6 | Opus 5.5 | p6di/groundtruth6 (SEALED) | .claude/worktrees/p6di-groundtruth6 | w1:t2R (pane w1:p4H) | started 2026-10-28 (D-0032) |
+| groundtruth6 | ri-groundtruth6 | Opus 5.5 | p6di/groundtruth6 (SEALED) | .claude/worktrees/p6di-groundtruth6 | w1:t2R (pane w1:p4H) | done, merged, closed 2026-10-29 |
 | verify4 | ri-verify4 | Opus 5.5 | p6di/verify4 | .claude/worktrees/p6di-verify4 | w1:t2N (pane w1:p4C) | done, merged, closed 2026-10-28 |
 | join5 | ri-join5 | Opus 5.5 | p6di/join5 | .claude/worktrees/p6di-join5 | w1:t2P (pane w1:p4E) | done, merged, closed 2026-10-28 |
 
@@ -73,6 +73,11 @@ handoffs (every item is `providers: [claude]`).
   files that never hold the controller args. A disclosed integrity note: a broad grep printed 3 lines of the Phase 5
   EVAL-REPORT; it was not opened, and the code is generic. Build, vet and test green. Lane closed. Part B re-run.
 
+- 2026-10-29 `8dd00f54` Merge lane groundtruth6 (sealed): 4 pairs (traefik 3.6.10→3.6.15, cert-manager 1.20.4→1.21.3,
+  external-secrets 0.18.2→0.19.2, argo-cd 2.14.11→3.0.12). Decisive items: 4 affected, 3 not-affected, 1
+  insufficient-evidence; all observed in kind. Labels not read. Tagged `m6-freeze`. Harness amendment A1 (a gates.yaml
+  copy).
+
 ## Decisions
 
 - 2026-10-28 (product owner): **M4 passes** (PD-7). M6 comes before M5.
@@ -114,15 +119,12 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Sealed lane `groundtruth6` is running** (D-0032). **Do not read its branch's labels** before the freeze and GATE-M6.
-   On LANE DONE, accept only the class counts.
-2. **Then:**
-   - write GATE-M6 with generic thresholds and commit it;
-   - tag `m6-freeze`;
-   - merge `groundtruth6`;
-   - record upstream data online;
-   - run arms A–E;
-   - score, then M6-RESULT.
+1. **M6 runs:** `scripts/phase6/run-m6.sh $CLAUDE_JOB_DIR/tmp/m6 {A|B|CD}`.
+   - A (online recording) is running; then B and CD in parallel on clones.
+   - Then arm E: per-case `ri investigate -agent -synthesize`, formalize, verify `-runtime`; the product owner reviews;
+     A is re-run with the promoted knowledge.
+2. **Scoring:** after every run, read the labels, score per GATE-M6, and write M6-RESULT. The product owner grades 4 D
+   judgements (choose them before reading labels: repeat 1, one per pair).
 
 ## Notes
 
