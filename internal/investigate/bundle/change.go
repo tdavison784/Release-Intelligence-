@@ -708,6 +708,10 @@ func redactRendered(b []byte) []byte {
 
 var unsafePath = regexp.MustCompile(`[^A-Za-z0-9._/-]+`)
 
+// dotRun matches a run of two or more dots. URL paths such as a GitHub
+// compare range (".../compare/v1...v2") carry them; an artifact path must not.
+var dotRun = regexp.MustCompile(`\.{2,}`)
+
 // docURL normalises an evidence URI to the URL to fetch: the fragment is
 // dropped and a GitHub blob URL becomes its raw-content URL.
 func docURL(uri string) (string, bool) {
@@ -728,7 +732,7 @@ func docURL(uri string) (string, bool) {
 func docPath(product, rawURL string) string {
 	u, _ := url.Parse(rawURL)
 	p := path.Clean("/" + u.Host + u.Path)
-	return "upstream/" + product + unsafePath.ReplaceAllString(p, "_")
+	return "upstream/" + product + dotRun.ReplaceAllString(unsafePath.ReplaceAllString(p, "_"), "_")
 }
 
 // sourceSpec says which evidence supports one change source kind.

@@ -8,7 +8,7 @@
 # CD: consumer-aware agent (v13, the default) + upgrade synthesis, online (fetch-first), on its own clone.
 # Knowledge: <scratch>/KF (frozen). Each run is saved under eval/investigations-blind6/results/. Run under nohup.
 set -euo pipefail
-S=$1; phase=$2; repeats=${3:-3}
+S=$1; phase=$2; repeats=${3:-3}; suf=${M6_SUFFIX:-}
 repo=$(git rev-parse --show-toplevel); cd "$repo"
 export DO_NOT_TRACK=1
 [ -x bin/ri ] || go build -o bin/ri ./cmd/ri
@@ -26,10 +26,10 @@ run() { # <state> <mode> <run-id> <args...>
 }
 case $phase in
   A)  [ -d "$S/state" ] || cp -c -R "$shared" "$S/state"
-      run "$S/state" online M6-A -arm A0 ;;
+      run "$S/state" online "M6-A$suf" -arm A0 ;;
   B)  [ -d "$S/state-B" ] || cp -c -R "$S/state" "$S/state-B"
-      for r in $(seq 1 "$repeats"); do run "$S/state-B" offline "M6-B-r$r" -arm B0 -agent -agent-model claude-sonnet-5-5 -agent-prompt investigate-agent/v8; done ;;
+      for r in $(seq 1 "$repeats"); do run "$S/state-B" offline "M6-B$suf-r$r" -arm B0 -agent -agent-model claude-sonnet-5-5 -agent-prompt investigate-agent/v8; done ;;
   CD) [ -d "$S/state-CD" ] || cp -c -R "$S/state" "$S/state-CD"
-      for r in $(seq 1 "$repeats"); do run "$S/state-CD" online "M6-CD-r$r" -arm C1 -agent -agent-model claude-sonnet-5-5 -agent-prompt investigate-agent/v13 -synthesize; done ;;
+      for r in $(seq 1 "$repeats"); do run "$S/state-CD" online "M6-CD$suf-r$r" -arm C1 -agent -agent-model claude-sonnet-5-5 -agent-prompt investigate-agent/v13 -synthesize; done ;;
 esac
 echo "PHASE $phase DONE"

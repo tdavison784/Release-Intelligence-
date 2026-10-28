@@ -70,3 +70,23 @@ auto-approval facts).
 `ri eval -investigations` requires a `gates.yaml` in the dataset directory. `eval/investigations-blind6/gates.yaml`
 is an unchanged copy of `eval/investigations-heldout/gates.yaml` (the frozen Phase 4/5 harness gates). It drives only
 the harness's own pass/fail exit code. **M6 is scored by this file (GATE-M6), not by `gates.yaml`.**
+
+## Amendment A2, 2026-10-29 (a crash fix, product owner's decision; before any agent arm ran)
+
+**What happened.** Arm A (`M6-A`) crashed on both external-secrets environments:
+`collect-change-evidence: … artifact path "upstream/external-secrets/github.com/external-secrets/external-secrets/compare/v0.18.0...v0.19.0" must be relative`.
+The upstream document path builder (`bundle.docPath`) kept the `...` of a GitHub compare URL, and the domain rejects
+`..` in artifact paths.
+
+**The product owner's choice** (option 1): fix it before the agent arms, so every arm runs identical code on all 8
+environments.
+
+**The fix.** Runs of two or more dots in a URL path become `_` (`internal/investigate/bundle/change.go`, test
+`TestDocPathDotRuns`). It is generic and unrelated to reasoning; stored runs are unaffected, because such paths
+previously crashed.
+
+**Records.** The new freeze tag is `m6-freeze-a2`. Arm A is re-run as `M6-A2`, and all agent arms run on
+`m6-freeze-a2`. `M6-A` is kept as the record of the crash, a **blind finding of the baseline**.
+
+**Disclosure.** The eval tool's summary of `M6-A` printed the expected classes per environment, and the commander read
+it before the agent arms. Code, prompts and these thresholds were already frozen; nothing changed in response.
