@@ -26,7 +26,7 @@
             "required": ["kind"],
             "properties": {"group": {"type": "string"}, "kind": {"type": "string", "minLength": 1}}
           },
-          "action": {"enum": ["status-condition", "annotate", "rollout-restart"]},
+          "action": {"enum": ["status-condition", "annotate", "rollout-restart", "admission-dry-run"]},
           "condition": {
             "type": "object",
             "additionalProperties": false,
@@ -76,7 +76,8 @@
         "allOf": [
           {"if": {"properties": {"action": {"const": "status-condition"}}}, "then": {"required": ["condition"], "not": {"required": ["annotation"]}}},
           {"if": {"properties": {"action": {"const": "annotate"}}}, "then": {"required": ["annotation"], "not": {"required": ["condition"]}}},
-          {"if": {"properties": {"action": {"const": "rollout-restart"}}}, "then": {"not": {"anyOf": [{"required": ["condition"]}, {"required": ["annotation"]}]}}}
+          {"if": {"properties": {"action": {"const": "rollout-restart"}}}, "then": {"not": {"anyOf": [{"required": ["condition"]}, {"required": ["annotation"]}]}}},
+          {"if": {"properties": {"action": {"const": "admission-dry-run"}}}, "then": {"not": {"anyOf": [{"required": ["condition"]}, {"required": ["annotation"]}, {"required": ["reaction"]}]}}}
         ]
       }
     }

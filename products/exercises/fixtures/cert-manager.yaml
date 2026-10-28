@@ -72,3 +72,35 @@ subjects:
       quote: referencing the secret name under the `ca` stanza in the `Issuer` spec.
     - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
       quote: If true, this will automatically add the `cert sign` usage to the list
+    # Outside the role (lane verify2, D-0025): a Certificate that does not issue others
+    # (isCA: false), issued by a CA the arm declares. Its consumer trusts the ca.crt its Secret
+    # carries (the issuing CA, as a client that verifies peers against the CA does); at each
+    # version the Certificate is re-issued and its own tls.crt is verified against that trust.
+    # A scope refinement to this role is established only when such a consumer is unharmed.
+    outside:
+      summary: a client that trusts the issuing CA (the Secret's ca.crt) verifies a non-CA certificate re-issued afterwards
+      role:
+      - {path: spec.isCA, value: false}
+      subject:
+      - {path: spec.issuerRef.name, value: "{{name}}-issuer"}
+      objects:
+      - apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata: {name: "{{name}}-root"}
+        spec:
+          isCA: true
+          secretName: "{{name}}-root-tls"
+          commonName: "{{name}}-root.ri-verify.test"
+          issuerRef: {name: ri-verify-selfsigned, kind: Issuer}
+      - apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata: {name: "{{name}}-issuer"}
+        spec: {ca: {secretName: "{{name}}-root-tls"}}
+      trust: {secret: "{{name}}-tls", key: ca.crt}
+      reissue: ["{{name}}"]
+      verify: {secret: "{{name}}-tls", key: tls.crt}
+      references:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/configuration/ca.md
+        quote: for consumers of issued `Certificate`s to verify whether they're trusted.
+      - url: https://github.com/cert-manager/cert-manager/blob/v1.18.0/pkg/apis/certmanager/v1/types_certificate.go
+        quote: Reference to the issuer responsible for issuing the certificate.

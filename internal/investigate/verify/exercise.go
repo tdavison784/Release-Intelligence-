@@ -15,8 +15,11 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate/runtime"
 )
 
-// ExerciseProducer names the rule exercise (component@vN).
-const ExerciseProducer = "verify.exercise@v1"
+// ExerciseProducer names the rule exercise (component@vN; v2: non-discriminating
+// arms are recorded and never decide, lane verify2, D-0025; v3: behaviour
+// signatures are object state only, log lines and warning events are
+// diagnostics, lane verify3, D-0026).
+const ExerciseProducer = "verify.exercise@v3"
 
 // ControllerRenderer renders the product's controller at one version with
 // the fixture's values (the wiring uses the render engine and its cache).
@@ -42,6 +45,13 @@ type ExerciseInput struct {
 	KubernetesVersion string
 	Renderer          ControllerRenderer
 	Runner            FixtureRunner
+	// Evidence is the rule's upstream evidence: the pool its condition
+	// defaults must cite (boundary.go).
+	Evidence []domain.Evidence
+	// Refinement is set when the rule is a scope-refinement candidate
+	// (refinement.go): its consumer observation must be the one it names,
+	// and a pass needs a role-absent arm without consumer harm.
+	Refinement *domain.ScopeRefinement
 }
 
 // armPlan is an arm with the objects observed for it.
@@ -49,8 +59,10 @@ type armPlan struct {
 	Arm
 	subject string   // live id of the subject object
 	objects []string // subject + produced (+ consuming objects and theirs)
-	// consumer is the arm's consumer check (consumer observation only).
-	consumer *runtime.ConsumerCheck
+	// consumer is the arm's consumer check (consumer observation only);
+	// consuming the live ids of its consuming objects.
+	consumer  *runtime.ConsumerCheck
+	consuming []string
 }
 
 // ExerciseRule runs the two-arm exercise of a rule. It never runs against an
@@ -69,8 +81,6 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return notRun("the rule names no subject")
 	case in.Fixtures == nil:
 		return notRun("no fixtures are declared for %s (products/exercises/fixtures/%s.yaml)", in.Product, in.Product)
-	case in.Renderer == nil || in.Runner == nil:
-		return notRun("no controller renderer or cluster runner configured")
 	}
 	fx, ok := in.Fixtures.Subject(in.Rule.Subject.Group, in.Rule.Subject.Kind)
 	if !ok {
@@ -95,6 +105,14 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 	if why != "" {
 		return notRun("%s", why)
 	}
+	if r := in.Refinement; r != nil {
+		switch {
+		case cf == nil || cf.ID != r.Consumer:
+			return notRun("the rule is a scope refinement to consumer role %s, but its conditions do not select that consumer observation", r.Consumer)
+		case cf.Outside == nil:
+			return notRun("the catalog declares no role-absent observation for consumer %s (consumers[].outside): a scope refinement is established only by a role-absent arm", r.Consumer)
+		}
+	}
 	var arms []consumerArm
 	var limitations []string
 	if cf != nil {
@@ -109,6 +127,32 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		for _, a := range plain {
 			arms = append(arms, consumerArm{Arm: a})
 		}
+	}
+	// boundary fixtures: the arms again, each without a field the rule
+	// compares by value; a rule that cannot predict them fails here
+	extra, lims, why := BoundaryArms(in.Rule, fx, arms, cf, rulePool(in.Evidence), in.Refinement != nil)
+	if why != "" {
+		m.Outcome, m.Detail = domain.MethodFail, "boundary fixtures (decided before any cluster ran): "+why
+		m.Checks = []domain.ProofCheck{{Subject: "omitted-field arms", Outcome: domain.MethodFail, Detail: why}}
+		return m, limitations
+	}
+	limitations = append(limitations, lims...)
+	var probes []consumerArm
+	if in.Refinement != nil {
+		// default probes of the role fields the rule cannot predict when
+		// omitted (PD-5, probe.go), built from the arms before the
+		// omitted-field ones and run after them
+		var lims []string
+		probes, lims = DefaultProbes(in.Rule, fx, arms, cf, rulePool(in.Evidence))
+		limitations = append(limitations, lims...)
+	}
+	for _, b := range extra {
+		arms = append(arms, b.consumerArm)
+	}
+	arms = append(arms, probes...)
+	arms = classify(in.Rule, fx.Target, arms)
+	if in.Renderer == nil || in.Runner == nil {
+		return notRun("no controller renderer or cluster runner configured")
 	}
 	var plans []armPlan
 	var consumers []runtime.ConsumerCheck
@@ -134,11 +178,14 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 	var observe []string
 	for _, a := range arms {
 		p := armPlan{Arm: a.Arm, subject: objectID(a.Object)}
-		for _, obj := range append([]map[string]any{a.Object}, a.consumers...) {
+		for i, obj := range append([]map[string]any{a.Object}, a.consumers...) {
 			if err := write(obj); err != nil {
 				return notRun("fixture object: %v", err)
 			}
 			p.objects = append(p.objects, objectID(obj))
+			if i > 0 {
+				p.consuming = append(p.consuming, objectID(obj))
+			}
 			if obj["kind"] != fx.Target.Kind || !strings.HasPrefix(objectID(obj), groupOr(fx.Target.Group)+"/") {
 				continue // a consuming object of another kind: its outputs are not declared
 			}
@@ -176,7 +223,7 @@ func ExerciseRule(ctx context.Context, in ExerciseInput) (domain.ProofMethod, []
 		return notRun("the fixture run could not start: %v", err)
 	}
 	if cf != nil {
-		return EvaluateConsumerArms(res, plans), limitations
+		return EvaluateConsumerArms(res, plans, in.Refinement), limitations
 	}
 	m = EvaluateArms(res, plans, ex.Key())
 	return m, limitations
@@ -221,7 +268,7 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 	byName := map[string]domain.ProofArm{}
 	for _, p := range plans {
 		a := domain.ProofArm{Name: p.Name, Objects: p.objects, Condition: p.Condition, Predicted: p.Predicted,
-			ReactedFrom: reacted["from"][p.subject], ReactedTo: reacted["to"][p.subject]}
+			ReactedFrom: reacted["from"][p.subject], ReactedTo: reacted["to"][p.subject], NonDiscriminating: p.NonDiscriminating}
 		in := map[string]bool{}
 		for _, o := range p.objects {
 			in[o] = true
@@ -234,10 +281,16 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 				infra = true
 				continue
 			}
+			if d.Diagnostic() {
+				// a log line or warning event: recorded, never decisive
+				a.Diagnostics = append(a.Diagnostics, d.Object+" "+d.Signature)
+				continue
+			}
 			a.Changed = true
 			a.Signatures = append(a.Signatures, d.Object+" "+d.Signature)
 		}
 		sort.Strings(a.Signatures)
+		sort.Strings(a.Diagnostics)
 		switch {
 		case !a.ReactedFrom || !a.ReactedTo:
 			a.Observed = domain.BehaviourUndetermined
@@ -253,19 +306,53 @@ func EvaluateArms(res *runtime.FixtureResult, plans []armPlan, exercise string) 
 	m.Arms = armsOut
 	present, okP := byName[domain.ArmConditionPresent]
 	absent, okA := byName[domain.ArmConditionAbsent]
+	contrast, nonDisc := contrastArms(armsOut, absent, okA)
 	switch {
 	case !okP || !okA:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": both arms are required"
+	case len(contrast) == 0:
+		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the condition-absent arm cannot discriminate ("+absent.NonDiscriminating+") and no omitted-field arm is predicted to change: the change cannot be shown, so neither can the mitigation"
 	case infra:
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": the sandbox could not run an arm's objects (image pull)"
-	case present.Observed == domain.BehaviourUndetermined || absent.Observed == domain.BehaviourUndetermined:
+	case present.Observed == domain.BehaviourUndetermined || anyObserved(contrast, domain.BehaviourUndetermined):
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+fmt.Sprintf(": exercise %s was not answered on every arm at both versions — a quiet window proves nothing", exercise)
 	case present.Changed:
 		m.Outcome, m.Detail = domain.MethodFail, summary+": with the mitigating condition the behaviour still changed at TO ("+strings.Join(present.Signatures, "; ")+"): the condition does not preserve the previous behaviour"
-	case !absent.Changed:
+	case !allChanged(contrast):
 		m.Outcome, m.Detail = domain.MethodInconclusive, summary+": without the condition the behaviour did not change either: the upstream change was not demonstrated, so neither is the mitigation"
 	default:
-		m.Outcome, m.Detail = domain.MethodPass, summary+": with the condition the behaviour at TO matched FROM; without it, it changed ("+strings.Join(absent.Signatures, "; ")+")"
+		var sigs []string
+		for _, a := range contrast {
+			sigs = append(sigs, a.Signatures...)
+		}
+		m.Outcome, m.Detail = domain.MethodPass, summary+": with the condition the behaviour at TO matched FROM; without it, it changed ("+strings.Join(sigs, "; ")+")"
+	}
+	if len(nonDisc) > 0 {
+		m.Detail += "; recorded, not decisive (non-discriminating): " + strings.Join(nonDisc, "; ")
+	}
+	// omitted-field arms: the rule's prediction for an object that leaves a
+	// compared field unset must hold too (boundary.go)
+	if m.Outcome == domain.MethodPass || m.Outcome == domain.MethodInconclusive {
+		var contradicted, open []string
+		for _, a := range armsOut {
+			if !isBoundary(a.Name) || a.NonDiscriminating != "" {
+				continue
+			}
+			switch {
+			case a.Observed == domain.BehaviourUndetermined:
+				open = append(open, a.Name+" (not answered)")
+			case a.Predicted == domain.BehaviourPrevious && a.Changed:
+				contradicted = append(contradicted, fmt.Sprintf("%s (%s) changed: %s", a.Name, a.Condition, strings.Join(a.Signatures, "; ")))
+			case a.Observed != a.Predicted:
+				open = append(open, fmt.Sprintf("%s predicted %s, observed %s", a.Name, a.Predicted, a.Observed))
+			}
+		}
+		switch {
+		case len(contradicted) > 0:
+			m.Outcome, m.Detail = domain.MethodFail, summary+": an object that omits a compared field behaved against the rule's prediction ("+strings.Join(contradicted, "; ")+"): the rule's applicability (or the default it states) is wrong for omitted fields"
+		case len(open) > 0 && m.Outcome == domain.MethodPass:
+			m.Outcome, m.Detail = domain.MethodInconclusive, m.Detail+"; but the omitted-field arms do not confirm the rule's prediction ("+strings.Join(open, "; ")+")"
+		}
 	}
 	if m.Outcome == domain.MethodPass && len(m.Evidence) == 0 {
 		m.Outcome, m.Detail = domain.MethodInconclusive, m.Detail+"; but no observation artifacts were stored, so the result cannot be audited"
@@ -285,11 +372,13 @@ func groupOr(g string) string {
 
 func armOutcome(a domain.ProofArm) domain.MethodOutcome {
 	switch {
+	case a.NonDiscriminating != "":
+		return domain.MethodInconclusive // recorded, never decisive
 	case a.Observed == domain.BehaviourUndetermined:
 		return domain.MethodInconclusive
 	case a.Observed == a.Predicted:
 		return domain.MethodPass
-	case a.Name == domain.ArmConditionPresent:
+	case a.Name == domain.ArmConditionPresent, isBoundary(a.Name) && a.Predicted == domain.BehaviourPrevious:
 		return domain.MethodFail
 	}
 	return domain.MethodInconclusive
@@ -301,5 +390,53 @@ func armDetail(a domain.ProofArm) string {
 	if len(a.Signatures) > 0 {
 		d += "; differences: " + strings.Join(a.Signatures, "; ")
 	}
+	if len(a.Diagnostics) > 0 {
+		d += "; diagnostics, not decisive: " + strings.Join(a.Diagnostics, "; ")
+	}
+	if a.NonDiscriminating != "" {
+		d += "; non-discriminating, not decisive: " + a.NonDiscriminating
+	}
 	return d
+}
+
+// contrastArms are the arms that decide whether the behaviour changed: the
+// principal condition-absent arm, or — when it cannot discriminate
+// (discriminate.go) — the omitted-field arms predicted to change. nonDisc
+// describes every non-discriminating arm.
+func contrastArms(arms []domain.ProofArm, absent domain.ProofArm, okA bool) (contrast []domain.ProofArm, nonDisc []string) {
+	for _, a := range arms {
+		if a.NonDiscriminating != "" {
+			nonDisc = append(nonDisc, a.Name+" ("+a.NonDiscriminating+")")
+		}
+	}
+	if !okA {
+		return nil, nonDisc
+	}
+	if absent.NonDiscriminating == "" {
+		return []domain.ProofArm{absent}, nonDisc
+	}
+	for _, a := range arms {
+		if isBoundary(a.Name) && a.Contrast() {
+			contrast = append(contrast, a)
+		}
+	}
+	return contrast, nonDisc
+}
+
+func anyObserved(arms []domain.ProofArm, observed string) bool {
+	for _, a := range arms {
+		if a.Observed == observed {
+			return true
+		}
+	}
+	return false
+}
+
+func allChanged(arms []domain.ProofArm) bool {
+	for _, a := range arms {
+		if !a.Changed {
+			return false
+		}
+	}
+	return true
 }

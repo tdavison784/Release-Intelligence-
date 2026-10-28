@@ -1,0 +1,66 @@
+══ investigation eval — arm C1: +agent (driver claude-cli, model claude-sonnet-5-5) — run C1-K0-20261027-35027090-v13-deu-abl-r3 (commit 350270904a) ══
+n = 4 item decisions over 1 cases (small dataset: every rate below has a wide uncertainty)
+
+── runs ──
+  ingress-nginx-1.11-1.12--docs-eu             human-review-required  findings 37 (affected=0 not-affected=13 potentially-affected=24 insufficient-evidence=0)  agent submitted  citations 294/294  reproduced
+      35 finding(s) on items no expected item selects (unscored), 0 affected
+
+── item decisions (expected vs system) ──
+✗  ingress-nginx-1.11-1.12--docs-eu             B1  expected not-affected          system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
+✗  ingress-nginx-1.11-1.12--docs-eu             B2  expected not-affected          system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
+✗  ingress-nginx-1.11-1.12--docs-eu             B3  expected affected              system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
+✗  ingress-nginx-1.11-1.12--docs-eu             B4  expected not-affected          system potentially-affected  (observed, 2 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0e8570d62156] "⚠️ Enable security features by default (#11819) ⚠️ …"
+
+── metrics (overall) ──
+  falseNegativeRate              0.000 (0/1)
+  unsafeEligibilityRate          0.000 (0/1)
+  falsePositiveRate              0.000 (0/3)
+  affectedDetection              1.000 (1/1)
+  affectedConfirmation           0.000 (0/1)
+  notAffectedConfirmation        0.000 (0/3)
+  exposureRecall                 1.000 (1/1)
+  evidenceCoverage               0.500 (3/6)
+  unresolvedRate                 0.000 (0/4)
+  observedAgreement              0.000 (0/4)
+  accuracy                       0.000 (0/4)
+  humanReviewRate                1.000 (4/4)
+  autoApprovalEligibilityRate    0.250 (1/4)
+  itemMatchMisses                0 (of 4)
+  evidenceFileCoverage           0.667 (4/6)
+  citationResolution             1.000 (294/294)
+  reproducibility                1.000 (1/1)
+  pipelineFailures               0 (of 1)
+  runHumanReviewRate             1.000 (1/1)
+  runAutoApproveEligibleRate     0.000 (0/1)
+
+── splits (decision metrics per subset) ──
+  basis         none                   n=4   accuracy 0.000 (0/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (1/1); evidenceCoverage 0.500 (3/6)
+  manifestation controller-behaviour   n=4   accuracy 0.000 (0/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (1/1); evidenceCoverage 0.500 (3/6)
+  verification  observed               n=4   accuracy 0.000 (0/4); falseNegativeRate 0.000 (0/1); affectedDetection 1.000 (1/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.000 (0/4); exposureRecall 1.000 (1/1); evidenceCoverage 0.500 (3/6)
+
+── agent verdicts (provisional classes; ungated, never an input to policy) ──
+  ingress-nginx-1.11-1.12--docs-eu             B1  expected not-affected          agent potentially-affected  hedged
+  ingress-nginx-1.11-1.12--docs-eu             B2  expected not-affected          agent potentially-affected  hedged
+  ingress-nginx-1.11-1.12--docs-eu             B3  expected affected              agent potentially-affected  hedged
+  ingress-nginx-1.11-1.12--docs-eu             B4  expected not-affected          agent potentially-affected  hedged
+  outcomes: [correct=0 false-safe=0 false-alarm=0 hedged=4 overstated=0 no-verdict=0]
+
+── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
+? affectedConfirmation       INSUFFICIENT-DATA actual 0.000 (0/1)        ≥ 0.50  (minSample 2)
+? affectedDetection          INSUFFICIENT-DATA actual 1.000 (1/1)        ≥ 0.75  (minSample 2)
+✓ citationResolution         PASS              actual 1.000 (294/294)    ≥ 1.00  (minSample 1)
+✗ evidenceCoverage           FAIL              actual 0.500 (3/6)        ≥ 0.75  (minSample 4)
+? exposureRecall             INSUFFICIENT-DATA actual 1.000 (1/1)        ≥ 0.75  (minSample 2)
+? falseNegativeRate          INSUFFICIENT-DATA actual 0.000 (0/1)        ≤ 0.00  (minSample 4)
+✓ falsePositiveRate          PASS              actual 0.000 (0/3)        ≤ 0.25  (minSample 2)
+✗ notAffectedConfirmation    FAIL              actual 0.000 (0/3)        ≥ 0.50  (minSample 2)
+✗ observedAgreement          FAIL              actual 0.000 (0/4)        ≥ 0.75  (minSample 4)
+✓ pipelineFailures           PASS              actual 0 (of 1)           ≤ 0.00  (minSample 0)
+✓ reproducibility            PASS              actual 1.000 (1/1)        ≥ 1.00  (minSample 1)
+✓ unresolvedRate             PASS              actual 0.000 (0/4)        ≤ 0.50  (minSample 4)
+✓ unsafeEligibilityRate      PASS              actual 0.000 (0/1)        ≤ 0.00  (minSample 1)
+
+autonomy (§6.3): eligible=false — observed not-affected 3, observed affected 1
+    falseNegativeRate is INSUFFICIENT-DATA
+    3 observed not-affected decisions < 20
+    1 observed affected/potentially-affected decisions < 20

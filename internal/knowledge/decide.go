@@ -459,6 +459,10 @@ func factReviewTarget(it domain.ReviewItem, facts map[string]domain.VerifiedFact
 //     items. A correction of a fact-review item supersedes the old fact.
 //   - reject: a negative example; on a fact-review item it retracts the fact;
 //     with the duplicate label it adds this candidate's anchors to the named fact.
+//
+// A decision that mints or changes a fact names every other active fact of
+// its product, release and subject (supersedes or coexists), or is refused
+// (accountFor).
 //   - need-more-evidence / defer: no fact.
 func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) {
 	items := map[string]domain.ReviewItem{}
@@ -487,10 +491,12 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	case domain.ActionNeedMoreEvidence, domain.ActionDefer:
 		return out, nil
 	case domain.ActionReject:
+		retracted := ""
 		if target, ok := factReviewTarget(item, facts); ok {
 			f := facts[target]
 			f.Status = domain.FactRetracted
 			out.Touched = append(out.Touched, f)
+			retracted = target
 		}
 		if d.DuplicateOf != "" {
 			f, ok := facts[d.DuplicateOf]
@@ -507,6 +513,9 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 				f.Anchors = addAnchor(f.Anchors, an)
 			}
 			f.Candidates = appendUnique(f.Candidates, cand.ID)
+			if err := accountFor(facts, item, d, f, retracted); err != nil {
+				return nil, err
+			}
 			out.Touched = append(out.Touched, f)
 		}
 		return out, nil
@@ -624,7 +633,15 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		merged.AutoApproved = old.AutoApproved || auto
 		f = &merged
 	}
+	implied := "" // the fact a correction of its own review item supersedes
 	if target, ok := factReviewTarget(item, facts); ok && d.Action == domain.ActionCorrect && target != f.ID {
+		implied = target
+	}
+	if err := accountFor(facts, item, d, *f, implied); err != nil {
+		return nil, err
+	}
+	if implied != "" {
+		target := implied
 		f.Supersedes = appendUnique(f.Supersedes, target)
 		old := facts[target]
 		old.Status = domain.FactSuperseded
@@ -641,8 +658,48 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		old.Status = domain.FactSuperseded
 		out.Touched = append(out.Touched, old)
 	}
+	carryObservedDefaults(snap, item, d, f)
 	out.Fact = f
 	return out, nil
+}
+
+// carryObservedDefaults carries the defaults a confirmed proof observed
+// (PD-5, lane verify3) and its role-membership defaults (PD-6, lane verify4)
+// into the fact a human promotes through the gate: the proof that opened
+// it, of exactly the promoted rule. Nothing else carries one, so a default
+// that is only proposed never reaches a fact.
+func carryObservedDefaults(snap *Snapshot, item domain.ReviewItem, d domain.ReviewDecision, f *domain.VerifiedFact) {
+	fin := d.Final()
+	if fin == nil || d.ReviewerKind != domain.ReviewerHuman || (d.Action != domain.ActionAccept && d.Action != domain.ActionCorrect) {
+		return
+	}
+	if _, _, hyp := HypothesisSource(snap, item); !hyp {
+		return
+	}
+	g := PromotionGate(snap, item, *fin)
+	if !g.Open || g.Proof == nil || g.Proof.ProposedRuleDigest != f.Assertion.Digest() {
+		return
+	}
+	for _, od := range g.Proof.ObservedDefaults {
+		od.Proof = g.Proof.ID
+		dup := false
+		for _, x := range f.ObservedDefaults {
+			dup = dup || (x.Proof == od.Proof && x.Same(od))
+		}
+		if !dup {
+			f.ObservedDefaults = append(f.ObservedDefaults, od)
+		}
+	}
+	for _, md := range g.Proof.RoleMembershipDefaults {
+		md.Proof = g.Proof.ID
+		dup := false
+		for _, x := range f.RoleMembershipDefaults {
+			dup = dup || (x.Proof == md.Proof && x.Same(md))
+		}
+		if !dup {
+			f.RoleMembershipDefaults = append(f.RoleMembershipDefaults, md)
+		}
+	}
 }
 
 // seedFromFact turns a fact's verification back into per-aspect state.

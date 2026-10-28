@@ -5,7 +5,11 @@ package impact
 // (crd:storage-changed). Like crd:fields-removed they are scoped to the API
 // identity the change names (identityFromSchemaChange; an installed CRD of
 // the same name completes it) and evaluated per resource of that GVK against
-// the resource facts (env.Environment.Resources), never by bare paths.
+// the resource facts (env.Environment.Resources), never by bare paths — of
+// the effective object view when there is one (Input.Objects: the rendered
+// objects of the environment's entrypoints; a resource whose deployed form is
+// unknown, or a render whose objects are unavailable, keeps a verdict that
+// rests on absence unknown).
 //
 // Classes (docs/IMPACT.md has the table):
 //
@@ -82,8 +86,11 @@ func (b *builder) crdAttributeFamily() {
 type attrScope struct {
 	id        crdIdentity
 	resources []*env.Resource
-	conf      domain.Confidence
-	label     string
+	// unrendered: why resources of the scope have an unknown deployed form
+	// (the effective object view); they are not judged.
+	unrendered []string
+	conf       domain.Confidence
+	label      string
 }
 
 // scopeOf resolves the GVK of an attribute change and the resources of it.
@@ -111,7 +118,13 @@ func (b *builder) scopeOf(c domain.Change) (attrScope, bool) {
 	if id.Version == "" {
 		s.conf = domain.ConfidenceMedium
 	}
-	s.resources = b.env.Select(sel)
+	for _, r := range b.objs.Select(sel) {
+		if r.Unrendered != "" {
+			s.unrendered = append(s.unrendered, r.Unrendered)
+			continue
+		}
+		s.resources = append(s.resources, r)
+	}
 	s.label = id.Group
 	if id.Version != "" {
 		s.label += "/" + id.Version
@@ -120,6 +133,18 @@ func (b *builder) scopeOf(c domain.Change) (attrScope, bool) {
 		s.label += " " + id.Kind
 	}
 	return s, true
+}
+
+// attrGap is why the scope's objects are not all visible as deployed
+// (resources whose rendered form is unknown, renders whose objects are
+// unavailable); "" when they are.
+func (b *builder) attrGap(s attrScope) string {
+	var why []string
+	why = append(why, s.unrendered...)
+	for _, g := range b.objs.RenderGaps {
+		why = append(why, "the rendered objects of "+g+" are not available")
+	}
+	return strings.Join(why, "; ")
 }
 
 // parentPath drops the last segment of a schema path ("spec.a[].b" → "spec.a[]").
@@ -337,7 +362,7 @@ func (b *builder) crdAttribute(c domain.Change, toTag string) {
 				fmt.Sprintf("Your resources set the field themselves; the API server keeps your value and the default change does not reach them.\n%s", envLines),
 				c, pinned, c.Evidence...)
 		}
-		if len(hits)+len(pinned) > 0 {
+		if len(hits) > 0 || (len(pinned) > 0 && b.attrGap(s) == "") {
 			return
 		}
 	case upgrade.RuleCRDEnumChanged:
@@ -376,7 +401,12 @@ func (b *builder) crdAttribute(c domain.Change, toTag string) {
 	}
 	// nothing matched: unknown when a value or the change itself could not be
 	// read, not-affected only against healthy manifests
-	switch {
+	switch gap := b.attrGap(s); {
+	case gap != "":
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
+			fmt.Sprintf("Cannot rule out that %s affects you: the deployed form of some %s objects is unknown", c.Title, s.label),
+			"No visible object is affected, but the rendered form of some objects of the kind is not available; the files that declare them are not what is deployed.",
+			c, c.Evidence, nil, gap)
 	case len(withheld) > 0:
 		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether your resources use a removed value of %s", paths),
@@ -497,7 +527,7 @@ func otherVersions(b *builder, s attrScope) []string {
 		return nil
 	}
 	var out []string
-	for _, r := range b.env.Select(env.GVKSelector{Group: s.id.Group, Kind: s.id.Kind}) {
+	for _, r := range b.objs.Select(env.GVKSelector{Group: s.id.Group, Kind: s.id.Kind}) {
 		if r.Version != s.id.Version {
 			out = appendUnique(out, apiVersionString(r.Group, r.Version))
 		}

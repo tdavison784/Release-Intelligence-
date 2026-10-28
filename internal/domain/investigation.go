@@ -1153,12 +1153,20 @@ const (
 	EdgeConsumesAPI EdgeKind = "consumes-api" // api type → object of that type
 	EdgeProduces    EdgeKind = "produces"     // custom resource → object its controller creates (declared relationship rule)
 	EdgeDependsOn   EdgeKind = "depends-on"   // dependency → dependent (generic, last resort)
+	// EdgeReadsFile: a Secret/ConfigMap mounted into a pod → the ConfigMap
+	// holding configuration that names a file path under its mountPath in the
+	// same container (File says which key, line and mount); under consumer
+	// rules v3 also → the workload whose pod spec (command, args, a literal
+	// env value) names such a path (File.Field). Built only by the consumer
+	// mode of the graph builder (relations.WithConsumers).
+	// CONTRACT-CHANGE(consumer): additive.
+	EdgeReadsFile EdgeKind = "reads-file"
 )
 
 // EdgeKinds lists every kind.
 var EdgeKinds = []EdgeKind{
 	EdgeDeploys, EdgeRendersTo, EdgeConfigures, EdgeOverrides, EdgeReferences, EdgeSelects,
-	EdgeServesAPI, EdgeConsumesAPI, EdgeProduces, EdgeDependsOn,
+	EdgeServesAPI, EdgeConsumesAPI, EdgeProduces, EdgeDependsOn, EdgeReadsFile,
 }
 
 // EdgeStatus is how well a relationship is known.
@@ -1203,6 +1211,76 @@ type GraphEdge struct {
 	Artifacts []string     `json:"artifacts,omitempty"`
 	// Assertion is the agent assertion that proposed the edge (inferred only).
 	Assertion string `json:"assertion,omitempty"`
+	// Mount, File and Line are set by the consumer mode of the graph builder
+	// only (relations.WithConsumers), so graphs built without it are
+	// unchanged. Mount: how a references edge's volume is mounted; File: what
+	// a reads-file edge matched; Line: where in an artifact the relationship
+	// is stated. None is part of the edge id. CONTRACT-CHANGE(consumer): additive.
+	Mount *EdgeMount `json:"mount,omitempty"`
+	File  *EdgeFile  `json:"file,omitempty"`
+	Line  *EdgeLine  `json:"line,omitempty"`
+}
+
+// EdgeMount is how the volume of a Secret/ConfigMap → workload references
+// edge reaches the containers: the volume, the projected source (projected
+// volumes), the items mapping keys to paths (none: every key, as a file named
+// after it) and every container mount of the volume.
+type EdgeMount struct {
+	Volume string `json:"volume"`
+	// Source is the index of the projected source (-1 for a plain volume).
+	Source int           `json:"source"`
+	Items  []KeyToPath   `json:"items,omitempty"`
+	Mounts []VolumeMount `json:"mounts,omitempty"`
+}
+
+// KeyToPath maps a Secret/ConfigMap key to a relative file path.
+type KeyToPath struct {
+	Key  string `json:"key"`
+	Path string `json:"path"`
+}
+
+// VolumeMount is one container's mount of a volume.
+type VolumeMount struct {
+	Container string `json:"container"`
+	MountPath string `json:"mountPath"`
+	SubPath   string `json:"subPath,omitempty"`
+}
+
+// EdgeFile is what a reads-file edge matched: the configuration key (of the
+// To ConfigMap) whose value names Path; the workload and container that read
+// both; the mount Path falls under and the key of the From object it maps to
+// ("" when no volume matched: the edge is then unresolved). An empty Path
+// marks an unresolved edge whose configuration data is not known (ConfigKey
+// names the key, "" for every key): which files it names cannot be read. A
+// non-empty Field marks a path the pod spec states (Via "pod-spec"; the edge
+// points to the workload, ConfigKey is "").
+type EdgeFile struct {
+	ConfigKey string `json:"configKey"`
+	Path      string `json:"path"`
+	Workload  string `json:"workload"`
+	Container string `json:"container"`
+	// Via is how the container reads the configuration: "volume" or "env";
+	// "pod-spec" when its own spec names the path (Field).
+	Via       string `json:"via"`
+	Volume    string `json:"volume,omitempty"`
+	MountPath string `json:"mountPath,omitempty"`
+	Key       string `json:"key,omitempty"`
+	// DataFrom says where the configuration data came from when it is not
+	// the environment snapshot: the rendered object of a kustomize-generated
+	// ConfigMap (consumer rules v2). CONTRACT-CHANGE(consumer2): additive.
+	DataFrom string `json:"dataFrom,omitempty"`
+	// Field is the pod-spec field that names Path, e.g.
+	// "spec.template.spec.containers[0:app].command[2]" (consumer rules v3).
+	// CONTRACT-CHANGE(consumer3): additive.
+	Field string `json:"field,omitempty"`
+}
+
+// EdgeLine locates an edge's relationship in an artifact: the 1-based line
+// and its text (verbatim, clipped), so it can be read and quoted.
+type EdgeLine struct {
+	Artifact string `json:"artifact"`
+	Line     int    `json:"line"`
+	Text     string `json:"text,omitempty"`
 }
 
 // EdgeID derives an edge id.
@@ -1241,6 +1319,15 @@ func (e GraphEdge) validate() []error {
 	}
 	if e.Assertion != "" && e.Status != EdgeInferred {
 		bad("an agent-proposed edge is always inferred")
+	}
+	if e.Kind == EdgeReadsFile && e.File == nil {
+		bad("a reads-file edge states the file it matched")
+	}
+	if e.Mount != nil && e.Kind != EdgeReferences {
+		bad("only references edges carry a mount")
+	}
+	if e.Line != nil && (e.Line.Artifact == "" || e.Line.Line < 1) {
+		bad("a line names an artifact and a line number")
 	}
 	return errs
 }
@@ -1674,6 +1761,12 @@ type PinnedSetting struct {
 	// Evidence cites the environment evidence (local-file, input or an
 	// environment-scope render) that states the setting.
 	Evidence []EvidenceID `json:"evidence"`
+	// CRD is the name of the CustomResourceDefinition serving the pinned
+	// objects' kind (field pins; "" when unknown): a description change of
+	// the pinned field in that CRD is documentation of the pinned setting
+	// (EvidenceBundle.PinCoversChange). CONTRACT-CHANGE(applicability):
+	// additive.
+	CRD string `json:"crd,omitempty"`
 }
 
 // ValidationRecord is one deterministic (or observed) validation of a
@@ -1885,6 +1978,179 @@ func (b *EvidenceBundle) DocumentationOnlyChange(id string) (ok bool, why string
 	return false, fmt.Sprintf("%s is not an environment rendered change of the bundle", id)
 }
 
+// PinCoversChange reports whether a passing pin covers environment rendered
+// change id (R2.2, mission E3: a pass covers exactly the changes it proves
+// compatible). A field pin covers exactly the rendered changes on its own
+// field: a change of an object of the pinned kind at the pinned path, and the
+// description text of that field in the CRD serving the kind (a field-scoped
+// documentation-only check: whatever else changes in the CRD stays its own
+// gap). Every other change — another field's description in the same CRD, a
+// schema or default change on the field, another resource — is not covered.
+// CONTRACT-CHANGE(applicability): additive.
+func (b *EvidenceBundle) PinCoversChange(id string, p PinnedSetting) (ok bool, why string) {
+	if p.Kind != PinField {
+		return false, fmt.Sprintf("a %s pin covers no rendered change", p.Kind)
+	}
+	group, version, kind, okSubject := objectType(p.Subject)
+	if !okSubject {
+		return false, fmt.Sprintf("the pin's subject %q is not an object id", p.Subject)
+	}
+	for _, pr := range b.Renders {
+		for _, c := range pr.Changes {
+			if c.ID != id {
+				continue
+			}
+			if pr.Status != CollectionOK {
+				return false, fmt.Sprintf("render %s is %s", pr.Target, pr.Status)
+			}
+			g, _, k, okObj := objectType(c.Object)
+			if !okObj {
+				return false, fmt.Sprintf("%s: object %q is not an object id", id, c.Object)
+			}
+			if g == group && k == kind {
+				if fieldPattern(c.Path) == p.Path {
+					return true, ""
+				}
+				return false, fmt.Sprintf("%s changes %s, not the pinned field %s", id, c.Path, p.Path)
+			}
+			if c.Class != RenderedClassCRDDescription {
+				return false, fmt.Sprintf("%s is a %s change of %s, not of the pinned %s/%s field %s", id, c.Class, c.Object, group, kind, p.Path)
+			}
+			if p.CRD == "" || g != "apiextensions.k8s.io" || k != "CustomResourceDefinition" || objectName(c.Object) != p.CRD {
+				return false, fmt.Sprintf("%s documents %s, not the CRD serving the pinned kind (%s)", id, c.Object, orNone(p.CRD))
+			}
+			v, field, okField := SchemaFieldPath(c.Path)
+			switch {
+			case !okField:
+				return false, fmt.Sprintf("%s documents no named field (%s)", id, c.Path)
+			case v != "" && v != version:
+				return false, fmt.Sprintf("%s documents version %s, not the pinned objects' %s", id, v, version)
+			case field != p.Path:
+				return false, fmt.Sprintf("%s documents %s, not the pinned field %s", id, field, p.Path)
+			}
+			return true, ""
+		}
+	}
+	return false, fmt.Sprintf("%s is not an environment rendered change of the bundle", id)
+}
+
+// SchemaFieldPath reads the field a CRD description path documents: the
+// served version (from "versions[name=V]", "" when the path names none) and
+// the field path of the served kind ("…openAPIV3Schema.properties.spec
+// .properties.privateKey.properties.rotationPolicy.description" →
+// "spec.privateKey.rotationPolicy"; a list's "items" adds "[]"). ok is false
+// for anything else: not a description, no openAPIV3Schema, a map's
+// additionalProperties, a composition branch or a quoted property name.
+func SchemaFieldPath(path string) (version, field string, ok bool) {
+	segs := splitObjectPath(path)
+	if len(segs) == 0 || segs[len(segs)-1] != "description" {
+		return "", "", false
+	}
+	start := -1
+	for i, s := range segs {
+		if name, ok := strings.CutPrefix(s, "versions[name="); ok {
+			version = strings.TrimSuffix(name, "]")
+		}
+		if s == "openAPIV3Schema" {
+			start = i + 1
+			break
+		}
+	}
+	if start < 0 {
+		return "", "", false
+	}
+	var fields []string
+	rest := segs[start : len(segs)-1]
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case "properties":
+			if i+1 >= len(rest) || strings.ContainsAny(rest[i+1], `[]"`) {
+				return "", "", false
+			}
+			fields = append(fields, rest[i+1])
+			i++
+		case "items":
+			if len(fields) == 0 {
+				return "", "", false
+			}
+			fields[len(fields)-1] += "[]"
+		default:
+			return "", "", false
+		}
+	}
+	if len(fields) == 0 {
+		return "", "", false
+	}
+	return version, strings.Join(fields, "."), true
+}
+
+// splitObjectPath splits a rendered-change path on dots outside brackets
+// ("a.b[name=x.y].c" → a, b[name=x.y], c).
+func splitObjectPath(p string) []string {
+	var out []string
+	depth, start := 0, 0
+	for i := 0; i < len(p); i++ {
+		switch p[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+		case '.':
+			if depth == 0 {
+				out = append(out, p[start:i])
+				start = i + 1
+			}
+		}
+	}
+	return append(out, p[start:])
+}
+
+// fieldPattern replaces element selectors with "[]" ("spec.ports[name=a]
+// .protocol" → "spec.ports[].protocol").
+func fieldPattern(p string) string {
+	var b strings.Builder
+	depth := 0
+	for i := 0; i < len(p); i++ {
+		switch c := p[i]; {
+		case c == '[':
+			if depth == 0 {
+				b.WriteString("[]")
+			}
+			depth++
+		case c == ']':
+			depth--
+		case depth == 0:
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
+}
+
+// objectType reads group, version and kind from an object id
+// (<group>/<version>/<kind>/<namespace>/<name>; group "core" is "").
+func objectType(id string) (group, version, kind string, ok bool) {
+	parts := strings.Split(id, "/")
+	if len(parts) != 5 || parts[1] == "" || parts[2] == "" {
+		return "", "", "", false
+	}
+	if parts[0] == "core" {
+		parts[0] = ""
+	}
+	return parts[0], parts[1], parts[2], true
+}
+
+func objectName(id string) string {
+	parts := strings.Split(id, "/")
+	return parts[len(parts)-1]
+}
+
+func orNone(s string) string {
+	if s == "" {
+		return "none known"
+	}
+	return s
+}
+
 // --- agent records (§A4, P3) --------------------------------------------------------------
 
 // Hypothesis is a testable statement the agent formulated about a change
@@ -1903,7 +2169,177 @@ type Hypothesis struct {
 	// CONTRACT-CHANGE(verdict): additive (PROTOCOL §8).
 	Mitigation         *MitigationSpec `json:"mitigation,omitempty"`
 	MitigationRejected string          `json:"mitigationRejected,omitempty"`
-	Provenance         Provenance      `json:"provenance"` // method ai
+	// ProposedVerification is what the formalization stage (Milestone 4,
+	// internal/formalize) keeps from the assessment it formalized: how the
+	// claim should be verified, its intended conditions and the assessment's
+	// unresolved uncertainties, and for a claim the rule grammar cannot
+	// carry (MitigationRejected states the limitation) the rule as far as it
+	// can be written. Agent hypotheses leave it empty.
+	// CONTRACT-CHANGE(formalize): additive.
+	ProposedVerification *ProposedVerification `json:"proposedVerification,omitempty"`
+	Provenance           Provenance            `json:"provenance"` // method ai
+}
+
+// ProposedVerification is a formalized hypothesis' verification proposal
+// and what it keeps from its assessment (mission D3, D4).
+type ProposedVerification struct {
+	// Assessment is the agent assessment (aas-…) the hypothesis was
+	// formalized from.
+	Assessment string `json:"assessment"`
+	// Method is how the claim should be verified.
+	Method string `json:"method"`
+	// Conditions are the intended applicability conditions, in prose.
+	Conditions []string `json:"conditions,omitempty"`
+	// Uncertainties are the assessment's unresolved uncertainties (unknowns,
+	// unestablished behaviours, unknown or defaulted settings,
+	// preconditions), verbatim.
+	Uncertainties []string `json:"uncertainties,omitempty"`
+	// Rule is the partial rule of a claim the grammar cannot carry as a
+	// mitigation (for example one with an undecidable leaf); never set on a
+	// hypothesis with a stored Mitigation.
+	Rule *ProposedRule `json:"rule,omitempty"`
+	// Refinement marks a scope-refinement candidate (Milestone 4 fix, lane
+	// verify2, D-0025): the hypothesis' mitigation is another hypothesis'
+	// behaviour rule narrowed to the subjects in one consumer role the
+	// product's exercises catalog declares, proposed because the
+	// investigation's consumer trace shows consumers reading the key
+	// material that role produces. Only the role's consumer exercise can
+	// establish it; it is never a confirmed rule by itself.
+	// CONTRACT-CHANGE(verify2): additive.
+	Refinement *ScopeRefinement `json:"refinement,omitempty"`
+}
+
+// RefinementMethodPrefix starts the method of a scope-refinement candidate
+// ("consumer exercise (role <id>)").
+const RefinementMethodPrefix = "consumer exercise (role "
+
+// ScopeRefinement is a scope-refinement candidate: "the harmful consequence
+// of rule Refines occurs only for subjects in consumer role Consumer".
+type ScopeRefinement struct {
+	// Refines is the hypothesis of the behaviour rule refined; BaseRule
+	// its rule's digest (SemanticAssertion.Digest).
+	Refines  string `json:"refines"`
+	BaseRule string `json:"baseRule"`
+	// Consumer is the id of the catalog's consumer observation (role R).
+	Consumer string `json:"consumer"`
+	// Role are the fields a subject holds in role R, Outside those it
+	// holds outside it (both from the catalog; values JSON-encoded).
+	Role    []RoleField `json:"role"`
+	Outside []RoleField `json:"outside"`
+	// TrustKey is the key of a subject's output that a consumer in role R
+	// reads (the catalog consumer's trust).
+	TrustKey string `json:"trustKey"`
+	// Trace are the reads-file edges of the investigation's consumer graph
+	// that read TrustKey from a Secret an object of the subject kind
+	// produces: the evidence that consumers depend on what role R produces.
+	Trace []TraceRead `json:"trace"`
+}
+
+// RoleField is one field of a consumer role and its JSON-encoded value.
+type RoleField struct {
+	Path  string `json:"path"`
+	Value string `json:"value"`
+}
+
+// Clause is the sentence formalization appends to the base rule's statement
+// for this refinement (formalize.RefineRule). It names the catalog role's
+// condition values, which the role's consumer exercise establishes, not the
+// base rule's upstream citation: the semantic check does not compare them
+// with the cited passages (lane verify3, D-0026).
+func (r ScopeRefinement) Clause() string {
+	return fmt.Sprintf(" Scope refinement (candidate): the harmful consequence occurs only for subjects in consumer role %s (%s); subjects outside it (%s) are shielded.",
+		r.Consumer, RoleFieldsText(r.Role), RoleFieldsText(r.Outside))
+}
+
+// RoleFieldsText writes role fields as "path = value, …".
+func RoleFieldsText(fs []RoleField) string {
+	var parts []string
+	for _, f := range fs {
+		parts = append(parts, f.Path+" = "+f.Value)
+	}
+	return strings.Join(parts, ", ")
+}
+
+// TraceRead is one reads-file edge of a consumer graph, with the object that
+// produces the Secret it reads.
+type TraceRead struct {
+	// Graph is the consumer graph's artifact id, Edge the edge id.
+	Graph string `json:"graph"`
+	Edge  string `json:"edge"`
+	// Producer is the object of the subject kind that produces Secret.
+	Producer string `json:"producer"`
+	Secret   string `json:"secret"`
+	Key      string `json:"key"`
+	// Workload and Container read the file at Path.
+	Workload  string `json:"workload"`
+	Container string `json:"container,omitempty"`
+	Path      string `json:"path,omitempty"`
+	// Artifact and Line state the read (where the graph located it).
+	Artifact string `json:"artifact,omitempty"`
+	Line     int    `json:"line,omitempty"`
+}
+
+// Validate checks the refinement's shape.
+func (r ScopeRefinement) Validate() error {
+	var errs []error
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("scope refinement: %s", fmt.Sprintf(format, args...)))
+	}
+	if !strings.HasPrefix(r.Refines, HypothesisIDPrefix) || strings.TrimSpace(r.BaseRule) == "" {
+		bad("refines (a hypothesis id) and baseRule are required")
+	}
+	if strings.TrimSpace(r.Consumer) == "" || strings.TrimSpace(r.TrustKey) == "" {
+		bad("consumer and trustKey are required")
+	}
+	if len(r.Role) == 0 || len(r.Outside) == 0 {
+		bad("role and outside fields are required")
+	}
+	for _, f := range append(append([]RoleField(nil), r.Role...), r.Outside...) {
+		var v any
+		if strings.TrimSpace(f.Path) == "" || json.Unmarshal([]byte(f.Value), &v) != nil {
+			bad("role field %q needs a path and a JSON value", f.Path)
+		}
+	}
+	if len(r.Trace) == 0 {
+		bad("a refinement is proposed only with trace evidence (reads-file edges)")
+	}
+	for i, t := range r.Trace {
+		if t.Graph == "" || t.Edge == "" || t.Producer == "" || t.Secret == "" || t.Workload == "" || t.Key != r.TrustKey {
+			bad("trace[%d]: graph, edge, producer, secret and workload are required, and the key read is the trust key", i)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// Validate checks the proposal's shape.
+func (v ProposedVerification) Validate() error {
+	var errs []error
+	if !strings.HasPrefix(v.Assessment, AgentAssessmentIDPrefix) {
+		errs = append(errs, errors.New("proposed verification: assessment is required"))
+	}
+	if strings.TrimSpace(v.Method) == "" {
+		errs = append(errs, errors.New("proposed verification: method is required"))
+	}
+	if r := v.Refinement; r != nil {
+		if err := r.Validate(); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: %w", err))
+		}
+		if v.Method != RefinementMethodPrefix+r.Consumer+")" {
+			errs = append(errs, fmt.Errorf("proposed verification: a refinement is verified by %s%s)", RefinementMethodPrefix, r.Consumer))
+		}
+		if v.Rule != nil {
+			errs = append(errs, errors.New("proposed verification: a refinement is a rule, never a partial one"))
+		}
+	}
+	if v.Rule != nil {
+		if err := v.Rule.Assertion.Validate(false); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: rule: %w", err))
+		}
+		if _, _, err := v.Rule.Release.Versions(); err != nil {
+			errs = append(errs, fmt.Errorf("proposed verification: rule: %w", err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // AssertionStance is what an agent assertion does to a finding (DESIGN.md
@@ -2046,10 +2482,17 @@ const (
 	RequestSource           EvidenceRequestKind = "source"            // re-collect a change source whose status is not ok
 	RequestEnvironmentInput EvidenceRequestKind = "environment-input" // an environment file/input not supplied
 	RequestLiveObservation  EvidenceRequestKind = "live-observation"  // a read-only live-cluster read (only when enabled)
+	// RequestUpstreamFile / RequestUpstreamSearch are fulfilled during the
+	// session (prompt feature upstream): one file, or a regex search over a
+	// directory, of the product's own code repositories at an immutable tag.
+	// CONTRACT-CHANGE(upstream): additive.
+	RequestUpstreamFile   EvidenceRequestKind = "upstream-file"
+	RequestUpstreamSearch EvidenceRequestKind = "upstream-search"
 )
 
 // EvidenceRequestKinds lists every kind.
-var EvidenceRequestKinds = []EvidenceRequestKind{RequestArtifact, RequestSource, RequestEnvironmentInput, RequestLiveObservation}
+var EvidenceRequestKinds = []EvidenceRequestKind{RequestArtifact, RequestSource, RequestEnvironmentInput, RequestLiveObservation,
+	RequestUpstreamFile, RequestUpstreamSearch}
 
 // RequestStatus is the state of an agent request.
 type RequestStatus string
@@ -2075,7 +2518,24 @@ type EvidenceRequest struct {
 	Status     RequestStatus       `json:"status"`
 	Resolution string              `json:"resolution,omitempty"` // required unless open/fulfilled
 	Fulfilled  []string            `json:"fulfilled,omitempty"`  // artifact ids
-	Provenance Provenance          `json:"provenance"`           // method ai
+	// Upstream is the resolved query of an upstream-file / upstream-search
+	// request (the repository, the tag it was read at, the file or the
+	// directory and pattern). CONTRACT-CHANGE(upstream): additive.
+	Upstream   *UpstreamQuery `json:"upstream,omitempty"`
+	Provenance Provenance     `json:"provenance"` // method ai
+}
+
+// UpstreamQuery is what an upstream evidence request read, or tried to read:
+// a file (Path) or a regex search (Dir, Pattern, Glob on base names) in
+// Repository ("owner/name") at Ref, an immutable tag of the upgrade (the
+// target's, or the current version's for comparison).
+type UpstreamQuery struct {
+	Repository string `json:"repository"`
+	Ref        string `json:"ref"`
+	Path       string `json:"path,omitempty"`
+	Dir        string `json:"dir,omitempty"`
+	Pattern    string `json:"pattern,omitempty"`
+	Glob       string `json:"glob,omitempty"`
 }
 
 // ValidationRequest is the agent asking a deterministic validator to test a
@@ -2131,6 +2591,22 @@ func (h Hypothesis) Validate() error {
 		}
 		if h.MitigationRejected != "" {
 			errs = append(errs, fmt.Errorf("hypothesis %s: a mitigation is either stored or rejected", h.ID))
+		}
+	}
+	if v := h.ProposedVerification; v != nil {
+		if err := v.Validate(); err != nil {
+			errs = append(errs, fmt.Errorf("hypothesis %s: %w", h.ID, err))
+		}
+		if v.Rule != nil && h.Mitigation != nil {
+			errs = append(errs, fmt.Errorf("hypothesis %s: a partial rule is kept only when no mitigation is stored", h.ID))
+		}
+		if r := v.Refinement; r != nil {
+			switch {
+			case h.Mitigation == nil:
+				errs = append(errs, fmt.Errorf("hypothesis %s: a scope refinement carries its refined rule as the mitigation", h.ID))
+			case r.Refines == h.ID:
+				errs = append(errs, fmt.Errorf("hypothesis %s: a refinement refines another hypothesis", h.ID))
+			}
 		}
 	}
 	return errors.Join(errs...)
@@ -2655,11 +3131,14 @@ const (
 	StageInvestigate   Stage = "investigate"
 	StageValidate      Stage = "validate"
 	StageClassify      Stage = "classify"
-	StageHumanReview   Stage = "human-review"
+	// StageSynthesize: the upgrade-level judgement, after classify and
+	// before review (Milestone 3). CONTRACT-CHANGE(synthesis): additive.
+	StageSynthesize  Stage = "synthesize"
+	StageHumanReview Stage = "human-review"
 )
 
 // Stages lists every stage in pipeline order.
-var Stages = []Stage{StageCollectChange, StageBuildSnapshot, StageAssemble, StageBuildGraph, StageTraverse, StageInvestigate, StageValidate, StageClassify, StageHumanReview}
+var Stages = []Stage{StageCollectChange, StageBuildSnapshot, StageAssemble, StageBuildGraph, StageTraverse, StageInvestigate, StageValidate, StageClassify, StageSynthesize, StageHumanReview}
 
 // AuditEvent is one entry of the append-only audit trail. Events form a hash
 // chain: Prev is the Digest of the previous event ("" for the first), so a
@@ -2717,13 +3196,21 @@ type Investigation struct {
 	// AgentVerdicts: the agent's provisional verdicts, one per investigated
 	// item; never read by the classification policy (PROTOCOL §8).
 	// CONTRACT-CHANGE(verdict): additive.
-	AgentVerdicts      []AgentVerdict         `json:"agentVerdicts,omitempty"`
+	AgentVerdicts []AgentVerdict `json:"agentVerdicts,omitempty"`
+	// AgentAssessments: the agent's natural technical assessments, one per
+	// investigated item (prompt v9 onwards); never read by the classification
+	// policy. CONTRACT-CHANGE(consumer): additive.
+	AgentAssessments   []AgentAssessment      `json:"agentAssessments,omitempty"`
 	EvidenceRequests   []EvidenceRequest      `json:"evidenceRequests,omitempty"`
 	ValidationRequests []ValidationRequest    `json:"validationRequests,omitempty"`
 	Validations        []ValidationRecord     `json:"validations,omitempty"`
 	Findings           []InvestigationFinding `json:"findings,omitempty"`
 	Decision           *PolicyDecision        `json:"decision,omitempty"`
-	Review             HumanReview            `json:"review"`
+	// Judgement is the upgrade-level synthesis (Milestone 3, judgement.go):
+	// advisory AI output computed after classification, never a policy
+	// input. CONTRACT-CHANGE(synthesis): additive.
+	Judgement *UpgradeJudgement `json:"judgement,omitempty"`
+	Review    HumanReview       `json:"review"`
 	// Artifacts are the run's derived artifacts (graph, renders, validator
 	// outputs, transcript, fulfilled evidence requests); Evidence the
 	// records the run created (agent citations, validator evidence). Ids
@@ -2847,6 +3334,37 @@ func (inv *Investigation) Validate() error {
 		for _, f := range v.VerifiedFacts {
 			if strings.HasPrefix(f, SettingClaimIDPrefix) && !claims[f] {
 				bad("agent verdict %s names unknown setting claim %s", v.ID, f)
+			}
+		}
+	}
+	assessmentItems := map[string]bool{}
+	for _, a := range inv.AgentAssessments {
+		if err := a.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if assessmentItems[a.ChangeItem] {
+			bad("two agent assessments for change item %s", a.ChangeItem)
+		}
+		assessmentItems[a.ChangeItem] = true
+		if a.Verdict != "" {
+			found := false
+			for _, v := range inv.AgentVerdicts {
+				found = found || v.ID == a.Verdict
+			}
+			if !found {
+				bad("agent assessment %s names unknown verdict %s", a.ID, a.Verdict)
+			}
+		}
+		for _, b := range a.Behaviour {
+			if b.Source != BehaviourUnavailable {
+				continue
+			}
+			found := false
+			for _, r := range inv.EvidenceRequests {
+				found = found || (r.ID == b.Request && r.ChangeItem == a.ChangeItem && r.Status == RequestUnavailable)
+			}
+			if !found {
+				bad("agent assessment %s: behaviour source unavailable names %s, not an unavailable evidence request of its item", a.ID, b.Request)
 			}
 		}
 	}
@@ -3004,6 +3522,14 @@ func (inv *Investigation) Validate() error {
 					bad("agent: coverage of %s (%s) needs its closing %s assertion about the item (got %q)", c.ChangeItem, c.Disposition, stance, c.Assertion)
 				}
 			}
+		}
+	}
+	if j := inv.Judgement; j != nil {
+		if err := j.Validate(); err != nil {
+			errs = append(errs, err)
+		}
+		if j.Investigation != inv.ID || j.Environment != inv.Environment {
+			bad("judgement %s belongs to %s/%s", j.ID, j.Investigation, j.Environment)
 		}
 	}
 	errs = append(errs, validateAudit(inv.Audit)...)
@@ -3298,6 +3824,15 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 			art("agent verdict "+v.ID, v.Dossier)
 		}
 	}
+	for _, a := range inv.AgentAssessments {
+		item("agent assessment "+a.ID, a.ChangeItem)
+		for _, f := range a.Verified {
+			evid("agent assessment "+a.ID, f.Citations)
+		}
+		for _, b := range a.Behaviour {
+			evid("agent assessment "+a.ID, b.Citations)
+		}
+	}
 	for _, c := range inv.AgentClaims {
 		item("setting claim "+c.ID, c.ChangeItem)
 		evid("setting claim "+c.ID, c.Evidence)
@@ -3305,10 +3840,35 @@ func (inv *Investigation) ValidateAgainst(b *EvidenceBundle) error {
 	}
 	for _, r := range inv.EvidenceRequests {
 		item("evidence request "+r.ID, r.ChangeItem)
+		art("evidence request "+r.ID, r.Fulfilled...)
 	}
 	for _, r := range inv.ValidationRequests {
 		item("validation request "+r.ID, r.ChangeItem)
 		art("validation request "+r.ID, r.Inputs...)
+	}
+	if j := inv.Judgement; j != nil {
+		// The judgement's own records (edge advisory and chart evidence) join
+		// the pool only for the judgement's citations.
+		jev := map[EvidenceID]bool{}
+		for _, e := range j.Evidence {
+			jev[e.ID] = true
+		}
+		for _, id := range j.citedEvidence() {
+			if _, ok := ev[id]; !ok && !jev[id] {
+				bad("judgement %s: evidence %s does not resolve", j.ID, id)
+			}
+		}
+		for _, f := range j.Findings {
+			item("judgement finding "+f.ID, f.ChangeItem)
+		}
+		for _, l := range j.Locations {
+			item("judgement location "+l.ID, l.ChangeItem)
+		}
+		for _, c := range j.Changes {
+			for _, id := range c.ChangeItems {
+				item(fmt.Sprintf("judgement change %d", c.Order), id)
+			}
+		}
 	}
 	for _, v := range inv.Validations {
 		item("validation "+v.ID, v.ChangeItem)

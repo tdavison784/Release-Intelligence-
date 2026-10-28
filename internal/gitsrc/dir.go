@@ -140,6 +140,16 @@ type dirPayload struct {
 	Commit     string    `json:"commit"`
 	BaseCommit string    `json:"baseCommit,omitempty"`
 	Files      []dirFile `json:"files"`
+	// Missing records that the directory has no files at an immutable Ref
+	// (the ref itself resolved): the not-found result replays offline like
+	// any other. A missing ref is never cached.
+	Missing string `json:"missing,omitempty"`
+}
+
+// missing is the not-found error of a payload that records an absent
+// directory.
+func (p dirPayload) missing(repo Repo) error {
+	return &fetch.Error{URL: repo.CloneURL, Err: fetch.ErrNotFound, Detail: p.Missing}
 }
 
 // fetchDir implements the repo-dir locator kind: every file below loc.Path
@@ -189,6 +199,9 @@ func (g *Git) fetchDir(ctx context.Context, loc catalog.Locator) ([]sources.Docu
 	if e, ok := g.lookup(cachePath); ok {
 		var p dirPayload
 		if err := json.Unmarshal(e.Payload, &p); err == nil {
+			if p.Missing != "" {
+				return nil, p.missing(repo)
+			}
 			return dirDocuments(repo, loc, ref, p, e.RetrievedAt), nil
 		}
 	}
@@ -200,6 +213,9 @@ func (g *Git) fetchDir(ctx context.Context, loc catalog.Locator) ([]sources.Docu
 	if err != nil {
 		return nil, err
 	}
+	if p.Missing != "" && !immutable {
+		return nil, p.missing(repo) // a branch may gain the directory later
+	}
 	now := g.now().UTC()
 	payload, err := json.Marshal(p)
 	if err == nil {
@@ -207,6 +223,9 @@ func (g *Git) fetchDir(ctx context.Context, loc catalog.Locator) ([]sources.Docu
 			Kind: "dir", Repo: repo.CloneURL, Request: describe,
 			Immutable: immutable, RetrievedAt: now, Payload: payload,
 		})
+	}
+	if p.Missing != "" {
+		return nil, p.missing(repo)
 	}
 	return dirDocuments(repo, loc, ref, *p, now), nil
 }
@@ -247,8 +266,7 @@ func (g *Git) readDir(ctx context.Context, repo Repo, ref, baseRef, dirPath, glo
 		return nil, err
 	}
 	if len(atRef) == 0 {
-		return nil, &fetch.Error{URL: repo.CloneURL, Err: fetch.ErrNotFound,
-			Detail: fmt.Sprintf("repo-dir: no files under %q at %s", dirPath, ref)}
+		return &dirPayload{Commit: commit, Missing: fmt.Sprintf("repo-dir: no files under %q at %s", dirPath, ref)}, nil
 	}
 	p := &dirPayload{Commit: commit}
 	var atBase []treeEntry

@@ -196,6 +196,11 @@ type CRDVersion struct {
 	Storage            bool
 	Deprecated         bool
 	DeprecationWarning string
+	// Schema is the version's structural openAPIV3Schema, decoded (nil when
+	// the CRD states none or it does not decode): what the API server
+	// defaults unset fields from (internal/applicability).
+	// CONTRACT-CHANGE(applicability): additive, never serialised.
+	Schema map[string]any `json:"-"`
 }
 
 // InstalledCRD is a CustomResourceDefinition found in the inputs.
@@ -315,6 +320,14 @@ type Environment struct {
 	// the query API (ResourcesOfKind, FieldValues, TextBlocks, ResolveRef).
 	Resources []Resource
 
+	// EffectiveView: Resources are the effective object view of the
+	// environment's renders (Effective), not the files as declared.
+	// RenderGaps name renders whose objects are unavailable and that
+	// consumed no environment file: the objects they would deploy are
+	// unknown. CONTRACT-CHANGE(join5): additive.
+	EffectiveView bool     `json:",omitempty"`
+	RenderGaps    []string `json:",omitempty"`
+
 	// RepoRoot is the repository directory of repo mode ("" otherwise) and
 	// Discovered lists every file the walk classified, with its evidence.
 	RepoRoot   string
@@ -387,10 +400,13 @@ type loader struct {
 	// values: parsed values files, and the release definitions the inputs
 	// hold (values.go builds a stack per release once everything is loaded)
 	valuesCache map[string]*parsedValues
-	argoDocs    []doc
-	fluxDocs    []doc
-	cfgDocs     []doc // ConfigMaps (Flux valuesFrom)
-	helmfiles   []helmfileDoc
+	// evKind is the kind of the records ev creates ("" = local-file;
+	// rendered for the objects of a render, Effective).
+	evKind    domain.EvidenceKind
+	argoDocs  []doc
+	fluxDocs  []doc
+	cfgDocs   []doc // ConfigMaps (Flux valuesFrom)
+	helmfiles []helmfileDoc
 }
 
 // warnf records a warning on the Environment and attributes it to the input
@@ -411,7 +427,11 @@ func (l *loader) warnf(dim, format string, args ...any) {
 
 // ev records one piece of local-file evidence and returns its id.
 func (l *loader) ev(uri, locator, excerpt string) domain.EvidenceID {
-	return l.record(domain.NewEvidence(domain.EvidenceLocalFile, "", uri, locator, domain.TruncateExcerpt(excerpt), l.files[uri], zeroTime))
+	kind, producer := domain.EvidenceLocalFile, ""
+	if l.evKind != "" {
+		kind, producer = l.evKind, EffectiveProducer
+	}
+	return l.record(domain.NewEvidence(kind, producer, uri, locator, domain.TruncateExcerpt(excerpt), l.files[uri], zeroTime))
 }
 
 // evInput records evidence of a directly supplied value (a flag).
@@ -779,6 +799,12 @@ func (l *loader) loadCRD(d doc, rs *RenderedCRDSource) {
 				v.Deprecated = s == "true"
 			}
 			v.DeprecationWarning = scalarOf(vn, "deprecationWarning")
+			if sn := fieldOf(vn, "schema", "openAPIV3Schema"); sn != nil {
+				var m map[string]any
+				if sn.Decode(&m) == nil {
+					v.Schema = m
+				}
+			}
 			crd.Versions = append(crd.Versions, v)
 		}
 	}

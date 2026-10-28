@@ -168,6 +168,18 @@ func InvestigationWorkflow(ctx workflow.Context, in Input) (Result, error) {
 		}
 		res.Decision, res.Review = last.Outcome, last.Review
 		w.state.Decision, w.state.Review = last.Outcome, last.Review
+		// The synthesis step is new workflow code: only executions that ask
+		// for it, started after it existed, take it (histories recorded
+		// before it replay with DefaultVersion and never call it).
+		if in.Synthesize && workflow.GetVersion(ctx, VersionSynthesize, workflow.DefaultVersion, 1) == 1 {
+			digest, err := w.synthesize(res.Investigation, round)
+			switch {
+			case err != nil && (temporal.IsCanceledError(err) || ctx.Err() != nil):
+				return fail(err)
+			case err == nil:
+				res.RecordDigest = digest
+			}
+		}
 		w.upsert()
 		if last.Review == domain.ReviewNotRequired {
 			return done(run.OutcomeAutoCompleted)
@@ -209,6 +221,22 @@ func InvestigationWorkflow(ctx workflow.Context, in Input) (Result, error) {
 			refs = run.Refs{Change: refs.Change, Previous: refs.Investigation}
 		}
 	}
+}
+
+// synthesize runs the synthesis activity. A synthesis without a judgement
+// is audited and the run continues to the review.
+func (w *wf) synthesize(inv string, round int) (string, error) {
+	stage := string(domain.StageSynthesize)
+	w.state.CurrentStage = stage
+	w.audit(stage, "started", "", "")
+	var out run.SynthesizeOutput
+	err := workflow.ExecuteActivity(w.options(domain.StageSynthesize), ActivitySynthesize, run.SynthesizeInput{Investigation: inv, Round: round}).Get(w.ctx, &out)
+	if err != nil {
+		w.audit(stage, "failed", "", "no judgement: "+run.Trunc(err.Error()))
+		return "", err
+	}
+	w.audit(stage, "completed", "", out.Detail)
+	return out.Digest, nil
 }
 
 // awaitReview waits for a decision that settles the review. A proxy decision
@@ -289,11 +317,12 @@ type registrar interface {
 func Register(r registrar, a *Activities) {
 	r.RegisterWorkflowWithOptions(InvestigationWorkflow, workflow.RegisterOptions{Name: WorkflowType})
 	for _, s := range domain.Stages {
-		if s == domain.StageHumanReview {
+		if s == domain.StageHumanReview || s == domain.StageSynthesize {
 			continue
 		}
 		r.RegisterActivityWithOptions(a.Stage(s), activity.RegisterOptions{Name: string(s)})
 	}
 	r.RegisterActivityWithOptions(a.Review, activity.RegisterOptions{Name: ActivityReview})
 	r.RegisterActivityWithOptions(a.Finalize, activity.RegisterOptions{Name: ActivityFinalize})
+	r.RegisterActivityWithOptions(a.Synthesize, activity.RegisterOptions{Name: ActivitySynthesize})
 }

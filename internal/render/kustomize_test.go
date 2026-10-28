@@ -33,6 +33,31 @@ func TestKustomizeInputsAndSubstitutionPlan(t *testing.T) {
 	}
 }
 
+// A patch of the overlay is applied after everything its base states: it
+// ranks lowest (join5: the effective view cites the layer that wrote a field).
+func TestKustomizeLayers(t *testing.T) {
+	root, _ := filepath.Abs("testdata/kustomize")
+	got, err := KustomizeLayers(root, filepath.Join(root, "overlays/prod"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]int{"overlays/prod/replicas.yaml": 0, "overlays/prod/kustomization.yaml": 1, "base/kustomization.yaml": 3, "base/deployment.yaml": 3}
+	if len(got) != len(want) {
+		t.Fatalf("layers %v", got)
+	}
+	for f, r := range want {
+		if got[f] != r {
+			t.Errorf("%s: rank %d, want %d (%v)", f, got[f], r, got)
+		}
+	}
+	files, _, _, _ := KustomizeInputs(root, filepath.Join(root, "overlays/prod"))
+	for _, f := range files {
+		if _, ok := got[f]; !ok {
+			t.Errorf("input %s has no layer", f)
+		}
+	}
+}
+
 func TestKustomizePairLive(t *testing.T) {
 	needTool(t, "kubectl")
 	root, _ := filepath.Abs("testdata/kustomize")

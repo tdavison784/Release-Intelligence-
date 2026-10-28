@@ -1,0 +1,428 @@
+{
+  "id": "grf-b32612c2fdbd",
+  "bundle": "bnd-test",
+  "builder": "relations.builder@v1+consumers@v2",
+  "nodes": [
+    {
+      "id": "gn-0c3f7f69d156",
+      "kind": "external",
+      "key": "file:apps/v1/Deployment/shop/billing#app:/etc/audit/keys/signing.key",
+      "placeholder": true
+    },
+    {
+      "id": "gn-1cd62a343a61",
+      "kind": "config-object",
+      "key": "core/v1/Secret/shop/billing-tls",
+      "placeholder": true
+    },
+    {
+      "id": "gn-23bc1174c432",
+      "kind": "external",
+      "key": "file:apps/v1/Deployment/shop/billing#app:/var/log/billing/app.log",
+      "placeholder": true
+    },
+    {
+      "id": "gn-64f2b7a687a0",
+      "kind": "config-object",
+      "key": "core/v1/Secret/shop/audit-keys",
+      "placeholder": true
+    },
+    {
+      "id": "gn-70b4ba103ea9",
+      "kind": "custom-resource",
+      "key": "example.dev/v1/Credential/shop/billing-tls",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    },
+    {
+      "id": "gn-7f7bf1ea7497",
+      "kind": "workload",
+      "key": "apps/v1/Deployment/shop/billing",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    },
+    {
+      "id": "gn-7ff833a03521",
+      "kind": "config-object",
+      "key": "core/v1/Secret/shop/billing-ca",
+      "placeholder": true
+    },
+    {
+      "id": "gn-8421b77ba0d7",
+      "kind": "config-object",
+      "key": "core/v1/ConfigMap/shop/billing-config",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    },
+    {
+      "id": "gn-9153464a12a6",
+      "kind": "config-object",
+      "key": "core/v1/ConfigMap/shop/billing-extra",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    },
+    {
+      "id": "gn-987a5228f173",
+      "kind": "external",
+      "key": "file:apps/v1/Deployment/shop/billing#app:/var/scratch/spool/out",
+      "placeholder": true
+    },
+    {
+      "id": "gn-b594b684dd2e",
+      "kind": "api-type",
+      "key": "example.dev/v1/Credential",
+      "placeholder": true
+    },
+    {
+      "id": "gn-ba03159ff847",
+      "kind": "workload",
+      "key": "apps/v1/Deployment/shop/audit",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "ge-056b67923033",
+      "kind": "reads-file",
+      "from": "gn-9153464a12a6",
+      "to": "gn-8421b77ba0d7",
+      "status": "established",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /etc/billing/bundle/limits.json (container app of apps/v1/Deployment/shop/billing)",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/etc/billing/bundle/limits.json",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume",
+        "volume": "bundle",
+        "mountPath": "/etc/billing/bundle",
+        "key": "limits.json"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 45,
+        "text": "extra = /etc/billing/bundle/limits.json"
+      }
+    },
+    {
+      "id": "ge-077aa3f9e3e2",
+      "kind": "reads-file",
+      "from": "gn-987a5228f173",
+      "to": "gn-8421b77ba0d7",
+      "status": "missing",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /var/scratch/spool/out (container app of apps/v1/Deployment/shop/billing)",
+      "reason": "/var/scratch/spool/out is under mountPath /var/scratch of volume scratch (emptyDir), which is not a Secret or ConfigMap: its content is not in the snapshot",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/var/scratch/spool/out",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume",
+        "volume": "scratch",
+        "mountPath": "/var/scratch"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 47,
+        "text": "spool = /var/scratch/spool/out"
+      }
+    },
+    {
+      "id": "ge-1d8e16f3c950",
+      "kind": "references",
+      "from": "gn-7ff833a03521",
+      "to": "gn-7f7bf1ea7497",
+      "status": "missing",
+      "rule": "graph.k8s-refs@v1:volumes.projected",
+      "detail": "spec.template.spec.volumes[2:bundle].projected.sources[0].secret.name",
+      "reason": "Secret shop/billing-ca is not defined in the snapshot",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "mount": {
+        "volume": "bundle",
+        "source": 0,
+        "items": [
+          {
+            "key": "ca.crt",
+            "path": "roots/ca.pem"
+          }
+        ],
+        "mounts": [
+          {
+            "container": "app",
+            "mountPath": "/etc/billing/bundle"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 21,
+        "text": "name: billing-ca"
+      }
+    },
+    {
+      "id": "ge-1fdcfa42cd7f",
+      "kind": "references",
+      "from": "gn-8421b77ba0d7",
+      "to": "gn-7f7bf1ea7497",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1:volumes.configMap",
+      "detail": "spec.template.spec.volumes[1:conf].configMap.name",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "mount": {
+        "volume": "conf",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "app",
+            "mountPath": "/etc/billing/conf"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 16,
+        "text": "configMap: {name: billing-config}"
+      }
+    },
+    {
+      "id": "ge-30d2ffe9d456",
+      "kind": "produces",
+      "from": "gn-70b4ba103ea9",
+      "to": "gn-1cd62a343a61",
+      "status": "inferred",
+      "rule": "graph.produces@v1:spec.secretName",
+      "detail": "spec.secretName",
+      "reason": "Secret \"billing-tls\" is not defined in the snapshot; Credential/billing-tls names it by convention (graph.produces@v1:spec.secretName), so its controller is presumed to create it",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 4,
+        "text": "spec: {secretName: billing-tls}"
+      }
+    },
+    {
+      "id": "ge-3ee72ebf47ed",
+      "kind": "references",
+      "from": "gn-64f2b7a687a0",
+      "to": "gn-ba03159ff847",
+      "status": "missing",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[0:keys].secret.secretName",
+      "reason": "Secret shop/audit-keys is not defined in the snapshot",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "mount": {
+        "volume": "keys",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "audit",
+            "mountPath": "/etc/audit/keys"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 67,
+        "text": "secret: {secretName: audit-keys}"
+      }
+    },
+    {
+      "id": "ge-540f18ced4a4",
+      "kind": "references",
+      "from": "gn-9153464a12a6",
+      "to": "gn-7f7bf1ea7497",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1:volumes.projected",
+      "detail": "spec.template.spec.volumes[2:bundle].projected.sources[1].configMap.name",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "mount": {
+        "volume": "bundle",
+        "source": 1,
+        "mounts": [
+          {
+            "container": "app",
+            "mountPath": "/etc/billing/bundle"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 23,
+        "text": "- configMap: {name: billing-extra}"
+      }
+    },
+    {
+      "id": "ge-569f7c75a61e",
+      "kind": "reads-file",
+      "from": "gn-23bc1174c432",
+      "to": "gn-8421b77ba0d7",
+      "status": "missing",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /var/log/billing/app.log (container app of apps/v1/Deployment/shop/billing)",
+      "reason": "/var/log/billing/app.log is under no volume mount of container app of apps/v1/Deployment/shop/billing: what provides the file is not in the snapshot",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/var/log/billing/app.log",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 48,
+        "text": "log = /var/log/billing/app.log"
+      }
+    },
+    {
+      "id": "ge-5d4853945ec6",
+      "kind": "reads-file",
+      "from": "gn-0c3f7f69d156",
+      "to": "gn-8421b77ba0d7",
+      "status": "missing",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /etc/audit/keys/signing.key (container app of apps/v1/Deployment/shop/billing)",
+      "reason": "/etc/audit/keys/signing.key is under no volume mount of container app of apps/v1/Deployment/shop/billing: what provides the file is not in the snapshot",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/etc/audit/keys/signing.key",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 46,
+        "text": "audit_key = /etc/audit/keys/signing.key"
+      }
+    },
+    {
+      "id": "ge-6b57b45bf90e",
+      "kind": "references",
+      "from": "gn-1cd62a343a61",
+      "to": "gn-7f7bf1ea7497",
+      "status": "inferred",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[0:tls].secret.secretName",
+      "reason": "Secret \"billing-tls\" is not defined in the snapshot; Credential/billing-tls names it by convention (graph.produces@v1:spec.secretName), so its controller is presumed to create it",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "mount": {
+        "volume": "tls",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "app",
+            "mountPath": "/etc/billing/tls"
+          },
+          {
+            "container": "sidecar",
+            "mountPath": "/certs/ca.crt",
+            "subPath": "ca.crt"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 14,
+        "text": "secret: {secretName: billing-tls}"
+      }
+    },
+    {
+      "id": "ge-6fce9f433fcc",
+      "kind": "consumes-api",
+      "from": "gn-b594b684dd2e",
+      "to": "gn-70b4ba103ea9",
+      "status": "established",
+      "rule": "graph.crd@v1:consumes",
+      "detail": "apiVersion/kind",
+      "artifacts": [
+        "art-1e8721f80900"
+      ]
+    },
+    {
+      "id": "ge-99d642ec53bd",
+      "kind": "reads-file",
+      "from": "gn-7ff833a03521",
+      "to": "gn-8421b77ba0d7",
+      "status": "established",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /etc/billing/bundle/roots/ca.pem (container app of apps/v1/Deployment/shop/billing)",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/etc/billing/bundle/roots/ca.pem",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume",
+        "volume": "bundle",
+        "mountPath": "/etc/billing/bundle",
+        "key": "ca.crt"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 44,
+        "text": "roots = /etc/billing/bundle/roots/ca.pem"
+      }
+    },
+    {
+      "id": "ge-c86a8aaef431",
+      "kind": "reads-file",
+      "from": "gn-1cd62a343a61",
+      "to": "gn-8421b77ba0d7",
+      "status": "established",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/billing-config data[app.ini] names /etc/billing/tls/ca.crt (container app of apps/v1/Deployment/shop/billing)",
+      "artifacts": [
+        "art-1e8721f80900"
+      ],
+      "file": {
+        "configKey": "app.ini",
+        "path": "/etc/billing/tls/ca.crt",
+        "workload": "apps/v1/Deployment/shop/billing",
+        "container": "app",
+        "via": "volume",
+        "volume": "tls",
+        "mountPath": "/etc/billing/tls",
+        "key": "ca.crt"
+      },
+      "line": {
+        "artifact": "art-1e8721f80900",
+        "line": 43,
+        "text": "ca_file = /etc/billing/tls/ca.crt"
+      }
+    }
+  ]
+}

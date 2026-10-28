@@ -700,3 +700,61 @@ func artifactCheck(r *run, a catalog.Artifact, inst domain.ArtifactInstance) Rel
 		Evidence:    inst.Evidence,
 	}
 }
+
+// ChartVersion is one chart version shipping a release (ChartVersions).
+type ChartVersion struct {
+	Artifact string // definition artifact id
+	Name     string // chart name
+	Version  string
+	// Evidence establishes the mapping (for a lookup, the chart index
+	// entry whose appVersion equals the release); empty when the version
+	// only follows the definition's template.
+	Evidence []domain.Evidence
+}
+
+// ChartVersions answers which chart versions ship release v: the version
+// relation of every helm-chart artifact of the definition, evaluated for v
+// exactly as ingestion would (a "lookup" reads the chart index and matches
+// appVersion). Nothing else of the release is ingested. The second result
+// says, per artifact, why nothing was found (an unread index, no chart with
+// that appVersion). A product without a helm-chart artifact yields nothing.
+func (i *Ingester) ChartVersions(ctx context.Context, def *catalog.ProductDefinition, v domain.Version, known *VersionList) ([]ChartVersion, []string, error) {
+	if def == nil {
+		return nil, nil, errors.New("ingest: nil product definition")
+	}
+	if i.Registry == nil {
+		return nil, nil, errors.New("ingest: no source registry")
+	}
+	v, err := canonicalVersion(def, v, known)
+	if err != nil {
+		return nil, nil, err
+	}
+	var knownVersions []domain.Version
+	if known != nil {
+		knownVersions = known.Versions
+	}
+	r := &run{
+		def: def, v: v, rc: catalog.NewRenderContext(def.ID, v, knownVersions), known: known,
+		subject: fmt.Sprintf("%s@%s", def.ID, v.Semver), now: i.now(), memo: newMemo(),
+		repo: productRepository(def), resolutions: map[string]resolution{},
+	}
+	var out []ChartVersion
+	var gaps []string
+	for _, a := range def.Artifacts {
+		if a.Type != domain.ArtifactHelmChart {
+			continue
+		}
+		res := i.resolutionFor(ctx, r, a)
+		if err := ctx.Err(); err != nil {
+			return nil, nil, err
+		}
+		if len(res.versions) == 0 {
+			gaps = append(gaps, fmt.Sprintf("chart %s for %s: %s", a.ID, v, res.detail))
+			continue
+		}
+		for _, rv := range res.versions {
+			out = append(out, ChartVersion{Artifact: a.ID, Name: a.Name, Version: rv.version, Evidence: rv.evidence})
+		}
+	}
+	return out, gaps, nil
+}

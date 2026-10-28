@@ -327,6 +327,11 @@ type Refinement struct {
 // RuleKnowledgeRefined is the rule of a refined finding (PO-4).
 const RuleKnowledgeRefined = KnowledgeRulePrefix + "refined"
 
+// RuleKnowledgeContradiction is the unknown gap a fact gets when another
+// active fact of its product, release and subject contradicts it
+// (FactIncompatibility): neither clears the change (lane backdoor).
+const RuleKnowledgeContradiction = KnowledgeRulePrefix + "contradiction"
+
 // KnowledgeRulePrefix starts the rule of every finding produced from
 // verified knowledge (impact:knowledge-exposed / -overlap / -clear /
 // -undecided).
@@ -467,6 +472,13 @@ type ImpactReport struct {
 	// EnrichmentRun records how the enrichments were produced (prompts,
 	// acceptances, rejections). Present when enrichment was attempted.
 	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
+
+	// Security is the edge's advisory assessment carried into the report
+	// (UpgradeEdge.Security): version-based, so it applies to every
+	// environment that upgrades. Its advisory entries join the findings by
+	// changeId; the evidence it cites is part of Evidence. Absent when the
+	// edge has none.
+	Security *EdgeSecurity `json:"security,omitempty"`
 }
 
 // IdentifiedContent returns the report's identified content: a copy with the
@@ -584,6 +596,9 @@ func (r *ImpactReport) Validate() error {
 			errs = append(errs, fmt.Errorf("duplicate evidence id %s", x.ID))
 		}
 		up[x.ID] = true
+	}
+	if r.Security != nil {
+		errs = append(errs, r.Security.validate(up)...)
 	}
 	local := map[EvidenceID]bool{}
 	for _, x := range r.EnvironmentEvidence {
@@ -788,6 +803,7 @@ func (f ImpactFinding) validateKnowledge() []error {
 		KnowledgeRulePrefix + "overlap":   {ImpactInformational},
 		KnowledgeRulePrefix + "clear":     {ImpactNotAffected},
 		KnowledgeRulePrefix + "undecided": {ImpactUnknown},
+		RuleKnowledgeContradiction:        {ImpactUnknown},
 		// PO-4: a refinement stays affected (validateRefinements has the rest).
 		RuleKnowledgeRefined: {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
 	}

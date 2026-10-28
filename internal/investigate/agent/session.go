@@ -15,6 +15,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/redaction"
 )
 
@@ -94,6 +95,14 @@ type SessionConfig struct {
 	// ReadOnly serves the query tools only: record, request and submit tools
 	// are rejected (an inspection session with no model call behind it).
 	ReadOnly bool
+	// ConsumerGraphs builds the consumer-mode graph at a side (prompt
+	// feature traceConsumers; consumers.go) under ConsumerRules
+	// (relations.ConsumerRulesV1, …), which the transcript header records.
+	ConsumerGraphs ConsumerGraphs
+	ConsumerRules  int
+	// Upstream fetches upstream-file / upstream-search requests (prompt
+	// feature upstream; upstream.go). Nil: such requests are unavailable.
+	Upstream *Upstream
 	Now      func() time.Time
 }
 
@@ -167,6 +176,25 @@ type Session struct {
 	// Dossiers, verdicts (prompt features dossier, verdict).
 	dossiers map[string]string // item -> dossier artifact its session started from
 	verdicts []domain.AgentVerdict
+
+	// Consumer tracing and assessments (prompt features traceConsumers,
+	// assessment): the consumer graphs by side, the consumer-graph nodes a
+	// tool returned in the focus item's session, the items whose not-affected
+	// verdict the completion check rejected once, the assessments.
+	cgraphs     map[relations.Side]*cgraph
+	traced      map[string]bool
+	rejectedNA  map[string]bool
+	assessments []domain.AgentAssessment
+	// rejectedNoBehaviour: the items whose not-affected verdict declared no
+	// behaviour and was rejected once (prompt feature behaviour).
+	rejectedNoBehaviour map[string]bool
+	// rejectedNoFetch: the items whose not-checked behaviour, with no
+	// upstream request made, was rejected once (prompt feature fetchFirst).
+	rejectedNoFetch map[string]bool
+
+	// upState is the focus item's upstream fetch budget and what it read
+	// (prompt feature upstream).
+	upState upstreamState
 }
 
 // itemStat is what one per-item session cost and how it ended.
@@ -197,7 +225,8 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 		paths: map[string]domain.ImpactPath{}, valIDs: map[string]domain.ValidationRecord{}, recordIndex: map[string]bool{},
 		onAgenda: map[string]bool{}, examined: map[string]bool{}, inspections: map[string]int{}, citers: map[string]map[string]bool{}, itemStats: map[string]*itemStat{},
 		callInfo: map[string]CallInfo{}, rcArts: map[string][]string{}, closing: map[string]investigate.ItemSummary{}, closingIDs: map[string]string{}, closingEv: map[string][]domain.EvidenceID{},
-		dossiers: map[string]string{}}
+		dossiers: map[string]string{}, cgraphs: map[relations.Side]*cgraph{}, traced: map[string]bool{}, rejectedNA: map[string]bool{}, rejectedNoBehaviour: map[string]bool{},
+		rejectedNoFetch: map[string]bool{}, upState: upstreamState{done: map[string][]string{}}}
 	for _, a := range b.Manifest.Artifacts {
 		s.arts[a.ID] = a
 	}
@@ -264,6 +293,9 @@ func NewSession(cfg SessionConfig) (*Session, error) {
 	}
 	if cfg.Prompt.Features.PerItem {
 		header["itemCap"] = cfg.ItemCap
+	}
+	if cfg.Prompt.Features.TraceConsumers && cfg.ConsumerRules > relations.ConsumerRulesV1 {
+		header["consumerRules"] = cfg.ConsumerRules // absent: v1, the rules of transcripts recorded before it
 	}
 	s.writeLine(header)
 	return s, nil
@@ -594,9 +626,18 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		}
 	case investigate.ToolRequestEvidence:
 		var in investigate.EvidenceRequestInput
-		if decode(&in) {
-			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(in) })
+		if !s.cfg.Prompt.Features.Upstream.On() {
+			// Earlier prompt versions decode the fields they always had, so an
+			// argument they never took is refused exactly as before.
+			var old legacyEvidenceRequest
+			if !decode(&old) {
+				break
+			}
+			in = investigate.EvidenceRequestInput{ChangeItem: old.ChangeItem, Kind: old.Kind, Target: old.Target, Reason: old.Reason}
+		} else if !decode(&in) {
+			break
 		}
+		res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(ctx, in) })
 	case investigate.ToolRequestValidation:
 		var in investigate.ValidationRequestInput
 		if decode(&in) {
@@ -630,11 +671,27 @@ func (s *Session) Dispatch(ctx context.Context, tool string, args json.RawMessag
 		if decode(&in) {
 			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.getDossier(ctx, in.ChangeItem) })
 		}
+	case investigate.ToolTraceConsumers:
+		if !s.cfg.Prompt.Features.TraceConsumers {
+			_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
+			break
+		}
+		var in investigate.TraceRequest
+		if decode(&in) {
+			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.traceConsumers(ctx, in) })
+		}
 	case investigate.ToolSubmitFindings:
 		var in investigate.SubmitInput
-		if decode(&in) {
-			res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.submitFindings(ctx, in) })
+		if !decode(&in) {
+			break
 		}
+		if k := legacyBehaviourReason(args); k != "" && !s.cfg.Prompt.Features.FetchFirst {
+			// Before feature fetchFirst a behaviour entry had no reason: the
+			// strict decoder refused it, and still does, byte for byte.
+			bad(rejectf("invalid arguments for %s: %v", tool, fmt.Errorf("json: unknown field %q", k)))
+			break
+		}
+		res, err = s.dispatch(ctx, tool, in, func(ctx context.Context) (*outcome, error) { return s.submitFindings(ctx, in) })
 	default:
 		_, res, err = s.invoke(ctx, tool, argsForTranscript(args), nil)
 	}
@@ -677,6 +734,46 @@ func argsForTranscript(args json.RawMessage) json.RawMessage {
 	}
 	b, _ := json.Marshal(string(args))
 	return b
+}
+
+// legacyEvidenceRequest is request_evidence's arguments before prompt
+// feature upstream.
+type legacyEvidenceRequest struct {
+	ChangeItem string                     `json:"changeItem,omitempty"`
+	Kind       domain.EvidenceRequestKind `json:"kind"`
+	Target     string                     `json:"target"`
+	Reason     string                     `json:"reason"`
+}
+
+// legacyBehaviourReason returns the key of the first behaviour entry's
+// reason in submit_findings arguments ("" if none). The arguments decoded
+// strictly, so it is the only field the decoder before feature fetchFirst
+// would have refused, and it would have named this key (matched without
+// regard to case, as encoding/json matches fields).
+func legacyBehaviourReason(args json.RawMessage) string {
+	var in struct {
+		Items []struct {
+			Assessment *struct {
+				Behaviour []map[string]json.RawMessage `json:"behaviour"`
+			} `json:"assessment"`
+		} `json:"items"`
+	}
+	if json.Unmarshal(args, &in) != nil {
+		return ""
+	}
+	for _, it := range in.Items {
+		if it.Assessment == nil {
+			continue
+		}
+		for _, b := range it.Assessment.Behaviour {
+			for k := range b {
+				if strings.EqualFold(k, "reason") {
+					return k
+				}
+			}
+		}
+	}
+	return ""
 }
 
 type getChangeItemArgs struct {
@@ -722,7 +819,7 @@ func (s *Session) ListPaths(ctx context.Context, q investigate.PathQuery) ([]dom
 }
 
 func (s *Session) RequestEvidence(ctx context.Context, in investigate.EvidenceRequestInput) (*domain.EvidenceRequest, error) {
-	return typed[*domain.EvidenceRequest](s, ctx, investigate.ToolRequestEvidence, in, func(context.Context) (*outcome, error) { return s.requestEvidence(in) })
+	return typed[*domain.EvidenceRequest](s, ctx, investigate.ToolRequestEvidence, in, func(ctx context.Context) (*outcome, error) { return s.requestEvidence(ctx, in) })
 }
 
 func (s *Session) RequestValidation(ctx context.Context, in investigate.ValidationRequestInput) (*domain.ValidationRequest, *domain.ValidationRecord, error) {
@@ -948,6 +1045,8 @@ func (s *Session) BeginItem(item string, budget domain.AgentBudget, promptDigest
 	s.focus, s.cfg.Budget, s.cfg.PromptDigest = item, budget, promptDigest
 	s.exhausted, s.submitted, s.itemCalls, s.itemRead = "", false, 0, 0
 	s.retrieved = map[string]bool{}
+	s.traced = map[string]bool{}
+	s.upState = upstreamState{done: map[string][]string{}}
 	s.sessions = append(s.sessions, item)
 	s.writeLine(map[string]any{"type": "item", "item": item, "promptDigest": promptDigest, "budget": budget})
 }

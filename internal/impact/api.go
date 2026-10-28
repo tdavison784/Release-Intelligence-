@@ -139,6 +139,13 @@ type Input struct {
 	// delta (PO-7a; nil: today's image-changed verdict).
 	// CONTRACT-CHANGE(renderfirst).
 	Image ImageRenderEvaluator
+	// Objects is the effective object view of the environment (env.Effective:
+	// the rendered objects of its entrypoints, files no render consumed as
+	// declared, files whose render is unavailable marked unrendered). The
+	// object-level evaluations read it — knowledge conditions and the
+	// schema-attribute joins — instead of Env's files (nil: Env's resources,
+	// as before). Everything else comes from Env. CONTRACT-CHANGE(join5).
+	Objects *env.Environment
 }
 
 // Build assembles the ImpactReport. The result must pass

@@ -6,9 +6,11 @@ package runtest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -19,7 +21,9 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/investigate/run"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
+	"github.com/tdavison784/release-intelligence/internal/llm"
 	"github.com/tdavison784/release-intelligence/internal/render"
+	"github.com/tdavison784/release-intelligence/internal/synthesize"
 )
 
 var FixedNow = time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
@@ -203,4 +207,51 @@ func (f *Fixture) Request() investigate.Request {
 // Human is a human review decision.
 func Human(action investigate.ReviewAction) *investigate.ReviewDecision {
 	return &investigate.ReviewDecision{Action: action, Reviewer: "alice", ReviewerKind: domain.ReviewerHuman, At: FixedNow, Note: "ok"}
+}
+
+// Synth is the synthesis port over internal/synthesize with a model client
+// (normally a cached llm.Fake answering ValidationRequiredAnswer).
+type Synth struct{ Client llm.Client }
+
+func (s Synth) Synthesize(ctx context.Context, in run.SynthesisInput) (*domain.UpgradeJudgement, error) {
+	return (&synthesize.Synthesizer{Client: s.Client}).Synthesize(ctx, synthesize.Input{
+		Investigation: in.Investigation, Bundle: in.Bundle, Report: in.Report, Edge: in.Edge})
+}
+
+// ValidationRequiredAnswer answers a synthesis request with a
+// validation-required judgement that passes the floor on any input: it
+// requires the first candidate test (or comments on the first finding).
+func ValidationRequiredAnswer(req llm.Request) (string, error) {
+	msg := req.Messages[0].Content
+	i := strings.Index(msg, "\n{")
+	if i < 0 {
+		return "", fmt.Errorf("no input document in the request")
+	}
+	var p synthesize.Precomputed
+	if err := json.NewDecoder(strings.NewReader(msg[i+1:])).Decode(&p); err != nil {
+		return "", err
+	}
+	var basis []string
+	if len(p.Tests) > 0 {
+		basis = append(basis, p.Tests[0].ID)
+	} else if len(p.Findings) > 0 {
+		basis = append(basis, p.Findings[0].ID)
+	}
+	a := synthesize.Answer{Recommendation: domain.RecommendValidationRequired,
+		Headline: "Validation required before " + p.Upgrade.To.String() + " can be cleared in " + p.Upgrade.Environment + ".",
+		Scope:    "the repository", Preconditions: []string{}, Rationale: "the classification leaves items undecided",
+		Changes:       []synthesize.AnswerChange{{Kind: domain.StepValidate, Summary: "run the required tests", ChangeItems: []string{}}},
+		Validation:    []synthesize.AnswerTest{{Test: "run the candidate test", Expected: "it passes", Basis: basis, ChangeItems: []string{}}},
+		ResidualRisks: []synthesize.AnswerRisk{}, FindingComments: []synthesize.AnswerComment{}, InteractionComments: []synthesize.AnswerComment{},
+		Verified: []synthesize.AnswerVerified{}, Inferred: []string{}, Unknown: []string{"the undecided items"}}
+	b, err := json.Marshal(a)
+	return string(b), err
+}
+
+// SynthClient is a cached fake model answering ValidationRequiredAnswer,
+// with a fixed clock (replays are cache hits).
+func SynthClient(t *testing.T) (*llm.Cache, *llm.Fake) {
+	t.Helper()
+	fake := &llm.Fake{Model: "claude-opus-5-5", Respond: ValidationRequiredAnswer}
+	return &llm.Cache{Dir: t.TempDir(), Inner: fake, Clock: func() time.Time { return FixedNow }}, fake
 }

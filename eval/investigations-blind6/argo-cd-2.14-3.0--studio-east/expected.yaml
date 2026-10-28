@@ -1,0 +1,57 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: argo-cd-2.14-3.0--studio-east
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [1, 4]             # PLAN-M6 §2: untuned product; a setting that looks like a pin but is ineffective
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed:
+      - observed/run.log#L230-L237     # rendered argocd-cm / argocd-rbac-cm: enforce flag false, no policy.default, no logs policy
+      - observed/run.log#L251-L260     # FROM v2.14.11: a studio-devs member reads the Application (200) and its pod logs (200)
+      - observed/run.log#L285-L296     # TO v3.0.12: the flag is still rendered false; Application 200, logs 403 "permission denied: logs, get, games/lobby"
+    citations:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.12/docs/operator-manual/upgrading/2.14-3.0.md
+        lines: L33-L49
+        quote: "Starting from 3.0, this flag is removed and the logs RBAC is enforced by default, meaning the `logs` tab on `pod` view will not be visible without granting explicit `logs, get` permissions to the users/groups/roles requiring it. ... Users who don't have a `policy.default` in their `argocd-rbac-cm` ConfigMap, and either have `server.rbac.log.enforce.enable` set to `false` or don't have this setting at all in their `argocd-cm` ConfigMap are affected and should perform the below remediation steps."
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.12/docs/operator-manual/upgrading/2.14-3.0.md
+        lines: L60-L62
+        quote: "Explicitly add a `logs, get` policy to every role that has a policy for `applications, get` or for `applications, *`."
+    match:
+      - subject: server.rbac.log.enforce.enable
+      - text: '(?i)logs? (rbac|permission|enforce)|rbac\.log|logs, get'
+    components:
+      - ref: {file: env/argocd/values.yaml, field: configs.rbac.policy.csv}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/helmfile.yaml}, relation: deploys}
+          - {ref: {kind: ConfigMap, namespace: argocd, name: argocd-rbac-cm, renderedFrom: env/helmfile.yaml}, field: policy.csv, relation: renders-to}
+          - {ref: {file: env/argocd/apps.yaml, kind: AppProject, namespace: argocd, name: games}, relation: references}
+        reason: >-
+          role:developer (the Okta group studio-devs) has applications get/sync on games/* but no logs
+          permission, and there is no policy.default. In v2.14 logs follow applications get because
+          enforcement is off (server.rbac.log.enforce.enable: false); v3.0 removes the flag and always
+          enforces logs RBAC. The flag is still set to false in argocd/values.yaml and still rendered into
+          argocd-cm after the upgrade, but it no longer has any effect. Observed: a studio-devs member
+          reads the lobby Application at both versions, reads its pod logs at v2.14.11 and gets HTTP 403
+          "permission denied: logs, get, games/lobby" at v3.0.12. The game developers lose pod logs in
+          Argo CD, which the README says they use for debugging.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/argocd/values.yaml, field: configs.rbac.policy.csv}
+          - {file: env/argocd/values.yaml, field: configs.cm.server.rbac.log.enforce.enable}
+          - {file: env/argocd/values.yaml, field: configs.rbac}
+    apparentMitigation:            # additive (M6)
+      ref: {file: env/argocd/values.yaml, field: 'configs.cm."server.rbac.log.enforce.enable"'}
+      value: false
+      effective: false
+      why: >-
+        In v2.14 "false" is what keeps logs readable for application viewers, so it reads like a pin of
+        the old behaviour; v3.0 removed the option ("this flag is removed") and ignores it (observed:
+        rendered unchanged, logs denied).
+    remediation: >-
+      Before the upgrade add "p, role:developer, logs, get, games/*, allow" to policy.csv (the upstream
+      recommended per-role change), then drop the obsolete flag.
+renderedChanges: []   # observed/render.diff: no RBAC hunk (the enforcement is compiled in); its argocd-cm hunk adds the v3.0 default resource.exclusions / ignoreResourceUpdates (not in scope)

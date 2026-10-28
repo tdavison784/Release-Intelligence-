@@ -1,0 +1,19 @@
+# Basic auth for staff-only routes. The users Secret holds htpasswd (bcrypt) lines; the platform
+# team rotates it.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: staff-auth
+spec:
+  basicAuth:
+    secret: staff-users
+    removeHeader: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: staff-users
+type: Opaque
+stringData:
+  users: |
+    ops:$2y$05$AFfLbJ6KThZgbbwsveymtOl60rT//o6/.YvY2WP.gbZkB/J8EblDW

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
@@ -25,6 +26,9 @@ type Mitigation struct {
 	Rule     *domain.SemanticAssertion
 	Bounds   *domain.ProofBounds
 	Rejected string // why the agent's spec was not stored ("" when it was)
+	// Refinement is set when the hypothesis is a scope-refinement candidate
+	// (its ProposedVerification.Refinement; lane verify2).
+	Refinement *domain.ScopeRefinement
 }
 
 // RunSource reads a hypothesis' mitigation from its investigation record.
@@ -66,14 +70,23 @@ func (r StateRuns) Mitigation(ctx context.Context, inv, hyp string) (*Mitigation
 		if h.ID != hyp {
 			continue
 		}
-		m := h.Mitigation
-		if m == nil {
-			return &Mitigation{Rejected: h.MitigationRejected}, nil
-		}
-		rule := m.ProposedRule.Assertion
-		return &Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}, nil
+		return MitigationOf(h), nil
 	}
 	return nil, fmt.Errorf("verify: run %s has no hypothesis %s", inv, hyp)
+}
+
+// MitigationOf is what a hypothesis states about its proposed rule.
+func MitigationOf(h domain.Hypothesis) *Mitigation {
+	m := h.Mitigation
+	if m == nil {
+		return &Mitigation{Rejected: h.MitigationRejected}
+	}
+	rule := m.ProposedRule.Assertion
+	out := &Mitigation{Rule: &rule, Bounds: &domain.ProofBounds{From: m.ProposedRule.Release.From, To: m.ProposedRule.Release.To}}
+	if v := h.ProposedVerification; v != nil {
+		out.Refinement = v.Refinement
+	}
+	return out
 }
 
 // Options configure a verification pass.
@@ -109,7 +122,7 @@ type Result struct {
 var baseLimitations = []string{
 	"the rule exercise uses one synthetic subject object per arm in a fresh cluster: other consumers of the subject's outputs, other topologies, pre-existing state and other controller configurations are not covered",
 	"the controller is installed from its chart with the fixture's declared values only; environment-specific controller settings are not exercised",
-	"the citation check proves the passages exist in version-bounded upstream text and name the subject; whether they state the claimed behaviour is the human reviewer's judgement",
+	"the citation check proves the passages exist in version-bounded upstream text and name the subject; the semantic check compares only the value tokens the rule asserts with them: whether they state the claimed behaviour is otherwise the human reviewer's judgement",
 	"a proof never decides whether an environment meets the rule's conditions: the deterministic validators decide that at investigation time",
 }
 
@@ -205,6 +218,7 @@ func decisive(snap *knowledge.Snapshot, it domain.ReviewItem) *domain.ProofRecor
 func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c domain.SemanticCandidate, it domain.ReviewItem, hyp, inv string) (*domain.ProofRecord, string) {
 	rule := it.Proposed
 	var bounds *domain.ProofBounds
+	var refinement *domain.ScopeRefinement
 	var limitations []string
 	switch {
 	case inv == "":
@@ -225,8 +239,12 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		case m.Rule.Digest() != rule.Digest():
 			return nil, fmt.Sprintf("item %s proposes another rule than hypothesis %s's mitigation spec (digest %s vs %s)", it.ID, hyp, rule.Digest(), m.Rule.Digest())
 		default:
-			bounds = m.Bounds
+			bounds, refinement = m.Bounds, m.Refinement
 		}
+	}
+	if r := refinement; r != nil {
+		limitations = append(limitations, fmt.Sprintf("a scope refinement of rule %s (hypothesis %s) to consumer role %s, proposed from %d reads-file edge(s) of the investigation's consumer trace: it holds only for consumers that use the key material as the role's consumer exercise does (they read %s); a consumer that uses it otherwise (for example pins a leaf) is not covered",
+			r.BaseRule, r.Refines, r.Consumer, len(r.Trace), r.TrustKey))
 	}
 	// the upstream citations of the hypothesis proposals of this rule
 	evByID := map[domain.EvidenceID]domain.Evidence{}
@@ -258,7 +276,12 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 	if res == nil {
 		res = Resolvers{}
 	}
-	methods := []domain.ProofMethod{CheckCitations(ctx, res, rule, bounds, evs)}
+	cit := CheckCitations(ctx, res, rule, bounds, evs)
+	sem := CheckSemantics(rule, evs, cit, refinement)
+	if sem.Outcome == domain.MethodInconclusive {
+		limitations = append(limitations, "the semantic check could not decide every token the rule asserts: the human reviewer judges whether the cited passages state it")
+	}
+	methods := []domain.ProofMethod{cit, sem}
 	var ex domain.ProofMethod
 	if o.Runtime {
 		var rels []catalog.Relationship
@@ -267,7 +290,8 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		}
 		var notes []string
 		ex, notes = ExerciseRule(ctx, ExerciseInput{Product: string(it.Product), Rule: rule, Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)],
-			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner})
+			Exercises: o.Exercises, Relationships: rels, KubernetesVersion: o.KubernetesVersion, Renderer: o.Renderer, Runner: o.Runner,
+			Evidence: evs, Refinement: refinement})
 		limitations = append(limitations, notes...)
 	} else {
 		ex = domain.ProofMethod{Method: domain.ProofRuleExercise, Producer: ExerciseProducer, Level: domain.LevelObserved, Outcome: domain.MethodNotRun,
@@ -278,6 +302,32 @@ func verifyItem(ctx context.Context, o Options, snap *knowledge.Snapshot, c doma
 		ProposedRuleDigest: rule.Digest(), Methods: methods, VersionBounds: bounds, Conditions: rule.Applicability,
 		Limitations: append(append([]string(nil), baseLimitations...), limitations...), Producer: Producer, CheckedAt: o.Now().UTC().Truncate(time.Second)}
 	p.Outcome = domain.ProofOutcomeOf(methods)
+	// PD-5: defaults observed by the default probes, on a confirmed proof only
+	if ods, notes := ObservedDefaults(rule, ex, ObservationFixture{Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)]}); len(ods) > 0 || len(notes) > 0 {
+		p.Limitations = append(p.Limitations, notes...)
+		for _, d := range ods {
+			if p.Outcome != domain.ProofConfirmed {
+				p.Limitations = append(p.Limitations, fmt.Sprintf("the default probes observed an unset %s behaving as %s, but the proof is %s, so no observed default is recorded", d.Path, d.Value, p.Outcome))
+				continue
+			}
+			p.ObservedDefaults = append(p.ObservedDefaults, d)
+			p.Limitations = append(p.Limitations, fmt.Sprintf("objects that leave %s unset are decided by the default %s = %s observed by this proof (%s, controller %s); the rule itself states no default for it",
+				d.Path, d.Path, d.Value, d.Limitation, strings.Join(d.Versions, " and ")))
+		}
+	}
+	// PD-6: role-membership defaults from the in-role probes, likewise
+	if mds, notes := RoleMembershipDefaults(rule, ex, ObservationFixture{Bounds: bounds, Fixtures: o.Fixtures[string(it.Product)]}, refinement); len(mds) > 0 || len(notes) > 0 {
+		p.Limitations = append(p.Limitations, notes...)
+		for _, d := range mds {
+			if p.Outcome != domain.ProofConfirmed {
+				p.Limitations = append(p.Limitations, fmt.Sprintf("the default probes observed %s, but the proof is %s, so no role-membership default is recorded", d.Statement(), p.Outcome))
+				continue
+			}
+			p.RoleMembershipDefaults = append(p.RoleMembershipDefaults, d)
+			p.Limitations = append(p.Limitations, fmt.Sprintf("objects that leave %s unset are decided outside role %s by the role-membership default %s observed by this proof (%s, controller %s), for this rule's membership conditions only; it is not a default of %s",
+				d.Path, d.Role, d.Statement(), d.Limitation, strings.Join(d.Versions, " and "), d.Path))
+		}
+	}
 	p.Level = domain.LevelDeterministic
 	if ex.Outcome != domain.MethodNotRun {
 		p.Level = domain.LevelObserved

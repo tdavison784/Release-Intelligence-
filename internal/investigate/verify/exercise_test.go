@@ -177,6 +177,52 @@ func TestEvaluateArmsFourCombinations(t *testing.T) {
 	}
 }
 
+// Behaviour signatures are object state only (lane verify3, D-0026): a
+// controller log line or a warning event naming an arm's object differs
+// between runs for reasons unrelated to the rule, so it is recorded as a
+// diagnostic and never decides the arm; a real data change still does.
+func TestEvaluateArmsLogsNeverDecide(t *testing.T) {
+	logs := func(r *runtime.FixtureResult, arm string) {
+		for _, sig := range []string{"log:unable to fetch certificate that owns the secret", "warning:BadConfig"} {
+			r.Run.Degradations = append(r.Run.Degradations, runtime.Degradation{Object: "core/v1/ConfigMap/ri-verify/" + arm + "-data", Window: "exercise", Signature: sig})
+		}
+	}
+	// only logs differ on the condition arm: no change there, so the rule passes
+	res := fixtureResult(false, true)
+	logs(res, "ri-arm-present")
+	m := EvaluateArms(res, plans(), "acme-ctl/rollover")
+	if m.Outcome != domain.MethodPass || m.Producer != "verify.exercise@v3" {
+		t.Fatalf("logs on the condition arm: %s %s", m.Outcome, m.Detail)
+	}
+	present := m.Arms[0]
+	if present.Changed || len(present.Signatures) != 0 || len(present.Diagnostics) != 2 || !strings.Contains(m.Checks[0].Detail, "diagnostics, not decisive") {
+		t.Fatalf("condition arm: %+v / %s", present, m.Checks[0].Detail)
+	}
+	// only logs differ on the contrast arm: the change was not shown
+	res = fixtureResult(false, false)
+	logs(res, "ri-arm-absent")
+	if m := EvaluateArms(res, plans(), "acme-ctl/rollover"); m.Outcome != domain.MethodInconclusive || m.Arms[1].Changed {
+		t.Fatalf("logs on the contrast arm: %s %s", m.Outcome, m.Detail)
+	}
+	// a real data change on the condition arm is still detected, logs or not
+	res = fixtureResult(true, true)
+	logs(res, "ri-arm-present")
+	if m := EvaluateArms(res, plans(), "acme-ctl/rollover"); m.Outcome != domain.MethodFail || !m.Arms[0].Changed ||
+		strings.Contains(strings.Join(m.Arms[0].Signatures, "|"), "log:") || !strings.Contains(m.Detail, "data:payload") {
+		t.Fatalf("data change: %s %s %+v", m.Outcome, m.Detail, m.Arms[0])
+	}
+	// the consumer observation records them the same way
+	run := consumerRun(map[string][2]string{domain.ArmConditionPresent: {runtime.ConsumerVerified, runtime.ConsumerVerified},
+		domain.ArmConditionAbsent: {runtime.ConsumerVerified, runtime.ConsumerFailed}})
+	run.Run.Degradations = append(run.Run.Degradations, runtime.Degradation{Object: "acme.example/v1/Badge/ri-verify/" + domain.ArmConditionPresent, Signature: "log:x"})
+	cps := consumerPlans(domain.ArmConditionPresent, domain.ArmConditionAbsent)
+	cps[0].objects = []string{"acme.example/v1/Badge/ri-verify/" + domain.ArmConditionPresent}
+	cm := EvaluateConsumerArms(run, cps, nil)
+	if cm.Outcome != domain.MethodPass || len(cm.Arms[0].Diagnostics) != 1 || strings.Contains(strings.Join(cm.Arms[0].Signatures, "|"), "log:") {
+		t.Fatalf("consumer observation: %s %+v", cm.Outcome, cm.Arms[0])
+	}
+}
+
 func TestEvaluateArmsNeverPassesAQuietOrBrokenRun(t *testing.T) {
 	unanswered := fixtureResult(false, true)
 	unanswered.Run.Exercises[1].Reacted = unanswered.Run.Exercises[1].Reacted[:1] // absent arm silent at TO

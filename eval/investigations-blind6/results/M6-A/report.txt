@@ -1,0 +1,78 @@
+══ investigation eval — arm A0: deterministic only (no agent, no runtime) — run M6-A (commit 6a87ded15c) ══
+n = 8 item decisions over 8 cases (small dataset: every rate below has a wide uncertainty)
+
+── runs ──
+  argo-cd-2.14-3.0--studio-east                human-review-required  findings 97 (affected=0 not-affected=34 potentially-affected=41 insufficient-evidence=22)  agent not-run  citations 1424/1424  reproduced
+      95 finding(s) on items no expected item selects (unscored), 0 affected
+  argo-cd-2.14-3.0--studio-west                human-review-required  findings 97 (affected=0 not-affected=34 potentially-affected=41 insufficient-evidence=22)  agent not-run  citations 1424/1424  reproduced
+      95 finding(s) on items no expected item selects (unscored), 0 affected
+  cert-manager-1.20-1.21--treasury-de          human-review-required  findings 30 (affected=0 not-affected=6 potentially-affected=23 insufficient-evidence=1)  agent not-run  citations 313/313  reproduced
+      25 finding(s) on items no expected item selects (unscored), 0 affected
+  cert-manager-1.20-1.21--treasury-us          human-review-required  findings 30 (affected=0 not-affected=6 potentially-affected=23 insufficient-evidence=1)  agent not-run  citations 314/314  reproduced
+      25 finding(s) on items no expected item selects (unscored), 0 affected
+✗ external-secrets-0.18-0.19--orders-br        PIPELINE FAILURE: collect-change-evidence: change: store: artifact art-d06718166da5: path "upstream/external-secrets/github.com/external-secrets/external-secrets/compare/v0.18.0...v0.19.0" must be relative and must not contain ..
+✗ external-secrets-0.18-0.19--orders-eu        PIPELINE FAILURE: collect-change-evidence: change: store: artifact art-d06718166da5: path "upstream/external-secrets/github.com/external-secrets/external-secrets/compare/v0.18.0...v0.19.0" must be relative and must not contain ..
+  traefik-3.6-3.6--retail-apac                 human-review-required  findings 39 (affected=0 not-affected=0 potentially-affected=9 insufficient-evidence=30)  agent not-run  citations 498/498  reproduced
+      39 finding(s) on items no expected item selects (unscored), 0 affected
+  traefik-3.6-3.6--retail-emea                 human-review-required  findings 39 (affected=0 not-affected=0 potentially-affected=9 insufficient-evidence=30)  agent not-run  citations 498/498  reproduced
+      39 finding(s) on items no expected item selects (unscored), 0 affected
+
+── item decisions (expected vs system) ──
+✗  argo-cd-2.14-3.0--studio-east                B1  expected affected              system insufficient-evidence (observed, 2 matched) classify:insufficient-evidence [controller-behaviour, basis none, ci-d033a5ea330d] "402802b08974bb0f1c2e417f7a190d042813c108: feat!: Logs rbac …"
+✗  argo-cd-2.14-3.0--studio-west                B1  expected not-affected          system insufficient-evidence (observed, 2 matched) classify:insufficient-evidence [controller-behaviour, basis none, ci-d033a5ea330d] "402802b08974bb0f1c2e417f7a190d042813c108: feat!: Logs rbac …"
+✗  cert-manager-1.20-1.21--treasury-de          B1  expected affected              system potentially-affected  (observed, 5 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0a94fe3c08c7] "BREAKING: The Helm chart no longer ships a default `Role` a…"
+✗  cert-manager-1.20-1.21--treasury-us          B1  expected not-affected          system potentially-affected  (observed, 5 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0a94fe3c08c7] "BREAKING: The Helm chart no longer ships a default `Role` a…"
+✓  external-secrets-0.18-0.19--orders-br        B1  expected insufficient-evidence system insufficient-evidence (observed-alternatives, 0 matched) run failed
+✗  external-secrets-0.18-0.19--orders-eu        B1  expected affected              system insufficient-evidence (observed, 0 matched) run failed
+✗  traefik-3.6-3.6--retail-apac                 B1  expected not-affected          system insufficient-evidence (observed, 0 matched) no matching item
+✗  traefik-3.6-3.6--retail-emea                 B1  expected affected              system insufficient-evidence (observed, 0 matched) no matching item
+
+── metrics (overall) ──
+  falseNegativeRate              0.000 (0/4)
+  unsafeEligibilityRate          n/a (0/0)
+  falsePositiveRate              0.000 (0/3)
+  affectedDetection              0.250 (1/4)
+  affectedConfirmation           0.000 (0/4)
+  notAffectedConfirmation        0.000 (0/3)
+  exposureRecall                 0.000 (0/4)
+  evidenceCoverage               0.125 (2/16)
+  unresolvedRate                 0.714 (5/7)
+  observedAgreement              0.000 (0/7)
+  accuracy                       0.125 (1/8)
+  humanReviewRate                1.000 (8/8)
+  autoApprovalEligibilityRate    0.000 (0/8)
+  itemMatchMisses                2 (of 8)
+  evidenceFileCoverage           0.188 (3/16)
+  citationResolution             1.000 (4471/4471)
+  reproducibility                1.000 (6/6)
+  pipelineFailures               2 (of 8)
+  runHumanReviewRate             1.000 (6/6)
+  runAutoApproveEligibleRate     0.000 (0/6)
+
+── splits (decision metrics per subset) ──
+  basis         none                   n=8   accuracy 0.125 (1/8); falseNegativeRate 0.000 (0/4); affectedDetection 0.250 (1/4); affectedConfirmation 0.000 (0/4); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.714 (5/7); exposureRecall 0.000 (0/4); evidenceCoverage 0.125 (2/16)
+  manifestation controller-behaviour   n=4   accuracy 0.000 (0/4); falseNegativeRate 0.000 (0/2); affectedDetection 0.500 (1/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/2); unresolvedRate 0.500 (2/4); exposureRecall 0.000 (0/2); evidenceCoverage 0.222 (2/9)
+  manifestation unmatched              n=4   accuracy 0.250 (1/4); falseNegativeRate 0.000 (0/2); affectedDetection 0.000 (0/2); affectedConfirmation 0.000 (0/2); notAffectedConfirmation 0.000 (0/1); unresolvedRate 1.000 (3/3); exposureRecall 0.000 (0/2); evidenceCoverage 0.000 (0/7)
+  verification  observed               n=7   accuracy 0.000 (0/7); falseNegativeRate 0.000 (0/4); affectedDetection 0.250 (1/4); affectedConfirmation 0.000 (0/4); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.714 (5/7); exposureRecall 0.000 (0/4); evidenceCoverage 0.125 (2/16)
+  verification  observed-alternatives  n=1   accuracy 1.000 (1/1)
+
+── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
+✗ affectedConfirmation       FAIL              actual 0.000 (0/4)        ≥ 0.50  (minSample 2)
+✗ affectedDetection          FAIL              actual 0.250 (1/4)        ≥ 0.75  (minSample 2)
+✓ citationResolution         PASS              actual 1.000 (4471/4471)  ≥ 1.00  (minSample 1)
+✗ evidenceCoverage           FAIL              actual 0.125 (2/16)       ≥ 0.75  (minSample 4)
+✗ exposureRecall             FAIL              actual 0.000 (0/4)        ≥ 0.75  (minSample 2)
+✓ falseNegativeRate          PASS              actual 0.000 (0/4)        ≤ 0.00  (minSample 4)
+✓ falsePositiveRate          PASS              actual 0.000 (0/3)        ≤ 0.25  (minSample 2)
+✗ notAffectedConfirmation    FAIL              actual 0.000 (0/3)        ≥ 0.50  (minSample 2)
+✗ observedAgreement          FAIL              actual 0.000 (0/7)        ≥ 0.75  (minSample 4)
+✗ pipelineFailures           FAIL              actual 2 (of 8)           ≤ 0.00  (minSample 0)
+✓ reproducibility            PASS              actual 1.000 (6/6)        ≥ 1.00  (minSample 1)
+✗ unresolvedRate             FAIL              actual 0.714 (5/7)        ≤ 0.50  (minSample 4)
+? unsafeEligibilityRate      INSUFFICIENT-DATA actual n/a (0/0)          ≤ 0.00  (minSample 1)
+
+autonomy (§6.3): eligible=false — observed not-affected 3, observed affected 4
+    unsafeEligibilityRate is INSUFFICIENT-DATA
+    pipelineFailures is FAIL
+    3 observed not-affected decisions < 20
+    4 observed affected/potentially-affected decisions < 20

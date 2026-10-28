@@ -367,8 +367,11 @@ type itemView struct {
 	Correction  *correctionView // nil when the question states nothing to correct
 	WholeFact   *wholeFactView  // fact-review items: every aspect and its level
 	Hypothesis  *hypothesisView // agent-proposed rules: reasoning (AI), proofs, the promotion gate
-	Editable    bool            // the item can still be decided
-	Disagrees   bool
+	// Relations are the active same-subject facts an accept or correct must
+	// supersede or keep (relationChoices).
+	Relations []relatedFact
+	Editable  bool // the item can still be decided
+	Disagrees bool
 	// ConsensusAction: separate calls agree on an action-eligible consequence
 	// and every agreeing proposal REQUESTED action-required (PO-2 (b)). The UI
 	// only reports the request; the fact's other conditions are the pipeline's.
@@ -511,6 +514,11 @@ func newItemView(rc *knowledge.ReviewContext, rd *RenderedDelta, form url.Values
 	}
 	if rc.Item.QuestionType == domain.QuestionEvidenceSufficiency {
 		v.PrimaryLabel, v.PrimaryAction = "Send back — need more evidence", "need-more-evidence"
+	}
+	if v.Hypothesis != nil {
+		v.Relations = v.Hypothesis.Related
+	} else {
+		v.Relations = relationChoices(rc, form)
 	}
 	if n := len(rc.Candidate.Evidence); n > 0 {
 		best, bestN := 0, -1

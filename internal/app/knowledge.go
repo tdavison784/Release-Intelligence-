@@ -30,7 +30,9 @@ type KnowledgeSet struct {
 // domain.KnowledgeRecord) read-only, validates each record, and keeps the
 // facts whose per-aspect verification is proven by the loaded records
 // (impact.VerifyFacts). Invalid records are refused with a warning, never
-// used.
+// used. Each pair of kept active facts of one product, release and subject
+// that contradict each other (domain.FactIncompatibility) is a warning
+// naming both.
 //
 // The knowledge lane's knowledge.Store (NewFileStore) is the write path; this
 // reader only needs the same files, so the two stay interchangeable.
@@ -79,6 +81,12 @@ func LoadKnowledge(dir string) (*KnowledgeSet, error) {
 			s.ReviewItems = append(s.ReviewItems, *r.ReviewItem)
 		case domain.RecordDecision:
 			s.Decisions = append(s.Decisions, *r.Decision)
+		case domain.RecordProof:
+			// an observed or role-membership default of a fact is usable
+			// only through the confirmed proof that records it
+			// (VerifyFacts): without the proofs every such default would be
+			// ignored as "does not resolve"
+			s.Proofs = append(s.Proofs, *r.Proof)
 		case domain.RecordFact:
 			s.Facts = append(s.Facts, *r.Fact)
 		}
@@ -86,7 +94,17 @@ func LoadKnowledge(dir string) (*KnowledgeSet, error) {
 	facts, rejected := impact.VerifyFacts(s)
 	ks.Facts = facts
 	for _, r := range rejected {
+		if strings.Contains(r, " default ") && strings.Contains(r, " ignored: ") {
+			// the fact is kept; only the default is not used
+			ks.Warnings = append(ks.Warnings, "fact default ignored: "+r)
+			continue
+		}
 		ks.Warnings = append(ks.Warnings, "fact refused: "+r)
+	}
+	// lane backdoor: active facts of one subject that contradict each other
+	// are reported (the join never lets either clear a change)
+	for _, x := range domain.Contradictions(ks.Facts) {
+		ks.Warnings = append(ks.Warnings, "knowledge contradiction: "+x.String())
 	}
 	ks.Contexts = impact.ReviewContexts(s)
 	return ks, nil

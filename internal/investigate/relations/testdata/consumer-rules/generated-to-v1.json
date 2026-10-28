@@ -1,0 +1,204 @@
+{
+  "id": "grf-656c612b4a08",
+  "bundle": "bnd-test",
+  "builder": "relations.builder@v1+consumers@v1",
+  "nodes": [
+    {
+      "id": "gn-19456ccfa1de",
+      "kind": "config-object",
+      "key": "core/v1/Secret/shop/side-keys",
+      "placeholder": true
+    },
+    {
+      "id": "gn-2a7c4369b66e",
+      "kind": "config-object",
+      "key": "core/v1/Secret/shop/api-ca",
+      "placeholder": true
+    },
+    {
+      "id": "gn-39044775429b",
+      "kind": "external",
+      "key": "file:apps/v1/Deployment/shop/api#proxy:/var/log/api/proxy.log",
+      "placeholder": true
+    },
+    {
+      "id": "gn-7c77f332daa4",
+      "kind": "config-object",
+      "key": "core/v1/ConfigMap/shop/api-proxy",
+      "artifacts": [
+        "art-10c92f37dbfd"
+      ]
+    },
+    {
+      "id": "gn-d19f56b497e5",
+      "kind": "kustomization",
+      "key": "kustomize.config.k8s.io/v1beta1/Kustomization//env/apps/api/base",
+      "artifacts": [
+        "art-10c92f37dbfd"
+      ]
+    },
+    {
+      "id": "gn-e79bae802591",
+      "kind": "workload",
+      "key": "apps/v1/Deployment/shop/api",
+      "artifacts": [
+        "art-ef0e549dc7d6"
+      ]
+    },
+    {
+      "id": "gn-fc7e0fbff10c",
+      "kind": "kustomization",
+      "key": "kustomize.config.k8s.io/v1beta1/Kustomization//env/apps/api/overlays/eu",
+      "artifacts": [
+        "art-51c679afed9d"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "ge-60d8deafbde3",
+      "kind": "references",
+      "from": "gn-7c77f332daa4",
+      "to": "gn-e79bae802591",
+      "status": "established",
+      "rule": "graph.k8s-refs@v1:volumes.configMap",
+      "detail": "spec.template.spec.volumes[1:proxy].configMap.name",
+      "artifacts": [
+        "art-ef0e549dc7d6"
+      ],
+      "mount": {
+        "volume": "proxy",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "proxy",
+            "mountPath": "/etc/nginx/conf.d"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-ef0e549dc7d6",
+        "line": 9,
+        "text": "- {name: proxy, configMap: {name: api-proxy}}"
+      }
+    },
+    {
+      "id": "ge-692425330f27",
+      "kind": "deploys",
+      "from": "gn-fc7e0fbff10c",
+      "to": "gn-d19f56b497e5",
+      "status": "established",
+      "rule": "graph.kustomize@v1:resources",
+      "detail": "resources: ../../base",
+      "artifacts": [
+        "art-51c679afed9d"
+      ]
+    },
+    {
+      "id": "ge-b0d3da60ced6",
+      "kind": "references",
+      "from": "gn-19456ccfa1de",
+      "to": "gn-e79bae802591",
+      "status": "missing",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[2:side].secret.secretName",
+      "reason": "Secret shop/side-keys is not defined in the snapshot",
+      "artifacts": [
+        "art-ef0e549dc7d6"
+      ],
+      "mount": {
+        "volume": "side",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "sidecar",
+            "mountPath": "/etc/side/keys"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-ef0e549dc7d6",
+        "line": 10,
+        "text": "- {name: side, secret: {secretName: side-keys}}"
+      }
+    },
+    {
+      "id": "ge-ba8f951c0169",
+      "kind": "references",
+      "from": "gn-2a7c4369b66e",
+      "to": "gn-e79bae802591",
+      "status": "missing",
+      "rule": "graph.k8s-refs@v1:volumes.secret",
+      "detail": "spec.template.spec.volumes[0:ca].secret.secretName",
+      "reason": "Secret shop/api-ca is not defined in the snapshot",
+      "artifacts": [
+        "art-ef0e549dc7d6"
+      ],
+      "mount": {
+        "volume": "ca",
+        "source": -1,
+        "mounts": [
+          {
+            "container": "proxy",
+            "mountPath": "/etc/api/ca"
+          }
+        ]
+      },
+      "line": {
+        "artifact": "art-ef0e549dc7d6",
+        "line": 8,
+        "text": "- {name: ca, secret: {secretName: api-ca}}"
+      }
+    },
+    {
+      "id": "ge-e230c8160271",
+      "kind": "renders-to",
+      "from": "gn-d19f56b497e5",
+      "to": "gn-7c77f332daa4",
+      "status": "established",
+      "rule": "graph.kustomize@v1:configMapGenerator",
+      "detail": "configMapGenerator: api-proxy",
+      "artifacts": [
+        "art-10c92f37dbfd"
+      ]
+    },
+    {
+      "id": "ge-eea916e5bc25",
+      "kind": "renders-to",
+      "from": "gn-d19f56b497e5",
+      "to": "gn-e79bae802591",
+      "status": "established",
+      "rule": "graph.kustomize@v1:resources",
+      "detail": "resources: deploy.yaml",
+      "artifacts": [
+        "art-10c92f37dbfd"
+      ]
+    },
+    {
+      "id": "ge-fa76cbe3ceb2",
+      "kind": "reads-file",
+      "from": "gn-39044775429b",
+      "to": "gn-7c77f332daa4",
+      "status": "missing",
+      "rule": "graph.reads-file@v1:volume",
+      "detail": "volume core/v1/ConfigMap/shop/api-proxy data[LOG] names /var/log/api/proxy.log (container proxy of apps/v1/Deployment/shop/api)",
+      "reason": "/var/log/api/proxy.log is under no volume mount of container proxy of apps/v1/Deployment/shop/api: what provides the file is not in the snapshot",
+      "artifacts": [
+        "art-10c92f37dbfd",
+        "art-ef0e549dc7d6"
+      ],
+      "file": {
+        "configKey": "LOG",
+        "path": "/var/log/api/proxy.log",
+        "workload": "apps/v1/Deployment/shop/api",
+        "container": "proxy",
+        "via": "volume"
+      },
+      "line": {
+        "artifact": "art-10c92f37dbfd",
+        "line": 6,
+        "text": "literals: [\"LOG=/var/log/api/proxy.log\"]"
+      }
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: traefik-3.6-3.6--retail-emea
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [1, 4, 5, 6]       # PLAN-M6 §2: untuned product; ineffective apparent mitigation; controller config; security regression
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed:
+      - observed/run.log#L87-L108      # chart args carry no allowCrossNamespace flag; the TRAEFIK_ env var is set
+      - observed/run.log#L135-L174     # FROM: routes 200/401/200; a direct cross-namespace reference is rejected (404)
+      - observed/run.log#L227-L265     # TO: every route 404; "middleware traefik/... is not in the chain namespace ..."
+    citations:
+      - url: https://github.com/traefik/traefik/blob/v3.6.15/docs/content/migrate/v3.md
+        lines: L21-L29
+        quote: "If `allowCrossNamespace` is set to `false` (the default) and a `Chain` middleware references a middleware in a different namespace from its own, the whole `Chain` is now rejected and an error is logged."
+      - url: https://github.com/traefik/traefik/blob/v3.6.15/CHANGELOG.md
+        lines: L31
+        quote: "Honor allowCrossNamespace with chain middleware CRD (#12976 @rtribotte)"
+      - url: https://github.com/advisories/GHSA-xhjw-95fp-8vgq
+        quote: "When `providers.kubernetesCRD.allowCrossNamespace=false`, Traefik correctly rejects direct cross-namespace middleware references from `IngressRoute` objects, but fails to apply the same restriction to middleware references nested inside a `Chain` middleware's `spec.chain.middlewares[]`."
+      - url: https://github.com/traefik/traefik/blob/v3.6.15/docs/content/getting-started/configuration-overview.md
+        lines: L41-L47
+        quote: "There are three different, **mutually exclusive** (i.e. you can use only one at the same time), ways to define install configuration options in Traefik: 1. In a configuration file 1. In the command-line arguments 1. As environment variables. These ways are evaluated in the order listed above."
+      - url: https://github.com/traefik/traefik/blob/v3.6.15/pkg/cli/loader_flag.go
+        lines: L15-L18
+        quote: "func (*FlagLoader) Load(args []string, cmd *cli.Command) (bool, error) { if len(args) == 0 { return false, nil }"
+      - url: https://github.com/traefik/traefik-helm-chart/blob/v39.0.5/traefik/templates/_podtemplate.tpl
+        lines: L478-L480
+        quote: '{{- if .Values.providers.kubernetesCRD.allowCrossNamespace }} - "--providers.kubernetescrd.allowCrossNamespace=true"'
+    match:
+      - subject: allowCrossNamespace
+      - text: '(?i)(chain.*(cross.?namespace|allowcrossnamespace))|((cross.?namespace|allowcrossnamespace).*chain)'
+    components:
+      - ref: {file: env/apps/storefront/edge-chain.yaml, apiVersion: traefik.io/v1alpha1, kind: Middleware, namespace: storefront, name: edge}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/infrastructure/traefik/helmrelease.yaml, kind: HelmRelease, namespace: traefik, name: traefik}, field: spec.values.providers.kubernetesCRD, relation: deploys}
+          - {ref: {file: env/apps/storefront/edge-chain.yaml, kind: Middleware, namespace: storefront, name: edge}, field: spec.chain.middlewares, relation: consumes-api}
+          - {ref: {file: env/infrastructure/edge-middlewares/security-headers.yaml, kind: Middleware, namespace: traefik, name: security-headers}, relation: references}
+          - {ref: {file: env/apps/storefront/ingressroute.yaml, kind: IngressRoute, namespace: storefront, name: storefront}, relation: references}
+        reason: >-
+          The storefront Chain (namespace storefront) lists security-headers and rate-limit from the
+          traefik namespace. allowCrossNamespace is effectively false: the chart renders no
+          --providers.kubernetescrd.allowCrossNamespace flag (providers.kubernetesCRD.allowCrossNamespace
+          is unset), and the TRAEFIK_PROVIDERS_KUBERNETESCRD_ALLOWCROSSNAMESPACE environment variable is
+          ignored because the chart always passes command-line arguments and Traefik reads only one
+          configuration source. Up to v3.6.13 a Chain bypassed the check, so the route works at v3.6.10;
+          from v3.6.14 the whole Chain is rejected, the IngressRoute's router is not built and
+          shop.retail-emea.example.com answers 404 (observed). The public shop goes offline at the upgrade.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/infrastructure/traefik/helmrelease.yaml, object: HelmRelease/traefik, field: spec.values.env}
+          - {file: env/infrastructure/traefik/helmrelease.yaml, object: HelmRelease/traefik, field: spec.values.providers.kubernetesCRD}
+          - {file: env/apps/storefront/edge-chain.yaml, object: Middleware/edge, field: spec.chain.middlewares}
+      - ref: {file: env/apps/backoffice/edge-chain.yaml, apiVersion: traefik.io/v1alpha1, kind: Middleware, namespace: backoffice, name: edge}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/infrastructure/traefik/helmrelease.yaml, kind: HelmRelease, namespace: traefik, name: traefik}, field: spec.values.providers.kubernetesCRD, relation: deploys}
+          - {ref: {file: env/apps/backoffice/edge-chain.yaml, kind: Middleware, namespace: backoffice, name: edge}, field: spec.chain.middlewares, relation: consumes-api}
+          - {ref: {file: env/infrastructure/edge-middlewares/staff-auth.yaml, kind: Middleware, namespace: traefik, name: staff-auth}, relation: references}
+          - {ref: {file: env/apps/backoffice/ingressroute.yaml, kind: IngressRoute, namespace: backoffice, name: backoffice}, relation: references}
+        reason: >-
+          Same mechanism for the back office Chain (staff-auth and security-headers from the traefik
+          namespace): from v3.6.14 the Chain is rejected and backoffice.retail-emea.example.com answers
+          404 to everyone, with or without staff credentials (observed). It fails closed (no
+          unauthenticated access), but the back office is unavailable.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/apps/backoffice/edge-chain.yaml, object: Middleware/edge, field: spec.chain.middlewares}
+    apparentMitigation:            # additive (M6): a setting that looks like it preserves the behaviour but does not
+      ref: {file: env/infrastructure/traefik/helmrelease.yaml, object: HelmRelease/traefik, field: spec.values.env}
+      value: TRAEFIK_PROVIDERS_KUBERNETESCRD_ALLOWCROSSNAMESPACE=true
+      effective: false
+      why: >-
+        Traefik's install configuration sources are mutually exclusive and the first one present wins
+        (file, then flags, then environment); the chart always passes flags, so environment variables are
+        never read. Observed at FROM already: a direct cross-namespace middleware reference is rejected
+        (run.log L148-L174) although the variable is set (L108).
+    remediation: >-
+      Before the upgrade, set providers.kubernetesCRD.allowCrossNamespace: true in the HelmRelease values
+      (the chart then renders --providers.kubernetescrd.allowCrossNamespace=true) and drop the ineffective
+      environment variable, or give each application namespace its own copies of the shared middlewares.
+      Then upgrade.
+renderedChanges: []   # observed/render.diff holds release noise only (helm.sh/chart labels, image tag v3.6.10 -> v3.6.15)
+versionDecision:      # additive (M6, coverage item 6): GitHub global advisory database, package github.com/traefik/traefik/v3, read 2026-10-27
+  current: v3.6.10
+  proposed: v3.6.15
+  regression: true
+  introducedByProposed:
+    - id: GHSA-6765-c87h-8mrf
+      cve: CVE-2026-71326
+      severity: low
+      range: ">= 3.6.11, <= 3.6.24"
+      firstPatched: 3.6.25
+      relevance: the environment uses the BasicAuth middleware (staff-auth)
+  fixedByProposed: 11            # of 28 advisories affecting v3.6.10; 18 still affect v3.6.15
+  saferTarget: v3.6.25           # latest v3.6 patch: 6 advisories, all also affecting v3.6.10 (no regression; 22 fixed)
+  saferTargetNote: >-
+    No chart release ships v3.6.25 as appVersion (chart 39.0.9 ships v3.6.15; the next chart, 40.0.0, is
+    v3.7.0), so the safer target is chart 39.0.9 with image.tag v3.6.25 (observed, run.log L267-L326).
+    v3.7.13 or later (chart 41.5.0+) has no known advisory but is a minor upgrade with its own changes. B1
+    applies to every version from v3.6.14, so the safer target does not remove the need for the remediation.

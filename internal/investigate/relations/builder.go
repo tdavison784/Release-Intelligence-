@@ -16,6 +16,44 @@ import (
 // BuilderName is the producer string of graphs built here.
 const BuilderName = "relations.builder@v1"
 
+// ConsumerBuilderName is the producer string of graphs built in consumer
+// mode (WithConsumers) under the default consumer rules: the same graph plus
+// mount detail, lines and reads-file edges. A graph built under other rules
+// names them ("+consumers@v<rules>").
+const ConsumerBuilderName = BuilderName + "+consumers@v3"
+
+// Consumer rules (WithConsumerRules). v1 is the Milestone 1 consumer graph
+// (ledger D-0001). v2 (D-0005) also reads the data of a kustomize-generated
+// ConfigMap whose generator sources the snapshot lacks from its rendered
+// object, knows the keys of generated Secrets, and records configuration
+// data and keys it cannot know as unresolved edges instead of skipping them.
+// v3 (D-0006) also matches the paths a container's own spec names (command,
+// args, literal env values) against that container's mounts: reads-file
+// edges from the provider to the workload. A transcript recorded under v1
+// replays only against a v1 graph, so the rules a session used are part of
+// its transcript header.
+const (
+	ConsumerRulesV1 = 1
+	ConsumerRulesV2 = 2
+	ConsumerRulesV3 = 3
+	// ConsumerRules is the default.
+	ConsumerRules = ConsumerRulesV3
+)
+
+func consumerBuilderName(rules int) string {
+	return fmt.Sprintf("%s+consumers@v%d", BuilderName, rules)
+}
+
+// RulesOf is the consumer rules a graph's builder name states (0: not a
+// consumer-mode graph).
+func RulesOf(builder string) int {
+	var n int
+	if _, err := fmt.Sscanf(strings.TrimPrefix(builder, BuilderName), "+consumers@v%d", &n); err != nil || !strings.HasPrefix(builder, BuilderName+"+consumers@v") {
+		return 0
+	}
+	return n
+}
+
 // ProducesRule is a declarative relationship: a custom resource of
 // Group/Kind names, at NamePath (dotted, e.g. "spec.secretName"), an object
 // of ProducedGroup/ProducedKind that its controller creates. A match yields
@@ -86,6 +124,47 @@ func WithCatalog(c *catalog.Catalog) Option {
 type builder struct {
 	st   investigate.ArtifactStore
 	rels []rel
+	// consumers: consumer mode (WithConsumers), under consumerRules (0: the
+	// default).
+	consumers     bool
+	consumerRules int
+}
+
+// WithConsumers switches on consumer mode (docs/phase6/decision-intel/PLAN-M1.md
+// changes 1 and 2): references edges of pod volumes carry their mounts
+// (GraphEdge.Mount), references and produces edges the line that states them
+// (GraphEdge.Line), and reads-file edges link a mounted Secret/ConfigMap to the
+// ConfigMap whose configuration names a path under its mount (consumers.go).
+// Graphs built without it are unchanged, so the pipeline's graph (a policy
+// input) never depends on it.
+func WithConsumers() Option { return func(b *builder) { b.consumers = true } }
+
+// WithConsumerRules selects the consumer rules of a consumer-mode build
+// (ConsumerRulesV1 … ConsumerRulesV3; 0 or unknown: the default).
+func WithConsumerRules(rules int) Option {
+	return func(b *builder) { b.consumerRules = rules }
+}
+
+// BuildConsumerGraph builds the consumer-mode graph of a bundle at one side
+// of the upgrade (the graph a TO-side build gives, plus mounts, lines and
+// reads-file edges). opts are the graph builder's (WithCatalog, …).
+func BuildConsumerGraph(ctx context.Context, st investigate.ArtifactStore, b *domain.EvidenceBundle, side Side, opts ...Option) (*domain.RelationshipGraph, error) {
+	if b == nil {
+		return nil, fmt.Errorf("relations: nil bundle: %w", investigate.ErrRejected)
+	}
+	if side != SideFrom && side != SideTo {
+		return nil, fmt.Errorf("relations: side %q: %w", side, investigate.ErrRejected)
+	}
+	bd := &builder{st: st}
+	for _, o := range opts {
+		o(bd)
+	}
+	bd.consumers = true
+	g, err := bd.build(ctx, b, side, nil)
+	if err != nil {
+		return nil, err
+	}
+	return g.finish(), nil
 }
 
 // NewBuilder returns the GraphBuilder. st serves the bundle's artifacts
@@ -208,6 +287,17 @@ type gb struct {
 	view *refView
 	// nsCache holds each namespaceFrom resolution by rule id (one per build).
 	nsCache map[string]nsResolution
+	// Consumer mode (WithConsumers): rules are the consumer rules; side the
+	// side built; read reads an artifact by id; gen holds what the snapshot
+	// says about kustomize-generated objects by node key; docs caches parsed
+	// artifacts for line lookups; renders caches parsed render artifacts.
+	consumers bool
+	rules     int
+	side      Side
+	read      func(id string) ([]byte, error)
+	gen       map[string]*genData
+	docs      map[string]*parsedArtifact
+	renders   map[string][]render.Object
 }
 
 func (g *gb) node(kind domain.NodeKind, id render.ObjectID, key string, artifact string) *gnode {
@@ -290,6 +380,20 @@ func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Sid
 		return nil, err
 	}
 	g := &gb{bundle: b, nodes: map[string]*gnode{}, edges: map[string]domain.GraphEdge{}, byName: map[string][]*gnode{}, byKey: map[string]*gnode{}, producers: map[string][]producer{}, objNode: map[*object]*gnode{}, env: env, rels: bd.rels, view: v, nsCache: map[string]nsResolution{}}
+	if bd.consumers && v == nil {
+		g.consumers, g.gen, g.docs, g.renders = true, map[string]*genData{}, map[string]*parsedArtifact{}, map[string][]render.Object{}
+		g.rules, g.side = bd.consumerRules, side
+		if g.rules < ConsumerRulesV1 || g.rules > ConsumerRulesV3 {
+			g.rules = ConsumerRules
+		}
+		g.read = func(id string) ([]byte, error) {
+			ref, ok := b.Manifest.Lookup(id)
+			if !ok {
+				return nil, fmt.Errorf("relations: artifact %s is not in the manifest: %w", id, investigate.ErrNotFound)
+			}
+			return readArtifact(ctx, bd.st, ref)
+		}
+	}
 
 	env.cluster = clusterKinds(env.objects, bd.rels)
 	applyNamespaces(env)
@@ -324,6 +428,11 @@ func (bd *builder) build(ctx context.Context, b *domain.EvidenceBundle, side Sid
 	g.selectorEdges()
 	g.relationshipSelectEdges()
 	g.apiEdges()
+	if g.consumers {
+		if err := g.consumerEdges(); err != nil {
+			return nil, err
+		}
+	}
 	return g, nil
 }
 

@@ -106,11 +106,11 @@ func TestBuildConsumerArmsFromTheRule(t *testing.T) {
 		t.Fatalf("consumer observation not selected: %q", why)
 	}
 	arms, lims, why := BuildConsumerArms(signerScopedRule(), fx, cf)
-	if why != "" || len(arms) != 2 {
+	if why != "" || len(arms) != 4 {
 		t.Fatalf("arms %+v why %q", arms, why)
 	}
 	spec := func(a consumerArm) map[string]any { return a.Object["spec"].(map[string]any) }
-	present, absent := arms[0], arms[1]
+	present, absent := arms[0], arms[3]
 	if present.Name != domain.ArmConditionPresent || spec(present)["keyPolicy"] != "Keep" || spec(present)["signer"] != true || present.Predicted != domain.BehaviourPrevious {
 		t.Fatalf("shielded arm: %+v", present.Arm)
 	}
@@ -121,9 +121,19 @@ func TestBuildConsumerArmsFromTheRule(t *testing.T) {
 	if leaf["metadata"].(map[string]any)["name"] != "ri-arm-absent-leaf" || leaf["spec"].(map[string]any)["signerRef"] != "ri-arm-absent-signer" {
 		t.Fatalf("consuming objects: %+v", absent.consumers)
 	}
-	// the two non-signer alternatives cannot hold in the signer role: listed, not exercised
-	if len(lims) != 2 || !strings.Contains(lims[0], "spec.signer unset") {
+	// the two non-signer alternatives cannot hold in the signer role: they
+	// are exercised outside it (the same consumers, a non-signer subject)
+	if len(lims) != 0 {
 		t.Fatalf("limitations: %v", lims)
+	}
+	for i, want := range []string{"spec.signer unset", "spec.signer = false"} {
+		a := arms[1+i]
+		if !isOutsideRole(a.Name) || !strings.Contains(a.Condition, want) || a.Predicted != domain.BehaviourPrevious || len(a.consumers) != 2 {
+			t.Fatalf("outside-role arm %d: %+v", i, a.Arm)
+		}
+		if _, set := spec(a)["keyPolicy"]; set || (i == 0 && spec(a)["signer"] != nil) || (i == 1 && spec(a)["signer"] != false) {
+			t.Fatalf("outside-role arm %d object: %+v", i, a.Object)
+		}
 	}
 	c := consumerCheckOf(absent, cf, fx, "acme-ctl/reissue")
 	if c.Trust.Secret != "core/v1/Secret/ri-verify/ri-arm-absent-tls" || c.Verify.Secret != "core/v1/Secret/ri-verify/ri-arm-absent-leaf-tls" ||
@@ -204,7 +214,7 @@ func TestEvaluateConsumerArms(t *testing.T) {
 		"no exposed arm":                    {[]string{present, present2}, map[string][2]string{present: {v, v}, present2: {v, v}}, domain.MethodInconclusive, "no exposed arm"},
 		"wrong rule refuted":                {[]string{present, present2}, map[string][2]string{present: {v, v}, present2: {v, f}}, domain.MethodFail, "does not shield"},
 	} {
-		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(tc.arms...))
+		m := EvaluateConsumerArms(consumerRun(tc.res), consumerPlans(tc.arms...), nil)
 		if m.Outcome != tc.want || !strings.Contains(m.Detail, tc.why) || m.Producer != ConsumerExerciseProducer {
 			t.Errorf("%s: %s %s", name, m.Outcome, m.Detail)
 		}
@@ -228,7 +238,7 @@ func TestEvaluateConsumerArms(t *testing.T) {
 	// a broken run is never decided by its consumer results
 	broken := consumerRun(map[string][2]string{present: {v, v}, absent: {v, f}})
 	broken.Run.UpgradeCompleted = false
-	if m := EvaluateConsumerArms(broken, consumerPlans(present, absent)); m.Outcome != domain.MethodInconclusive {
+	if m := EvaluateConsumerArms(broken, consumerPlans(present, absent), nil); m.Outcome != domain.MethodInconclusive {
 		t.Errorf("upgrade incomplete: %s", m.Outcome)
 	}
 }
@@ -256,11 +266,23 @@ const ruleFile = `{
   "requestedVerification": "consumer observation, shielded and exposed arms"
 }`
 
+// signerDefault is the rule file with the exposure's signer leaf stating what
+// an unset signer means (a controller default, citing the rule's evidence).
+func signerDefault(data []byte, ev domain.EvidenceID) []byte {
+	return []byte(strings.Replace(string(data),
+		`{"op": "field", "path": "spec.signer", "state": "equals", "values": ["true"]}]},`,
+		`{"op": "field", "path": "spec.signer", "state": "equals", "values": ["true"],
+         "default": {"value": "false", "source": "controller", "citations": ["`+string(ev)+`"]}}]},`, 1))
+}
+
 // The pre-registered path end to end on synthetic data: a human-authored
 // rule file is taken in (proposal + whole-fact item + digest), verified by
 // the consumer observation with the bounds the file states, and only then
 // can a human promote it; the same rule with the signer declared shielded is
-// refuted and can never be promoted.
+// refuted and can never be promoted. A rule that compares spec.signer by
+// value without saying what an unset signer means fails its boundary
+// fixtures (mission E2) before any cluster runs; with an evidenced default it
+// is exercised on the omitted-field object as well.
 func TestHumanAuthoredRuleVerifiedByConsumerObservation(t *testing.T) {
 	w := newWorld(t, widgetRule(), bounds) // a store with a candidate citing the 2.0 notes
 	cands, _ := w.ks.Load(context.Background(), knowledge.Query{Kinds: []domain.RecordKind{domain.RecordCandidate}})
@@ -271,13 +293,21 @@ func TestHumanAuthoredRuleVerifiedByConsumerObservation(t *testing.T) {
 	if _, err := knowledge.ExtendCandidateEvidence(context.Background(), w.ks, cand.ID, []domain.Evidence{ev}); err != nil {
 		t.Fatal(err)
 	}
-	data := []byte(strings.Replace(ruleFile, "EVID", string(ev.ID), 1))
-	r, err := knowledge.ParseRuleFile(data)
+	explicitOnly := []byte(strings.Replace(ruleFile, "EVID", string(ev.ID), 1))
+	r, err := knowledge.ParseRuleFile(explicitOnly)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if r.Assertion.Digest() != signerScopedRule().Digest() {
 		t.Fatal("the rule file is not encoded as the rule it states")
+	}
+	eres, err := knowledge.Intake(context.Background(), w.ks, r, knowledge.IntakeOptions{Author: "commander-drafted (test), explicit fields only", Now: t0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := signerDefault(explicitOnly, ev.ID)
+	if r, err = knowledge.ParseRuleFile(data); err != nil {
+		t.Fatal(err)
 	}
 	res, err := knowledge.Intake(context.Background(), w.ks, r, knowledge.IntakeOptions{Author: "commander-drafted (test), label-aware", Now: t0})
 	if err != nil {
@@ -309,15 +339,34 @@ func TestHumanAuthoredRuleVerifiedByConsumerObservation(t *testing.T) {
 	}
 	var p *domain.ProofRecord
 	for _, x := range rs {
-		if x.Item == res.ReviewItem {
+		switch x.Item {
+		case res.ReviewItem:
 			p = x.Proof
+		case eres.ReviewItem:
+			// explicit fields only: refuted by the boundary fixtures
+			ex := x.Proof
+			if ex == nil {
+				t.Fatalf("explicit-only rule: no proof: %+v", x)
+			}
+			detail := ""
+			for _, m := range ex.Methods {
+				if m.Method == domain.ProofRuleExercise {
+					detail = m.Detail
+				}
+			}
+			if ex.Outcome != domain.ProofRefuted || !strings.Contains(detail, "boundary fixtures") || !strings.Contains(detail, "spec.signer") {
+				t.Fatalf("explicit-only rule: %+v", ex)
+			}
 		}
 	}
 	if p == nil || p.Outcome != domain.ProofConfirmed || p.Hypothesis != res.Hypothesis || p.Investigation != "" ||
 		p.VersionBounds == nil || *p.VersionBounds != *bounds || p.ProposedRuleDigest != res.RuleDigest {
 		t.Fatalf("proof: %+v (results %+v)", p, rs)
 	}
-	if len(runner.spec.Consumers) != 2 || !strings.Contains(string(runner.spec.Objects), "name: ri-arm-absent-leaf") {
+	// shielded, two outside-role (non-signer) arms, exposed, and the shielded
+	// signer without spec.signer (outside the role by the rule's default)
+	if len(runner.spec.Consumers) != 5 || !strings.Contains(string(runner.spec.Objects), "name: ri-arm-absent-leaf") ||
+		!strings.Contains(string(runner.spec.Objects), "name: ri-arm-omit-1") {
 		t.Fatalf("fixture spec: %+v\n%s", runner.spec.Consumers, runner.spec.Objects)
 	}
 	b, _ := json.Marshal(p)
@@ -345,7 +394,7 @@ func TestHumanAuthoredRuleVerifiedByConsumerObservation(t *testing.T) {
 	}
 
 	// the deliberately wrong rule: refuted by the same method, never promoted
-	wrong := strings.Replace(strings.Replace(string(data), `{"op": "field", "path": "spec.signer", "state": "equals", "values": ["true"]}]},`,
+	wrong := strings.Replace(strings.Replace(string(explicitOnly), `{"op": "field", "path": "spec.signer", "state": "equals", "values": ["true"]}]},`,
 		`{"op": "field", "path": "spec.signer", "state": "unset"}]},`, 1),
 		`{"op": "field", "path": "spec.signer", "state": "unset"},
           {"op": "field", "path": "spec.signer", "state": "equals", "values": ["false"]}]}]}`,

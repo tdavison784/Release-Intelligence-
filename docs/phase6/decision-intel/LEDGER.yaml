@@ -1,0 +1,254 @@
+# Phase 6 decision-intel work ledger (commander-owned; lanes read only). Same schema as docs/phase6/natural-agent/LEDGER.yaml.
+items:
+  - id: D-0001
+    title: Lane consumer — Milestone 1 implementation (PLAN-M1 §3 changes 1-8, §4 tests, smoke on shop-de)
+    kind: lane
+    lane: consumer
+    status: done
+    note: "merged 3634f501 (lane head dfa574ea); v8 stays default until the M1 gate; lane closed (tab, worktree, branch -d)"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0002
+    title: M1 regression comparison — v9 x3 on cert-manager payments-us/eu vs B0-K0-20261017-edb21ed9-v8; commander scores (a)-(e)
+    kind: commander-task
+    status: done
+    note: "attempt 3 (e59f89c8): gate MET by commander scoring (US 2/3, EU 3/3; no FS; classification = B0). attempt 1 done 2026-10-21: gate NOT MET; (a) config never read, caused by a defect: generated ConfigMap data silently skipped. M1-RESULT.md. Attempt 2 after D-0005; attempt 2 done: (a)(c)(d)(e) met, (b) partial (pod-spec paths unmatched). Attempt 3 after D-0006"
+    depends: [D-0001]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0003
+    title: M1-RESULT.md and gate decision; product owner audits scores
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "product owner 2026-10-26: M1 passes; scoped verdicts yes (D-0007). v9 made the default"
+    depends: [D-0002]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0004
+    title: "Milestone 2 plan (Workstream A: strict-path semantics, global advisories — absorbs X-0009)"
+    kind: commander-task
+    status: done
+    note: "PLAN-M2.md (lane-safe) + GATE-M2.md (commander); product owner go 2026-10-28"
+    depends: [D-0003]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0005
+    title: Lane consumer2 — M1 fix, generated ConfigMap data from the render; no silent drops in the consumer graph
+    kind: lane
+    lane: consumer2
+    status: done
+    note: "merged 6f5de003 (consumer rules v2); lane closed"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0006
+    title: Lane consumer3 — M1 fix, reads-file edges from container command/args/env paths (consumer rules v3)
+    kind: lane
+    lane: consumer3
+    status: done
+    note: "merged e59f89c8 (consumer rules v3); lane closed"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0007
+    title: "Prompt v10: scoped verdict (scope and precondition in the headline); check on the cert-manager pair (product owner decision 2026-10-26)"
+    kind: lane
+    lane: scoped
+    status: done
+    note: "merged (prompt v10); lane closed. GATE-M2 §0 NOT passed (M2-RESULT §0): ROT stays potentially-affected, 1 false alarm; RHL scoped correctly 11/12. v9 stays default. Product owner 2026-10-27: fine; scoped answer moves to M3 (its gate checks a committed, scoped headline)"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0008
+    title: Lane advisories — M2 A2 (global advisories, regression rule, candidate versions, chart mapping, unavailability)
+    kind: lane
+    lane: advisories
+    status: done
+    note: "merged d73485b8; lane closed. Recording + GATE-M2 §1 runs started"
+    depends: [D-0004]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0009
+    title: Lane upstream — M2 A1/A3/B6 (request_evidence fulfilment at immutable tags, unavailable gaps, prompt v11)
+    kind: lane
+    lane: upstream
+    status: done
+    note: "merged (prompt v11); lane closed. GATE-M2 §2: live met, ablation failed (fetch optional)"
+    note: "product owner go 2026-10-27; prompt v11 builds on v9 (v10 not adopted)"
+    depends: [D-0004, D-0007]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0010
+    title: M2 gate runs (GATE-M2 §1 advisories, §2 strict-path + ablation) and M2-RESULT.md
+    kind: commander-task
+    status: done
+    note: "§1 met; §2 met with v13 (retrieval 3/3, one misread of correct evidence, which is M4 territory); waiting for the product owner's gate decision"
+    depends: [D-0008, D-0009]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0011
+    title: Lane advisories2 — M2 fix, candidate versions at or above the target (any-line, clean)
+    kind: lane
+    lane: advisories2
+    status: done
+    note: "merged 965ba258; lane closed"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0012
+    title: Lane advisories3 — M2 fix, advisory-consistency gap when patched versions fall inside the stated range
+    kind: lane
+    lane: advisories3
+    status: done
+    note: "merged; lane closed; §1 re-run: met"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0013
+    title: Lane upstream2 — M2 fix, structured behaviour dependencies; not-affected cannot rest on unfetched upstream behaviour (prompt v12)
+    kind: lane
+    lane: upstream2
+    status: done
+    note: "merged (prompt v12); lane closed; §2 re-run running"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0014
+    title: Lane upstream3 — M2 fix, attempt the upstream fetch before declaring behaviour not-checked (prompt v13)
+    kind: lane
+    lane: upstream3
+    status: done
+    note: "merged (prompt v13); lane closed; §2 re-run running"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0015
+    title: M2 gate decision
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "product owner 2026-10-27: M2 met; v13 is the default for M3 (PD-2)"
+  - id: D-0016
+    title: "Milestone 3 plan (Workstream C: upgrade-level synthesis, built to PD-1)"
+    kind: commander-task
+    status: done
+    note: "PLAN-M3.md (lane-safe) + GATE-M3.md (commander); product owner go 2026-10-27; target rule PD-3"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0017
+    title: Lane synthesis — M3 implementation (PLAN-M3 §3 changes 1-7, §4 tests)
+    kind: lane
+    lane: synthesis
+    status: done
+    note: "merged; lane closed. Lane decision kept by the commander: 'safe' requires a complete advisory assessment (fail-closed, mission A2)"
+    depends: [D-0016]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0018
+    title: M3 gate runs (GATE-M3) — v13 + synthesis x3 on P-US, P-EU, D-EU — and M3-RESULT.md
+    kind: commander-task
+    status: done
+    note: "9/9 complete, all modify-target; met except the P-US leaf pin (consistent with PD-0b), which is the product owner's call"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0019
+    title: M3 gate decision
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "product owner 2026-10-28: M3 passes (PD-4)"
+  - id: D-0020
+    title: "Milestone 4 plan (Workstreams D+E: formalization and independent verification; includes the M2 misread-evidence finding)"
+    kind: commander-task
+    status: done
+    note: "PLAN-M4.md (lane-safe) + GATE-M4.md (commander); product owner go 2026-10-28"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0022
+    title: Lane applicability — M4 E1-E3 (one three-valued evaluator, evidenced defaults, boundary fixtures, exact field-level coverage)
+    kind: lane
+    lane: applicability
+    status: done
+    depends: [D-0020]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0023
+    title: Lane semverify — M4 E4-E5 (semantic-check proof method, admission-dry-run runtime exercise)
+    kind: lane
+    lane: semverify
+    status: done
+    depends: [D-0020]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0021
+    title: Lane formalize — M4 D (formalization stage from v13 assessments, non-invention floor, unrepresentable claims)
+    kind: lane
+    lane: formalize
+    status: done
+    depends: [D-0020]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0024
+    title: M4 demo and gate (GATE-M4) — K0 → formalize → verify → product owner promotes → K1 → compare; negative controls; M2 misread and admission; M4-RESULT.md
+    kind: commander-task
+    status: done
+    note: "§1 met, §2 met, §3a met, §3b not met (known limitation); back door closed; waiting for the product owner's gate decision"
+    depends: [D-0021, D-0022, D-0023]
+    providers: [claude]
+    glm-executable: false
+  - id: D-0025
+    title: Lane verify2 — M4 fix, non-discriminating exercise arms; scope refinement proposed by formalization and established by the consumer exercise (formalize/v2)
+    kind: lane
+    lane: verify2
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0026
+    title: Lane verify3 — M4 fix, semantic-check excludes role tokens; logs never decide arms; observed defaults (PD-5)
+    kind: lane
+    lane: verify3
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0027
+    title: Lane verify4 — M4 fix, role-cannot-form probe outcome; observed role-membership default (PD-6)
+    kind: lane
+    lane: verify4
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0028
+    title: Lane join5 — M4 fix, applicability over rendered objects (not base files); membership defaults in pin scope
+    kind: lane
+    lane: join5
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0029
+    title: Lane backdoor — M4 safety fix, every route that changes active knowledge names affected facts; report contradicting active facts
+    kind: lane
+    lane: backdoor
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0030
+    title: M4 gate decision
+    kind: decision
+    decision-rights: user
+    status: done
+    note: "product owner 2026-10-28: M4 passes with known limitations; M6 before M5 (PD-7)"
+  - id: D-0031
+    title: Milestone 6 plan (blind comparative evaluation) — PLAN-M6 + GATE-M6 pre-registered before any blind run
+    kind: commander-task
+    status: in-progress
+    note: "PLAN-M6 written; product owner go 2026-10-28; GATE-M6 after groundtruth6, before the runs (generic thresholds; no per-case labels needed)"
+    providers: [claude]
+    glm-executable: false
+  - id: D-0032
+    title: Lane groundtruth6 — sealed blind ground truth, 4 affected/unaffected pairs (8 envs), observed in kind
+    kind: lane
+    lane: groundtruth6
+    status: done
+    providers: [claude]
+    glm-executable: false
+  - id: D-0033
+    title: M6 runs — arms A, B (x3), C+D (x3), E; score per GATE-M6; M6-RESULT.md
+    kind: commander-task
+    status: done
+    note: "M6 does not pass (P1: C 3.00 vs B 3.67 of 8); H1-H3, P2, P5 hold; 4/8 decisive items unreachable (agenda cap tie order; traefik extraction miss); arm E 0 confirmed. Product owner grades M6-GRADING.md"
+    providers: [claude]
+    glm-executable: false

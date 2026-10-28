@@ -1,0 +1,61 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: cert-manager-1.20-1.21--treasury-us
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [2]                # PLAN-M6 §2: cert-manager upgrade with a mechanism different from the development cases
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log#L216-L222     # the environment's own Role/RoleBinding vault-issuer-tokenrequest
+      - observed/run.log#L239-L250     # FROM: ClusterIssuer Ready, certificate issued and renewed
+      - observed/run.log#L252-L313     # TO: chart Role/RoleBinding gone, the environment's remain; ClusterIssuer Ready; renewal issued
+    citations:
+      - url: https://github.com/cert-manager/website/blob/9ae897eae4d47184d9cd868cb6a4c7e3b45d9604/content/docs/releases/release-notes/release-notes-1.21.md
+        lines: L12-L18
+        quote: "The Helm chart no longer creates a default `Role` and `RoleBinding` granting the cert-manager controller permission to create tokens for its own ServiceAccount (`serviceaccounts/token: create`). ... If you use `serviceAccountRef.name` pointing at the controller ServiceAccount, you must now either create your own `Role`/`RoleBinding` ... or migrate to a dedicated ServiceAccount"
+      - url: https://github.com/cert-manager/website/blob/9ae897eae4d47184d9cd868cb6a4c7e3b45d9604/content/docs/configuration/vault.md
+        lines: L551-L579
+        quote: "Then add an RBAC Role so that cert-manager can get tokens for the ServiceAccount: ... resources: ['serviceaccounts/token'] resourceNames: ['vault-issuer'] verbs: ['create'] ... subjects: - kind: ServiceAccount name: cert-manager namespace: cert-manager"
+    match:
+      - subject: serviceaccounts/token
+      - text: '(?i)token ?request|serviceaccounts/token'
+    components:
+      - ref: {file: env/platform/pki/vault-clusterissuer.yaml, apiVersion: cert-manager.io/v1, kind: ClusterIssuer, name: vault-pki}
+        classification: not-affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/cert-manager.yaml, kind: Application, namespace: argocd, name: cert-manager}, relation: deploys}
+          - {ref: {kind: Role, namespace: cert-manager, name: cert-manager-tokenrequest, renderedFrom: env/clusters/prod/cert-manager.yaml}, relation: configures}
+        reason: >-
+          The ClusterIssuer authenticates as the dedicated ServiceAccount vault-issuer, and the
+          repository's own Role/RoleBinding vault-issuer-tokenrequest let the cert-manager controller
+          create tokens for it. The chart's removed Role only covered the controller's own ServiceAccount,
+          which this issuer does not use. After the upgrade the ClusterIssuer stays Ready and the renewal
+          is issued (observed).
+        mitigation:            # the removed Role only covers tokens for the controller's own ServiceAccount, which the issuer does not use
+          ref: {file: env/platform/pki/vault-clusterissuer.yaml, object: ClusterIssuer/vault-pki}
+          field: spec.vault.auth.kubernetes.serviceAccountRef.name
+          value: vault-issuer      # tokens for it are granted by the environment's Role/RoleBinding vault-issuer-tokenrequest
+          kind: relationship-absent
+        requiredEvidence:
+          - {file: env/platform/pki/vault-clusterissuer.yaml, object: ClusterIssuer/vault-pki, field: spec.vault.auth.kubernetes.serviceAccountRef}
+          - {file: env/platform/pki/vault-issuer-serviceaccount.yaml, object: Role/vault-issuer-tokenrequest, field: rules}
+    remediation: none needed
+renderedChanges:
+  - diff: observed/render.diff#L1143-L1165
+    object: Role/cert-manager/cert-manager-tokenrequest
+    change: removed (serviceaccounts/token create on the cert-manager ServiceAccount)
+    item: B1
+    impact: harmless
+  - diff: observed/render.diff#L1225-L1246
+    object: RoleBinding/cert-manager/cert-manager-tokenrequest
+    change: removed
+    item: B1
+    impact: harmless
+  - diff: [observed/render.diff#L351-L475, observed/render.diff#L490-L565, observed/render.diff#L580-L743, observed/render.diff#L758-L921, observed/render.diff#L936-L954]
+    object: CustomResourceDefinitions (certificates, challenges, clusterissuers, issuers, orders)
+    change: new optional fields (renewal policies, Vault AWS auth, NGTS, waitInsteadOfSelfCheck) and description edits
+    item: null
+    impact: harmless

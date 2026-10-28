@@ -5,6 +5,23 @@
   "description": "The dependency, configuration and consumption graph of one evidence bundle (Phase 4 §A3). Edges point in the direction impact propagates (from = provider, to = consumer) and carry a verification status: established (from evidence), inferred or missing (both unresolved for fail-closed purposes).",
   "$ref": "#/$defs/RelationshipGraph",
   "$defs": {
+    "EdgeFile": {
+      "type": "object",
+      "required": ["configKey", "path", "workload", "container", "via"],
+      "properties": {
+        "configKey": {"type": "string"},
+        "path": {"type": "string"},
+        "workload": {"type": "string"},
+        "container": {"type": "string"},
+        "via": {"type": "string"},
+        "volume": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "key": {"type": "string"},
+        "dataFrom": {"type": "string"},
+        "field": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "EdgeKind": {
       "type": "string",
       "enum": [
@@ -17,8 +34,30 @@
         "serves-api",
         "consumes-api",
         "produces",
-        "depends-on"
+        "depends-on",
+        "reads-file"
       ]
+    },
+    "EdgeLine": {
+      "type": "object",
+      "required": ["artifact", "line"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "line": {"type": "integer"},
+        "text": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "EdgeMount": {
+      "type": "object",
+      "required": ["volume", "source"],
+      "properties": {
+        "volume": {"type": "string"},
+        "source": {"type": "integer"},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/KeyToPath"}},
+        "mounts": {"type": "array", "items": {"$ref": "#/$defs/VolumeMount"}}
+      },
+      "additionalProperties": false
     },
     "EdgeStatus": {"type": "string", "enum": ["established", "inferred", "missing"]},
     "EvidenceID": {
@@ -40,7 +79,10 @@
         "mitigates": {"type": "array", "items": {"type": "string"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
         "artifacts": {"type": "array", "items": {"type": "string"}},
-        "assertion": {"type": "string"}
+        "assertion": {"type": "string"},
+        "mount": {"$ref": "#/$defs/EdgeMount"},
+        "file": {"$ref": "#/$defs/EdgeFile"},
+        "line": {"$ref": "#/$defs/EdgeLine"}
       },
       "additionalProperties": false
     },
@@ -54,6 +96,15 @@
         "placeholder": {"type": "boolean"},
         "artifacts": {"type": "array", "items": {"type": "string"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "KeyToPath": {
+      "type": "object",
+      "required": ["key", "path"],
+      "properties": {
+        "key": {"type": "string"},
+        "path": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -86,6 +137,16 @@
         "builder": {"type": "string"},
         "nodes": {"type": "array", "items": {"$ref": "#/$defs/GraphNode"}},
         "edges": {"type": "array", "items": {"$ref": "#/$defs/GraphEdge"}}
+      },
+      "additionalProperties": false
+    },
+    "VolumeMount": {
+      "type": "object",
+      "required": ["container", "mountPath"],
+      "properties": {
+        "container": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "subPath": {"type": "string"}
       },
       "additionalProperties": false
     }

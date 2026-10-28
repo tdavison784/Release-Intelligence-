@@ -146,8 +146,20 @@ type Resource struct {
 	Refs     []Ref
 	Texts    []TextBlock
 
+	// Render names the render this resource is an object of ("" for an
+	// environment file read as declared); Unrendered says why its deployed
+	// form is unknown: its file was consumed by a render whose objects are
+	// not available, so this is the file's declaration, which an evaluator
+	// must never decide on. Both are set by Effective only.
+	// CONTRACT-CHANGE(join5): additive.
+	Render     string
+	Unrendered string
+
 	byPath    map[string][]int
 	byElement map[string][]int
+	// records are the evidence records of a rendered resource, until
+	// Effective pools them.
+	records map[domain.EvidenceID]domain.Evidence
 }
 
 // FieldResult is the answer for one resource: Set is false (and Facts empty)

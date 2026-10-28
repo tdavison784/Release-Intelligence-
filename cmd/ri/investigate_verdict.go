@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
@@ -26,6 +27,9 @@ type storedRun struct {
 	bundle *domain.EvidenceBundle
 	graph  *domain.RelationshipGraph
 	report *domain.ImpactReport
+	// consumers is the TO-side consumer graph a session with prompt feature
+	// traceConsumers stored (nil otherwise).
+	consumers *domain.RelationshipGraph
 }
 
 func loadStoredRun(ctx context.Context, state, run string) (*storedRun, error) {
@@ -72,6 +76,14 @@ func loadStoredRun(ctx context.Context, state, run string) (*storedRun, error) {
 			return nil, err
 		}
 	}
+	for _, a := range inv.Artifacts {
+		if a.Kind == domain.ArtifactGraph && a.Producer == agent.ConsumerGraphProducer && strings.HasPrefix(a.Path, "derived/agent/consumers/to/") {
+			r.consumers = &domain.RelationshipGraph{}
+			if err := read(a.ID, r.consumers); err != nil {
+				return nil, err
+			}
+		}
+	}
 	return r, nil
 }
 
@@ -100,7 +112,7 @@ func (c *cli) investigateDossier(args []string) error {
 		}
 	}
 	d, err := agent.BuildDossier(c.ctx, agent.DossierInput{Bundle: r.bundle, Graph: r.graph, Traversal: r.inv.Traversal, Report: r.report,
-		Validations: pass, Read: agent.StoreReader(r.st)}, pos[1])
+		Validations: pass, Read: agent.StoreReader(r.st), Consumers: r.consumers}, pos[1])
 	if err != nil {
 		return err
 	}

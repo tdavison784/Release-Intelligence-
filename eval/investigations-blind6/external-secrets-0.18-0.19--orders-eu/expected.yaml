@@ -1,0 +1,69 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: external-secrets-0.18-0.19--orders-eu
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [1]                # PLAN-M6 §2: a product RI has not been tuned on
+items:
+  - item: B1
+    classification: affected
+    verification: observed
+    observed:
+      - observed/run.log#L58-L62       # store CRDs: 259 kB at 0.18.2, 276 kB at 0.19.2 (limit 262144 bytes)
+      - observed/run.log#L123-L176     # the environment's Application (no ServerSideApply); 0.18.2 syncs
+      - observed/run.log#L201-L223     # 0.19.2: sync Failed, "metadata.annotations: Too long"; Deployments at v0.19.2, store CRDs still 0.18.2
+    citations:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.19.0
+        quote: "Please note that this a breaking change because our CRDs are now too big. Meaning a simple kubectl apply or Argo's default client side apply WILL NOT WORK! You have to add `--server-side` to kubectl apply and in argo add: ... syncOptions: - CreateNamespace=true - ServerSideApply=true"
+      - url: https://github.com/external-secrets/external-secrets/blob/helm-chart-0.19.2/docs/introduction/getting-started.md
+        lines: L12
+        quote: "Note: Our CRDs have reached the 256KB limit! You have to use [server-side-apply](https://kubernetes.io/docs/reference/using-api/server-side-apply/) in all locations to install them correctly."
+    match:
+      - subject: ServerSideApply
+      - text: '(?i)server.?side|too (big|large|long)|256 ?KB|crds? .*size'
+    components:
+      - ref: {file: env/clusters/prod/external-secrets.yaml, apiVersion: argoproj.io/v1alpha1, kind: Application, namespace: argocd, name: external-secrets}
+        classification: affected
+        impactPath:
+          - {ref: {file: env/clusters/prod/external-secrets.yaml, kind: Application, namespace: argocd, name: external-secrets}, field: spec.syncPolicy.syncOptions, relation: deploys}
+          - {ref: {kind: CustomResourceDefinition, name: secretstores.external-secrets.io, renderedFrom: env/clusters/prod/external-secrets.yaml}, relation: renders-to}
+          - {ref: {kind: CustomResourceDefinition, name: clustersecretstores.external-secrets.io, renderedFrom: env/clusters/prod/external-secrets.yaml}, relation: renders-to}
+          - {ref: {file: env/platform/secret-stores/aws-secrets-manager.yaml, kind: ClusterSecretStore, name: aws-secrets-manager}, relation: consumes-api}
+          - {ref: {file: env/apps/orders/externalsecret.yaml, kind: ExternalSecret, namespace: orders, name: orders-db}, relation: references}
+        reason: >-
+          The external-secrets Application renders the chart with installCRDs: true and syncs with Argo
+          CD's default client-side apply (syncOptions has only CreateNamespace=true; the argocd
+          Application in the same repository does use ServerSideApply=true). At 0.19.2 the SecretStore
+          and ClusterSecretStore CRDs serialise to ~276 kB, above the 262144-byte annotation limit, so
+          their client-side apply is rejected. Observed with Argo CD v3.1.5: the sync of 0.19.2 fails
+          ("metadata.annotations: Too long: must have at most 262144 bytes"), the Application stays
+          OutOfSync with a SyncError, the three Deployments are already at v0.19.2 while both store CRDs
+          keep their 0.18.2 schema. The upgrade is left half-applied and every later sync of this
+          Application fails the same way until the sync options change. Secrets kept syncing in the
+          observation (a fake-provider probe), so the orders API is not cut off at once; the impact is a
+          failed, mixed-version upgrade and a broken GitOps sync for the operator.
+        mitigation: null
+        requiredEvidence:
+          - {file: env/clusters/prod/external-secrets.yaml, object: Application/external-secrets, field: spec.syncPolicy.syncOptions}
+          - {file: env/platform/external-secrets/values.yaml, field: installCRDs}
+    remediation: >-
+      Add ServerSideApply=true to the external-secrets Application's syncOptions (as the argocd
+      Application already does) before bumping the chart, or install the CRDs separately with
+      server-side apply (installCRDs: false). Observed: with ServerSideApply=true the same upgrade syncs
+      and both CRDs reach the 0.19.2 schema (sibling case, observed/run-ssa.log).
+renderedChanges:
+  - diff: [observed/render.diff#L258-L861, observed/render.diff#L929-L1532]
+    object: CustomResourceDefinition/clustersecretstores.external-secrets.io, CustomResourceDefinition/secretstores.external-secrets.io
+    change: schema grows by ~550 lines per CRD (new provider auth options), past the client-side apply limit
+    item: B1
+    impact: breaking
+  - diff: observed/render.diff#L1536-L1611
+    object: CustomResourceDefinition/sshkeys.generators.external-secrets.io
+    change: added (new generator)
+    item: null
+    impact: harmless
+  - diff: [observed/render.diff#L15-L121, observed/render.diff#L153-L254, observed/render.diff#L865-L925]
+    object: ClusterRoles and the other CRDs
+    change: RBAC for the new generator and selectable fields; small schema additions
+    item: null
+    impact: harmless

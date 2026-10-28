@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: storefront
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`shop.retail-apac.example.com`)
+      middlewares:
+        - name: edge
+      services:
+        - name: storefront
+          port: 80
+  tls: {}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/investigate"
+	"github.com/tdavison784/release-intelligence/internal/investigate/relations"
 	"github.com/tdavison784/release-intelligence/internal/llm"
 )
 
@@ -252,6 +253,17 @@ func ParseTranscript(b []byte) (*Transcript, error) {
 		t.Segments[0].PromptDigest = t.PromptDigest()
 	}
 	return t, nil
+}
+
+// ConsumerRules returns the consumer rules the transcript was recorded under:
+// its header's, else relations.ConsumerRulesV1 (transcripts recorded before
+// the rules were versioned, ledger D-0005).
+func (t *Transcript) ConsumerRules() int {
+	var n int
+	if err := json.Unmarshal(t.Header["consumerRules"], &n); err != nil || n == 0 {
+		return relations.ConsumerRulesV1
+	}
+	return n
 }
 
 // PromptDigest returns the prompt digest the transcript was recorded under.

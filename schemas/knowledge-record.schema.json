@@ -27,6 +27,18 @@
       },
       "additionalProperties": false
     },
+    "ArmProbe": {
+      "type": "object",
+      "required": ["field", "base", "baseValue"],
+      "properties": {
+        "field": {"type": "string"},
+        "base": {"type": "string"},
+        "baseValue": {"type": "string"},
+        "omitted": {"type": "boolean"},
+        "value": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "Aspect": {"type": "string", "enum": ["subject", "change", "applicability", "consequence"]},
     "AspectCheck": {
       "type": "object",
@@ -135,7 +147,8 @@
         "separator": {"type": "string"},
         "range": {"type": "string"},
         "reason": {"$ref": "#/$defs/UnknownReason"},
-        "needed": {"type": "string"}
+        "needed": {"type": "string"},
+        "default": {"$ref": "#/$defs/FieldDefault"}
       },
       "additionalProperties": false
     },
@@ -192,6 +205,7 @@
       ]
     },
     "DecisionAction": {"type": "string", "enum": ["accept", "reject", "correct", "need-more-evidence", "defer"]},
+    "DefaultSource": {"type": "string", "enum": ["crd-schema", "controller"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -294,6 +308,16 @@
         "improved-statement"
       ]
     },
+    "FieldDefault": {
+      "type": "object",
+      "required": ["value", "source", "citations"],
+      "properties": {
+        "value": {"type": "string"},
+        "source": {"$ref": "#/$defs/DefaultSource"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
     "FieldState": {
       "type": "string",
       "enum": [
@@ -340,6 +364,40 @@
     },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
     "MethodOutcome": {"type": "string", "enum": ["pass", "fail", "inconclusive", "not-run"]},
+    "ObservedDefault": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "value",
+        "level",
+        "arms",
+        "observation",
+        "versions",
+        "controllerValues",
+        "fixture",
+        "evidence",
+        "limitation",
+        "ruleDigest"
+      ],
+      "properties": {
+        "group": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "value": {"type": "string"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "arms": {"type": "array", "items": {"type": "string"}},
+        "observation": {"type": "string"},
+        "versions": {"type": "array", "items": {"type": "string"}},
+        "controllerValues": {"type": "string"},
+        "fixture": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "limitation": {"type": "string"},
+        "ruleDigest": {"type": "string"},
+        "proof": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "ProductID": {"type": "string"},
     "ProofArm": {
       "type": "object",
@@ -362,8 +420,11 @@
         "reactedTo": {"type": "boolean"},
         "changed": {"type": "boolean"},
         "signatures": {"type": "array", "items": {"type": "string"}},
+        "diagnostics": {"type": "array", "items": {"type": "string"}},
         "observed": {"type": "string"},
-        "consumer": {"$ref": "#/$defs/ProofConsumer"}
+        "consumer": {"$ref": "#/$defs/ProofConsumer"},
+        "nonDiscriminating": {"type": "string"},
+        "probe": {"$ref": "#/$defs/ArmProbe"}
       },
       "additionalProperties": false
     },
@@ -405,6 +466,7 @@
       "properties": {
         "outcome": {"type": "string"},
         "detail": {"type": "string"},
+        "formation": {"type": "array", "items": {"type": "string"}},
         "trustCertificates": {"type": "array", "items": {"type": "string"}},
         "trustKeys": {"type": "array", "items": {"type": "string"}},
         "certificate": {"type": "string"},
@@ -427,7 +489,7 @@
       },
       "additionalProperties": false
     },
-    "ProofMethodKind": {"type": "string", "enum": ["citation-check", "rule-exercise"]},
+    "ProofMethodKind": {"type": "string", "enum": ["citation-check", "rule-exercise", "semantic-check"]},
     "ProofOutcome": {"type": "string", "enum": ["confirmed", "refuted", "inconclusive"]},
     "ProofRecord": {
       "type": "object",
@@ -461,7 +523,9 @@
         "limitations": {"type": "array", "items": {"type": "string"}},
         "level": {"$ref": "#/$defs/ValidationLevel"},
         "producer": {"type": "string"},
-        "checkedAt": {"type": "string", "format": "date-time"}
+        "checkedAt": {"type": "string", "format": "date-time"},
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}},
+        "roleMembershipDefaults": {"type": "array", "items": {"$ref": "#/$defs/RoleMembershipDefault"}}
       },
       "additionalProperties": false
     },
@@ -667,6 +731,44 @@
       "enum": ["pending", "needs-evidence", "deferred", "decided", "superseded"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "RoleMembershipDefault": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "role",
+        "roleValue",
+        "outsideValue",
+        "level",
+        "arms",
+        "observation",
+        "versions",
+        "controllerValues",
+        "fixture",
+        "evidence",
+        "limitation",
+        "ruleDigest"
+      ],
+      "properties": {
+        "group": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "role": {"type": "string"},
+        "roleValue": {"type": "string"},
+        "outsideValue": {"type": "string"},
+        "level": {"$ref": "#/$defs/ValidationLevel"},
+        "arms": {"type": "array", "items": {"type": "string"}},
+        "observation": {"type": "string"},
+        "versions": {"type": "array", "items": {"type": "string"}},
+        "controllerValues": {"type": "string"},
+        "fixture": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "limitation": {"type": "string"},
+        "ruleDigest": {"type": "string"},
+        "proof": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "Route": {"type": "string", "enum": ["auto-verify", "review", "missing-evidence"]},
     "Routing": {
       "type": "object",
@@ -847,7 +949,9 @@
         "autoApproved": {"type": "boolean"},
         "consensusAction": {"type": "boolean"},
         "auditedBy": {"type": "string"},
-        "createdAt": {"type": "string", "format": "date-time"}
+        "createdAt": {"type": "string", "format": "date-time"},
+        "observedDefaults": {"type": "array", "items": {"$ref": "#/$defs/ObservedDefault"}},
+        "roleMembershipDefaults": {"type": "array", "items": {"$ref": "#/$defs/RoleMembershipDefault"}}
       },
       "additionalProperties": false
     }

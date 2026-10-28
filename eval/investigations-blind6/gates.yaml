@@ -1,0 +1,57 @@
+# Hard gates for the Phase 4 investigation evaluation — PRE-REGISTERED THRESHOLDS.
+#
+# Committed by the contract lane (docs/phase4/env-impact/DESIGN.md §6) BEFORE any investigation was
+# scored, and frozen once merged into p4-env-impact (FLEET.md "Evaluation integrity"): never edited
+# after a scored run, never tuned to a result. A failing gate on the honest numbers is a FINDING to
+# report, not something to fix by moving a threshold.
+#
+# Unit: an ITEM DECISION = one (case, expected scope item) pair; the system's InvestigationFinding for
+# the change item selected by the item's `match` (eval/investigations/FORMAT.md) vs its expected
+# classification. Component-level metrics use the expected `components`.
+#
+# Semantics:
+#   min: actual >= threshold        max: actual <= threshold
+#   minSample: the metric's denominator must be at least this; otherwise the gate is
+#              INSUFFICIENT-DATA — printed as such, never a silent pass, and always a FAIL for the
+#              autonomy criteria below. (Phase 3 called an empty denominator "vacuous"; here it is
+#              explicit because the dataset starts small.)
+# Every metric is also reported per finding basis (deterministic / observed / none) and per expected
+# verification (observed / render / upstream-only); the gates apply to the overall numbers.
+
+version: 1
+
+gates:
+  # The unsafe error: an affected (or plausibly affected) item reported NOT affected. Strictest gate.
+  falseNegativeRate:       {max: 0.0,  minSample: 4}
+  # A finding eligible for automated approval whose expected class is not not-affected.
+  unsafeEligibilityRate:   {max: 0.0,  minSample: 1}
+  # Expected not-affected, system affected (noise that costs reviewer time).
+  falsePositiveRate:       {max: 0.25, minSample: 2}
+  # Expected affected, system affected or potentially-affected (found, even if not confirmed).
+  affectedDetection:       {min: 0.75, minSample: 2}
+  # Expected affected, system affected (confirmed by a deterministic/observed validation).
+  affectedConfirmation:    {min: 0.5,  minSample: 2}
+  # Expected not-affected, system not-affected (the system is useful, not merely cautious).
+  notAffectedConfirmation: {min: 0.5,  minSample: 2}
+  # Expected affected components reached by the finding (correlated rendered change on the object,
+  # or an impact path ending at it).
+  exposureRecall:          {min: 0.75, minSample: 2}
+  # requiredEvidence entries cited by the finding.
+  evidenceCoverage:        {min: 0.75, minSample: 4}
+  # Citations (findings, assertions, validations) that resolve in the bundle or run. Structural.
+  citationResolution:      {min: 1.0,  minSample: 1}
+  # System insufficient-evidence where the expected class is decisive (affected / not-affected).
+  unresolvedRate:          {max: 0.5,  minSample: 4}
+  # Items with an observed outcome where the system class equals the expected class.
+  observedAgreement:       {min: 0.75, minSample: 4}
+  # Stored runs whose re-classification reproduces their findings exactly.
+  reproducibility:         {min: 1.0,  minSample: 1}
+  # Runs that errored instead of producing a classification.
+  pipelineFailures:        {max: 0,    minSample: 0}
+
+# When automated approval (PolicyDecision.AutoApprovalEnabled) may even be CONSIDERED for a dependency
+# type — a commander + user decision, never automatic. All must hold on that dependency type's cases:
+autonomy:
+  requires: [falseNegativeRate, unsafeEligibilityRate, citationResolution, reproducibility, pipelineFailures]
+  minObservedNotAffected: 20        # observed-verified expected not-affected item decisions
+  minObservedAffected: 20           # observed-verified expected affected/potentially-affected item decisions

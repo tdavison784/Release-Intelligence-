@@ -13,6 +13,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/formalize"
 	rtval "github.com/tdavison784/release-intelligence/internal/investigate/runtime"
 	"github.com/tdavison784/release-intelligence/internal/investigate/store"
 	"github.com/tdavison784/release-intelligence/internal/investigate/verify"
@@ -23,7 +24,8 @@ import (
 const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR] [-again] [-json]
 
   Independently verify every open agent-proposed rule (hypothesis-sourced
-  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + `, or a
+  fact-review item, exported by ` + "`ri investigate export-hypotheses`" + ` or
+  ` + "`ri investigate formalize -knowledge`" + `, or a
   human-authored rule taken in by ` + "`ri knowledge intake-rule`" + `) in a
   knowledge directory and store a proof record beside it (PROTOCOL §7–§8):
 
@@ -31,6 +33,11 @@ const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR]
                      evidence cache (the investigation store, the fetch cache),
                      contains the cited passage and names only versions inside
                      the rule's release bounds
+    semantic check   (deterministic, optional) the values the rule asserts
+                     (before/after, defaults, allowed values, character
+                     classes, booleans) occur in those passages with the same
+                     polarity; unsupported refutes, undecidable is left to
+                     the human reviewer
     rule exercise    (observed, -runtime) a synthetic fixture built from the rule
                      (products/exercises/fixtures/<product>.yaml), the condition
                      present and absent, upgraded FROM → TO in a throwaway kind
@@ -40,7 +47,8 @@ const verifyUsage = `ri verify hypotheses -knowledge DIR [-runtime] [-store DIR]
                      certificate issued after re-issuance against the trust
                      captured before it)
 
-  confirmed only when both pass; any failure refutes; otherwise inconclusive.
+  confirmed only when the citation check and the rule exercise pass; any
+  failure refutes; otherwise inconclusive.
   A human accept/correct of the item then needs a confirmed proof of exactly
   that rule (` + "`ri review serve`" + ` shows the proof and the gate). Never runs
   against an evaluation environment.
@@ -89,7 +97,8 @@ func (c *cli) verifyCmd(args []string) error {
 		Knowledge: knowledge.NewFileStore(*kdir),
 		Resolver: verify.Resolvers{verify.StoreResolver{Store: st},
 			&verify.HTTPCacheResolver{Dir: filepath.Join(c.g.state, "cache")}},
-		Runs:              verify.StateRuns{Dir: filepath.Join(st.Dir(), "runs")},
+		Runs: formalizedRuns{store: formalize.Store{Dir: formalize.StateDir(root)},
+			next: verify.StateRuns{Dir: filepath.Join(st.Dir(), "runs")}},
 		Runtime:           *runtimeOn,
 		KubernetesVersion: *kube,
 		Again:             *again,

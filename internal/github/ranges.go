@@ -12,6 +12,11 @@ import (
 // version: ">= 1.0.0", "<1.17.2", "= 1.2.3" or a bare "1.2.3".
 var clauseRe = regexp.MustCompile(`^(<=|>=|==|=|<|>)?\s*(\S+)$`)
 
+// pseudoRe matches the pre-release part of a Go pseudo-version: a 14-digit
+// UTC timestamp, optionally followed by a 12-hex-digit commit
+// ("20260319175635-5183b7d86137", "0.20260331202714-6800989bdc12").
+var pseudoRe = regexp.MustCompile(`(^|[.-])\d{14}(-[0-9a-f]{12})?$`)
+
 // ConvertVersionRange converts one GitHub advisory "vulnerable_version_range"
 // into a constraint understood by github.com/Masterminds/semver/v3.
 //
@@ -27,15 +32,36 @@ var clauseRe = regexp.MustCompile(`^(<=|>=|==|=|<|>)?\s*(\S+)$`)
 // semver.NewConstraint; a range that cannot be expressed (unparsable
 // versions, unknown operators) is an error.
 //
+// Two shapes are not an intersection of comparisons and are handled apart:
+//
+//   - An explicit version list (only bare or "=" versions, more than one) is
+//     an OR of exact versions: "v1.2.0,v1.2.1" becomes "= 1.2.0 || = 1.2.1".
+//     Read as an intersection it would match nothing, a silent "not
+//     affected" for every version.
+//   - A range with two lower bounds or two upper bounds
+//     ("<v1.12.14,<v1.15.4,<v1.16.2", per-line fixes written as one list) is
+//     an error: its intersection is narrower than what the author meant, so
+//     it would declare affected versions unaffected. A list that mixes exact
+//     versions with comparisons is an error for the same reason.
+//
 // Note that Masterminds constraints exclude pre-releases of a version unless
 // the constraint itself names a pre-release, so "< 1.17.2" does not match
-// "1.17.2-rc.1".
+// "1.17.2-rc.1". A pre-release lower bound still matches the stable release
+// it precedes: ">= 1.12.0-beta.0, < 1.12.1" matches 1.12.0.
+//
+// A Go pseudo-version bound ("< 0.0.0-20260319175635-5183b7d86137", how the
+// Go database records a fix on a commit) is an error too. Compared as semver
+// it sorts below every ordinary release, so it would match none of them, yet
+// which releases contain the commit is unknown: reading it as "no release is
+// affected" would be a false "not affected". It stays an advisory to check
+// manually.
 func ConvertVersionRange(r string) (string, error) {
 	r = strings.TrimSpace(r)
 	if r == "" {
 		return "", fmt.Errorf("empty version range")
 	}
 	var clauses []string
+	exact, lower, upper := 0, 0, 0
 	for _, part := range strings.Split(r, ",") {
 		part = strings.TrimSpace(part)
 		m := clauseRe.FindStringSubmatch(part)
@@ -43,15 +69,34 @@ func ConvertVersionRange(r string) (string, error) {
 			return "", fmt.Errorf("version range %q: cannot parse comparison %q", r, part)
 		}
 		op, ver := m[1], strings.TrimPrefix(m[2], "v")
-		if op == "" || op == "==" {
+		switch op {
+		case "", "==", "=":
 			op = "="
+			exact++
+		case ">", ">=":
+			lower++
+		case "<", "<=":
+			upper++
 		}
-		if _, err := semver.NewVersion(ver); err != nil {
+		sv, err := semver.NewVersion(ver)
+		if err != nil {
 			return "", fmt.Errorf("version range %q: %w", r, err)
+		}
+		if pseudoRe.MatchString(sv.Prerelease()) {
+			return "", fmt.Errorf("version range %q: %s is a Go pseudo-version (a commit, not a release)", r, ver)
 		}
 		clauses = append(clauses, op+" "+ver)
 	}
-	out := strings.Join(clauses, ", ")
+	sep := ", "
+	switch {
+	case exact > 1 && lower+upper == 0:
+		sep = " || "
+	case exact > 0 && len(clauses) > 1:
+		return "", fmt.Errorf("version range %q: mixes exact versions with comparisons", r)
+	case lower > 1 || upper > 1:
+		return "", fmt.Errorf("version range %q: more than one lower or upper bound (not an interval)", r)
+	}
+	out := strings.Join(clauses, sep)
 	if _, err := semver.NewConstraint(out); err != nil {
 		return "", fmt.Errorf("version range %q: %w", r, err)
 	}

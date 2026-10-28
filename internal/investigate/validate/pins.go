@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tdavison784/release-intelligence/internal/applicability"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
@@ -449,7 +450,7 @@ func (s pinSpec) evalObjects(v *envView) pinResult {
 	}
 	res := pinResult{held: true, inputs: v.inputs(true), replaced: v.replaced()}
 	objs := v.objects()
-	sc := &scopeEval{objs: objs, schemas: v.schemas}
+	sc := newScopeEval(objs, v.schemas, s.fact)
 	seen := 0
 	for _, e := range objs {
 		if !s.selects(e.obj) {
@@ -463,7 +464,7 @@ func (s pinSpec) evalObjects(v *envView) pinResult {
 			res.undecidable = append(res.undecidable, fmt.Sprintf("%s: %s", at, e.unrendered))
 			continue
 		}
-		hits, miss := s.pinsOn(e, path)
+		hits, miss := s.pinsOn(v, e, path)
 		if s.scope != nil {
 			full := sc.decide(s.scope, e, miss == "")
 			res.schemaEvidence = append(res.schemaEvidence, full.evidence...)
@@ -509,7 +510,7 @@ func (s pinSpec) evalObjects(v *envView) pinResult {
 
 // pinsOn evaluates the setting on one object of the effective view: the
 // pinning records, or why the object does not pin it.
-func (s pinSpec) pinsOn(e effObj, path string) ([]pinHit, string) {
+func (s pinSpec) pinsOn(v *envView, e effObj, path string) ([]pinHit, string) {
 	o := e.obj
 	vals, missing := lookup(o.Body, path)
 	if missing > 0 || len(vals) == 0 {
@@ -532,8 +533,15 @@ func (s pinSpec) pinsOn(e effObj, path string) ([]pinHit, string) {
 		}
 		where := o.ID.String() + " " + s.path
 		why += e.src.readBackNote(o.ID, s.path)
+		excerpt := fmt.Sprintf("%s: %s%s", s.path, plainValue(val), e.src.readBackNote(o.ID, s.path))
+		// a rendered value cites the file and line that produced it (the
+		// overlay patch when one applies)
+		if at := v.origin(e, path, val); at != "" {
+			why += ", set at " + at
+			excerpt += " (set at " + at + ")"
+		}
 		hits = append(hits, pinHit{object: o.ID.String(), path: s.path, value: val, rendered: e.rendered, view: e.src.label(), why: why,
-			evidence: objectEvidence(e, where, fmt.Sprintf("%s: %s%s", s.path, plainValue(val), e.src.readBackNote(o.ID, s.path)), s.path, val)})
+			evidence: objectEvidence(e, where, excerpt, s.path, val)})
 	}
 	return hits, ""
 }
@@ -641,15 +649,49 @@ type verdict struct {
 // scopeEval decides a pin rule's resource scope against single objects of
 // the effective view, with the semantics of the impact join's condition
 // evaluator (internal/impact): field states over the values the object
-// states, Kleene all/any/not, a ref resolving to exactly one object. Two
-// deliberate differences make it fail closed for exclusion: a value
-// predicate on a field the object leaves unset uses the schema default the
-// bundle's CRD states — and is undecidable when no CRD of the bundle
-// describes the field — and a reference that resolves to nothing is
-// undecidable (the view is never declared complete).
+// states, Kleene all/any/not, a ref resolving to exactly one object. A value
+// predicate on a field the object leaves unset is decided by the rule shared
+// with the join (internal/applicability): the schema default the bundle's
+// CRDs state (inside a present parent), or the rule's own default when its
+// citations resolve to the fact's upstream evidence, and undecidable
+// otherwise. One deliberate difference makes it fail closed for exclusion: a
+// reference that resolves to nothing is undecidable (the view is never
+// declared complete).
 type scopeEval struct {
 	objs    []effObj
 	schemas []effObj
+	// crds are the schemas in the shared helper's form (index i ↔
+	// schemas[i]); rule is the fact's evidence (condition defaults cite it).
+	crds []applicability.CRD
+	rule map[domain.EvidenceID]domain.Evidence
+	// observed are the fact's usable observed defaults (PD-5); membership
+	// its usable role-membership defaults (PD-6).
+	observed   []domain.ObservedDefault
+	membership []domain.RoleMembershipDefault
+}
+
+func newScopeEval(objs, schemas []effObj, fact *domain.VerifiedFact) *scopeEval {
+	sc := &scopeEval{objs: objs, schemas: schemas, rule: map[domain.EvidenceID]domain.Evidence{}}
+	for _, s := range schemas {
+		c := applicability.CRD{Group: yStr(s.obj.Body, "spec", "group"), Kind: yStr(s.obj.Body, "spec", "names", "kind"),
+			Schemas: map[string]map[string]any{}, Where: fmt.Sprintf("CRD %s in %s", s.obj.ID.Name, s.src.label())}
+		for _, ver := range ySeq(yGet(s.obj.Body, "spec", "versions")) {
+			if m := yMap(yGet(ver, "schema", "openAPIV3Schema")); m != nil {
+				c.Schemas[yStr(ver, "name")] = m
+			} else {
+				c.Schemas[yStr(ver, "name")] = nil
+			}
+		}
+		sc.crds = append(sc.crds, c)
+	}
+	if fact != nil {
+		for _, e := range fact.Evidence {
+			sc.rule[e.ID] = e
+		}
+		sc.observed, _ = fact.UsableObservedDefaults()
+		sc.membership, _ = fact.UsableRoleMembershipDefaults()
+	}
+	return sc
 }
 
 // decide evaluates the scope against e, the pin leaf taking the value the
@@ -802,8 +844,8 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 		}
 		return c.Path + " is " + strings.Join(stated, ", ") + e.src.readBackNote(e.obj.ID, c.Path)
 	}
-	// the API server fills what the object leaves unset with the schema
-	// default: needed when nothing stated decides it
+	// what the object leaves unset holds its established default: needed
+	// when nothing stated decides it
 	needDefault := !present || missing > 0
 	if c.State == domain.StateNotEquals {
 		switch {
@@ -812,45 +854,57 @@ func (sc *scopeEval) field(c domain.Condition, e effObj) verdict {
 		case !needDefault:
 			return verdict{t: tTrue, why: fmt.Sprintf("%s (none of %s)", is(), strings.Join(c.Values, ", "))}
 		}
-		d := sc.schemaDefault(e.obj, c.Path)
-		switch d.state {
-		case defaultKnown:
-			if valueHolds(c, d.value) {
-				return verdict{t: tFalse, why: fmt.Sprintf("%s defaults to %s (%s), one of %s", c.Path, plainValue(d.value), d.source, strings.Join(c.Values, ", ")), evidence: d.evidence}
-			}
-			return verdict{t: tTrue, why: fmt.Sprintf("%s, otherwise defaults to %s (%s), none of %s", is(), plainValue(d.value), d.source, strings.Join(c.Values, ", ")), evidence: d.evidence}
-		case defaultNone:
-			return verdict{t: tUnknown, why: noSchemaDefault(c, leaf, is(), d.source)}
+	} else {
+		switch {
+		case hit:
+			return verdict{t: tTrue, why: is()}
+		case !needDefault:
+			return verdict{t: tFalse, why: fmt.Sprintf("%s (%s)", is(), leaf+" does not hold")}
 		}
-		return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s, and %s", leaf, is(), d.why)}
 	}
+	d, evidence := sc.fieldDefault(c, e)
+	u := applicability.Unset(c, d, func(value string) bool { return valueHolds(c, value) })
 	switch {
-	case hit:
-		return verdict{t: tTrue, why: is()}
-	case !needDefault:
-		return verdict{t: tFalse, why: fmt.Sprintf("%s (%s)", is(), leaf+" does not hold")}
+	case !u.Known:
+		return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s, and %s; needed: %s", leaf, is(), u.Why, applicability.Needed(c))}
+	case u.Holds:
+		return verdict{t: tTrue, why: fmt.Sprintf("%s, otherwise %s", is(), u.Why), evidence: evidence}
 	}
-	d := sc.schemaDefault(e.obj, c.Path)
-	switch d.state {
-	case defaultKnown:
-		if valueHolds(c, d.value) {
-			return verdict{t: tTrue, why: fmt.Sprintf("%s defaults to %s (%s)", c.Path, plainValue(d.value), d.source), evidence: d.evidence}
-		}
-		return verdict{t: tFalse, why: fmt.Sprintf("%s, otherwise defaults to %s (%s): %s does not hold", is(), plainValue(d.value), d.source, leaf), evidence: d.evidence}
-	case defaultNone:
-		return verdict{t: tUnknown, why: noSchemaDefault(c, leaf, is(), d.source)}
-	}
-	return verdict{t: tUnknown, why: fmt.Sprintf("%s: %s, and %s", leaf, is(), d.why)}
+	return verdict{t: tFalse, why: fmt.Sprintf("%s, otherwise %s: %s does not hold", is(), u.Why, leaf), evidence: evidence}
 }
 
-// noSchemaDefault explains why a value predicate on a field left unset is
-// undecidable although the CRD describes it: without a schema default the
-// controller may still default the field in code (the very pattern of a
-// default change), so what an absent field means must come from the rule
-// itself — an explicit state:unset (or set) leaf on the field.
-func noSchemaDefault(c domain.Condition, leaf, is, source string) string {
-	return fmt.Sprintf("%s: %s and %s states no schema default for %s; a controller may default it in code, so only a rule that states what an unset %s means (a %s unset/set leaf) decides it",
-		leaf, is, source, c.Path, c.Path, c.Path)
+// fieldDefault is the established default of c's field on e (schema default
+// inside a present parent, combined with the rule's evidenced default) and
+// the evidence of the schemas it was read from.
+func (sc *scopeEval) fieldDefault(c domain.Condition, e effObj) (applicability.Default, []domain.Evidence) {
+	o := e.obj
+	schema := applicability.SchemaDefault(sc.crds, o.ID.Group, o.ID.Version, o.ID.Kind, c.Path)
+	if parent := applicability.ParentPath(c.Path); parent != "" {
+		if pv, _ := lookupAny(o.Body, parent); len(pv) == 0 {
+			schema = applicability.ParentAbsent(schema, c.Path)
+		}
+	}
+	obs, conflict := applicability.ObservedFor(sc.observed, o.ID.Group, o.ID.Kind, c.Path)
+	d := applicability.WithObserved(applicability.Resolve(schema, applicability.RuleDefault(c, sc.rule)), obs, conflict)
+	m, mconflict := applicability.MembershipFor(sc.membership, o.ID.Group, o.ID.Kind, c)
+	d = applicability.WithMembership(d, m, mconflict)
+	var evs []domain.Evidence
+	if d.State == applicability.Known {
+		for _, i := range d.CRDs {
+			s := sc.schemas[i]
+			evs = append(evs, artifactEvidence(evidenceKindOf(s), s.src.artifact, fmt.Sprintf("%s %s %s", s.obj.ID, o.ID.Version, c.Path),
+				fmt.Sprintf("schema of %s/%s %s: %s default %s", o.ID.Group, o.ID.Kind, o.ID.Version, c.Path, schemaDefaultText(sc.crds[i], o.ID.Version, c.Path)), nil))
+		}
+	}
+	return d, evs
+}
+
+func schemaDefaultText(c applicability.CRD, version, path string) string {
+	v, has, _ := applicability.DefaultAt(c.Schemas[version], path)
+	if !has {
+		return "(none)"
+	}
+	return plainValue(v)
 }
 
 // valueHolds reports whether a JSON-encoded scalar satisfies the positive
@@ -1001,78 +1055,6 @@ func (sc *scopeEval) ref(c domain.Condition, e effObj, depth int) verdict {
 	return verdict{t: tFalse, why: strings.Join(whys, "; ")}
 }
 
-// --- schema defaults --------------------------------------------------------------
-
-type defaultState int8
-
-const (
-	defaultUnknown defaultState = iota // no CRD of the bundle decides it
-	defaultNone                        // the CRD(s) describe the field and state no default
-	defaultKnown                       // the CRD(s) agree on a default
-)
-
-type schemaDefaultResult struct {
-	state    defaultState
-	value    string // JSON-encoded (defaultKnown)
-	source   string // which CRD(s)
-	why      string // defaultUnknown
-	evidence []domain.Evidence
-}
-
-// schemaDefault is the default the API server applies to path of an object
-// of o's kind and version, read from every CRD the bundle holds for it
-// (upstream CRD artifacts, environment files, renders). Every such CRD must
-// describe the path and agree; an ancestor default, a schema that does not
-// describe the path, a version no CRD serves, or a built-in kind all leave
-// it unknown.
-func (sc *scopeEval) schemaDefault(o render.Object, path string) schemaDefaultResult {
-	var srcs []string
-	var evs []domain.Evidence
-	values := map[string]bool{}
-	none := false
-	for _, s := range sc.schemas {
-		crd := s.obj
-		if yStr(crd.Body, "spec", "group") != o.ID.Group || yStr(crd.Body, "spec", "names", "kind") != o.ID.Kind {
-			continue
-		}
-		var schema map[string]any
-		for _, ver := range ySeq(yGet(crd.Body, "spec", "versions")) {
-			if yStr(ver, "name") == o.ID.Version {
-				schema = yMap(yGet(ver, "schema", "openAPIV3Schema"))
-			}
-		}
-		where := fmt.Sprintf("CRD %s in %s", crd.ID.Name, s.src.label())
-		if schema == nil {
-			return schemaDefaultResult{why: fmt.Sprintf("%s has no structural schema for version %s", where, o.ID.Version)}
-		}
-		d, has, why := defaultAt(schema, path)
-		if why != "" {
-			return schemaDefaultResult{why: where + ": " + why}
-		}
-		srcs = append(srcs, where)
-		evs = append(evs, artifactEvidence(evidenceKindOf(s), s.src.artifact, fmt.Sprintf("%s %s %s", crd.ID, o.ID.Version, path),
-			fmt.Sprintf("schema of %s/%s %s: %s default %s", o.ID.Group, o.ID.Kind, o.ID.Version, path, defaultText(d, has)), nil))
-		if has {
-			values[d] = true
-		} else {
-			none = true
-		}
-	}
-	src := strings.Join(uniq(srcs), "; ")
-	switch {
-	case len(srcs) == 0:
-		return schemaDefaultResult{why: fmt.Sprintf("no CustomResourceDefinition of %s/%s in the bundle states whether %s has a default", orAny(o.ID.Group), o.ID.Kind, path)}
-	case len(values) > 1 || (len(values) == 1 && none):
-		return schemaDefaultResult{why: fmt.Sprintf("the CRDs of the bundle disagree on the default of %s (%s)", path, src)}
-	case none:
-		return schemaDefaultResult{state: defaultNone, source: src, evidence: evs}
-	}
-	for v := range values {
-		return schemaDefaultResult{state: defaultKnown, value: v, source: src, evidence: evs}
-	}
-	return schemaDefaultResult{}
-}
-
 func evidenceKindOf(e effObj) domain.EvidenceKind {
 	switch e.src.side {
 	case "file":
@@ -1081,50 +1063,6 @@ func evidenceKindOf(e effObj) domain.EvidenceKind {
 		return domain.EvidenceDocument
 	}
 	return domain.EvidenceRendered
-}
-
-func defaultText(v string, has bool) string {
-	if !has {
-		return "(none)"
-	}
-	return plainValue(v)
-}
-
-// defaultAt walks a structural schema along path and returns the default
-// at its end. why is set when the schema cannot decide it.
-func defaultAt(schema map[string]any, path string) (string, bool, string) {
-	node := schema
-	segs := segments(path)
-	for i, seg := range segs {
-		if i > 0 {
-			if _, ok := node["default"]; ok {
-				return "", false, "an ancestor of " + path + " has a default of its own"
-			}
-		}
-		if node["x-kubernetes-preserve-unknown-fields"] == true {
-			return "", false, "the schema does not describe " + path + " (preserves unknown fields)"
-		}
-		props := yMap(node["properties"])
-		next := yMap(props[seg.name])
-		if next == nil {
-			return "", false, "the schema does not describe " + path
-		}
-		node = next
-		if seg.list {
-			if _, ok := node["default"]; ok {
-				return "", false, "an ancestor of " + path + " has a default of its own"
-			}
-			node = yMap(node["items"])
-			if node == nil {
-				return "", false, "the schema does not describe the elements of " + seg.name
-			}
-		}
-	}
-	d, ok := node["default"]
-	if !ok {
-		return "", false, ""
-	}
-	return encodeJSON(d), true, ""
 }
 
 // describeCondition renders a condition compactly for details.

@@ -436,6 +436,92 @@ type Condition struct {
 	Range     string        `json:"range,omitempty"`     // semver constraint
 	Reason    UnknownReason `json:"reason,omitempty"`    // undecidable only
 	Needed    string        `json:"needed,omitempty"`    // undecidable only
+	// Default is what an object that leaves the leaf's field unset holds,
+	// with the evidence that establishes it (value leaves only). Without an
+	// established default a value predicate on an unset field is undecidable
+	// (internal/applicability). CONTRACT-CHANGE(applicability): additive,
+	// omitted when nil, so existing assertion digests are unchanged.
+	Default *FieldDefault `json:"default,omitempty"`
+}
+
+// DefaultSource is where a rule's field default comes from.
+type DefaultSource string
+
+const (
+	// DefaultCRDSchema: the `default` of the field in the CRD's structural
+	// schema (the API server fills it in).
+	DefaultCRDSchema DefaultSource = "crd-schema"
+	// DefaultController: a default the controller applies in code, cited
+	// from upstream source or documentation at the release's tag.
+	DefaultController DefaultSource = "controller"
+)
+
+// DefaultSources lists every source.
+var DefaultSources = []DefaultSource{DefaultCRDSchema, DefaultController}
+
+// FieldDefault is a rule's statement of what an unset field means: the value
+// it defaults to and the upstream evidence that establishes it. A default
+// whose citations do not resolve to upstream evidence of the rule is ignored
+// by every evaluator (the field stays undecidable) and rejected by fact
+// validation.
+type FieldDefault struct {
+	Value     string        `json:"value"` // JSON-encoded
+	Source    DefaultSource `json:"source"`
+	Citations []EvidenceID  `json:"citations"`
+}
+
+// Validate checks the default's shape (not whether its citations resolve:
+// that needs the rule's evidence; see VerifiedFact.Validate).
+func (d FieldDefault) Validate() error {
+	var errs []error
+	if !json.Valid([]byte(d.Value)) {
+		errs = append(errs, fmt.Errorf("default value %q is not JSON-encoded", d.Value))
+	}
+	if !oneOf(d.Source, DefaultSources) {
+		errs = append(errs, fmt.Errorf("default source %q is not one of %v", d.Source, DefaultSources))
+	}
+	if len(d.Citations) == 0 {
+		errs = append(errs, errors.New("a default must cite the evidence that establishes it"))
+	}
+	return errors.Join(errs...)
+}
+
+// Unevidenced says why the default is not established by pool ("" when every
+// citation resolves to upstream evidence in it): release-level upstream
+// evidence (a document, a structured file such as a CRD, a repository file, a
+// release asset, a linked change) with a quoted excerpt — never the
+// environment (a local file, a direct input, an environment render or
+// rendered diff).
+func (d FieldDefault) Unevidenced(pool map[EvidenceID]Evidence) string {
+	if len(d.Citations) == 0 {
+		return "it cites no evidence"
+	}
+	var bad []string
+	for _, id := range d.Citations {
+		e, ok := pool[id]
+		switch {
+		case !ok:
+			bad = append(bad, fmt.Sprintf("%s does not resolve to the rule's evidence", id))
+		case e.Kind == EvidenceLocalFile || e.Kind == EvidenceInput || e.Kind == EvidenceRendered || e.Kind == EvidenceRenderedDiff,
+			e.Render != nil && e.Render.Scope == RenderEnvironment:
+			bad = append(bad, fmt.Sprintf("%s is %s evidence of the environment, not upstream evidence", id, e.Kind))
+		case strings.TrimSpace(e.Excerpt) == "":
+			bad = append(bad, fmt.Sprintf("%s quotes nothing", id))
+		}
+	}
+	return strings.Join(bad, "; ")
+}
+
+// Defaults returns every field default stated in the condition tree.
+func (c Condition) Defaults() []FieldDefault {
+	var out []FieldDefault
+	if c.Default != nil {
+		out = append(out, *c.Default)
+	}
+	for _, x := range c.Of {
+		out = append(out, x.Defaults()...)
+	}
+	return out
 }
 
 func (c Condition) field(name string) string {
@@ -569,6 +655,17 @@ func (c Condition) validate(depth int, inScope bool) error {
 	}
 	if c.Op == OpUndecidable && c.Reason != "" && !c.Reason.Valid() {
 		bad("unknown reason %q", c.Reason)
+	}
+	if c.Default != nil {
+		switch {
+		case c.Op != OpField && c.Op != OpCLIFlag && c.Op != OpEnvVar:
+			bad("a default is only stated on a field, cli-flag or env-var leaf")
+		case c.State == StateUnset || c.State == StateSet:
+			bad("a default only matters to a value predicate, not to state %s", c.State)
+		}
+		if err := c.Default.Validate(); err != nil {
+			bad("%v", err)
+		}
 	}
 	childScope := inScope || c.Op == OpResource || c.Op == OpRef
 	for i, sub := range c.Of {
@@ -2070,6 +2167,10 @@ type ReviewDecision struct {
 	// the reviewer explicitly keeps beside it. A promotion of a
 	// hypothesis-sourced rule must name every active fact on its subject in
 	// one of the two — it never silently coexists (internal/knowledge).
+	// Every other accept, correct and duplicate must name every other active
+	// fact of the same product, release and subject (lane backdoor); a
+	// duplicate may only coexist, and coexistence needs compatible facts
+	// (FactIncompatibility).
 	// CONTRACT-CHANGE(verify): additive fields.
 	Supersedes []string `json:"supersedes,omitempty"`
 	Coexists   []string `json:"coexists,omitempty"`
@@ -2304,8 +2405,14 @@ func (d ReviewDecision) Validate() error {
 	if d.Action == ActionCorrect && d.BatchID != "" {
 		bad("corrections are individual-only; a correct decision is never part of a batch")
 	}
-	if len(d.Supersedes)+len(d.Coexists) > 0 && d.Action != ActionAccept && d.Action != ActionCorrect {
-		bad("supersedes/coexists belong to an accept or correct decision")
+	promotes := d.Action == ActionAccept || d.Action == ActionCorrect
+	if len(d.Supersedes) > 0 && !promotes {
+		bad("supersedes belongs to an accept or correct decision")
+	}
+	// a duplicate adds anchors to an existing fact: it may keep the other
+	// active facts of that fact's subject beside it (lane backdoor)
+	if len(d.Coexists) > 0 && !promotes && (d.Action != ActionReject || d.DuplicateOf == "") {
+		bad("coexists belongs to an accept, correct or duplicate decision")
 	}
 	named := map[string]bool{}
 	for _, id := range append(append([]string(nil), d.Supersedes...), d.Coexists...) {
@@ -2384,6 +2491,18 @@ type VerifiedFact struct {
 	// retracts the fact instead.
 	AuditedBy string    `json:"auditedBy,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
+	// ObservedDefaults are defaults of unset fields established by
+	// observation (PD-5), carried on human promotion from the confirmed
+	// proof of exactly this rule. The applicability evaluator uses one only
+	// through that proof (ObservedDefaultEstablished); any other is ignored
+	// and its field stays unknown. CONTRACT-CHANGE(verify3): additive.
+	ObservedDefaults []ObservedDefault `json:"observedDefaults,omitempty"`
+	// RoleMembershipDefaults are observed role-membership defaults (PD-6),
+	// carried on human promotion like ObservedDefaults. The evaluators use
+	// one only for the rule's membership leaves of its role, only through
+	// that proof (RoleMembershipEstablished); never as a field default.
+	// CONTRACT-CHANGE(verify4): additive.
+	RoleMembershipDefaults []RoleMembershipDefault `json:"roleMembershipDefaults,omitempty"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing
@@ -2470,6 +2589,22 @@ func (f VerifiedFact) Validate() error {
 	}
 	if f.Assertion.Subject != nil && f.Assertion.Subject.Product != f.Product {
 		bad("subject product %q differs from fact product %q", f.Assertion.Subject.Product, f.Product)
+	}
+	if ap := f.Assertion.Applicability; ap != nil {
+		// CONTRACT-CHANGE(applicability): a stated default must be evidenced
+		pool := map[EvidenceID]Evidence{}
+		for _, e := range f.Evidence {
+			pool[e.ID] = e
+		}
+		ds := ap.Exposure.Defaults()
+		if ap.Overlap != nil {
+			ds = append(ds, ap.Overlap.Defaults()...)
+		}
+		for _, d := range ds {
+			if why := d.Unevidenced(pool); why != "" {
+				bad("applicability default %s has no resolvable citation: %s", d.Value, why)
+			}
+		}
 	}
 	seen := map[Aspect]bool{}
 	for _, v := range f.Verification {

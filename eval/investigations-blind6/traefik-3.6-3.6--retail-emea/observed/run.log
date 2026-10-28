@@ -1,0 +1,344 @@
+# traefik-3.6-3.6--retail-emea: Traefik v3.6.10 (chart 39.0.5) -> v3.6.15 (chart 39.0.9); kind v0.24.0, node kindest/node:v1.31.0
+
+### environment render FROM/TO (observed/render.diff)  [23:03:49Z]
+# values of <blind6>/traefik-3.6-3.6--retail-emea/env/infrastructure/traefik/helmrelease.yaml (spec.values):
+  deployment:
+    replicas: 2
+  ingressClass:
+    enabled: true
+    isDefaultClass: true
+  providers:
+    kubernetesCRD:
+      enabled: true
+    kubernetesIngress:
+      enabled: false
+  env:
+  - name: TRAEFIK_PROVIDERS_KUBERNETESCRD_ALLOWCROSSNAMESPACE
+    value: 'true'
+  service:
+    type: LoadBalancer
+  logs:
+    general:
+      level: INFO
+    access:
+      enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+L4-L12	ClusterRole/-/traefik-traefik	+1 -1
+L16-L24	ClusterRoleBinding/-/traefik-traefik	+1 -1
+L28-L36	Deployment/traefik/traefik	+1 -1
+L37-L45	Deployment/traefik/traefik	+1 -1
+L46-L54	Deployment/traefik/traefik	+1 -1
+L58-L66	IngressClass/-/traefik	+1 -1
+L70-L78	Service/traefik/traefik	+1 -1
+L82-L89	ServiceAccount/traefik/traefik	+1 -1
+$ kind create cluster --name ri-groundtruth6-traefik-emea --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig <kubeconfig>.yKp3KVGm9O
+Creating cluster "ri-groundtruth6-traefik-emea" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 16s 💚
+Set kubectl context to "kind-ri-groundtruth6-traefik-emea"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth6-traefik-emea --kubeconfig <kubeconfig>.yKp3KVGm9O
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+$ kubectl -n default run curl --image=curlimages/curl:8.11.1 --restart=Never --command -- sleep 86400
+pod/curl created
+$ kubectl -n default wait pod/curl --for=condition=Ready --timeout=120s
+pod/curl condition met
+
+### FROM: install chart 39.0.5 with the environment's values  [23:04:20Z]
+$ helm install traefik <charts>/traefik-39.0.5.tgz -n traefik --create-namespace -f <scratch>/values.yaml
+NAME: traefik
+LAST DEPLOYED: Tue Oct 27 18:04:21 2026
+NAMESPACE: traefik
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+traefik with docker.io/traefik:v3.6.10 has been deployed successfully on traefik namespace!
+$ kubectl -n traefik rollout status deploy/traefik --timeout=180s
+Waiting for deployment "traefik" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "traefik" rollout to finish: 1 of 2 updated replicas are available...
+deployment "traefik" successfully rolled out
+$ kubectl -n traefik get deploy traefik -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}
+docker.io/traefik:v3.6.10
+
+### the Traefik container's args and env (rendered by the chart)  [23:04:31Z]
+  args:
+    --entryPoints.metrics.address=:9100/tcp
+    --entryPoints.traefik.address=:8080/tcp
+    --entryPoints.web.address=:8000/tcp
+    --entryPoints.websecure.address=:8443/tcp
+    --api.dashboard=true
+    --ping=true
+    --metrics.prometheus=true
+    --metrics.prometheus.entrypoint=metrics
+    --providers.kubernetescrd
+    --providers.kubernetescrd.allowEmptyServices=true
+    --entryPoints.websecure.http.tls=true
+    --log.level=INFO
+    --accesslog=true
+    --accesslog.fields.defaultmode=keep
+    --accesslog.fields.headers.defaultmode=drop
+  env:
+    POD_NAME=<from field>
+    POD_NAMESPACE=<from field>
+    USER=traefik
+    TRAEFIK_PROVIDERS_KUBERNETESCRD_ALLOWCROSSNAMESPACE=true
+
+### FROM: apply edge middlewares and apps (Flux Kustomizations, in dependsOn order)  [23:04:31Z]
+$ kubectl kustomize <blind6>/traefik-3.6-3.6--retail-emea/env/infrastructure/edge-middlewares | kubectl apply -f -
+secret/staff-users created
+middleware.traefik.io/rate-limit created
+middleware.traefik.io/security-headers created
+middleware.traefik.io/staff-auth created
+$ kubectl kustomize <blind6>/traefik-3.6-3.6--retail-emea/env/apps | kubectl apply -f -
+namespace/backoffice created
+namespace/storefront created
+service/backoffice created
+service/storefront created
+deployment.apps/backoffice created
+deployment.apps/storefront created
+ingressroute.traefik.io/backoffice created
+ingressroute.traefik.io/storefront created
+middleware.traefik.io/edge created
+middleware.traefik.io/edge created
+$ kubectl -n storefront rollout status deploy/storefront --timeout=120s
+Waiting for deployment "storefront" rollout to finish: 0 out of 2 new replicas have been updated...
+Waiting for deployment "storefront" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "storefront" rollout to finish: 1 of 2 updated replicas are available...
+deployment "storefront" successfully rolled out
+$ kubectl -n backoffice rollout status deploy/backoffice --timeout=120s
+deployment "backoffice" successfully rolled out
+
+### probes (FROM v3.6.10)  [23:04:48Z]
+$ curl -k https://shop.retail-emea.example.com/ 
+  HTTP/2 200 
+  strict-transport-security: max-age=31536000; includeSubDomains
+  x-edge: retail-emea
+$ curl -k https://backoffice.retail-emea.example.com/ 
+  HTTP/2 401 
+  www-authenticate: Basic realm="traefik"
+$ curl -k https://backoffice.retail-emea.example.com/ -u ops:correct-horse-ops
+  HTTP/2 200 
+  strict-transport-security: max-age=31536000; includeSubDomains
+  x-edge: retail-emea
+
+### probe object: a direct cross-namespace middleware reference (FROM v3.6.10)  [23:04:49Z]
+  apiVersion: traefik.io/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: xns-probe
+    namespace: storefront
+  spec:
+    entryPoints: [websecure]
+    routes:
+      - kind: Rule
+        match: Host(`xns-probe.retail-emea.example.com`)
+        middlewares:
+          - name: security-headers
+            namespace: traefik
+        services:
+          - name: storefront
+            port: 80
+    tls: {}
+$ kubectl apply -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io/xns-probe created
+$ curl -k https://xns-probe.retail-emea.example.com/ 
+  HTTP/2 404 
+$ kubectl delete -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io "xns-probe" deleted from storefront namespace
+
+### traefik log: configuration source and errors (FROM v3.6.10)  [23:04:57Z]
+     2 ERR Failed to create middleware keys error="middleware traefik/security-headers is not in the IngressRoute namespace storefront" ingress=xns-probe namespace=storefront providerName=kubernetescrd
+
+### UPGRADE: CRDs of chart 39.0.9 (CreateReplace), then helm upgrade with the same values  [23:04:57Z]
+$ kubectl apply --server-side --force-conflicts -f <scratch>/to/traefik/crds/
+customresourcedefinition.apiextensions.k8s.io/backendtlspolicies.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/gatewayclasses.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/gateways.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/grpcroutes.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/httproutes.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/referencegrants.gateway.networking.k8s.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/accesscontrolpolicies.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/aiservices.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiauths.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apibundles.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apicatalogitems.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiplans.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiportalauths.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiportals.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiratelimits.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apis.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/apiversions.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/managedapplications.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/managedsubscriptions.hub.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/ingressroutes.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/ingressroutetcps.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/ingressrouteudps.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/middlewares.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/middlewaretcps.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/serverstransports.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/serverstransporttcps.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/tlsoptions.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/tlsstores.traefik.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/traefikservices.traefik.io serverside-applied
+$ helm upgrade traefik <charts>/traefik-39.0.9.tgz -n traefik -f <scratch>/values.yaml
+Release "traefik" has been upgraded. Happy Helming!
+NAME: traefik
+LAST DEPLOYED: Tue Oct 27 18:04:57 2026
+NAMESPACE: traefik
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+traefik with docker.io/traefik:v3.6.15 has been deployed successfully on traefik namespace!
+$ kubectl -n traefik rollout status deploy/traefik --timeout=180s
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "traefik" rollout to finish: 1 old replicas are pending termination...
+deployment "traefik" successfully rolled out
+$ kubectl -n traefik get deploy traefik -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}
+docker.io/traefik:v3.6.15
+
+### probes (TO v3.6.15)  [23:05:29Z]
+$ curl -k https://shop.retail-emea.example.com/ 
+  HTTP/2 404 
+$ curl -k https://backoffice.retail-emea.example.com/ 
+  HTTP/2 404 
+$ curl -k https://backoffice.retail-emea.example.com/ -u ops:correct-horse-ops
+  HTTP/2 404 
+
+### probe object: a direct cross-namespace middleware reference (TO v3.6.15)  [23:05:29Z]
+  apiVersion: traefik.io/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: xns-probe
+    namespace: storefront
+  spec:
+    entryPoints: [websecure]
+    routes:
+      - kind: Rule
+        match: Host(`xns-probe.retail-emea.example.com`)
+        middlewares:
+          - name: security-headers
+            namespace: traefik
+        services:
+          - name: storefront
+            port: 80
+    tls: {}
+$ kubectl apply -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io/xns-probe created
+$ curl -k https://xns-probe.retail-emea.example.com/ 
+  HTTP/2 404 
+$ kubectl delete -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io "xns-probe" deleted from storefront namespace
+
+### traefik log: configuration source and errors (TO v3.6.15)  [23:05:37Z]
+    20 ERR Error while reading chain middleware error="middleware traefik/security-headers is not in the chain namespace storefront" middlewareName=storefront-edge providerName=kubernetescrd
+    20 ERR Error while reading chain middleware error="middleware traefik/staff-auth is not in the chain namespace backoffice" middlewareName=backoffice-edge providerName=kubernetescrd
+     2 ERR error="middleware \"backoffice-edge@kubernetescrd\" does not exist" entryPointName=websecure routerName=backoffice-backoffice-b6e59082759d5f85734e@kubernetescrd
+     2 ERR error="middleware \"storefront-edge@kubernetescrd\" does not exist" entryPointName=websecure routerName=storefront-storefront-c65f2f0f6eaaffde6187@kubernetescrd
+     4 ERR Failed to create middleware keys error="middleware traefik/security-headers is not in the IngressRoute namespace storefront" ingress=xns-probe namespace=storefront providerName=kubernetescrd
+
+### SAFER TARGET (version decision, not the proposed upgrade): v3.6.25, the latest v3.6 patch; no chart
+### ships it as appVersion, so chart 39.0.9 with image.tag=v3.6.25  [23:05:37Z]
+$ helm upgrade traefik <charts>/traefik-39.0.9.tgz -n traefik -f <scratch>/values.yaml --set image.tag=v3.6.25
+Release "traefik" has been upgraded. Happy Helming!
+NAME: traefik
+LAST DEPLOYED: Tue Oct 27 18:05:38 2026
+NAMESPACE: traefik
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+NOTES:
+traefik with docker.io/traefik:v3.6.25 has been deployed successfully on traefik namespace!
+$ kubectl -n traefik rollout status deploy/traefik --timeout=180s
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "traefik" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "traefik" rollout to finish: 1 old replicas are pending termination...
+deployment "traefik" successfully rolled out
+$ kubectl -n traefik get deploy traefik -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}
+docker.io/traefik:v3.6.25
+
+### probes (v3.6.25)  [23:06:09Z]
+$ curl -k https://shop.retail-emea.example.com/ 
+  HTTP/2 404 
+$ curl -k https://backoffice.retail-emea.example.com/ 
+  HTTP/2 404 
+$ curl -k https://backoffice.retail-emea.example.com/ -u ops:correct-horse-ops
+  HTTP/2 404 
+
+### probe object: a direct cross-namespace middleware reference (v3.6.25)  [23:06:09Z]
+  apiVersion: traefik.io/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: xns-probe
+    namespace: storefront
+  spec:
+    entryPoints: [websecure]
+    routes:
+      - kind: Rule
+        match: Host(`xns-probe.retail-emea.example.com`)
+        middlewares:
+          - name: security-headers
+            namespace: traefik
+        services:
+          - name: storefront
+            port: 80
+    tls: {}
+$ kubectl apply -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io/xns-probe created
+$ curl -k https://xns-probe.retail-emea.example.com/ 
+  HTTP/2 404 
+$ kubectl delete -f <scratch>/xns-probe.yaml
+ingressroute.traefik.io "xns-probe" deleted from storefront namespace
+
+### traefik log: configuration source and errors (v3.6.25)  [23:06:18Z]
+    20 ERR Error while reading chain middleware error="invalid reference to middleware security-headers: allowCrossNamespace is disabled, cross-namespace are disallowed" middlewareName=storefront-edge providerName=kubernetescrd
+    20 ERR Error while reading chain middleware error="invalid reference to middleware staff-auth: allowCrossNamespace is disabled, cross-namespace are disallowed" middlewareName=backoffice-edge providerName=kubernetescrd
+     2 ERR error="middleware \"backoffice-edge@kubernetescrd\" does not exist" entryPointName=websecure routerName=backoffice-backoffice-b6e59082759d5f85734e@kubernetescrd
+     2 ERR error="middleware \"storefront-edge@kubernetescrd\" does not exist" entryPointName=websecure routerName=storefront-storefront-c65f2f0f6eaaffde6187@kubernetescrd
+     2 ERR Failed to create middleware keys error="invalid reference to middleware security-headers: allowCrossNamespace is disabled, cross-namespace are disallowed" ingress=xns-probe namespace=storefront providerName=kubernetescrd
+
+### resources after the upgrades  [23:06:18Z]
+$ kubectl get middlewares.traefik.io,ingressroutes.traefik.io -A
+NAMESPACE    NAME                                     AGE
+backoffice   middleware.traefik.io/edge               106s
+storefront   middleware.traefik.io/edge               106s
+traefik      middleware.traefik.io/rate-limit         107s
+traefik      middleware.traefik.io/security-headers   107s
+traefik      middleware.traefik.io/staff-auth         107s
+
+NAMESPACE    NAME                                 AGE
+backoffice   ingressroute.traefik.io/backoffice   106s
+storefront   ingressroute.traefik.io/storefront   106s
+
+### cleanup  [23:06:18Z]
+Deleting cluster "ri-groundtruth6-traefik-emea" ...
+Deleted nodes: ["ri-groundtruth6-traefik-emea-control-plane"]

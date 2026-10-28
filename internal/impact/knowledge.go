@@ -38,6 +38,9 @@ const (
 	RuleKnowledgeOverlap   = domain.KnowledgeRulePrefix + "overlap"   // informational, from the overlap condition
 	RuleKnowledgeClear     = domain.KnowledgeRulePrefix + "clear"     // not-affected
 	RuleKnowledgeUndecided = domain.KnowledgeRulePrefix + "undecided" // unknown
+	// RuleKnowledgeContradiction: two facts of one subject contradict each
+	// other (unknown; neither clears)
+	RuleKnowledgeContradiction = domain.RuleKnowledgeContradiction
 )
 
 // ClassifyKnowledge applies the trust ladder (DESIGN.md §4) to one fact and
@@ -376,13 +379,29 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 	perChange := map[string][]domain.ImpactFinding{}
 	var order []string
 	changes := map[string]domain.Change{}
-	for _, f := range usableFacts(facts, min) {
+	usable := usableFacts(facts, min)
+	// lane backdoor: a fact another usable fact of its subject contradicts
+	// never clears; each gets a knowledge-contradiction gap naming both
+	partners := map[string][]string{}
+	for _, x := range domain.Contradictions(usable) {
+		partners[x.A] = append(partners[x.A], x.B+" ("+x.Why+")")
+		partners[x.B] = append(partners[x.B], x.A+" ("+x.Why+")")
+	}
+	gaps := map[string][]domain.ImpactFinding{}
+	for _, f := range usable {
 		attached := AttachedChanges(f, b.edge)
 		if len(attached) == 0 || f.Assertion.Applicability == nil {
 			continue
 		}
-		opts := ConditionOptions{Render: render}
-		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.env, b.edge, opts)
+		// a condition default must cite the fact's own evidence
+		opts := ConditionOptions{Render: render, Evidence: f.Evidence}
+		// an observed default only through a confirmed proof of this rule
+		opts.Observed, _ = f.UsableObservedDefaults()
+		// a role-membership default likewise, for its membership leaves only
+		opts.Membership, _ = f.UsableRoleMembershipDefaults()
+		// the condition is judged on the deployed objects (the effective
+		// object view), never on the files a render consumed
+		factExposure := EvaluateConditionWith(f.Assertion.Applicability.Exposure, b.objs, b.edge, opts)
 		for _, c := range attached {
 			// CONTRACT-CHANGE(renderfirst): PO-7a — when the customer's render
 			// decisively decides this change's exposure, it wins over the
@@ -394,9 +413,20 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 			}
 			var overlap ConditionResult
 			if ov := f.Assertion.Applicability.Overlap; ov != nil && exposure.Value == False {
-				overlap = EvaluateConditionWith(*ov, b.env, b.edge, opts)
+				overlap = EvaluateConditionWith(*ov, b.objs, b.edge, opts)
 			}
 			kf, ok := b.knowledgeFinding(f, exposure, overlap, c)
+			if ps := partners[f.ID]; len(ps) > 0 {
+				// only a stricter (affected) finding stands
+				ok = ok && (kf.Classification == domain.ImpactActionRequired || kf.Classification == domain.ImpactReviewRequired)
+				if gap, gok := b.contradictionFinding(f, ps, c); gok {
+					if _, seen := changes[c.ID]; !seen {
+						order = append(order, c.ID)
+						changes[c.ID] = c
+					}
+					gaps[c.ID] = append(gaps[c.ID], gap)
+				}
+			}
 			if !ok {
 				continue
 			}
@@ -422,6 +452,12 @@ func (b *builder) knowledge(facts []domain.VerifiedFact, min domain.Verification
 			b.findings = append(b.findings, kf)
 			superseded[id] = true
 			b.cite(kf)
+		}
+		// a contradiction is always recorded, beside any verdict
+		for _, g := range gaps[id] {
+			b.findings = append(b.findings, g)
+			superseded[id] = true
+			b.cite(g)
 		}
 	}
 	if len(superseded) == 0 {
@@ -540,6 +576,23 @@ func (b *builder) knowledgeFinding(f domain.VerifiedFact, exposure, overlap Cond
 	return kf, true
 }
 
+// contradictionFinding is the unknown gap of fact f on change c when other
+// active facts of its subject (partners, each with why) contradict it.
+func (b *builder) contradictionFinding(f domain.VerifiedFact, partners []string, c domain.Change) (domain.ImpactFinding, bool) {
+	needed := fmt.Sprintf("a human resolves the contradiction between fact %s and %s: supersede or retract one (`ri review`)", f.ID, strings.Join(partners, ", "))
+	kf, ok := b.knowledgeFinding(f, ConditionResult{Value: Unknown, Reason: domain.UnknownReleaseKnowledgeGap, Needed: []string{needed}}, ConditionResult{}, c)
+	if !ok {
+		return kf, false
+	}
+	kf.Rule, kf.Provenance.Rule = RuleKnowledgeContradiction, RuleKnowledgeContradiction
+	kf.ID = "imp-" + domain.ShortHash(kf.Rule, c.ID, f.ID)
+	kf.UnknownReason = domain.UnknownReleaseKnowledgeGap
+	kf.Title = "Contradicting knowledge, not used to clear: " + factStatement(f)
+	kf.Detail = fmt.Sprintf("Verified knowledge %s (%s-verified) is contradicted by active fact(s) %s on the same subject (%s) at release %s. Neither fact clears this change until a human supersedes or retracts one.",
+		f.ID, f.Level(), strings.Join(partners, ", "), f.Assertion.Subject.Key(), f.Release)
+	return kf, true
+}
+
 // consensusScope labels a consensus fact: same-model when any consensus
 // aspect rests on calls of one model family (the weaker, correlated-error
 // case, PO-1), cross-model otherwise.
@@ -648,6 +701,10 @@ func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected [
 	for _, p := range s.Proposals {
 		rec.Proposals[p.ID] = p
 	}
+	proofs := map[string]domain.ProofRecord{}
+	for _, p := range s.Proofs {
+		proofs[p.ID] = p
+	}
 	for _, f := range s.Facts {
 		if err := f.Validate(); err != nil {
 			rejected = append(rejected, fmt.Sprintf("%s: %v", f.ID, err))
@@ -656,6 +713,32 @@ func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected [
 		if err := domain.ValidateFactRecords(f, rec); err != nil {
 			rejected = append(rejected, fmt.Sprintf("%s: verification not proven by its records: %v", f.ID, err))
 			continue
+		}
+		// PD-5: an observed default is used only through a confirmed proof
+		// of exactly the fact's rule that records it; any other is ignored
+		// (its field stays unknown), never the fact
+		if len(f.ObservedDefaults) > 0 {
+			var kept []domain.ObservedDefault
+			for _, d := range f.ObservedDefaults {
+				if why := domain.ObservedDefaultEstablished(f, d, proofs); why != "" {
+					rejected = append(rejected, fmt.Sprintf("%s: observed default %s = %s ignored: %s", f.ID, d.Key(), d.Value, why))
+					continue
+				}
+				kept = append(kept, d)
+			}
+			f.ObservedDefaults = kept
+		}
+		// PD-6: a role-membership default likewise
+		if len(f.RoleMembershipDefaults) > 0 {
+			var kept []domain.RoleMembershipDefault
+			for _, d := range f.RoleMembershipDefaults {
+				if why := domain.RoleMembershipEstablished(f, d, proofs); why != "" {
+					rejected = append(rejected, fmt.Sprintf("%s: role-membership default %s ignored: %s", f.ID, d.Key(), why))
+					continue
+				}
+				kept = append(kept, d)
+			}
+			f.RoleMembershipDefaults = kept
 		}
 		facts = append(facts, f)
 	}

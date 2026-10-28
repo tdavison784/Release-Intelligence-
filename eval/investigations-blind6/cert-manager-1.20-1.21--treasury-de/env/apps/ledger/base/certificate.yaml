@@ -1,0 +1,20 @@
+# Short-lived serving certificate; renewed automatically two days before it expires.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ledger-api-tls
+spec:
+  secretName: ledger-api-tls
+  duration: 168h
+  renewBefore: 48h
+  commonName: ledger-api.ledger.svc
+  dnsNames:
+    - ledger-api.ledger.svc
+    - ledger-api.ledger.svc.cluster.local
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: vault-pki

@@ -1,0 +1,35 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: external-secrets-0.18-0.19--orders-eu
+pair: external-secrets-0.18-0.19--crd-delivery
+product: external-secrets
+chart:
+  repo: https://charts.external-secrets.io
+  name: external-secrets
+from:
+  version: v0.18.2
+  chartVersion: 0.18.2
+to:
+  version: v0.19.2
+  chartVersion: 0.19.2
+environment:
+  id: orders-prod-eu
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster (EKS) of the orders platform. Argo CD runs in the cluster, manages itself and
+    syncs everything from this repository (app-of-apps rooted at clusters/prod). External Secrets
+    Operator is installed from the upstream Helm chart by the external-secrets Application with the
+    values in platform/external-secrets/values.yaml; it syncs the orders API's database credentials
+    from AWS Secrets Manager through the aws-secrets-manager ClusterSecretStore. The proposed change
+    bumps the chart version in that Application. The repository is the complete declaration of what
+    runs in the cluster; nothing is applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: The chart's SecretStore and ClusterSecretStore CRDs exceed the size a client-side apply can store; they must be applied server-side (kubectl --server-side, Argo CD ServerSideApply=true)
+    subject: ServerSideApply
+    source: https://github.com/external-secrets/external-secrets/releases/tag/v0.19.0
+withheld: []

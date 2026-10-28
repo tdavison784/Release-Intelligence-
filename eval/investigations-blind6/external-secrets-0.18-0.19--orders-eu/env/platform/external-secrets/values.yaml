@@ -1,0 +1,16 @@
+installCRDs: true
+replicaCount: 2
+leaderElect: true
+serviceAccount:
+  create: true
+  name: external-secrets
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::210987654321:role/orders-eu-external-secrets
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+webhook:
+  replicaCount: 2
+certController:
+  replicaCount: 1

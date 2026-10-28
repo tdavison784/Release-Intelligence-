@@ -50,12 +50,18 @@
         <div class="method">
           <p><b>{{.Method}}</b> <span class="badge soft" title="{{.LevelLabel}}">{{.Level}}</span> <span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> — {{.Detail}}</p>
           {{if .Arms}}<table class="wf arms"><thead><tr><th>Arm</th><th>Built as</th><th>Predicted</th><th>Observed</th><th>Exercise answered (FROM / TO)</th><th>Differences at TO</th></tr></thead><tbody>
-          {{range .Arms}}<tr><th scope="row">{{.Name}}</th><td>{{.Condition}}</td><td>{{.Predicted}}</td><td>{{.Observed}}</td><td>{{.ReactedFrom}} / {{.ReactedTo}}</td><td>{{range .Signatures}}<code>{{.}}</code> {{else}}none{{end}}</td></tr>{{end}}
+          {{range .Arms}}<tr><th scope="row">{{.Name}}</th><td>{{.Condition}}</td><td>{{.Predicted}}</td><td>{{.Observed}}</td><td>{{.ReactedFrom}} / {{.ReactedTo}}</td><td>{{range .Signatures}}<code>{{.}}</code> {{else}}none{{end}}{{if .Diagnostics}}<div class="small muted">diagnostics, never decisive: {{range .Diagnostics}}<code>{{.}}</code> {{end}}</div>{{end}}</td></tr>{{end}}
           </tbody></table>{{end}}
           {{if .Checks}}<ul class="small">{{range .Checks}}<li><span class="badge outcome-{{.Outcome}}">{{.Outcome}}</span> {{.Detail}}</li>{{end}}</ul>{{end}}
           {{if .Evidence}}<p class="small">Evidence: {{range .Evidence}}{{if .Href}}<a href="{{.Href}}" target="_blank" rel="noopener noreferrer">{{.Text}}</a>{{else}}<code>{{.Text}}</code>{{end}} <span class="muted">{{.Digest}}</span>; {{end}}</p>{{end}}
         </div>
         {{end}}
+        {{if .ObservedDefaults}}<div class="flash flash-warn"><p><b>Observed defaults</b> <span class="badge soft">observed</span> — promoting this rule carries them into the fact; the evaluator uses them only through this confirmed proof.</p><ul class="small">
+        {{range .ObservedDefaults}}<li>An unset <code>{{.Path}}</code> on {{.Kind}} behaves as <code>{{.Value}}</code> at controller {{range .Versions}}{{.}} {{end}}(fixture values <code>{{.ControllerValues}}</code>). <b>Limitation: {{.Limitation}}.</b> {{.Observation}}</li>{{end}}
+        </ul></div>{{end}}
+        {{if .RoleMemberships}}<div class="flash flash-warn"><p><b>Role-membership defaults</b> <span class="badge soft">observed</span> — promoting this rule carries them into the fact; the evaluator uses each only to decide membership in its role, for this rule, through this confirmed proof. They are not defaults of the field.</p><ul class="small">
+        {{range .RoleMemberships}}<li><code>{{.Path}}</code> unset on {{.Kind}} ⇒ outside role <b>{{.Role}}</b> (in the role: <code>{{.RoleValue}}</code>; outside: <code>{{.OutsideValue}}</code>) at controller {{range .Versions}}{{.}} {{end}}(fixture values <code>{{.ControllerValues}}</code>). <b>Limitation: {{.Limitation}}.</b> {{.Observation}}</li>{{end}}
+        </ul></div>{{end}}
         <details><summary>Limitations — what this proof does not cover</summary><ul class="small">{{range .Limitations}}<li>{{.}}</li>{{end}}</ul></details>
       </div>
       {{end}}
@@ -258,13 +264,13 @@
           <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
             <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
         </div>
-        {{with .Hypothesis}}{{if .Related}}
-        <fieldset class="relations"><legend>Other active facts on this subject — the promoted rule never silently coexists with them</legend>
-          {{range .Related}}<div class="row"><span><code>{{.ID}}</code> <span class="badge soft">{{.Level}}</span> {{.Statement}}</span>
+        {{if .Relations}}
+        <fieldset class="relations"><legend>Other active facts on this subject — {{if .Hypothesis}}the promoted rule{{else}}the fact this decision records{{end}} never silently coexists with them (keeping one needs the same change, exposure and consequence)</legend>
+          {{range .Relations}}<div class="row"><span><code>{{.ID}}</code> <span class="badge soft">{{.Level}}</span> {{.Statement}}</span>
             <label class="check"><input type="radio" name="relation-{{.ID}}" value="supersedes" {{if eq .Choice "supersedes"}}checked{{end}}> supersede it (the rule refines it)</label>
             <label class="check"><input type="radio" name="relation-{{.ID}}" value="coexists" {{if eq .Choice "coexists"}}checked{{end}}> keep it beside the rule</label></div>{{end}}
         </fieldset>
-        {{end}}{{end}}
+        {{end}}
         <details class="more"><summary>Labels &amp; duplicate</summary>
           <div class="labelbox">
             {{range $.Enums.WrongLabels}}<label class="check"><input type="checkbox" name="label" value="{{.}}" {{if formHas $.Form "label" (printf "%s" .)}}checked{{end}}> {{.}}</label>{{end}}

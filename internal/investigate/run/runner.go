@@ -23,6 +23,10 @@ type Runner struct {
 	// Definition returns the digest of a product's definition (ChangeKey).
 	Definition func(product string) string
 	Review     ReviewSource
+	// Synthesize runs the upgrade-level synthesis after classify, before the
+	// review (Pipeline.Synthesize). A synthesis without a judgement is logged
+	// and the run continues to the review.
+	Synthesize bool
 	// ReviewTimeout bounds each wait for a decision (0 = none in-process).
 	ReviewTimeout time.Duration
 	// Sleep waits between retries (default time.Sleep; tests pass a no-op).
@@ -93,6 +97,19 @@ func (r *Runner) Run(ctx context.Context, req investigate.Request) (*Result, err
 			res.Investigation, res.Bundle, res.RecordDigest, res.Rounds = refs.Investigation, refs.Bundle, out.Digest, round
 		}
 		res.Decision, res.Review = last.Outcome, last.Review
+		if r.Synthesize {
+			out, err := r.P.Synthesize(ctx, SynthesizeInput{Investigation: res.Investigation, Round: round})
+			switch {
+			case err != nil && ctx.Err() != nil:
+				r.finalize(res.Investigation, domain.StageHumanReview, "cancelled", domain.InvestigationCancelled, "run cancelled")
+				return res, fmt.Errorf("%s: %w", domain.StageSynthesize, err)
+			case err != nil:
+				r.logf("%s: no judgement: %v", domain.StageSynthesize, err)
+			default:
+				r.logf("%s: %s", domain.StageSynthesize, out.Detail)
+				res.RecordDigest = out.Digest
+			}
+		}
 		if last.Review == domain.ReviewNotRequired {
 			res.Outcome = OutcomeAutoCompleted
 			return res, nil

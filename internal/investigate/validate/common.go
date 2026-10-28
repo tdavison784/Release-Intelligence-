@@ -20,7 +20,7 @@ const (
 	NameJoin               = "validate.join@v1"
 	NameRenderDiff         = "validate.render-diff@v2"
 	NameOverrideInspection = "validate.override-inspection@v3"
-	NameSchemaCompat       = "validate.schema-compat@v2"
+	NameSchemaCompat       = "validate.schema-compat@v3" // v3 (join5): the objects as deployed
 	NameStaticReference    = "validate.static-reference@v1"
 )
 

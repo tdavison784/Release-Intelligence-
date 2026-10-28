@@ -82,7 +82,7 @@ the trust ladder (docs/ACTION_CLASSIFICATION.md). A `block` rule may raise atten
 | invariant | floor | applies to |
 |---|---|---|
 | `action-required-finding` | review | any ACTION REQUIRED finding |
-| `security-advisory-affects-target` | review | a change produced by `advisory:affects-target` (the target version is itself affected by an advisory), and any finding joined to it. A security *fix* shipped with the target (`impact:security-fix`, informational) is not an advisory against it |
+| `security-advisory-affects-target` | review | a change produced by `advisory:affects-target` (the target version is itself affected by an advisory) or `advisory:regression` (the target is affected and the current version is not), and any finding joined to it. A security *fix* shipped with the target (`impact:security-fix`, informational) is not an advisory against it |
 | `render-not-complete` | review | no render, a failed render, a target that rejects the values, a not-applicable target, or customer values that are not complete: absence of change is only evidence from a complete render |
 | `unknown-on-non-routine-change` | review | an UNKNOWN finding on a non-routine change or on no change at all |
 | `breaking-or-directive-change` | review | a breaking or action-required upstream change decided on its own (stricter than the brief's minimum) |

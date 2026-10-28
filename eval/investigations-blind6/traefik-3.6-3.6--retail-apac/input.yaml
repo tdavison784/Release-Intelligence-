@@ -1,0 +1,36 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: traefik-3.6-3.6--retail-apac
+pair: traefik-3.6-3.6--shared-middlewares
+product: traefik
+chart:
+  repo: https://traefik.github.io/charts
+  name: traefik
+from:
+  version: v3.6.10
+  chartVersion: 39.0.5
+to:
+  version: v3.6.15
+  chartVersion: 39.0.9
+environment:
+  id: retail-prod-apac
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster of the retail platform, reconciled by Flux from this repository
+    (clusters/prod). Traefik Proxy is the cluster's only edge router; it is installed from the
+    upstream Helm chart by the HelmRelease in infrastructure/traefik, with its values inline. The
+    platform team publishes shared edge middlewares in the traefik namespace
+    (infrastructure/edge-middlewares); each application team attaches them to its routes from its
+    own namespace (apps/storefront, apps/backoffice). The proposed change bumps the HelmRelease
+    chart version and nothing else. The repository is the complete declaration of what runs in the
+    cluster; nothing is applied by hand.
+  complete: true
+scope:
+  - id: B1
+    title: The Chain middleware honours the Kubernetes CRD provider's allowCrossNamespace option (cross-namespace middlewares in a Chain are rejected when it is false, the default)
+    subject: providers.kubernetesCRD.allowCrossNamespace
+    source: https://github.com/traefik/traefik/blob/v3.6.15/docs/content/migrate/v3.md#L21-L29
+withheld: []

@@ -358,9 +358,11 @@ func matchUpstream(m Match, c *domain.Change, sec bool) bool {
 }
 
 // isAdvisoryAffecting reports a computed advisory change saying the TARGET
-// version is itself affected by an advisory.
+// version is itself affected by an advisory: a persisting exposure
+// (affects-target) or one the upgrade introduces (regression), which is
+// treated at least as strictly.
 func isAdvisoryAffecting(c *domain.Change) bool {
-	return c.Provenance.Rule == upgrade.RuleAdvisoryAffected
+	return c.Provenance.Rule == upgrade.RuleAdvisoryAffected || c.Provenance.Rule == upgrade.RuleAdvisoryRegression
 }
 
 // --- findings ----------------------------------------------------------------------

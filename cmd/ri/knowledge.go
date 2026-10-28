@@ -126,6 +126,8 @@ func (c *cli) knowledgeDecide(args []string) error {
 	labels := fs.String("labels", "", "comma-separated feedback labels (default follows the action; correct needs wrong-* labels)")
 	correctedFile := fs.String("corrected", "", "JSON file with the corrected SemanticAssertion (action correct)")
 	duplicateOf := fs.String("duplicate-of", "", "fact id this item restates (action reject, label duplicate)")
+	supersedes := fs.String("supersedes", "", "comma-separated active fact ids of the same subject the decided fact replaces (accept, correct)")
+	coexists := fs.String("coexists", "", "comma-separated active fact ids of the same subject kept beside it (accept, correct, duplicate; only compatible facts)")
 	started := fs.String("started-at", "", "RFC3339 time the reviewer started (default: now)")
 	pProvider := fs.String("proxy-provider", "anthropic", "proxy: provider that served the model (\"anthropic\", \"zai\", …)")
 	pModel := fs.String("proxy-model", "", "proxy: model that acted as reviewer")
@@ -174,6 +176,7 @@ func (c *cli) knowledgeDecide(args []string) error {
 		ReviewItemID: rec.ReviewItem.ID, Action: domain.DecisionAction(*action), Original: &orig,
 		Reviewer: *reviewer, ReviewerKind: domain.ReviewerKind(*kind), Reason: *reason,
 		StartedAt: start, DecidedAt: now, DuplicateOf: *duplicateOf,
+		Supersedes: splitList(*supersedes), Coexists: splitList(*coexists),
 	}
 	switch d.Action {
 	case domain.ActionNeedMoreEvidence, domain.ActionDefer:
@@ -228,6 +231,14 @@ func (c *cli) knowledgeDecide(args []string) error {
 	fmt.Fprintf(c.out, "decision %s (%s, %s)\n", o.Decision.ID, o.Decision.Action, o.Decision.ReviewerKind)
 	if o.Fact != nil {
 		fmt.Fprintf(c.out, "fact %s at level %s\n", o.Fact.ID, o.Fact.Level())
+		for _, od := range o.Fact.ObservedDefaults {
+			fmt.Fprintf(c.out, "  observed default (PD-5): an unset %s on %s behaves as %s, by confirmed proof %s at controller %s — limitation: %s\n",
+				od.Path, od.Kind, od.Value, od.Proof, strings.Join(od.Versions, ", "), od.Limitation)
+		}
+		for _, md := range o.Fact.RoleMembershipDefaults {
+			fmt.Fprintf(c.out, "  role-membership default (PD-6): %s on %s, by confirmed proof %s at controller %s; used only for membership in role %s — limitation: %s\n",
+				md.Statement(), md.Kind, md.Proof, strings.Join(md.Versions, ", "), md.Role, md.Limitation)
+		}
 	}
 	if o.Conflict != "" {
 		fmt.Fprintf(c.out, "conflict (decision recorded, no fact): %s\n", o.Conflict)

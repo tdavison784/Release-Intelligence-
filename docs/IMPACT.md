@@ -62,6 +62,18 @@ the level; facts whose verification their own records do not prove are refused
 with a warning, never evaluated. Without `--knowledge` the report is
 byte-identical to the knowledge-free join.
 
+**Contradicting facts** (lane backdoor, D-0029). Two active facts of one
+product, release and subject must state the same change (a before/after one
+leaves unstated is no disagreement), the same exposure condition and the same
+consequence kind; severity, prose and the overlap may differ
+(`domain.FactIncompatibility`). A pair that does not is a loader warning
+(`knowledge contradiction: active facts A and B …`), and in the join neither
+clears: a contradicted fact keeps only its affected (action/review-required)
+findings, and gets an unknown `impact:knowledge-contradiction` gap
+(`release-knowledge-gap`) on each change it attaches to, naming the other fact
+and why, recorded beside any other verdict of the change. A human resolves it
+by superseding or retracting one.
+
 How a fact's applicability condition is evaluated — three-valued, each leaf
 bound to the environment model (`field`/`text-line`/`ref` to the resource
 facts, `values-key`, `gvk-in-use`, `image-in-use`, `cli-flag`/`env-var`/
@@ -73,6 +85,101 @@ keeps: a leaf is false only against a supplied, healthy dimension; a withheld
 value decides nothing (a credential-named ConfigMap key's text lines are
 treated as withheld even when line-level redaction let them through);
 `not(false)` is true only when the operand examined at least one record.
+
+**Unset is not a value (Phase 6 M4, `internal/applicability`).** A value
+predicate (`equals`, `not-equals`, `matches`, `has-token`, `has-token-key`) on
+a field, flag, environment variable or values key the subject leaves unset is
+decided by the field's **established default** only, by the same rule the pin
+scope uses (below and INVESTIGATE.md):
+
+- the CRD schema `default` of the environment's CRDs (`--crds`, manifests,
+  rendered CRDs): every CRD serving the kind and version must describe the path
+  and agree, and the parent object must be present (the API server defaults a
+  field only inside a present parent); or
+- the rule's own **condition default**, `{"default": {"value": "false",
+  "source": "controller" | "crd-schema", "citations": ["ev-…"]}}` on the leaf,
+  used only when every citation resolves to the fact's **upstream** evidence
+  with a quoted excerpt (never environment evidence). A fact whose default
+  does not resolve does not validate.
+
+- an **observed default** (PD-5, lane verify3): a default the verifier's
+  default probes observed on the real controller, recorded on a confirmed proof
+  and carried into the fact on human promotion (`observedDefaults` on the fact:
+  field, value, controller versions, fixture values, the proof id and the
+  limitation "observed on the fixture's controller configuration"). It is used
+  only through a **confirmed proof of exactly the fact's rule digest** that
+  records the same default: `VerifiedFact.UsableObservedDefaults` checks the
+  reference and the digest, and the knowledge load (`impact.VerifyFacts`)
+  checks the proof records; a default that is merely proposed, names an
+  inconclusive or refuted proof, another rule, or a default the proof does not
+  record is **ignored** (reported among the load's rejections; the fact stays,
+  the field stays unknown). The decided leaf names the proof and the
+  limitation. An observed default that contradicts the schema default or the
+  rule's cited default — or another observed default of the same field — blocks
+  both: the leaf is unknown with the contradiction, never silently resolved.
+  A schema default and a cited default that already contradict each other are
+  never settled by an observed default either (lane verify4).
+  The pin scope (INVESTIGATE.md) applies the same rule.
+- a **role-membership default** (PD-6, lane verify4): "F unset ⇒ outside role
+  R (observed)", recorded on a confirmed scope-refinement proof when the role's
+  relationship could not form for an object that leaves F unset
+  (INVESTIGATE.md), carried into the fact on human promotion
+  (`roleMembershipDefaults`). It is **not a default of F**: it decides only a
+  **membership leaf** of role R — a field leaf on F with state `equals` and a
+  single value that is R's value (then false) or the outside value (then true)
+  — on an object that leaves F unset. Any other condition on F (another value,
+  `not-equals`, `matches`, several values) stays unknown. The same guards as an
+  observed default: only through a confirmed proof of exactly the fact's rule
+  digest that records it (`UsableRoleMembershipDefaults`, `VerifyFacts`), else
+  ignored; an established default (schema, cited, or observed) that puts an
+  unset F in the role (R's value) contradicts it and blocks both; one outside
+  the role agrees and decides the leaf by its value; a contradiction already
+  found stays; two membership defaults that disagree block. The decided leaf
+  says "F is unset, so the object is outside role R (…proof, limitation)". The
+  pin scope applies the same rule.
+
+Otherwise the leaf is **unknown** (`semantic-ambiguity`, with what would settle
+it) — never false. A schema default and a condition default that disagree are
+unknown. List elements that leave the field unset (`spec.ports[].protocol` on
+one port of two) hold the default too. Kleene `all`/`any`/`not` are monotone
+in the information order, so this only ever turns a decided result into
+unknown unless a default is established; a property test checks it against
+the previous semantics (`TestUnsetRuleNeverFailsOpen`).
+
+**Objects as deployed (Phase 6 M4, lane join5).** A fact's conditions, and the
+schema-attribute joins below (`impact:crd-default-*`, enum, required, type), are
+evaluated over the **effective object view** (`env.Effective`, built by `ri
+impact`/`ri investigate`; `impact.Input.Objects`), the same view the
+investigation validators use — never over a file a render consumed:
+
+- an environment file **no render consumed** is read as declared;
+- a file a render **consumed** (a kustomize base, an overlay patch, a
+  kustomization) is seen only through that render's objects: the target side of
+  a complete pair, or the render of a version-independent overlay. Every
+  rendered field cites the file and line that **produced** it: the consumed file
+  of the latest kustomize layer that states the field with the rendered value
+  (`render.KustomizeLayers`: an overlay's patch before its base), else the
+  rendered output itself (a transformer such as `namespace`/`namePrefix`, a
+  generator, a chart template). An unset field is read from the rendered object,
+  whose record names the files that declare and patch it;
+- a file consumed by a render whose objects are **not available** (the render
+  failed, or no render was requested: without `--render` the kustomize targets
+  are detected, not rendered) stays as its declaration marked **unrendered**: a
+  `resource` scope over it, a reference to it, its containers, are **unknown**
+  (`environment-visibility-gap`) — never the base file's view;
+- a render whose objects are unavailable and that consumed no file (a chart
+  render that failed or had incomplete values) is a **render gap**: no `false`
+  is concluded from the visible objects (a `true` stands, as under partial
+  health, but one resting on absence is never negated).
+
+Chart releases rendered with complete values contribute their objects too
+(the product's own workloads, so `cli-flag`/`env-var` leaves read the rendered
+container args). Before this, a kustomize base that leaves a field unset was
+judged exposed although its overlay sets it, and — the fail-open direction — a
+base that pins a value an overlay removes or overrides was judged pinned. The
+deterministic `crd:fields-removed` join still reads every document (patch
+documents included), which only ever over-reports a removed field; a JSON 6902
+patch that adds one is visible only in the render.
 Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
 `absence` (an examined record proving something is not stated) besides the
 join's own. A product missing from the inventory is "not installed" only when
@@ -365,6 +472,13 @@ Query API (all deterministic, load-ordered):
 | `TextBlocks(sel, pathPrefix)` + `TextBlock.Match(re)` | per resource, the text blocks under a path and the lines matching a regex (`Withheld` counts lines a "no line matches" predicate cannot see) |
 | `References(sel, path)` / `ResolveRef(from, ref)` | the references at a path, each with its resolution |
 
+**Effective object view** (`Effective(e, renders)`, lane join5): the same
+store with the resources replaced by the rendered objects of the environment's
+render targets (`Resource.Render`), files no render consumed as declared, and
+files consumed by an unavailable render kept as declarations marked
+`Resource.Unrendered`; `Environment.RenderGaps` names renders without objects
+that consumed no file. See "Objects as deployed" above.
+
 **Secrets.** Values are withheld (`Withheld: "sensitive"`, no `Value`, no value
 in the evidence excerpt) for `Secret` resources, for keys naming a credential
 (`password`, `token`, `apiKey`, `clientSecret`, `privateKey`, …) and for
@@ -609,6 +723,20 @@ environment pins the old tag or another tag; informational · low when it
 already references the target tag). Unreferenced repositories →
 `impact:image-not-referenced` · not-affected; no image-bearing input at all →
 unknown.
+
+### Security advisories (version-based)
+
+The report carries the edge's security section (`ImpactReport.Security`,
+docs/SECURITY_ADVISORIES.md): regressions, persisting and fixed advisories,
+candidate versions with chart versions, advisories whose patched list
+contradicts their own range (with the alternative each candidate would have,
+never chosen), and the gaps (an unread advisory source is a gap, never "no
+advisories"). It is decided by advisory ranges against the
+two versions, so it is the same for every environment on the upgrade; it adds
+no finding and changes no class. Advisory changes keep their `impact:not-joined`
+UNKNOWN finding (joined to the section by `changeId`), whose
+`neededToDetermine` says what stays open: whether the environment exercises the
+vulnerable component.
 
 ## Example (from the checked-in fixture)
 

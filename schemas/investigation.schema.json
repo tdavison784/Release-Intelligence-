@@ -71,6 +71,33 @@
       },
       "additionalProperties": false
     },
+    "AgentAssessment": {
+      "type": "object",
+      "required": ["id", "changeItem", "whatChanged", "mechanism", "likelyImpact", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "verdict": {"type": "string"},
+        "headline": {"type": "string"},
+        "scope": {"type": "string"},
+        "preconditions": {"type": "array", "items": {"type": "string"}},
+        "whatChanged": {"type": "string"},
+        "mechanism": {"type": "string"},
+        "consumers": {"type": "array", "items": {"type": "string"}},
+        "effectiveConfiguration": {"type": "array", "items": {"$ref": "#/$defs/AssessmentSetting"}},
+        "verified": {"type": "array", "items": {"$ref": "#/$defs/AssessmentFinding"}},
+        "inferred": {"type": "array", "items": {"type": "string"}},
+        "unknown": {"type": "array", "items": {"type": "string"}},
+        "likelyImpact": {"type": "string"},
+        "recommendedTests": {"type": "array", "items": {"type": "string"}},
+        "untracedConsumers": {"type": "array", "items": {"type": "string"}},
+        "unavailableEvidence": {"type": "array", "items": {"type": "string"}},
+        "behaviour": {"type": "array", "items": {"$ref": "#/$defs/AssessmentBehaviour"}},
+        "statementKind": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
     "AgentBudget": {
       "type": "object",
       "required": ["maxTurns", "maxToolCalls", "maxTokens", "maxReadBytes", "maxSeconds"],
@@ -223,6 +250,38 @@
       "additionalProperties": false
     },
     "AssertionStance": {"type": "string", "enum": ["raises-concern", "explains", "claims-mitigation"]},
+    "AssessmentBehaviour": {
+      "type": "object",
+      "required": ["behaviour", "source"],
+      "properties": {
+        "behaviour": {"type": "string"},
+        "source": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "quote": {"type": "string"},
+        "request": {"type": "string"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "AssessmentFinding": {
+      "type": "object",
+      "required": ["statement", "citations"],
+      "properties": {
+        "statement": {"type": "string"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "AssessmentSetting": {
+      "type": "object",
+      "required": ["setting", "state"],
+      "properties": {
+        "setting": {"type": "string"},
+        "state": {"type": "string"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "AuditEvent": {
       "type": "object",
       "required": ["seq", "at", "stage", "event", "actor"],
@@ -235,6 +294,28 @@
         "refs": {"type": "array", "items": {"type": "string"}},
         "detail": {"type": "string"},
         "prev": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Backout": {
+      "type": "object",
+      "required": ["version", "statement"],
+      "properties": {
+        "version": {"$ref": "#/$defs/Version"},
+        "location": {"type": "string"},
+        "statement": {"type": "string"},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "CandidateChart": {
+      "type": "object",
+      "required": ["artifact", "version", "evidence"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false
     },
@@ -253,6 +334,22 @@
         "requirement-changed",
         "migration-required"
       ]
+    },
+    "ChangeLocation": {
+      "type": "object",
+      "required": ["id", "kind", "file", "key", "source"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "file": {"type": "string"},
+        "line": {"type": "integer"},
+        "key": {"type": "string"},
+        "value": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "source": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "ChangeSpec": {
       "type": "object",
@@ -284,7 +381,8 @@
         "separator": {"type": "string"},
         "range": {"type": "string"},
         "reason": {"$ref": "#/$defs/UnknownReason"},
-        "needed": {"type": "string"}
+        "needed": {"type": "string"},
+        "default": {"$ref": "#/$defs/FieldDefault"}
       },
       "additionalProperties": false
     },
@@ -343,6 +441,20 @@
       "type": "string",
       "enum": ["raises-concern", "claims-mitigation", "explains", "examined-no-concern", "not-examined"]
     },
+    "CrossChange": {
+      "type": "object",
+      "required": ["id", "kind", "shared", "items", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "shared": {"type": "string"},
+        "items": {"type": "array", "items": {"type": "string"}},
+        "statement": {"type": "string"},
+        "comment": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "DefaultSource": {"type": "string", "enum": ["crd-schema", "controller"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -360,6 +472,23 @@
         ]
       }
     },
+    "EdgeFile": {
+      "type": "object",
+      "required": ["configKey", "path", "workload", "container", "via"],
+      "properties": {
+        "configKey": {"type": "string"},
+        "path": {"type": "string"},
+        "workload": {"type": "string"},
+        "container": {"type": "string"},
+        "via": {"type": "string"},
+        "volume": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "key": {"type": "string"},
+        "dataFrom": {"type": "string"},
+        "field": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "EdgeKind": {
       "type": "string",
       "enum": [
@@ -372,8 +501,30 @@
         "serves-api",
         "consumes-api",
         "produces",
-        "depends-on"
+        "depends-on",
+        "reads-file"
       ]
+    },
+    "EdgeLine": {
+      "type": "object",
+      "required": ["artifact", "line"],
+      "properties": {
+        "artifact": {"type": "string"},
+        "line": {"type": "integer"},
+        "text": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "EdgeMount": {
+      "type": "object",
+      "required": ["volume", "source"],
+      "properties": {
+        "volume": {"type": "string"},
+        "source": {"type": "integer"},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/KeyToPath"}},
+        "mounts": {"type": "array", "items": {"$ref": "#/$defs/VolumeMount"}}
+      },
+      "additionalProperties": false
     },
     "EdgeStatus": {"type": "string", "enum": ["established", "inferred", "missing"]},
     "Evidence": {
@@ -458,11 +609,22 @@
         "status": {"$ref": "#/$defs/RequestStatus"},
         "resolution": {"type": "string"},
         "fulfilled": {"type": "array", "items": {"type": "string"}},
+        "upstream": {"$ref": "#/$defs/UpstreamQuery"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
     },
-    "EvidenceRequestKind": {"type": "string", "enum": ["artifact", "source", "environment-input", "live-observation"]},
+    "EvidenceRequestKind": {
+      "type": "string",
+      "enum": [
+        "artifact",
+        "source",
+        "environment-input",
+        "live-observation",
+        "upstream-file",
+        "upstream-search"
+      ]
+    },
     "ExposureRoot": {
       "type": "object",
       "required": ["changeItem", "node", "rule"],
@@ -473,6 +635,16 @@
         "renderedChange": {"type": "string"},
         "impactFinding": {"type": "string"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "FieldDefault": {
+      "type": "object",
+      "required": ["value", "source", "citations"],
+      "properties": {
+        "value": {"type": "string"},
+        "source": {"$ref": "#/$defs/DefaultSource"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false
     },
@@ -521,7 +693,10 @@
         "mitigates": {"type": "array", "items": {"type": "string"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
         "artifacts": {"type": "array", "items": {"type": "string"}},
-        "assertion": {"type": "string"}
+        "assertion": {"type": "string"},
+        "mount": {"$ref": "#/$defs/EdgeMount"},
+        "file": {"$ref": "#/$defs/EdgeFile"},
+        "line": {"$ref": "#/$defs/EdgeLine"}
       },
       "additionalProperties": false
     },
@@ -555,6 +730,7 @@
         "statementKind": {"type": "string"},
         "mitigation": {"$ref": "#/$defs/MitigationSpec"},
         "mitigationRejected": {"type": "string"},
+        "proposedVerification": {"$ref": "#/$defs/ProposedVerification"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
       },
       "additionalProperties": false
@@ -623,11 +799,13 @@
         "agentNotes": {"type": "array", "items": {"$ref": "#/$defs/AgentNote"}},
         "agentClaims": {"type": "array", "items": {"$ref": "#/$defs/SettingClaim"}},
         "agentVerdicts": {"type": "array", "items": {"$ref": "#/$defs/AgentVerdict"}},
+        "agentAssessments": {"type": "array", "items": {"$ref": "#/$defs/AgentAssessment"}},
         "evidenceRequests": {"type": "array", "items": {"$ref": "#/$defs/EvidenceRequest"}},
         "validationRequests": {"type": "array", "items": {"$ref": "#/$defs/ValidationRequest"}},
         "validations": {"type": "array", "items": {"$ref": "#/$defs/ValidationRecord"}},
         "findings": {"type": "array", "items": {"$ref": "#/$defs/InvestigationFinding"}},
         "decision": {"$ref": "#/$defs/PolicyDecision"},
+        "judgement": {"$ref": "#/$defs/UpgradeJudgement"},
         "review": {"$ref": "#/$defs/HumanReview"},
         "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
@@ -685,6 +863,108 @@
       "type": "string",
       "enum": ["running", "awaiting-review", "completed", "failed", "cancelled"]
     },
+    "JudgementChange": {
+      "type": "object",
+      "required": ["order", "kind", "summary"],
+      "properties": {
+        "order": {"type": "integer"},
+        "kind": {"$ref": "#/$defs/StepKind"},
+        "summary": {"type": "string"},
+        "changeItems": {"type": "array", "items": {"type": "string"}},
+        "location": {"type": "string"},
+        "proposed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFailure": {
+      "type": "object",
+      "required": ["attempts", "violations", "answers"],
+      "properties": {
+        "attempts": {"type": "integer"},
+        "violations": {"type": "array", "items": {"type": "string"}},
+        "answers": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFinding": {
+      "type": "object",
+      "required": ["id", "kind", "hard", "subject", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"$ref": "#/$defs/JudgementFindingKind"},
+        "hard": {"type": "boolean"},
+        "changeItem": {"type": "string"},
+        "subject": {"type": "string"},
+        "statement": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "refs": {"type": "array", "items": {"type": "string"}},
+        "comment": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementFindingKind": {
+      "type": "string",
+      "enum": [
+        "security-regression",
+        "confirmed-breakage",
+        "failed-validation",
+        "candidate-still-affected",
+        "agent-disagreement",
+        "untraced-consumer",
+        "behaviour-unestablished",
+        "advisory-inconsistency",
+        "security-incomplete",
+        "behaviour-unsupported-by-citation"
+      ]
+    },
+    "JudgementStatus": {"type": "string", "enum": ["complete", "failed"]},
+    "JudgementSummary": {
+      "type": "object",
+      "properties": {
+        "verified": {"type": "array", "items": {"$ref": "#/$defs/AssessmentFinding"}},
+        "inferred": {"type": "array", "items": {"type": "string"}},
+        "unknown": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "JudgementTarget": {
+      "type": "object",
+      "required": ["current", "proposed", "rule"],
+      "properties": {
+        "current": {"$ref": "#/$defs/Version"},
+        "proposed": {"$ref": "#/$defs/Version"},
+        "minimum": {"$ref": "#/$defs/Version"},
+        "recommended": {"$ref": "#/$defs/Version"},
+        "rule": {"type": "string"},
+        "options": {"type": "array", "items": {"$ref": "#/$defs/TargetOption"}},
+        "chosen": {"$ref": "#/$defs/Version"},
+        "changed": {"type": "boolean"},
+        "transitionInvestigated": {"type": "boolean"},
+        "securityStatus": {"$ref": "#/$defs/SecurityStatus"}
+      },
+      "additionalProperties": false
+    },
+    "JudgementTest": {
+      "type": "object",
+      "required": ["id", "test", "expected", "basis"],
+      "properties": {
+        "id": {"type": "string"},
+        "test": {"type": "string"},
+        "expected": {"type": "string"},
+        "basis": {"type": "array", "items": {"type": "string"}},
+        "changeItems": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "KeyToPath": {
+      "type": "object",
+      "required": ["key", "path"],
+      "properties": {
+        "key": {"type": "string"},
+        "path": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "Manifestation": {"type": "string", "enum": ["rendered-config", "controller-behaviour", "unknown"]},
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
     "MitigationSpec": {
@@ -711,7 +991,8 @@
         "path": {"type": "string"},
         "value": {"type": "string"},
         "renderedObject": {"type": "string"},
-        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1}
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}, "minItems": 1},
+        "crd": {"type": "string"}
       },
       "additionalProperties": false
     },
@@ -728,12 +1009,34 @@
     },
     "PolicyOutcome": {"type": "string", "enum": ["auto-approve-eligible", "human-review-required"]},
     "ProductID": {"type": "string"},
+    "ProductRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/ProductID"},
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "ProposedRule": {
       "type": "object",
       "required": ["assertion", "release"],
       "properties": {
         "assertion": {"$ref": "#/$defs/SemanticAssertion"},
         "release": {"$ref": "#/$defs/ReleaseBounds"}
+      },
+      "additionalProperties": false
+    },
+    "ProposedVerification": {
+      "type": "object",
+      "required": ["assessment", "method"],
+      "properties": {
+        "assessment": {"type": "string"},
+        "method": {"type": "string"},
+        "conditions": {"type": "array", "items": {"type": "string"}},
+        "uncertainties": {"type": "array", "items": {"type": "string"}},
+        "rule": {"$ref": "#/$defs/ProposedRule"},
+        "refinement": {"$ref": "#/$defs/ScopeRefinement"}
       },
       "additionalProperties": false
     },
@@ -789,6 +1092,16 @@
         "provider": {"type": "string"}
       },
       "additionalProperties": false
+    },
+    "Recommendation": {
+      "type": "string",
+      "enum": [
+        "proceed",
+        "proceed-with-changes",
+        "modify-target",
+        "validation-required",
+        "do-not-proceed"
+      ]
     },
     "ReleaseBounds": {
       "type": "object",
@@ -852,11 +1165,47 @@
       ]
     },
     "RequestStatus": {"type": "string", "enum": ["open", "fulfilled", "unavailable", "rejected"]},
+    "ResidualRisk": {
+      "type": "object",
+      "required": ["id", "source", "statement"],
+      "properties": {
+        "id": {"type": "string"},
+        "source": {"type": "string"},
+        "changeItem": {"type": "string"},
+        "statement": {"type": "string"},
+        "refs": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "ReviewState": {
       "type": "string",
       "enum": ["not-required", "pending", "approved", "rejected", "more-evidence-requested"]
     },
     "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "RoleField": {
+      "type": "object",
+      "required": ["path", "value"],
+      "properties": {
+        "path": {"type": "string"},
+        "value": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ScopeRefinement": {
+      "type": "object",
+      "required": ["refines", "baseRule", "consumer", "role", "outside", "trustKey", "trace"],
+      "properties": {
+        "refines": {"type": "string"},
+        "baseRule": {"type": "string"},
+        "consumer": {"type": "string"},
+        "role": {"type": "array", "items": {"$ref": "#/$defs/RoleField"}},
+        "outside": {"type": "array", "items": {"$ref": "#/$defs/RoleField"}},
+        "trustKey": {"type": "string"},
+        "trace": {"type": "array", "items": {"$ref": "#/$defs/TraceRead"}}
+      },
+      "additionalProperties": false
+    },
+    "SecurityStatus": {"type": "string", "enum": ["complete", "incomplete", "unavailable"]},
     "SemanticAssertion": {
       "type": "object",
       "properties": {
@@ -897,8 +1246,13 @@
         "investigate",
         "validate",
         "classify",
+        "synthesize",
         "human-review"
       ]
+    },
+    "StepKind": {
+      "type": "string",
+      "enum": ["pin-behaviour", "version-bump", "validate", "adopt-new-default", "other"]
     },
     "Subject": {
       "type": "object",
@@ -934,6 +1288,40 @@
         "product-relationship",
         "migration"
       ]
+    },
+    "TargetOption": {
+      "type": "object",
+      "required": ["role", "version", "safe", "statement"],
+      "properties": {
+        "role": {"type": "string"},
+        "version": {"$ref": "#/$defs/Version"},
+        "line": {"type": "string"},
+        "safe": {"type": "boolean"},
+        "introduces": {"type": "array", "items": {"type": "string"}},
+        "leaves": {"type": "array", "items": {"type": "string"}},
+        "unassessed": {"type": "array", "items": {"type": "string"}},
+        "charts": {"type": "array", "items": {"$ref": "#/$defs/CandidateChart"}},
+        "statement": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "TraceRead": {
+      "type": "object",
+      "required": ["graph", "edge", "producer", "secret", "key", "workload"],
+      "properties": {
+        "graph": {"type": "string"},
+        "edge": {"type": "string"},
+        "producer": {"type": "string"},
+        "secret": {"type": "string"},
+        "key": {"type": "string"},
+        "workload": {"type": "string"},
+        "container": {"type": "string"},
+        "path": {"type": "string"},
+        "artifact": {"type": "string"},
+        "line": {"type": "integer"}
+      },
+      "additionalProperties": false
     },
     "TraversalBound": {
       "type": "object",
@@ -984,6 +1372,68 @@
         "evidence-gap",
         "semantic-ambiguity"
       ]
+    },
+    "UpgradeJudgement": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "id",
+        "investigation",
+        "status",
+        "product",
+        "from",
+        "to",
+        "environment",
+        "target",
+        "summary",
+        "backout",
+        "input",
+        "statementKind",
+        "provenance"
+      ],
+      "properties": {
+        "schemaVersion": {"type": "string"},
+        "id": {"type": "string"},
+        "investigation": {"type": "string"},
+        "status": {"$ref": "#/$defs/JudgementStatus"},
+        "product": {"$ref": "#/$defs/ProductRef"},
+        "from": {"$ref": "#/$defs/Version"},
+        "to": {"$ref": "#/$defs/Version"},
+        "environment": {"type": "string"},
+        "recommendation": {"$ref": "#/$defs/Recommendation"},
+        "headline": {"type": "string"},
+        "scope": {"type": "string"},
+        "preconditions": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "string"},
+        "target": {"$ref": "#/$defs/JudgementTarget"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/JudgementChange"}},
+        "locations": {"type": "array", "items": {"$ref": "#/$defs/ChangeLocation"}},
+        "validation": {"type": "array", "items": {"$ref": "#/$defs/JudgementTest"}},
+        "residualRisks": {"type": "array", "items": {"$ref": "#/$defs/ResidualRisk"}},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/JudgementFinding"}},
+        "interactions": {"type": "array", "items": {"$ref": "#/$defs/CrossChange"}},
+        "summary": {"$ref": "#/$defs/JudgementSummary"},
+        "backout": {"$ref": "#/$defs/Backout"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "input": {"type": "string"},
+        "failure": {"$ref": "#/$defs/JudgementFailure"},
+        "statementKind": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
+    "UpstreamQuery": {
+      "type": "object",
+      "required": ["repository", "ref"],
+      "properties": {
+        "repository": {"type": "string"},
+        "ref": {"type": "string"},
+        "path": {"type": "string"},
+        "dir": {"type": "string"},
+        "pattern": {"type": "string"},
+        "glob": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "ValidationKind": {
       "type": "string",
@@ -1045,6 +1495,32 @@
         "resolution": {"type": "string"},
         "result": {"type": "string"},
         "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "Version": {
+      "type": "object",
+      "description": "A release version of a product.",
+      "required": ["tag", "version"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Identifier exactly as published by the canonical release channel, e.g. \"v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
+        }
+      },
+      "additionalProperties": false
+    },
+    "VolumeMount": {
+      "type": "object",
+      "required": ["container", "mountPath"],
+      "properties": {
+        "container": {"type": "string"},
+        "mountPath": {"type": "string"},
+        "subPath": {"type": "string"}
       },
       "additionalProperties": false
     }

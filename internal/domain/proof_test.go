@@ -63,10 +63,69 @@ func TestProofValidateRejectsAnOutcomeTheMethodsDoNotSupport(t *testing.T) {
 	if err := p.Validate(); err == nil || !strings.Contains(err.Error(), "both arms") {
 		t.Fatalf("one-arm pass: %v", err)
 	}
+	// a non-discriminating condition-absent arm cannot carry a pass; an
+	// omitted-field arm predicted to change can (lane verify2)
+	p = testProof(MethodPass, MethodPass)
+	p.Methods[1].Arms[1].NonDiscriminating = "it sets the field explicitly to the new default"
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err == nil || !strings.Contains(err.Error(), "discriminating arm") {
+		t.Fatalf("pass on a non-discriminating arm: %v", err)
+	}
+	p.Methods[1].Arms = append(p.Methods[1].Arms, ProofArm{Name: ArmConditionAbsent + "-omitted-1", Predicted: BehaviourNew, ReactedFrom: true, ReactedTo: true, Changed: true})
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err != nil {
+		t.Fatalf("pass on the omitted-field arm: %v", err)
+	}
+	p.Methods[1].Arms[2].Predicted = BehaviourPrevious
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err == nil {
+		t.Fatal("an omitted-field arm predicted to keep its behaviour cannot carry a pass")
+	}
 	p = testProof(MethodPass, MethodNotRun)
 	p.Level = LevelObserved
 	p.ID = ProofRecordID(p)
 	if err := p.Validate(); err == nil || !strings.Contains(err.Error(), "level") {
 		t.Fatalf("observed without an exercise: %v", err)
+	}
+}
+
+// Observed defaults (PD-5, lane verify3) are recorded only on a confirmed
+// proof, are the proof's own, name its exercise's arms, and are part of its
+// id; earlier proofs (none recorded) keep their ids.
+func TestProofObservedDefaults(t *testing.T) {
+	p := testProof(MethodPass, MethodPass)
+	before := ProofRecordID(p)
+	od := ObservedDefault{Group: "acme.example", Kind: "Badge", Path: "spec.signer", Value: "false", Level: LevelObserved,
+		Arms: []string{ArmConditionPresent, ArmConditionAbsent, ArmConditionAbsent}, Observation: "o", Versions: []string{"1.0.0", "2.0.0"},
+		ControllerValues: "{}", Fixture: "sha256:fx", Evidence: p.Methods[1].Evidence, Limitation: ObservedDefaultLimitation, RuleDigest: p.ProposedRuleDigest}
+	p.ObservedDefaults = []ObservedDefault{od}
+	if ProofRecordID(p) == before {
+		t.Fatal("the observed defaults are not part of the proof's id")
+	}
+	p.ID = ProofRecordID(p)
+	if err := p.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	for name, mutate := range map[string]func(*ProofRecord){
+		"on an inconclusive proof": func(p *ProofRecord) {
+			p.Methods[1].Outcome = MethodInconclusive
+			p.Outcome = ProofOutcomeOf(p.Methods)
+		},
+		"another rule":        func(p *ProofRecord) { p.ObservedDefaults[0].RuleDigest = "sha256:other" },
+		"a proof reference":   func(p *ProofRecord) { p.ObservedDefaults[0].Proof = "pf-0123456789ab" },
+		"an unknown arm":      func(p *ProofRecord) { p.ObservedDefaults[0].Arms = []string{"x", "y", "z"} },
+		"without limitation":  func(p *ProofRecord) { p.ObservedDefaults[0].Limitation = "" },
+		"not observed":        func(p *ProofRecord) { p.ObservedDefaults[0].Level = LevelDeterministic },
+		"without evidence":    func(p *ProofRecord) { p.ObservedDefaults[0].Evidence = nil },
+		"without the version": func(p *ProofRecord) { p.ObservedDefaults[0].Versions = nil },
+	} {
+		q := p
+		q.Methods = append([]ProofMethod(nil), p.Methods...)
+		q.ObservedDefaults = []ObservedDefault{od}
+		mutate(&q)
+		q.ID = ProofRecordID(q)
+		if err := q.Validate(); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
 	}
 }

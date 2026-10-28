@@ -221,7 +221,7 @@ func (a *App) Upgrade(ctx context.Context, productID, from, to string, opts Upgr
 	}
 	extra := append([]domain.SourceStatus{}, vl.Sources...)
 	extra = append(extra, advStatus...)
-	edge, err := upgrade.Build(upgrade.Input{
+	in := upgrade.Input{
 		Definition:       def,
 		From:             fromRel,
 		To:               toRel,
@@ -230,8 +230,14 @@ func (a *App) Upgrade(ctx context.Context, productID, from, to string, opts Upgr
 		Advisories:       advs,
 		AdvisoryEvidence: advEv,
 		ExtraSources:     extra,
+		Versions:         vl.Versions,
 		Now:              a.now().UTC(),
-	})
+	}
+	in.Charts, err = a.candidateCharts(ctx, def, vl, upgrade.CandidateVersions(in))
+	if err != nil {
+		return nil, err
+	}
+	edge, err := upgrade.Build(in)
 	if err != nil {
 		return nil, err
 	}
@@ -239,6 +245,36 @@ func (a *App) Upgrade(ctx context.Context, productID, from, to string, opts Upgr
 		a.cfg.Logf("warning: could not store edge: %v", err)
 	}
 	return edge, nil
+}
+
+// candidateCharts looks up the chart versions shipping each security
+// candidate version. A chart version that only follows the definition's
+// template (no index entry establishes it) is stated as a gap, not cited.
+func (a *App) candidateCharts(ctx context.Context, def *catalog.ProductDefinition, vl *ingest.VersionList, vs []domain.Version) (map[string]upgrade.ChartLookup, error) {
+	if len(vs) == 0 {
+		return nil, nil
+	}
+	out := map[string]upgrade.ChartLookup{}
+	for _, v := range vs {
+		charts, gaps, err := a.Ingester.ChartVersions(ctx, def, v, vl)
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			gaps = append(gaps, fmt.Sprintf("chart lookup for %s: %v", v, err))
+		}
+		var l upgrade.ChartLookup
+		for _, c := range charts {
+			if len(c.Evidence) == 0 {
+				l.Gaps = append(l.Gaps, fmt.Sprintf("chart %s %s follows the definition's version template for %s (not established by a chart index)", c.Name, c.Version, v))
+				continue
+			}
+			l.Charts = append(l.Charts, upgrade.ChartVersion{Artifact: c.Artifact, Name: c.Name, Version: c.Version, Evidence: c.Evidence})
+		}
+		l.Gaps = append(l.Gaps, gaps...)
+		out[v.Semver] = l
+	}
+	return out, nil
 }
 
 // CheckRelationships validates the definition against historical releases:

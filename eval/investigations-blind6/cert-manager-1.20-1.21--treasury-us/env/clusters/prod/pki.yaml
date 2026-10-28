@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://git.example.com/treasury/gitops-treasury-us.git
+    targetRevision: main
+    path: platform/pki
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

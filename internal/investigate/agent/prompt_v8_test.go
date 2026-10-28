@@ -44,13 +44,18 @@ func promptSetDigest(t *testing.T, version string) string {
 // frozen byte for byte.
 func TestEarlierPromptVersionsAreFrozen(t *testing.T) {
 	want := map[string]string{
-		"investigate-agent/v1": "94ab8d1d90c9d8b5203ffb29ee98a03ff38632f17eebfa195341ace933154d57",
-		"investigate-agent/v2": "5fd7268490d08c866615771fea77962bc0b8a3eb2eed5d3a2fd9bd2b601b9e18",
-		"investigate-agent/v3": "2fc7522e1aa0b9a8bbc65ef529b2afce0dbce185ebdfc900e72e0c621018b40e",
-		"investigate-agent/v4": "cac2682aa6bbfbbd8a281846918520f2c9e45e3557a6572fbabcd470c38c4436",
-		"investigate-agent/v5": "85331d84ddadaa6588aeaf43f8810f1e38cabac9c4d2b37f7689f18ee829272c",
-		"investigate-agent/v6": "15cff2638ce18cccafc245b0557e47d953b15088aad0005744865045393772f8",
-		"investigate-agent/v7": "18e8cdba89cc7ff73dfd824b42361f8d296ce9644f1a3c889f140d8629e0db43",
+		"investigate-agent/v1":  "94ab8d1d90c9d8b5203ffb29ee98a03ff38632f17eebfa195341ace933154d57",
+		"investigate-agent/v2":  "5fd7268490d08c866615771fea77962bc0b8a3eb2eed5d3a2fd9bd2b601b9e18",
+		"investigate-agent/v3":  "2fc7522e1aa0b9a8bbc65ef529b2afce0dbce185ebdfc900e72e0c621018b40e",
+		"investigate-agent/v4":  "cac2682aa6bbfbbd8a281846918520f2c9e45e3557a6572fbabcd470c38c4436",
+		"investigate-agent/v5":  "85331d84ddadaa6588aeaf43f8810f1e38cabac9c4d2b37f7689f18ee829272c",
+		"investigate-agent/v6":  "15cff2638ce18cccafc245b0557e47d953b15088aad0005744865045393772f8",
+		"investigate-agent/v7":  "18e8cdba89cc7ff73dfd824b42361f8d296ce9644f1a3c889f140d8629e0db43",
+		"investigate-agent/v8":  "c9fdfd7584ae70a8db9c23b5c4a842e9ee124e883e3ad6855331f5f99a29a7ff",
+		"investigate-agent/v9":  "4f90310ac7670e0c106a670fd6f18e151f037954a3ce2a787db859a2dedfdf6d",
+		"investigate-agent/v10": "8d75d01dfc4809179bcff0fa8e770c5520b7154867bdd5c790c6e59f5aabc5ea",
+		"investigate-agent/v11": "2f4f3e5652c1a4e67aecf0f249873c2cf16c999083e6cac83634dca49d80b038",
+		"investigate-agent/v12": "8d8dd2046ae9f4f7fc0f12948bd04923a373937e39df393cd4773804252f48e8",
 	}
 	for v, d := range want {
 		if _, err := LoadPrompt(v); err != nil {
@@ -127,23 +132,23 @@ func TestPromptV8(t *testing.T) {
 	if v7.Digest("t") == v8.Digest("t") {
 		t.Error("v7 and v8 share a prompt digest")
 	}
-	if DefaultPromptVersion != promptV8 {
-		t.Fatalf("default %s, want %s", DefaultPromptVersion, promptV8)
-	}
-	if p, err := LoadPrompt(""); err != nil || p.Version != promptV8 {
-		t.Fatalf("LoadPrompt(\"\"): %v %v", p, err)
-	}
 }
 
 // The v8 text names no product, environment, case, kind or field of the
 // evaluation: the listed words (case-sensitive, so the English "never" is
 // not the enum value "Never"), and every token of the evaluation case
 // directory names in any case (names only, never their contents).
-func TestPromptV8IsGeneric(t *testing.T) {
+func TestPromptV8IsGeneric(t *testing.T) { assertGenericPrompt(t, promptV8) }
+
+// assertGenericPrompt fails when a prompt version names a listed word or a
+// token of an evaluation case directory name (plus extra words, any case).
+func assertGenericPrompt(t *testing.T, version string, extra ...string) {
+	t.Helper()
 	words := []string{"cert-manager", "ingress-nginx", "kube-prometheus-stack", "payments", "shop", "obs",
 		"Certificate", "rotationPolicy", "privateKey", "Issuer", "ClusterIssuer", "Ingress", "IngressClass",
 		"Prometheus", "Alertmanager", "ServiceMonitor", "PodMonitor", "PrometheusRule", "Never", "Always"}
 	anyCase := len(words)
+	words = append(words, extra...)
 	entries, err := os.ReadDir("../../../eval/investigations")
 	must(t, err)
 	cases := 0
@@ -163,7 +168,7 @@ func TestPromptV8IsGeneric(t *testing.T) {
 	}
 	files := map[string]string{}
 	for _, name := range []string{"system.md", "item.md", "task.md", "tools.json", "meta.json"} {
-		b, err := promptFS.ReadFile("prompts/" + promptV8 + "/" + name)
+		b, err := promptFS.ReadFile("prompts/" + version + "/" + name)
 		must(t, err)
 		files[name] = string(b)
 	}
@@ -175,7 +180,7 @@ func TestPromptV8IsGeneric(t *testing.T) {
 		re := regexp.MustCompile(flags + `(^|[^A-Za-z0-9])` + regexp.QuoteMeta(w) + `($|[^A-Za-z0-9])`)
 		for name, text := range files {
 			if loc := re.FindStringIndex(text); loc != nil {
-				t.Errorf("v8 %s names %q (%q): prompts are generic", name, w, text[loc[0]:loc[1]])
+				t.Errorf("%s %s names %q (%q): prompts are generic", version, name, w, text[loc[0]:loc[1]])
 			}
 		}
 	}

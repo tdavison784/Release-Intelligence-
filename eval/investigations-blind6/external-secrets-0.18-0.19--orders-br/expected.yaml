@@ -1,0 +1,59 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: external-secrets-0.18-0.19--orders-br
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [1, 3]             # PLAN-M6 §2: untuned product; incomplete configuration (the delivery of the add-on is withheld)
+items:
+  - item: B1
+    classification: insufficient-evidence
+    acceptable: [potentially-affected]
+    verification: observed-alternatives
+    observed:
+      - observed/run-csa.log#L142-L164                                    # default sync options: sync Failed, store CRDs stay 0.18.2
+      - observed/run-ssa.log#L198-L214                                    # ServerSideApply=true: sync Succeeded, store CRDs at 0.19.2
+      - ../external-secrets-0.18-0.19--orders-eu/observed/run.log#L201-L223  # sibling with a declared client-side Application
+    citations:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.19.0
+        quote: "Please note that this a breaking change because our CRDs are now too big. Meaning a simple kubectl apply or Argo's default client side apply WILL NOT WORK! You have to add `--server-side` to kubectl apply and in argo add: ... ServerSideApply=true"
+      - url: https://github.com/external-secrets/external-secrets/blob/helm-chart-0.19.2/docs/introduction/getting-started.md
+        lines: L12
+        quote: "Note: Our CRDs have reached the 256KB limit! You have to use [server-side-apply](https://kubernetes.io/docs/reference/using-api/server-side-apply/) in all locations to install them correctly."
+    match:
+      - subject: ServerSideApply
+      - text: '(?i)server.?side|too (big|large|long)|256 ?KB|crds? .*size'
+    components:
+      - ref: {file: env/platform/external-secrets/values.yaml}
+        classification: insufficient-evidence
+        impactPath:
+          - {ref: {file: env/platform/external-secrets/values.yaml}, field: installCRDs, relation: configures}
+          - {ref: {file: env/platform/secret-stores/aws-secrets-manager.yaml, kind: ClusterSecretStore, name: aws-secrets-manager}, relation: consumes-api}
+          - {ref: {file: env/apps/orders/externalsecret.yaml, kind: ExternalSecret, namespace: orders, name: orders-db}, relation: references}
+        reason: >-
+          This cluster installs the chart with installCRDs: true, so the oversized SecretStore and
+          ClusterSecretStore CRDs are part of every sync of the add-on. Whether that sync works depends
+          on how the platform team's platform-addons ApplicationSet applies it, which is withheld:
+          with Argo CD's default client-side apply the upgrade fails half-way exactly as in orders-eu
+          (observed, run-csa.log); with ServerSideApply=true it succeeds (observed, run-ssa.log). The
+          repository cannot decide between them. A correct answer names the missing input (the sync
+          options of the generated external-secrets Application) and does not clear the upgrade.
+        evidenceGaps:
+          - the platform-addons ApplicationSet (gitops-platform) that generates this cluster's external-secrets Application, in particular its syncOptions (ServerSideApply) or any other way it applies the CRDs
+        mitigation: null
+        requiredEvidence:
+          - {file: env/platform/external-secrets/values.yaml, field: installCRDs}
+          - {file: env/README.md}
+    remediation: >-
+      Ask the platform team for the platform-addons ApplicationSet (or check the generated Application
+      in the central Argo CD): if its syncOptions lack ServerSideApply=true, add it before the chart bump.
+renderedChanges:
+  - diff: [observed/render.diff#L258-L861, observed/render.diff#L929-L1532]
+    object: CustomResourceDefinition/clustersecretstores.external-secrets.io, CustomResourceDefinition/secretstores.external-secrets.io
+    change: schema grows by ~550 lines per CRD (new provider auth options), past the client-side apply limit
+    item: B1
+    impact: breaking        # breaking under client-side apply, harmless under server-side apply (the withheld input decides)
+  - diff: observed/render.diff#L1536-L1611
+    object: CustomResourceDefinition/sshkeys.generators.external-secrets.io
+    change: added (new generator)
+    item: null
+    impact: harmless
