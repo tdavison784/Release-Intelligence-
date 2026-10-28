@@ -64,3 +64,9 @@ Reported; not gating.
 For every arm: tool calls, artifacts read, tokens, cost, wall time, evidence requests (made and fulfilled), knowledge
 created, and occurrences of the PD-7 known limitations (a misread of a correct citation; observed-default carry-over;
 auto-approval facts).
+
+## Amendment A1, 2026-10-29 (harness only; before any blind run completed)
+
+`ri eval -investigations` requires a `gates.yaml` in the dataset directory. `eval/investigations-blind6/gates.yaml`
+is an unchanged copy of `eval/investigations-heldout/gates.yaml` (the frozen Phase 4/5 harness gates). It drives only
+the harness's own pass/fail exit code. **M6 is scored by this file (GATE-M6), not by `gates.yaml`.**
