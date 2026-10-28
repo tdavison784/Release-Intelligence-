@@ -90,3 +90,12 @@ previously crashed.
 
 **Disclosure.** The eval tool's summary of `M6-A` printed the expected classes per environment, and the commander read
 it before the agent arms. Code, prompts and these thresholds were already frozen; nothing changed in response.
+
+## Amendment A3, 2026-10-29 (sample rule; written before any arm-D judgement exists)
+
+The labels were seen early (A2 disclosure). To remove any commander discretion, the 4 graded D judgements are fixed
+mechanically: run `M6-CD2-r1`, and in each pair **the environment whose case id sorts first**:
+- `argo-cd-2.14-3.0--studio-east`
+- `cert-manager-1.20-1.21--treasury-de`
+- `external-secrets-0.18-0.19--orders-br`
+- `traefik-3.6-3.6--retail-apac`
