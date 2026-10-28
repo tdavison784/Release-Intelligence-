@@ -47,7 +47,7 @@ Substitution: the Application's multi-source `$values` reference is replaced by 
 - L215–L223: all three Deployments run v0.19.2; both store CRDs still have the 0.18.2 schema (schema hash
   compared with the two renders); `externalsecrets` reached 0.19.2.
 - L226–L236: the probe ExternalSecret still syncs (`to-0.19.2`). The environment's own AWS store cannot be
-  exercised from kind (no AWS credentials; L238–L250 show the expected STS errors at both versions).
+  exercised from kind (no AWS credentials; the controller log at L238–L250 shows the expected STS errors).
 
 So the proposed change does not apply: Argo CD reports a failed sync on every attempt, the operator runs
 0.19.2 controllers against 0.18.2 store CRDs (new 0.19 store fields would be pruned), and the GitOps state

@@ -1,0 +1,45 @@
+# GROUND TRUTH (blind). Systems under test, and the lanes building them, must not read this file.
+case: argo-cd-2.14-3.0--studio-west
+authoredAt: "2026-10-27"
+authoredBy: "groundtruth6 lane (blind: upstream sources + observed outcome only)"
+decisive: B1
+coverage: [1]                # PLAN-M6 §2: a product RI has not been tuned on
+items:
+  - item: B1
+    classification: not-affected
+    verification: observed
+    observed:
+      - observed/run.log#L230-L237     # rendered argocd-rbac-cm: policy.default role:readonly
+      - observed/run.log#L251-L260     # FROM v2.14.11: Application 200, logs 200
+      - observed/run.log#L285-L299     # TO v3.0.12: Application 200, can-i logs yes, logs 200
+    citations:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.12/docs/operator-manual/upgrading/2.14-3.0.md
+        lines: L47
+        quote: "Users who have `policy.default: role:readonly` or `policy.default: role:admin` in their `argocd-rbac-cm` ConfigMap, are unaffected."
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.12/assets/builtin-policy.csv
+        lines: L17
+        quote: "p, role:readonly, logs, get, */*, allow"
+    match:
+      - subject: server.rbac.log.enforce.enable
+      - text: '(?i)logs? (rbac|permission|enforce)|rbac\.log|logs, get'
+    components:
+      - ref: {file: env/argocd/values.yaml, field: configs.rbac.policy.csv}
+        classification: not-affected
+        impactPath:
+          - {ref: {file: env/helmfile.yaml}, relation: deploys}
+          - {ref: {kind: ConfigMap, namespace: argocd, name: argocd-rbac-cm, renderedFrom: env/helmfile.yaml}, field: policy.default, relation: renders-to}
+        reason: >-
+          role:developer has no logs permission of its own, but every authenticated user also gets
+          policy.default: role:readonly, and the built-in role:readonly includes "logs, get, */*". After
+          v3.0 enforces logs RBAC the developers still read pod logs (observed: can-i yes, HTTP 200 at
+          v3.0.12).
+        mitigation:
+          ref: {file: env/argocd/values.yaml}
+          field: configs.rbac.policy.default
+          value: role:readonly
+          kind: override
+        requiredEvidence:
+          - {file: env/argocd/values.yaml, field: configs.rbac.policy.default}
+          - {file: env/argocd/values.yaml, field: configs.rbac.policy.csv}
+    remediation: none needed for B1 (the obsolete server.rbac.log.enforce.enable key can be dropped)
+renderedChanges: []   # as studio-east: no RBAC hunk in observed/render.diff
