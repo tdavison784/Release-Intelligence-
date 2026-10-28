@@ -119,12 +119,11 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **M6 runs:** `scripts/phase6/run-m6.sh $CLAUDE_JOB_DIR/tmp/m6 {A|B|CD}`.
-   - A (online recording) is running; then B and CD in parallel on clones.
-   - Then arm E: per-case `ri investigate -agent -synthesize`, formalize, verify `-runtime`; the product owner reviews;
-     A is re-run with the promoted knowledge.
-2. **Scoring:** after every run, read the labels, score per GATE-M6, and write M6-RESULT. The product owner grades 4 D
-   judgements (choose them before reading labels: repeat 1, one per pair).
+1. **Done 2026-10-29:** M6 arms A2, B (M6-B2-r1..r3) and C+D (M6-CD2-r1..r3); 0 crashes; results stored, not yet
+   read. CD r3 took 24 min against about 60 for r1 and r2; check whether it was cut short before scoring.
+2. **Next: arm E** (formalize + verify -runtime on the CD runs; product-owner review; re-run A with the promoted
+   knowledge).
+3. **Then:** score per GATE-M6 (+ A2/A3), M6-RESULT, and the product owner grades the 4 A3-sampled judgements.
 
 ## Notes
 
