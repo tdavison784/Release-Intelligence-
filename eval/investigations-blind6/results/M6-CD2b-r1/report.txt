@@ -1,0 +1,100 @@
+══ investigation eval — arm C1: +agent (driver claude-cli, model claude-sonnet-5-5) — run M6-CD2b-r1 (commit 3340ca7fbe) ══
+n = 8 item decisions over 8 cases (small dataset: every rate below has a wide uncertainty)
+
+── runs ──
+  argo-cd-2.14-3.0--studio-east                human-review-required  findings 97 (affected=0 not-affected=34 potentially-affected=41 insufficient-evidence=22)  agent submitted  citations 1448/1448  reproduced
+      95 finding(s) on items no expected item selects (unscored), 0 affected
+  argo-cd-2.14-3.0--studio-west                human-review-required  findings 97 (affected=0 not-affected=34 potentially-affected=41 insufficient-evidence=22)  agent submitted  citations 1447/1447  reproduced
+      95 finding(s) on items no expected item selects (unscored), 0 affected
+  cert-manager-1.20-1.21--treasury-de          human-review-required  findings 30 (affected=0 not-affected=6 potentially-affected=23 insufficient-evidence=1)  agent submitted  citations 341/341  reproduced
+      25 finding(s) on items no expected item selects (unscored), 0 affected
+  cert-manager-1.20-1.21--treasury-us          human-review-required  findings 30 (affected=0 not-affected=6 potentially-affected=23 insufficient-evidence=1)  agent submitted  citations 339/339  reproduced
+      25 finding(s) on items no expected item selects (unscored), 0 affected
+  external-secrets-0.18-0.19--orders-br        human-review-required  findings 55 (affected=0 not-affected=6 potentially-affected=46 insufficient-evidence=3)  agent submitted  citations 736/736  reproduced
+      54 finding(s) on items no expected item selects (unscored), 0 affected
+  external-secrets-0.18-0.19--orders-eu        human-review-required  findings 55 (affected=0 not-affected=6 potentially-affected=46 insufficient-evidence=3)  agent submitted  citations 743/743  reproduced
+      54 finding(s) on items no expected item selects (unscored), 0 affected
+  traefik-3.6-3.6--retail-apac                 human-review-required  findings 39 (affected=0 not-affected=0 potentially-affected=10 insufficient-evidence=29)  agent submitted  citations 519/519  reproduced
+      39 finding(s) on items no expected item selects (unscored), 0 affected
+  traefik-3.6-3.6--retail-emea                 human-review-required  findings 39 (affected=0 not-affected=0 potentially-affected=10 insufficient-evidence=29)  agent submitted  citations 520/520  reproduced
+      39 finding(s) on items no expected item selects (unscored), 0 affected
+
+── item decisions (expected vs system) ──
+✗  argo-cd-2.14-3.0--studio-east                B1  expected affected              system insufficient-evidence (observed, 2 matched) classify:insufficient-evidence [controller-behaviour, basis none, ci-d033a5ea330d] "402802b08974bb0f1c2e417f7a190d042813c108: feat!: Logs rbac …"
+✗  argo-cd-2.14-3.0--studio-west                B1  expected not-affected          system insufficient-evidence (observed, 2 matched) classify:insufficient-evidence [controller-behaviour, basis none, ci-d033a5ea330d] "402802b08974bb0f1c2e417f7a190d042813c108: feat!: Logs rbac …"
+✗  cert-manager-1.20-1.21--treasury-de          B1  expected affected              system potentially-affected  (observed, 5 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0a94fe3c08c7] "BREAKING: The Helm chart no longer ships a default `Role` a…"
+✗  cert-manager-1.20-1.21--treasury-us          B1  expected not-affected          system potentially-affected  (observed, 5 matched) classify:plausible-impact [controller-behaviour, basis none, ci-0a94fe3c08c7] "BREAKING: The Helm chart no longer ships a default `Role` a…"
+≈  external-secrets-0.18-0.19--orders-br        B1  expected insufficient-evidence system potentially-affected  (observed-alternatives, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-bf59588fc254] "BREAKING CHANGE: 🔴 🔴 BREAKING CHANGE 🔴 🔴 Please…"
+✗  external-secrets-0.18-0.19--orders-eu        B1  expected affected              system potentially-affected  (observed, 1 matched) classify:plausible-impact [controller-behaviour, basis none, ci-bf59588fc254] "BREAKING CHANGE: 🔴 🔴 BREAKING CHANGE 🔴 🔴 Please…"
+✗  traefik-3.6-3.6--retail-apac                 B1  expected not-affected          system insufficient-evidence (observed, 0 matched) no matching item
+✗  traefik-3.6-3.6--retail-emea                 B1  expected affected              system insufficient-evidence (observed, 0 matched) no matching item
+
+── metrics (overall) ──
+  falseNegativeRate              0.000 (0/4)
+  unsafeEligibilityRate          n/a (0/0)
+  falsePositiveRate              0.000 (0/3)
+  affectedDetection              0.500 (2/4)
+  affectedConfirmation           0.000 (0/4)
+  notAffectedConfirmation        0.000 (0/3)
+  exposureRecall                 0.000 (0/5)
+  evidenceCoverage               0.100 (2/20)
+  unresolvedRate                 0.571 (4/7)
+  observedAgreement              0.000 (0/7)
+  accuracy                       0.000 (0/8)
+  humanReviewRate                1.000 (8/8)
+  autoApprovalEligibilityRate    0.000 (0/8)
+  itemMatchMisses                2 (of 8)
+  evidenceFileCoverage           0.150 (3/20)
+  citationResolution             1.000 (6093/6093)
+  reproducibility                1.000 (8/8)
+  pipelineFailures               0 (of 8)
+  runHumanReviewRate             1.000 (8/8)
+  runAutoApproveEligibleRate     0.000 (0/8)
+
+── splits (decision metrics per subset) ──
+  basis         none                   n=8   accuracy 0.000 (0/8); falseNegativeRate 0.000 (0/4); affectedDetection 0.500 (2/4); affectedConfirmation 0.000 (0/4); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.571 (4/7); exposureRecall 0.000 (0/5); evidenceCoverage 0.100 (2/20)
+  manifestation controller-behaviour   n=6   accuracy 0.000 (0/6); falseNegativeRate 0.000 (0/3); affectedDetection 0.667 (2/3); affectedConfirmation 0.000 (0/3); notAffectedConfirmation 0.000 (0/2); unresolvedRate 0.400 (2/5); exposureRecall 0.000 (0/3); evidenceCoverage 0.154 (2/13)
+  manifestation unmatched              n=2   accuracy 0.000 (0/2); falseNegativeRate 0.000 (0/1); affectedDetection 0.000 (0/1); affectedConfirmation 0.000 (0/1); notAffectedConfirmation 0.000 (0/1); unresolvedRate 1.000 (2/2); exposureRecall 0.000 (0/2); evidenceCoverage 0.000 (0/7)
+  verification  observed               n=7   accuracy 0.000 (0/7); falseNegativeRate 0.000 (0/4); affectedDetection 0.500 (2/4); affectedConfirmation 0.000 (0/4); notAffectedConfirmation 0.000 (0/3); unresolvedRate 0.571 (4/7); exposureRecall 0.000 (0/5); evidenceCoverage 0.111 (2/18)
+  verification  observed-alternatives  n=1   accuracy 0.000 (0/1); evidenceCoverage 0.000 (0/2)
+
+── agent verdicts (provisional classes; ungated, never an input to policy) ──
+  argo-cd-2.14-3.0--studio-east                B1  expected affected              agent -                     no-verdict
+  argo-cd-2.14-3.0--studio-west                B1  expected not-affected          agent -                     no-verdict
+  cert-manager-1.20-1.21--treasury-de          B1  expected affected              agent affected              correct
+  cert-manager-1.20-1.21--treasury-us          B1  expected not-affected          agent not-affected          correct
+  external-secrets-0.18-0.19--orders-br        B1  expected insufficient-evidence agent potentially-affected  hedged
+  external-secrets-0.18-0.19--orders-eu        B1  expected affected              agent potentially-affected  hedged
+  traefik-3.6-3.6--retail-apac                 B1  expected not-affected          agent -                     no-verdict
+  traefik-3.6-3.6--retail-emea                 B1  expected affected              agent -                     no-verdict
+  outcomes: [correct=2 false-safe=0 false-alarm=0 hedged=2 overstated=0 no-verdict=4]
+
+── upgrade judgements (ungated side table; advisory AI judgements, not scored here) ──
+  argo-cd-2.14-3.0--studio-east                complete modify-target         target v3.0.23 (proposed v3.0.12, minimum v3.0.12, rule v3.0.23)  changes 10 (4 located)  tests 13  risks 71  findings 15 (2 hard)  interactions 12
+  argo-cd-2.14-3.0--studio-west                complete modify-target         target v3.0.23 (proposed v3.0.12, minimum v3.0.12, rule v3.0.23)  changes 9 (4 located)  tests 15  risks 72  findings 18 (2 hard)  interactions 11
+  cert-manager-1.20-1.21--treasury-de          complete proceed-with-changes  target v1.21.3 (proposed v1.21.3, minimum v1.21.3, rule v1.21.3)  changes 6 (3 located)  tests 9  risks 30  findings 12 (0 hard)  interactions 6
+  cert-manager-1.20-1.21--treasury-us          complete validation-required   target v1.21.3 (proposed v1.21.3, minimum v1.21.3, rule v1.21.3)  changes 7 (2 located)  tests 8  risks 28  findings 11 (0 hard)  interactions 7
+  external-secrets-0.18-0.19--orders-br        complete proceed-with-changes  target v0.19.2 (proposed v0.19.2, minimum v0.19.2, rule v0.19.2)  changes 6 (1 located)  tests 8  risks 55  findings 8 (1 hard)  interactions 6
+  external-secrets-0.18-0.19--orders-eu        complete proceed-with-changes  target v0.19.2 (proposed v0.19.2, minimum v0.19.2, rule v0.19.2)  changes 5 (2 located)  tests 7  risks 54  findings 8 (1 hard)  interactions 6
+  traefik-3.6-3.6--retail-apac                 complete modify-target         target v3.7.16 (proposed v3.6.15, minimum v3.7.15, rule v3.7.16)  changes 5 (1 located)  tests 7  risks 45  findings 45 (3 hard)  interactions 3
+  traefik-3.6-3.6--retail-emea                 complete modify-target         target v3.7.16 (proposed v3.6.15, minimum v3.7.15, rule v3.7.16)  changes 6 (4 located)  tests 7  risks 45  findings 44 (3 hard)  interactions 3
+
+── gates (pre-registered, eval/investigations/gates.yaml; INSUFFICIENT-DATA is never a pass) ──
+✗ affectedConfirmation       FAIL              actual 0.000 (0/4)        ≥ 0.50  (minSample 2)
+✗ affectedDetection          FAIL              actual 0.500 (2/4)        ≥ 0.75  (minSample 2)
+✓ citationResolution         PASS              actual 1.000 (6093/6093)  ≥ 1.00  (minSample 1)
+✗ evidenceCoverage           FAIL              actual 0.100 (2/20)       ≥ 0.75  (minSample 4)
+✗ exposureRecall             FAIL              actual 0.000 (0/5)        ≥ 0.75  (minSample 2)
+✓ falseNegativeRate          PASS              actual 0.000 (0/4)        ≤ 0.00  (minSample 4)
+✓ falsePositiveRate          PASS              actual 0.000 (0/3)        ≤ 0.25  (minSample 2)
+✗ notAffectedConfirmation    FAIL              actual 0.000 (0/3)        ≥ 0.50  (minSample 2)
+✗ observedAgreement          FAIL              actual 0.000 (0/7)        ≥ 0.75  (minSample 4)
+✓ pipelineFailures           PASS              actual 0 (of 8)           ≤ 0.00  (minSample 0)
+✓ reproducibility            PASS              actual 1.000 (8/8)        ≥ 1.00  (minSample 1)
+✗ unresolvedRate             FAIL              actual 0.571 (4/7)        ≤ 0.50  (minSample 4)
+? unsafeEligibilityRate      INSUFFICIENT-DATA actual n/a (0/0)          ≤ 0.00  (minSample 1)
+
+autonomy (§6.3): eligible=false — observed not-affected 3, observed affected 4
+    unsafeEligibilityRate is INSUFFICIENT-DATA
+    3 observed not-affected decisions < 20
+    4 observed affected/potentially-affected decisions < 20
