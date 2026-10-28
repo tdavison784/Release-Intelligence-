@@ -1,0 +1,34 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: argo-cd-2.14-3.0--studio-west
+pair: argo-cd-2.14-3.0--developer-access
+product: argo-cd
+chart:
+  repo: https://argoproj.github.io/argo-helm
+  name: argo-cd
+from:
+  version: v2.14.11
+  chartVersion: 7.9.1
+to:
+  version: v3.0.12
+  chartVersion: 8.2.7
+environment:
+  id: studio-prod-west
+  root: env/
+  entrypoints:
+    - helmfile.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster of the game studio's backend. The platform team installs and upgrades Argo CD
+    with helmfile from this repository (helmfile.yaml: the argo-cd chart with argocd/values.yaml,
+    then the argocd-apps chart with the games project and its Applications); Argo CD syncs the game
+    services from apps/. People sign in through Okta; the RBAC policy is in argocd/values.yaml. The
+    proposed change bumps the argo-cd chart version in helmfile.yaml. The repository is the complete
+    declaration of Argo CD's configuration and of what runs in the cluster.
+  complete: true
+scope:
+  - id: B1
+    title: Logs RBAC is enforced by default and server.rbac.log.enforce.enable is removed (pod logs need an explicit logs, get permission)
+    subject: server.rbac.log.enforce.enable
+    source: https://github.com/argoproj/argo-cd/blob/v3.0.12/docs/operator-manual/upgrading/2.14-3.0.md#L33-L49
+withheld: []

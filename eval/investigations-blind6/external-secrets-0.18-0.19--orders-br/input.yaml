@@ -1,0 +1,39 @@
+# INPUTS ONLY. Everything a system under test may read for this case is this file and env/.
+# The ground truth is in expected.yaml, which pipeline and agent lanes must not read (FLEET.md).
+id: external-secrets-0.18-0.19--orders-br
+pair: external-secrets-0.18-0.19--crd-delivery
+product: external-secrets
+chart:
+  repo: https://charts.external-secrets.io
+  name: external-secrets
+from:
+  version: v0.18.2
+  chartVersion: 0.18.2
+to:
+  version: v0.19.2
+  chartVersion: 0.19.2
+environment:
+  id: orders-prod-br
+  root: env/
+  entrypoints:
+    - clusters/prod/kustomization.yaml
+  kubernetes: "1.31"
+  description: >-
+    Production cluster (EKS) of the orders platform in Brazil, registered in the platform team's
+    central Argo CD, which syncs this cluster's workloads from this repository (clusters/prod).
+    External Secrets Operator is a cluster add-on installed by the platform team with the values in
+    platform/external-secrets/values.yaml from this repository; it syncs the orders API's database
+    credentials from AWS Secrets Manager through the aws-secrets-manager ClusterSecretStore. The
+    proposed change is the platform team's bump of the External Secrets chart version.
+  complete: false
+scope:
+  - id: B1
+    title: The chart's SecretStore and ClusterSecretStore CRDs exceed the size a client-side apply can store; they must be applied server-side (kubectl --server-side, Argo CD ServerSideApply=true)
+    subject: ServerSideApply
+    source: https://github.com/external-secrets/external-secrets/releases/tag/v0.19.0
+withheld:
+  - ref: gitops-platform repository, ApplicationSet platform-addons
+    description: >-
+      The platform team's ApplicationSet that installs External Secrets Operator in every registered
+      cluster (chart version, sync policy and sync options of the generated Application) lives in the
+      platform repository, which is not part of this repository.

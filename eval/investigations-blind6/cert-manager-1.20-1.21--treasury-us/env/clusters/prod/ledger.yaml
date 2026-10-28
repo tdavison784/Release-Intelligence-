@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ledger
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: treasury
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ledger
+  source:
+    repoURL: https://git.example.com/treasury/gitops-treasury-us.git
+    targetRevision: main
+    path: apps/ledger/overlays/prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

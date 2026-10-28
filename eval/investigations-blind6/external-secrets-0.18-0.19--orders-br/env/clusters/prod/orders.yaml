@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orders
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: orders
+  destination:
+    name: orders-prod-br
+    namespace: orders
+  source:
+    repoURL: https://git.example.com/orders/gitops-orders-br.git
+    targetRevision: main
+    path: apps/orders
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

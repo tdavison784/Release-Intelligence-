@@ -1,0 +1,36 @@
+global:
+  domain: argocd.studio-west.example.com
+
+configs:
+  params:
+    # TLS terminates at the load balancer
+    server.insecure: true
+  cm:
+    admin.enabled: false
+    exec.enabled: false
+    # Application viewers can open the pod logs of the applications they can see.
+    server.rbac.log.enforce.enable: false
+    oidc.config: |
+      name: Okta
+      issuer: https://studio.okta.com/oauth2/default
+      clientID: argocd-studio-west
+      clientSecret: $oidc.okta.clientSecret
+      requestedScopes: ["openid", "profile", "email", "groups"]
+  rbac:
+    scopes: '[groups]'
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:developer, applications, get, games/*, allow
+      p, role:developer, applications, sync, games/*, allow
+      p, role:developer, projects, get, games, allow
+      g, studio-devs, role:developer
+      g, studio-platform, role:admin
+
+dex:
+  enabled: false
+notifications:
+  enabled: false
+server:
+  replicas: 2
+repoServer:
+  replicas: 2

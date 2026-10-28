@@ -1,0 +1,44 @@
+projects:
+  games:
+    namespace: argocd
+    description: Game backend services
+    sourceRepos:
+      - https://git.example.com/studio/gitops-studio-east.git
+    destinations:
+      - server: https://kubernetes.default.svc
+        namespace: games
+    clusterResourceWhitelist:
+      - group: ''
+        kind: Namespace
+
+applications:
+  lobby:
+    namespace: argocd
+    project: games
+    source:
+      repoURL: https://git.example.com/studio/gitops-studio-east.git
+      targetRevision: main
+      path: apps/lobby
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: games
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+  matchmaker:
+    namespace: argocd
+    project: games
+    source:
+      repoURL: https://git.example.com/studio/gitops-studio-east.git
+      targetRevision: main
+      path: apps/matchmaker
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: games
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true

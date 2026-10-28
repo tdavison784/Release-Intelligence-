@@ -1,0 +1,2209 @@
+# ClusterRole/-/argocd-application-controller (changed)
+--- from/ClusterRole/-/argocd-application-controller
++++ to/ClusterRole/-/argocd-application-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+ rules:
+ - apiGroups:
+# ClusterRole/-/argocd-server (changed)
+--- from/ClusterRole/-/argocd-server
++++ to/ClusterRole/-/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+ rules:
+ - apiGroups:
+# ClusterRoleBinding/-/argocd-application-controller (changed)
+--- from/ClusterRoleBinding/-/argocd-application-controller
++++ to/ClusterRoleBinding/-/argocd-application-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ClusterRoleBinding/-/argocd-server (changed)
+--- from/ClusterRoleBinding/-/argocd-server
++++ to/ClusterRoleBinding/-/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+# ConfigMap/argocd/argocd-cm (changed)
+--- from/ConfigMap/argocd/argocd-cm
++++ to/ConfigMap/argocd/argocd-cm
+@@ -15,6 +15,15 @@
+     requestedScopes: ["openid", "profile", "email", "groups"]
+ 
+     '
++  resource.customizations.ignoreResourceUpdates.ConfigMap: "jqPathExpressions:\n  # Ignore the cluster-autoscaler status\n  - '.metadata.annotations.\"cluster-autoscaler.kubernetes.io/last-updated\"'\n  # Ignore the annotation of the legacy Leases election\n  - '.metadata.annotations.\"control-plane.alpha.kubernetes.io/leader\"'\n"
++  resource.customizations.ignoreResourceUpdates.Endpoints: "jsonPointers:\n  - /metadata\n  - /subsets\n"
++  resource.customizations.ignoreResourceUpdates.all: "jsonPointers:\n  - /status\n"
++  resource.customizations.ignoreResourceUpdates.apps_ReplicaSet: "jqPathExpressions:\n  - '.metadata.annotations.\"deployment.kubernetes.io/desired-replicas\"'\n  - '.metadata.annotations.\"deployment.kubernetes.io/max-replicas\"'\n  - '.metadata.annotations.\"rollout.argoproj.io/desired-replicas\"'\n"
++  resource.customizations.ignoreResourceUpdates.argoproj.io_Application: "jqPathExpressions:\n  - '.metadata.annotations.\"notified.notifications.argoproj.io\"'\n  - '.metadata.annotations.\"argocd.argoproj.io/refresh\"'\n  - '.metadata.annotations.\"argocd.argoproj.io/hydrate\"'\n  - '.operation'\n"
++  resource.customizations.ignoreResourceUpdates.argoproj.io_Rollout: "jqPathExpressions:\n  - '.metadata.annotations.\"notified.notifications.argoproj.io\"'\n"
++  resource.customizations.ignoreResourceUpdates.autoscaling_HorizontalPodAutoscaler: "jqPathExpressions:\n  - '.metadata.annotations.\"autoscaling.alpha.kubernetes.io/behavior\"'\n  - '.metadata.annotations.\"autoscaling.alpha.kubernetes.io/conditions\"'\n  - '.metadata.annotations.\"autoscaling.alpha.kubernetes.io/metrics\"'\n  - '.metadata.annotations.\"autoscaling.alpha.kubernetes.io/current-metrics\"'\n"
++  resource.customizations.ignoreResourceUpdates.discovery.k8s.io_EndpointSlice: "jsonPointers:\n  - /metadata\n  - /endpoints\n  - /ports\n"
++  resource.exclusions: "### Network resources created by the Kubernetes control plane and excluded to reduce the number of watched events and UI clutter\n- apiGroups:\n  - ''\n  - discovery.k8s.io\n  kinds:\n  - Endpoints\n  - EndpointSlice\n### Internal Kubernetes resources excluded reduce the number of watched events\n- apiGroups:\n  - coordination.k8s.io\n  kinds:\n  - Lease\n### Internal Kubernetes Authz/Authn resources excluded reduce the number of watched events\n- apiGroups:\n  - authentication.k8s.io\n  - authorization.k8s.io\n  kinds:\n  - SelfSubjectReview\n  - TokenReview\n  - LocalSubjectAccessReview\n  - SelfSubjectAccessReview\n  - SelfSubjectRulesReview\n  - SubjectAccessReview\n### Intermediate Certificate Request excluded reduce the number of watched events\n- apiGroups:\n  - certificates.k8s.io\n  kinds:\n  - CertificateSigningRequest\n- apiGroups:\n  - cert-manager.io\n  kinds:\n  - CertificateRequest\n### Cilium internal resources excluded reduce the number of watched events and UI Clutter\n- apiGroups:\n  - cilium.io\n  kinds:\n  - CiliumIdentity\n  - CiliumEndpoint\n  - CiliumEndpointSlice\n### Kyverno intermediate and reporting resources excluded reduce the number of watched events and improve performance\n- apiGroups:\n  - kyverno.io\n  - reports.kyverno.io\n  - wgpolicyk8s.io\n  kinds:\n  - PolicyReport\n  - ClusterPolicyReport\n  - EphemeralReport\n  - ClusterEphemeralReport\n  - AdmissionReport\n  - ClusterAdmissionReport\n  - BackgroundScanReport\n  - ClusterBackgroundScanReport\n  - UpdateRequest\n"
+   server.rbac.log.enforce.enable: 'false'
+   statusbadge.enabled: 'false'
+   timeout.hard.reconciliation: 0s
+@@ -28,7 +37,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-cm
+   namespace: argocd
+# ConfigMap/argocd/argocd-cmd-params-cm (changed)
+--- from/ConfigMap/argocd/argocd-cmd-params-cm
++++ to/ConfigMap/argocd/argocd-cmd-params-cm
+@@ -7,6 +7,8 @@
+   applicationsetcontroller.log.level: info
+   applicationsetcontroller.namespaces: ''
+   applicationsetcontroller.policy: sync
++  commitserver.log.format: text
++  commitserver.log.level: info
+   controller.ignore.normalizer.jq.timeout: 1s
+   controller.log.format: text
+   controller.log.level: info
+@@ -17,6 +19,7 @@
+   controller.sync.timeout.seconds: '0'
+   dexserver.log.format: text
+   dexserver.log.level: info
++  hydrator.enabled: 'false'
+   notificationscontroller.log.format: text
+   notificationscontroller.log.level: info
+   otlp.address: ''
+@@ -44,7 +47,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-cmd-params-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-cmd-params-cm
+   namespace: argocd
+# ConfigMap/argocd/argocd-gpg-keys-cm (changed)
+--- from/ConfigMap/argocd/argocd-gpg-keys-cm
++++ to/ConfigMap/argocd/argocd-gpg-keys-cm
+@@ -6,7 +6,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-gpg-keys-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-gpg-keys-cm
+   namespace: argocd
+# ConfigMap/argocd/argocd-rbac-cm (changed)
+--- from/ConfigMap/argocd/argocd-rbac-cm
++++ to/ConfigMap/argocd/argocd-rbac-cm
+@@ -22,7 +22,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-rbac-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-rbac-cm
+   namespace: argocd
+# ConfigMap/argocd/argocd-redis-health-configmap (changed)
+--- from/ConfigMap/argocd/argocd-redis-health-configmap
++++ to/ConfigMap/argocd/argocd-redis-health-configmap
+@@ -10,7 +10,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis-health-configmap
+   namespace: argocd
+# ConfigMap/argocd/argocd-ssh-known-hosts-cm (changed)
+--- from/ConfigMap/argocd/argocd-ssh-known-hosts-cm
++++ to/ConfigMap/argocd/argocd-ssh-known-hosts-cm
+@@ -36,7 +36,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-ssh-known-hosts-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-ssh-known-hosts-cm
+   namespace: argocd
+# ConfigMap/argocd/argocd-tls-certs-cm (changed)
+--- from/ConfigMap/argocd/argocd-tls-certs-cm
++++ to/ConfigMap/argocd/argocd-tls-certs-cm
+@@ -6,7 +6,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-tls-certs-cm
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-tls-certs-cm
+   namespace: argocd
+# CustomResourceDefinition/-/applications.argoproj.io (changed)
+--- from/CustomResourceDefinition/-/applications.argoproj.io
++++ to/CustomResourceDefinition/-/applications.argoproj.io
+@@ -334,6 +334,9 @@
+                           forceCommonLabels:
+                             description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                             type: boolean
++                          ignoreMissingComponents:
++                            description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                            type: boolean
+                           images:
+                             description: Images is a list of Kustomize image override specifications
+                             items:
+@@ -345,6 +348,9 @@
+ 
+                               uses the Kubernetes version of the target cluster.'
+                             type: string
++                          labelIncludeTemplates:
++                            description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                            type: boolean
+                           labelWithoutSelector:
+                             description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                             type: boolean
+@@ -654,6 +660,9 @@
+                             forceCommonLabels:
+                               description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                               type: boolean
++                            ignoreMissingComponents:
++                              description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                              type: boolean
+                             images:
+                               description: Images is a list of Kustomize image override specifications
+                               items:
+@@ -665,6 +674,9 @@
+ 
+                                 uses the Kubernetes version of the target cluster.'
+                               type: string
++                            labelIncludeTemplates:
++                              description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                              type: boolean
+                             labelWithoutSelector:
+                               description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                               type: boolean
+@@ -1084,6 +1096,9 @@
+                       forceCommonLabels:
+                         description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                         type: boolean
++                      ignoreMissingComponents:
++                        description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                        type: boolean
+                       images:
+                         description: Images is a list of Kustomize image override specifications
+                         items:
+@@ -1095,6 +1110,9 @@
+ 
+                           uses the Kubernetes version of the target cluster.'
+                         type: string
++                      labelIncludeTemplates:
++                        description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                        type: boolean
+                       labelWithoutSelector:
+                         description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                         type: boolean
+@@ -1452,6 +1470,9 @@
+                         forceCommonLabels:
+                           description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                           type: boolean
++                        ignoreMissingComponents:
++                          description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                          type: boolean
+                         images:
+                           description: Images is a list of Kustomize image override specifications
+                           items:
+@@ -1463,6 +1484,9 @@
+ 
+                             uses the Kubernetes version of the target cluster.'
+                           type: string
++                        labelIncludeTemplates:
++                          description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                          type: boolean
+                         labelWithoutSelector:
+                           description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                           type: boolean
+@@ -1602,6 +1626,9 @@
+                     properties:
+                       allowEmpty:
+                         description: 'AllowEmpty allows apps have zero live resources (default: false)'
++                        type: boolean
++                      enabled:
++                        description: Enable allows apps to explicitly control automated sync
+                         type: boolean
+                       prune:
+                         description: 'Prune specifies whether to delete resources from the cluster that are not found in the sources anymore as part of automated sync (default: false)'
+@@ -1904,6 +1931,9 @@
+                             forceCommonLabels:
+                               description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                               type: boolean
++                            ignoreMissingComponents:
++                              description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                              type: boolean
+                             images:
+                               description: Images is a list of Kustomize image override specifications
+                               items:
+@@ -1915,6 +1945,9 @@
+ 
+                                 uses the Kubernetes version of the target cluster.'
+                               type: string
++                            labelIncludeTemplates:
++                              description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                              type: boolean
+                             labelWithoutSelector:
+                               description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                               type: boolean
+@@ -2222,6 +2255,9 @@
+                               forceCommonLabels:
+                                 description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                 type: boolean
++                              ignoreMissingComponents:
++                                description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                type: boolean
+                               images:
+                                 description: Images is a list of Kustomize image override specifications
+                                 items:
+@@ -2233,6 +2269,9 @@
+ 
+                                   uses the Kubernetes version of the target cluster.'
+                                 type: string
++                              labelIncludeTemplates:
++                                description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                type: boolean
+                               labelWithoutSelector:
+                                 description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                 type: boolean
+@@ -2658,6 +2697,9 @@
+                                   forceCommonLabels:
+                                     description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                     type: boolean
++                                  ignoreMissingComponents:
++                                    description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                    type: boolean
+                                   images:
+                                     description: Images is a list of Kustomize image override specifications
+                                     items:
+@@ -2669,6 +2711,9 @@
+ 
+                                       uses the Kubernetes version of the target cluster.'
+                                     type: string
++                                  labelIncludeTemplates:
++                                    description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                    type: boolean
+                                   labelWithoutSelector:
+                                     description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                     type: boolean
+@@ -2978,6 +3023,9 @@
+                                     forceCommonLabels:
+                                       description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                       type: boolean
++                                    ignoreMissingComponents:
++                                      description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                      type: boolean
+                                     images:
+                                       description: Images is a list of Kustomize image override specifications
+                                       items:
+@@ -2989,6 +3037,9 @@
+ 
+                                         uses the Kubernetes version of the target cluster.'
+                                       type: string
++                                    labelIncludeTemplates:
++                                      description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                      type: boolean
+                                     labelWithoutSelector:
+                                       description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                       type: boolean
+@@ -3407,6 +3458,9 @@
+                               forceCommonLabels:
+                                 description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                 type: boolean
++                              ignoreMissingComponents:
++                                description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                type: boolean
+                               images:
+                                 description: Images is a list of Kustomize image override specifications
+                                 items:
+@@ -3418,6 +3472,9 @@
+ 
+                                   uses the Kubernetes version of the target cluster.'
+                                 type: string
++                              labelIncludeTemplates:
++                                description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                type: boolean
+                               labelWithoutSelector:
+                                 description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                 type: boolean
+@@ -3725,6 +3782,9 @@
+                                 forceCommonLabels:
+                                   description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                   type: boolean
++                                ignoreMissingComponents:
++                                  description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                  type: boolean
+                                 images:
+                                   description: Images is a list of Kustomize image override specifications
+                                   items:
+@@ -3736,6 +3796,9 @@
+ 
+                                     uses the Kubernetes version of the target cluster.'
+                                   type: string
++                                labelIncludeTemplates:
++                                  description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                  type: boolean
+                                 labelWithoutSelector:
+                                   description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                   type: boolean
+@@ -3885,14 +3948,13 @@
+               resources:
+                 description: Resources is a list of Kubernetes resources managed by this application
+                 items:
+-                  description: 'ResourceStatus holds the current sync and health status of a resource
+-
+-                    TODO: describe members of this type'
++                  description: ResourceStatus holds the current synchronization and health status of a Kubernetes resource.
+                   properties:
+                     group:
++                      description: Group represents the API group of the resource (e.g., "apps" for Deployments).
+                       type: string
+                     health:
+-                      description: HealthStatus contains information about the currently observed health state of an application or resource
++                      description: Health indicates the health status of the resource (e.g., Healthy, Degraded, Progressing).
+                       properties:
+                         lastTransitionTime:
+                           description: LastTransitionTime is the time the HealthStatus was set or updated
+@@ -3906,24 +3968,34 @@
+                           type: string
+                       type: object
+                     hook:
++                      description: Hook is true if the resource is used as a lifecycle hook in an Argo CD application.
+                       type: boolean
+                     kind:
++                      description: Kind specifies the type of the resource (e.g., "Deployment", "Service").
+                       type: string
+                     name:
++                      description: Name is the unique name of the resource within the namespace.
+                       type: string
+                     namespace:
++                      description: Namespace defines the Kubernetes namespace where the resource is located.
+                       type: string
+                     requiresDeletionConfirmation:
++                      description: RequiresDeletionConfirmation is true if the resource requires explicit user confirmation before deletion.
+                       type: boolean
+                     requiresPruning:
++                      description: RequiresPruning is true if the resource needs to be pruned (deleted) as part of synchronization.
+                       type: boolean
+                     status:
+-                      description: SyncStatusCode is a type which represents possible comparison results
++                      description: Status represents the synchronization state of the resource (e.g., Synced, OutOfSync).
+                       type: string
+                     syncWave:
++                      description: 'SyncWave determines the order in which resources are applied during a sync operation.
++
++                        Lower values are applied first.'
+                       format: int64
+                       type: integer
+                     version:
++                      description: Version indicates the API version of the resource (e.g., "v1", "v1beta1").
+                       type: string
+                   type: object
+                 type: array
+@@ -4323,6 +4395,9 @@
+                               forceCommonLabels:
+                                 description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                 type: boolean
++                              ignoreMissingComponents:
++                                description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                type: boolean
+                               images:
+                                 description: Images is a list of Kustomize image override specifications
+                                 items:
+@@ -4334,6 +4409,9 @@
+ 
+                                   uses the Kubernetes version of the target cluster.'
+                                 type: string
++                              labelIncludeTemplates:
++                                description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                type: boolean
+                               labelWithoutSelector:
+                                 description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                 type: boolean
+@@ -4641,6 +4719,9 @@
+                                 forceCommonLabels:
+                                   description: ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps
+                                   type: boolean
++                                ignoreMissingComponents:
++                                  description: IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file
++                                  type: boolean
+                                 images:
+                                   description: Images is a list of Kustomize image override specifications
+                                   items:
+@@ -4652,6 +4733,9 @@
+ 
+                                     uses the Kubernetes version of the target cluster.'
+                                   type: string
++                                labelIncludeTemplates:
++                                  description: LabelIncludeTemplates specifies whether to apply common labels to resource templates or not
++                                  type: boolean
+                                 labelWithoutSelector:
+                                   description: LabelWithoutSelector specifies whether to apply common labels to resource selectors or not
+                                   type: boolean
+# CustomResourceDefinition/-/applicationsets.argoproj.io (changed)
+--- from/CustomResourceDefinition/-/applicationsets.argoproj.io
++++ to/CustomResourceDefinition/-/applicationsets.argoproj.io
+@@ -273,12 +273,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -545,12 +549,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -660,6 +668,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -945,12 +955,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -1217,12 +1231,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -1332,6 +1350,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -1616,12 +1636,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -1888,12 +1912,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -2003,6 +2031,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -2267,12 +2297,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -2539,12 +2573,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -2654,6 +2692,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -2943,12 +2983,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -3215,12 +3259,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -3330,6 +3378,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -3615,12 +3665,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -3887,12 +3941,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -4003,6 +4061,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -4286,12 +4346,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -4558,12 +4622,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -4673,6 +4741,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -4937,12 +5007,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -5209,12 +5283,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -5325,6 +5403,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -5596,12 +5676,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -5868,12 +5952,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -5984,6 +6072,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -6474,12 +6564,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -6746,12 +6840,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -6862,6 +6960,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -6906,6 +7006,10 @@
+                                     required:
+                                     - metadata
+                                     - spec
++                                    type: object
++                                  values:
++                                    additionalProperties:
++                                      type: string
+                                     type: object
+                                 type: object
+                               scmProvider:
+@@ -7347,12 +7451,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -7619,12 +7727,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -7734,6 +7846,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -8015,12 +8129,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -8287,12 +8405,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -8402,6 +8524,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -8693,12 +8817,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -8965,12 +9093,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -9080,6 +9212,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -9365,12 +9499,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -9637,12 +9775,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -9753,6 +9895,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -10036,12 +10180,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -10308,12 +10456,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -10423,6 +10575,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -10687,12 +10841,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -10959,12 +11117,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -11075,6 +11237,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -11346,12 +11510,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -11618,12 +11786,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -11734,6 +11906,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -12224,12 +12398,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -12496,12 +12674,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -12612,6 +12794,8 @@
+                                                 properties:
+                                                   allowEmpty:
+                                                     type: boolean
++                                                  enabled:
++                                                    type: boolean
+                                                   prune:
+                                                     type: boolean
+                                                   selfHeal:
+@@ -12656,6 +12840,10 @@
+                                     required:
+                                     - metadata
+                                     - spec
++                                    type: object
++                                  values:
++                                    additionalProperties:
++                                      type: string
+                                     type: object
+                                 type: object
+                               scmProvider:
+@@ -13097,12 +13285,16 @@
+                                                     type: boolean
+                                                   forceCommonLabels:
+                                                     type: boolean
++                                                  ignoreMissingComponents:
++                                                    type: boolean
+                                                   images:
+                                                     items:
+                                                       type: string
+                                                     type: array
+                                                   kubeVersion:
+                                                     type: string
++                                                  labelIncludeTemplates:
++                                                    type: boolean
+                                                   labelWithoutSelector:
+                                                     type: boolean
+                                                   namePrefix:
+@@ -13369,12 +13561,16 @@
+                                                       type: boolean
+                                                     forceCommonLabels:
+                                                       type: boolean
++                                                    ignoreMissingComponents:
++                                                      type: boolean
+                                                     images:
+                                                       items:
+                                                         type: string
+                                                       type: array
+                                                     kubeVersion:
+                                                       type: string
++                                                    labelIncludeTemplates:
++                                                      type: boolean
+                                                     labelWithoutSelector:
+                                                       type: boolean
+                                                     namePrefix:
+@@ -13484,6 +13680,8 @@
+                                               automated:
+                                                 properties:
+                                                   allowEmpty:
++                                                    type: boolean
++                                                  enabled:
+                                                     type: boolean
+                                                   prune:
+                                                     type: boolean
+@@ -13769,12 +13967,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -14041,12 +14243,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -14156,6 +14362,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -14427,12 +14635,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -14699,12 +14911,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -14814,6 +15030,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -15305,12 +15523,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -15577,12 +15799,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -15692,6 +15918,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -15737,6 +15965,10 @@
+                           required:
+                           - metadata
+                           - spec
++                          type: object
++                        values:
++                          additionalProperties:
++                            type: string
+                           type: object
+                       type: object
+                     scmProvider:
+@@ -16178,12 +16410,16 @@
+                                           type: boolean
+                                         forceCommonLabels:
+                                           type: boolean
++                                        ignoreMissingComponents:
++                                          type: boolean
+                                         images:
+                                           items:
+                                             type: string
+                                           type: array
+                                         kubeVersion:
+                                           type: string
++                                        labelIncludeTemplates:
++                                          type: boolean
+                                         labelWithoutSelector:
+                                           type: boolean
+                                         namePrefix:
+@@ -16450,12 +16686,16 @@
+                                             type: boolean
+                                           forceCommonLabels:
+                                             type: boolean
++                                          ignoreMissingComponents:
++                                            type: boolean
+                                           images:
+                                             items:
+                                               type: string
+                                             type: array
+                                           kubeVersion:
+                                             type: string
++                                          labelIncludeTemplates:
++                                            type: boolean
+                                           labelWithoutSelector:
+                                             type: boolean
+                                           namePrefix:
+@@ -16565,6 +16805,8 @@
+                                     automated:
+                                       properties:
+                                         allowEmpty:
++                                          type: boolean
++                                        enabled:
+                                           type: boolean
+                                         prune:
+                                           type: boolean
+@@ -16921,12 +17163,16 @@
+                                 type: boolean
+                               forceCommonLabels:
+                                 type: boolean
++                              ignoreMissingComponents:
++                                type: boolean
+                               images:
+                                 items:
+                                   type: string
+                                 type: array
+                               kubeVersion:
+                                 type: string
++                              labelIncludeTemplates:
++                                type: boolean
+                               labelWithoutSelector:
+                                 type: boolean
+                               namePrefix:
+@@ -17193,12 +17439,16 @@
+                                   type: boolean
+                                 forceCommonLabels:
+                                   type: boolean
++                                ignoreMissingComponents:
++                                  type: boolean
+                                 images:
+                                   items:
+                                     type: string
+                                   type: array
+                                 kubeVersion:
+                                   type: string
++                                labelIncludeTemplates:
++                                  type: boolean
+                                 labelWithoutSelector:
+                                   type: boolean
+                                 namePrefix:
+@@ -17308,6 +17558,8 @@
+                           automated:
+                             properties:
+                               allowEmpty:
++                                type: boolean
++                              enabled:
+                                 type: boolean
+                               prune:
+                                 type: boolean
+# CustomResourceDefinition/-/appprojects.argoproj.io (changed)
+--- from/CustomResourceDefinition/-/appprojects.argoproj.io
++++ to/CustomResourceDefinition/-/appprojects.argoproj.io
+@@ -255,6 +255,9 @@
+                 items:
+                   description: SyncWindow contains the kind, time, duration and attributes that are used to assign the syncWindows to apps
+                   properties:
++                    andOperator:
++                      description: UseAndOperator use AND operator for matching applications, namespaces and clusters instead of the default OR operator
++                      type: boolean
+                     applications:
+                       description: Applications contains a list of applications that the window will apply to
+                       items:
+# Deployment/argocd/argocd-applicationset-controller (changed)
+--- from/Deployment/argocd/argocd-applicationset-controller
++++ to/Deployment/argocd/argocd-applicationset-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-applicationset-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-applicationset-controller
+   namespace: argocd
+ spec:
+@@ -21,15 +21,15 @@
+   template:
+     metadata:
+       annotations:
+-        checksum/cmd-params: 11a5dcd087c2ad4394d99158d0cc0ef13c182c39ecd7c5a86952f385d7b149b1
++        checksum/cmd-params: f5722ad415c101a6b7f9f84d8006e8c3e48664b68d540f5ccae601d06b25b4be
+       labels:
+         app.kubernetes.io/component: applicationset-controller
+         app.kubernetes.io/instance: argocd
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-applicationset-controller
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -106,6 +106,12 @@
+               key: applicationsetcontroller.log.level
+               name: argocd-cmd-params-cm
+               optional: true
++        - name: ARGOCD_LOG_FORMAT_TIMESTAMP
++          valueFrom:
++            configMapKeyRef:
++              key: log.format.timestamp
++              name: argocd-cmd-params-cm
++              optional: true
+         - name: ARGOCD_APPLICATIONSET_CONTROLLER_DRY_RUN
+           valueFrom:
+             configMapKeyRef:
+@@ -196,7 +202,7 @@
+               key: applicationsetcontroller.requeue.after
+               name: argocd-cmd-params-cm
+               optional: true
+-        image: quay.io/argoproj/argocd:v2.14.11
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         name: applicationset-controller
+         ports:
+# Deployment/argocd/argocd-redis (changed)
+--- from/Deployment/argocd/argocd-redis
++++ to/Deployment/argocd/argocd-redis
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis
+   namespace: argocd
+ spec:
+@@ -25,8 +25,8 @@
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-redis
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -51,7 +51,7 @@
+             secretKeyRef:
+               key: auth
+               name: argocd-redis
+-        image: public.ecr.aws/docker/library/redis:7.2.8-alpine
++        image: ecr-public.aws.com/docker/library/redis:7.2.8-alpine
+         imagePullPolicy: IfNotPresent
+         name: redis
+         ports:
+# Deployment/argocd/argocd-repo-server (changed)
+--- from/Deployment/argocd/argocd-repo-server
++++ to/Deployment/argocd/argocd-repo-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-repo-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-repo-server
+   namespace: argocd
+ spec:
+@@ -21,16 +21,16 @@
+   template:
+     metadata:
+       annotations:
+-        checksum/cm: 12e1d75c612d3ebe986c4c4cc60e526058209028839efa61837241e479763b00
+-        checksum/cmd-params: 11a5dcd087c2ad4394d99158d0cc0ef13c182c39ecd7c5a86952f385d7b149b1
++        checksum/cm: 3f05c934961f16f0f689e7b32677d5dd6bb0d918d452b56be11a460edd06f3b3
++        checksum/cmd-params: f5722ad415c101a6b7f9f84d8006e8c3e48664b68d540f5ccae601d06b25b4be
+       labels:
+         app.kubernetes.io/component: repo-server
+         app.kubernetes.io/instance: argocd
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-repo-server
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -68,6 +68,12 @@
+               key: reposerver.log.level
+               name: argocd-cmd-params-cm
+               optional: true
++        - name: ARGOCD_LOG_FORMAT_TIMESTAMP
++          valueFrom:
++            configMapKeyRef:
++              key: log.format.timestamp
++              name: argocd-cmd-params-cm
++              optional: true
+         - name: ARGOCD_REPO_SERVER_PARALLELISM_LIMIT
+           valueFrom:
+             configMapKeyRef:
+@@ -180,6 +186,12 @@
+           valueFrom:
+             configMapKeyRef:
+               key: otlp.headers
++              name: argocd-cmd-params-cm
++              optional: true
++        - name: ARGOCD_REPO_SERVER_OTLP_ATTRS
++          valueFrom:
++            configMapKeyRef:
++              key: otlp.attrs
+               name: argocd-cmd-params-cm
+               optional: true
+         - name: ARGOCD_REPO_SERVER_MAX_COMBINED_DIRECTORY_MANIFESTS_SIZE
+@@ -266,7 +278,7 @@
+           value: /helm-working-dir
+         - name: HELM_DATA_HOME
+           value: /helm-working-dir
+-        image: quay.io/argoproj/argocd:v2.14.11
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 3
+@@ -328,7 +340,7 @@
+         - -n
+         - /usr/local/bin/argocd
+         - /var/run/argocd/argocd-cmp-server
+-        image: quay.io/argoproj/argocd:v2.14.11
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         name: copyutil
+         resources: {}
+# Deployment/argocd/argocd-server (changed)
+--- from/Deployment/argocd/argocd-server
++++ to/Deployment/argocd/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+   namespace: argocd
+ spec:
+@@ -21,16 +21,16 @@
+   template:
+     metadata:
+       annotations:
+-        checksum/cm: 12e1d75c612d3ebe986c4c4cc60e526058209028839efa61837241e479763b00
+-        checksum/cmd-params: 11a5dcd087c2ad4394d99158d0cc0ef13c182c39ecd7c5a86952f385d7b149b1
++        checksum/cm: 3f05c934961f16f0f689e7b32677d5dd6bb0d918d452b56be11a460edd06f3b3
++        checksum/cmd-params: f5722ad415c101a6b7f9f84d8006e8c3e48664b68d540f5ccae601d06b25b4be
+       labels:
+         app.kubernetes.io/component: server
+         app.kubernetes.io/instance: argocd
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-server
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -278,6 +278,12 @@
+               key: otlp.headers
+               name: argocd-cmd-params-cm
+               optional: true
++        - name: ARGOCD_SERVER_OTLP_ATTRS
++          valueFrom:
++            configMapKeyRef:
++              key: otlp.attrs
++              name: argocd-cmd-params-cm
++              optional: true
+         - name: ARGOCD_APPLICATION_NAMESPACES
+           valueFrom:
+             configMapKeyRef:
+@@ -344,7 +350,13 @@
+               key: hydrator.enabled
+               name: argocd-cmd-params-cm
+               optional: true
+-        image: quay.io/argoproj/argocd:v2.14.11
++        - name: ARGOCD_SYNC_WITH_REPLACE_ALLOWED
++          valueFrom:
++            configMapKeyRef:
++              key: server.sync.replace.allowed
++              name: argocd-cmd-params-cm
++              optional: true
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 3
+# Job/argocd/argocd-redis-secret-init (changed)
+--- from/Job/argocd/argocd-redis-secret-init
++++ to/Job/argocd/argocd-redis-secret-init
+@@ -10,8 +10,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis-secret-init
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis-secret-init
+   namespace: argocd
+ spec:
+@@ -23,8 +23,8 @@
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-redis-secret-init
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -40,7 +40,7 @@
+         - argocd
+         - admin
+         - redis-initial-password
+-        image: quay.io/argoproj/argocd:v2.14.11
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         name: secret-init
+         resources: {}
+# Role/argocd/argocd-application-controller (changed)
+--- from/Role/argocd/argocd-application-controller
++++ to/Role/argocd/argocd-application-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+   namespace: argocd
+ rules:
+@@ -25,6 +25,7 @@
+   - argoproj.io
+   resources:
+   - applications
++  - applicationsets
+   - appprojects
+   verbs:
+   - create
+# Role/argocd/argocd-applicationset-controller (changed)
+--- from/Role/argocd/argocd-applicationset-controller
++++ to/Role/argocd/argocd-applicationset-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-applicationset-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-applicationset-controller
+   namespace: argocd
+ rules:
+# Role/argocd/argocd-redis-secret-init (changed)
+--- from/Role/argocd/argocd-redis-secret-init
++++ to/Role/argocd/argocd-redis-secret-init
+@@ -10,8 +10,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis-secret-init
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis-secret-init
+   namespace: argocd
+ rules:
+# Role/argocd/argocd-repo-server (changed)
+--- from/Role/argocd/argocd-repo-server
++++ to/Role/argocd/argocd-repo-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-repo-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-repo-server
+   namespace: argocd
+ rules: null
+# Role/argocd/argocd-server (changed)
+--- from/Role/argocd/argocd-server
++++ to/Role/argocd/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+   namespace: argocd
+ rules:
+# RoleBinding/argocd/argocd-application-controller (changed)
+--- from/RoleBinding/argocd/argocd-application-controller
++++ to/RoleBinding/argocd/argocd-application-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+   namespace: argocd
+ roleRef:
+# RoleBinding/argocd/argocd-applicationset-controller (changed)
+--- from/RoleBinding/argocd/argocd-applicationset-controller
++++ to/RoleBinding/argocd/argocd-applicationset-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-applicationset-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-applicationset-controller
+   namespace: argocd
+ roleRef:
+# RoleBinding/argocd/argocd-redis-secret-init (changed)
+--- from/RoleBinding/argocd/argocd-redis-secret-init
++++ to/RoleBinding/argocd/argocd-redis-secret-init
+@@ -10,8 +10,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis-secret-init
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis-secret-init
+   namespace: argocd
+ roleRef:
+# RoleBinding/argocd/argocd-repo-server (changed)
+--- from/RoleBinding/argocd/argocd-repo-server
++++ to/RoleBinding/argocd/argocd-repo-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-repo-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-repo-server
+   namespace: argocd
+ roleRef:
+# RoleBinding/argocd/argocd-server (changed)
+--- from/RoleBinding/argocd/argocd-server
++++ to/RoleBinding/argocd/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+   namespace: argocd
+ roleRef:
+# Secret/argocd/argocd-secret (changed)
+--- from/Secret/argocd/argocd-secret
++++ to/Secret/argocd/argocd-secret
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-secret
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-secret
+   namespace: argocd
+ type: Opaque
+# Service/argocd/argocd-applicationset-controller (changed)
+--- from/Service/argocd/argocd-applicationset-controller
++++ to/Service/argocd/argocd-applicationset-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-applicationset-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-applicationset-controller
+   namespace: argocd
+ spec:
+# Service/argocd/argocd-redis (changed)
+--- from/Service/argocd/argocd-redis
++++ to/Service/argocd/argocd-redis
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis
+   namespace: argocd
+ spec:
+# Service/argocd/argocd-repo-server (changed)
+--- from/Service/argocd/argocd-repo-server
++++ to/Service/argocd/argocd-repo-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-repo-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-repo-server
+   namespace: argocd
+ spec:
+# Service/argocd/argocd-server (changed)
+--- from/Service/argocd/argocd-server
++++ to/Service/argocd/argocd-server
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+   namespace: argocd
+ spec:
+# ServiceAccount/argocd/argocd-application-controller (changed)
+--- from/ServiceAccount/argocd/argocd-application-controller
++++ to/ServiceAccount/argocd/argocd-application-controller
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+   namespace: argocd
+# ServiceAccount/argocd/argocd-applicationset-controller (changed)
+--- from/ServiceAccount/argocd/argocd-applicationset-controller
++++ to/ServiceAccount/argocd/argocd-applicationset-controller
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-applicationset-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-applicationset-controller
+   namespace: argocd
+# ServiceAccount/argocd/argocd-redis-secret-init (changed)
+--- from/ServiceAccount/argocd/argocd-redis-secret-init
++++ to/ServiceAccount/argocd/argocd-redis-secret-init
+@@ -11,7 +11,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-redis-secret-init
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-redis-secret-init
+   namespace: argocd
+# ServiceAccount/argocd/argocd-repo-server (changed)
+--- from/ServiceAccount/argocd/argocd-repo-server
++++ to/ServiceAccount/argocd/argocd-repo-server
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-repo-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-repo-server
+   namespace: argocd
+# ServiceAccount/argocd/argocd-server (changed)
+--- from/ServiceAccount/argocd/argocd-server
++++ to/ServiceAccount/argocd/argocd-server
+@@ -8,7 +8,7 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-server
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-server
+   namespace: argocd
+# StatefulSet/argocd/argocd-application-controller (changed)
+--- from/StatefulSet/argocd/argocd-application-controller
++++ to/StatefulSet/argocd/argocd-application-controller
+@@ -7,8 +7,8 @@
+     app.kubernetes.io/managed-by: Helm
+     app.kubernetes.io/name: argocd-application-controller
+     app.kubernetes.io/part-of: argocd
+-    app.kubernetes.io/version: v2.14.11
+-    helm.sh/chart: argo-cd-7.9.1
++    app.kubernetes.io/version: v3.0.12
++    helm.sh/chart: argo-cd-8.2.7
+   name: argocd-application-controller
+   namespace: argocd
+ spec:
+@@ -22,16 +22,16 @@
+   template:
+     metadata:
+       annotations:
+-        checksum/cm: 12e1d75c612d3ebe986c4c4cc60e526058209028839efa61837241e479763b00
+-        checksum/cmd-params: 11a5dcd087c2ad4394d99158d0cc0ef13c182c39ecd7c5a86952f385d7b149b1
++        checksum/cm: 3f05c934961f16f0f689e7b32677d5dd6bb0d918d452b56be11a460edd06f3b3
++        checksum/cmd-params: f5722ad415c101a6b7f9f84d8006e8c3e48664b68d540f5ccae601d06b25b4be
+       labels:
+         app.kubernetes.io/component: application-controller
+         app.kubernetes.io/instance: argocd
+         app.kubernetes.io/managed-by: Helm
+         app.kubernetes.io/name: argocd-application-controller
+         app.kubernetes.io/part-of: argocd
+-        app.kubernetes.io/version: v2.14.11
+-        helm.sh/chart: argo-cd-7.9.1
++        app.kubernetes.io/version: v3.0.12
++        helm.sh/chart: argo-cd-8.2.7
+     spec:
+       affinity:
+         podAntiAffinity:
+@@ -112,6 +112,12 @@
+               key: controller.log.level
+               name: argocd-cmd-params-cm
+               optional: true
++        - name: ARGOCD_LOG_FORMAT_TIMESTAMP
++          valueFrom:
++            configMapKeyRef:
++              key: log.format.timestamp
++              name: argocd-cmd-params-cm
++              optional: true
+         - name: ARGOCD_APPLICATION_CONTROLLER_METRICS_CACHE_EXPIRATION
+           valueFrom:
+             configMapKeyRef:
+@@ -140,6 +146,12 @@
+           valueFrom:
+             configMapKeyRef:
+               key: controller.self.heal.backoff.cap.seconds
++              name: argocd-cmd-params-cm
++              optional: true
++        - name: ARGOCD_APPLICATION_CONTROLLER_SELF_HEAL_BACKOFF_COOLDOWN_SECONDS
++          valueFrom:
++            configMapKeyRef:
++              key: controller.self.heal.backoff.cooldown.seconds
+               name: argocd-cmd-params-cm
+               optional: true
+         - name: ARGOCD_APPLICATION_CONTROLLER_SYNC_TIMEOUT
+@@ -238,6 +250,12 @@
+               key: otlp.headers
+               name: argocd-cmd-params-cm
+               optional: true
++        - name: ARGOCD_APPLICATION_CONTROLLER_OTLP_ATTRS
++          valueFrom:
++            configMapKeyRef:
++              key: otlp.attrs
++              name: argocd-cmd-params-cm
++              optional: true
+         - name: ARGOCD_APPLICATION_NAMESPACES
+           valueFrom:
+             configMapKeyRef:
+@@ -296,11 +314,17 @@
+           valueFrom:
+             configMapKeyRef:
+               key: controller.cluster.cache.events.processing.interval
++              name: argocd-cmd-params-cm
++              optional: true
++        - name: ARGOCD_APPLICATION_CONTROLLER_COMMIT_SERVER
++          valueFrom:
++            configMapKeyRef:
++              key: commit.server
+               name: argocd-cmd-params-cm
+               optional: true
+         - name: KUBECACHEDIR
+           value: /tmp/kubecache
+-        image: quay.io/argoproj/argocd:v2.14.11
++        image: quay.io/argoproj/argocd:v3.0.12
+         imagePullPolicy: IfNotPresent
+         name: application-controller
+         ports:
