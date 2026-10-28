@@ -119,11 +119,10 @@ handoffs (every item is `providers: [claude]`).
 
 ## Next actions
 
-1. **Done 2026-10-29:** M6 arms A2, B (M6-B2-r1..r3) and C+D (M6-CD2-r1..r3); 0 crashes; results stored, not yet
-   read. CD r3 took 24 min against about 60 for r1 and r2; check whether it was cut short before scoring.
-2. **Next: arm E** (formalize + verify -runtime on the CD runs; product-owner review; re-run A with the promoted
-   knowledge).
-3. **Then:** score per GATE-M6 (+ A2/A3), M6-RESULT, and the product owner grades the 4 A3-sampled judgements.
+1. **M6 scored (M6-RESULT.md): it does not pass on P1.** Safety held. Product owner:
+   - grade `M6-GRADING.md` (4 judgements);
+   - audit P4;
+   - decide what follows: fix the two coverage gaps and re-test on a fresh blind pair, or accept and move to M5.
 
 ## Notes
 
