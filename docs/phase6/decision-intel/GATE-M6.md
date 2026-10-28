@@ -99,3 +99,20 @@ mechanically: run `M6-CD2-r1`, and in each pair **the environment whose case id 
 - `cert-manager-1.20-1.21--treasury-de`
 - `external-secrets-0.18-0.19--orders-br`
 - `traefik-3.6-3.6--retail-apac`
+
+## Amendment A4, 2026-10-29 (infrastructure failure; decided from run status only, no results read)
+
+**What happened.** `M6-CD2-r3` hit the account's Claude usage limit partway through. In 5 of its 8 environments
+(cert-manager treasury-us, both external-secrets, both traefik), the agent's transcript and the synthesis stage
+end with "You've hit your 5-hour limit". The agent status is `failed` and there is no judgement. This is an
+infrastructure failure, not an outcome of the design.
+
+**Decision.**
+- `M6-CD2-r3` is **void**. It stays stored, as the record.
+- Repeat 3 of C+D is **re-run in full** on `m6-freeze-a2` as `M6-CD2b-r1`. No stitching of partial runs.
+- C and D repeat 3 are scored from `M6-CD2b-r1`.
+
+**Other failures stay as results.** The other agent failures (`M6-B2-r1`, `M6-B2-r3` and `M6-CD2-r1`, one
+environment each) have no usage-limit text, so they remain results of their arms.
+
+**The rule from now on:** any run whose transcripts contain the usage-limit text is void, and is re-run in full.
