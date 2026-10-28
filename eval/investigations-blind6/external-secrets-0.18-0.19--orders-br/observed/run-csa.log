@@ -1,0 +1,203 @@
+# external-secrets-0.18-0.19--orders-br (csa): External Secrets chart 0.18.2 -> 0.19.2 through Argo CD v3.1.5; kind v0.24.0, node kindest/node:v1.31.0
+
+### CRD sizes in the environment's render  [23:50:58Z]
+  0.18.2: clustersecretstores.external-secrets.io serialized 259438 bytes
+  0.18.2: secretstores.external-secrets.io serialized 259391 bytes
+  0.19.2: clustersecretstores.external-secrets.io serialized 276398 bytes
+  0.19.2: secretstores.external-secrets.io serialized 276351 bytes
+  (a client-side apply stores the whole object in the last-applied-configuration annotation; annotations total at most 262144 bytes)
+$ kind create cluster --name ri-groundtruth6-eso-br-csa --image kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865 --wait 120s --kubeconfig <kubeconfig>.cb2yHTYUcf
+Creating cluster "ri-groundtruth6-eso-br-csa" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 2m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 2m0s for control-plane = Ready ⏳
+ • Ready after 17s 💚
+Set kubectl context to "kind-ri-groundtruth6-eso-br-csa"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-ri-groundtruth6-eso-br-csa --kubeconfig <kubeconfig>.cb2yHTYUcf
+
+Thanks for using kind! 😊
+$ kubectl version
+Client Version: v1.34.1
+Kustomize Version: v5.7.1
+Server Version: v1.31.0
+Warning: version difference between client (1.34) and server (1.31) exceeds the supported minor version skew of +/-1
+
+### Argo CD v3.1.5 (argo-cd chart 8.5.1)  [23:51:26Z]
+$ helm install argocd <charts>/argo-cd-8.5.1.tgz -n argocd --create-namespace --set dex.enabled=false --set notifications.enabled=false --wait --timeout 300s
+NAME: argocd
+LAST DEPLOYED: Tue Oct 27 18:51:27 2026
+NAMESPACE: argocd
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+In order to access the server UI you have the following options:
+
+1. kubectl port-forward service/argocd-server -n argocd 8080:443
+
+    and then open the browser on http://localhost:8080 and accept the certificate
+
+2. enable ingress in the values file `server.ingress.enabled` and either
+      - Add the annotation for ssl passthrough: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
+      - Set the `configs.params."server.insecure"` in the values file and terminate SSL at your ingress: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-multiple-ingress-objects-and-hosts
+
+
+After reaching the UI the first time you can login with username: admin and the random password generated during the installation. You can find the password by running:
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+(You should delete the initial secret afterwards as suggested by the Getting Started Guide: https://argo-cd.readthedocs.io/en/stable/getting_started/#4-login-using-the-cli)
+$ kubectl -n argocd get statefulset argocd-application-controller -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}
+quay.io/argoproj/argocd:v3.1.5
+
+### the Application under test (csa; helm.valuesObject = platform/external-secrets/values.yaml)  [23:51:50Z]
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: external-secrets
+    namespace: argocd
+  spec:
+    project: default
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: external-secrets
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+      - CreateNamespace=true
+    source:
+      repoURL: https://charts.external-secrets.io
+      chart: external-secrets
+      targetRevision: 0.18.2
+      helm:
+        releaseName: external-secrets
+        valuesObject: <platform/external-secrets/values.yaml>
+  
+$ kubectl apply -f <scratch>/app.yaml
+application.argoproj.io/external-secrets created
+
+### FROM: automated sync at 0.18.2  [23:51:50Z]
+  revision: 0.18.2 | sync: OutOfSync | health: Progressing
+  operation: Succeeded | successfully synced (all tasks run)
+    CustomResourceDefinition/clustersecretstores.external-secrets.io: Synced Sync customresourcedefinition.apiextensions.k8s.io/clustersecretstores.external-secrets.io created
+    CustomResourceDefinition/secretstores.external-secrets.io: Synced Sync customresourcedefinition.apiextensions.k8s.io/secretstores.external-secrets.io created
+    Deployment/external-secrets: Synced Sync deployment.apps/external-secrets created
+    Deployment/external-secrets-cert-controller: Synced Sync deployment.apps/external-secrets-cert-controller created
+    Deployment/external-secrets-webhook: Synced Sync deployment.apps/external-secrets-webhook created
+$ kubectl -n external-secrets rollout status deploy/external-secrets --timeout=180s
+Waiting for deployment "external-secrets" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "external-secrets" rollout to finish: 1 of 2 updated replicas are available...
+deployment "external-secrets" successfully rolled out
+$ kubectl -n external-secrets rollout status deploy/external-secrets-webhook --timeout=180s
+Waiting for deployment "external-secrets-webhook" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "external-secrets-webhook" rollout to finish: 1 of 2 updated replicas are available...
+deployment "external-secrets-webhook" successfully rolled out
+$ kubectl -n external-secrets rollout status deploy/external-secrets-cert-controller --timeout=180s
+Waiting for deployment "external-secrets-cert-controller" rollout to finish: 0 of 1 updated replicas are available...
+deployment "external-secrets-cert-controller" successfully rolled out
+$ kubectl -n external-secrets get deploy external-secrets -o jsonpath={.spec.template.spec.containers[0].image}{"\n"}
+oci.external-secrets.io/external-secrets/external-secrets:v0.18.2
+  CRD                                           SCHEMA     LAST-APPLIED-ANNOTATION
+  clustersecretstores.external-secrets.io       0.18.2     259439
+  secretstores.external-secrets.io              0.18.2     259392
+  externalsecrets.external-secrets.io           0.18.2     31565
+
+### probe objects: fake-provider ClusterSecretStore + ExternalSecret (FROM 0.18.2)  [23:52:33Z]
+$ kubectl apply -f probe.yaml
+  namespace/probe created
+  Warning: store probe-fake isn't currently maintained. Please plan and prepare accordingly.
+  clustersecretstore.external-secrets.io/probe-fake created
+  externalsecret.external-secrets.io/probe created
+$ kubectl -n probe get externalsecret probe -o jsonpath={range .status.conditions[*]}{.type}={.status} reason={.reason} message={.message}{"\n"}{end}
+Ready=True reason=SecretSynced message=secret synced
+(exit 0)
+$ kubectl -n probe get secret probe -o jsonpath={.data.value} | base64 -d
+  from-0.18.2
+
+### FROM: the environment's ClusterSecretStore and ExternalSecret (accepted by the API; AWS is unreachable from kind)  [23:52:53Z]
+$ kubectl kustomize <blind6>/external-secrets-0.18-0.19--orders-br/env/platform/secret-stores | kubectl apply -f -
+clustersecretstore.external-secrets.io/aws-secrets-manager created
+$ kubectl create namespace orders
+namespace/orders created
+(exit 0)
+$ kubectl -n orders apply -f <blind6>/external-secrets-0.18-0.19--orders-br/env/apps/orders/externalsecret.yaml
+externalsecret.external-secrets.io/orders-db created
+(exit 0)
+
+### UPGRADE: targetRevision 0.18.2 -> 0.19.2 (the proposed change); Argo CD's automated sync  [23:52:53Z]
+$ kubectl -n argocd patch application external-secrets --type merge -p {"spec":{"source":{"targetRevision":"0.19.2"}}}
+application.argoproj.io/external-secrets patched
+  revision: 0.19.2 | sync: OutOfSync | health: Healthy
+  operation: Failed | one or more objects failed to apply, reason: error when patching "/dev/shm/3294524047": CustomResourceDefinition.apiextensions.k8s.io "clustersecretstores.external-secrets.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes,error when patching "/dev/shm/4241622088": CustomResourceDefinition.apiextensions.k8s.io "secretstores.external-secrets.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes (retried 5 times).
+    CustomResourceDefinition/clustersecretstores.external-secrets.io: SyncFailed Sync error when patching "/dev/shm/3294524047": CustomResourceDefinition.apiextensions.k8s.io "clustersecretstores.external-secrets.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes 
+ -Additional Info: This error usually means that you are trying to add a large resource on cl
+    CustomResourceDefinition/secretstores.external-secrets.io: SyncFailed Sync error when patching "/dev/shm/4241622088": CustomResourceDefinition.apiextensions.k8s.io "secretstores.external-secrets.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes 
+ -Additional Info: This error usually means that you are trying to add a large resource on client si
+    Deployment/external-secrets-cert-controller: Synced Sync deployment.apps/external-secrets-cert-controller configured
+    Deployment/external-secrets: Synced Sync deployment.apps/external-secrets configured
+    Deployment/external-secrets-webhook: Synced Sync deployment.apps/external-secrets-webhook configured
+  condition: SyncError Failed sync attempt to 0.19.2: one or more objects failed to apply, reason: error when patching "/dev/shm/3294524047": CustomResourceDefinition.apiextensions.k8s.io "clustersecretstores.external-secrets.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes,error when patchin
+
+### cluster state after the sync of 0.19.2  [23:58:38Z]
+$ kubectl -n external-secrets get deploy -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas
+NAME                               IMAGE                                                               READY
+external-secrets                   oci.external-secrets.io/external-secrets/external-secrets:v0.19.2   2
+external-secrets-cert-controller   oci.external-secrets.io/external-secrets/external-secrets:v0.19.2   1
+external-secrets-webhook           oci.external-secrets.io/external-secrets/external-secrets:v0.19.2   2
+  CRD                                           SCHEMA     LAST-APPLIED-ANNOTATION
+  clustersecretstores.external-secrets.io       0.18.2     259439
+  secretstores.external-secrets.io              0.18.2     259392
+  externalsecrets.external-secrets.io           0.19.2     31673
+
+### probe objects: fake-provider ClusterSecretStore + ExternalSecret (TO 0.19.2)  [23:58:43Z]
+$ kubectl apply -f probe.yaml
+  namespace/probe unchanged
+  Warning: store probe-fake isn't currently maintained. Please plan and prepare accordingly.
+  clustersecretstore.external-secrets.io/probe-fake configured
+  externalsecret.external-secrets.io/probe configured
+$ kubectl -n probe get externalsecret probe -o jsonpath={range .status.conditions[*]}{.type}={.status} reason={.reason} message={.message}{"\n"}{end}
+Ready=True reason=SecretSynced message=secret synced
+(exit 0)
+$ kubectl -n probe get secret probe -o jsonpath={.data.value} | base64 -d
+  to-0.19.2
+
+### external-secrets controller log (errors, deduplicated)  [23:59:03Z]
+    66 {"level":"error","logger":"controllers.ClusterSecretStore","msg":"unable to validate store","clustersecretstore":{"name":"aws-secrets-manager"},"error":"could not validate provider: failed to refresh cached credentials, failed to retrieve credentials, operation error STS: AssumeRoleWithWebIdentity, 
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"eb7cfcb1-5443-46eb-a397-be0a84207be7","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"dbd17565-68e3-493b-b37a-745acbd3c18c","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"c338d78e-0089-458b-a71e-fc791c947c09","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"bb42feed-cd38-4aa3-a0bf-9b380e4251aa","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"95b41728-7918-4f99-a9d8-a0bfe6c5e1ed","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"72d2ca24-c495-4897-a8c2-fefbe86b6972","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"29614f3d-976b-4b3b-acbc-a036fa541a98","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"1a4f617e-8d71-4f65-8bcb-4bca9a60cbe5","e
+     1 {"level":"error","msg":"Reconciler error","controller":"externalsecret","controllerGroup":"external-secrets.io","controllerKind":"ExternalSecret","ExternalSecret":{"name":"orders-db","namespace":"orders"},"namespace":"orders","name":"orders-db","reconcileID":"11dad242-98e1-4112-8d5d-71bbd3d73da2","e
+     1 {"level":"error","msg":"Reconciler error","controller":"clustersecretstore","controllerGroup":"external-secrets.io","controllerKind":"ClusterSecretStore","ClusterSecretStore":{"name":"aws-secrets-manager"},"namespace":"","name":"aws-secrets-manager","reconcileID":"fbc6f495-c375-4069-a026-807197bde9b
+     1 {"level":"error","msg":"Reconciler error","controller":"clustersecretstore","controllerGroup":"external-secrets.io","controllerKind":"ClusterSecretStore","ClusterSecretStore":{"name":"aws-secrets-manager"},"namespace":"","name":"aws-secrets-manager","reconcileID":"f7346e6e-e03c-4cc6-bb90-e71bf73b1b4
+
+### Argo CD application controller: lines about annotation size  [23:59:03Z]
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/1138675365\": CustomResourceDefinition.apiextensions.k8s.io \"secretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=secretstores.external
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/1245178201\": CustomResourceDefinition.apiextensions.k8s.io \"clustersecretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=clustersecrets
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/1832967003\": CustomResourceDefinition.apiextensions.k8s.io \"clustersecretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=clustersecrets
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/2895211173\": CustomResourceDefinition.apiextensions.k8s.io \"secretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=secretstores.external
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/3091605040\": CustomResourceDefinition.apiextensions.k8s.io \"secretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=secretstores.external
+     1 level=info msg="Adding resource result, status: 'SyncFailed', phase: 'Failed', message: 'error when patching \"/dev/shm/3174470382\": CustomResourceDefinition.apiextensions.k8s.io \"secretstores.external-secrets.io\" is invalid: metadata.annotations: Too long: must have at most 262144 bytes'" app-namespace=argocd application=external-secrets kind=CustomResourceDefinition name=secretstores.external
+
+### cleanup  [23:59:03Z]
+Deleting cluster "ri-groundtruth6-eso-br-csa" ...
+Deleted nodes: ["ri-groundtruth6-eso-br-csa-control-plane"]
